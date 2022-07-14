@@ -1,6 +1,9 @@
 
+
 <h1 align="center">
+<br>
     Permify - Open Source Authorization Service
+<br>
 </h1>
 
 
