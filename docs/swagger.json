@@ -1,0 +1,322 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Permify API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/v1",
+    "paths": {
+        "/permissions/check": {
+            "post": {
+                "description": "Check subject is authorized",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Permission"
+                ],
+                "summary": "Permission",
+                "operationId": "check",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/permission.Check"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Check"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/relationships/delete": {
+            "post": {
+                "description": "delete relation tuple",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Relationship"
+                ],
+                "summary": "Relationship",
+                "operationId": "delete",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/relationship.Delete"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/relationships/write": {
+            "post": {
+                "description": "create new relation tuple",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Relationship"
+                ],
+                "summary": "Relationship",
+                "operationId": "write",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/relationship.Write"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/status/ping": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Server"
+                ],
+                "summary": "Server",
+                "operationId": "ping",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/status/version": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Server"
+                ],
+                "summary": "Server",
+                "operationId": "version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "permission.Check": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string"
+                        },
+                        "depth": {
+                            "type": "integer"
+                        },
+                        "object": {
+                            "type": "string"
+                        },
+                        "user": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object"
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
+                }
+            }
+        },
+        "relationship.Delete": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object",
+                    "properties": {
+                        "namespace": {
+                            "type": "string"
+                        },
+                        "object_id": {
+                            "type": "string"
+                        },
+                        "relation": {
+                            "type": "string"
+                        },
+                        "userset_namespace": {
+                            "type": "string"
+                        },
+                        "userset_object_id": {
+                            "type": "string"
+                        },
+                        "userset_relation": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object"
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
+                }
+            }
+        },
+        "relationship.Write": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object",
+                    "properties": {
+                        "namespace": {
+                            "type": "string"
+                        },
+                        "object_id": {
+                            "type": "string"
+                        },
+                        "relation": {
+                            "type": "string"
+                        },
+                        "userset_namespace": {
+                            "type": "string"
+                        },
+                        "userset_object_id": {
+                            "type": "string"
+                        },
+                        "userset_relation": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object"
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
+                }
+            }
+        },
+        "responses.Check": {
+            "type": "object",
+            "properties": {
+                "can": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.HTTPErrorResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {}
+            }
+        },
+        "responses.Message": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

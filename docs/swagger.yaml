@@ -1,0 +1,213 @@
+basePath: /v1
+definitions:
+  permission.Check:
+    properties:
+      body:
+        description: "*\n\t * Body"
+        properties:
+          action:
+            type: string
+          depth:
+            type: integer
+          object:
+            type: string
+          user:
+            type: string
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
+    type: object
+  relationship.Delete:
+    properties:
+      body:
+        description: "*\n\t * Body"
+        properties:
+          namespace:
+            type: string
+          object_id:
+            type: string
+          relation:
+            type: string
+          userset_namespace:
+            type: string
+          userset_object_id:
+            type: string
+          userset_relation:
+            type: string
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
+    type: object
+  relationship.Write:
+    properties:
+      body:
+        description: "*\n\t * Body"
+        properties:
+          namespace:
+            type: string
+          object_id:
+            type: string
+          relation:
+            type: string
+          userset_namespace:
+            type: string
+          userset_object_id:
+            type: string
+          userset_relation:
+            type: string
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
+    type: object
+  responses.Check:
+    properties:
+      can:
+        type: boolean
+    type: object
+  responses.HTTPErrorResponse:
+    properties:
+      errors: {}
+    type: object
+  responses.Message:
+    properties:
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: Permify API
+  version: "1.0"
+paths:
+  /permissions/check:
+    post:
+      consumes:
+      - application/json
+      description: Check subject is authorized
+      operationId: check
+      parameters:
+      - description: ''''''
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/permission.Check'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Check'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Permission
+      tags:
+      - Permission
+  /relationships/delete:
+    post:
+      consumes:
+      - application/json
+      description: delete relation tuple
+      operationId: delete
+      parameters:
+      - description: ''''''
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/relationship.Delete'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Relationship
+      tags:
+      - Relationship
+  /relationships/write:
+    post:
+      consumes:
+      - application/json
+      description: create new relation tuple
+      operationId: write
+      parameters:
+      - description: ''''''
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/relationship.Write'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Relationship
+      tags:
+      - Relationship
+  /status/ping:
+    get:
+      consumes:
+      - application/json
+      operationId: ping
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Server
+      tags:
+      - Server
+  /status/version:
+    get:
+      consumes:
+      - application/json
+      operationId: version
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Server
+      tags:
+      - Server
+swagger: "2.0"

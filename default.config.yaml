@@ -1,0 +1,21 @@
+app:
+  name: 'permify'
+  version: '0.0.1'
+
+http:
+  port: '3476'
+
+logger:
+  log_level: 'debug'
+  rollbar_env: 'permify'
+
+database:
+  listen:
+    connection: postgres
+    pool_max: 2
+    url: 'postgres://user:password@host:5432/db_name'
+
+  write:
+    connection: postgres
+    pool_max: 2
+    url: 'postgres://user:password@host:5432/db_name'

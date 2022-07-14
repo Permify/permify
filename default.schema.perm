@@ -1,0 +1,1 @@
+entity user {} `table:users|identifier:id`
