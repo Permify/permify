@@ -124,7 +124,7 @@ func (service *PermissionService) checkRewrite(ctx context.Context, request Requ
 	}
 }
 
-// checkRewrite -
+// checkLeaf -
 func (service *PermissionService) checkLeaf(ctx context.Context, request Request, child schema.Leaf, d int) CheckFunction {
 	switch child.GetType() {
 	case schema.TupleToUserSetType.String():
@@ -136,7 +136,7 @@ func (service *PermissionService) checkLeaf(ctx context.Context, request Request
 	}
 }
 
-// setOperation -
+// set -
 func (service *PermissionService) set(ctx context.Context, request Request, children []schema.Child, combiner Combiner, d int) CheckFunction {
 	var functions []CheckFunction
 
