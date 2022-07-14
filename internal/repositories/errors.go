@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	`errors`
+	"errors"
 )
 
 var (

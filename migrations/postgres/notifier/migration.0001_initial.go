@@ -1,7 +1,7 @@
 package notifier
 
 import (
-	`fmt`
+	"fmt"
 )
 
 // CreateNotifyFunctionMigration -

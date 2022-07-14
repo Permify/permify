@@ -1,7 +1,7 @@
 package entities
 
 import (
-	`time`
+	"time"
 )
 
 // EntityConfig -

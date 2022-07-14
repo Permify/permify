@@ -1,7 +1,7 @@
 package schema
 
 import (
-	`github.com/Permify/permify/pkg/helper`
+	"github.com/Permify/permify/pkg/helper"
 )
 
 const (

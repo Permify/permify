@@ -7,7 +7,7 @@ import (
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
-	`github.com/Permify/permify/pkg/dsl/schema`
+	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -63,7 +63,6 @@ type Request struct {
 
 // Check -
 func (service *PermissionService) Check(ctx context.Context, s string, a string, o string, d int) (can bool, err error) {
-
 	can = false
 
 	var object tuple.Object
@@ -89,7 +88,7 @@ func (service *PermissionService) Check(ctx context.Context, s string, a string,
 
 check:
 
-	var re = Request{
+	re := Request{
 		Object:  object,
 		Subject: tuple.ConvertUser(s),
 	}
@@ -99,7 +98,6 @@ check:
 
 // c -
 func (service *PermissionService) c(ctx context.Context, request Request, child schema.Child, d int) (bool, error) {
-
 	var fn CheckFunction
 
 	switch child.GetKind() {

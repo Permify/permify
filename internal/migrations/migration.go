@@ -1,9 +1,9 @@
 package migrations
 
 import (
-	`fmt`
+	"fmt"
 
-	`github.com/Permify/permify/migrations/postgres/notifier`
+	"github.com/Permify/permify/migrations/postgres/notifier"
 	"github.com/Permify/permify/migrations/postgres/subscriber"
 	"github.com/Permify/permify/pkg/migration"
 )

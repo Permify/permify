@@ -2,11 +2,12 @@ package postgres
 
 import (
 	"context"
-	`encoding/json`
-	`github.com/lib/pq`
+	"encoding/json"
 
-	`github.com/Permify/permify/internal/consumers`
-	e `github.com/Permify/permify/internal/entities`
+	"github.com/lib/pq"
+
+	"github.com/Permify/permify/internal/consumers"
+	e "github.com/Permify/permify/internal/entities"
 )
 
 // PQConsumer -

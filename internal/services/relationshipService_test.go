@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -10,16 +11,13 @@ import (
 )
 
 var _ = Describe("relationship-service", func() {
-
 	var relationshipService *RelationshipService
 
 	Context("WriteRelationship", func() {
-
 		It("Write", func() {
-
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			var tuples = []entities.RelationTuple{
+			tuples := []entities.RelationTuple{
 				{
 					Entity:          "organization",
 					ObjectID:        "1",
@@ -50,12 +48,10 @@ var _ = Describe("relationship-service", func() {
 	})
 
 	Context("DeleteRelationship", func() {
-
 		It("Write", func() {
-
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			var tuples = []entities.RelationTuple{
+			tuples := []entities.RelationTuple{
 				{
 					Entity:          "organization",
 					ObjectID:        "1",
@@ -83,7 +79,5 @@ var _ = Describe("relationship-service", func() {
 			err := relationshipService.DeleteRelationship(context.Background(), tuples)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
-
 	})
-
 })

@@ -1,12 +1,12 @@
 package postgres
 
 import (
-	`fmt`
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
 
-	`github.com/Permify/permify/pkg/logger`
+	"github.com/Permify/permify/pkg/logger"
 )
 
 const (

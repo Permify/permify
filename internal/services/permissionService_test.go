@@ -5,13 +5,11 @@ import (
 )
 
 var _ = Describe("permission-service", func() {
+	// var permissionService *PermissionService
 
-	//var permissionService *PermissionService
-
-	//sampleDriveSchema := schema.Schema{}
+	// sampleDriveSchema := schema.Schema{}
 
 	Context("Check", func() {
-
 		//It("Drive Sample: User Is Folder Direct Collaborator", func() {
 		//	relationTupleRepository := new(mocks.RelationTupleRepository)
 		//
@@ -335,6 +333,5 @@ var _ = Describe("permission-service", func() {
 		//	Expect(err).Should(Equal(DepthError))
 		//	Expect(false).Should(Equal(actualResult))
 		//})
-
 	})
 })

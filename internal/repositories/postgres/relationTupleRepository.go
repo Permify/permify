@@ -2,15 +2,16 @@ package postgres
 
 import (
 	"context"
-	`errors`
+	"errors"
 	"fmt"
-	`github.com/jackc/pgconn`
+
+	"github.com/jackc/pgconn"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/entities"
-	`github.com/Permify/permify/internal/repositories`
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database/postgres"
 )
 
@@ -60,7 +61,6 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 
 // Write -.
 func (r *RelationTupleRepository) Write(ctx context.Context, tuples []entities.RelationTuple) (err error) {
-
 	if len(tuples) < 1 {
 		return nil
 	}
@@ -100,7 +100,6 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples []entities.R
 
 // Delete -.
 func (r *RelationTupleRepository) Delete(ctx context.Context, tuples []entities.RelationTuple) error {
-
 	for _, tuple := range tuples {
 		sql, args, err := r.Database.Builder.
 			Delete(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": tuple.Entity, "object_id": tuple.ObjectID, "relation": tuple.Relation, "userset_entity": tuple.UsersetEntity, "userset_object_id": tuple.UsersetObjectID, "userset_relation": tuple.UsersetRelation}).

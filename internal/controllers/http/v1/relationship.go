@@ -2,7 +2,7 @@ package v1
 
 import (
 	"context"
-	`errors`
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -10,7 +10,7 @@ import (
 	"github.com/Permify/permify/internal/controllers/http/requests/relationship"
 	"github.com/Permify/permify/internal/controllers/http/responses"
 	"github.com/Permify/permify/internal/entities"
-	`github.com/Permify/permify/internal/repositories`
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
 )

@@ -1,13 +1,12 @@
 package lexer
 
 import (
-	`testing`
+	"testing"
 
-	`github.com/Permify/permify/pkg/dsl/token`
+	"github.com/Permify/permify/pkg/dsl/token"
 )
 
 func TestNextToken(t *testing.T) {
-
 	str := "entity user {} `table:\"users\",identifier:\"id\"`\n entity organization {\n relation admin @user `rel:\"custom\"`\n relation member @user `rel:\"many-to-many\", table:\"org_members\", cols:\"org_id,user_id\"`\n    action create_repository = admin or member\n    action delete = admin \n} `table:\"organizations\", identifier:\"id\"`\n"
 
 	tests := []struct {
@@ -68,5 +67,4 @@ func TestNextToken(t *testing.T) {
 				i, tt.expectedLiteral, lexeme.Literal)
 		}
 	}
-
 }

@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	`github.com/Permify/permify/pkg/dsl/token`
+	"github.com/Permify/permify/pkg/dsl/token"
 )
 
 // Lexer -

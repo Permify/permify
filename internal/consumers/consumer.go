@@ -1,11 +1,11 @@
 package consumers
 
 import (
-	`fmt`
+	"fmt"
 
-	`github.com/Permify/permify/internal/services`
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // Consumer -

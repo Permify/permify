@@ -1,16 +1,17 @@
 package postgres
 
 import (
-	`context`
-	`errors`
-	`fmt`
-	`github.com/Masterminds/squirrel`
-	`github.com/jackc/pgconn`
-	`github.com/jackc/pgx/v4`
+	"context"
+	"errors"
+	"fmt"
 
-	`github.com/Permify/permify/internal/entities`
-	`github.com/Permify/permify/internal/repositories`
-	`github.com/Permify/permify/pkg/database/postgres`
+	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
+
+	"github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/pkg/database/postgres"
 )
 
 // EntityConfigRepository -.
@@ -82,7 +83,6 @@ func (r *EntityConfigRepository) First(ctx context.Context, entity string) (conf
 
 // Replace -
 func (r *EntityConfigRepository) Replace(ctx context.Context, configs []entities.EntityConfig) (err error) {
-
 	if len(configs) < 1 {
 		return nil
 	}

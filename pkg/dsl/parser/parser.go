@@ -1,11 +1,11 @@
 package parser
 
 import (
-	`fmt`
+	"fmt"
 
-	`github.com/Permify/permify/pkg/dsl/ast`
-	`github.com/Permify/permify/pkg/dsl/lexer`
-	`github.com/Permify/permify/pkg/dsl/token`
+	"github.com/Permify/permify/pkg/dsl/ast"
+	"github.com/Permify/permify/pkg/dsl/lexer"
+	"github.com/Permify/permify/pkg/dsl/token"
 )
 
 const (
@@ -179,7 +179,6 @@ func (p *Parser) parseActionStatement() ast.Statement {
 
 // parseRewrite -
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
-
 	stmt := &ast.ExpressionStatement{}
 	stmt.Expression = p.parseExpression(LOWEST)
 
@@ -205,7 +204,6 @@ func (p *Parser) expectAndNext(t token.Type) bool {
 
 // parseExpression -
 func (p *Parser) parseExpression(precedence int) ast.Expression {
-
 	if p.currentTokenIs(token.LPAREN) {
 		p.next()
 		return p.parseInnerParen()
@@ -232,7 +230,6 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 // parseInnerParen -
 func (p *Parser) parseInnerParen() ast.Expression {
-
 	if p.currentTokenIs(token.LPAREN) {
 		return p.parseExpression(LOWEST)
 	}

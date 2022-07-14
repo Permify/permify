@@ -1,15 +1,15 @@
 package services
 
 import (
-	`github.com/dgraph-io/ristretto`
-	`golang.org/x/net/context`
+	"github.com/dgraph-io/ristretto"
+	"golang.org/x/net/context"
 
-	e `github.com/Permify/permify/internal/entities`
-	`github.com/Permify/permify/internal/migrations`
-	`github.com/Permify/permify/internal/repositories`
-	PQDatabase `github.com/Permify/permify/pkg/database/postgres`
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/migration`
+	e "github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/migrations"
+	"github.com/Permify/permify/internal/repositories"
+	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/migration"
 )
 
 // ISchemaService -
@@ -37,19 +37,18 @@ func NewSchemaService(repo repositories.IEntityConfigRepository, cache *ristrett
 
 // AllSchema -
 func (service *SchemaService) AllSchema(ctx context.Context) (sch schema.Schema, err error) {
-	//service.repository.All(ctx)
+	// service.repository.All(ctx)
 	return
 }
 
 // Schema -
 func (service *SchemaService) Schema(ctx context.Context, entity string) (sch schema.Entity, err error) {
-	//service.repository.First(ctx, entity)
+	// service.repository.First(ctx, entity)
 	return
 }
 
 // ReplaceSchema -
 func (service *SchemaService) ReplaceSchema(ctx context.Context, configs []e.EntityConfig) (err error) {
-
 	var sch schema.Schema
 	sch, err = service.AllSchema(context.TODO())
 	if err != nil {

@@ -1,22 +1,21 @@
 package parser
 
 import (
-	`strings`
+	"strings"
 
-	`github.com/Permify/permify/pkg/dsl/ast`
-	`github.com/Permify/permify/pkg/dsl/schema`
+	"github.com/Permify/permify/pkg/dsl/ast"
+	"github.com/Permify/permify/pkg/dsl/schema"
 )
 
 // TranslateToSchema -
 func TranslateToSchema(input string) (sch schema.Schema) {
-
 	pr := NewParser(input)
 	parsed := pr.Parse()
 
 	var entities []schema.Entity
 
 	for _, sc := range parsed.Statements {
-		var entitySt = sc.(*ast.EntityStatement)
+		entitySt := sc.(*ast.EntityStatement)
 		var entity schema.Entity
 
 		entity.Name = entitySt.Name.Literal
@@ -35,7 +34,7 @@ func TranslateToSchema(input string) (sch schema.Schema) {
 
 		// relations
 		for _, rs := range entitySt.RelationStatements {
-			var relationSt = rs.(*ast.RelationStatement)
+			relationSt := rs.(*ast.RelationStatement)
 			var relation schema.Relation
 			relation.Name = relationSt.Name.Literal
 			relation.Type = relationSt.Type.Literal
@@ -68,7 +67,7 @@ func TranslateToSchema(input string) (sch schema.Schema) {
 
 		// actions
 		for _, as := range entitySt.ActionStatements {
-			var st = as.(*ast.ActionStatement)
+			st := as.(*ast.ActionStatement)
 			var action schema.Action
 			action.Name = st.Name.Literal
 			action.Child = parseChild(st.ExpressionStatement.(*ast.ExpressionStatement))

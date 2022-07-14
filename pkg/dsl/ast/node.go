@@ -1,9 +1,9 @@
 package ast
 
 import (
-	`strings`
+	"strings"
 
-	`github.com/Permify/permify/pkg/dsl/token`
+	"github.com/Permify/permify/pkg/dsl/token"
 )
 
 // Node -

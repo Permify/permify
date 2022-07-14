@@ -2,40 +2,40 @@
 package app
 
 import (
-	`context`
+	"context"
 	"fmt"
-	`github.com/lib/pq`
-	`io/ioutil`
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/lib/pq"
+
 	"github.com/labstack/echo/v4"
 
 	"github.com/Permify/permify/internal/config"
-	`github.com/Permify/permify/internal/consumers`
-	PQConsumer `github.com/Permify/permify/internal/consumers/postgres`
+	"github.com/Permify/permify/internal/consumers"
+	PQConsumer "github.com/Permify/permify/internal/consumers/postgres"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
 	"github.com/Permify/permify/internal/migrations"
 	PQRepository "github.com/Permify/permify/internal/repositories/postgres"
 	"github.com/Permify/permify/internal/services"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
-	`github.com/Permify/permify/pkg/dsl/parser`
-	`github.com/Permify/permify/pkg/dsl/schema`
+	"github.com/Permify/permify/pkg/dsl/parser"
+	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/httpserver"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/migration"
-	`github.com/Permify/permify/pkg/notifier/postgres`
+	"github.com/Permify/permify/pkg/notifier/postgres"
 )
 
 // Run creates objects via constructors.
 func Run(cfg *config.Config) {
-
 	var err error
 
 	l := logger.New(cfg.Log.Level)
 
-	//config statement
+	// config statement
 	var s []byte
 	s, err = ioutil.ReadFile(schema.Path)
 	if err != nil {
@@ -112,10 +112,10 @@ func Run(cfg *config.Config) {
 
 	// repositories
 	relationTupleRepository := PQRepository.NewRelationTupleRepository(write)
-	//entityConfigRepository := PQRepository.NewEntityConfigRepository(write)
+	// entityConfigRepository := PQRepository.NewEntityConfigRepository(write)
 
 	// services
-	//schemaService := services.NewSchemaService(entityConfigRepository, cache, write)
+	// schemaService := services.NewSchemaService(entityConfigRepository, cache, write)
 	relationshipService := services.NewRelationshipService(relationTupleRepository)
 	permissionService := services.NewPermissionService(relationTupleRepository, statement)
 
