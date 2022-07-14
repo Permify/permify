@@ -1,5 +1,7 @@
+
+
 <p align="center">
-<img src="https://media.giphy.com/media/BkaGFfogyFmPLwmSXu/giphy.gif" alt="Permify - Open source authorization as a service"  width="600px" />
+    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/Permify%20Demo%20Github.gif" alt="Permify - Open source authorization as a service"  width="600px" />
 </p>
 
 Permify is an open-source authorization service that you can run with docker and works on a Rest API.
