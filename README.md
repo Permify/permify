@@ -1,8 +1,19 @@
 
 
+
+
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Permify/permify?style=for-the-badge)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Permify/permify?style=for-the-badge)](https://goreportcard.com/report/github.com/Permify/permify)
+![GitHub](https://img.shields.io/github/license/Permify/permify?style=for-the-badge)
+![Discord](https://img.shields.io/discord/950799928047833088?style=for-the-badge)
+![Docker Image Version (latest by date)](https://img.shields.io/docker/v/permify/permify?style=for-the-badge)
+
+---
+
 <p align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/Permify%20Demo%20Github.gif" alt="Permify - Open source authorization as a service"  width="720px" />
 </p>
+
 
 Permify is an open-source authorization service that you can run with docker and works on a Rest API.
 
