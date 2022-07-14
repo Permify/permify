@@ -236,9 +236,7 @@ After configuration, you can check authorization with a simple call.
 
 The relation tuples of the ACL used by Permify can be represented as a graph of relations. This graph will help you
 understand the performance of check engine and the algorithms it uses.
-<img width=“1756" alt=“filled graph”
-src=“https://user-images.githubusercontent.com/39353278/175956412-54801b34-1524-414d-8737-19d3b1abfb73.png”>
-this graph is created by combining schema file and data.
+<img width="1756" alt="filled graph" src="https://user-images.githubusercontent.com/39353278/175956412-54801b34-1524-414d-8737-19d3b1abfb73.png"> this graph is created by combining schema file and data.
 
 ## API
 
