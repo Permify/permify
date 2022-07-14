@@ -250,7 +250,6 @@ a repository object?
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
 | [x]   | user | string | - | the user or user set who wants to take the action. Examples: “1”, “organization:1#owners”
-|
 | [x]   | action | string | - | the action the user wants to perform on the resource |
 | [x]   | object | string | - | name and id of the resource. Example: “organization:1” |
 | [ ]   | depth | integer | 8 | |
