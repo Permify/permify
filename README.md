@@ -333,16 +333,15 @@ Response
 We are building SDKs to make installation easier, leave us a feedback on which SDK we should build first.
 
 ## Community
-
-You can join the conversation at our Discord channel. We love to talk about authorization and access control - we would
+You can join the conversation at our [Discord channel](https://discord.gg/MJbUjwskdH). We love to talk about authorization and access control - we would
 love to hear from you :heart:
 If you like Permify, please consider giving us a :star:️
 
 <h2 align="left">:heart: Let's get connected:</h2>
 
 <p align="left">
-<a href=“https://discord.gg/MJbUjwskdH”>
- <img alt=“guilyx’s Discord” width=“100px” src=“https://user-images.githubusercontent.com/39353278/175938446-49f4eba4-98e1-48b5-8e67-19c731301070.svg” />
+<a href="https://discord.gg/MJbUjwskdH">
+ <img alt="guilyx’s Discord" width="50px" src="https://user-images.githubusercontent.com/34595361/178992169-fba31a7a-fa80-42ba-9d7f-46c9c0b5a9f8.png" />
 </a>
 <a href="https://twitter.com/GetPermify">
   <img alt="guilyx | Twitter" width="50px" src="https://user-images.githubusercontent.com/43545812/144034996-602b144a-16e1-41cc-99e7-c6040b20dcaf.png"/>
