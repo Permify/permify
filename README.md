@@ -1,14 +1,18 @@
 
+<h1 align="center">
+    Permify - Open Source Authorization Service
+</h1>
 
 
+<p align="center">
+    <a href="https://github.com/Permify/permify" target="_blank"><img src="https://img.shields.io/github/go-mod/go-version/Permify/permify?style=for-the-badge" alt="Permify Go Version" /></a>&nbsp;
+    <a href="https://goreportcard.com/report/github.com/Permify/permify" target="_blank"><img src="https://goreportcard.com/badge/github.com/Permify/permify?style=for-the-badge" alt="Permify Go Report Card" /></a>&nbsp;
+    <a href="https://github.com/Permify/permify" target="_blank"><img src="https://img.shields.io/github/license/Permify/permify?style=for-the-badge" alt="Permify Licence" /></a>&nbsp;
+    <a href="https://discord.gg/MJbUjwskdH" target="_blank"><img src="https://img.shields.io/discord/950799928047833088?style=for-the-badge" alt="Permify Discord Channel" /></a>&nbsp;
+    <a href="https://hub.docker.com/repository/docker/permify/permify" target="_blank"><img src="https://img.shields.io/docker/v/permify/permify?style=for-the-badge" alt="Permify Docker Image Version" /></a>&nbsp;
+</p>
 
-![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Permify/permify?style=for-the-badge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Permify/permify?style=for-the-badge)](https://goreportcard.com/report/github.com/Permify/permify)
-![GitHub](https://img.shields.io/github/license/Permify/permify?style=for-the-badge)
-![Discord](https://img.shields.io/discord/950799928047833088?style=for-the-badge)
-![Docker Image Version (latest by date)](https://img.shields.io/docker/v/permify/permify?style=for-the-badge)
 
----
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/Permify%20Demo%20Github.gif" alt="Permify - Open source authorization as a service"  width="720px" />
