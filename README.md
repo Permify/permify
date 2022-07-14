@@ -211,10 +211,10 @@ We examined how we created the tuple by listening to the tables. Permify allows 
 **Path:** POST /v1/relationships/write
 | Required | Argument     | Type  | Default | Description |
 |----------|-------------------|--------|---------|-------------|
-| [x]   | namespace     | string | -    |       |
+| [x]   | entity     | string | -    |       |
 | [x]   | object_id     | string | -    |       |
 | [x]   | relation     | string | -    |       |
-| [ ]   | userset_namespace | string | -    |       |
+| [ ]   | userset_entity | string | -    |       |
 | [x]   | userset_object_id | string | -    |       |
 | [ ]   | userset_relation | string | -    |       |
 #### Example
@@ -240,20 +240,20 @@ Delete relation tuple.
 **Path:** POST /v1/relationships/delete
 | Required | Argument     | Type  | Default | Description |
 |----------|-------------------|--------|---------|-------------|
-| [x]   | namespace     | string | -    |       |
+| [x]   | entity     | string | -    |       |
 | [x]   | object_id     | string | -    |       |
 | [x]   | relation     | string | -    |       |
-| [ ]   | userset_namespace | string | -    |       |
+| [ ]   | userset_entity | string | -    |       |
 | [x]   | userset_object_id | string | -    |       |
 | [ ]   | userset_relation | string | -    |       |
 #### Example
 Request
 ```json
 {
- “namespace”: “organization”,
+ “entity”: “organization”,
  “object_id”: “1",
  “relation”: “admin”,
- “userset_namespace”: “”,
+ “userset_entity”: “”,
  “userset_object_id”: “1",
  “userset_relation”: “”
 }
