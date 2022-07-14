@@ -20,22 +20,22 @@ type Write struct {
 	 * Body
 	 */
 	Body struct {
-		Namespace        string `json:"namespace" form:"namespace" xml:"namespace"`
-		ObjectID         string `json:"object_id" form:"object_id" xml:"object_id"`
-		Relation         string `json:"relation" form:"relation" xml:"relation"`
-		UsersetNamespace string `json:"userset_namespace" form:"userset_namespace" xml:"userset_namespace"`
-		UsersetObjectID  string `json:"userset_object_id" form:"userset_object_id" xml:"userset_object_id"`
-		UsersetRelation  string `json:"userset_relation" form:"userset_relation" xml:"userset_relation"`
+		Entity          string `json:"entity" form:"entity" xml:"entity"`
+		ObjectID        string `json:"object_id" form:"object_id" xml:"object_id"`
+		Relation        string `json:"relation" form:"relation" xml:"relation"`
+		UsersetEntity   string `json:"userset_entity" form:"userset_entity" xml:"userset_entity"`
+		UsersetObjectID string `json:"userset_object_id" form:"userset_object_id" xml:"userset_object_id"`
+		UsersetRelation string `json:"userset_relation" form:"userset_relation" xml:"userset_relation"`
 	}
 }
 
 func (r Write) Validate() (err error) {
 	// Validate Body
 	err = validation.ValidateStruct(&r.Body,
-		validation.Field(&r.Body.Namespace, validation.Required),
+		validation.Field(&r.Body.Entity, validation.Required),
 		validation.Field(&r.Body.ObjectID, validation.Required),
 		validation.Field(&r.Body.Relation, validation.Required),
-		validation.Field(&r.Body.UsersetNamespace),
+		validation.Field(&r.Body.UsersetEntity),
 		validation.Field(&r.Body.UsersetObjectID, validation.Required),
 		validation.Field(&r.Body.UsersetRelation),
 	)

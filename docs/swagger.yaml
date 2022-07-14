@@ -26,13 +26,13 @@ definitions:
       body:
         description: "*\n\t * Body"
         properties:
-          namespace:
+          entity:
             type: string
           object_id:
             type: string
           relation:
             type: string
-          userset_namespace:
+          userset_entity:
             type: string
           userset_object_id:
             type: string
@@ -51,13 +51,13 @@ definitions:
       body:
         description: "*\n\t * Body"
         properties:
-          namespace:
+          entity:
             type: string
           object_id:
             type: string
           relation:
             type: string
-          userset_namespace:
+          userset_entity:
             type: string
           userset_object_id:
             type: string

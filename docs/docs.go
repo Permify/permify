@@ -244,7 +244,7 @@ var doc = `{
                     "description": "*\n\t * Body",
                     "type": "object",
                     "properties": {
-                        "namespace": {
+                        "entity": {
                             "type": "string"
                         },
                         "object_id": {
@@ -253,7 +253,7 @@ var doc = `{
                         "relation": {
                             "type": "string"
                         },
-                        "userset_namespace": {
+                        "userset_entity": {
                             "type": "string"
                         },
                         "userset_object_id": {
@@ -281,7 +281,7 @@ var doc = `{
                     "description": "*\n\t * Body",
                     "type": "object",
                     "properties": {
-                        "namespace": {
+                        "entity": {
                             "type": "string"
                         },
                         "object_id": {
@@ -290,7 +290,7 @@ var doc = `{
                         "relation": {
                             "type": "string"
                         },
-                        "userset_namespace": {
+                        "userset_entity": {
                             "type": "string"
                         },
                         "userset_object_id": {
