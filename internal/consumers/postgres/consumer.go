@@ -57,7 +57,7 @@ func (c *PQConsumer) Consume(ctx context.Context, event chan *pq.Notification) {
 					} else {
 						relationTuple.UsersetEntity = t.User.UserSet.Object.Namespace
 						relationTuple.UsersetObjectID = t.User.UserSet.Object.ID
-						relationTuple.UsersetRelation = t.User.UserSet.Relation
+						relationTuple.UsersetRelation = t.User.UserSet.Relation.String()
 					}
 
 					deleteRelationTuples = append(deleteRelationTuples, relationTuple)
@@ -83,7 +83,7 @@ func (c *PQConsumer) Consume(ctx context.Context, event chan *pq.Notification) {
 					} else {
 						relationTuple.UsersetEntity = w.User.UserSet.Object.Namespace
 						relationTuple.UsersetObjectID = w.User.UserSet.Object.ID
-						relationTuple.UsersetRelation = w.User.UserSet.Relation
+						relationTuple.UsersetRelation = w.User.UserSet.Relation.String()
 					}
 					writeRelationTuples = append(writeRelationTuples, relationTuple)
 				}

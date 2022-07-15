@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
@@ -12,9 +11,11 @@ import (
 )
 
 var (
-	DepthError             = errors.New("depth error")
-	CanceledError          = errors.New("canceled error")
-	ActionCannotFoundError = errors.New("action cannot found")
+	DepthError              = errors.New("depth error")
+	CanceledError           = errors.New("canceled error")
+	ActionCannotFoundError  = errors.New("action cannot found")
+	UndefinedChildTypeError = errors.New("undefined child type")
+	UndefinedChildKindError = errors.New("undefined child kind")
 )
 
 // Decision -
@@ -56,9 +57,27 @@ func NewPermissionService(repo repositories.IRelationTupleRepository, schema sch
 	}
 }
 
+// Request -
 type Request struct {
 	Object  tuple.Object
 	Subject tuple.User
+	depth   *int
+}
+
+// SetDepth -
+func (r *Request) SetDepth(i int) {
+	r.depth = &i
+}
+
+// decrease -
+func (r *Request) decrease() *Request {
+	*r.depth--
+	return r
+}
+
+// isFinish -
+func (r *Request) isFinish() bool {
+	return *r.depth <= 0
 }
 
 // Check -
@@ -92,19 +111,24 @@ check:
 		Object:  object,
 		Subject: tuple.ConvertUser(s),
 	}
+	re.SetDepth(d)
 
-	return service.c(ctx, re, child, d)
+	return service.c(ctx, &re, child)
 }
 
 // c -
-func (service *PermissionService) c(ctx context.Context, request Request, child schema.Child, d int) (bool, error) {
+func (service *PermissionService) c(ctx context.Context, request *Request, child schema.Child) (bool, error) {
 	var fn CheckFunction
 
 	switch child.GetKind() {
 	case schema.RewriteKind.String():
-		fn = service.checkRewrite(ctx, request, child.(schema.Rewrite), d)
+		fn = service.checkRewrite(ctx, request, child.(schema.Rewrite))
 	case schema.LeafKind.String():
-		fn = service.checkLeaf(ctx, request, child.(schema.Leaf), d)
+		fn = service.checkLeaf(ctx, request, child.(schema.Leaf))
+	}
+
+	if fn == nil {
+		return false, UndefinedChildKindError
 	}
 
 	result := union(ctx, []CheckFunction{fn})
@@ -113,41 +137,41 @@ func (service *PermissionService) c(ctx context.Context, request Request, child 
 }
 
 // checkRewrite -
-func (service *PermissionService) checkRewrite(ctx context.Context, request Request, child schema.Rewrite, d int) CheckFunction {
+func (service *PermissionService) checkRewrite(ctx context.Context, request *Request, child schema.Rewrite) CheckFunction {
 	switch child.GetType() {
 	case schema.Union.String():
-		return service.set(ctx, request, child.Children, union, d)
+		return service.set(ctx, request, child.Children, union)
 	case schema.Intersection.String():
-		return service.set(ctx, request, child.Children, intersection, d)
+		return service.set(ctx, request, child.Children, intersection)
 	default:
-		return nil
+		return fail(UndefinedChildTypeError)
 	}
 }
 
 // checkLeaf -
-func (service *PermissionService) checkLeaf(ctx context.Context, request Request, child schema.Leaf, d int) CheckFunction {
+func (service *PermissionService) checkLeaf(ctx context.Context, request *Request, child schema.Leaf) CheckFunction {
 	switch child.GetType() {
 	case schema.TupleToUserSetType.String():
-		return service.check(ctx, request.Object, child.Value, request.Subject, d)
+		return service.check(ctx, request.Object, tuple.Relation(child.Value), request)
 	case schema.ComputedUserSetType.String():
-		return service.check(ctx, request.Object, child.Value, request.Subject, d)
+		return service.check(ctx, request.Object, tuple.Relation(child.Value), request)
 	default:
-		return nil
+		return fail(UndefinedChildTypeError)
 	}
 }
 
 // set -
-func (service *PermissionService) set(ctx context.Context, request Request, children []schema.Child, combiner Combiner, d int) CheckFunction {
+func (service *PermissionService) set(ctx context.Context, request *Request, children []schema.Child, combiner Combiner) CheckFunction {
 	var functions []CheckFunction
 
 	for _, child := range children {
 		switch child.GetKind() {
 		case schema.RewriteKind.String():
-			functions = append(functions, service.checkRewrite(ctx, request, child.(schema.Rewrite), d))
+			functions = append(functions, service.checkRewrite(ctx, request, child.(schema.Rewrite)))
 		case schema.LeafKind.String():
-			functions = append(functions, service.checkLeaf(ctx, request, child.(schema.Leaf), d))
+			functions = append(functions, service.checkLeaf(ctx, request, child.(schema.Leaf)))
 		default:
-			return nil
+			return fail(UndefinedChildKindError)
 		}
 	}
 
@@ -219,9 +243,12 @@ func intersection(ctx context.Context, functions []CheckFunction) Decision {
 }
 
 // getUsers -
-func (service *PermissionService) getUsers(ctx context.Context, object tuple.Object, relation string, optRel string) (users []tuple.User, err error) {
+func (service *PermissionService) getUsers(ctx context.Context, object tuple.Object, relation tuple.Relation) (users []tuple.User, err error) {
+
+	r := relation.Split()
+
 	var en []entities.RelationTuple
-	en, err = service.repository.QueryTuples(ctx, object.Namespace, object.ID, relation)
+	en, err = service.repository.QueryTuples(ctx, object.Namespace, object.ID, r[0].String())
 	if err != nil {
 		return nil, err
 	}
@@ -238,9 +265,9 @@ func (service *PermissionService) getUsers(ctx context.Context, object tuple.Obj
 			}
 
 			if entity.UsersetRelation == tuple.ELLIPSIS {
-				user.UserSet.Relation = optRel
+				user.UserSet.Relation = r[1]
 			} else {
-				user.UserSet.Relation = entity.UsersetRelation
+				user.UserSet.Relation = tuple.Relation(entity.UsersetRelation)
 			}
 
 			users = append(users, user)
@@ -255,34 +282,30 @@ func (service *PermissionService) getUsers(ctx context.Context, object tuple.Obj
 }
 
 // check -
-func (service *PermissionService) check(ctx context.Context, object tuple.Object, relation string, subject tuple.User, d int) CheckFunction {
+func (service *PermissionService) check(ctx context.Context, object tuple.Object, relation tuple.Relation, re *Request) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- Decision) {
 		var err error
 
-		if d <= 0 {
+		if re.isFinish() {
 			decisionChan <- sendDecision(false, DepthError)
 		}
 
 		var users []tuple.User
-		r := strings.Split(relation, ".")
-		if len(r) > 1 {
-			users, err = service.getUsers(ctx, object, r[0], r[1])
-		} else {
-			users, err = service.getUsers(ctx, object, relation, "")
-		}
+		users, err = service.getUsers(ctx, object, relation)
 
 		if err != nil {
-			decisionChan <- sendDecision(false, err)
+			fail(err)
 			return
 		}
 
 		for _, t := range users {
-			if t.Equals(subject) {
+			if t.Equals(re.Subject) {
 				decisionChan <- sendDecision(true, err)
 				return
 			} else {
 				if !t.IsUser() {
-					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, t.UserSet.Object, t.UserSet.Relation, subject, d-1)})
+					re.decrease()
+					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, t.UserSet.Object, t.UserSet.Relation, re)})
 					return
 				}
 			}
@@ -290,5 +313,12 @@ func (service *PermissionService) check(ctx context.Context, object tuple.Object
 
 		decisionChan <- sendDecision(false, err)
 		return
+	}
+}
+
+// fail -
+func fail(err error) CheckFunction {
+	return func(ctx context.Context, decisionChan chan<- Decision) {
+		decisionChan <- sendDecision(false, err)
 	}
 }

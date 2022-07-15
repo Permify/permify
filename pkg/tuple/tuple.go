@@ -28,7 +28,7 @@ type Object struct {
 // UserSet -
 type UserSet struct {
 	Object   Object
-	Relation string
+	Relation Relation
 }
 
 // User -
@@ -109,7 +109,7 @@ func ConvertUser(v string) User {
 				Namespace: innerParts[0],
 				ID:        innerParts[1],
 			},
-			Relation: parts[1],
+			Relation: Relation(parts[1]),
 		},
 	}
 }
@@ -124,4 +124,37 @@ func ConvertObject(v string) (Object, error) {
 		Namespace: obj[0],
 		ID:        obj[1],
 	}, nil
+}
+
+const (
+	SEPARATOR = "."
+)
+
+// Relation -
+type Relation string
+
+// String -
+func (r Relation) String() string {
+	return string(r)
+}
+
+// IsComputed -
+func (r Relation) IsComputed() bool {
+	sp := strings.Split(r.String(), SEPARATOR)
+	if len(sp) == 1 {
+		return true
+	}
+	return false
+}
+
+// Split -
+func (r Relation) Split() (a []Relation) {
+	s := strings.Split(r.String(), SEPARATOR)
+	for _, b := range s {
+		a = append(a, Relation(b))
+	}
+	if len(a) == 1 {
+		a = append(a, "")
+	}
+	return
 }
