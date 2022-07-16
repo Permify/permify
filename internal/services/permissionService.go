@@ -62,7 +62,7 @@ type Combiner func(ctx context.Context, requests []CheckFunction) Decision
 
 // IPermissionService -
 type IPermissionService interface {
-	Check(ctx context.Context, s string, a string, o string, d int) (bool, *VisitMap, error)
+	Check(ctx context.Context, s string, a string, o string, d int) (bool, *VisitMap, int, error)
 }
 
 // PermissionService -
