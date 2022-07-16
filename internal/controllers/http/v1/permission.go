@@ -56,7 +56,8 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 
 	var can bool
 	var vi *services.VisitMap
-	can, vi, err = r.service.Check(context.Background(), request.Body.User, request.Body.Action, request.Body.Object, request.Body.Depth)
+	var rm int
+	can, vi, rm, err = r.service.Check(context.Background(), request.Body.User, request.Body.Action, request.Body.Object, request.Body.Depth)
 	if err != nil {
 		if errors.Is(err, services.DepthError) {
 			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"depth": "depth is not enough to check"})
@@ -68,7 +69,8 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 	}
 
 	return c.JSON(http.StatusOK, responses.Check{
-		Can:       can,
-		Decisions: vi,
+		Can:            can,
+		Decisions:      vi,
+		RemainingDepth: rm,
 	})
 }

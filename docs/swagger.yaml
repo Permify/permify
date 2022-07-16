@@ -76,6 +76,8 @@ definitions:
       can:
         type: boolean
       decisions: {}
+      remaining_depth:
+        type: integer
     type: object
   responses.HTTPErrorResponse:
     properties:

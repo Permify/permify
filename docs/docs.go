@@ -317,7 +317,10 @@ var doc = `{
                 "can": {
                     "type": "boolean"
                 },
-                "decisions": {}
+                "decisions": {},
+                "remaining_depth": {
+                    "type": "integer"
+                }
             }
         },
         "responses.HTTPErrorResponse": {
