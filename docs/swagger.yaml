@@ -75,6 +75,7 @@ definitions:
     properties:
       can:
         type: boolean
+      decisions: {}
     type: object
   responses.HTTPErrorResponse:
     properties:

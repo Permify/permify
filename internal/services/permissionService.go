@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	`fmt`
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
@@ -18,10 +19,31 @@ var (
 	UndefinedChildKindError = errors.New("undefined child kind")
 )
 
+// VisitMap -
+type VisitMap map[string]Decision
+
+// isVisited -
+func (v VisitMap) isVisited(key string) bool {
+	if _, ok := v[key]; ok {
+		return true
+	}
+	return false
+}
+
+// add -
+func (v VisitMap) set(key string, decision Decision) {
+	v[key] = decision
+}
+
+// add -
+func (v VisitMap) get(key string) (decision Decision) {
+	return v[key]
+}
+
 // Decision -
 type Decision struct {
-	Can bool
-	Err error
+	Can bool  `json:"can"`
+	Err error `json:"err"`
 }
 
 // sendDecision -
@@ -40,7 +62,7 @@ type Combiner func(ctx context.Context, requests []CheckFunction) Decision
 
 // IPermissionService -
 type IPermissionService interface {
-	Check(ctx context.Context, s string, a string, o string, d int) (bool, error)
+	Check(ctx context.Context, s string, a string, o string, d int) (bool, *VisitMap, error)
 }
 
 // PermissionService -
@@ -76,18 +98,18 @@ func (r *Request) decrease() *Request {
 }
 
 // isFinish -
-func (r *Request) isFinish() bool {
+func (r *Request) isDepthFinish() bool {
 	return *r.depth <= 0
 }
 
 // Check -
-func (service *PermissionService) Check(ctx context.Context, s string, a string, o string, d int) (can bool, err error) {
+func (service *PermissionService) Check(ctx context.Context, s string, a string, o string, d int) (can bool, visit *VisitMap, remainingDepth int, err error) {
 	can = false
 
 	var object tuple.Object
 	object, err = tuple.ConvertObject(o)
 	if err != nil {
-		return false, err
+		return false, nil, d, err
 	}
 
 	entity := service.schema.Entities[object.Namespace]
@@ -102,74 +124,79 @@ func (service *PermissionService) Check(ctx context.Context, s string, a string,
 	}
 
 	if child == nil {
-		return false, ActionCannotFoundError
+		return false, nil, d, ActionCannotFoundError
 	}
 
 check:
+
+	var vm = &VisitMap{}
 
 	re := Request{
 		Object:  object,
 		Subject: tuple.ConvertUser(s),
 	}
+
 	re.SetDepth(d)
 
-	return service.c(ctx, &re, child)
+	can, visit, err = service.c(ctx, &re, child, vm)
+	remainingDepth = *re.depth
+
+	return
 }
 
 // c -
-func (service *PermissionService) c(ctx context.Context, request *Request, child schema.Child) (bool, error) {
+func (service *PermissionService) c(ctx context.Context, request *Request, child schema.Child, vm *VisitMap) (bool, *VisitMap, error) {
 	var fn CheckFunction
 
 	switch child.GetKind() {
 	case schema.RewriteKind.String():
-		fn = service.checkRewrite(ctx, request, child.(schema.Rewrite))
+		fn = service.checkRewrite(ctx, request, child.(schema.Rewrite), vm)
 	case schema.LeafKind.String():
-		fn = service.checkLeaf(ctx, request, child.(schema.Leaf))
+		fn = service.checkLeaf(ctx, request, child.(schema.Leaf), vm)
 	}
 
 	if fn == nil {
-		return false, UndefinedChildKindError
+		return false, nil, UndefinedChildKindError
 	}
 
 	result := union(ctx, []CheckFunction{fn})
 
-	return result.Can, result.Err
+	return result.Can, vm, result.Err
 }
 
 // checkRewrite -
-func (service *PermissionService) checkRewrite(ctx context.Context, request *Request, child schema.Rewrite) CheckFunction {
+func (service *PermissionService) checkRewrite(ctx context.Context, request *Request, child schema.Rewrite, vm *VisitMap) CheckFunction {
 	switch child.GetType() {
 	case schema.Union.String():
-		return service.set(ctx, request, child.Children, union)
+		return service.set(ctx, request, child.Children, union, vm)
 	case schema.Intersection.String():
-		return service.set(ctx, request, child.Children, intersection)
+		return service.set(ctx, request, child.Children, intersection, vm)
 	default:
 		return fail(UndefinedChildTypeError)
 	}
 }
 
 // checkLeaf -
-func (service *PermissionService) checkLeaf(ctx context.Context, request *Request, child schema.Leaf) CheckFunction {
+func (service *PermissionService) checkLeaf(ctx context.Context, request *Request, child schema.Leaf, vm *VisitMap) CheckFunction {
 	switch child.GetType() {
 	case schema.TupleToUserSetType.String():
-		return service.check(ctx, request.Object, tuple.Relation(child.Value), request)
+		return service.check(ctx, request.Object, tuple.Relation(child.Value), request, vm)
 	case schema.ComputedUserSetType.String():
-		return service.check(ctx, request.Object, tuple.Relation(child.Value), request)
+		return service.check(ctx, request.Object, tuple.Relation(child.Value), request, vm)
 	default:
 		return fail(UndefinedChildTypeError)
 	}
 }
 
 // set -
-func (service *PermissionService) set(ctx context.Context, request *Request, children []schema.Child, combiner Combiner) CheckFunction {
+func (service *PermissionService) set(ctx context.Context, request *Request, children []schema.Child, combiner Combiner, vm *VisitMap) CheckFunction {
 	var functions []CheckFunction
-
 	for _, child := range children {
 		switch child.GetKind() {
 		case schema.RewriteKind.String():
-			functions = append(functions, service.checkRewrite(ctx, request, child.(schema.Rewrite)))
+			functions = append(functions, service.checkRewrite(ctx, request, child.(schema.Rewrite), vm))
 		case schema.LeafKind.String():
-			functions = append(functions, service.checkLeaf(ctx, request, child.(schema.Leaf)))
+			functions = append(functions, service.checkLeaf(ctx, request, child.(schema.Leaf), vm))
 		default:
 			return fail(UndefinedChildKindError)
 		}
@@ -282,17 +309,26 @@ func (service *PermissionService) getUsers(ctx context.Context, object tuple.Obj
 }
 
 // check -
-func (service *PermissionService) check(ctx context.Context, object tuple.Object, relation tuple.Relation, re *Request) CheckFunction {
+func (service *PermissionService) check(ctx context.Context, object tuple.Object, relation tuple.Relation, re *Request, vm *VisitMap) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- Decision) {
 		var err error
 
-		if re.isFinish() {
+		var key = fmt.Sprintf(tuple.OBJECT+tuple.RELATION, object.Namespace, object.ID, relation.String())
+
+		if vm.isVisited(key) {
+			decisionChan <- vm.get(key)
+			return
+		}
+
+		re.decrease()
+
+		if re.isDepthFinish() {
 			decisionChan <- sendDecision(false, DepthError)
+			return
 		}
 
 		var users []tuple.User
 		users, err = service.getUsers(ctx, object, relation)
-
 		if err != nil {
 			fail(err)
 			return
@@ -300,18 +336,21 @@ func (service *PermissionService) check(ctx context.Context, object tuple.Object
 
 		for _, t := range users {
 			if t.Equals(re.Subject) {
-				decisionChan <- sendDecision(true, err)
+				dec := sendDecision(true, err)
+				vm.set(key, dec)
+				decisionChan <- dec
 				return
 			} else {
 				if !t.IsUser() {
-					re.decrease()
-					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, t.UserSet.Object, t.UserSet.Relation, re)})
+					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, t.UserSet.Object, t.UserSet.Relation, re, vm)})
 					return
 				}
 			}
 		}
 
-		decisionChan <- sendDecision(false, err)
+		dec := sendDecision(false, err)
+		vm.set(key, dec)
+		decisionChan <- dec
 		return
 	}
 }

@@ -316,7 +316,8 @@ var doc = `{
             "properties": {
                 "can": {
                     "type": "boolean"
-                }
+                },
+                "decisions": {}
             }
         },
         "responses.HTTPErrorResponse": {

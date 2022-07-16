@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	_OBJECT   = "%s:%s"
-	_RELATION = "#%s"
+	OBJECT   = "%s:%s"
+	RELATION = "#%s"
 )
 
 const (
@@ -42,7 +42,7 @@ func (u User) String() string {
 	if u.IsUser() {
 		return fmt.Sprintf("%s", u.ID)
 	}
-	return fmt.Sprintf("%s"+_RELATION, fmt.Sprintf(_OBJECT, u.UserSet.Object.Namespace, u.UserSet.Object.ID), u.UserSet.Relation)
+	return fmt.Sprintf("%s"+RELATION, fmt.Sprintf(OBJECT, u.UserSet.Object.Namespace, u.UserSet.Object.ID), u.UserSet.Relation)
 }
 
 // IsUser -
@@ -74,17 +74,9 @@ type Tuple struct {
 
 // String -
 func (r Tuple) String() string {
-	object := fmt.Sprintf(_OBJECT, r.Object.Namespace, r.Object.ID)
-	relation := fmt.Sprintf(_RELATION, r.Relation)
+	object := fmt.Sprintf(OBJECT, r.Object.Namespace, r.Object.ID)
+	relation := fmt.Sprintf(RELATION, r.Relation)
 	return object + relation + "@" + r.User.String()
-}
-
-// Debug -
-func (r Tuple) Debug() string {
-	if r.User.IsUser() {
-		return fmt.Sprintf("user %s is %s of %s:%s", r.User.ID, r.Relation, r.Object.Namespace, r.Object.ID)
-	}
-	return fmt.Sprintf("%s:%s's %s is %s of %s:%s", r.User.UserSet.Object.Namespace, r.User.UserSet.Object.ID, r.User.UserSet.Relation, r.Relation, r.Object.Namespace, r.Object.ID)
 }
 
 // ConvertUser -
