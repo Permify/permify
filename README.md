@@ -1,9 +1,8 @@
 
 
 <h1 align="center">
-<br>
+    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
     Permify - Open Source Authorization Service
-<br>
 </h1>
 
 
@@ -16,9 +15,8 @@
 </p>
 
 
-
 <p align="center">
-    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/Permify%20Demo%20Github.gif" alt="Permify - Open source authorization as a service"  width="720px" />
+    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-demo-github.gif" alt="Permify - Open source authorization as a service"  width="900px" />
 </p>
 
 
