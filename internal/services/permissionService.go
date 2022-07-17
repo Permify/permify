@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	`fmt`
+	`sync`
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
@@ -83,23 +84,28 @@ func NewPermissionService(repo repositories.IRelationTupleRepository, schema sch
 type Request struct {
 	Object  tuple.Object
 	Subject tuple.User
-	depth   *int
+	depth   int
+	mux     sync.Mutex
 }
 
 // SetDepth -
 func (r *Request) SetDepth(i int) {
-	r.depth = &i
+	r.depth = i
 }
 
 // decrease -
 func (r *Request) decrease() *Request {
-	*r.depth--
+	r.mux.Lock()
+	defer r.mux.Unlock()
+	r.depth--
 	return r
 }
 
-// isFinish -
+// isDepthFinish -
 func (r *Request) isDepthFinish() bool {
-	return *r.depth <= 0
+	r.mux.Lock()
+	defer r.mux.Unlock()
+	return r.depth <= 0
 }
 
 // Check -
@@ -139,7 +145,7 @@ check:
 	re.SetDepth(d)
 
 	can, visit, err = service.c(ctx, &re, child, vm)
-	remainingDepth = *re.depth
+	remainingDepth = re.depth
 
 	return
 }
