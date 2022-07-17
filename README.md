@@ -347,6 +347,11 @@ Response
 
 We are building SDKs to make installation easier, leave us a feedback on which SDK we should build first.
 
+Stargazers
+-----------
+
+[![Stargazers repo roster for @Permify/permify](https://reporoster.com/stars/Permify/permify)](https://github.com/Permify/permify/stargazers)
+
 ## Community
 You can join the conversation at our [Discord channel](https://discord.gg/MJbUjwskdH). We love to talk about authorization and access control - we would
 love to hear from you :heart:
