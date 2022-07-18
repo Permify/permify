@@ -44,7 +44,7 @@ func TranslateToSchema(input string) (sch schema.Schema) {
 			}
 
 			if relation.RelationOption.Rel == "" {
-				relation.RelationOption.Rel = schema.BelongsTo
+				relation.RelationOption.Rel = schema.Custom
 			}
 
 			if relation.RelationOption.Rel == schema.ManyToMany {
