@@ -31,12 +31,12 @@ func (v VisitMap) isVisited(key string) bool {
 	return false
 }
 
-// add -
+// set -
 func (v VisitMap) set(key string, decision Decision) {
 	v[key] = decision
 }
 
-// add -
+// get -
 func (v VisitMap) get(key string) (decision Decision) {
 	return v[key]
 }
