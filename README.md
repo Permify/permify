@@ -46,13 +46,13 @@ example config file
 
 ```yaml
 app:
-  name: ‘permify’
-  version: ‘0.0.1’
+  name: 'permify'
+  version: '0.0.1'
 http:
-  port: ‘3476’
+  port: 3476
 logger:
-  log_level: ‘debug’
-  rollbar_env: ‘permify’
+  log_level: debug
+  rollbar_env: permify
 database:
   listen:
     connection: postgres
