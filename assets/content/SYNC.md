@@ -35,7 +35,8 @@ database:
 
 Permify applies change data capture (CDC) pattern to coordinate authorization related data in your databases with YAML config file and [Permify Schema](https://github.com/Permify/permify/blob/master/assets/content/MODEL.md) in which you define your authorization relations. 
 
-We publish & subscribe to your Listen DB. And based on a YAML schema file; Any time you create, update, or delete data; we convert, coordinate and sync your authorization data as relation tuples into your database (WriteDB) you point at.
+We publish & subscribe to your Listen DB. And based on a YAML schema file; Any time you create, update, or delete data; we convert, coordinate and sync your authorization data as relation tuples into your database (WriteDB) you point at. Data model is inspired
+by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
 
 You can define multiple listenDB's.
 
@@ -55,7 +56,7 @@ In case you don't want a Permify listen your databases constanty. You can create
 
 ### Examples 
 
-#### Organization Admin 
+#### **Organization Admin**
 
 Request
 
@@ -78,13 +79,11 @@ Response
 }
 ```
 
-Created relational tuple:
+Created relational tuple: ***organization:1#admin@1***
 
-***organization:1#admin@1***
+Definition: user 1 has admin role on organization 1.
 
-→ user 1 has admin role on organization 1.
-
-#### Organization Members are Viewer of Repo 
+#### **Organization Members are Viewer of Repo** 
 
 Request
 
@@ -107,12 +106,35 @@ Response
 }
 ```
 
-Created relational tuple:
+Created relational tuple: ***repository:1#admin@organization:2#member***
 
-***repository:1#admin@organization:2#member***
+Definition: members of organization 2 are viewers of repository 1.
 
-→ members of organization 2 are viewers of repository 1.
+#### **#... case (Parent Organization)**
 
+Request
 
+```json
+{
+  "entity": "repository",
+  "object_id": "1",
+  "relation": "parent",
+  "userset_entity": "organization",
+  "userset_object_id": "1",
+  "userset_relation": "..."
+}
+```
 
+Response
 
+```json
+{
+  "message": "success"
+}
+```
+
+Created relational tuple: ***repository:1#parent@organization:1#…***
+
+Definition: organization 1 is parent of repository 1.
+
+Note: “#...” represents a relation that does not affect the semantics of the tuple.
