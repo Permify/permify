@@ -29,7 +29,7 @@ by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public
 
 ## Getting Started
 
-Permify consists of 3 main parts; [data sync](assets/content/SYNC.md), [authorization model](assets/content/MODEL.md), and [enforcement checks](assets/content/ENFORCEMENT.md).
+Permify consists of 3 main parts; [data sync](assets/content/SYNC.md), [authorization model](assets/content/MODEL.md) and [enforcement checks](assets/content/ENFORCEMENT.md).
 
 ## Installation
 
