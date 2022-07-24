@@ -146,6 +146,36 @@ var doc = `{
                 }
             }
         },
+        "/schemas/replace": {
+            "post": {
+                "description": "replace your authorization model",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schema"
+                ],
+                "summary": "Schema",
+                "operationId": "replace",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/status/ping": {
             "get": {
                 "consumes": [

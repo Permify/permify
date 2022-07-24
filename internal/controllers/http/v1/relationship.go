@@ -17,8 +17,8 @@ import (
 
 // relationshipRoutes -
 type relationshipRoutes struct {
-	service services.IRelationshipService
-	logger  logger.Interface
+	relationshipService services.IRelationshipService
+	logger              logger.Interface
 }
 
 // newRelationshipRoutes -
@@ -52,7 +52,7 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(v))
 	}
 
-	err = r.service.WriteRelationship(context.Background(), []entities.RelationTuple{{Entity: request.Body.Entity, ObjectID: request.Body.ObjectID, Relation: request.Body.Relation, UsersetEntity: request.Body.UsersetEntity, UsersetObjectID: request.Body.UsersetObjectID, UsersetRelation: request.Body.UsersetRelation, Type: "custom"}})
+	err = r.relationshipService.WriteRelationship(context.Background(), []entities.RelationTuple{{Entity: request.Body.Entity, ObjectID: request.Body.ObjectID, Relation: request.Body.Relation, UsersetEntity: request.Body.UsersetEntity, UsersetObjectID: request.Body.UsersetObjectID, UsersetRelation: request.Body.UsersetRelation, Type: "custom"}})
 	if err != nil {
 		if errors.Is(err, repositories.ErrUniqueConstraint) {
 			return c.JSON(http.StatusUnprocessableEntity, responses.MResponse("tuple already exists"))
@@ -83,7 +83,7 @@ func (r *relationshipRoutes) delete(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(v))
 	}
 
-	err = r.service.DeleteRelationship(context.Background(), []entities.RelationTuple{{Entity: request.Body.Entity, ObjectID: request.Body.ObjectID, Relation: request.Body.Relation, UsersetEntity: request.Body.UsersetEntity, UsersetObjectID: request.Body.UsersetObjectID, UsersetRelation: request.Body.UsersetRelation}})
+	err = r.relationshipService.DeleteRelationship(context.Background(), []entities.RelationTuple{{Entity: request.Body.Entity, ObjectID: request.Body.ObjectID, Relation: request.Body.Relation, UsersetEntity: request.Body.UsersetEntity, UsersetObjectID: request.Body.UsersetObjectID, UsersetRelation: request.Body.UsersetRelation}})
 	if err != nil {
 		return echo.ErrInternalServerError
 	}

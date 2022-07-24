@@ -4,11 +4,6 @@ import (
 	"github.com/Permify/permify/pkg/helper"
 )
 
-const (
-	Path        = "config/schema.perm"
-	DefaultPath = "default.schema.perm"
-)
-
 // OPType -
 type OPType string
 
@@ -76,6 +71,11 @@ type Schema struct {
 	PivotToRelation map[string]Relation
 }
 
+// GetEntity -
+func (s Schema) GetEntity(name string) Entity {
+	return s.Entities[name]
+}
+
 // NewSchema -
 func NewSchema(entities ...Entity) (schema Schema) {
 	schema.Tables = map[string]TableType{}
@@ -98,14 +98,6 @@ func NewSchema(entities ...Entity) (schema Schema) {
 	return
 }
 
-// GetTableNames -
-func (s Schema) GetTableNames() (names []string) {
-	for name := range s.Tables {
-		names = append(names, name)
-	}
-	return
-}
-
 // Entity -
 type Entity struct {
 	Name      string
@@ -120,6 +112,16 @@ type Entity struct {
 type EntityOption struct {
 	Table      string
 	Identifier string
+}
+
+// GetAction -
+func (e Entity) GetAction(name string) Action {
+	for _, en := range e.Actions {
+		if en.Name == name {
+			return en
+		}
+	}
+	return Action{}
 }
 
 // Relation -

@@ -16,6 +16,6 @@ type IRelationTupleRepository interface {
 // IEntityConfigRepository -
 type IEntityConfigRepository interface {
 	All(ctx context.Context) (configs []entities.EntityConfig, err error)
-	First(ctx context.Context, entity string) (config entities.EntityConfig, err error)
 	Replace(ctx context.Context, configs []entities.EntityConfig) (err error)
+	Clear(ctx context.Context) (err error)
 }

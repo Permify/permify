@@ -10,11 +10,6 @@ logger:
   rollbar_env: 'permify'
 
 database:
-  listen:
-    connection: postgres
-    pool_max: 2
-    url: 'postgres://user:password@host:5432/db_name'
-
   write:
     connection: postgres
     pool_max: 2

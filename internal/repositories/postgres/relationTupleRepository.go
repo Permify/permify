@@ -12,7 +12,9 @@ import (
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/postgres/migrations"
 	"github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/migration"
 )
 
 // RelationTupleRepository -.
@@ -23,6 +25,14 @@ type RelationTupleRepository struct {
 // NewRelationTupleRepository -.
 func NewRelationTupleRepository(pg *postgres.Postgres) *RelationTupleRepository {
 	return &RelationTupleRepository{pg}
+}
+
+// Migrate -
+func (r *RelationTupleRepository) Migrate() (err error) {
+	mi := migration.New()
+	err = mi.Register(migration.TABLE, "initial_tuple", migrations.CreateRelationTupleMigration())
+	err = r.Database.Migrate(*mi)
+	return
 }
 
 // QueryTuples -

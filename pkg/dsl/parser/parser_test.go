@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/pkg/dsl/ast`
+	"github.com/Permify/permify/pkg/dsl/ast"
 )
 
 // TestLexer -
@@ -16,9 +16,7 @@ func TestParser(t *testing.T) {
 }
 
 var _ = Describe("parser", func() {
-
 	Context("Statement", func() {
-
 		It("Case 1", func() {
 			pr := NewParser("entity repository {\n\nrelation parent   @organization `rel:belongs-to|cols:organization_id`\nrelation owner  @user `rel:belongs-to|cols:owner_id`\n\naction read = owner and (parent.admin and parent.member)\n\n\n} `table:repository|identifier:id`\n\n")
 			schema := pr.Parse()
@@ -48,7 +46,6 @@ var _ = Describe("parser", func() {
 		})
 
 		It("Case 2", func() {
-
 			pr := NewParser("entity repository {\n\nrelation parent   @organization `rel:belongs-to|cols:organization_id`\nrelation owner  @user `rel:belongs-to|cols:owner_id`\n\naction read = (owner and parent.admin) and parent.member\n\n\n} `table:repository|identifier:id`\n\n")
 			schema := pr.Parse()
 			st := schema.Statements[0].(*ast.EntityStatement)
@@ -77,7 +74,6 @@ var _ = Describe("parser", func() {
 		})
 
 		It("Case 3", func() {
-
 			pr := NewParser("entity organization {\n\nrelation owner @user\n\naction delete = owner\n\n\n} `table:organization|identifier:id`\n\n")
 			schema := pr.Parse()
 			st := schema.Statements[0].(*ast.EntityStatement)
@@ -96,7 +92,6 @@ var _ = Describe("parser", func() {
 			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
 
 			Expect(es.Expression.(*ast.Identifier).Value).Should(Equal("owner"))
-
 		})
 	})
 })

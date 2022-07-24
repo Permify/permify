@@ -38,17 +38,23 @@ type (
 
 	// Database -.
 	Database struct {
-		Listen struct {
-			Connection string `env-required:"true" yaml:"connection"`
-			PoolMax    int    `env-required:"true" yaml:"pool_max"`
-			URL        string `env-required:"true" yaml:"url"`
-		} `env-required:"true" yaml:"listen"`
+		*Listen `yaml:"listen"`
+		Write   `env-required:"true" yaml:"write"`
+	}
 
-		Write struct {
-			Connection string `env-required:"true" yaml:"connection"`
-			PoolMax    int    `env-required:"true" yaml:"pool_max"`
-			URL        string `env-required:"true" yaml:"url"`
-		} `env-required:"true" yaml:"write"`
+	Listen struct {
+		Connection   string   `yaml:"connection"`
+		SlotName     string   `yaml:"slot_name"`
+		OutputPlugin string   `yaml:"output_plugin"`
+		PoolMax      int      `yaml:"pool_max"`
+		URL          string   `yaml:"url"`
+		Tables       []string `yaml:"tables"`
+	}
+
+	Write struct {
+		Connection string `env-required:"true" yaml:"connection"`
+		PoolMax    int    `env-required:"true" yaml:"pool_max"`
+		URL        string `env-required:"true" yaml:"url"`
 	}
 )
 

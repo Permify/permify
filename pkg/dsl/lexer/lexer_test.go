@@ -16,11 +16,8 @@ func TestLexer(t *testing.T) {
 }
 
 var _ = Describe("lexer", func() {
-
 	Context("NextToken", func() {
-
 		It("Success", func() {
-
 			str := "entity user {} `table:\"users\",identifier:\"id\"`\n entity organization {\n relation admin @user `rel:\"custom\"`\n relation member @user `rel:\"many-to-many\", table:\"org_members\", cols:\"org_id,user_id\"`\n    action create_repository = admin or member\n    action delete = admin \n} `table:\"organizations\", identifier:\"id\"`\n"
 
 			tests := []struct {

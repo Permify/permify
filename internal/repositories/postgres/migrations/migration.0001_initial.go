@@ -1,4 +1,4 @@
-package subscriber
+package migrations
 
 // CreateRelationTupleMigration -
 func CreateRelationTupleMigration() string {

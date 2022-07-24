@@ -1,7 +1,9 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/lexer"
@@ -68,6 +70,14 @@ func (p *Parser) currentTokenIs(t token.Type) bool {
 // peekTokenIs -
 func (p *Parser) peekTokenIs(t token.Type) bool {
 	return p.peekToken.Type == t
+}
+
+// Error -
+func (p *Parser) Error() error {
+	if len(p.errors) == 0 {
+		return nil
+	}
+	return errors.New(strings.Join(p.errors, ","))
 }
 
 // Errors -

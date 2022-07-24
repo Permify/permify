@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 	"errors"
-	`fmt`
-	`sync`
+	"fmt"
+	"sync"
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
@@ -16,6 +16,7 @@ var (
 	DepthError              = errors.New("depth error")
 	CanceledError           = errors.New("canceled error")
 	ActionCannotFoundError  = errors.New("action cannot found")
+	EntityCannotFoundError  = errors.New("entity cannot found")
 	UndefinedChildTypeError = errors.New("undefined child type")
 	UndefinedChildKindError = errors.New("undefined child kind")
 )
@@ -68,15 +69,15 @@ type IPermissionService interface {
 
 // PermissionService -
 type PermissionService struct {
-	repository repositories.IRelationTupleRepository
-	schema     schema.Schema
+	relationTupleRepository repositories.IRelationTupleRepository
+	schemaService           ISchemaService
 }
 
 // NewPermissionService -
-func NewPermissionService(repo repositories.IRelationTupleRepository, schema schema.Schema) *PermissionService {
+func NewPermissionService(rr repositories.IRelationTupleRepository, ss ISchemaService) *PermissionService {
 	return &PermissionService{
-		repository: repo,
-		schema:     schema,
+		relationTupleRepository: rr,
+		schemaService:           ss,
 	}
 }
 
@@ -118,24 +119,19 @@ func (service *PermissionService) Check(ctx context.Context, s string, a string,
 		return false, nil, d, err
 	}
 
-	entity := service.schema.Entities[object.Namespace]
-
-	var child schema.Child
-
-	for _, act := range entity.Actions {
-		if act.Name == a {
-			child = act.Child
-			goto check
-		}
+	var sch schema.Schema
+	sch, err = service.schemaService.Schema(ctx)
+	if err != nil {
+		return false, nil, d, EntityCannotFoundError
 	}
 
+	var child schema.Child
+	child = sch.GetEntity(object.Namespace).GetAction(a).Child
 	if child == nil {
 		return false, nil, d, ActionCannotFoundError
 	}
 
-check:
-
-	var vm = &VisitMap{}
+	vm := &VisitMap{}
 
 	re := Request{
 		Object:  object,
@@ -277,11 +273,10 @@ func intersection(ctx context.Context, functions []CheckFunction) Decision {
 
 // getUsers -
 func (service *PermissionService) getUsers(ctx context.Context, object tuple.Object, relation tuple.Relation) (users []tuple.User, err error) {
-
 	r := relation.Split()
 
 	var en []entities.RelationTuple
-	en, err = service.repository.QueryTuples(ctx, object.Namespace, object.ID, r[0].String())
+	en, err = service.relationTupleRepository.QueryTuples(ctx, object.Namespace, object.ID, r[0].String())
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +314,7 @@ func (service *PermissionService) check(ctx context.Context, object tuple.Object
 	return func(ctx context.Context, decisionChan chan<- Decision) {
 		var err error
 
-		var key = fmt.Sprintf(tuple.OBJECT+tuple.RELATION, object.Namespace, object.ID, relation.String())
+		key := fmt.Sprintf(tuple.OBJECT+tuple.RELATION, object.Namespace, object.ID, relation.String())
 
 		if vm.isVisited(key) {
 			decisionChan <- vm.get(key)

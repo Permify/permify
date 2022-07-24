@@ -175,6 +175,26 @@ paths:
       summary: Relationship
       tags:
       - Relationship
+  /schemas/replace:
+    post:
+      consumes:
+      - application/json
+      description: replace your authorization model
+      operationId: replace
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Schema
+      tags:
+      - Schema
   /status/ping:
     get:
       consumes:

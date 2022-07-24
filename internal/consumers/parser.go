@@ -1,49 +1,46 @@
 package consumers
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	publisher "github.com/Permify/permify/pkg/publisher/postgres"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// Consumer -
-type Consumer struct {
-	service services.IRelationshipService
-	schema  schema.Schema
+// Parser -
+type Parser struct {
+	relationshipService services.IRelationshipService
+	schemaService       services.ISchemaService
 }
 
 // New -
-func New(service services.IRelationshipService, schema schema.Schema) Consumer {
-	return Consumer{
-		service: service,
-		schema:  schema,
+func New(service services.IRelationshipService, schema services.ISchemaService) Parser {
+	return Parser{
+		relationshipService: service,
+		schemaService:       schema,
 	}
 }
 
 // GetService -
-func (c *Consumer) GetService() services.IRelationshipService {
-	return c.service
-}
-
-// GetStatement -
-func (c *Consumer) GetStatement() schema.Schema {
-	return c.schema
+func (c *Parser) GetService() services.IRelationshipService {
+	return c.relationshipService
 }
 
 // Parse -
-func (c *Consumer) Parse(notification Notification) (writeTuples []tuple.Tuple, deleteTuples []tuple.Tuple) {
+func (c *Parser) Parse(notification publisher.Notification) (writeTuples []tuple.Tuple, deleteTuples []tuple.Tuple, err error) {
 	switch notification.Action {
-	case INSERT:
-		writeTuples = c.Convert(notification.Entity, notification.NewData)
+	case publisher.INSERT:
+		writeTuples, err = c.Convert(notification.Entity, notification.NewData)
 		break
-	case UPDATE:
-		deleteTuples = c.Convert(notification.Entity, notification.OldData)
-		writeTuples = c.Convert(notification.Entity, notification.NewData)
+	case publisher.UPDATE:
+		deleteTuples, err = c.Convert(notification.Entity, notification.OldData)
+		writeTuples, err = c.Convert(notification.Entity, notification.NewData)
 		break
-	case DELETE:
-		deleteTuples = c.Convert(notification.Entity, notification.OldData)
+	case publisher.DELETE:
+		deleteTuples, err = c.Convert(notification.Entity, notification.OldData)
 		break
 	default:
 		break
@@ -52,21 +49,25 @@ func (c *Consumer) Parse(notification Notification) (writeTuples []tuple.Tuple, 
 }
 
 // Convert -
-func (c *Consumer) Convert(table string, data map[string]interface{}) []tuple.Tuple {
-	var tuples []tuple.Tuple
-
+func (c *Parser) Convert(table string, data map[string]interface{}) (tuples []tuple.Tuple, err error) {
 	var rel schema.RelationType
 	var entity schema.Entity
 	var relations []schema.Relation
 
-	if c.schema.Tables[table] == schema.Main {
+	var sch schema.Schema
+	sch, err = c.schemaService.Schema(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	if sch.Tables[table] == schema.Main {
 		rel = schema.BelongsTo
-		entity = c.schema.Entities[table]
+		entity = sch.Entities[table]
 		relations = schema.Relations(entity.Relations).Filter(schema.BelongsTo)
 	} else {
 		rel = schema.ManyToMany
-		entity = c.schema.PivotToEntity[table]
-		relations = schema.Relations{c.schema.PivotToRelation[table]}
+		entity = sch.PivotToEntity[table]
+		relations = schema.Relations{sch.PivotToRelation[table]}
 	}
 
 	// Relations
@@ -112,5 +113,5 @@ func (c *Consumer) Convert(table string, data map[string]interface{}) []tuple.Tu
 		})
 	}
 
-	return tuples
+	return tuples, nil
 }
