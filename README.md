@@ -1,7 +1,7 @@
 
 
 <h1 align="center">
-    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
+    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="300px" /><br />
     Permify - Open Source Authorization Service
 </h1>
 
