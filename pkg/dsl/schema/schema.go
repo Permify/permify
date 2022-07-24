@@ -64,6 +64,9 @@ type Schema struct {
 	// all tables
 	Tables map[string]TableType
 
+	// table name to entities
+	TableToEntity map[string]Entity
+
 	// pivot name to entities
 	PivotToEntity map[string]Entity
 
@@ -71,20 +74,34 @@ type Schema struct {
 	PivotToRelation map[string]Relation
 }
 
-// GetEntity -
-func (s Schema) GetEntity(name string) Entity {
+// GetEntityByName -
+func (s Schema) GetEntityByName(name string) Entity {
 	return s.Entities[name]
+}
+
+// GetEntityByTableName -
+func (s Schema) GetEntityByTableName(table string) Entity {
+	return s.TableToEntity[table]
+}
+
+// GetTableType -
+func (s Schema) GetTableType(table string) TableType {
+	return s.Tables[table]
 }
 
 // NewSchema -
 func NewSchema(entities ...Entity) (schema Schema) {
-	schema.Tables = map[string]TableType{}
-	schema.Entities = map[string]Entity{}
-	schema.PivotToEntity = map[string]Entity{}
-	schema.PivotToRelation = map[string]Relation{}
+	schema = Schema{
+		Tables:          map[string]TableType{},
+		Entities:        map[string]Entity{},
+		TableToEntity:   map[string]Entity{},
+		PivotToEntity:   map[string]Entity{},
+		PivotToRelation: map[string]Relation{},
+	}
 
 	for _, entity := range entities {
 		schema.Tables[entity.EntityOption.Table] = Main
+		schema.TableToEntity[entity.EntityOption.Table] = entity
 		for _, relation := range entity.Relations {
 			if relation.RelationOption.Rel == ManyToMany {
 				schema.Tables[relation.RelationOption.Table] = Pivot

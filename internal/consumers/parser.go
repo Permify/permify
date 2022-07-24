@@ -60,14 +60,17 @@ func (c *Parser) Convert(table string, data map[string]interface{}) (tuples []tu
 		return nil, err
 	}
 
-	if sch.Tables[table] == schema.Main {
+	switch sch.GetTableType(table) {
+	case schema.Main:
 		rel = schema.BelongsTo
-		entity = sch.Entities[table]
+		entity = sch.GetEntityByTableName(table)
 		relations = schema.Relations(entity.Relations).Filter(schema.BelongsTo)
-	} else {
+	case schema.Pivot:
 		rel = schema.ManyToMany
 		entity = sch.PivotToEntity[table]
 		relations = schema.Relations{sch.PivotToRelation[table]}
+	default:
+		return nil, err
 	}
 
 	// Relations

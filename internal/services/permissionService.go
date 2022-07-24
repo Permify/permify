@@ -126,7 +126,7 @@ func (service *PermissionService) Check(ctx context.Context, s string, a string,
 	}
 
 	var child schema.Child
-	child = sch.GetEntity(object.Namespace).GetAction(a).Child
+	child = sch.GetEntityByName(object.Namespace).GetAction(a).Child
 	if child == nil {
 		return false, nil, d, ActionCannotFoundError
 	}
