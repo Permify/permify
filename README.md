@@ -29,123 +29,8 @@ by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public
 
 ## Getting Started
 
-Permify consists of 3 main parts; data sync, authorization model, and enforcement checks.
+Permify consists of 3 main parts; [data sync](assets/content/SYNC.md), [authorization model](assets/content/MODEL.md), and [enforcement checks](assets/content/ENFORCEMENT.md).
 
-### Move & Sync Data
-
-You can convert, coordinate & sync authorization data based on a YAML config file and schema in which you define your
-authorization relations.
-
-- **ListenDB:** Where your application data is stored.
-- **WriteDB:** Where your want to store relation tuples, audits , and decision logs.
-  Permify creates a function in your Listen DB that has a trigger based on your config file. Any time you create,
-  update,
-  or delete data; we sync this data as relation tuples into writeDB.
-
-example config file
-
-```yaml
-app:
-  name: 'permify'
-  version: '0.0.1'
-http:
-  port: 3476
-logger:
-  log_level: debug
-  rollbar_env: permify
-database:
-  listen:
-    connection: postgres
-    pool_max: 2
-    url: ‘postgres://user:password@host:5432/database_name’
-  write:
-    connection: postgres
-    pool_max: 2
-    url: ‘postgres://user:password@host:5432/database_name’
-```
-
-### Modeling Authorization Logic
-
-You can create access decisions are based on the relationships a subject has with Permify Schema. For instance, only
-allowing Repository owners to push updates.
-
-```perm
-entity user {} `table:users|identifier:id`
-
-entity organization {
-
-    relation admin @user     `rel:custom`
-    relation member @user    `rel:many-to-many|table:org_members|cols:org_id,user_id`
-
-    action create_repository = admin or member
-    action delete = admin
-
-} `table:organizations|identifier:id`
-
-entity repository {
-
-    relation    owner @user          `rel:belongs-to|cols:owner_id`
-    relation    org   @organization    `rel:belongs-to|cols:organization_id`
-
-    action push   = owner
-    action read   = (owner or org.member) and org.admin
-    action delete = org.admin or owner
-
-} `table:repositories|identifier:id`
-```
-
-#### Entities
-
-Entities represent your main tables. The table name and the entity name here must be the same. For example, name of the
-user entity in our example represents user table in your database.
-Entity has 2 different parts. These are;
-
-- **relations**
-- **actions**
-
-#### Relations
-
-Relations represent relationships between entities. For example, each repository is related with an organization
-While the `belongs_to` is kept within the entity itself, the `has one` is kept in the table where it is related. And
-the `many-to-many` relation is kept in the pivot tables. Therefore, we need to specify the relationship types in the
-schema.
-
-- **name:** define the realtion
-- **table (optional):** the name of the pivot table. (Only for many-to-many relationships.)
-- **rel:** type of relationship (many-to-many, belongs-to or custom)
-- **entity:** the entity it’s related with (e.g. user, organization, repo…)
-- **cols:** the columns you have created in your database.
-
-```
-entity repository {
-
-    relation    owner @user          `rel:belongs-to|cols:owner_id`
-    relation    org   @organization    `rel:belongs-to|cols:organization_id`
-
-}
-```
-
-→ Each repository belongs to an organization. which is defined as organization_id column in the repository table.
-
-#### Actions
-
-Actions describe what relations, or relation’s relation can do.
-
-For example, only the repository owner can push to
-repository.
-
-```
-action push   = owner
-```
-
-another example, organization admin (user with admin role) and
-
-```
-action read   = (owner or org.member) and org.admin
-```
-
-→ "User with a admin role and either owner of the repository, or member of the organization which repository belongs to"
-can read.
 
 ## Installation
 
@@ -223,121 +108,17 @@ After configuration, you can check authorization with a simple call.
 
 ```json
 {
-  "can": true,
-  "debug": "user 1 is a owner of organization 1"
-}
-```
-
-## The Graph of Relations
-
-The relation tuples of the ACL used by Permify can be represented as a graph of relations. This graph will help you
-understand the performance of check engine and the algorithms it uses.
-<img width="1756" alt="filled graph" src="https://user-images.githubusercontent.com/39353278/175956412-54801b34-1524-414d-8737-19d3b1abfb73.png"> this graph is created by combining schema file and data.
-
-## API
-
-### Check
-
-Returns a decision about whether user can perform an action on a certain resource. For example, can the user do push on
-a repository object?
-**Path:** POST /v1/permissions/check
-| Required | Argument | Type | Default | Description |
-|----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [x]   | user | string | - | the user or user set who wants to take the action. Examples: “1”, “organization:1#owners”
-| [x]   | action | string | - | the action the user wants to perform on the resource |
-| [x]   | object | string | - | name and id of the resource. Example: “organization:1” |
-| [ ]   | depth | integer | 8 | |
-
-#### Example
-
-Request
-
-```json
-{
-  "user": "1",
-  "action": "push",
-  "object": "repository:1"
-}
-```
-
-Response
-
-```json
-{
-  "can": true,
-  "debug": "user 1 is a owner of organization 1"
-}
-```
-
-### Write Custom Tuple
-
-We examined how we created the tuple by listening to the tables. Permify allows to create custom tuples.
-**Path:** POST /v1/relationships/write
-| Required | Argument | Type | Default | Description |
-|----------|-------------------|--------|---------|-------------|
-| [x]   | entity | string | - | |
-| [x]   | object_id | string | - | |
-| [x]   | relation | string | - | |
-| [ ]   | userset_entity | string | - | |
-| [x]   | userset_object_id | string | - | |
-| [ ]   | userset_relation | string | - | |
-
-#### Example
-
-Request
-
-```json
-{
-  "entity": "organization",
-  "object_id": "1",
-  "relation": "admin",
-  "userset_entity": "",
-  "userset_object_id": "1",
-  "userset_relation": ""
-}
-```
-
-Response
-
-```json
-{
-  "message": "success"
-}
-```
-
-### Delete Tuple
-
-Delete relation tuple.
-**Path:** POST /v1/relationships/delete
-| Required | Argument | Type | Default | Description |
-|----------|-------------------|--------|---------|-------------|
-| [x]   | entity | string | - | |
-| [x]   | object_id | string | - | |
-| [x]   | relation | string | - | |
-| [ ]   | userset_entity | string | - | |
-| [x]   | userset_object_id | string | - | |
-| [ ]   | userset_relation | string | - | |
-
-#### Example
-
-Request
-
-```json
-{
-  "entity": "organization",
-  "object_id": "1",
-  "relation": "admin",
-  "userset_entity": "",
-  "userset_object_id": "1",
-  "userset_relation": ""
-}
-```
-
-Response
-
-```json
-{
-  "message": "success"
+  "can": true, // main decision
+  "decisions": { // decision logs
+    "repository:1#parent.admin": {
+      "can": false,
+      "err": null
+    },
+    "repository:1#parent.member": {
+      "can": false,
+      "err": null
+    }
+  }
 }
 ```
 
