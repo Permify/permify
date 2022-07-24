@@ -19,8 +19,13 @@ logger:
 database:
   listen:
     connection: postgres
+    slot_name: replication_slot
+    output_plugin: pgoutput
     pool_max: 2
-    url: ‘postgres://user:password@host:5432/database_name’
+    url: 'postgres://postgres:SphU4Uf3QXNnZEtT@permify-projects.ceuo5kqsxyea.us-east-1.rds.amazonaws.com:5432/github?replication=database'
+    tables:
+        - organization
+        - repository
   write:
     connection: postgres
     pool_max: 2
@@ -29,20 +34,35 @@ database:
 
 - **WriteDB:** Where your want to store relation tuples, audits , and decision logs.
 
-- **ListenDB (optional):** Where your application data is stored. 
+- **ListenDB (optional):** Where your application data is stored. Mandatory when using Change Data Capture approach.
+
+There are 2 approaches to move and syncronize your authroization data in Permify; 
+ - [With Change Data Capture](#with-change-data-capture)
+ - [Creating Custom Relational Tuples](#creating-custom-relational-tuples)
 
 ## With Change Data Capture
 
 Permify applies change data capture (CDC) pattern to coordinate authorization related data in your databases with YAML config file and [Permify Schema](https://github.com/Permify/permify/blob/master/assets/content/MODEL.md) in which you define your authorization relations. 
 
-We publish & subscribe to your Listen DB. And based on a YAML schema file; Any time you create, update, or delete data; we convert, coordinate and sync your authorization data as relation tuples into your database (WriteDB) you point at. Data model is inspired
-by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
+We publish & subscribe to your Listen DB. And based on a YAML schema file; Any time you create, update, or delete data; we convert, coordinate and sync your authorization data as relation tuples into your database (WriteDB) you point at. Note that you can define multiple listenDB's for data capturing. 
 
-You can define multiple listenDB's.
+When using CDC pattern additional changes (below) needs to be made in your postgre congif (*postgresql.conf*) file to complete. 
 
-## Creating custom relational tuples
+```yaml
+    wal_level = logical
+    #
+    # these parameters only need to set in versions 9.4, 9.5 and 9.6
+    # default values are ok in version 10 or later
+    #
+    max_replication_slots = 10
+    max_wal_senders = 10
+```
 
-In case you don't want a Permify listen your databases constanty. You can create custom relational tuples with using "/v1/relationships/write" endpoint.
+After updating your *postgresql.conf* file you need to reboot your instance.
+
+## Creating Custom Relational Tuples
+
+In case you don't want a Permify listen your databases constanty. You can skip defining listenDB in config YAMl file and can create custom relational tuples manually. You can create custom relational tuples with using "/v1/relationships/write" endpoint.
 
 **Path:** POST /v1/relationships/write
 | Required | Argument | Type | Default | Description |
