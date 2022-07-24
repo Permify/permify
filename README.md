@@ -31,7 +31,6 @@ by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public
 
 Permify consists of 3 main parts; [data sync](assets/content/SYNC.md), [authorization model](assets/content/MODEL.md), and [enforcement checks](assets/content/ENFORCEMENT.md).
 
-
 ## Installation
 
 ### Container (Docker)
@@ -108,7 +107,7 @@ After configuration, you can check authorization with a simple call.
 
 ```json
 {
-  "can": true, // main decision
+  "can": false, // main decision
   "decisions": { // decision logs
     "repository:1#parent.admin": {
       "can": false,
@@ -126,10 +125,12 @@ After configuration, you can check authorization with a simple call.
 
 We are building SDKs to make installation easier, leave us a feedback on which SDK we should build first.
 
-Stargazers
------------
+[//]: # (Stargazers)
 
-[![Stargazers repo roster for @Permify/permify](https://reporoster.com/stars/Permify/permify)](https://github.com/Permify/permify/stargazers)
+[//]: # (-----------)
+
+[//]: # ()
+[//]: # ([![Stargazers repo roster for @Permify/permify]&#40;https://reporoster.com/stars/Permify/permify&#41;]&#40;https://github.com/Permify/permify/stargazers&#41;)
 
 ## Community
 You can join the conversation at our [Discord channel](https://discord.gg/MJbUjwskdH). We love to talk about authorization and access control - we would
