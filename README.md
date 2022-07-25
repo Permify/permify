@@ -20,16 +20,20 @@
 
 Permify is an open-source authorization service that you can run with docker and works on a Rest API.
 
-We publish & subscribe to your Postgres DB (listen DB). And based on a YAML schema file; we convert, coordinate and sync
-your authorization data as relation tuples into your DB (write db) you point at. And you can check authorization with
-single request based on those tuples.
-Data model is inspired
-by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
-.
+Permify convert, coordinate and sync your authorization data as relation tuples into a database that you prefer. And you can check authorization with single request based on those tuples and [Permify Schema](https://github.com/Permify/permify/blob/master/assets/content/MODEL.md), where you model your authorization.
+
+Data model is inspired by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
 ## Getting Started
+Permify consists of 3 main parts; modeling authorization, synchronizing authorization data and access checks.
 
-Permify consists of 3 main parts; [data sync](assets/content/SYNC.md), [authorization model](assets/content/MODEL.md) and [enforcement checks](assets/content/ENFORCEMENT.md).
+- [Modelling Authorization Logic]
+- [Move & Synchronize Authorization Data]
+- [Access Checks]
+
+[Modelling Authorization Logic]: https://github.com/Permify/permify/blob/master/assets/content/MODEL.md
+[Move & Synchronize Authorization Data]: https://github.com/Permify/permify/blob/master/assets/content/SYNC.md
+[Access Checks]: https://github.com/Permify/permify/blob/master/assets/content/ENFORCEMENT.md
 
 ## Installation
 
@@ -120,6 +124,8 @@ After configuration, you can check authorization with a simple call.
   }
 }
 ```
+
+Check out [Permify API](https://github.com/Permify/permify/blob/master/assets/content/API.md) for more details.
 
 ## Client SDKs
 
