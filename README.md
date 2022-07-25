@@ -20,7 +20,7 @@
 
 Permify is an open-source authorization service that you can run with docker and works on a Rest API.
 
-Permify convert, coordinate and sync your authorization data as relation tuples into a database that you prefer. And you can check authorization with single request based on those tuples and [Permify Schema](https://github.com/Permify/permify/blob/master/assets/content/MODEL.md), where you model your authorization.
+Permify converts, coordinate, and sync your authorization data as relation tuples into your preferred database. And you can check authorization with single request based on those tuples and [Permify Schema](https://github.com/Permify/permify/blob/master/assets/content/MODEL.md), where you model your authorization.
 
 Data model is inspired by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
