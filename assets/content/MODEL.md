@@ -2,11 +2,11 @@
 
 ## Permify Schema
 
-You can model your authorization with defining your entities, relations between them and access control decisions of each action using Permify Schema.
+Permify has its own language that you can model your authorization logic with it, we call it Permify Schema. 
 
-This schema's data model is inspired by Google’s Consistent, Global Authorization System, [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
+You can define your entities, relations between them and access control decisions with using Permify Schema.
 
-For creating a Permify Schema file you can use **.perm** file extension. 
+For creating a Permify Schema file you need to use **.perm** file extension. 
 
 Lets create a github example using Permify Schema. To see full implementation you can jump directly to [Github Example](#github-example). 
 
