@@ -27,11 +27,11 @@ Data model is inspired by [Google Zanzibar White Paper](https://storage.googleap
 ## Getting Started
 Permify consists of 3 main parts; modeling authorization, synchronizing authorization data and access checks.
 
-- [Modelling Authorization Logic]
+- [Modeling Authorization]
 - [Move & Synchronize Authorization Data]
 - [Access Checks]
 
-[Modelling Authorization Logic]: https://github.com/Permify/permify/blob/master/assets/content/MODEL.md
+[Modeling Authorization]: https://github.com/Permify/permify/blob/master/assets/content/MODEL.md
 [Move & Synchronize Authorization Data]: https://github.com/Permify/permify/blob/master/assets/content/SYNC.md
 [Access Checks]: https://github.com/Permify/permify/blob/master/assets/content/ENFORCEMENT.md
 
