@@ -36,7 +36,7 @@ database:
 
 - **ListenDB (optional):** Where your application data is stored. Mandatory when using Change Data Capture approach.
 
-There are 2 approaches to move and syncronize your authroization data in Permify; 
+There are 2 approaches to move and syncronize your authorization data in Permify; 
  - [With Change Data Capture](#with-change-data-capture)
  - [Creating Custom Relational Tuples](#creating-custom-relational-tuples)
 
