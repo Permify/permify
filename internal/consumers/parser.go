@@ -109,11 +109,13 @@ func (c *Parser) Convert(table string, data map[string]interface{}) (tuples []tu
 			user.UserSet.Relation = tuple.ELLIPSIS
 		}
 
-		tuples = append(tuples, tuple.Tuple{
-			Object:   object,
-			Relation: relation.Name,
-			User:     user,
-		})
+		if user.IsValid() {
+			tuples = append(tuples, tuple.Tuple{
+				Object:   object,
+				Relation: relation.Name,
+				User:     user,
+			})
+		}
 	}
 
 	return tuples, nil

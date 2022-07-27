@@ -53,6 +53,14 @@ func (u User) IsUser() bool {
 	return false
 }
 
+// IsValid -
+func (u User) IsValid() bool {
+	if u.ID != "" || u.UserSet.Object.ID != "" {
+		return true
+	}
+	return false
+}
+
 // Equals -
 func (u User) Equals(v interface{}) bool {
 	uv, ok := v.(User)
