@@ -1,5 +1,6 @@
 package responses
 
+// Check -
 type Check struct {
 	Can            bool        `json:"can"`
 	RemainingDepth int         `json:"remaining_depth"`

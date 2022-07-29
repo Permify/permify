@@ -1,4 +1,4 @@
-package repositories
+package database
 
 import (
 	"errors"

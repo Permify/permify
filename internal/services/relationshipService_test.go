@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/entities"
-	"github.com/Permify/permify/internal/repositories/postgres/mocks"
+	"github.com/Permify/permify/internal/repositories/mocks"
 )
 
 var _ = Describe("relationship-service", func() {

@@ -117,7 +117,7 @@ func ConvertUser(v string) User {
 // ConvertObject -
 func ConvertObject(v string) (Object, error) {
 	obj := strings.Split(v, ":")
-	if len(obj) < 1 {
+	if len(obj) < 2 {
 		return Object{}, errors.New("input is not suitable for the object")
 	}
 	return Object{

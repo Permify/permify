@@ -11,28 +11,37 @@ import (
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/entities"
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/postgres/migrations"
-	"github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/migration"
+	"github.com/Permify/permify/pkg/database"
+	db "github.com/Permify/permify/pkg/database/postgres"
 )
 
 // RelationTupleRepository -.
 type RelationTupleRepository struct {
-	Database *postgres.Postgres
+	Database *db.Postgres
 }
 
 // NewRelationTupleRepository -.
-func NewRelationTupleRepository(pg *postgres.Postgres) *RelationTupleRepository {
+func NewRelationTupleRepository(pg *db.Postgres) *RelationTupleRepository {
 	return &RelationTupleRepository{pg}
 }
 
 // Migrate -
 func (r *RelationTupleRepository) Migrate() (err error) {
-	mi := migration.New()
-	err = mi.Register(migration.TABLE, "initial_tuple", migrations.CreateRelationTupleMigration())
-	err = r.Database.Migrate(*mi)
-	return
+	ctx := context.Background()
+
+	var tx pgx.Tx
+	tx, err = r.Database.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleMigration())
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 // QueryTuples -
@@ -96,7 +105,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples []entities.R
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-				return repositories.ErrUniqueConstraint
+				return database.ErrUniqueConstraint
 			default:
 				return fmt.Errorf("RelationTupleRepo - Write - r.Pool.Exec: %w", err)
 			}

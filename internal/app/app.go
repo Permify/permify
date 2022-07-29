@@ -14,9 +14,9 @@ import (
 	"github.com/Permify/permify/internal/consumers"
 	PQConsumer "github.com/Permify/permify/internal/consumers/postgres"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
-	PQRepository "github.com/Permify/permify/internal/repositories/postgres"
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/services"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/httpserver"
 	"github.com/Permify/permify/pkg/logger"
 	PQPublisher "github.com/Permify/permify/pkg/publisher/postgres"
@@ -28,22 +28,21 @@ func Run(cfg *config.Config) {
 
 	l := logger.New(cfg.Log.Level)
 
-	// Write DB
-	var write *PQDatabase.Postgres
-	write, err = PQDatabase.New(cfg.Write.URL, PQDatabase.MaxPoolSize(cfg.Write.PoolMax))
+	var DB database.Database
+	DB, err = database.DBFactory(cfg.Write)
 	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
+		l.Fatal(fmt.Errorf("app - Run - DBFactory: %w", err))
 	}
-	defer write.Close()
+	defer DB.Close()
 
 	// Repositories
-	relationTupleRepository := PQRepository.NewRelationTupleRepository(write)
+	relationTupleRepository := repositories.RelationTupleFactory(DB)
 	err = relationTupleRepository.Migrate()
 	if err != nil {
 		l.Fatal(fmt.Errorf("app - Run - relationTupleRepository.Migrate: %w", err))
 	}
 
-	entityConfigRepository := PQRepository.NewEntityConfigRepository(write)
+	entityConfigRepository := repositories.EntityConfigFactory(DB)
 	err = entityConfigRepository.Migrate()
 	if err != nil {
 		l.Fatal(fmt.Errorf("app - Run - entityConfigRepository.Migrate: %w", err))

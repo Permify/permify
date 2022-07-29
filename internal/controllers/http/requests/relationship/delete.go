@@ -1,7 +1,7 @@
 package relationship
 
 import (
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 // Delete -
@@ -35,9 +35,9 @@ func (r Delete) Validate() (err error) {
 		validation.Field(&r.Body.Entity, validation.Required),
 		validation.Field(&r.Body.ObjectID, validation.Required),
 		validation.Field(&r.Body.Relation, validation.Required),
-		validation.Field(&r.Body.UsersetEntity),
+		validation.Field(&r.Body.UsersetEntity, validation.When(r.Body.UsersetRelation != "", validation.Required).Else(validation.Empty)),
 		validation.Field(&r.Body.UsersetObjectID, validation.Required),
-		validation.Field(&r.Body.UsersetRelation),
+		validation.Field(&r.Body.UsersetRelation, validation.When(r.Body.UsersetEntity != "", validation.Required).Else(validation.Empty)),
 	)
 	return
 }

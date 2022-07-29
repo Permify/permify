@@ -60,7 +60,6 @@ func (l *Lexer) NextToken() (tok token.Token) {
 	case '}':
 		tok = token.New(token.RBRACE, l.ch)
 	case '`':
-		l.readChar()
 		tok.Type = token.OPTION
 		tok.Literal = l.lexBacktick()
 	case '"':
@@ -83,8 +82,8 @@ func (l *Lexer) NextToken() (tok token.Token) {
 
 // lexBacktick -
 func (l *Lexer) lexBacktick() (lit string) {
-	position := l.position
 	l.readChar()
+	position := l.position
 	for !isBacktick(l.ch) {
 		l.readChar()
 	}

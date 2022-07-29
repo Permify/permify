@@ -11,10 +11,9 @@ import (
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/entities"
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/postgres/migrations"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/migration"
 )
 
 // EntityConfigRepository -.
@@ -29,10 +28,20 @@ func NewEntityConfigRepository(pg *postgres.Postgres) *EntityConfigRepository {
 
 // Migrate -
 func (r *EntityConfigRepository) Migrate() (err error) {
-	mi := migration.New()
-	err = mi.Register(migration.TABLE, "initial_config", migrations.CreateEntityConfigMigration())
-	err = r.Database.Migrate(*mi)
-	return
+	ctx := context.Background()
+
+	var tx pgx.Tx
+	tx, err = r.Database.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigMigration())
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 // All -
@@ -99,7 +108,7 @@ func (r *EntityConfigRepository) Replace(ctx context.Context, configs []entities
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-				return repositories.ErrUniqueConstraint
+				return database.ErrUniqueConstraint
 			default:
 				return fmt.Errorf("EntityConfigRepo - Replace - r.Pool.Exec: %w", err)
 			}

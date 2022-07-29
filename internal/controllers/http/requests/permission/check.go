@@ -1,7 +1,9 @@
 package permission
 
 import (
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+
+	"github.com/Permify/permify/internal/controllers/http/requests/rules"
 )
 
 // Check -
@@ -33,7 +35,7 @@ func (r Check) Validate() (err error) {
 	err = validation.ValidateStruct(&r.Body,
 		validation.Field(&r.Body.User, validation.Required),
 		validation.Field(&r.Body.Action, validation.Required),
-		validation.Field(&r.Body.Object, validation.Required),
+		validation.Field(&r.Body.Object, validation.Required, validation.By(rules.IsObject)),
 		validation.Field(&r.Body.Depth, validation.Min(3)),
 	)
 	return

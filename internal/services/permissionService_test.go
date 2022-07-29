@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/entities"
-	"github.com/Permify/permify/internal/repositories/postgres/mocks"
+	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/tuple"
 )

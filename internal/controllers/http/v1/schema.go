@@ -6,6 +6,8 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 
@@ -15,6 +17,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/logger"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 type schemaRoutes struct {
@@ -44,10 +47,16 @@ func newSchemaRoutes(handler *echo.Group, s services.ISchemaService, l logger.In
 func (r *schemaRoutes) replace(c echo.Context) (err error) {
 	var file *multipart.FileHeader
 	file, err = c.FormFile("schema")
-
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(map[string]string{
 			"schema": err.Error(),
+		}))
+	}
+
+	extension := filepath.Ext(strings.ToLower(file.Filename))
+	if extension != ".perm" {
+		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(map[string]string{
+			"schema": "file extension must be .perm",
 		}))
 	}
 
@@ -67,16 +76,30 @@ func (r *schemaRoutes) replace(c echo.Context) (err error) {
 	sch := pr.Parse()
 
 	if pr.Error() != nil {
-		return echo.ErrInternalServerError
+		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(map[string]string{
+			"schema": pr.Error().Error(),
+		}))
 	}
 
+	var isValid bool
 	var cnf []entities.EntityConfig
 
 	for _, st := range sch.Statements {
+		name := st.(*ast.EntityStatement).Name.Literal
+		if name == tuple.USER {
+			isValid = true
+		}
+
 		cnf = append(cnf, entities.EntityConfig{
-			Entity:           st.(*ast.EntityStatement).Name.Literal,
+			Entity:           name,
 			SerializedConfig: []byte(st.String()),
 		})
+	}
+
+	if !isValid {
+		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(map[string]string{
+			"schema": "must have user entity",
+		}))
 	}
 
 	err = r.schemaService.Replace(context.Background(), cnf)
@@ -84,5 +107,5 @@ func (r *schemaRoutes) replace(c echo.Context) (err error) {
 		return echo.ErrInternalServerError
 	}
 
-	return c.JSON(http.StatusInternalServerError, responses.MResponse("success"))
+	return c.JSON(http.StatusOK, responses.MResponse("success"))
 }

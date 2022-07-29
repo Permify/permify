@@ -44,17 +44,18 @@ type (
 
 	Listen struct {
 		Connection   string   `yaml:"connection"`
-		SlotName     string   `yaml:"slot_name"`
-		OutputPlugin string   `yaml:"output_plugin"`
 		PoolMax      int      `yaml:"pool_max"`
 		URL          string   `yaml:"url"`
+		SlotName     string   `yaml:"slot_name"`
+		OutputPlugin string   `yaml:"output_plugin"`
 		Tables       []string `yaml:"tables"`
 	}
 
 	Write struct {
 		Connection string `env-required:"true" yaml:"connection"`
 		PoolMax    int    `env-required:"true" yaml:"pool_max"`
-		URL        string `env-required:"true" yaml:"url"`
+		Database   string `env-required:"true" yaml:"database"`
+		URI        string `env-required:"true" yaml:"uri"`
 	}
 )
 

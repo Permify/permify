@@ -93,5 +93,26 @@ var _ = Describe("parser", func() {
 
 			Expect(es.Expression.(*ast.Identifier).Value).Should(Equal("owner"))
 		})
+
+		It("Case 4", func() {
+			pr := NewParser("entity organization {\n\nrelation owner @user\n\naction delete = owner\n\n\n}\n\n")
+			schema := pr.Parse()
+			st := schema.Statements[0].(*ast.EntityStatement)
+
+			Expect(st.Name.Literal).Should(Equal("organization"))
+			Expect(st.Option.Literal).Should(Equal(""))
+
+			r1 := st.RelationStatements[0].(*ast.RelationStatement)
+			Expect(r1.Name.Literal).Should(Equal("owner"))
+			Expect(r1.Type.Literal).Should(Equal("user"))
+			Expect(r1.Option.Literal).Should(Equal(""))
+
+			a1 := st.ActionStatements[0].(*ast.ActionStatement)
+			Expect(a1.Name.Literal).Should(Equal("delete"))
+
+			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
+
+			Expect(es.Expression.(*ast.Identifier).Value).Should(Equal("owner"))
+		})
 	})
 })

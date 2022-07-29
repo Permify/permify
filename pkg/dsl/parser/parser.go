@@ -56,7 +56,7 @@ func NewParser(str string) (p *Parser) {
 	return
 }
 
-// nextToken -
+// next -
 func (p *Parser) next() {
 	p.currentToken = p.peekToken
 	p.peekToken = p.l.NextToken()
@@ -187,7 +187,7 @@ func (p *Parser) parseActionStatement() ast.Statement {
 	return stmt
 }
 
-// parseRewrite -
+// parseExpressionStatement -
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	stmt := &ast.ExpressionStatement{}
 	stmt.Expression = p.parseExpression(LOWEST)
@@ -199,7 +199,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return stmt
 }
 
-// expectPeek -
+// expectAndNext -
 func (p *Parser) expectAndNext(t token.Type) bool {
 	if p.peekTokenIs(t) {
 		p.next()

@@ -10,8 +10,8 @@ import (
 	"github.com/Permify/permify/internal/controllers/http/requests/relationship"
 	"github.com/Permify/permify/internal/controllers/http/responses"
 	"github.com/Permify/permify/internal/entities"
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 )
 
@@ -54,7 +54,7 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 
 	err = r.relationshipService.WriteRelationship(context.Background(), []entities.RelationTuple{{Entity: request.Body.Entity, ObjectID: request.Body.ObjectID, Relation: request.Body.Relation, UsersetEntity: request.Body.UsersetEntity, UsersetObjectID: request.Body.UsersetObjectID, UsersetRelation: request.Body.UsersetRelation, Type: "custom"}})
 	if err != nil {
-		if errors.Is(err, repositories.ErrUniqueConstraint) {
+		if errors.Is(err, database.ErrUniqueConstraint) {
 			return c.JSON(http.StatusUnprocessableEntity, responses.MResponse("tuple already exists"))
 		}
 		return echo.ErrInternalServerError
