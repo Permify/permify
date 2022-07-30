@@ -12,6 +12,10 @@ type EntityConfigRepository struct {
 	mock.Mock
 }
 
+func (_m *EntityConfigRepository) Migrate() error {
+	return nil
+}
+
 // All -
 func (_m *EntityConfigRepository) All(ctx context.Context) (configs []entities.EntityConfig, err error) {
 	ret := _m.Called()
