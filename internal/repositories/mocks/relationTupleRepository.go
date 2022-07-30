@@ -13,6 +13,10 @@ type RelationTupleRepository struct {
 	mock.Mock
 }
 
+func (_m *RelationTupleRepository) Migrate() error {
+	return nil
+}
+
 // QueryTuples -
 func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (tuples []entities.RelationTuple, err error) {
 	ret := _m.Called(namespace, objectID, relation)
