@@ -21,7 +21,7 @@
 
 Permify is an open-source authorization service for creating and maintaining fine-grained authorizations. You can run Permify container with docker and it works as a Rest API.
 
-Permify converts, coordinate, and sync your authorization data as relation tuples into your preferred database. And you can check authorization with single request based on those tuples.
+Permify converts and syncs your authorization data as relation tuples into your preferred database. And you can check authorization with single request based on those tuples.
 
 Data model is inspired by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
@@ -29,7 +29,7 @@ Data model is inspired by [Google Zanzibar White Paper](https://storage.googleap
 
 You can use Permify any stage of your development for your authorization needs but Permify works best:
 
-- If you want to maintain unified control mechanism for individual applications.
+- If you want to create unified control mechanism for individual applications.
 - If you need to refactor your authorization.
 - If your data model is getting too complicated to handle your authorization within the service.
 - If you’re managing authorization for growing micro-service infrastructure.
@@ -47,7 +47,7 @@ You can use Permify any stage of your development for your authorization needs b
 
 ## Example Access Check
 
-Permify helps you convert & sync authorization data to a database you point at with a YAML config file. And after you model your authorization with Permify's DSL - Permify Schema, you can perform access checks with a single call anywhere on your app.
+Permify helps you convert & sync authorization data to a database you point at with a YAML config file. And after you model your authorization with Permify's DSL - Permify Schema, you can perform access checks with a single call anywhere on your app. Access decisions made according to stored relational tuples.
 
 **Request**
 
@@ -78,16 +78,6 @@ Permify helps you convert & sync authorization data to a database you point at w
   }
 }
 ```
-
-
-
-
-
-
-
-
-
-
 ## Getting Started
 
 - [Install Permify] with running Permify container using docker.
