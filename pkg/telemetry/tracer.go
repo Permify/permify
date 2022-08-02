@@ -2,6 +2,7 @@ package telemetry
 
 import (
 	"context"
+	`github.com/rs/xid`
 	"runtime"
 
 	"go.opentelemetry.io/otel"
@@ -19,7 +20,8 @@ func NewTracer(exporter trace.SpanExporter) (func(context.Context) error, error)
 		sdktrace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
-			attribute.String("environment", "0.0.1"),
+			attribute.String("id", xid.New().String()),
+			attribute.String("version", "0.0.1"),
 			attribute.String("os", runtime.GOOS),
 			attribute.String("arch", runtime.GOARCH),
 		)),

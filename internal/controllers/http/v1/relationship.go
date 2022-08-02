@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	`go.opentelemetry.io/otel/codes`
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -42,7 +43,7 @@ func newRelationshipRoutes(handler *echo.Group, t services.IRelationshipService,
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /relationships/write [post]
 func (r *relationshipRoutes) write(c echo.Context) (err error) {
-	ctx, span := tracer.Start(c.Request().Context(), "write")
+	ctx, span := tracer.Start(c.Request().Context(), "relationships.write")
 	defer span.End()
 
 	request := new(relationship.Write)
@@ -57,8 +58,10 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 	err = r.relationshipService.WriteRelationship(ctx, []entities.RelationTuple{{Entity: request.Body.Entity, ObjectID: request.Body.ObjectID, Relation: request.Body.Relation, UsersetEntity: request.Body.UsersetEntity, UsersetObjectID: request.Body.UsersetObjectID, UsersetRelation: request.Body.UsersetRelation, Type: "custom"}})
 	if err != nil {
 		if errors.Is(err, database.ErrUniqueConstraint) {
+			span.RecordError(database.ErrUniqueConstraint)
 			return c.JSON(http.StatusUnprocessableEntity, responses.MResponse("tuple already exists"))
 		}
+		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
 	}
 
@@ -76,7 +79,7 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /relationships/delete [post]
 func (r *relationshipRoutes) delete(c echo.Context) (err error) {
-	ctx, span := tracer.Start(c.Request().Context(), "write")
+	ctx, span := tracer.Start(c.Request().Context(), "relationships.delete")
 	defer span.End()
 
 	request := new(relationship.Delete)
@@ -90,6 +93,7 @@ func (r *relationshipRoutes) delete(c echo.Context) (err error) {
 
 	err = r.relationshipService.DeleteRelationship(ctx, []entities.RelationTuple{{Entity: request.Body.Entity, ObjectID: request.Body.ObjectID, Relation: request.Body.Relation, UsersetEntity: request.Body.UsersetEntity, UsersetObjectID: request.Body.UsersetObjectID, UsersetRelation: request.Body.UsersetRelation}})
 	if err != nil {
+		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
 	}
 

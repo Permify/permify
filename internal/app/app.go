@@ -93,7 +93,7 @@ func Run(cfg *config.Config) {
 
 	// HTTP Server
 	handler := echo.New()
-	handler.Use(otelecho.Middleware("http-server"))
+	handler.Use(otelecho.Middleware("http.server"))
 
 	v1.NewRouter(handler, l, relationshipService, permissionService, schemaService)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))

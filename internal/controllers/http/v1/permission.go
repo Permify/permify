@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	`go.opentelemetry.io/otel/codes`
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -39,7 +40,7 @@ func newPermissionRoutes(handler *echo.Group, t services.IPermissionService, l l
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /permissions/check [post]
 func (r *permissionRoutes) check(c echo.Context) (err error) {
-	ctx, span := tracer.Start(c.Request().Context(), "check")
+	ctx, span := tracer.Start(c.Request().Context(), "permissions.check")
 	defer span.End()
 
 	request := new(permission.Check)
@@ -61,11 +62,14 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 	can, vi, rm, err = r.service.Check(ctx, request.Body.User, request.Body.Action, request.Body.Object, request.Body.Depth)
 	if err != nil {
 		if errors.Is(err, services.DepthError) {
+			span.RecordError(services.DepthError)
 			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"depth": "depth is not enough to check"})
 		}
 		if errors.Is(err, services.ActionCannotFoundError) {
+			span.RecordError(services.ActionCannotFoundError)
 			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"action": "action cannot be found"})
 		}
+		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
 	}
 
