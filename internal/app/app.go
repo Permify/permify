@@ -39,7 +39,7 @@ func Run(cfg *config.Config) {
 	defer DB.Close()
 
 	// Tracing
-	if !cfg.Tracer.Disabled {
+	if cfg.Tracer != nil && !cfg.Tracer.Disabled {
 		exporter, err := exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
 		if err != nil {
 			l.Fatal(fmt.Errorf("app - Run - ExporterFactory: %w", err))
@@ -47,7 +47,7 @@ func Run(cfg *config.Config) {
 
 		shutdown, err := telemetry.NewTracer(exporter)
 		if err != nil {
-			l.Fatal(err)
+			l.Fatal(fmt.Errorf("app - Run - NewTracer: %w", err))
 		}
 
 		defer func() {
