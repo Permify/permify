@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -16,7 +17,7 @@ var _ = Describe("permission-service", func() {
 
 	// DRIVE SAMPLE
 
-	var driveConfigs = []entities.EntityConfig{
+	driveConfigs := []entities.EntityConfig{
 		{
 			Entity:           "user",
 			SerializedConfig: []byte("entity user {}"),
@@ -232,7 +233,7 @@ var _ = Describe("permission-service", func() {
 
 	// GITHUB SAMPLE
 
-	var githubConfigs = []entities.EntityConfig{
+	githubConfigs := []entities.EntityConfig{
 		{
 			Entity:           "user",
 			SerializedConfig: []byte("entity user {}"),
