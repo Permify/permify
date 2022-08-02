@@ -17,7 +17,7 @@ type (
 		App      `yaml:"app"`
 		HTTP     `yaml:"http"`
 		Log      `yaml:"logger"`
-		Tracer   `yaml:"tracer"`
+		*Tracer  `yaml:"tracer"`
 		Database `yaml:"database"`
 	}
 
