@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 
 # Step 3: Final
 FROM scratch
-EXPOSE 8080 8080
+EXPOSE 3476 3476
 COPY --from=builder /app/default.config.yaml /default.config.yaml
 COPY --from=builder /app/default.schema.perm /default.schema.perm
 COPY --from=builder /bin/app /app
