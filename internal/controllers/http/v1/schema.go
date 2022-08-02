@@ -2,7 +2,6 @@ package v1
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -45,6 +44,9 @@ func newSchemaRoutes(handler *echo.Group, s services.ISchemaService, l logger.In
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /schemas/replace [post]
 func (r *schemaRoutes) replace(c echo.Context) (err error) {
+	ctx, span := tracer.Start(c.Request().Context(), "replace")
+	defer span.End()
+
 	var file *multipart.FileHeader
 	file, err = c.FormFile("schema")
 	if err != nil {
@@ -102,7 +104,7 @@ func (r *schemaRoutes) replace(c echo.Context) (err error) {
 		}))
 	}
 
-	err = r.schemaService.Replace(context.Background(), cnf)
+	err = r.schemaService.Replace(ctx, cnf)
 	if err != nil {
 		return echo.ErrInternalServerError
 	}

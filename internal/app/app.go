@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/labstack/echo/v4"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/consumers"
@@ -20,6 +21,8 @@ import (
 	"github.com/Permify/permify/pkg/httpserver"
 	"github.com/Permify/permify/pkg/logger"
 	PQPublisher "github.com/Permify/permify/pkg/publisher/postgres"
+	"github.com/Permify/permify/pkg/telemetry"
+	"github.com/Permify/permify/pkg/telemetry/exporters"
 )
 
 // Run creates objects via constructors.
@@ -34,6 +37,25 @@ func Run(cfg *config.Config) {
 		l.Fatal(fmt.Errorf("app - Run - DBFactory: %w", err))
 	}
 	defer DB.Close()
+
+	// Tracing
+	if !cfg.Tracer.Disabled {
+		exporter, err := exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
+		if err != nil {
+			l.Fatal(fmt.Errorf("app - Run - ExporterFactory: %w", err))
+		}
+
+		shutdown, err := telemetry.NewTracer(exporter)
+		if err != nil {
+			l.Fatal(err)
+		}
+
+		defer func() {
+			if err = shutdown(context.Background()); err != nil {
+				l.Fatal("failed to shutdown TracerProvider: %w", err)
+			}
+		}()
+	}
 
 	// Repositories
 	relationTupleRepository := repositories.RelationTupleFactory(DB)
@@ -71,6 +93,8 @@ func Run(cfg *config.Config) {
 
 	// HTTP Server
 	handler := echo.New()
+	handler.Use(otelecho.Middleware("http-server"))
+
 	v1.NewRouter(handler, l, relationshipService, permissionService, schemaService)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 	l.Info("http server successfully started")

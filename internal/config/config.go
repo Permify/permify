@@ -17,6 +17,7 @@ type (
 		App      `yaml:"app"`
 		HTTP     `yaml:"http"`
 		Log      `yaml:"logger"`
+		Tracer   `yaml:"tracer"`
 		Database `yaml:"database"`
 	}
 
@@ -34,6 +35,13 @@ type (
 	// Log -.
 	Log struct {
 		Level string `env-required:"true" yaml:"log_level"`
+	}
+
+	// Tracer -.
+	Tracer struct {
+		Exporter string `yaml:"exporter"`
+		Endpoint string `yaml:"endpoint"`
+		Disabled bool   `yaml:"disabled"`
 	}
 
 	// Database -.
