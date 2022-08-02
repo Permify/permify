@@ -9,8 +9,14 @@ logger:
   log_level: 'debug'
   rollbar_env: 'permify'
 
+tracer:
+  exporter: 'zipkin'
+  endpoint: 'http://localhost:9411/api/v2/spans'
+  disabled: false
+
 database:
   write:
-    connection: postgres
-    pool_max: 2
-    url: 'postgres://user:password@host:5432/db_name'
+    connection: 'postgres'
+    database: 'db_name'
+    uri: 'postgres://user:password@host:5432'
+    pool_max: 20
