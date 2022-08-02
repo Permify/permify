@@ -28,8 +28,8 @@ func (RelationTuple) Collection() string {
 	return "relation_tuple"
 }
 
-// Tuple -
-func (r RelationTuple) Tuple() string {
+// String -
+func (r RelationTuple) String() string {
 	tup := tuple.Tuple{
 		Object: tuple.Object{
 			Namespace: r.Entity,
