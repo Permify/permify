@@ -4,7 +4,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
-
 	// Swagger docs.
 	_ "github.com/Permify/permify/docs"
 
@@ -17,7 +16,7 @@ import (
 // @title       Permify API
 // @description
 // @version     1.0
-// @host        localhost:8080
+// @host        localhost:3476
 // @BasePath    /v1
 func NewRouter(handler *echo.Echo, l logger.Interface, r services.IRelationshipService, t services.IPermissionService, s services.ISchemaService) {
 	// Options
