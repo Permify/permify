@@ -40,10 +40,6 @@ func New(uri string, database string, opts ...Option) (*Mongo, error) {
 		return nil, fmt.Errorf("mongo - NewMongo - mongo.Connect: %w", err)
 	}
 
-	if err = client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		return nil, fmt.Errorf("postgres - NewMongo - Ping: %w", err)
-	}
-
 	mn.client = client
 
 	return mn, nil
@@ -52,6 +48,18 @@ func New(uri string, database string, opts ...Option) (*Mongo, error) {
 // Database -
 func (m *Mongo) Database() *mongo.Database {
 	return m.client.Database(m.database)
+}
+
+// IsReady -
+func (m *Mongo) IsReady(ctx context.Context) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	if err := m.client.Ping(ctx, readpref.Primary()); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // GetConnectionType -

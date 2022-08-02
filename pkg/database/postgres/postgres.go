@@ -60,6 +60,18 @@ func New(uri string, database string, opts ...Option) (*Postgres, error) {
 	return pg, nil
 }
 
+// IsReady -
+func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	if err := p.Pool.Ping(ctx); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // GetConnectionType -
 func (p *Postgres) GetConnectionType() string {
 	return "postgres"
