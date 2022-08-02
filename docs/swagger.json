@@ -5,7 +5,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "localhost:3476",
     "basePath": "/v1",
     "paths": {
         "/permissions/check": {
