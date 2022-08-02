@@ -1,6 +1,9 @@
 package database
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/Permify/permify/internal/config"
 	MNDatabase "github.com/Permify/permify/pkg/database/mongo"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -22,10 +25,6 @@ func DBFactory(conf config.Write) (db Database, err error) {
 		}
 		return
 	default:
-		db, err = PQDatabase.New(conf.URI, conf.Database, PQDatabase.MaxPoolSize(conf.PoolMax))
-		if err != nil {
-			return nil, err
-		}
-		return
+		return nil, errors.New(fmt.Sprintf("%s connection is unsupported", conf.Connection))
 	}
 }
