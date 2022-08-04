@@ -1,4 +1,4 @@
-// Package app configures and runs application.
+// Package permify configures and runs application.
 package app
 
 import (
@@ -34,7 +34,7 @@ func Run(cfg *config.Config) {
 	var DB database.Database
 	DB, err = database.DBFactory(cfg.Write)
 	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - DBFactory: %w", err))
+		l.Fatal(fmt.Errorf("permify - Run - DBFactory: %w", err))
 	}
 	defer DB.Close()
 
@@ -42,12 +42,12 @@ func Run(cfg *config.Config) {
 	if cfg.Tracer != nil && !cfg.Tracer.Disabled {
 		exporter, err := exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
 		if err != nil {
-			l.Fatal(fmt.Errorf("app - Run - ExporterFactory: %w", err))
+			l.Fatal(fmt.Errorf("permify - Run - ExporterFactory: %w", err))
 		}
 
 		shutdown, err := telemetry.NewTracer(exporter)
 		if err != nil {
-			l.Fatal(fmt.Errorf("app - Run - NewTracer: %w", err))
+			l.Fatal(fmt.Errorf("permify - Run - NewTracer: %w", err))
 		}
 
 		defer func() {
@@ -61,13 +61,13 @@ func Run(cfg *config.Config) {
 	relationTupleRepository := repositories.RelationTupleFactory(DB)
 	err = relationTupleRepository.Migrate()
 	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - relationTupleRepository.Migrate: %w", err))
+		l.Fatal(fmt.Errorf("permify - Run - relationTupleRepository.Migrate: %w", err))
 	}
 
 	entityConfigRepository := repositories.EntityConfigFactory(DB)
 	err = entityConfigRepository.Migrate()
 	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - entityConfigRepository.Migrate: %w", err))
+		l.Fatal(fmt.Errorf("permify - Run - entityConfigRepository.Migrate: %w", err))
 	}
 
 	// Services
@@ -97,7 +97,7 @@ func Run(cfg *config.Config) {
 
 	v1.NewRouter(handler, l, relationshipService, permissionService, schemaService)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
-	l.Info("http server successfully started")
+	l.Info(fmt.Sprintf("http server successfully started: %s", cfg.HTTP.Port))
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)
@@ -105,14 +105,14 @@ func Run(cfg *config.Config) {
 
 	select {
 	case s := <-interrupt:
-		l.Info("app - Run - signal: " + s.String())
+		l.Info("permify - Run - signal: " + s.String())
 	case err = <-httpServer.Notify():
-		l.Error(fmt.Errorf("app - Run - httpServer.Notify: %w", err))
+		l.Error(fmt.Errorf("permify - Run - httpServer.Notify: %w", err))
 	}
 
 	// Shutdown
 	err = httpServer.Shutdown()
 	if err != nil {
-		l.Error(fmt.Errorf("app - Run - httpServer.Shutdown: %w", err))
+		l.Error(fmt.Errorf("permify - Run - httpServer.Shutdown: %w", err))
 	}
 }

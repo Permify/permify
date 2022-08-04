@@ -66,7 +66,7 @@ type (
 	}
 )
 
-// NewConfig returns app config.
+// NewConfig returns permify config.
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 

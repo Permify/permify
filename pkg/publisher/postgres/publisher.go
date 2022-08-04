@@ -68,16 +68,16 @@ func NewPublisher(ctx context.Context, url string, sl string, op string, tables 
 // Migrate -
 func (p *Publisher) Migrate(ctx context.Context) (err error) {
 	if _, err = p.conn.Exec(ctx, "DROP PUBLICATION IF EXISTS pub;").ReadAll(); err != nil {
-		p.logger.Error(fmt.Errorf("app - Run - failed to drop publication: %w", err))
+		p.logger.Error(fmt.Errorf("permify - Run - failed to drop publication: %w", err))
 	}
 
 	if _, err = p.conn.Exec(ctx, fmt.Sprintf("CREATE PUBLICATION pub FOR TABLE %s;", strings.Join(p.tables, ","))).ReadAll(); err != nil {
-		p.logger.Error(fmt.Errorf("app - Run - failed to create publication: %w", err))
+		p.logger.Error(fmt.Errorf("permify - Run - failed to create publication: %w", err))
 	}
 
 	for _, table := range p.tables {
 		if _, err = p.conn.Exec(ctx, fmt.Sprintf("ALTER TABLE %s REPLICA IDENTITY FULL;", table)).ReadAll(); err != nil {
-			p.logger.Error(fmt.Errorf("app - Run - failed to create publication: %w", err))
+			p.logger.Error(fmt.Errorf("permify - Run - failed to create publication: %w", err))
 		}
 	}
 
@@ -87,7 +87,7 @@ func (p *Publisher) Migrate(ctx context.Context) (err error) {
 // CreateReplicationSlotServer -
 func (p *Publisher) CreateReplicationSlotServer(ctx context.Context) (err error) {
 	if _, err = pglogrepl.CreateReplicationSlot(ctx, p.conn, p.slotName, p.outputPlugin, pglogrepl.CreateReplicationSlotOptions{Temporary: true}); err != nil {
-		p.logger.Error(fmt.Errorf("app - Run - failed to create replication slot: %w", err))
+		p.logger.Error(fmt.Errorf("permify - Run - failed to create replication slot: %w", err))
 	}
 	return err
 }
@@ -107,7 +107,7 @@ func (p *Publisher) Start() {
 
 	err = pglogrepl.StartReplication(ctx, p.conn, p.slotName, msgPointer, pglogrepl.StartReplicationOptions{PluginArgs: pluginArguments})
 	if err != nil {
-		p.logger.Error(fmt.Errorf("app - Run - failed to establish start replication: %w", err))
+		p.logger.Error(fmt.Errorf("permify - Run - failed to establish start replication: %w", err))
 	}
 
 	var ping time.Time

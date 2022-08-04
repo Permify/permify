@@ -1,22 +1,13 @@
-# Step 1: Modules caching
-FROM golang:1.17.1-alpine3.14 as modules
-COPY go.mod go.sum /modules/
-WORKDIR /modules
-RUN go mod download
+# Step 1: Builder
+FROM golang:1.17.1-alpine3.14 as permify-builder
+WORKDIR /go/src/app
+RUN apk update && apk add --no-cache git
+COPY . .
+RUN go build -v ./cmd/permify/
 
-# Step 2: Builder
-FROM golang:1.17.1-alpine3.14 as builder
-COPY --from=modules /go/pkg /go/pkg
-COPY . /app
-WORKDIR /app
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o /bin/app ./cmd/app
-
-# Step 3: Final
-FROM scratch
+# Step 2: Final
+FROM alpine:3.16.1
 EXPOSE 3476 3476
-COPY --from=builder /app/default.config.yaml /default.config.yaml
-COPY --from=builder /app/default.schema.perm /default.schema.perm
-COPY --from=builder /bin/app /app
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-CMD ["/app"]
+COPY --from=permify-builder /go/src/app/permify /usr/local/bin/permify
+COPY --from=permify-builder /go/src/app/default.config.yaml /default.config.yaml
+ENTRYPOINT ["permify"]

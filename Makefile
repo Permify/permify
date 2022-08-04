@@ -14,7 +14,7 @@ swag-v1: ### swag init
 
 run: swag-v1 ### swag run
 	go mod tidy && go mod download && \
-	DISABLE_SWAGGER_HTTP_HANDLER='' CGO_ENABLED=0 go run ./cmd/app
+	DISABLE_SWAGGER_HTTP_HANDLER='' CGO_ENABLED=0 go run ./cmd/permify
 .PHONY: run
 
 linter-golangci: ### check by golangci linter

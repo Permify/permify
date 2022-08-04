@@ -12,7 +12,7 @@ import (
 
 const (
 	// Attempts connection
-	host       = "app:3476"
+	host       = "permify:3476"
 	healthPath = "http://" + host + "/status/ping"
 	attempts   = 20
 
