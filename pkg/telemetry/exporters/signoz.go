@@ -1,11 +1,12 @@
 package exporters
 
 import (
-	`context`
-	`go.opentelemetry.io/otel/exporters/otlp/otlptrace`
+	"context"
+
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	`go.opentelemetry.io/otel/sdk/trace`
-	`google.golang.org/grpc/credentials`
+	"go.opentelemetry.io/otel/sdk/trace"
+	"google.golang.org/grpc/credentials"
 )
 
 // NewSigNoz =

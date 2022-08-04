@@ -2,12 +2,13 @@ package v1
 
 import (
 	"bytes"
-	`go.opentelemetry.io/otel/codes`
 	"io"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/labstack/echo/v4"
 

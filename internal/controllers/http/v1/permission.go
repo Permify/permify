@@ -2,8 +2,9 @@ package v1
 
 import (
 	"errors"
-	`go.opentelemetry.io/otel/codes`
 	"net/http"
+
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/labstack/echo/v4"
 

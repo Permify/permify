@@ -2,8 +2,9 @@ package telemetry
 
 import (
 	"context"
-	`github.com/rs/xid`
 	"runtime"
+
+	"github.com/rs/xid"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
