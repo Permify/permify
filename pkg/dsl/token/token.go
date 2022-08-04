@@ -26,6 +26,7 @@ var keywords = map[string]Type{
 	"action":   ACTION,
 	"and":      AND,
 	"or":       OR,
+	"not":      NOT,
 }
 
 const (
@@ -59,8 +60,7 @@ const (
 	SIGN   = "SIGN"
 	DOT    = "DOT"
 
-	COLON     = "COLON"
-	SEMICOLON = "SEMICOLON"
+	COLON = "COLON"
 
 	NEWLINE = "NEWLINE"
 
@@ -71,6 +71,12 @@ const (
 	ENTITY   = "ENTITY"
 	RELATION = "RELATION"
 	ACTION   = "ACTION"
+
+	//
+	// Prefix
+	//
+
+	NOT = "NOT"
 
 	//
 	// Logical

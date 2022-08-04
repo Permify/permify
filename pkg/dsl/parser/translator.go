@@ -101,10 +101,17 @@ func parseChildren(expression ast.Expression) (children schema.Child) {
 	if expression.IsInfix() {
 		exp := expression.(*ast.InfixExpression)
 		var child schema.Rewrite
-		if exp.Operator == "or" {
+
+		switch exp.Operator {
+		case "or":
 			child.Type = schema.Union
-		} else {
+			break
+		case "and":
 			child.Type = schema.Intersection
+			break
+		default:
+			child.Type = schema.Union
+			break
 		}
 
 		var ch []schema.Child
@@ -114,16 +121,34 @@ func parseChildren(expression ast.Expression) (children schema.Child) {
 		child.Children = ch
 		return child
 	} else {
-		exp := expression.(*ast.Identifier)
+
 		var child schema.Leaf
-		s := strings.Split(expression.String(), ".")
-		if len(s) > 1 {
-			child.Type = schema.TupleToUserSetType
+		var s []string
+
+		switch expression.Type() {
+		case "identifier":
+			exp := expression.(*ast.Identifier)
+			s = strings.Split(expression.String(), ".")
+			child.Exclusion = false
 			child.Value = exp.Value
-		} else {
-			child.Type = schema.ComputedUserSetType
+		case "prefix":
+			exp := expression.(*ast.PrefixExpression)
+			s = strings.Split(expression.String(), ".")
+			child.Value = exp.Value
+			child.Exclusion = true
+		default:
+			exp := expression.(*ast.Identifier)
+			s = strings.Split(expression.String(), ".")
+			child.Exclusion = false
 			child.Value = exp.Value
 		}
+
+		if len(s) > 1 {
+			child.Type = schema.TupleToUserSetType
+		} else {
+			child.Type = schema.ComputedUserSetType
+		}
+
 		return child
 	}
 }

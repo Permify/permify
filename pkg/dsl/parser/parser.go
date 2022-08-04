@@ -15,6 +15,7 @@ const (
 
 	LOWEST
 	LOGIC
+	PREFIX // not IDENT
 )
 
 var precedences = map[token.Type]int{
@@ -46,6 +47,7 @@ func NewParser(str string) (p *Parser) {
 
 	p.prefixParseFns = make(map[token.Type]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.NOT, p.parsePrefixExpression)
 
 	p.infixParseFunc = make(map[token.Type]infixParseFn)
 	p.registerInfix(token.AND, p.parseInfixExpression)
@@ -261,6 +263,17 @@ func (p *Parser) parseInnerParen() ast.Expression {
 	}
 
 	return left
+}
+
+// parsePrefixExpression -
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	expression := &ast.PrefixExpression{
+		Token:    p.currentToken,
+		Operator: p.currentToken.Literal,
+	}
+	p.next()
+	expression.Value = p.currentToken.Literal
+	return expression
 }
 
 // parseInfixExpression

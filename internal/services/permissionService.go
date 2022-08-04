@@ -44,15 +44,17 @@ func (v VisitMap) get(key string) (decision Decision) {
 
 // Decision -
 type Decision struct {
-	Can bool  `json:"can"`
-	Err error `json:"err"`
+	Prefix string `json:"prefix"`
+	Can    bool   `json:"can"`
+	Err    error  `json:"err"`
 }
 
 // sendDecision -
-func sendDecision(can bool, err error) Decision {
+func sendDecision(can bool, prefix string, err error) Decision {
 	return Decision{
-		Can: can,
-		Err: err,
+		Prefix: prefix,
+		Can:    can,
+		Err:    err,
 	}
 }
 
@@ -182,9 +184,9 @@ func (service *PermissionService) checkRewrite(ctx context.Context, request *Req
 func (service *PermissionService) checkLeaf(ctx context.Context, request *Request, child schema.Leaf, vm *VisitMap) CheckFunction {
 	switch child.GetType() {
 	case schema.TupleToUserSetType.String():
-		return service.check(ctx, request.Object, tuple.Relation(child.Value), request, vm)
+		return service.check(ctx, request.Object, tuple.Relation(child.Value), request, child.Exclusion, vm)
 	case schema.ComputedUserSetType.String():
-		return service.check(ctx, request.Object, tuple.Relation(child.Value), request, vm)
+		return service.check(ctx, request.Object, tuple.Relation(child.Value), request, child.Exclusion, vm)
 	default:
 		return fail(UndefinedChildTypeError)
 	}
@@ -212,7 +214,7 @@ func (service *PermissionService) set(ctx context.Context, request *Request, chi
 // union -
 func union(ctx context.Context, functions []CheckFunction) Decision {
 	if len(functions) == 0 {
-		return sendDecision(false, nil)
+		return sendDecision(false, "", nil)
 	}
 
 	decisionChan := make(chan Decision, len(functions))
@@ -227,23 +229,23 @@ func union(ctx context.Context, functions []CheckFunction) Decision {
 		select {
 		case result := <-decisionChan:
 			if result.Err == nil && result.Can {
-				return sendDecision(true, nil)
+				return sendDecision(true, result.Prefix, nil)
 			}
 			if result.Err != nil {
-				return sendDecision(false, result.Err)
+				return sendDecision(false, result.Prefix, result.Err)
 			}
 		case <-ctx.Done():
-			return sendDecision(false, CanceledError)
+			return sendDecision(false, "", CanceledError)
 		}
 	}
 
-	return sendDecision(false, nil)
+	return sendDecision(false, "", nil)
 }
 
 // intersection -
 func intersection(ctx context.Context, functions []CheckFunction) Decision {
 	if len(functions) == 0 {
-		return sendDecision(false, nil)
+		return sendDecision(false, "", nil)
 	}
 
 	decisionChan := make(chan Decision, len(functions))
@@ -258,17 +260,17 @@ func intersection(ctx context.Context, functions []CheckFunction) Decision {
 		select {
 		case result := <-decisionChan:
 			if result.Err == nil && !result.Can {
-				return sendDecision(false, nil)
+				return sendDecision(false, result.Prefix, nil)
 			}
 			if result.Err != nil {
-				return sendDecision(false, result.Err)
+				return sendDecision(false, result.Prefix, result.Err)
 			}
 		case <-ctx.Done():
-			return sendDecision(false, CanceledError)
+			return sendDecision(false, "", CanceledError)
 		}
 	}
 
-	return sendDecision(true, nil)
+	return sendDecision(true, "", nil)
 }
 
 // getUsers -
@@ -310,7 +312,7 @@ func (service *PermissionService) getUsers(ctx context.Context, object tuple.Obj
 }
 
 // check -
-func (service *PermissionService) check(ctx context.Context, object tuple.Object, relation tuple.Relation, re *Request, vm *VisitMap) CheckFunction {
+func (service *PermissionService) check(ctx context.Context, object tuple.Object, relation tuple.Relation, re *Request, exclusion bool, vm *VisitMap) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- Decision) {
 		var err error
 
@@ -324,7 +326,7 @@ func (service *PermissionService) check(ctx context.Context, object tuple.Object
 		re.decrease()
 
 		if re.isDepthFinish() {
-			decisionChan <- sendDecision(false, DepthError)
+			decisionChan <- sendDecision(false, "", DepthError)
 			return
 		}
 
@@ -337,19 +339,29 @@ func (service *PermissionService) check(ctx context.Context, object tuple.Object
 
 		for _, t := range users {
 			if t.Equals(re.Subject) {
-				dec := sendDecision(true, err)
+				var dec Decision
+				if exclusion {
+					dec = sendDecision(false, "not", err)
+				} else {
+					dec = sendDecision(true, "", err)
+				}
 				vm.set(key, dec)
 				decisionChan <- dec
 				return
 			} else {
 				if !t.IsUser() {
-					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, t.UserSet.Object, t.UserSet.Relation, re, vm)})
+					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, t.UserSet.Object, t.UserSet.Relation, re, exclusion, vm)})
 					return
 				}
 			}
 		}
 
-		dec := sendDecision(false, err)
+		var dec Decision
+		if exclusion {
+			dec = sendDecision(true, "not", err)
+		} else {
+			dec = sendDecision(false, "", err)
+		}
 		vm.set(key, dec)
 		decisionChan <- dec
 		return
@@ -359,6 +371,6 @@ func (service *PermissionService) check(ctx context.Context, object tuple.Object
 // fail -
 func fail(err error) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- Decision) {
-		decisionChan <- sendDecision(false, err)
+		decisionChan <- sendDecision(false, "", err)
 	}
 }

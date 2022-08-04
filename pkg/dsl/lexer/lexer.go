@@ -47,6 +47,8 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		tok = token.New(token.NEWLINE, l.ch)
 	case '\r':
 		tok = token.New(token.NEWLINE, l.ch)
+	case ';':
+		tok = token.New(token.NEWLINE, l.ch)
 	case '=':
 		tok = token.New(token.ASSIGN, l.ch)
 	case '@':

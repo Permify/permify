@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/token"
@@ -17,6 +18,7 @@ type Expression interface {
 	Node
 	expressionNode()
 	IsInfix() bool
+	Type() string
 }
 
 // Statement -
@@ -134,6 +136,11 @@ func (ls *Identifier) IsInfix() bool {
 	return false
 }
 
+// Type -
+func (ls *Identifier) Type() string {
+	return "identifier"
+}
+
 // ActionStatement -
 type ActionStatement struct {
 	Token               token.Token // token.ACTION
@@ -212,4 +219,41 @@ func (ie *InfixExpression) String() string {
 // IsInfix -
 func (ie *InfixExpression) IsInfix() bool {
 	return true
+}
+
+// Type -
+func (ie *InfixExpression) Type() string {
+	return "inflix"
+}
+
+// PrefixExpression -
+type PrefixExpression struct {
+	Token    token.Token // not
+	Operator string
+	Value    string
+}
+
+// TokenLiteral -
+func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+
+// String -
+func (pe *PrefixExpression) String() string {
+	var sb bytes.Buffer
+	sb.WriteString(pe.Operator)
+	sb.WriteString(" ")
+	sb.WriteString(pe.Value)
+	return sb.String()
+}
+
+// expressionNode -
+func (pe *PrefixExpression) expressionNode() {}
+
+// IsInfix -
+func (pe *PrefixExpression) IsInfix() bool {
+	return false
+}
+
+// Type -
+func (pe *PrefixExpression) Type() string {
+	return "prefix"
 }

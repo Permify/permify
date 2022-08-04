@@ -18,7 +18,7 @@ func TestLexer(t *testing.T) {
 var _ = Describe("lexer", func() {
 	Context("NextToken", func() {
 		It("Case 1", func() {
-			str := "entity user {} `table:\"users\",identifier:\"id\"`\n entity organization {\n relation admin @user `rel:\"custom\"`\n relation member @user `rel:\"many-to-many\", table:\"org_members\", cols:\"org_id,user_id\"`\n    action create_repository = admin or member\n    action delete = admin \n} `table:\"organizations\", identifier:\"id\"`\n"
+			str := "entity user {} `table:\"users\",identifier:\"id\"`\n entity organization {\n relation admin @user `rel:\"custom\"`\n relation banned @user `rel:\"custom\"`\n relation member @user `rel:\"many-to-many\", table:\"org_members\", cols:\"org_id,user_id\"`\n action create_repository = admin and not banned \n    action delete = admin \n} `table:\"organizations\", identifier:\"id\"`\n"
 
 			tests := []struct {
 				expectedType    token.Type
@@ -41,6 +41,12 @@ var _ = Describe("lexer", func() {
 				{token.OPTION, "rel:\"custom\""},
 				{token.NEWLINE, "\n"},
 				{token.RELATION, "relation"},
+				{token.IDENT, "banned"},
+				{token.SIGN, "@"},
+				{token.IDENT, "user"},
+				{token.OPTION, "rel:\"custom\""},
+				{token.NEWLINE, "\n"},
+				{token.RELATION, "relation"},
 				{token.IDENT, "member"},
 				{token.SIGN, "@"},
 				{token.IDENT, "user"},
@@ -50,8 +56,10 @@ var _ = Describe("lexer", func() {
 				{token.IDENT, "create_repository"},
 				{token.ASSIGN, "="},
 				{token.IDENT, "admin"},
-				{token.OR, "or"},
-				{token.IDENT, "member"},
+				{token.AND, "and"},
+				{token.NOT, "not"},
+				{token.IDENT, "banned"},
+				{token.NEWLINE, "\n"},
 				{token.ACTION, "action"},
 				{token.IDENT, "delete"},
 				{token.ASSIGN, "="},

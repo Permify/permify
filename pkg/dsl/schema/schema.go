@@ -10,7 +10,6 @@ type OPType string
 const (
 	Union        OPType = "union"
 	Intersection OPType = "intersection"
-	// Exclusion    OPType = "exclusion"
 )
 
 func (o OPType) String() string {
@@ -189,8 +188,9 @@ func (Rewrite) GetKind() string {
 
 // Leaf -
 type Leaf struct {
-	Type  LeafType // tupleToUserSet or computedUserSet
-	Value string
+	Exclusion bool
+	Type      LeafType // tupleToUserSet or computedUserSet
+	Value     string
 }
 
 // GetType -
