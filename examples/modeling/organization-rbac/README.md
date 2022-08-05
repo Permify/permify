@@ -1,6 +1,6 @@
 # Simple Organizational Role Based Access Control
 
-This example shows how to model simple role based access control for organizational roles and permissions with Permify's DLS, Permify Schema.
+This example shows how to model simple role based access control for organizational roles and permissions with Permify's DSL, Permify Schema.
 
 -------
 
@@ -24,7 +24,7 @@ entity organization {
 
     //resource access permissions
     action view_files = admin or manager or member
-    action edit_files = admin and manager and not member
+    action edit_files = admin or manager
     action delete_file = admin 
 
 } 
@@ -36,13 +36,13 @@ entity organization {
 
 This examples consist 2 entity, 
 
-- `user`, represents users (maybe corresponds as employees). This entitys context is empty because its only responsible for referencing users.
+- `user`, represents users (maybe corresponds as employees). This entity is empty because its only responsible for referencing users.
 
 ```perm
   entity user {}
 ```
 
-- `organization`, representing organization that user (employees) belongs. It has several roles and permissions related with the spesific resources such as organization files and vendor files. Moreover, it has permission for spesific action like granting access ability.
+- `organization`, representing organization that user (employees) belongs. It has several roles and permissions related with the spesific resources such as organization files. Moreover, it has permission for spesific action like granting access ability.
 
 ### Relations
 
@@ -88,24 +88,25 @@ entity organization {
 } 
 ```
 
-Let's take a loot at some actions above:
+Let's take a loot at some of actions:
 
-- 
-
-``action grant_manager_role = admin``
+- ``action grant_manager_role = admin``
 indicates that only administrator have permission to grant manager role to a user.
 
-
-``action edit_files = admin or manager`` 
+- ``action edit_files = admin or manager`` 
 indicates that only admin or manager have permission to edit files in organization.
 
 
-## Created Relational Tuples
+## Example Relational Tuples for this case
 
 organization:2#admin@user:daniel
+
 organization:5#member@user:ashley
+
 organization:17#manager@user:mert
+
 organization:21#member@user:ege
+
 .
 .
 .
