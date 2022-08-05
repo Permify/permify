@@ -57,7 +57,7 @@ Permify helps you convert & sync authorization data to a database you point at w
     "type": "repository",
     "id": "1"
   },
-  "action": "read",
+  "action": "push",
   "subject": {
     "type":"user",
     "id": "1"
