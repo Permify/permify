@@ -72,7 +72,7 @@ Permify helps you convert & sync authorization data to a database you point at w
 ```json
 {
   "can": false, // main decision
-  "decisions": { // descion logs
+  "decisions": { // decision logs
     "organization:1#member": {
       "prefix": "not",
       "can": false,
