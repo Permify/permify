@@ -57,7 +57,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "admin",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
@@ -68,7 +68,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "collaborator",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
@@ -76,7 +76,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "collaborator",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "3",
 					UsersetRelation: "",
 				},
@@ -87,7 +87,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "doc",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -103,7 +103,7 @@ var _ = Describe("permission-service", func() {
 			schemaService = NewSchemaService(entityConfigRepository)
 			permissionService = NewPermissionService(relationTupleRepository, schemaService)
 
-			actualResult, _, _, err := permissionService.Check(context.Background(), "1", "read", "doc:1", 8)
+			actualResult, _, _, err := permissionService.Check(context.Background(), tuple.Subject{Type: tuple.USER, ID: "1"}, "read", tuple.Entity{Type: "doc", ID: "1"}, 8)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(true).Should(Equal(actualResult))
 		})
@@ -128,7 +128,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "admin",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -139,7 +139,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "doc",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
@@ -154,7 +154,7 @@ var _ = Describe("permission-service", func() {
 			schemaService = NewSchemaService(entityConfigRepository)
 			permissionService = NewPermissionService(relationTupleRepository, schemaService)
 
-			actualResult, _, _, err := permissionService.Check(context.Background(), "1", "update", "doc:1", 8)
+			actualResult, _, _, err := permissionService.Check(context.Background(), tuple.Subject{Type: tuple.USER, ID: "1"}, "update", tuple.Entity{Type: "doc", ID: "1"}, 8)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(false).Should(Equal(actualResult))
 		})
@@ -179,7 +179,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "admin",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -190,7 +190,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "collaborator",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -209,7 +209,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "doc",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -225,7 +225,7 @@ var _ = Describe("permission-service", func() {
 			schemaService = NewSchemaService(entityConfigRepository)
 			permissionService = NewPermissionService(relationTupleRepository, schemaService)
 
-			actualResult, _, _, err := permissionService.Check(context.Background(), "1", "read", "doc:1", 8)
+			actualResult, _, _, err := permissionService.Check(context.Background(), tuple.Subject{Type: tuple.USER, ID: "1"}, "read", tuple.Entity{Type: "doc", ID: "1"}, 8)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(false).Should(Equal(actualResult))
 		})
@@ -258,7 +258,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "repository",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -271,7 +271,7 @@ var _ = Describe("permission-service", func() {
 			schemaService = NewSchemaService(entityConfigRepository)
 			permissionService = NewPermissionService(relationTupleRepository, schemaService)
 
-			actualResult, _, _, err := permissionService.Check(context.Background(), "1", "push", "repository:1", 8)
+			actualResult, _, _, err := permissionService.Check(context.Background(), tuple.Subject{Type: tuple.USER, ID: "1"}, "push", tuple.Entity{Type: "repository", ID: "1"}, 8)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(false).Should(Equal(actualResult))
 		})
@@ -304,7 +304,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "organization",
 					ObjectID:        "2",
 					Relation:        "admin",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "3",
 					UsersetRelation: "",
 				},
@@ -312,7 +312,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "organization",
 					ObjectID:        "2",
 					Relation:        "admin",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "8",
 					UsersetRelation: "",
 				},
@@ -323,7 +323,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "organization",
 					ObjectID:        "3",
 					Relation:        "member",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
@@ -338,7 +338,7 @@ var _ = Describe("permission-service", func() {
 			schemaService = NewSchemaService(entityConfigRepository)
 			permissionService = NewPermissionService(relationTupleRepository, schemaService)
 
-			actualResult, _, _, err := permissionService.Check(context.Background(), "1", "push", "repository:1", 4)
+			actualResult, _, _, err := permissionService.Check(context.Background(), tuple.Subject{Type: tuple.USER, ID: "1"}, "push", tuple.Entity{Type: "repository", ID: "1"}, 4)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(true).Should(Equal(actualResult))
 		})
@@ -363,7 +363,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "organization",
 					ObjectID:        "8",
 					Relation:        "member",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
@@ -374,7 +374,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "organization",
 					ObjectID:        "8",
 					Relation:        "admin",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -385,7 +385,7 @@ var _ = Describe("permission-service", func() {
 					Entity:          "repository",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "",
+					UsersetEntity:   "user",
 					UsersetObjectID: "7",
 					UsersetRelation: "",
 				},
@@ -401,7 +401,7 @@ var _ = Describe("permission-service", func() {
 			schemaService = NewSchemaService(entityConfigRepository)
 			permissionService = NewPermissionService(relationTupleRepository, schemaService)
 
-			actualResult, _, _, err := permissionService.Check(context.Background(), "1", "delete", "repository:1", 6)
+			actualResult, _, _, err := permissionService.Check(context.Background(), tuple.Subject{Type: tuple.USER, ID: "1"}, "delete", tuple.Entity{Type: "repository", ID: "1"}, 6)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(false).Should(Equal(actualResult))
 		})

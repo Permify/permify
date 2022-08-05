@@ -39,7 +39,7 @@ func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) (entity sc
 	}
 
 	if entity.EntityOption.Table == "" {
-		entity.EntityOption.Table = "-"
+		entity.EntityOption.Table = entity.Name
 	}
 
 	if entity.EntityOption.Identifier == "" {

@@ -53,9 +53,15 @@ Permify helps you convert & sync authorization data to a database you point at w
 
 ```json
 {
-  "user": "1",
-  "action": "push",
-  "object": "repository:1"
+  "entity": {
+    "type": "repository",
+    "id": "1"
+  },
+  "action": "read",
+  "subject": {
+    "type":"user",
+    "id": "1"
+  }
 }
 ```
 
@@ -65,14 +71,16 @@ Permify helps you convert & sync authorization data to a database you point at w
 
 ```json
 {
-  "can": false,  // main decision
-  "decisions": { // decision logs
-    "repository:1#parent.admin": {
+  "can": false, // main decision
+  "decisions": { // descion logs
+    "organization:1#member": {
+      "prefix": "not",
       "can": false,
       "err": null
     },
-    "repository:1#parent.member": {
-      "can": false,
+    "repository:1#owner": {
+      "prefix": "",
+      "can": true,
       "err": null
     }
   }

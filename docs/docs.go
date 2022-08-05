@@ -36,7 +36,7 @@ var doc = `{
                     "Permission"
                 ],
                 "summary": "Permission",
-                "operationId": "check",
+                "operationId": "permissions.check",
                 "parameters": [
                     {
                         "description": "''",
@@ -77,7 +77,7 @@ var doc = `{
                     "Relationship"
                 ],
                 "summary": "Relationship",
-                "operationId": "delete",
+                "operationId": "relationships.delete",
                 "parameters": [
                     {
                         "description": "''",
@@ -93,7 +93,51 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.Message"
+                            "$ref": "#/definitions/tuple.Tuple"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/relationships/read": {
+            "post": {
+                "description": "read relation tuple(s)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Relationship"
+                ],
+                "summary": "Relationship",
+                "operationId": "relationships.read",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/relationship.Write"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tuple.Tuple"
+                            }
                         }
                     },
                     "400": {
@@ -118,7 +162,7 @@ var doc = `{
                     "Relationship"
                 ],
                 "summary": "Relationship",
-                "operationId": "write",
+                "operationId": "relationships.write",
                 "parameters": [
                     {
                         "description": "''",
@@ -134,13 +178,46 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.Message"
+                            "$ref": "#/definitions/tuple.Tuple"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/schemas/read": {
+            "get": {
+                "description": "read your authorization model",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schema"
+                ],
+                "summary": "Schema",
+                "operationId": "schemas.read",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/schema.Entity"
+                            }
                         }
                     }
                 }
@@ -159,7 +236,7 @@ var doc = `{
                     "Schema"
                 ],
                 "summary": "Schema",
-                "operationId": "replace",
+                "operationId": "schemas.replace",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -249,11 +326,11 @@ var doc = `{
                         "depth": {
                             "type": "integer"
                         },
-                        "object": {
-                            "type": "string"
+                        "entity": {
+                            "$ref": "#/definitions/tuple.Entity"
                         },
-                        "user": {
-                            "type": "string"
+                        "subject": {
+                            "$ref": "#/definitions/tuple.Subject"
                         }
                     }
                 },
@@ -275,22 +352,13 @@ var doc = `{
                     "type": "object",
                     "properties": {
                         "entity": {
-                            "type": "string"
-                        },
-                        "object_id": {
-                            "type": "string"
+                            "$ref": "#/definitions/tuple.Entity"
                         },
                         "relation": {
                             "type": "string"
                         },
-                        "userset_entity": {
-                            "type": "string"
-                        },
-                        "userset_object_id": {
-                            "type": "string"
-                        },
-                        "userset_relation": {
-                            "type": "string"
+                        "subject": {
+                            "$ref": "#/definitions/tuple.Subject"
                         }
                     }
                 },
@@ -312,22 +380,13 @@ var doc = `{
                     "type": "object",
                     "properties": {
                         "entity": {
-                            "type": "string"
-                        },
-                        "object_id": {
-                            "type": "string"
+                            "$ref": "#/definitions/tuple.Entity"
                         },
                         "relation": {
                             "type": "string"
                         },
-                        "userset_entity": {
-                            "type": "string"
-                        },
-                        "userset_object_id": {
-                            "type": "string"
-                        },
-                        "userset_relation": {
-                            "type": "string"
+                        "subject": {
+                            "$ref": "#/definitions/tuple.Subject"
                         }
                     }
                 },
@@ -364,6 +423,121 @@ var doc = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "schema.Action": {
+            "type": "object",
+            "properties": {
+                "child": {},
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.Entity": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.Action"
+                    }
+                },
+                "entity_option": {
+                    "description": "option",
+                    "$ref": "#/definitions/schema.EntityOption"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "relations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.Relation"
+                    }
+                }
+            }
+        },
+        "schema.EntityOption": {
+            "type": "object",
+            "properties": {
+                "identifier": {
+                    "type": "string"
+                },
+                "table": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.Relation": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "relation_option": {
+                    "description": "option",
+                    "$ref": "#/definitions/schema.RelationOption"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.RelationOption": {
+            "type": "object",
+            "properties": {
+                "cols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rel": {
+                    "type": "string"
+                },
+                "table": {
+                    "type": "string"
+                }
+            }
+        },
+        "tuple.Entity": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "tuple.Subject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "relation": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "tuple.Tuple": {
+            "type": "object",
+            "properties": {
+                "entity": {
+                    "$ref": "#/definitions/tuple.Entity"
+                },
+                "relation": {
+                    "type": "string"
+                },
+                "subject": {
+                    "$ref": "#/definitions/tuple.Subject"
                 }
             }
         }

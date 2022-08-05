@@ -5,10 +5,12 @@ import (
 
 	e "github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
+	`github.com/Permify/permify/internal/repositories/filters`
 )
 
 // IRelationshipService -
 type IRelationshipService interface {
+	ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) ([]e.RelationTuple, error)
 	WriteRelationship(ctx context.Context, entities []e.RelationTuple) error
 	DeleteRelationship(ctx context.Context, entities []e.RelationTuple) error
 }
@@ -23,6 +25,11 @@ func NewRelationshipService(repo repositories.IRelationTupleRepository) *Relatio
 	return &RelationshipService{
 		repository: repo,
 	}
+}
+
+// ReadRelationships -
+func (service *RelationshipService) ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) ([]e.RelationTuple, error) {
+	return service.repository.Read(ctx, filter)
 }
 
 // WriteRelationship -

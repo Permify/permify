@@ -9,10 +9,10 @@ definitions:
             type: string
           depth:
             type: integer
-          object:
-            type: string
-          user:
-            type: string
+          entity:
+            $ref: '#/definitions/tuple.Entity'
+          subject:
+            $ref: '#/definitions/tuple.Subject'
         type: object
       pathParams:
         description: "*\n\t * PathParams"
@@ -27,17 +27,11 @@ definitions:
         description: "*\n\t * Body"
         properties:
           entity:
-            type: string
-          object_id:
-            type: string
+            $ref: '#/definitions/tuple.Entity'
           relation:
             type: string
-          userset_entity:
-            type: string
-          userset_object_id:
-            type: string
-          userset_relation:
-            type: string
+          subject:
+            $ref: '#/definitions/tuple.Subject'
         type: object
       pathParams:
         description: "*\n\t * PathParams"
@@ -52,17 +46,11 @@ definitions:
         description: "*\n\t * Body"
         properties:
           entity:
-            type: string
-          object_id:
-            type: string
+            $ref: '#/definitions/tuple.Entity'
           relation:
             type: string
-          userset_entity:
-            type: string
-          userset_object_id:
-            type: string
-          userset_relation:
-            type: string
+          subject:
+            $ref: '#/definitions/tuple.Subject'
         type: object
       pathParams:
         description: "*\n\t * PathParams"
@@ -88,6 +76,81 @@ definitions:
       message:
         type: string
     type: object
+  schema.Action:
+    properties:
+      child: {}
+      name:
+        type: string
+    type: object
+  schema.Entity:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/schema.Action'
+        type: array
+      entity_option:
+        $ref: '#/definitions/schema.EntityOption'
+        description: option
+      name:
+        type: string
+      relations:
+        items:
+          $ref: '#/definitions/schema.Relation'
+        type: array
+    type: object
+  schema.EntityOption:
+    properties:
+      identifier:
+        type: string
+      table:
+        type: string
+    type: object
+  schema.Relation:
+    properties:
+      name:
+        type: string
+      relation_option:
+        $ref: '#/definitions/schema.RelationOption'
+        description: option
+      type:
+        type: string
+    type: object
+  schema.RelationOption:
+    properties:
+      cols:
+        items:
+          type: string
+        type: array
+      rel:
+        type: string
+      table:
+        type: string
+    type: object
+  tuple.Entity:
+    properties:
+      id:
+        type: string
+      type:
+        type: string
+    type: object
+  tuple.Subject:
+    properties:
+      id:
+        type: string
+      relation:
+        type: string
+      type:
+        type: string
+    type: object
+  tuple.Tuple:
+    properties:
+      entity:
+        $ref: '#/definitions/tuple.Entity'
+      relation:
+        type: string
+      subject:
+        $ref: '#/definitions/tuple.Subject'
+    type: object
 host: localhost:3476
 info:
   contact: {}
@@ -99,7 +162,7 @@ paths:
       consumes:
       - application/json
       description: Check subject is authorized
-      operationId: check
+      operationId: permissions.check
       parameters:
       - description: ''''''
         in: body
@@ -126,7 +189,7 @@ paths:
       consumes:
       - application/json
       description: delete relation tuple
-      operationId: delete
+      operationId: relationships.delete
       parameters:
       - description: ''''''
         in: body
@@ -140,7 +203,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Message'
+            $ref: '#/definitions/tuple.Tuple'
         "400":
           description: Bad Request
           schema:
@@ -148,12 +211,12 @@ paths:
       summary: Relationship
       tags:
       - Relationship
-  /relationships/write:
+  /relationships/read:
     post:
       consumes:
       - application/json
-      description: create new relation tuple
-      operationId: write
+      description: read relation tuple(s)
+      operationId: relationships.read
       parameters:
       - description: ''''''
         in: body
@@ -167,7 +230,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Message'
+            items:
+              $ref: '#/definitions/tuple.Tuple'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -175,12 +240,61 @@ paths:
       summary: Relationship
       tags:
       - Relationship
+  /relationships/write:
+    post:
+      consumes:
+      - application/json
+      description: create new relation tuple
+      operationId: relationships.write
+      parameters:
+      - description: ''''''
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/relationship.Write'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tuple.Tuple'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Relationship
+      tags:
+      - Relationship
+  /schemas/read:
+    get:
+      consumes:
+      - application/json
+      description: read your authorization model
+      operationId: schemas.read
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Message'
+        "400":
+          description: Bad Request
+          schema:
+            items:
+              $ref: '#/definitions/schema.Entity'
+            type: array
+      summary: Schema
+      tags:
+      - Schema
   /schemas/replace:
     post:
       consumes:
       - application/json
       description: replace your authorization model
-      operationId: replace
+      operationId: schemas.replace
       produces:
       - application/json
       responses:

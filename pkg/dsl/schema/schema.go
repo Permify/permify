@@ -58,7 +58,7 @@ const (
 
 type Schema struct {
 	// all entities
-	Entities map[string]Entity
+	Entities map[string]Entity `json:"entities"`
 
 	// all tables
 	Tables map[string]TableType
@@ -116,18 +116,18 @@ func NewSchema(entities ...Entity) (schema Schema) {
 
 // Entity -
 type Entity struct {
-	Name      string
-	Relations []Relation
-	Actions   []Action
+	Name      string     `json:"name"`
+	Relations []Relation `json:"relations"`
+	Actions   []Action   `json:"actions"`
 
 	// option
-	EntityOption EntityOption
+	EntityOption EntityOption `json:"entity_option"`
 }
 
 // EntityOption -
 type EntityOption struct {
-	Table      string
-	Identifier string
+	Table      string `json:"table"`
+	Identifier string `json:"identifier"`
 }
 
 // GetAction -
@@ -142,24 +142,24 @@ func (e Entity) GetAction(name string) Action {
 
 // Relation -
 type Relation struct {
-	Name string
-	Type string
+	Name string `json:"name"`
+	Type string `json:"type"`
 
 	// option
-	RelationOption RelationOption
+	RelationOption RelationOption `json:"relation_option"`
 }
 
 // RelationOption -
 type RelationOption struct {
-	Table string
-	Rel   RelationType
-	Cols  []string
+	Table string       `json:"table"`
+	Rel   RelationType `json:"rel"`
+	Cols  []string     `json:"cols"`
 }
 
 // Action -
 type Action struct {
-	Name  string
-	Child Exp
+	Name  string `json:"name"`
+	Child Exp    `json:"child"`
 }
 
 // Child -
@@ -172,8 +172,8 @@ type Exp interface {
 
 // Rewrite -
 type Rewrite struct {
-	Type     OPType // union or intersection
-	Children []Child
+	Type     OPType  `json:"type"` // union or intersection
+	Children []Child `json:"children"`
 }
 
 // GetType -
@@ -188,9 +188,9 @@ func (Rewrite) GetKind() string {
 
 // Leaf -
 type Leaf struct {
-	Exclusion bool
-	Type      LeafType // tupleToUserSet or computedUserSet
-	Value     string
+	Exclusion bool     `json:"exclusion"`
+	Type      LeafType `json:"type"` // tupleToUserSet or computedUserSet
+	Value     string   `json:"value"`
 }
 
 // GetType -

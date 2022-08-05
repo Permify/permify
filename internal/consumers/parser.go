@@ -76,44 +76,45 @@ func (c *Parser) Convert(table string, data map[string]interface{}) (tuples []tu
 	// Relations
 	for _, relation := range relations {
 
-		var object tuple.Object
-		var objectKey string
+		var e tuple.Entity
+		var entityKey string
 		var userKey string
 
 		switch rel {
 		case schema.BelongsTo:
-			objectKey = "id"
+			entityKey = "id"
 			userKey = relation.RelationOption.Cols[0]
 		case schema.ManyToMany:
-			objectKey = relation.RelationOption.Cols[0]
+			entityKey = relation.RelationOption.Cols[0]
 			userKey = relation.RelationOption.Cols[1]
 		default:
-			objectKey = "id"
+			entityKey = "id"
 			userKey = relation.RelationOption.Cols[0]
 		}
 
-		object = tuple.Object{
-			Namespace: entity.Name,
-			ID:        fmt.Sprintf("%v", data[objectKey]),
+		e = tuple.Entity{
+			Type: entity.Name,
+			ID:   fmt.Sprintf("%v", data[entityKey]),
 		}
 
-		user := tuple.User{}
+		subject := tuple.Subject{}
 
 		if relation.Type == tuple.USER {
-			user.ID = fmt.Sprintf("%v", data[userKey])
+			subject.Type = tuple.USER
+			subject.ID = fmt.Sprintf("%v", data[userKey])
 		} else {
-			user.UserSet.Object = tuple.Object{
-				Namespace: relation.Type,
-				ID:        fmt.Sprintf("%v", data[userKey]),
+			subject = tuple.Subject{
+				Type:     relation.Type,
+				ID:       fmt.Sprintf("%v", data[userKey]),
+				Relation: tuple.ELLIPSIS,
 			}
-			user.UserSet.Relation = tuple.ELLIPSIS
 		}
 
-		if user.IsValid() {
+		if subject.IsValid() {
 			tuples = append(tuples, tuple.Tuple{
-				Object:   object,
+				Entity:   e,
 				Relation: relation.Name,
-				User:     user,
+				Subject:  subject,
 			})
 		}
 	}

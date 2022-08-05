@@ -3,7 +3,7 @@ package permission
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
-	"github.com/Permify/permify/internal/controllers/http/requests/rules"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // Check -
@@ -22,10 +22,10 @@ type Check struct {
 	 * Body
 	 */
 	Body struct {
-		User   string `json:"user" form:"user" xml:"user"`
-		Action string `json:"action" form:"action" xml:"action"`
-		Object string `json:"object" form:"object" xml:"object"`
-		Depth  int    `json:"depth" form:"depth" xml:"depth"`
+		Entity  tuple.Entity  `json:"entity" form:"entity" xml:"entity"`
+		Action  string        `json:"action" form:"action" xml:"action"`
+		Subject tuple.Subject `json:"subject" form:"subject" xml:"subject"`
+		Depth   int           `json:"depth" form:"depth" xml:"depth"`
 	}
 }
 
@@ -33,9 +33,9 @@ type Check struct {
 func (r Check) Validate() (err error) {
 	// Validate Body
 	err = validation.ValidateStruct(&r.Body,
-		validation.Field(&r.Body.User, validation.Required),
+		validation.Field(&r.Body.Entity, validation.Required),
 		validation.Field(&r.Body.Action, validation.Required),
-		validation.Field(&r.Body.Object, validation.Required, validation.By(rules.IsObject)),
+		validation.Field(&r.Body.Subject, validation.Required),
 		validation.Field(&r.Body.Depth, validation.Min(3)),
 	)
 	return

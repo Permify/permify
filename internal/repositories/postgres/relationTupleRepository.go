@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/entities"
+	`github.com/Permify/permify/internal/repositories/filters`
 	"github.com/Permify/permify/internal/repositories/postgres/migrations"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
@@ -68,6 +69,65 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 		e := entities.RelationTuple{}
 
 		err = rows.Scan(&e.Entity, &e.ObjectID, &e.Relation, &e.UsersetEntity, &e.UsersetObjectID, &e.UsersetRelation)
+		if err != nil {
+			return []entities.RelationTuple{}, fmt.Errorf("RelationTupleRepo - QueryTuples - rows.Scan: %w", err)
+		}
+
+		ent = append(ent, e)
+	}
+
+	return ent, nil
+}
+
+// Read -.
+func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples []entities.RelationTuple, err error) {
+
+	var sql string
+
+	var eq = squirrel.Eq{}
+	eq["entity"] = filter.Entity
+
+	if filter.ID != "" {
+		eq["object_id"] = filter.ID
+	}
+
+	if filter.Relation != "" {
+		eq["relation"] = filter.Relation
+	}
+
+	if filter.SubjectType != "" {
+		eq["userset_entity"] = filter.SubjectType
+	}
+
+	if filter.SubjectID != "" {
+		eq["userset_object_id"] = filter.SubjectID
+	}
+
+	if filter.SubjectRelation != "" {
+		eq["userset_relation"] = filter.SubjectRelation
+	}
+
+	var args []interface{}
+	sql, args, err = r.Database.Builder.
+		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation, commit_time").From(entities.RelationTuple{}.Table()).Where(eq).OrderBy("userset_entity, userset_relation ASC").
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("RelationTupleRepo - QueryTuples - r.Builder: %w", err)
+	}
+
+	var rows pgx.Rows
+	rows, err = r.Database.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("RelationTupleRepo - QueryTuples - r.Pool.Query: %w", err)
+	}
+	defer rows.Close()
+
+	ent := make([]entities.RelationTuple, 0, _defaultEntityCap)
+
+	for rows.Next() {
+		e := entities.RelationTuple{}
+
+		err = rows.Scan(&e.Entity, &e.ObjectID, &e.Relation, &e.UsersetEntity, &e.UsersetObjectID, &e.UsersetRelation, &e.CommitTime)
 		if err != nil {
 			return []entities.RelationTuple{}, fmt.Errorf("RelationTupleRepo - QueryTuples - rows.Scan: %w", err)
 		}

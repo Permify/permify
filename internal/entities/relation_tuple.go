@@ -28,24 +28,29 @@ func (RelationTuple) Collection() string {
 	return "relation_tuple"
 }
 
-// String -
-func (r RelationTuple) String() string {
-	tup := tuple.Tuple{
-		Object: tuple.Object{
-			Namespace: r.Entity,
-			ID:        r.ObjectID,
+// ToTuple -
+func (r RelationTuple) ToTuple() tuple.Tuple {
+	return tuple.Tuple{
+		Entity: tuple.Entity{
+			Type: r.Entity,
+			ID:   r.ObjectID,
 		},
 		Relation: r.Relation,
-		User: tuple.User{
-			ID: r.UsersetObjectID,
-			UserSet: tuple.UserSet{
-				Object: tuple.Object{
-					Namespace: r.UsersetEntity,
-					ID:        r.UsersetObjectID,
-				},
-				Relation: tuple.Relation(r.UsersetRelation),
-			},
+		Subject: tuple.Subject{
+			Type:     r.UsersetEntity,
+			ID:       r.UsersetObjectID,
+			Relation: tuple.Relation(r.UsersetRelation),
 		},
 	}
-	return tup.String()
+}
+
+// RelationTuples -
+type RelationTuples []RelationTuple
+
+// ToTuple -
+func (r RelationTuples) ToTuple() (tuples []tuple.Tuple) {
+	for _, a := range r {
+		tuples = append(tuples, a.ToTuple())
+	}
+	return
 }

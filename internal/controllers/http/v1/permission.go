@@ -32,7 +32,7 @@ func newPermissionRoutes(handler *echo.Group, t services.IPermissionService, l l
 
 // @Summary     Permission
 // @Description Check subject is authorized
-// @ID          check
+// @ID          permissions.check
 // @Tags  	    Permission
 // @Accept      json
 // @Produce     json
@@ -60,7 +60,7 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 	var can bool
 	var vi *services.VisitMap
 	var rm int
-	can, vi, rm, err = r.service.Check(ctx, request.Body.User, request.Body.Action, request.Body.Object, request.Body.Depth)
+	can, vi, rm, err = r.service.Check(ctx, request.Body.Subject, request.Body.Action, request.Body.Entity, request.Body.Depth)
 	if err != nil {
 		if errors.Is(err, services.DepthError) {
 			span.RecordError(services.DepthError)

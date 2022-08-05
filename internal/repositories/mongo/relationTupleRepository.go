@@ -2,12 +2,12 @@ package mongo
 
 import (
 	"context"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/Permify/permify/internal/entities"
+	`github.com/Permify/permify/internal/repositories/filters`
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/mongo"
 )
@@ -60,11 +60,52 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 }
 
 // Write -.
+func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples []entities.RelationTuple, err error) {
+	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
+
+	var eq = bson.M{}
+	eq["entity"] = filter.Entity
+
+	if filter.ID != "" {
+		eq["object_id"] = filter.ID
+	}
+
+	if filter.Relation != "" {
+		eq["relation"] = filter.Relation
+	}
+
+	if filter.SubjectType != "" {
+		eq["userset_entity"] = filter.SubjectType
+	}
+
+	if filter.SubjectID != "" {
+		eq["userset_object_id"] = filter.SubjectID
+	}
+
+	if filter.SubjectRelation != "" {
+		eq["userset_relation"] = filter.SubjectRelation
+	}
+
+	opts := options.Find().SetSort(bson.D{{"userset_entity", 1}, {"userset_relation", 1}})
+
+	var cursor *mongo.Cursor
+	cursor, err = coll.Find(ctx, eq, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cursor.All(ctx, &tuples); err != nil {
+		return nil, err
+	}
+	return
+}
+
+// Write -.
 func (r *RelationTupleRepository) Write(ctx context.Context, tuples []entities.RelationTuple) (err error) {
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 	var docs []interface{}
 	for _, tup := range tuples {
-		docs = append(docs, bson.D{{"entity", tup.Entity}, {"object_id", tup.ObjectID}, {"relation", tup.Relation}, {"userset_entity", tup.UsersetEntity}, {"userset_object_id", tup.UsersetObjectID}, {"userset_relation", tup.UsersetRelation}, {"type", tup.Type}, {"tuple", tup.String()}})
+		docs = append(docs, bson.D{{"entity", tup.Entity}, {"object_id", tup.ObjectID}, {"relation", tup.Relation}, {"userset_entity", tup.UsersetEntity}, {"userset_object_id", tup.UsersetObjectID}, {"userset_relation", tup.UsersetRelation}, {"type", tup.Type}, {"tuple", tup.ToTuple().String()}})
 	}
 	_, err = coll.InsertMany(ctx, docs)
 	if err != nil {

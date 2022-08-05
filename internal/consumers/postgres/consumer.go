@@ -46,17 +46,18 @@ func (c *PQConsumer) Consume(ctx context.Context, event chan *publisher.Notifica
 
 			for _, t := range d {
 				relationTuple := e.RelationTuple{
-					Entity:   t.Object.Namespace,
-					ObjectID: t.Object.ID,
+					Entity:   t.Entity.Type,
+					ObjectID: t.Entity.ID,
 					Relation: t.Relation,
 				}
 
-				if t.User.ID != "" {
-					relationTuple.UsersetObjectID = t.User.ID
+				if t.Subject.IsUser() {
+					relationTuple.UsersetEntity = tuple.USER
+					relationTuple.UsersetObjectID = t.Subject.ID
 				} else {
-					relationTuple.UsersetEntity = t.User.UserSet.Object.Namespace
-					relationTuple.UsersetObjectID = t.User.UserSet.Object.ID
-					relationTuple.UsersetRelation = t.User.UserSet.Relation.String()
+					relationTuple.UsersetEntity = t.Subject.Type
+					relationTuple.UsersetObjectID = t.Subject.ID
+					relationTuple.UsersetRelation = t.Subject.Relation.String()
 				}
 
 				deleteRelationTuples = append(deleteRelationTuples, relationTuple)
@@ -69,20 +70,21 @@ func (c *PQConsumer) Consume(ctx context.Context, event chan *publisher.Notifica
 
 			var writeRelationTuples []e.RelationTuple
 
-			for _, w := range w {
+			for _, t := range w {
 				relationTuple := e.RelationTuple{
-					Entity:   w.Object.Namespace,
-					ObjectID: w.Object.ID,
-					Relation: w.Relation,
+					Entity:   t.Entity.Type,
+					ObjectID: t.Entity.ID,
+					Relation: t.Relation,
 					Type:     "auto",
 				}
 
-				if w.User.ID != "" {
-					relationTuple.UsersetObjectID = w.User.ID
+				if t.Subject.IsUser() {
+					relationTuple.UsersetEntity = tuple.USER
+					relationTuple.UsersetObjectID = t.Subject.ID
 				} else {
-					relationTuple.UsersetEntity = w.User.UserSet.Object.Namespace
-					relationTuple.UsersetObjectID = w.User.UserSet.Object.ID
-					relationTuple.UsersetRelation = w.User.UserSet.Relation.String()
+					relationTuple.UsersetEntity = t.Subject.Type
+					relationTuple.UsersetObjectID = t.Subject.ID
+					relationTuple.UsersetRelation = t.Subject.Relation.String()
 				}
 				writeRelationTuples = append(writeRelationTuples, relationTuple)
 			}

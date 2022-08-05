@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 const (
-	OBJECT   = "%s:%s"
+	ENTITY   = "%s:%s"
 	RELATION = "#%s"
 )
 
@@ -19,110 +21,141 @@ const (
 	USER = "user"
 )
 
-// Object -
-type Object struct {
-	Namespace string
-	ID        string
+// Entity -
+type Entity struct {
+	Type string `json:"type"`
+	ID   string `json:"id"`
 }
 
-// UserSet -
-type UserSet struct {
-	Object   Object
-	Relation Relation
+// Validate -
+func (e Entity) Validate() (err error) {
+	// Validate Body
+	err = validation.ValidateStruct(&e,
+		// object
+		validation.Field(&e.Type, validation.Required),
+		validation.Field(&e.ID, validation.Required),
+	)
+	return
 }
 
-// User -
-type User struct {
-	UserSet UserSet
-	ID      string
+// Subject -
+type Subject struct {
+	Type     string   `json:"type"`
+	ID       string   `json:"id"`
+	Relation Relation `json:"relation,omitempty"`
+}
+
+// Validate -
+func (s Subject) Validate() (err error) {
+	// Validate Body
+	err = validation.ValidateStruct(&s,
+		// subject
+		validation.Field(&s.Type, validation.Required),
+		validation.Field(&s.ID, validation.Required),
+		validation.Field(&s.Relation, validation.When(s.Type != USER, validation.Required).Else(validation.Empty)),
+	)
+	return
 }
 
 // String -
-func (u User) String() string {
-	if u.IsUser() {
-		return fmt.Sprintf("%s", u.ID)
+func (s Subject) String() string {
+	if s.IsUser() {
+		return fmt.Sprintf(ENTITY, s.Type, s.ID)
 	}
-	return fmt.Sprintf("%s"+RELATION, fmt.Sprintf(OBJECT, u.UserSet.Object.Namespace, u.UserSet.Object.ID), u.UserSet.Relation)
+	return fmt.Sprintf("%s"+RELATION, fmt.Sprintf(ENTITY, s.Type, s.ID), s.Relation)
 }
 
 // IsUser -
-func (u User) IsUser() bool {
-	if u.ID != "" {
+func (s Subject) IsUser() bool {
+	if s.Type == USER {
 		return true
 	}
 	return false
 }
 
 // IsValid -
-func (u User) IsValid() bool {
-	if u.ID != "" || u.UserSet.Object.ID != "" {
-		return true
+func (s Subject) IsValid() bool {
+	if s.Type == "" {
+		return false
 	}
+
+	if s.ID == "" {
+		return false
+	}
+
+	if s.IsUser() {
+		if s.Type == USER {
+			return true
+		}
+	} else {
+		if s.Relation != "" {
+			return true
+		}
+	}
+
 	return false
 }
 
 // Equals -
-func (u User) Equals(v interface{}) bool {
-	uv, ok := v.(User)
+func (s Subject) Equals(v interface{}) bool {
+	uv, ok := v.(Subject)
 	if !ok {
 		return false
 	}
-	if u.IsUser() {
-		return u.ID == uv.ID
+	if s.IsUser() {
+		return s.ID == uv.ID
 	}
-	return uv.UserSet.Relation == u.UserSet.Relation && uv.UserSet.Object.ID == u.UserSet.Object.ID && uv.UserSet.Object.Namespace == u.UserSet.Object.Namespace
+	return uv.Relation == s.Relation && uv.ID == s.ID && uv.Type == s.Type
 }
 
 // Tuple -
 type Tuple struct {
-	Object   Object
-	Relation string
-	User     User
+	Entity   Entity  `json:"entity"`
+	Relation string  `json:"relation"`
+	Subject  Subject `json:"subject"`
 }
 
 // String -
 func (r Tuple) String() string {
-	object := fmt.Sprintf(OBJECT, r.Object.Namespace, r.Object.ID)
+	object := fmt.Sprintf(ENTITY, r.Entity.Type, r.Entity.ID)
 	relation := fmt.Sprintf(RELATION, r.Relation)
-	return object + relation + "@" + r.User.String()
+	return object + relation + "@" + r.Subject.String()
 }
 
-// ConvertUser -
-func ConvertUser(v string) User {
+// ConvertSubject -
+func ConvertSubject(v string) Subject {
 	parts := strings.Split(v, "#")
 	if len(parts) != 2 {
-		return User{
-			ID: v,
+		return Subject{
+			Type: USER,
+			ID:   v,
 		}
 	}
 
 	innerParts := strings.Split(parts[0], ":")
 	if len(innerParts) != 2 {
-		return User{
-			ID: v,
+		return Subject{
+			Type: USER,
+			ID:   v,
 		}
 	}
 
-	return User{
-		UserSet: UserSet{
-			Object: Object{
-				Namespace: innerParts[0],
-				ID:        innerParts[1],
-			},
-			Relation: Relation(parts[1]),
-		},
+	return Subject{
+		Type:     innerParts[0],
+		ID:       innerParts[1],
+		Relation: Relation(parts[1]),
 	}
 }
 
-// ConvertObject -
-func ConvertObject(v string) (Object, error) {
+// ConvertEntity -
+func ConvertEntity(v string) (Entity, error) {
 	obj := strings.Split(v, ":")
 	if len(obj) < 2 {
-		return Object{}, errors.New("input is not suitable for the object")
+		return Entity{}, errors.New("input is not suitable for the object")
 	}
-	return Object{
-		Namespace: obj[0],
-		ID:        obj[1],
+	return Entity{
+		Type: obj[0],
+		ID:   obj[1],
 	}, nil
 }
 

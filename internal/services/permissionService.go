@@ -66,7 +66,7 @@ type Combiner func(ctx context.Context, requests []CheckFunction) Decision
 
 // IPermissionService -
 type IPermissionService interface {
-	Check(ctx context.Context, s string, a string, o string, d int) (bool, *VisitMap, int, error)
+	Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, d int) (bool, *VisitMap, int, error)
 }
 
 // PermissionService -
@@ -85,8 +85,8 @@ func NewPermissionService(rr repositories.IRelationTupleRepository, ss ISchemaSe
 
 // Request -
 type Request struct {
-	Object  tuple.Object
-	Subject tuple.User
+	Entity  tuple.Entity
+	Subject tuple.Subject
 	depth   int
 	mux     sync.Mutex
 }
@@ -112,14 +112,8 @@ func (r *Request) isDepthFinish() bool {
 }
 
 // Check -
-func (service *PermissionService) Check(ctx context.Context, s string, a string, o string, d int) (can bool, visit *VisitMap, remainingDepth int, err error) {
+func (service *PermissionService) Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, d int) (can bool, visit *VisitMap, remainingDepth int, err error) {
 	can = false
-
-	var object tuple.Object
-	object, err = tuple.ConvertObject(o)
-	if err != nil {
-		return false, nil, d, err
-	}
 
 	var sch schema.Schema
 	sch, err = service.schemaService.Schema(ctx)
@@ -128,7 +122,7 @@ func (service *PermissionService) Check(ctx context.Context, s string, a string,
 	}
 
 	var child schema.Child
-	child = sch.GetEntityByName(object.Namespace).GetAction(a).Child
+	child = sch.GetEntityByName(entity.Type).GetAction(action).Child
 	if child == nil {
 		return false, nil, d, ActionCannotFoundError
 	}
@@ -136,8 +130,8 @@ func (service *PermissionService) Check(ctx context.Context, s string, a string,
 	vm := &VisitMap{}
 
 	re := Request{
-		Object:  object,
-		Subject: tuple.ConvertUser(s),
+		Entity:  entity,
+		Subject: subject,
 	}
 
 	re.SetDepth(d)
@@ -184,9 +178,9 @@ func (service *PermissionService) checkRewrite(ctx context.Context, request *Req
 func (service *PermissionService) checkLeaf(ctx context.Context, request *Request, child schema.Leaf, vm *VisitMap) CheckFunction {
 	switch child.GetType() {
 	case schema.TupleToUserSetType.String():
-		return service.check(ctx, request.Object, tuple.Relation(child.Value), request, child.Exclusion, vm)
+		return service.check(ctx, request.Entity, tuple.Relation(child.Value), request, child.Exclusion, vm)
 	case schema.ComputedUserSetType.String():
-		return service.check(ctx, request.Object, tuple.Relation(child.Value), request, child.Exclusion, vm)
+		return service.check(ctx, request.Entity, tuple.Relation(child.Value), request, child.Exclusion, vm)
 	default:
 		return fail(UndefinedChildTypeError)
 	}
@@ -274,36 +268,31 @@ func intersection(ctx context.Context, functions []CheckFunction) Decision {
 }
 
 // getUsers -
-func (service *PermissionService) getUsers(ctx context.Context, object tuple.Object, relation tuple.Relation) (users []tuple.User, err error) {
+func (service *PermissionService) getUsers(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (subjects []tuple.Subject, err error) {
 	r := relation.Split()
 
-	var en []entities.RelationTuple
-	en, err = service.relationTupleRepository.QueryTuples(ctx, object.Namespace, object.ID, r[0].String())
+	var tuples []entities.RelationTuple
+	tuples, err = service.relationTupleRepository.QueryTuples(ctx, entity.Type, entity.ID, r[0].String())
 	if err != nil {
 		return nil, err
 	}
 
-	for _, entity := range en {
-		if entity.UsersetEntity != "" {
-			user := tuple.User{
-				UserSet: tuple.UserSet{
-					Object: tuple.Object{
-						Namespace: entity.UsersetEntity,
-						ID:        entity.UsersetObjectID,
-					},
-				},
-			}
+	for _, tup := range tuples {
+		ct := tup.ToTuple()
+		if !ct.Subject.IsUser() {
+			subject := ct.Subject
 
-			if entity.UsersetRelation == tuple.ELLIPSIS {
-				user.UserSet.Relation = r[1]
+			if tup.UsersetRelation == tuple.ELLIPSIS {
+				subject.Relation = r[1]
 			} else {
-				user.UserSet.Relation = tuple.Relation(entity.UsersetRelation)
+				subject.Relation = ct.Subject.Relation
 			}
 
-			users = append(users, user)
+			subjects = append(subjects, subject)
 		} else {
-			users = append(users, tuple.User{
-				ID: entity.UsersetObjectID,
+			subjects = append(subjects, tuple.Subject{
+				Type: tuple.USER,
+				ID:   tup.UsersetObjectID,
 			})
 		}
 	}
@@ -312,11 +301,11 @@ func (service *PermissionService) getUsers(ctx context.Context, object tuple.Obj
 }
 
 // check -
-func (service *PermissionService) check(ctx context.Context, object tuple.Object, relation tuple.Relation, re *Request, exclusion bool, vm *VisitMap) CheckFunction {
+func (service *PermissionService) check(ctx context.Context, entity tuple.Entity, relation tuple.Relation, re *Request, exclusion bool, vm *VisitMap) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- Decision) {
 		var err error
 
-		key := fmt.Sprintf(tuple.OBJECT+tuple.RELATION, object.Namespace, object.ID, relation.String())
+		key := fmt.Sprintf(tuple.ENTITY+tuple.RELATION, entity.Type, entity.ID, relation.String())
 
 		if vm.isVisited(key) {
 			decisionChan <- vm.get(key)
@@ -330,15 +319,15 @@ func (service *PermissionService) check(ctx context.Context, object tuple.Object
 			return
 		}
 
-		var users []tuple.User
-		users, err = service.getUsers(ctx, object, relation)
+		var subjects []tuple.Subject
+		subjects, err = service.getUsers(ctx, entity, relation)
 		if err != nil {
 			fail(err)
 			return
 		}
 
-		for _, t := range users {
-			if t.Equals(re.Subject) {
+		for _, sub := range subjects {
+			if sub.Equals(re.Subject) {
 				var dec Decision
 				if exclusion {
 					dec = sendDecision(false, "not", err)
@@ -349,8 +338,8 @@ func (service *PermissionService) check(ctx context.Context, object tuple.Object
 				decisionChan <- dec
 				return
 			} else {
-				if !t.IsUser() {
-					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, t.UserSet.Object, t.UserSet.Relation, re, exclusion, vm)})
+				if !sub.IsUser() {
+					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, tuple.Entity{ID: sub.ID, Type: sub.Type}, sub.Relation, re, exclusion, vm)})
 					return
 				}
 			}

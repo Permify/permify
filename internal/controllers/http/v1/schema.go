@@ -17,6 +17,7 @@ import (
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/parser"
+	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -33,12 +34,13 @@ func newSchemaRoutes(handler *echo.Group, s services.ISchemaService, l logger.In
 	h := handler.Group("/schemas")
 	{
 		h.POST("/replace", r.replace)
+		h.GET("/read", r.read)
 	}
 }
 
 // @Summary     Schema
 // @Description replace your authorization model
-// @ID          replace
+// @ID          schemas.replace
 // @Tags  	    Schema
 // @Accept      json
 // @Produce     json
@@ -112,5 +114,34 @@ func (r *schemaRoutes) replace(c echo.Context) (err error) {
 		return echo.ErrInternalServerError
 	}
 
-	return c.JSON(http.StatusOK, responses.MResponse("success"))
+	var translator *parser.SchemaTranslator
+	translator, err = parser.NewSchemaTranslator(sch)
+	if err != nil {
+		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
+		return echo.ErrInternalServerError
+	}
+
+	return c.JSON(http.StatusOK, responses.SuccessResponse(translator.Translate().Entities))
+}
+
+// @Summary     Schema
+// @Description read your authorization model
+// @ID          schemas.read
+// @Tags  	    Schema
+// @Accept      json
+// @Produce     json
+// @Success     200 {object} responses.Message
+// @Failure     400 {object} []schema.Entity
+// @Router      /schemas/read [get]
+func (r *schemaRoutes) read(c echo.Context) (err error) {
+	ctx, span := tracer.Start(c.Request().Context(), "schemas.read")
+	defer span.End()
+
+	var response schema.Schema
+	response, err = r.schemaService.Schema(ctx)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, responses.SuccessResponse(response.Entities))
 }
