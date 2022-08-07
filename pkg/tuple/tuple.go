@@ -57,6 +57,43 @@ func (s Subject) Validate() (err error) {
 	return
 }
 
+// Iterator -
+
+type ISubjectIterator interface {
+	HasNext() bool
+	GetNext() *Subject
+}
+
+// SubjectIterator -
+type SubjectIterator struct {
+	index    int
+	subjects []*Subject
+}
+
+func NewSubjectIterator(subjects []*Subject) *SubjectIterator {
+	return &SubjectIterator{
+		subjects: subjects,
+	}
+}
+
+// HasNext -
+func (u *SubjectIterator) HasNext() bool {
+	if u.index < len(u.subjects) {
+		return true
+	}
+	return false
+}
+
+// GetNext -
+func (u *SubjectIterator) GetNext() *Subject {
+	if u.HasNext() {
+		t := u.subjects[u.index]
+		u.index++
+		return t
+	}
+	return nil
+}
+
 // String -
 func (s Subject) String() string {
 	if s.IsUser() {

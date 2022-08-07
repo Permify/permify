@@ -15,16 +15,16 @@ type Migratable interface {
 // IRelationTupleRepository -
 type IRelationTupleRepository interface {
 	Migratable
-	QueryTuples(ctx context.Context, namespace string, objectID string, relation string) ([]entities.RelationTuple, error)
-	Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples []entities.RelationTuple, err error)
-	Write(context.Context, []entities.RelationTuple) error
-	Delete(context.Context, []entities.RelationTuple) error
+	QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (entities.RelationTuples, error)
+	Read(ctx context.Context, filter filters.RelationTupleFilter) (entities.RelationTuples, error)
+	Write(context.Context, entities.RelationTuples) error
+	Delete(context.Context, entities.RelationTuples) error
 }
 
 // IEntityConfigRepository -
 type IEntityConfigRepository interface {
 	Migratable
-	All(ctx context.Context) (configs []entities.EntityConfig, err error)
-	Replace(ctx context.Context, configs []entities.EntityConfig) (err error)
+	All(ctx context.Context) (configs entities.EntityConfigs, err error)
+	Replace(ctx context.Context, configs entities.EntityConfigs) (err error)
 	Clear(ctx context.Context) (err error)
 }

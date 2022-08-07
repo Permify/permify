@@ -20,3 +20,6 @@ func (EntityConfig) Table() string {
 func (EntityConfig) Collection() string {
 	return "entity_config"
 }
+
+// EntityConfigs -
+type EntityConfigs []EntityConfig

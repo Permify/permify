@@ -45,7 +45,7 @@ func (r *EntityConfigRepository) Migrate() (err error) {
 }
 
 // All -
-func (r *EntityConfigRepository) All(ctx context.Context) (configs []entities.EntityConfig, err error) {
+func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.EntityConfigs, err error) {
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
@@ -77,7 +77,7 @@ func (r *EntityConfigRepository) All(ctx context.Context) (configs []entities.En
 }
 
 // Replace -
-func (r *EntityConfigRepository) Replace(ctx context.Context, configs []entities.EntityConfig) (err error) {
+func (r *EntityConfigRepository) Replace(ctx context.Context, configs entities.EntityConfigs) (err error) {
 	if len(configs) < 1 {
 		return nil
 	}

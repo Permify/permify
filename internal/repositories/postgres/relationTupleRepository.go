@@ -46,7 +46,7 @@ func (r *RelationTupleRepository) Migrate() (err error) {
 }
 
 // QueryTuples -
-func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuples []entities.RelationTuple, err error) {
+func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuples entities.RelationTuples, err error) {
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
@@ -70,7 +70,7 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 
 		err = rows.Scan(&e.Entity, &e.ObjectID, &e.Relation, &e.UsersetEntity, &e.UsersetObjectID, &e.UsersetRelation)
 		if err != nil {
-			return []entities.RelationTuple{}, fmt.Errorf("RelationTupleRepo - QueryTuples - rows.Scan: %w", err)
+			return nil, fmt.Errorf("RelationTupleRepo - QueryTuples - rows.Scan: %w", err)
 		}
 
 		ent = append(ent, e)
@@ -80,7 +80,7 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 }
 
 // Read -.
-func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples []entities.RelationTuple, err error) {
+func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err error) {
 
 	var sql string
 
@@ -139,7 +139,7 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 }
 
 // Write -.
-func (r *RelationTupleRepository) Write(ctx context.Context, tuples []entities.RelationTuple) (err error) {
+func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) (err error) {
 	if len(tuples) < 1 {
 		return nil
 	}
@@ -178,7 +178,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples []entities.R
 }
 
 // Delete -.
-func (r *RelationTupleRepository) Delete(ctx context.Context, tuples []entities.RelationTuple) error {
+func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) error {
 	for _, tuple := range tuples {
 		sql, args, err := r.Database.Builder.
 			Delete(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": tuple.Entity, "object_id": tuple.ObjectID, "relation": tuple.Relation, "userset_entity": tuple.UsersetEntity, "userset_object_id": tuple.UsersetObjectID, "userset_relation": tuple.UsersetRelation}).

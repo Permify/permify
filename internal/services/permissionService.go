@@ -268,7 +268,7 @@ func intersection(ctx context.Context, functions []CheckFunction) Decision {
 }
 
 // getUsers -
-func (service *PermissionService) getUsers(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (subjects []tuple.Subject, err error) {
+func (service *PermissionService) getUsers(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (iterator tuple.ISubjectIterator, err error) {
 	r := relation.Split()
 
 	var tuples []entities.RelationTuple
@@ -277,6 +277,7 @@ func (service *PermissionService) getUsers(ctx context.Context, entity tuple.Ent
 		return nil, err
 	}
 
+	var subjects []*tuple.Subject
 	for _, tup := range tuples {
 		ct := tup.ToTuple()
 		if !ct.Subject.IsUser() {
@@ -288,16 +289,16 @@ func (service *PermissionService) getUsers(ctx context.Context, entity tuple.Ent
 				subject.Relation = ct.Subject.Relation
 			}
 
-			subjects = append(subjects, subject)
+			subjects = append(subjects, &subject)
 		} else {
-			subjects = append(subjects, tuple.Subject{
+			subjects = append(subjects, &tuple.Subject{
 				Type: tuple.USER,
 				ID:   tup.UsersetObjectID,
 			})
 		}
 	}
 
-	return
+	return tuple.NewSubjectIterator(subjects), err
 }
 
 // check -
@@ -319,15 +320,16 @@ func (service *PermissionService) check(ctx context.Context, entity tuple.Entity
 			return
 		}
 
-		var subjects []tuple.Subject
-		subjects, err = service.getUsers(ctx, entity, relation)
+		var iterator tuple.ISubjectIterator
+		iterator, err = service.getUsers(ctx, entity, relation)
 		if err != nil {
 			fail(err)
 			return
 		}
 
-		for _, sub := range subjects {
-			if sub.Equals(re.Subject) {
+		for iterator.HasNext() {
+			subject := iterator.GetNext()
+			if subject.Equals(re.Subject) {
 				var dec Decision
 				if exclusion {
 					dec = sendDecision(false, "not", err)
@@ -338,8 +340,8 @@ func (service *PermissionService) check(ctx context.Context, entity tuple.Entity
 				decisionChan <- dec
 				return
 			} else {
-				if !sub.IsUser() {
-					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, tuple.Entity{ID: sub.ID, Type: sub.Type}, sub.Relation, re, exclusion, vm)})
+				if !subject.IsUser() {
+					decisionChan <- union(ctx, []CheckFunction{service.check(ctx, tuple.Entity{ID: subject.ID, Type: subject.Type}, subject.Relation, re, exclusion, vm)})
 					return
 				}
 			}
