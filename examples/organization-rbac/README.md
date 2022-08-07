@@ -111,8 +111,6 @@ organization:21#member@user:ege
 .
 .
 
-## For more
-
 For more details about how relational tuples created and stored your preferred database, see Permify [docs](https://docs.permify.co/docs/relational-tuples).
 
 

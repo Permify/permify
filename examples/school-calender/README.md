@@ -121,8 +121,6 @@ class:12#member@student:34
 .
 .
 
-## For more
-
 For more details about how relational tuples created and stored your preferred database, see Permify [docs](https://docs.permify.co/docs/relational-tuples).
 
 
