@@ -1,6 +1,6 @@
-# Simple School Calender Use Case
+# Simple School Calendar Use Case
 
-This example shows how to model simple school calender with Permify's DSL, Permify Schema.
+This example shows how to model simple school calendar with Permify's DSL, Permify Schema.
 
 -------
 
@@ -17,7 +17,7 @@ entity student {
 entity class {
 	relation member @student
 
-    action view_calender = member.self or member.teacher
+    action view_calendar = member.self or member.teacher
 }
 ```
 
@@ -84,12 +84,12 @@ We want only,
 - Students that take that class 
 - Teachers, whom is teacher of the student that takes that specific class (class member). 
 
-can access to calender of that spesific class.
+can access to calendar of that spesific class.
 
 ```perm
 entity class {
 
-   action view_calender = member.self or member.teacher
+   action view_calendar = member.self or member.teacher
 
 }
 ```
@@ -123,4 +123,7 @@ class:12#member@student:34
 
 For more details about how relational tuples created and stored your preferred database, see Permify [docs](https://docs.permify.co/docs/relational-tuples).
 
+## Need any help ?
+
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://calendly.com/ege-permify/30min).
 

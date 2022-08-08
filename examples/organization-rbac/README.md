@@ -15,17 +15,17 @@ entity organization {
     relation admin @user    
     relation member @user    
     relation manager @user    
+    relation agent @user  
 
-    //grant access permissions
-    action grant_manager_access = admin
-    action remove_manager_access = admin
-    action grant_admin_access = admin
-    action remove_admin_access = admin
-
-    //resource access permissions
-    action view_files = admin or manager or member
+    //organization files access permissions
+    action view_files = admin or manager or (member and not agent)
     action edit_files = admin or manager
     action delete_file = admin 
+
+    //vendor files access permissions
+    action view_vendor_files = admin or manager or agent
+    action edit_vendor_files = admin or agent
+    action delete_vendor_file = agent
 
 } 
 ```
@@ -42,13 +42,13 @@ This examples consist 2 entity,
   entity user {}
 ```
 
-- `organization`, representing organization that user (employees) belongs. It has several roles and permissions related with the spesific resources such as organization files. Moreover, it has permission for spesific action like granting access ability.
+- `organization`, representing organization that user (employees) belongs. It has several roles and permissions related with the spesific resources such as organization files and vendor files.
 
 ### Relations
 
 #### organization entity
 
-To define roles, **relations** needed to be created as entity attributes. In above schema we defined 3 roles respectively; admin, manager and member. 
+To define roles, **relations** needed to be created as entity attributes. In above schema we defined 4 roles respectively; admin, manager, member and agent. 
 
 ```perm
 entity organization {
@@ -56,7 +56,8 @@ entity organization {
     //roles 
     relation admin @user    
     relation member @user    
-    relation manager @user    
+    relation manager @user 
+    relation agent @user     
 
 }
 ```
@@ -68,33 +69,31 @@ Permify Schema supports ***and***, ***or***, ***and not*** and ***or not*** oper
 
 #### organization actions
 
-In this example we define several actions for controling manager and admin grant access abilities, and some resource based 
-actions such as organization files and organizations vendor's files.
+In this example we define several actions for controling access permissions on organization files and organizations vendor's files.
 
 ```perm
 entity organization {
 
-    //grant access permissions
-    action grant_manager_role = admin
-    action remove_manager_role = admin
-    action grant_admin_role = admin
-    action remove_admin_role = admin
-
-    //resource access permissions
-    action view_files = admin or manager or member
-    action edit_files = admin or manager and not member
+    //organization files access permissions
+    action view_files = admin or manager or (member and not agent)
+    action edit_files = admin or manager
     action delete_file = admin 
+
+    //vendor files access permissions
+    action view_vendor_files = admin or manager or agent
+    action edit_vendor_files = admin or agent
+    action delete_vendor_file = agent
 
 } 
 ```
 
 Let's take a loot at some of actions:
 
-- ``action grant_manager_role = admin``
-indicates that only administrator have permission to grant manager role to a user.
-
 - ``action edit_files = admin or manager`` 
 indicates that only admin or manager have permission to edit files in organization.
+
+- ``action view_files = admin or manager or (member and not agent)``
+indicates that admin, manager or members (without having the agent role) can view organization files.
 
 
 ## Example Relational Tuples for this case
@@ -105,7 +104,7 @@ organization:5#member@user:ashley
 
 organization:17#manager@user:mert
 
-organization:21#member@user:ege
+organization:21#agent@user:ege
 
 .
 .
@@ -113,4 +112,7 @@ organization:21#member@user:ege
 
 For more details about how relational tuples created and stored your preferred database, see Permify [docs](https://docs.permify.co/docs/relational-tuples).
 
+## Need any help ?
+
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://calendly.com/ege-permify/30min).
 
