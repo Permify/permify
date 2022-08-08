@@ -17,7 +17,7 @@ func (_m *EntityConfigRepository) Migrate() error {
 }
 
 // All -
-func (_m *EntityConfigRepository) All(ctx context.Context) (configs []entities.EntityConfig, err error) {
+func (_m *EntityConfigRepository) All(ctx context.Context) (configs entities.EntityConfigs, err error) {
 	ret := _m.Called()
 
 	var r0 []entities.EntityConfig
@@ -38,7 +38,7 @@ func (_m *EntityConfigRepository) All(ctx context.Context) (configs []entities.E
 }
 
 // Replace -
-func (_m *EntityConfigRepository) Replace(ctx context.Context, configs []entities.EntityConfig) (err error) {
+func (_m *EntityConfigRepository) Replace(ctx context.Context, configs entities.EntityConfigs) (err error) {
 	ret := _m.Called(configs)
 
 	var r0 error
