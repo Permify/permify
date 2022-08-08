@@ -19,7 +19,7 @@ func (_m *RelationTupleRepository) Migrate() error {
 }
 
 // QueryTuples -
-func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (tuples []entities.RelationTuple, err error) {
+func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (tuples entities.RelationTuples, err error) {
 	ret := _m.Called(namespace, objectID, relation)
 
 	var r0 []entities.RelationTuple
@@ -40,7 +40,7 @@ func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, namespace st
 }
 
 // Read -
-func (_m *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples []entities.RelationTuple, err error) {
+func (_m *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err error) {
 	ret := _m.Called(filter)
 
 	var r0 []entities.RelationTuple
@@ -61,7 +61,7 @@ func (_m *RelationTupleRepository) Read(ctx context.Context, filter filters.Rela
 }
 
 // Write -
-func (_m *RelationTupleRepository) Write(ctx context.Context, tuples []entities.RelationTuple) (err error) {
+func (_m *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) (err error) {
 	ret := _m.Called(tuples)
 
 	var r0 error
@@ -75,7 +75,7 @@ func (_m *RelationTupleRepository) Write(ctx context.Context, tuples []entities.
 }
 
 // Delete -
-func (_m *RelationTupleRepository) Delete(ctx context.Context, tuples []entities.RelationTuple) (err error) {
+func (_m *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) (err error) {
 	ret := _m.Called(tuples)
 
 	var r0 error
