@@ -64,6 +64,46 @@ var doc = `{
                 }
             }
         },
+        "/permissions/expand": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Permission"
+                ],
+                "summary": "Permission",
+                "operationId": "permissions.expand",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/permission.Expand"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Expand"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/relationships/delete": {
             "post": {
                 "description": "delete relation tuple",
@@ -344,6 +384,34 @@ var doc = `{
                 }
             }
         },
+        "permission.Expand": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string"
+                        },
+                        "depth": {
+                            "type": "integer"
+                        },
+                        "entity": {
+                            "$ref": "#/definitions/tuple.Entity"
+                        }
+                    }
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object"
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
+                }
+            }
+        },
         "relationship.Delete": {
             "type": "object",
             "properties": {
@@ -412,6 +480,15 @@ var doc = `{
                 }
             }
         },
+        "responses.Expand": {
+            "type": "object",
+            "properties": {
+                "remaining_depth": {
+                    "type": "integer"
+                },
+                "tree": {}
+            }
+        },
         "responses.HTTPErrorResponse": {
             "type": "object",
             "properties": {
@@ -444,10 +521,6 @@ var doc = `{
                         "$ref": "#/definitions/schema.Action"
                     }
                 },
-                "entity_option": {
-                    "description": "option",
-                    "$ref": "#/definitions/schema.EntityOption"
-                },
                 "name": {
                     "type": "string"
                 },
@@ -459,45 +532,13 @@ var doc = `{
                 }
             }
         },
-        "schema.EntityOption": {
-            "type": "object",
-            "properties": {
-                "identifier": {
-                    "type": "string"
-                },
-                "table": {
-                    "type": "string"
-                }
-            }
-        },
         "schema.Relation": {
             "type": "object",
             "properties": {
                 "name": {
                     "type": "string"
                 },
-                "relation_option": {
-                    "description": "option",
-                    "$ref": "#/definitions/schema.RelationOption"
-                },
                 "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "schema.RelationOption": {
-            "type": "object",
-            "properties": {
-                "cols": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "rel": {
-                    "type": "string"
-                },
-                "table": {
                     "type": "string"
                 }
             }

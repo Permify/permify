@@ -76,6 +76,36 @@ func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.Enti
 	return ent, nil
 }
 
+// Read -
+func (r *EntityConfigRepository) Read(ctx context.Context, entityName string) (config entities.EntityConfig, err error) {
+	var sql string
+	var args []interface{}
+	sql, args, err = r.Database.Builder.
+		Select("entity, serialized_config").From(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"entity": entityName}).
+		ToSql()
+	if err != nil {
+		return config, fmt.Errorf("EntityConfigRepo - AllEntityConfig - r.Builder: %w", err)
+	}
+
+	var rows pgx.Rows
+	rows, err = r.Database.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return config, fmt.Errorf("EntityConfigRepo - AllEntityConfig - r.Pool.Query: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		e := entities.EntityConfig{}
+		err = rows.Scan(&e.Entity, &e.SerializedConfig)
+		if err != nil {
+			return config, fmt.Errorf("RelationTupleRepo - AllEntityConfig - rows.Scan: %w", err)
+		}
+		config = e
+	}
+
+	return config, nil
+}
+
 // Replace -
 func (r *EntityConfigRepository) Replace(ctx context.Context, configs entities.EntityConfigs) (err error) {
 	if len(configs) < 1 {

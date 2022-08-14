@@ -21,6 +21,25 @@ definitions:
         description: "*\n\t * QueryParams"
         type: object
     type: object
+  permission.Expand:
+    properties:
+      body:
+        description: "*\n\t * Body"
+        properties:
+          action:
+            type: string
+          depth:
+            type: integer
+          entity:
+            $ref: '#/definitions/tuple.Entity'
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
+    type: object
   relationship.Delete:
     properties:
       body:
@@ -67,6 +86,12 @@ definitions:
       remaining_depth:
         type: integer
     type: object
+  responses.Expand:
+    properties:
+      remaining_depth:
+        type: integer
+      tree: {}
+    type: object
   responses.HTTPErrorResponse:
     properties:
       errors: {}
@@ -88,9 +113,6 @@ definitions:
         items:
           $ref: '#/definitions/schema.Action'
         type: array
-      entity_option:
-        $ref: '#/definitions/schema.EntityOption'
-        description: option
       name:
         type: string
       relations:
@@ -98,32 +120,11 @@ definitions:
           $ref: '#/definitions/schema.Relation'
         type: array
     type: object
-  schema.EntityOption:
-    properties:
-      identifier:
-        type: string
-      table:
-        type: string
-    type: object
   schema.Relation:
     properties:
       name:
         type: string
-      relation_option:
-        $ref: '#/definitions/schema.RelationOption'
-        description: option
       type:
-        type: string
-    type: object
-  schema.RelationOption:
-    properties:
-      cols:
-        items:
-          type: string
-        type: array
-      rel:
-        type: string
-      table:
         type: string
     type: object
   tuple.Entity:
@@ -177,6 +178,32 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/responses.Check'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Permission
+      tags:
+      - Permission
+  /permissions/expand:
+    post:
+      consumes:
+      - application/json
+      operationId: permissions.expand
+      parameters:
+      - description: ''''''
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/permission.Expand'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Expand'
         "400":
           description: Bad Request
           schema:

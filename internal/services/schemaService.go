@@ -1,21 +1,12 @@
 package services
 
 import (
-	"strings"
-
 	"golang.org/x/net/context"
 
 	e "github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
 )
-
-// ISchemaService -
-type ISchemaService interface {
-	Schema(ctx context.Context) (sch schema.Schema, err error)
-	Replace(ctx context.Context, configs []e.EntityConfig) (err error)
-}
 
 // SchemaService -
 type SchemaService struct {
@@ -30,40 +21,39 @@ func NewSchemaService(repo repositories.IEntityConfigRepository) *SchemaService 
 	}
 }
 
-// Schema -
-func (service *SchemaService) Schema(ctx context.Context) (sch schema.Schema, err error) {
-	if service.cache != nil {
-		return *service.cache, nil
-	}
-
-	var cn []e.EntityConfig
+// All -
+func (service *SchemaService) All(ctx context.Context) (sch schema.Schema, err error) {
+	var cn e.EntityConfigs
 	cn, err = service.repository.All(ctx)
 	if err != nil {
 		return schema.Schema{}, err
 	}
-
-	var ecs []string
-	for _, c := range cn {
-		ecs = append(ecs, string(c.SerializedConfig))
-	}
-
-	pr := parser.NewParser(strings.Join(ecs, "\n"))
-	parsed := pr.Parse()
-	if pr.Error() != nil {
-		return schema.Schema{}, pr.Error()
-	}
-
-	var s *parser.SchemaTranslator
-	s, err = parser.NewSchemaTranslator(parsed)
+	sch, err = cn.ToSchema()
 	if err != nil {
 		return schema.Schema{}, err
 	}
+	return
+}
 
-	return s.Translate(), err
+// Read -
+func (service *SchemaService) Read(ctx context.Context, name string) (sch schema.Schema, err error) {
+	if service.cache != nil {
+		return *service.cache, nil
+	}
+	var cn e.EntityConfig
+	cn, err = service.repository.Read(ctx, name)
+	if err != nil {
+		return schema.Schema{}, err
+	}
+	sch, err = cn.ToSchema()
+	if err != nil {
+		return schema.Schema{}, err
+	}
+	return
 }
 
 // Replace -
-func (service *SchemaService) Replace(ctx context.Context, configs []e.EntityConfig) (err error) {
+func (service *SchemaService) Replace(ctx context.Context, configs e.EntityConfigs) (err error) {
 	service.cache = nil
 	return service.repository.Replace(ctx, configs)
 }

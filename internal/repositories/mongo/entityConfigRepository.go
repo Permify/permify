@@ -47,6 +47,11 @@ func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.Enti
 	return
 }
 
+// Read -
+func (r *EntityConfigRepository) Read(ctx context.Context, name string) (config entities.EntityConfig, err error) {
+	return entities.EntityConfig{}, err
+}
+
 // Replace -
 func (r *EntityConfigRepository) Replace(ctx context.Context, configs entities.EntityConfigs) (err error) {
 	if len(configs) < 1 {

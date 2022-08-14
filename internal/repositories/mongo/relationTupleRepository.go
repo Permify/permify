@@ -2,12 +2,13 @@ package mongo
 
 import (
 	"context"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/Permify/permify/internal/entities"
-	`github.com/Permify/permify/internal/repositories/filters`
+	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/mongo"
 )
@@ -63,7 +64,7 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err error) {
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 
-	var eq = bson.M{}
+	eq := bson.M{}
 	eq["entity"] = filter.Entity
 
 	if filter.ID != "" {

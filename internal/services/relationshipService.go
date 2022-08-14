@@ -5,7 +5,7 @@ import (
 
 	e "github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
-	`github.com/Permify/permify/internal/repositories/filters`
+	"github.com/Permify/permify/internal/repositories/filters"
 )
 
 // IRelationshipService -

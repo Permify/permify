@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/entities"
-	`github.com/Permify/permify/internal/repositories/filters`
+	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/internal/repositories/postgres/migrations"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
@@ -38,6 +38,11 @@ func (r *RelationTupleRepository) Migrate() (err error) {
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleMigration())
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), migrations.DropRelationTupleTypeColumnIfExistMigration())
 	if err != nil {
 		return err
 	}
@@ -81,10 +86,9 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 
 // Read -.
 func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err error) {
-
 	var sql string
 
-	var eq = squirrel.Eq{}
+	eq := squirrel.Eq{}
 	eq["entity"] = filter.Entity
 
 	if filter.ID != "" {

@@ -138,7 +138,7 @@ func (r *schemaRoutes) read(c echo.Context) (err error) {
 	defer span.End()
 
 	var response schema.Schema
-	response, err = r.schemaService.Schema(ctx)
+	response, err = r.schemaService.All(ctx)
 	if err != nil {
 		return err
 	}

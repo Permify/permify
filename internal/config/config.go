@@ -45,17 +45,7 @@ type (
 
 	// Database -.
 	Database struct {
-		*Listen `yaml:"listen"`
-		Write   `env-required:"true" yaml:"write"`
-	}
-
-	Listen struct {
-		Connection   string   `yaml:"connection"`
-		PoolMax      int      `yaml:"pool_max"`
-		URL          string   `yaml:"url"`
-		SlotName     string   `yaml:"slot_name"`
-		OutputPlugin string   `yaml:"output_plugin"`
-		Tables       []string `yaml:"tables"`
+		Write `env-required:"true" yaml:"write"`
 	}
 
 	Write struct {

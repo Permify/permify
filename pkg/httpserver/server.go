@@ -10,7 +10,7 @@ import (
 const (
 	_defaultReadTimeout     = 5 * time.Second
 	_defaultWriteTimeout    = 5 * time.Second
-	_defaultAddr            = ":8080"
+	_defaultAddr            = ":3476"
 	_defaultShutdownTimeout = 3 * time.Second
 )
 

@@ -21,6 +21,12 @@ const (
 	USER = "user"
 )
 
+// EntityAndRelation -
+type EntityAndRelation struct {
+	Entity   Entity   `json:"entity"`
+	Relation Relation `json:"relation"`
+}
+
 // Entity -
 type Entity struct {
 	Type string `json:"type"`

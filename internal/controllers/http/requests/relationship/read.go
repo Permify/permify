@@ -3,7 +3,7 @@ package relationship
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
-	`github.com/Permify/permify/internal/repositories/filters`
+	"github.com/Permify/permify/internal/repositories/filters"
 )
 
 // Read -

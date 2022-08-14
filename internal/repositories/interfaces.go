@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Permify/permify/internal/entities"
-	`github.com/Permify/permify/internal/repositories/filters`
+	"github.com/Permify/permify/internal/repositories/filters"
 )
 
 // Migratable -
@@ -25,6 +25,7 @@ type IRelationTupleRepository interface {
 type IEntityConfigRepository interface {
 	Migratable
 	All(ctx context.Context) (configs entities.EntityConfigs, err error)
+	Read(ctx context.Context, name string) (config entities.EntityConfig, err error)
 	Replace(ctx context.Context, configs entities.EntityConfigs) (err error)
 	Clear(ctx context.Context) (err error)
 }

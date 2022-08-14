@@ -11,16 +11,14 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 
+	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
-	"github.com/Permify/permify/internal/consumers"
-	PQConsumer "github.com/Permify/permify/internal/consumers/postgres"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/httpserver"
 	"github.com/Permify/permify/pkg/logger"
-	PQPublisher "github.com/Permify/permify/pkg/publisher/postgres"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/telemetry/exporters"
 )
@@ -70,26 +68,14 @@ func Run(cfg *config.Config) {
 		l.Fatal(fmt.Errorf("permify - Run - entityConfigRepository.Migrate: %w", err))
 	}
 
+	// commands
+	checkCommand := commands.NewCheckCommand(relationTupleRepository)
+	expandCommand := commands.NewExpandCommand(relationTupleRepository)
+
 	// Services
 	schemaService := services.NewSchemaService(entityConfigRepository)
 	relationshipService := services.NewRelationshipService(relationTupleRepository)
-	permissionService := services.NewPermissionService(relationTupleRepository, schemaService)
-
-	// CDC
-	if cfg.Listen != nil && len(cfg.Listen.Tables) > 0 {
-		var publisher *PQPublisher.Publisher
-		publisher, err = PQPublisher.NewPublisher(context.Background(), cfg.Listen.URL, cfg.Listen.SlotName, cfg.Listen.OutputPlugin, cfg.Listen.Tables, l)
-		go publisher.Start()
-
-		notification := make(chan *PQPublisher.Notification)
-		publisher.Subscribe(notification)
-		defer publisher.Unsubscribe(notification)
-
-		// consumer
-		consumer := consumers.New(relationshipService, schemaService)
-		pqConsumer := PQConsumer.New(consumer)
-		go pqConsumer.Consume(context.Background(), notification)
-	}
+	permissionService := services.NewPermissionService(checkCommand, expandCommand, entityConfigRepository)
 
 	// HTTP Server
 	handler := echo.New()
