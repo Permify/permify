@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -49,7 +48,17 @@ func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.Enti
 
 // Read -
 func (r *EntityConfigRepository) Read(ctx context.Context, name string) (config entities.EntityConfig, err error) {
-	return entities.EntityConfig{}, err
+	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
+	filter := bson.M{"entity": name}
+	var single *mongo.SingleResult
+	single = coll.FindOne(ctx, filter)
+	if err != nil {
+		return
+	}
+	if err = single.Decode(&config); err != nil {
+		return
+	}
+	return
 }
 
 // Replace -
