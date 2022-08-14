@@ -25,7 +25,7 @@ entity class {
 
 ### Entities
 
-This examples consist 2 entity, 
+This examples consist 3 entity, 
 
 - `user`, represents users. This entity is empty because its only responsible for referencing users.
 
