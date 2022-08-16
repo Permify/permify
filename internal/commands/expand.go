@@ -4,39 +4,78 @@ import (
 	"context"
 
 	"github.com/Permify/permify/internal/entities"
+	internal_errors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
+type NodeKind string
+
+const (
+	EXPAND NodeKind = "expand"
+	LEAF   NodeKind = "leaf"
+	BRANCH NodeKind = "branch"
+)
+
+// Node -
 type Node interface {
-	GetNodeType() string
+	GetKind() NodeKind
+	Error() error
 }
 
+// ExpandNode -
 type ExpandNode struct {
-	Type     string `json:"type"`
-	Children []Node `json:"nodes"`
+	Kind      NodeKind      `json:"kind"`
+	Operation schema.OPType `json:"operation"`
+	Children  []Node        `json:"children"`
+	Err       error         `json:"-"`
 }
 
-func (ExpandNode) GetNodeType() string {
-	return "expand"
+// GetKind -
+func (ExpandNode) GetKind() NodeKind {
+	return EXPAND
 }
 
+// Error -
+func (e ExpandNode) Error() error {
+	return e.Err
+}
+
+// LeafNode -
 type LeafNode struct {
+	Kind    NodeKind      `json:"kind"`
 	Subject tuple.Subject `json:"subject"`
+	Err     error         `json:"-"`
 }
 
-func (LeafNode) GetNodeType() string {
-	return "leaf"
+// GetKind -
+func (LeafNode) GetKind() NodeKind {
+	return LEAF
 }
 
+// Error -
+func (e LeafNode) Error() error {
+	return e.Err
+}
+
+// BranchNode -
 type BranchNode struct {
-	Expand   tuple.EntityAndRelation `json:"expand"`
+	Kind     NodeKind                `json:"kind"`
+	Target   tuple.EntityAndRelation `json:"target"`
 	Children []Node                  `json:"children"`
+	Err      error                   `json:"-"`
 }
 
-func (BranchNode) GetNodeType() string {
-	return "branch"
+// GetKind -
+func (BranchNode) GetKind() NodeKind {
+	return BRANCH
+}
+
+// Error -
+func (e BranchNode) Error() error {
+	return e.Err
 }
 
 // ExpandFunction -
@@ -48,48 +87,30 @@ type ExpandCombiner func(ctx context.Context, requests []ExpandFunction) Node
 // ExpandCommand -
 type ExpandCommand struct {
 	relationTupleRepository repositories.IRelationTupleRepository
+	logger                  logger.Interface
 }
 
 // NewExpandCommand -
-func NewExpandCommand(rr repositories.IRelationTupleRepository) *ExpandCommand {
+func NewExpandCommand(rr repositories.IRelationTupleRepository, l logger.Interface) *ExpandCommand {
 	return &ExpandCommand{
 		relationTupleRepository: rr,
+		logger:                  l,
 	}
 }
 
 // ExpandQuery -
 type ExpandQuery struct {
 	Entity tuple.Entity
-	depth  int
-}
-
-// SetDepth -
-func (r *ExpandQuery) SetDepth(i int) {
-	r.depth = i
-}
-
-// decrease -
-func (r *ExpandQuery) decrease() *ExpandQuery {
-	r.depth--
-	return r
-}
-
-// isDepthFinish -
-func (r *ExpandQuery) isDepthFinish() bool {
-	return r.depth <= 0
 }
 
 // ExpandResponse -
 type ExpandResponse struct {
-	Tree           Node
-	RemainingDepth int
-	Error          error
+	Tree Node
 }
 
 // Execute -
-func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child schema.Child) (response ExpandResponse) {
-	expandNode, _ := command.e(ctx, q, child)
-	response.Tree = expandNode
+func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child schema.Child) (response ExpandResponse, err error) {
+	response.Tree, err = command.e(ctx, q, child)
 	return
 }
 
@@ -114,7 +135,7 @@ func (command *ExpandCommand) expandRewrite(ctx context.Context, q *ExpandQuery,
 	case schema.Intersection.String():
 		return command.set(ctx, q, child.Children, expandIntersection)
 	default:
-		return expandFail(UndefinedChildTypeError)
+		return expandFail(internal_errors.UndefinedChildTypeError)
 	}
 }
 
@@ -126,7 +147,7 @@ func (command *ExpandCommand) expandLeaf(ctx context.Context, q *ExpandQuery, ch
 	case schema.ComputedUserSetType.String():
 		return command.expand(ctx, q.Entity, tuple.Relation(child.Value), q)
 	default:
-		return expandFail(UndefinedChildTypeError)
+		return expandFail(internal_errors.UndefinedChildTypeError)
 	}
 }
 
@@ -140,7 +161,7 @@ func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children 
 		case schema.LeafKind.String():
 			functions = append(functions, command.expandLeaf(ctx, q, child.(schema.Leaf)))
 		default:
-			return expandFail(UndefinedChildKindError)
+			return expandFail(internal_errors.UndefinedChildKindError)
 		}
 	}
 
@@ -162,7 +183,8 @@ func (command *ExpandCommand) expand(ctx context.Context, entity tuple.Entity, r
 		}
 
 		var branch BranchNode
-		branch.Expand = tuple.EntityAndRelation{
+		branch.Kind = BRANCH
+		branch.Target = tuple.EntityAndRelation{
 			Entity:   entity,
 			Relation: relation,
 		}
@@ -174,6 +196,7 @@ func (command *ExpandCommand) expand(ctx context.Context, entity tuple.Entity, r
 			subject := iterator.GetNext()
 			if subject.IsUser() {
 				branch.Children = append(branch.Children, &LeafNode{
+					Kind: LEAF,
 					Subject: tuple.Subject{
 						Type: tuple.USER,
 						ID:   subject.ID,
@@ -193,22 +216,24 @@ func (command *ExpandCommand) expand(ctx context.Context, entity tuple.Entity, r
 	}
 }
 
+// expandSetOperation -
 func expandSetOperation(
 	ctx context.Context,
 	functions []ExpandFunction,
-	op string,
+	op schema.OPType,
 ) Node {
 	children := make([]Node, 0, len(functions))
 
 	if len(functions) == 0 {
 		return &ExpandNode{
-			Type:     op,
-			Children: children,
+			Kind:      EXPAND,
+			Operation: op,
+			Children:  children,
 		}
 	}
 
-	c, cancelFn := context.WithCancel(ctx)
-	defer cancelFn()
+	c, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	result := make([]chan Node, 0, len(functions))
 	for _, fn := range functions {
@@ -220,6 +245,11 @@ func expandSetOperation(
 	for _, resultChan := range result {
 		select {
 		case res := <-resultChan:
+			if res.Error() != nil {
+				return ExpandNode{
+					Err: res.Error(),
+				}
+			}
 			children = append(children, res)
 		case <-ctx.Done():
 			return nil
@@ -227,8 +257,9 @@ func expandSetOperation(
 	}
 
 	return &ExpandNode{
-		Type:     op,
-		Children: children,
+		Kind:      EXPAND,
+		Operation: op,
+		Children:  children,
 	}
 }
 
@@ -239,18 +270,20 @@ func expandRoot(ctx context.Context, functions []ExpandFunction) Node {
 
 // expandUnion -
 func expandUnion(ctx context.Context, functions []ExpandFunction) Node {
-	return expandSetOperation(ctx, functions, "union")
+	return expandSetOperation(ctx, functions, schema.Union)
 }
 
 // expandIntersection -
 func expandIntersection(ctx context.Context, functions []ExpandFunction) Node {
-	return expandSetOperation(ctx, functions, "intersection")
+	return expandSetOperation(ctx, functions, schema.Intersection)
 }
 
 // expandFail -
 func expandFail(err error) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- Node) {
-		// expandChan <- sendExpandNode("", err)
+		expandChan <- ExpandNode{
+			Err: err,
+		}
 	}
 }
 
@@ -269,13 +302,11 @@ func (command *ExpandCommand) getSubjects(ctx context.Context, entity tuple.Enti
 		ct := tup.ToTuple()
 		if !ct.Subject.IsUser() {
 			subject := ct.Subject
-
 			if tup.UsersetRelation == tuple.ELLIPSIS {
 				subject.Relation = r[1]
 			} else {
 				subject.Relation = ct.Subject.Relation
 			}
-
 			subjects = append(subjects, &subject)
 		} else {
 			subjects = append(subjects, &tuple.Subject{
