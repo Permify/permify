@@ -25,7 +25,7 @@ type Check struct {
 		Entity  tuple.Entity  `json:"entity" form:"entity" xml:"entity"`
 		Action  string        `json:"action" form:"action" xml:"action"`
 		Subject tuple.Subject `json:"subject" form:"subject" xml:"subject"`
-		Depth   int           `json:"depth" form:"depth" xml:"depth"`
+		Depth   int32         `json:"depth" form:"depth" xml:"depth"`
 	}
 }
 
