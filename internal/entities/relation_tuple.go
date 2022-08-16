@@ -14,7 +14,6 @@ type RelationTuple struct {
 	UsersetEntity   string    `json:"userset_entity" bson:"userset_entity"`
 	UsersetObjectID string    `json:"userset_object_id" bson:"userset_object_id"`
 	UsersetRelation string    `json:"userset_relation" bson:"userset_relation"`
-	Type            string    `json:"type" bson:"type"`
 	CommitTime      time.Time `json:"commit_time" bson:"commit_time"`
 }
 

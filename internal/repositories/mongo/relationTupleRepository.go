@@ -106,7 +106,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 	var docs []interface{}
 	for _, tup := range tuples {
-		docs = append(docs, bson.D{{"entity", tup.Entity}, {"object_id", tup.ObjectID}, {"relation", tup.Relation}, {"userset_entity", tup.UsersetEntity}, {"userset_object_id", tup.UsersetObjectID}, {"userset_relation", tup.UsersetRelation}, {"type", tup.Type}, {"tuple", tup.ToTuple().String()}})
+		docs = append(docs, bson.D{{"entity", tup.Entity}, {"object_id", tup.ObjectID}, {"relation", tup.Relation}, {"userset_entity", tup.UsersetEntity}, {"userset_object_id", tup.UsersetObjectID}, {"userset_relation", tup.UsersetRelation}, {"tuple", tup.ToTuple().String()}})
 	}
 	_, err = coll.InsertMany(ctx, docs)
 	if err != nil {

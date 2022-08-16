@@ -150,10 +150,10 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 
 	sql := r.Database.Builder.
 		Insert(entities.RelationTuple{}.Table()).
-		Columns("entity, object_id, relation, userset_entity, userset_object_id, userset_relation, type")
+		Columns("entity, object_id, relation, userset_entity, userset_object_id, userset_relation")
 
 	for _, entity := range tuples {
-		sql = sql.Values(entity.Entity, entity.ObjectID, entity.Relation, entity.UsersetEntity, entity.UsersetObjectID, entity.UsersetRelation, entity.Type)
+		sql = sql.Values(entity.Entity, entity.ObjectID, entity.Relation, entity.UsersetEntity, entity.UsersetObjectID, entity.UsersetRelation)
 	}
 
 	var query string

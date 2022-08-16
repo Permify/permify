@@ -90,7 +90,7 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(v))
 	}
 
-	tuple := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String(), Type: "custom"}
+	tuple := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String()}
 	err = r.relationshipService.WriteRelationship(ctx, []entities.RelationTuple{tuple})
 	if err != nil {
 		if errors.Is(err, database.ErrUniqueConstraint) {
@@ -127,7 +127,7 @@ func (r *relationshipRoutes) delete(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(v))
 	}
 
-	tuple := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String(), Type: "custom"}
+	tuple := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String()}
 	err = r.relationshipService.DeleteRelationship(ctx, []entities.RelationTuple{tuple})
 	if err != nil {
 		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
