@@ -2,34 +2,23 @@ package commands
 
 import (
 	"context"
+	"fmt"
+	"sync"
+	"sync/atomic"
 
 	"github.com/Permify/permify/internal/entities"
+	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
-
-// CheckVisitMap -
-type CheckVisitMap map[string]CheckDecision
-
-// isVisited -
-func (v CheckVisitMap) isVisited(key string) (CheckDecision, bool) {
-	if _, ok := v[key]; ok {
-		return v[key], true
-	}
-	return CheckDecision{}, false
-}
-
-// set -
-func (v CheckVisitMap) set(key string, decision CheckDecision) {
-	v[key] = decision
-}
 
 // CheckDecision -
 type CheckDecision struct {
 	Prefix string `json:"prefix"`
 	Can    bool   `json:"can"`
-	Err    error  `json:"err"`
+	Err    error  `json:"-"`
 }
 
 // sendCheckDecision -
@@ -50,12 +39,14 @@ type CheckCombiner func(ctx context.Context, functions []CheckFunction) CheckDec
 // CheckCommand -
 type CheckCommand struct {
 	relationTupleRepository repositories.IRelationTupleRepository
+	logger                  logger.Interface
 }
 
 // NewCheckCommand -
-func NewCheckCommand(rr repositories.IRelationTupleRepository) *CheckCommand {
+func NewCheckCommand(rr repositories.IRelationTupleRepository, l logger.Interface) *CheckCommand {
 	return &CheckCommand{
 		relationTupleRepository: rr,
+		logger:                  l,
 	}
 }
 
@@ -63,96 +54,112 @@ func NewCheckCommand(rr repositories.IRelationTupleRepository) *CheckCommand {
 type CheckQuery struct {
 	Entity  tuple.Entity
 	Subject tuple.Subject
-	depth   int
+	depth   int32
+	visits  sync.Map
+}
+
+func (r *CheckQuery) SetVisit(key string, decision CheckDecision) {
+	r.visits.Store(key, decision)
+}
+
+func (r *CheckQuery) LoadVisits() map[string]interface{} {
+	m := map[string]interface{}{}
+	r.visits.Range(func(key, value interface{}) bool {
+		m[fmt.Sprint(key)] = value
+		return true
+	})
+	return m
 }
 
 // SetDepth -
-func (r *CheckQuery) SetDepth(i int) {
-	r.depth = i
+func (r *CheckQuery) SetDepth(i int32) {
+	atomic.StoreInt32(&r.depth, i)
 }
 
 // decrease -
-func (r *CheckQuery) decrease() *CheckQuery {
-	r.depth--
-	return r
+func (r *CheckQuery) decrease() int32 {
+	return atomic.AddInt32(&r.depth, -1)
+}
+
+// loadDepth -
+func (r *CheckQuery) loadDepth() int32 {
+	return atomic.LoadInt32(&r.depth)
 }
 
 // isDepthFinish -
 func (r *CheckQuery) isDepthFinish() bool {
-	return r.depth <= 0
+	return r.loadDepth() <= 0
 }
 
 // CheckResponse -
 type CheckResponse struct {
 	Can            bool
-	Visit          *CheckVisitMap
-	RemainingDepth int
-	Error          error
+	Visits         map[string]interface{}
+	RemainingDepth int32
 }
 
 // Execute -
-func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child schema.Child) (response CheckResponse) {
+func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child schema.Child) (response CheckResponse, err error) {
 	response.Can = false
-	vm := &CheckVisitMap{}
-	response.Can, response.Visit, response.Error = command.c(ctx, q, child, vm)
-	response.RemainingDepth = q.depth
+	response.Can, err = command.c(ctx, q, child)
+	response.Visits = q.LoadVisits()
+	response.RemainingDepth = q.loadDepth()
 	return
 }
 
 // c -
-func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child schema.Child, vm *CheckVisitMap) (bool, *CheckVisitMap, error) {
+func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child schema.Child) (bool, error) {
 	var fn CheckFunction
 	switch child.GetKind() {
 	case schema.RewriteKind.String():
-		fn = command.checkRewrite(ctx, q, child.(schema.Rewrite), vm)
+		fn = command.checkRewrite(ctx, q, child.(schema.Rewrite))
 	case schema.LeafKind.String():
-		fn = command.checkLeaf(ctx, q, child.(schema.Leaf), vm)
+		fn = command.checkLeaf(ctx, q, child.(schema.Leaf))
 	}
 
 	if fn == nil {
-		return false, nil, UndefinedChildKindError
+		return false, internalErrors.UndefinedChildKindError
 	}
 
 	result := checkUnion(ctx, []CheckFunction{fn})
-
-	return result.Can, vm, result.Err
+	return result.Can, result.Err
 }
 
 // checkRewrite -
-func (command *CheckCommand) checkRewrite(ctx context.Context, q *CheckQuery, child schema.Rewrite, vm *CheckVisitMap) CheckFunction {
+func (command *CheckCommand) checkRewrite(ctx context.Context, q *CheckQuery, child schema.Rewrite) CheckFunction {
 	switch child.GetType() {
 	case schema.Union.String():
-		return command.set(ctx, q, child.Children, checkUnion, vm)
+		return command.set(ctx, q, child.Children, checkUnion)
 	case schema.Intersection.String():
-		return command.set(ctx, q, child.Children, checkIntersection, vm)
+		return command.set(ctx, q, child.Children, checkIntersection)
 	default:
-		return checkFail(UndefinedChildTypeError)
+		return checkFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
 // checkLeaf -
-func (command *CheckCommand) checkLeaf(ctx context.Context, q *CheckQuery, child schema.Leaf, vm *CheckVisitMap) CheckFunction {
+func (command *CheckCommand) checkLeaf(ctx context.Context, q *CheckQuery, child schema.Leaf) CheckFunction {
 	switch child.GetType() {
 	case schema.TupleToUserSetType.String():
-		return command.check(ctx, q.Entity, tuple.Relation(child.Value), q, child.Exclusion, vm)
+		return command.check(ctx, q.Entity, tuple.Relation(child.Value), q, child.Exclusion)
 	case schema.ComputedUserSetType.String():
-		return command.check(ctx, q.Entity, tuple.Relation(child.Value), q, child.Exclusion, vm)
+		return command.check(ctx, q.Entity, tuple.Relation(child.Value), q, child.Exclusion)
 	default:
-		return checkFail(UndefinedChildTypeError)
+		return checkFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
 // set -
-func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []schema.Child, combiner CheckCombiner, vm *CheckVisitMap) CheckFunction {
+func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []schema.Child, combiner CheckCombiner) CheckFunction {
 	var functions []CheckFunction
 	for _, child := range children {
 		switch child.GetKind() {
 		case schema.RewriteKind.String():
-			functions = append(functions, command.checkRewrite(ctx, q, child.(schema.Rewrite), vm))
+			functions = append(functions, command.checkRewrite(ctx, q, child.(schema.Rewrite)))
 		case schema.LeafKind.String():
-			functions = append(functions, command.checkLeaf(ctx, q, child.(schema.Leaf), vm))
+			functions = append(functions, command.checkLeaf(ctx, q, child.(schema.Leaf)))
 		default:
-			return checkFail(UndefinedChildKindError)
+			return checkFail(internalErrors.UndefinedChildKindError)
 		}
 	}
 
@@ -162,14 +169,14 @@ func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []
 }
 
 // check -
-func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, relation tuple.Relation, q *CheckQuery, exclusion bool, vm *CheckVisitMap) CheckFunction {
+func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, relation tuple.Relation, q *CheckQuery, exclusion bool) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- CheckDecision) {
 		var err error
 
 		q.decrease()
 
 		if q.isDepthFinish() {
-			decisionChan <- sendCheckDecision(false, "", DepthError)
+			decisionChan <- sendCheckDecision(false, "", internalErrors.DepthError)
 			return
 		}
 
@@ -191,11 +198,12 @@ func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, rel
 				} else {
 					dec = sendCheckDecision(true, "", err)
 				}
+				q.SetVisit(tuple.EntityAndRelation{Entity: entity, Relation: relation}.String(), dec)
 				decisionChan <- dec
 				return
 			} else {
 				if !subject.IsUser() {
-					checkFunctions = append(checkFunctions, command.check(ctx, tuple.Entity{ID: subject.ID, Type: subject.Type}, subject.Relation, q, exclusion, vm))
+					checkFunctions = append(checkFunctions, command.check(ctx, tuple.Entity{ID: subject.ID, Type: subject.Type}, subject.Relation, q, exclusion))
 				}
 			}
 		}
@@ -211,6 +219,7 @@ func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, rel
 		} else {
 			dec = sendCheckDecision(false, "", err)
 		}
+		q.SetVisit(tuple.EntityAndRelation{Entity: entity, Relation: relation}.String(), dec)
 		decisionChan <- dec
 		return
 	}
@@ -240,7 +249,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction) CheckDecision {
 				return sendCheckDecision(false, result.Prefix, result.Err)
 			}
 		case <-ctx.Done():
-			return sendCheckDecision(false, "", CanceledError)
+			return sendCheckDecision(false, "", internalErrors.CanceledError)
 		}
 	}
 
@@ -271,7 +280,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction) CheckDeci
 				return sendCheckDecision(false, result.Prefix, result.Err)
 			}
 		case <-ctx.Done():
-			return sendCheckDecision(false, "", CanceledError)
+			return sendCheckDecision(false, "", internalErrors.CanceledError)
 		}
 	}
 

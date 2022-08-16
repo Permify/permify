@@ -8,11 +8,13 @@ import (
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("check-command", func() {
 	var checkCommand *CheckCommand
+	l := logger.New("debug")
 
 	// DRIVE SAMPLE
 
@@ -55,7 +57,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "admin",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
@@ -66,7 +68,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "collaborator",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
@@ -74,7 +76,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "collaborator",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "3",
 					UsersetRelation: "",
 				},
@@ -85,7 +87,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "doc",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -96,18 +98,20 @@ var _ = Describe("check-command", func() {
 			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(getDocOwners, nil).Times(1)
 			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(getParentAdmins, nil).Times(1)
 
-			checkCommand = NewCheckCommand(relationTupleRepository)
+			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
 				Entity:  tuple.Entity{Type: "doc", ID: "1"},
 				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
-				depth:   8,
 			}
+
+			re.SetDepth(8)
 
 			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
 
-			actualResult := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("read").Child)
-			Expect(actualResult.Error).ShouldNot(HaveOccurred())
+			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("read").Child)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(re.loadDepth()).Should(Equal(int32(3)))
 			Expect(true).Should(Equal(actualResult.Can))
 		})
 
@@ -130,7 +134,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "admin",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -141,28 +145,30 @@ var _ = Describe("check-command", func() {
 					Entity:          "doc",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(getDocParent, nil).Times(2)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(getDocOwners, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(getDocParent, nil).Times(1)
 			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(getParentAdmins, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(getDocOwners, nil).Times(1)
 
-			checkCommand = NewCheckCommand(relationTupleRepository)
+			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
 				Entity:  tuple.Entity{Type: "doc", ID: "1"},
 				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
-				depth:   8,
 			}
+
+			re.SetDepth(8)
 
 			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
 
-			actualResult := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("update").Child)
-			Expect(actualResult.Error).ShouldNot(HaveOccurred())
+			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("update").Child)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(re.loadDepth()).Should(Equal(int32(5)))
 			Expect(false).Should(Equal(actualResult.Can))
 		})
 
@@ -185,7 +191,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "admin",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -196,7 +202,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "folder",
 					ObjectID:        "1",
 					Relation:        "collaborator",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -215,7 +221,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "doc",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
@@ -223,21 +229,23 @@ var _ = Describe("check-command", func() {
 
 			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(getDocParent, nil).Times(2)
 			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(getParentCollaborators, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(getParentAdmins, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(getParentAdmins, nil).Times(2)
 			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(getDocOwners, nil).Times(1)
 
-			checkCommand = NewCheckCommand(relationTupleRepository)
+			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
 				Entity:  tuple.Entity{Type: "doc", ID: "1"},
 				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
-				depth:   8,
 			}
+
+			re.SetDepth(8)
 
 			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
 
-			actualResult := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("read").Child)
-			Expect(actualResult.Error).ShouldNot(HaveOccurred())
+			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("read").Child)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(re.loadDepth()).Should(Equal(int32(2)))
 			Expect(false).Should(Equal(actualResult.Can))
 		})
 	})
@@ -268,26 +276,28 @@ var _ = Describe("check-command", func() {
 					Entity:          "repository",
 					ObjectID:        "1",
 					Relation:        "owner",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "2",
 					UsersetRelation: "",
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getDocParent, nil).Times(2)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getDocParent, nil).Times(1)
 
-			checkCommand = NewCheckCommand(relationTupleRepository)
+			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
 				Entity:  tuple.Entity{Type: "repository", ID: "1"},
 				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
-				depth:   8,
 			}
+
+			re.SetDepth(8)
 
 			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
 
-			actualResult := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("push").Child)
-			Expect(actualResult.Error).ShouldNot(HaveOccurred())
+			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("push").Child)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(re.loadDepth()).Should(Equal(int32(7)))
 			Expect(false).Should(Equal(actualResult.Can))
 		})
 
@@ -318,7 +328,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "organization",
 					ObjectID:        "2",
 					Relation:        "admin",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "3",
 					UsersetRelation: "",
 				},
@@ -326,7 +336,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "organization",
 					ObjectID:        "2",
 					Relation:        "admin",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "8",
 					UsersetRelation: "",
 				},
@@ -337,7 +347,7 @@ var _ = Describe("check-command", func() {
 					Entity:          "organization",
 					ObjectID:        "3",
 					Relation:        "member",
-					UsersetEntity:   "user",
+					UsersetEntity:   tuple.USER,
 					UsersetObjectID: "1",
 					UsersetRelation: "",
 				},
@@ -347,18 +357,19 @@ var _ = Describe("check-command", func() {
 			relationTupleRepository.On("QueryTuples", "organization", "2", "admin").Return(getOrgAdmins, nil).Times(1)
 			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(getOrgMembers, nil).Times(1)
 
-			checkCommand = NewCheckCommand(relationTupleRepository)
+			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
 				Entity:  tuple.Entity{Type: "repository", ID: "1"},
 				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
-				depth:   8,
 			}
 
+			re.SetDepth(8)
 			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
 
-			actualResult := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("push").Child)
-			Expect(actualResult.Error).ShouldNot(HaveOccurred())
+			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("push").Child)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(re.loadDepth()).Should(Equal(int32(5)))
 			Expect(true).Should(Equal(actualResult.Can))
 		})
 
@@ -414,18 +425,20 @@ var _ = Describe("check-command", func() {
 			relationTupleRepository.On("QueryTuples", "organization", "8", "admin").Return(getOrganizationAdmins, nil).Times(1)
 			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getRepositoryOwners, nil).Times(1)
 
-			checkCommand = NewCheckCommand(relationTupleRepository)
+			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
 				Entity:  tuple.Entity{Type: "repository", ID: "1"},
 				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
-				depth:   6,
 			}
+
+			re.SetDepth(6)
 
 			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
 
-			actualResult := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("delete").Child)
-			Expect(actualResult.Error).ShouldNot(HaveOccurred())
+			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("delete").Child)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(re.loadDepth()).Should(Equal(int32(1)))
 			Expect(false).Should(Equal(actualResult.Can))
 		})
 	})
