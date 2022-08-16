@@ -8,10 +8,10 @@ import (
 
 // ICheckCommand -
 type ICheckCommand interface {
-	Execute(ctx context.Context, q *CheckQuery, child schema.Child) (response CheckResponse)
+	Execute(ctx context.Context, q *CheckQuery, child schema.Child) (response CheckResponse, err error)
 }
 
 // IExpandCommand -
 type IExpandCommand interface {
-	Execute(ctx context.Context, q *ExpandQuery, child schema.Child) (response ExpandResponse)
+	Execute(ctx context.Context, q *ExpandQuery, child schema.Child) (response ExpandResponse, err error)
 }

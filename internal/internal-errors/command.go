@@ -1,4 +1,4 @@
-package commands
+package internal_errors
 
 import (
 	"errors"
