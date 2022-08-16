@@ -44,6 +44,6 @@ func (serverRoutes) ping(c echo.Context) (err error) {
 // @Router      /status/version [get]
 func (serverRoutes) version(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"version": "v0.0.0-alpha1",
+		"version": "v0.0.0-alpha2",
 	})
 }
