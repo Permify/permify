@@ -6,6 +6,5 @@ import (
 
 // Expand -
 type Expand struct {
-	Tree           commands.Node `json:"tree"`
-	RemainingDepth int           `json:"remaining_depth"`
+	Tree commands.Node `json:"tree"`
 }
