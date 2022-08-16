@@ -11,8 +11,8 @@ import (
 
 // IPermissionService -
 type IPermissionService interface {
-	Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, d int) (response commands.CheckResponse)
-	Expand(ctx context.Context, entity tuple.Entity, action string, d int) (response commands.ExpandResponse)
+	Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, d int32) (response commands.CheckResponse, err error)
+	Expand(ctx context.Context, entity tuple.Entity, action string, d int) (response commands.ExpandResponse, err error)
 }
 
 // ISchemaService -
