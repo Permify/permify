@@ -47,6 +47,16 @@ func (r *RelationTupleRepository) Migrate() (err error) {
 		return err
 	}
 
+	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleUserSetIndexIfNotExistMigration())
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleUserSetRelationIndexIfNotExistMigration())
+	if err != nil {
+		return err
+	}
+
 	return tx.Commit(ctx)
 }
 
