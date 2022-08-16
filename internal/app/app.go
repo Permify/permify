@@ -1,4 +1,3 @@
-// Package permify configures and runs application.
 package app
 
 import (
@@ -69,8 +68,8 @@ func Run(cfg *config.Config) {
 	}
 
 	// commands
-	checkCommand := commands.NewCheckCommand(relationTupleRepository)
-	expandCommand := commands.NewExpandCommand(relationTupleRepository)
+	checkCommand := commands.NewCheckCommand(relationTupleRepository, l)
+	expandCommand := commands.NewExpandCommand(relationTupleRepository, l)
 
 	// Services
 	schemaService := services.NewSchemaService(entityConfigRepository)
