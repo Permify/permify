@@ -11,6 +11,7 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/controllers/http/requests/permission"
 	"github.com/Permify/permify/internal/controllers/http/responses"
+	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
 )
@@ -56,18 +57,23 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 	}
 
 	if request.Body.Depth == 0 {
-		request.Body.Depth = 8
+		request.Body.Depth = 20
 	}
 
-	res := r.service.Check(ctx, request.Body.Subject, request.Body.Action, request.Body.Entity, request.Body.Depth)
-	if res.Error != nil {
-		if errors.Is(res.Error, commands.DepthError) {
-			span.RecordError(commands.DepthError)
+	var res commands.CheckResponse
+	res, err = r.service.Check(ctx, request.Body.Subject, request.Body.Action, request.Body.Entity, request.Body.Depth)
+	if err != nil {
+		if errors.Is(err, internalErrors.DepthError) {
+			span.RecordError(internalErrors.DepthError)
 			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"depth": "depth is not enough to check"})
 		}
-		if errors.Is(res.Error, services.ActionCannotFoundError) {
-			span.RecordError(services.ActionCannotFoundError)
+		if errors.Is(err, internalErrors.ActionCannotFoundError) {
+			span.RecordError(internalErrors.ActionCannotFoundError)
 			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"action": "action cannot be found"})
+		}
+		if errors.Is(err, internalErrors.EntityConfigCannotFoundError) {
+			span.RecordError(internalErrors.EntityConfigCannotFoundError)
+			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"entity": "entity config cannot be found"})
 		}
 		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
@@ -75,8 +81,8 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 
 	return c.JSON(http.StatusOK, responses.Check{
 		Can:            res.Can,
-		Decisions:      res.Visit,
 		RemainingDepth: res.RemainingDepth,
+		Decisions:      res.Visits,
 	})
 }
 
@@ -104,25 +110,29 @@ func (r *permissionRoutes) expand(c echo.Context) (err error) {
 	}
 
 	if request.Body.Depth == 0 {
-		request.Body.Depth = 8
+		request.Body.Depth = 20
 	}
 
-	res := r.service.Expand(ctx, request.Body.Entity, request.Body.Action, request.Body.Depth)
-	if res.Error != nil {
-		if errors.Is(res.Error, commands.DepthError) {
-			span.RecordError(commands.DepthError)
+	var res commands.ExpandResponse
+	res, err = r.service.Expand(ctx, request.Body.Entity, request.Body.Action, request.Body.Depth)
+	if err != nil {
+		if errors.Is(err, internalErrors.DepthError) {
+			span.RecordError(internalErrors.DepthError)
 			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"depth": "depth is not enough to check"})
 		}
-		if errors.Is(res.Error, services.ActionCannotFoundError) {
-			span.RecordError(services.ActionCannotFoundError)
+		if errors.Is(err, internalErrors.ActionCannotFoundError) {
+			span.RecordError(internalErrors.ActionCannotFoundError)
 			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"action": "action cannot be found"})
+		}
+		if errors.Is(err, internalErrors.EntityConfigCannotFoundError) {
+			span.RecordError(internalErrors.EntityConfigCannotFoundError)
+			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"entity": "entity config cannot be found"})
 		}
 		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
 	}
 
 	return c.JSON(http.StatusOK, responses.Expand{
-		Tree:           res.Tree,
-		RemainingDepth: res.RemainingDepth,
+		Tree: res.Tree,
 	})
 }

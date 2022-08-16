@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/entities"
+	internal_errors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/repositories/postgres/migrations"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/database/postgres"
@@ -87,20 +88,14 @@ func (r *EntityConfigRepository) Read(ctx context.Context, entityName string) (c
 		return config, fmt.Errorf("EntityConfigRepo - AllEntityConfig - r.Builder: %w", err)
 	}
 
-	var rows pgx.Rows
-	rows, err = r.Database.Pool.Query(ctx, sql, args...)
+	var row pgx.Row
+	row = r.Database.Pool.QueryRow(ctx, sql, args...)
+	err = row.Scan(&config.Entity, &config.SerializedConfig)
 	if err != nil {
-		return config, fmt.Errorf("EntityConfigRepo - AllEntityConfig - r.Pool.Query: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		e := entities.EntityConfig{}
-		err = rows.Scan(&e.Entity, &e.SerializedConfig)
-		if err != nil {
-			return config, fmt.Errorf("RelationTupleRepo - AllEntityConfig - rows.Scan: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return config, internal_errors.EntityConfigCannotFoundError
 		}
-		config = e
+		return config, fmt.Errorf("RelationTupleRepo - AllEntityConfig - rows.Scan: %w", err)
 	}
 
 	return config, nil

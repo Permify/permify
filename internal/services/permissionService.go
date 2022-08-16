@@ -2,16 +2,14 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/entities"
+	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/tuple"
 )
-
-var ActionCannotFoundError = errors.New("action cannot found")
 
 // PermissionService -
 type PermissionService struct {
@@ -32,60 +30,76 @@ func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand,
 }
 
 // Check -
-func (service *PermissionService) Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, d int) (response commands.CheckResponse) {
+func (service *PermissionService) Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, d int32) (response commands.CheckResponse, err error) {
 	var cnf entities.EntityConfig
-	cnf, response.Error = service.entityConfigRepository.Read(ctx, entity.Type)
-	if response.Error != nil {
+	cnf, err = service.entityConfigRepository.Read(ctx, entity.Type)
+	if err != nil {
 		return
 	}
 
 	var sch schema.Schema
-	sch, response.Error = cnf.ToSchema()
-	if response.Error != nil {
+	sch, err = cnf.ToSchema()
+	if err != nil {
 		return
 	}
 
 	var child schema.Child
-	child = sch.GetEntityByName(entity.Type).GetAction(action).Child
-	if child == nil {
-		return
+
+	var en schema.Entity
+	en = sch.GetEntityByName(entity.Type)
+	for _, e := range en.Actions {
+		if e.Name == action {
+			child = e.Child
+			goto check
+		}
 	}
 
-	re := &commands.CheckQuery{
+	return response, internalErrors.ActionCannotFoundError
+
+check:
+
+	q := &commands.CheckQuery{
 		Entity:  entity,
 		Subject: subject,
 	}
 
-	re.SetDepth(d)
+	q.SetDepth(d)
 
-	return service.check.Execute(ctx, re, child)
+	return service.check.Execute(ctx, q, child)
 }
 
 // Expand -
-func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entity, action string, d int) (response commands.ExpandResponse) {
+func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entity, action string, d int) (response commands.ExpandResponse, err error) {
 	var cnf entities.EntityConfig
-	cnf, response.Error = service.entityConfigRepository.Read(ctx, entity.Type)
-	if response.Error != nil {
+	cnf, err = service.entityConfigRepository.Read(ctx, entity.Type)
+	if err != nil {
 		return
 	}
 
 	var sch schema.Schema
-	sch, response.Error = cnf.ToSchema()
-	if response.Error != nil {
+	sch, err = cnf.ToSchema()
+	if err != nil {
 		return
 	}
 
 	var child schema.Child
-	child = sch.GetEntityByName(entity.Type).GetAction(action).Child
-	if child == nil {
-		return
+
+	var en schema.Entity
+	en = sch.GetEntityByName(entity.Type)
+	for _, e := range en.Actions {
+		if e.Name == action {
+			child = e.Child
+			goto expand
+		}
 	}
 
-	re := &commands.ExpandQuery{
+	return response, internalErrors.ActionCannotFoundError
+
+expand:
+
+	q := &commands.ExpandQuery{
 		Entity: entity,
 	}
 
-	re.SetDepth(d)
-
-	return service.expand.Execute(ctx, re, child)
+	return service.expand.Execute(ctx, q, child)
 }

@@ -2,10 +2,13 @@ package mongo
 
 import (
 	"context"
+	"errors"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/internal-errors"
 	db "github.com/Permify/permify/pkg/database/mongo"
 )
 
@@ -50,12 +53,11 @@ func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.Enti
 func (r *EntityConfigRepository) Read(ctx context.Context, name string) (config entities.EntityConfig, err error) {
 	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
 	filter := bson.M{"entity": name}
-	var single *mongo.SingleResult
-	single = coll.FindOne(ctx, filter)
+	err = coll.FindOne(ctx, filter).Decode(&config)
 	if err != nil {
-		return
-	}
-	if err = single.Decode(&config); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return config, internal_errors.EntityConfigCannotFoundError
+		}
 		return
 	}
 	return
