@@ -27,10 +27,20 @@ type EntityAndRelation struct {
 	Relation Relation `json:"relation"`
 }
 
+// String -
+func (e EntityAndRelation) String() string {
+	return e.Entity.String() + fmt.Sprintf(RELATION, e.Relation.String())
+}
+
 // Entity -
 type Entity struct {
 	Type string `json:"type"`
 	ID   string `json:"id"`
+}
+
+// String -
+func (e Entity) String() string {
+	return fmt.Sprintf(ENTITY, e.Type, e.ID)
 }
 
 // Validate -
