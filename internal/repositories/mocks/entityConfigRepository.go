@@ -38,11 +38,32 @@ func (_m *EntityConfigRepository) All(ctx context.Context) (configs entities.Ent
 }
 
 // Replace -
+func (_m *EntityConfigRepository) Read(ctx context.Context, entityName string) (entities.EntityConfig, error) {
+	ret := _m.Called(entityName)
+
+	var r0 entities.EntityConfig
+	if rf, ok := ret.Get(0).(func(context.Context, string) entities.EntityConfig); ok {
+		r0 = rf(ctx, entityName)
+	} else {
+		r0 = ret.Get(0).(entities.EntityConfig)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, entityName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Replace -
 func (_m *EntityConfigRepository) Replace(ctx context.Context, configs entities.EntityConfigs) (err error) {
 	ret := _m.Called(configs)
 
 	var r0 error
-	if rf, ok := ret.Get(1).(func(context.Context, []entities.EntityConfig) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, entities.EntityConfigs) error); ok {
 		r0 = rf(ctx, configs)
 	} else {
 		r0 = ret.Error(1)
