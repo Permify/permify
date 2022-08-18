@@ -1,6 +1,21 @@
 basePath: /v1
 definitions:
-  permission.Check:
+  filters.RelationTupleFilter:
+    properties:
+      entity:
+        type: string
+      id:
+        type: string
+      relation:
+        type: string
+      subject_id:
+        type: string
+      subject_relation:
+        type: string
+      subject_type:
+        type: string
+    type: object
+  permission.CheckRequest:
     properties:
       body:
         description: "*\n\t * Body"
@@ -11,6 +26,8 @@ definitions:
             type: integer
           entity:
             $ref: '#/definitions/tuple.Entity'
+          schema_version:
+            type: string
           subject:
             $ref: '#/definitions/tuple.Subject'
         type: object
@@ -21,36 +38,17 @@ definitions:
         description: "*\n\t * QueryParams"
         type: object
     type: object
-  permission.Expand:
+  permission.ExpandRequest:
     properties:
       body:
         description: "*\n\t * Body"
         properties:
           action:
             type: string
-          depth:
-            type: integer
           entity:
             $ref: '#/definitions/tuple.Entity'
-        type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
-    type: object
-  relationship.Delete:
-    properties:
-      body:
-        description: "*\n\t * Body"
-        properties:
-          entity:
-            $ref: '#/definitions/tuple.Entity'
-          relation:
+          schema_version:
             type: string
-          subject:
-            $ref: '#/definitions/tuple.Subject'
         type: object
       pathParams:
         description: "*\n\t * PathParams"
@@ -59,38 +57,62 @@ definitions:
         description: "*\n\t * QueryParams"
         type: object
     type: object
-  relationship.Write:
+  permission.ExpandResponse:
     properties:
-      body:
-        description: "*\n\t * Body"
-        properties:
-          entity:
-            $ref: '#/definitions/tuple.Entity'
-          relation:
-            type: string
-          subject:
-            $ref: '#/definitions/tuple.Subject'
-        type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
-    type: object
-  responses.Check:
-    properties:
-      can:
-        type: boolean
-      decisions: {}
-      remaining_depth:
-        type: integer
-    type: object
-  responses.Expand:
-    properties:
-      remaining_depth:
-        type: integer
       tree: {}
+    type: object
+  relationship.DeleteRequest:
+    properties:
+      body:
+        description: "*\n\t * Body"
+        properties:
+          entity:
+            $ref: '#/definitions/tuple.Entity'
+          relation:
+            type: string
+          subject:
+            $ref: '#/definitions/tuple.Subject'
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
+    type: object
+  relationship.ReadRequest:
+    properties:
+      body:
+        description: "*\n\t * Body"
+        properties:
+          filter:
+            $ref: '#/definitions/filters.RelationTupleFilter'
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
+    type: object
+  relationship.WriteRequest:
+    properties:
+      body:
+        description: "*\n\t * Body"
+        properties:
+          entity:
+            $ref: '#/definitions/tuple.Entity'
+          relation:
+            type: string
+          subject:
+            $ref: '#/definitions/tuple.Subject'
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
     type: object
   responses.HTTPErrorResponse:
     properties:
@@ -120,11 +142,31 @@ definitions:
           $ref: '#/definitions/schema.Relation'
         type: array
     type: object
+  schema.ReadRequest:
+    properties:
+      body:
+        description: "*\n\t * Body"
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        properties:
+          schemaVersion:
+            type: string
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
+    type: object
   schema.Relation:
     properties:
       name:
         type: string
       type:
+        type: string
+    type: object
+  schema.WriteResponse:
+    properties:
+      version:
         type: string
     type: object
   tuple.Entity:
@@ -170,14 +212,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/permission.Check'
+          $ref: '#/definitions/permission.CheckRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Check'
+            $ref: '#/definitions/permission.ExpandResponse'
         "400":
           description: Bad Request
           schema:
@@ -196,14 +238,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/permission.Expand'
+          $ref: '#/definitions/permission.ExpandRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Expand'
+            $ref: '#/definitions/permission.ExpandResponse'
         "400":
           description: Bad Request
           schema:
@@ -223,7 +265,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/relationship.Delete'
+          $ref: '#/definitions/relationship.DeleteRequest'
       produces:
       - application/json
       responses:
@@ -250,7 +292,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/relationship.Write'
+          $ref: '#/definitions/relationship.ReadRequest'
       produces:
       - application/json
       responses:
@@ -279,7 +321,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/relationship.Write'
+          $ref: '#/definitions/relationship.WriteRequest'
       produces:
       - application/json
       responses:
@@ -300,6 +342,13 @@ paths:
       - application/json
       description: read your authorization model
       operationId: schemas.read
+      parameters:
+      - description: ''''''
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ReadRequest'
       produces:
       - application/json
       responses:
@@ -316,19 +365,19 @@ paths:
       summary: Schema
       tags:
       - Schema
-  /schemas/replace:
+  /schemas/write:
     post:
       consumes:
       - application/json
       description: replace your authorization model
-      operationId: schemas.replace
+      operationId: schemas.write
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Message'
+            $ref: '#/definitions/schema.WriteResponse'
         "400":
           description: Bad Request
           schema:

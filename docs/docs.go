@@ -44,7 +44,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/permission.Check"
+                            "$ref": "#/definitions/permission.CheckRequest"
                         }
                     }
                 ],
@@ -52,7 +52,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.Check"
+                            "$ref": "#/definitions/permission.ExpandResponse"
                         }
                     },
                     "400": {
@@ -84,7 +84,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/permission.Expand"
+                            "$ref": "#/definitions/permission.ExpandRequest"
                         }
                     }
                 ],
@@ -92,7 +92,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.Expand"
+                            "$ref": "#/definitions/permission.ExpandResponse"
                         }
                     },
                     "400": {
@@ -125,7 +125,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/relationship.Delete"
+                            "$ref": "#/definitions/relationship.DeleteRequest"
                         }
                     }
                 ],
@@ -166,7 +166,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/relationship.Write"
+                            "$ref": "#/definitions/relationship.ReadRequest"
                         }
                     }
                 ],
@@ -210,7 +210,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/relationship.Write"
+                            "$ref": "#/definitions/relationship.WriteRequest"
                         }
                     }
                 ],
@@ -244,6 +244,17 @@ var doc = `{
                 ],
                 "summary": "Schema",
                 "operationId": "schemas.read",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReadRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -263,7 +274,7 @@ var doc = `{
                 }
             }
         },
-        "/schemas/replace": {
+        "/schemas/write": {
             "post": {
                 "description": "replace your authorization model",
                 "consumes": [
@@ -276,12 +287,12 @@ var doc = `{
                     "Schema"
                 ],
                 "summary": "Schema",
-                "operationId": "schemas.replace",
+                "operationId": "schemas.write",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.Message"
+                            "$ref": "#/definitions/schema.WriteResponse"
                         }
                     },
                     "400": {
@@ -353,7 +364,30 @@ var doc = `{
         }
     },
     "definitions": {
-        "permission.Check": {
+        "filters.RelationTupleFilter": {
+            "type": "object",
+            "properties": {
+                "entity": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "relation": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "string"
+                },
+                "subject_relation": {
+                    "type": "string"
+                },
+                "subject_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "permission.CheckRequest": {
             "type": "object",
             "properties": {
                 "body": {
@@ -369,6 +403,9 @@ var doc = `{
                         "entity": {
                             "$ref": "#/definitions/tuple.Entity"
                         },
+                        "schema_version": {
+                            "type": "string"
+                        },
                         "subject": {
                             "$ref": "#/definitions/tuple.Subject"
                         }
@@ -384,7 +421,7 @@ var doc = `{
                 }
             }
         },
-        "permission.Expand": {
+        "permission.ExpandRequest": {
             "type": "object",
             "properties": {
                 "body": {
@@ -394,39 +431,11 @@ var doc = `{
                         "action": {
                             "type": "string"
                         },
-                        "depth": {
-                            "type": "integer"
-                        },
-                        "entity": {
-                            "$ref": "#/definitions/tuple.Entity"
-                        }
-                    }
-                },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
-                    "type": "object"
-                },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
-                }
-            }
-        },
-        "relationship.Delete": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object",
-                    "properties": {
                         "entity": {
                             "$ref": "#/definitions/tuple.Entity"
                         },
-                        "relation": {
+                        "schema_version": {
                             "type": "string"
-                        },
-                        "subject": {
-                            "$ref": "#/definitions/tuple.Subject"
                         }
                     }
                 },
@@ -440,53 +449,88 @@ var doc = `{
                 }
             }
         },
-        "relationship.Write": {
+        "permission.ExpandResponse": {
             "type": "object",
             "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object",
-                    "properties": {
-                        "entity": {
-                            "$ref": "#/definitions/tuple.Entity"
-                        },
-                        "relation": {
-                            "type": "string"
-                        },
-                        "subject": {
-                            "$ref": "#/definitions/tuple.Subject"
-                        }
-                    }
-                },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
-                    "type": "object"
-                },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
-                }
-            }
-        },
-        "responses.Check": {
-            "type": "object",
-            "properties": {
-                "can": {
-                    "type": "boolean"
-                },
-                "decisions": {},
-                "remaining_depth": {
-                    "type": "integer"
-                }
-            }
-        },
-        "responses.Expand": {
-            "type": "object",
-            "properties": {
-                "remaining_depth": {
-                    "type": "integer"
-                },
                 "tree": {}
+            }
+        },
+        "relationship.DeleteRequest": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object",
+                    "properties": {
+                        "entity": {
+                            "$ref": "#/definitions/tuple.Entity"
+                        },
+                        "relation": {
+                            "type": "string"
+                        },
+                        "subject": {
+                            "$ref": "#/definitions/tuple.Subject"
+                        }
+                    }
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object"
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
+                }
+            }
+        },
+        "relationship.ReadRequest": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object",
+                    "properties": {
+                        "filter": {
+                            "$ref": "#/definitions/filters.RelationTupleFilter"
+                        }
+                    }
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object"
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
+                }
+            }
+        },
+        "relationship.WriteRequest": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object",
+                    "properties": {
+                        "entity": {
+                            "$ref": "#/definitions/tuple.Entity"
+                        },
+                        "relation": {
+                            "type": "string"
+                        },
+                        "subject": {
+                            "$ref": "#/definitions/tuple.Subject"
+                        }
+                    }
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object"
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
+                }
             }
         },
         "responses.HTTPErrorResponse": {
@@ -532,6 +576,28 @@ var doc = `{
                 }
             }
         },
+        "schema.ReadRequest": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object"
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object",
+                    "properties": {
+                        "schemaVersion": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
+                }
+            }
+        },
         "schema.Relation": {
             "type": "object",
             "properties": {
@@ -539,6 +605,14 @@ var doc = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.WriteResponse": {
+            "type": "object",
+            "properties": {
+                "version": {
                     "type": "string"
                 }
             }
