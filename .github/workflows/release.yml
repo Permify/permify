@@ -2,14 +2,12 @@ name: goreleaser
 
 on:
   push:
-    # run only against tags
     tags:
       - '*'
 
 permissions:
   contents: write
-  # packages: write
-  # issues: write
+  packages: write
 
 jobs:
   goreleaser:
