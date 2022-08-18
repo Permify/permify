@@ -132,7 +132,7 @@ func (r *schemaRoutes) write(c echo.Context) (err error) {
 // @Param       request body schema.ReadRequest true "''"
 // @Success     200 {object} responses.Message
 // @Failure     400 {object} []schema.Entity
-// @Router      /schemas/read [get]
+// @Router      /schemas/read/:schema_version [get]
 func (r *schemaRoutes) read(c echo.Context) (err error) {
 	ctx, span := tracer.Start(c.Request().Context(), "schemas.read")
 	defer span.End()
