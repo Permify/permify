@@ -3,9 +3,10 @@ package mongo
 import (
 	"context"
 	"errors"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	`go.mongodb.org/mongo-driver/mongo/options`
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/internal-errors"
@@ -34,7 +35,6 @@ func (r *EntityConfigRepository) Migrate() (err error) {
 
 // All -
 func (r *EntityConfigRepository) All(ctx context.Context, version string) (configs entities.EntityConfigs, err error) {
-
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
@@ -62,7 +62,6 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (confi
 
 // Read -
 func (r *EntityConfigRepository) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
-
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/Masterminds/squirrel"
 
 	"github.com/jackc/pgconn"
@@ -56,7 +57,6 @@ func (r *EntityConfigRepository) Migrate() (err error) {
 
 // All -
 func (r *EntityConfigRepository) All(ctx context.Context, version string) (configs entities.EntityConfigs, err error) {
-
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
@@ -99,7 +99,6 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (confi
 
 // Read -
 func (r *EntityConfigRepository) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
-
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {

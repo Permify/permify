@@ -3,10 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
-	`github.com/dgraph-io/ristretto`
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/dgraph-io/ristretto"
 
 	"github.com/labstack/echo/v4"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
@@ -15,7 +16,7 @@ import (
 	"github.com/Permify/permify/internal/config"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
 	"github.com/Permify/permify/internal/repositories"
-	`github.com/Permify/permify/internal/repositories/proxies`
+	"github.com/Permify/permify/internal/repositories/proxies"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/httpserver"

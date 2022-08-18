@@ -10,7 +10,7 @@ import (
 
 	"github.com/Permify/permify/internal/commands"
 	req "github.com/Permify/permify/internal/controllers/http/requests/permission"
-	`github.com/Permify/permify/internal/controllers/http/responses`
+	"github.com/Permify/permify/internal/controllers/http/responses"
 	res "github.com/Permify/permify/internal/controllers/http/responses/permission"
 	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/services"

@@ -1,11 +1,12 @@
 package proxies
 
 import (
-	`context`
-	`github.com/dgraph-io/ristretto`
+	"context"
 
-	`github.com/Permify/permify/internal/entities`
-	`github.com/Permify/permify/internal/repositories`
+	"github.com/dgraph-io/ristretto"
+
+	"github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/repositories"
 )
 
 type EntityConfigProxy struct {
@@ -32,7 +33,7 @@ func (r *EntityConfigProxy) All(ctx context.Context, version string) (configs en
 func (r *EntityConfigProxy) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
 	var key string
 	var s interface{}
-	var found = false
+	found := false
 
 	if version != "" {
 		key = name + "|" + version

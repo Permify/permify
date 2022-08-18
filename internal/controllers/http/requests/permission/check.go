@@ -3,7 +3,7 @@ package permission
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
-	`github.com/Permify/permify/internal/utils`
+	"github.com/Permify/permify/internal/utils"
 	"github.com/Permify/permify/pkg/tuple"
 )
 

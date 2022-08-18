@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Permify/permify/internal/entities"
-	internal_errors "github.com/Permify/permify/internal/internal-errors"
+	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
@@ -135,7 +135,7 @@ func (command *ExpandCommand) expandRewrite(ctx context.Context, q *ExpandQuery,
 	case schema.Intersection.String():
 		return command.set(ctx, q, child.Children, expandIntersection)
 	default:
-		return expandFail(internal_errors.UndefinedChildTypeError)
+		return expandFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
@@ -147,7 +147,7 @@ func (command *ExpandCommand) expandLeaf(ctx context.Context, q *ExpandQuery, ch
 	case schema.ComputedUserSetType.String():
 		return command.expand(ctx, q.Entity, tuple.Relation(child.Value), q)
 	default:
-		return expandFail(internal_errors.UndefinedChildTypeError)
+		return expandFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
@@ -161,7 +161,7 @@ func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children 
 		case schema.LeafKind.String():
 			functions = append(functions, command.expandLeaf(ctx, q, child.(schema.Leaf)))
 		default:
-			return expandFail(internal_errors.UndefinedChildKindError)
+			return expandFail(internalErrors.UndefinedChildKindError)
 		}
 	}
 

@@ -1,7 +1,7 @@
 package schema
 
 import (
-	`github.com/Permify/permify/internal/utils`
+	"github.com/Permify/permify/internal/utils"
 )
 
 // ReadRequest -
@@ -21,8 +21,7 @@ type ReadRequest struct {
 	/**
 	 * Body
 	 */
-	Body struct {
-	}
+	Body struct{}
 }
 
 // Validate -

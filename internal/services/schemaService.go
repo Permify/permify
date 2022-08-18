@@ -1,7 +1,7 @@
 package services
 
 import (
-	`github.com/rs/xid`
+	"github.com/rs/xid"
 	"golang.org/x/net/context"
 
 	e "github.com/Permify/permify/internal/entities"
