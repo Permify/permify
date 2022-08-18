@@ -1,5 +1,5 @@
 # Step 1: Modules caching
-FROM golang:1.17.1-alpine3.14 as modules
+FROM golang:1.18.5-alpine3.16 as permify-builder
 COPY go.mod go.sum /modules/
 WORKDIR /modules
 RUN go mod download
