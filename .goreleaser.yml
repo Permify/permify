@@ -27,7 +27,7 @@ nfpms:
 dockers:
   # ARM64
   - image_templates:
-      - ghcr.io/Permify/permify:{{ .Version }}-arm64
+      - ghcr.io/permify/permify:{{ .Version }}-arm64
     dockerfile:  Dockerfile.release
     goarch: arm64
     use: buildx
@@ -35,7 +35,7 @@ dockers:
       - --platform=linux/arm64
   # AMD64
   - image_templates:
-      - ghcr.io/Permify/permify:{{ .Version }}-amd64
+      - ghcr.io/permify/permify:{{ .Version }}-amd64
     dockerfile: Dockerfile.release
     use: buildx
     goarch: amd64
@@ -45,12 +45,12 @@ docker_manifests:
   # GitHub Registry
   - name_template: ghcr.io/permify/permify:{{ .Version }}
     image_templates:
-      - ghcr.io/Permify/permify:{{ .Version }}-amd64
-      - ghcr.io/Permify/permify:{{ .Version }}-arm64
+      - ghcr.io/permify/permify:{{ .Version }}-amd64
+      - ghcr.io/permify/permify:{{ .Version }}-arm64
   - name_template: ghcr.io/permify/permify:latest
     image_templates:
-      - ghcr.io/Permify/permify:{{ .Version }}-amd64
-      - ghcr.io/Permify/permify:{{ .Version }}-arm64
+      - ghcr.io/permify/permify:{{ .Version }}-amd64
+      - ghcr.io/permify/permify:{{ .Version }}-arm64
 checksum:
   name_template: 'checksums.txt'
 snapshot:
