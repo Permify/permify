@@ -1,9 +1,10 @@
-name: goreleaser
+---
+name: Release
 
 on:
   push:
     tags:
-      - "*"
+      - v*
 
 permissions:
   contents: write
@@ -13,18 +14,36 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v3
+
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v2
         with:
-          go-version: ~1.18
-      - uses: permify/actions/docker-login@main
+          image: tonistiigi/binfmt:latest
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/setup-qemu-action@v1
-      - uses: docker/setup-buildx-action@v1
-      - uses: goreleaser/goreleaser-action@v2
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
           version: latest
