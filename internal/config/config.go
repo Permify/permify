@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	Path        = "config/config.yaml"
-	DefaultPath = "default.config.yaml"
+	Path = "config/config.yaml"
 )
 
 type (
@@ -62,7 +61,6 @@ func NewConfig() (*Config, error) {
 
 	err := cleanenv.ReadConfig("./"+Path, cfg)
 	if err != nil {
-		err = cleanenv.ReadConfig("./"+DefaultPath, cfg)
 		if err != nil {
 			return nil, fmt.Errorf("config error: %w", err)
 		}
