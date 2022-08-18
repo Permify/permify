@@ -1,11 +1,5 @@
 # This is an example .goreleaser.yml file with some sane defaults.
 # Make sure to check the documentation at http://goreleaser.com
-before:
-  hooks:
-    # You may remove this if you don't use go modules.
-    - go mod tidy
-    # you may remove this if you don't need go generate
-    - go generate ./...
 builds:
   - main: "./cmd/permify"
     env:
@@ -30,13 +24,43 @@ nfpms:
       - "deb"
       - "rpm"
       - "apk"
-archives:
-  - replacements:
-      darwin: "Darwin"
-      linux: "Linux"
-      windows: "Windows"
-      386: "i386"
-      amd64: "x86_64"
+dockers:
+  # ARM64
+  - image_templates:
+      - ghcr.io/permify/permify:{{ .Version }}-arm64
+      - permify/permify:{{ .Version }}-arm64
+    dockerfile:  Dockerfile.release
+    goarch: arm64
+
+    build_flag_templates:
+      - --platform=linux/arm64
+  # AMD64
+  - image_templates:
+      - ghcr.io/permify/permify:{{ .Version }}-amd64
+      - permify/permify:{{ .Version }}-amd64
+    dockerfile: Dockerfile.release
+    goarch: amd64
+    build_flag_templates:
+      - --platform=linux/amd64
+docker_manifests:
+  # GitHub Registry
+  - name_template: ghcr.io/permify/permify:{{ .Version }}
+    image_templates:
+      - ghcr.io/permify/permify:{{ .Version }}-amd64
+      - ghcr.io/permify/permify:{{ .Version }}-arm64
+  - name_template: ghcr.io/permify/permify:latest
+    image_templates:
+      - ghcr.io/permify/permify:{{ .Version }}-amd64
+      - ghcr.io/permify/permify:{{ .Version }}-arm64
+  # Docker Hub
+  - name_template: permify/permify:{{ .Version }}
+    image_templates:
+      - permify/permify:{{ .Version }}-amd64
+      - permify/permify:{{ .Version }}-arm64
+  - name_template: permify/permify:latest
+    image_templates:
+      - permify/permify:{{ .Version }}-amd64
+      - permify/permify:{{ .Version }}-arm64
 checksum:
   name_template: 'checksums.txt'
 snapshot:
