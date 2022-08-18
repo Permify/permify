@@ -230,7 +230,7 @@ var doc = `{
                 }
             }
         },
-        "/schemas/read": {
+        "/schemas/read/:schema_version": {
             "get": {
                 "description": "read your authorization model",
                 "consumes": [

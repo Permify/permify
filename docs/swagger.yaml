@@ -336,7 +336,7 @@ paths:
       summary: Relationship
       tags:
       - Relationship
-  /schemas/read:
+  /schemas/read/:schema_version:
     get:
       consumes:
       - application/json
