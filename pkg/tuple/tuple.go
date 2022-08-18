@@ -1,7 +1,7 @@
 package tuple
 
 import (
-	"errors"
+	`errors`
 	"fmt"
 	"strings"
 
@@ -86,6 +86,7 @@ type SubjectIterator struct {
 	subjects []*Subject
 }
 
+// NewSubjectIterator -
 func NewSubjectIterator(subjects []*Subject) *SubjectIterator {
 	return &SubjectIterator{
 		subjects: subjects,
@@ -137,7 +138,7 @@ func (s Subject) IsValid() bool {
 	}
 
 	if s.IsUser() {
-		if s.Type == USER {
+		if s.Type == USER && s.Relation == "" {
 			return true
 		}
 	} else {
