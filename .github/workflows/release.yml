@@ -3,7 +3,7 @@ name: goreleaser
 on:
   push:
     tags:
-      - "*"
+      - '*'
 
 permissions:
   contents: write
@@ -13,18 +13,22 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      -
+        name: Checkout
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v3
+      -
+        name: Fetch all tags
+        run: git fetch --force --tags
+      -
+        name: Set up Go
+        uses: actions/setup-go@v2
         with:
-          go-version: ~1.18
-      - uses: permify/actions/docker-login@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/setup-qemu-action@v1
-      - uses: docker/setup-buildx-action@v1
-      - uses: goreleaser/goreleaser-action@v2
+          go-version: 1.18
+      -
+        name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
           version: latest
