@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/Masterminds/squirrel"
 
 	"github.com/jackc/pgconn"
@@ -42,15 +41,36 @@ func (r *EntityConfigRepository) Migrate() (err error) {
 		return err
 	}
 
+	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigVersionField())
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigChangePrimaryKey())
+	if err != nil {
+		return err
+	}
+
 	return tx.Commit(ctx)
 }
 
 // All -
-func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.EntityConfigs, err error) {
+func (r *EntityConfigRepository) All(ctx context.Context, version string) (configs entities.EntityConfigs, err error) {
+
+	if version == "" {
+		version, err = r.findLastVersion(ctx)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return configs, internal_errors.EntityConfigCannotFoundError
+			}
+			return configs, err
+		}
+	}
+
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, serialized_config").From(entities.EntityConfig{}.Table()).
+		Select("entity, serialized_config, version").From(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"version": version}).
 		ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("EntityConfigRepo - AllEntityConfig - r.Builder: %w", err)
@@ -67,9 +87,9 @@ func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.Enti
 
 	for rows.Next() {
 		e := entities.EntityConfig{}
-		err = rows.Scan(&e.Entity, &e.SerializedConfig)
+		err = rows.Scan(&e.Entity, &e.SerializedConfig, &e.Version)
 		if err != nil {
-			return []entities.EntityConfig{}, fmt.Errorf("RelationTupleRepo - AllEntityConfig - rows.Scan: %w", err)
+			return []entities.EntityConfig{}, fmt.Errorf("EntityConfigRepo - AllEntityConfig - rows.Scan: %w", err)
 		}
 		ent = append(ent, e)
 	}
@@ -78,19 +98,28 @@ func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.Enti
 }
 
 // Read -
-func (r *EntityConfigRepository) Read(ctx context.Context, entityName string) (config entities.EntityConfig, err error) {
+func (r *EntityConfigRepository) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
+
+	if version == "" {
+		version, err = r.findLastVersion(ctx)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return config, internal_errors.EntityConfigCannotFoundError
+			}
+			return config, fmt.Errorf("EntityConfigRepo - AllEntityConfig - rows.Scan: %w", err)
+		}
+	}
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, serialized_config").From(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"entity": entityName}).
+		Select("entity, serialized_config, version").From(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"entity": name, "version": version}).Limit(1).
 		ToSql()
 	if err != nil {
 		return config, fmt.Errorf("EntityConfigRepo - AllEntityConfig - r.Builder: %w", err)
 	}
-
 	var row pgx.Row
 	row = r.Database.Pool.QueryRow(ctx, sql, args...)
-	err = row.Scan(&config.Entity, &config.SerializedConfig)
+	err = row.Scan(&config.Entity, &config.SerializedConfig, &config.Version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return config, internal_errors.EntityConfigCannotFoundError
@@ -101,23 +130,37 @@ func (r *EntityConfigRepository) Read(ctx context.Context, entityName string) (c
 	return config, nil
 }
 
-// Replace -
-func (r *EntityConfigRepository) Replace(ctx context.Context, configs entities.EntityConfigs) (err error) {
+// findLastVersion -
+func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (version string, err error) {
+	var sql string
+	var args []interface{}
+	sql, args, err = r.Database.Builder.
+		Select("version").From(entities.EntityConfig{}.Table()).OrderBy("version DESC").Limit(1).
+		ToSql()
+	if err != nil {
+		return "", fmt.Errorf("EntityConfigRepo - findLastVersion - r.Builder: %w", err)
+	}
+	var row pgx.Row
+	row = r.Database.Pool.QueryRow(ctx, sql, args...)
+	err = row.Scan(&version)
+	if err != nil {
+		return version, err
+	}
+	return
+}
+
+// Write -
+func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error) {
 	if len(configs) < 1 {
 		return nil
 	}
 
-	err = r.Clear(ctx)
-	if err != nil {
-		return err
-	}
-
 	sql := r.Database.Builder.
 		Insert(entities.EntityConfig{}.Table()).
-		Columns("entity, serialized_config")
+		Columns("entity, serialized_config, version")
 
 	for _, config := range configs {
-		sql = sql.Values(config.Entity, config.SerializedConfig)
+		sql = sql.Values(config.Entity, config.SerializedConfig, version)
 	}
 
 	var query string
@@ -145,9 +188,9 @@ func (r *EntityConfigRepository) Replace(ctx context.Context, configs entities.E
 }
 
 // Clear -
-func (r *EntityConfigRepository) Clear(ctx context.Context) error {
+func (r *EntityConfigRepository) Clear(ctx context.Context, version string) error {
 	sql, args, err := r.Database.Builder.
-		Delete(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"1": "1"}).
+		Delete(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"version": version}).
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("RelationTupleRepo - Delete - r.Builder: %w", err)

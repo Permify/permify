@@ -1,10 +1,10 @@
-package responses
+package permission
 
 import (
 	"github.com/Permify/permify/internal/commands"
 )
 
-// Expand -
-type Expand struct {
+// ExpandResponse -
+type ExpandResponse struct {
 	Tree commands.Node `json:"tree"`
 }

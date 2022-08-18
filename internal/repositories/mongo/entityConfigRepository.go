@@ -3,9 +3,9 @@ package mongo
 import (
 	"context"
 	"errors"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	`go.mongodb.org/mongo-driver/mongo/options`
 
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/internal-errors"
@@ -33,9 +33,20 @@ func (r *EntityConfigRepository) Migrate() (err error) {
 }
 
 // All -
-func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.EntityConfigs, err error) {
+func (r *EntityConfigRepository) All(ctx context.Context, version string) (configs entities.EntityConfigs, err error) {
+
+	if version == "" {
+		version, err = r.findLastVersion(ctx)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return configs, internal_errors.EntityConfigCannotFoundError
+			}
+			return configs, err
+		}
+	}
+
 	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
-	filter := bson.M{}
+	filter := bson.M{"version": version}
 	var cursor *mongo.Cursor
 	cursor, err = coll.Find(ctx, filter)
 	if err != nil {
@@ -50,9 +61,20 @@ func (r *EntityConfigRepository) All(ctx context.Context) (configs entities.Enti
 }
 
 // Read -
-func (r *EntityConfigRepository) Read(ctx context.Context, name string) (config entities.EntityConfig, err error) {
+func (r *EntityConfigRepository) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
+
+	if version == "" {
+		version, err = r.findLastVersion(ctx)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return config, internal_errors.EntityConfigCannotFoundError
+			}
+			return config, err
+		}
+	}
+
 	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
-	filter := bson.M{"entity": name}
+	filter := bson.M{"entity": name, "version": version}
 	err = coll.FindOne(ctx, filter).Decode(&config)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -63,23 +85,31 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string) (config 
 	return
 }
 
+// findLastVersion -
+func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (version string, err error) {
+	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
+	filter := bson.M{}
+	opts := options.FindOne().SetSort(bson.D{{"version", -1}})
+	var entityConfig entities.EntityConfig
+	err = coll.FindOne(ctx, filter, opts).Decode(&entityConfig)
+	if err != nil {
+		return version, err
+	}
+	return entityConfig.Version, err
+}
+
 // Replace -
-func (r *EntityConfigRepository) Replace(ctx context.Context, configs entities.EntityConfigs) (err error) {
+func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error) {
 	if len(configs) < 1 {
 		return nil
-	}
-
-	err = r.Clear(ctx)
-	if err != nil {
-		return err
 	}
 
 	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
 
 	var docs []interface{}
 
-	for _, con := range configs {
-		docs = append(docs, bson.D{{"entity", con.Entity}, {"serialized_config", con.SerializedConfig}})
+	for _, config := range configs {
+		docs = append(docs, bson.D{{"entity", config.Entity}, {"serialized_config", config.SerializedConfig}, {"version", version}})
 	}
 
 	_, err = coll.InsertMany(ctx, docs)
@@ -90,9 +120,9 @@ func (r *EntityConfigRepository) Replace(ctx context.Context, configs entities.E
 }
 
 // Clear -
-func (r *EntityConfigRepository) Clear(ctx context.Context) error {
+func (r *EntityConfigRepository) Clear(ctx context.Context, version string) error {
 	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
-	filter := bson.M{}
+	filter := bson.M{"version": version}
 	_, err := coll.DeleteMany(ctx, filter)
 	if err != nil {
 		return err

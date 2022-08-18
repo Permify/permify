@@ -30,9 +30,9 @@ func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand,
 }
 
 // Check -
-func (service *PermissionService) Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, d int32) (response commands.CheckResponse, err error) {
+func (service *PermissionService) Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, version string, d int32) (response commands.CheckResponse, err error) {
 	var cnf entities.EntityConfig
-	cnf, err = service.entityConfigRepository.Read(ctx, entity.Type)
+	cnf, err = service.entityConfigRepository.Read(ctx, entity.Type, version)
 	if err != nil {
 		return
 	}
@@ -69,9 +69,9 @@ check:
 }
 
 // Expand -
-func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entity, action string, d int) (response commands.ExpandResponse, err error) {
+func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entity, action string, version string) (response commands.ExpandResponse, err error) {
 	var cnf entities.EntityConfig
-	cnf, err = service.entityConfigRepository.Read(ctx, entity.Type)
+	cnf, err = service.entityConfigRepository.Read(ctx, entity.Type, version)
 	if err != nil {
 		return
 	}

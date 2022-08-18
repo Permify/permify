@@ -6,8 +6,8 @@ import (
 	"github.com/Permify/permify/internal/repositories/filters"
 )
 
-// Read -
-type Read struct {
+// ReadRequest -
+type ReadRequest struct {
 	/**
 	 * PathParams
 	 */
@@ -27,7 +27,7 @@ type Read struct {
 }
 
 // Validate -
-func (r Read) Validate() (err error) {
+func (r ReadRequest) Validate() (err error) {
 	// Validate Body
 	err = validation.ValidateStruct(&r.Body,
 		// filter

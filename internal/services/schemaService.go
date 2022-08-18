@@ -1,6 +1,7 @@
 package services
 
 import (
+	`github.com/rs/xid`
 	"golang.org/x/net/context"
 
 	e "github.com/Permify/permify/internal/entities"
@@ -11,7 +12,6 @@ import (
 // SchemaService -
 type SchemaService struct {
 	repository repositories.IEntityConfigRepository
-	cache      *schema.Schema
 }
 
 // NewSchemaService -
@@ -22,9 +22,9 @@ func NewSchemaService(repo repositories.IEntityConfigRepository) *SchemaService 
 }
 
 // All -
-func (service *SchemaService) All(ctx context.Context) (sch schema.Schema, err error) {
+func (service *SchemaService) All(ctx context.Context, version string) (sch schema.Schema, err error) {
 	var cn e.EntityConfigs
-	cn, err = service.repository.All(ctx)
+	cn, err = service.repository.All(ctx, version)
 	if err != nil {
 		return schema.Schema{}, err
 	}
@@ -36,12 +36,9 @@ func (service *SchemaService) All(ctx context.Context) (sch schema.Schema, err e
 }
 
 // Read -
-func (service *SchemaService) Read(ctx context.Context, name string) (sch schema.Schema, err error) {
-	if service.cache != nil {
-		return *service.cache, nil
-	}
+func (service *SchemaService) Read(ctx context.Context, name string, version string) (sch schema.Schema, err error) {
 	var cn e.EntityConfig
-	cn, err = service.repository.Read(ctx, name)
+	cn, err = service.repository.Read(ctx, name, version)
 	if err != nil {
 		return schema.Schema{}, err
 	}
@@ -53,7 +50,7 @@ func (service *SchemaService) Read(ctx context.Context, name string) (sch schema
 }
 
 // Replace -
-func (service *SchemaService) Replace(ctx context.Context, configs e.EntityConfigs) (err error) {
-	service.cache = nil
-	return service.repository.Replace(ctx, configs)
+func (service *SchemaService) Write(ctx context.Context, configs e.EntityConfigs) (version string, err error) {
+	version = xid.New().String()
+	return version, service.repository.Write(ctx, configs, version)
 }

@@ -9,8 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/Permify/permify/internal/commands"
-	"github.com/Permify/permify/internal/controllers/http/requests/permission"
-	"github.com/Permify/permify/internal/controllers/http/responses"
+	req "github.com/Permify/permify/internal/controllers/http/requests/permission"
+	`github.com/Permify/permify/internal/controllers/http/responses`
+	res "github.com/Permify/permify/internal/controllers/http/responses/permission"
 	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
@@ -39,15 +40,15 @@ func newPermissionRoutes(handler *echo.Group, t services.IPermissionService, l l
 // @Tags  	    Permission
 // @Accept      json
 // @Produce     json
-// @Param       request body permission.Check true "''"
-// @Success     200 {object} responses.Check
+// @Param       request body permission.CheckRequest true "''"
+// @Success     200 {object} permission.ExpandResponse
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /permissions/check [post]
 func (r *permissionRoutes) check(c echo.Context) (err error) {
 	ctx, span := tracer.Start(c.Request().Context(), "permissions.check")
 	defer span.End()
 
-	request := new(permission.Check)
+	request := new(req.CheckRequest)
 	if err = (&echo.DefaultBinder{}).BindBody(c, &request.Body); err != nil {
 		return err
 	}
@@ -60,8 +61,8 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 		request.Body.Depth = 20
 	}
 
-	var res commands.CheckResponse
-	res, err = r.service.Check(ctx, request.Body.Subject, request.Body.Action, request.Body.Entity, request.Body.Depth)
+	var response commands.CheckResponse
+	response, err = r.service.Check(ctx, request.Body.Subject, request.Body.Action, request.Body.Entity, request.Body.SchemaVersion.String(), request.Body.Depth)
 	if err != nil {
 		if errors.Is(err, internalErrors.DepthError) {
 			span.RecordError(internalErrors.DepthError)
@@ -79,10 +80,10 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 		return echo.ErrInternalServerError
 	}
 
-	return c.JSON(http.StatusOK, responses.Check{
-		Can:            res.Can,
-		RemainingDepth: res.RemainingDepth,
-		Decisions:      res.Visits,
+	return c.JSON(http.StatusOK, res.CheckResponse{
+		Can:            response.Can,
+		RemainingDepth: response.RemainingDepth,
+		Decisions:      response.Visits,
 	})
 }
 
@@ -92,15 +93,15 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 // @Tags  	    Permission
 // @Accept      json
 // @Produce     json
-// @Param       request body permission.Expand true "''"
-// @Success     200 {object} responses.Expand
+// @Param       request body permission.ExpandRequest true "''"
+// @Success     200 {object} permission.ExpandResponse
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /permissions/expand [post]
 func (r *permissionRoutes) expand(c echo.Context) (err error) {
 	ctx, span := tracer.Start(c.Request().Context(), "permissions.expand")
 	defer span.End()
 
-	request := new(permission.Expand)
+	request := new(req.ExpandRequest)
 	if err = (&echo.DefaultBinder{}).BindBody(c, &request.Body); err != nil {
 		return err
 	}
@@ -109,12 +110,8 @@ func (r *permissionRoutes) expand(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(v))
 	}
 
-	if request.Body.Depth == 0 {
-		request.Body.Depth = 20
-	}
-
-	var res commands.ExpandResponse
-	res, err = r.service.Expand(ctx, request.Body.Entity, request.Body.Action, request.Body.Depth)
+	var response commands.ExpandResponse
+	response, err = r.service.Expand(ctx, request.Body.Entity, request.Body.Action, request.Body.SchemaVersion.String())
 	if err != nil {
 		if errors.Is(err, internalErrors.DepthError) {
 			span.RecordError(internalErrors.DepthError)
@@ -132,7 +129,7 @@ func (r *permissionRoutes) expand(c echo.Context) (err error) {
 		return echo.ErrInternalServerError
 	}
 
-	return c.JSON(http.StatusOK, responses.Expand{
-		Tree: res.Tree,
+	return c.JSON(http.StatusOK, res.ExpandResponse{
+		Tree: response.Tree,
 	})
 }

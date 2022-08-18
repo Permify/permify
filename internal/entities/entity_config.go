@@ -11,6 +11,7 @@ import (
 type EntityConfig struct {
 	Entity           string    `json:"entity" bson:"entity"`
 	SerializedConfig []byte    `json:"serialized_config" bson:"serialized_config"`
+	Version          string    `json:"version" bson:"version"`
 	CommitTime       time.Time `json:"commit_time" bson:"commit_time"`
 }
 

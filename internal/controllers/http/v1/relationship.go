@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/Permify/permify/internal/controllers/http/requests/relationship"
+	req "github.com/Permify/permify/internal/controllers/http/requests/relationship"
 	"github.com/Permify/permify/internal/controllers/http/responses"
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/services"
@@ -40,7 +40,7 @@ func newRelationshipRoutes(handler *echo.Group, t services.IRelationshipService,
 // @Tags  	    Relationship
 // @Accept      json
 // @Produce     json
-// @Param       request body relationship.Write true "''"
+// @Param       request body relationship.ReadRequest true "''"
 // @Success     200 {object} []tuple.Tuple
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /relationships/read [post]
@@ -48,7 +48,7 @@ func (r *relationshipRoutes) read(c echo.Context) (err error) {
 	ctx, span := tracer.Start(c.Request().Context(), "relationships.read")
 	defer span.End()
 
-	request := new(relationship.Read)
+	request := new(req.ReadRequest)
 	if err := (&echo.DefaultBinder{}).BindBody(c, &request.Body); err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (r *relationshipRoutes) read(c echo.Context) (err error) {
 // @Tags  	    Relationship
 // @Accept      json
 // @Produce     json
-// @Param       request body relationship.Write true "''"
+// @Param       request body relationship.WriteRequest true "''"
 // @Success     200 {object} tuple.Tuple
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /relationships/write [post]
@@ -81,7 +81,7 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 	ctx, span := tracer.Start(c.Request().Context(), "relationships.write")
 	defer span.End()
 
-	request := new(relationship.Write)
+	request := new(req.WriteRequest)
 	if err := (&echo.DefaultBinder{}).BindBody(c, &request.Body); err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 // @Tags  	    Relationship
 // @Accept      json
 // @Produce     json
-// @Param       request body relationship.Delete true "''"
+// @Param       request body relationship.DeleteRequest true "''"
 // @Success     200 {object} tuple.Tuple
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /relationships/delete [post]
@@ -118,7 +118,7 @@ func (r *relationshipRoutes) delete(c echo.Context) (err error) {
 	ctx, span := tracer.Start(c.Request().Context(), "relationships.delete")
 	defer span.End()
 
-	request := new(relationship.Delete)
+	request := new(req.DeleteRequest)
 	if err := (&echo.DefaultBinder{}).BindBody(c, &request.Body); err != nil {
 		return err
 	}

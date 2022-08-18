@@ -3,11 +3,12 @@ package permission
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
+	`github.com/Permify/permify/internal/utils`
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// Expand -
-type Expand struct {
+// ExpandRequest -
+type ExpandRequest struct {
 	/**
 	 * PathParams
 	 */
@@ -22,19 +23,18 @@ type Expand struct {
 	 * Body
 	 */
 	Body struct {
-		Entity tuple.Entity `json:"entity" form:"entity" xml:"entity"`
-		Action string       `json:"action" form:"action" xml:"action"`
-		Depth  int          `json:"depth" form:"depth" xml:"depth"`
+		SchemaVersion utils.Version `json:"schema_version" form:"schema_version" xml:"schema_version"`
+		Entity        tuple.Entity  `json:"entity" form:"entity" xml:"entity"`
+		Action        string        `json:"action" form:"action" xml:"action"`
 	}
 }
 
 // Validate -
-func (r Expand) Validate() (err error) {
+func (r ExpandRequest) Validate() (err error) {
 	// Validate Body
 	err = validation.ValidateStruct(&r.Body,
 		validation.Field(&r.Body.Entity, validation.Required),
 		validation.Field(&r.Body.Action, validation.Required),
-		validation.Field(&r.Body.Depth, validation.Min(3)),
 	)
 	return
 }

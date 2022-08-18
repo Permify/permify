@@ -3,11 +3,12 @@ package permission
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
+	`github.com/Permify/permify/internal/utils`
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// Check -
-type Check struct {
+// CheckRequest -
+type CheckRequest struct {
 	/**
 	 * PathParams
 	 */
@@ -22,15 +23,16 @@ type Check struct {
 	 * Body
 	 */
 	Body struct {
-		Entity  tuple.Entity  `json:"entity" form:"entity" xml:"entity"`
-		Action  string        `json:"action" form:"action" xml:"action"`
-		Subject tuple.Subject `json:"subject" form:"subject" xml:"subject"`
-		Depth   int32         `json:"depth" form:"depth" xml:"depth"`
+		SchemaVersion utils.Version `json:"schema_version" form:"schema_version" xml:"schema_version"`
+		Entity        tuple.Entity  `json:"entity" form:"entity" xml:"entity"`
+		Action        string        `json:"action" form:"action" xml:"action"`
+		Subject       tuple.Subject `json:"subject" form:"subject" xml:"subject"`
+		Depth         int32         `json:"depth" form:"depth" xml:"depth"`
 	}
 }
 
 // Validate -
-func (r Check) Validate() (err error) {
+func (r CheckRequest) Validate() (err error) {
 	// Validate Body
 	err = validation.ValidateStruct(&r.Body,
 		validation.Field(&r.Body.Entity, validation.Required),

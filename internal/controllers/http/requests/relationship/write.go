@@ -6,8 +6,8 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// Write -
-type Write struct {
+// WriteRequest -
+type WriteRequest struct {
 	/**
 	 * PathParams
 	 */
@@ -29,7 +29,7 @@ type Write struct {
 }
 
 // Validate -
-func (r Write) Validate() (err error) {
+func (r WriteRequest) Validate() (err error) {
 	// Validate Body
 	err = validation.ValidateStruct(&r.Body,
 		// object

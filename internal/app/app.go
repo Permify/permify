@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	`github.com/dgraph-io/ristretto`
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,6 +15,7 @@ import (
 	"github.com/Permify/permify/internal/config"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
 	"github.com/Permify/permify/internal/repositories"
+	`github.com/Permify/permify/internal/repositories/proxies`
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/httpserver"
@@ -54,6 +56,17 @@ func Run(cfg *config.Config) {
 		}()
 	}
 
+	// cache
+	var cache *ristretto.Cache
+	cache, err = ristretto.NewCache(&ristretto.Config{
+		NumCounters: 1e7,
+		MaxCost:     1 << 30,
+		BufferItems: 64,
+	})
+	if err != nil {
+		l.Fatal(fmt.Errorf("permify - Run - ristretto.NewCache: %w", err))
+	}
+
 	// Repositories
 	relationTupleRepository := repositories.RelationTupleFactory(DB)
 	err = relationTupleRepository.Migrate()
@@ -67,14 +80,17 @@ func Run(cfg *config.Config) {
 		l.Fatal(fmt.Errorf("permify - Run - entityConfigRepository.Migrate: %w", err))
 	}
 
+	// proxies
+	entityConfigProxy := proxies.NewEntityConfigProxy(entityConfigRepository, cache)
+
 	// commands
 	checkCommand := commands.NewCheckCommand(relationTupleRepository, l)
 	expandCommand := commands.NewExpandCommand(relationTupleRepository, l)
 
 	// Services
-	schemaService := services.NewSchemaService(entityConfigRepository)
+	schemaService := services.NewSchemaService(entityConfigProxy)
 	relationshipService := services.NewRelationshipService(relationTupleRepository)
-	permissionService := services.NewPermissionService(checkCommand, expandCommand, entityConfigRepository)
+	permissionService := services.NewPermissionService(checkCommand, expandCommand, entityConfigProxy)
 
 	// HTTP Server
 	handler := echo.New()

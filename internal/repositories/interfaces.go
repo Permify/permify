@@ -24,8 +24,8 @@ type IRelationTupleRepository interface {
 // IEntityConfigRepository -
 type IEntityConfigRepository interface {
 	Migratable
-	All(ctx context.Context) (configs entities.EntityConfigs, err error)
-	Read(ctx context.Context, name string) (config entities.EntityConfig, err error)
-	Replace(ctx context.Context, configs entities.EntityConfigs) (err error)
-	Clear(ctx context.Context) (err error)
+	All(ctx context.Context, version string) (configs entities.EntityConfigs, err error)
+	Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error)
+	Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error)
+	Clear(ctx context.Context, version string) (err error)
 }

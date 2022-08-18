@@ -12,7 +12,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	req "github.com/Permify/permify/internal/controllers/http/requests/schema"
 	"github.com/Permify/permify/internal/controllers/http/responses"
+	res "github.com/Permify/permify/internal/controllers/http/responses/schema"
 	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/dsl/ast"
@@ -33,21 +35,22 @@ func newSchemaRoutes(handler *echo.Group, s services.ISchemaService, l logger.In
 
 	h := handler.Group("/schemas")
 	{
-		h.POST("/replace", r.replace)
+		h.POST("/write", r.write)
+		h.GET("/read/:schema_version", r.read)
 		h.GET("/read", r.read)
 	}
 }
 
 // @Summary     Schema
 // @Description replace your authorization model
-// @ID          schemas.replace
+// @ID          schemas.write
 // @Tags  	    Schema
 // @Accept      json
 // @Produce     json
-// @Success     200 {object} responses.Message
+// @Success     200 {object} schema.WriteResponse
 // @Failure     400 {object} responses.HTTPErrorResponse
-// @Router      /schemas/replace [post]
-func (r *schemaRoutes) replace(c echo.Context) (err error) {
+// @Router      /schemas/write [post]
+func (r *schemaRoutes) write(c echo.Context) (err error) {
 	ctx, span := tracer.Start(c.Request().Context(), "schemas.replace")
 	defer span.End()
 
@@ -108,20 +111,16 @@ func (r *schemaRoutes) replace(c echo.Context) (err error) {
 		}))
 	}
 
-	err = r.schemaService.Replace(ctx, cnf)
+	var version string
+	version, err = r.schemaService.Write(ctx, cnf)
 	if err != nil {
 		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
 	}
 
-	var translator *parser.SchemaTranslator
-	translator, err = parser.NewSchemaTranslator(sch)
-	if err != nil {
-		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
-		return echo.ErrInternalServerError
-	}
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(translator.Translate().Entities))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(res.WriteResponse{
+		Version: version,
+	}))
 }
 
 // @Summary     Schema
@@ -130,6 +129,7 @@ func (r *schemaRoutes) replace(c echo.Context) (err error) {
 // @Tags  	    Schema
 // @Accept      json
 // @Produce     json
+// @Param       request body schema.ReadRequest true "''"
 // @Success     200 {object} responses.Message
 // @Failure     400 {object} []schema.Entity
 // @Router      /schemas/read [get]
@@ -137,8 +137,17 @@ func (r *schemaRoutes) read(c echo.Context) (err error) {
 	ctx, span := tracer.Start(c.Request().Context(), "schemas.read")
 	defer span.End()
 
+	request := new(req.ReadRequest)
+	if err = (&echo.DefaultBinder{}).BindPathParams(c, &request.Body); err != nil {
+		return err
+	}
+	v := request.Validate()
+	if v != nil {
+		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(v))
+	}
+
 	var response schema.Schema
-	response, err = r.schemaService.All(ctx)
+	response, err = r.schemaService.All(ctx, request.PathParams.SchemaVersion.String())
 	if err != nil {
 		return err
 	}

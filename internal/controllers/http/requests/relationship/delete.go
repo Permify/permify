@@ -6,8 +6,8 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// Delete -
-type Delete struct {
+// DeleteRequest -
+type DeleteRequest struct {
 	/**
 	 * PathParams
 	 */
@@ -28,7 +28,8 @@ type Delete struct {
 	}
 }
 
-func (r Delete) Validate() (err error) {
+// Validate -
+func (r DeleteRequest) Validate() (err error) {
 	// Validate Body
 	err = validation.ValidateStruct(&r.Body,
 		// object
