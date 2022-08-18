@@ -1,4 +1,5 @@
 ARG BASE=distroless.dev/static
 FROM $BASE
 EXPOSE 3476
+COPY permify /usr/local/bin/permify
 ENTRYPOINT ["permify"]
