@@ -31,7 +31,7 @@ dockers:
       - permify/permify:{{ .Version }}-arm64
     dockerfile:  Dockerfile.release
     goarch: arm64
-
+    use: buildx
     build_flag_templates:
       - --platform=linux/arm64
   # AMD64
@@ -39,6 +39,7 @@ dockers:
       - ghcr.io/permify/permify:{{ .Version }}-amd64
       - permify/permify:{{ .Version }}-amd64
     dockerfile: Dockerfile.release
+    use: buildx
     goarch: amd64
     build_flag_templates:
       - --platform=linux/amd64
