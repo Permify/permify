@@ -1,7 +1,7 @@
 package tuple
 
 import (
-	`testing`
+	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -14,11 +14,8 @@ func TestTuple(t *testing.T) {
 }
 
 var _ = Describe("tuple", func() {
-
 	Context("EntityAndRelation", func() {
-
 		It("String", func() {
-
 			tests := []struct {
 				target   EntityAndRelation
 				expected string
@@ -43,13 +40,10 @@ var _ = Describe("tuple", func() {
 				Expect(tt.target.String()).Should(Equal(tt.expected))
 			}
 		})
-
 	})
 
 	Context("Relation", func() {
-
 		It("Split", func() {
-
 			tests := []struct {
 				target   Relation
 				expected []Relation
@@ -71,7 +65,6 @@ var _ = Describe("tuple", func() {
 		})
 
 		It("IsComputed", func() {
-
 			tests := []struct {
 				target   Relation
 				expected bool
@@ -86,13 +79,10 @@ var _ = Describe("tuple", func() {
 				Expect(tt.target.IsComputed()).Should(Equal(tt.expected))
 			}
 		})
-
 	})
 
 	Context("Subject", func() {
-
 		It("Equals", func() {
-
 			tests := []struct {
 				target   Subject
 				v        interface{}
@@ -130,7 +120,6 @@ var _ = Describe("tuple", func() {
 		})
 
 		It("IsValid", func() {
-
 			tests := []struct {
 				target   Subject
 				expected bool
@@ -181,7 +170,5 @@ var _ = Describe("tuple", func() {
 				Expect(tt.target.IsValid()).Should(Equal(tt.expected))
 			}
 		})
-
 	})
-
 })

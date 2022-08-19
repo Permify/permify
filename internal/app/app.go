@@ -16,6 +16,7 @@ import (
 	"github.com/Permify/permify/internal/config"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/repositories/proxies"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
@@ -81,17 +82,21 @@ func Run(cfg *config.Config) {
 		l.Fatal(fmt.Errorf("permify - Run - entityConfigRepository.Migrate: %w", err))
 	}
 
+	// decorators
+	relationTupleWithCircuitBreaker := decorators.NewRelationTupleWithCircuitBreaker(relationTupleRepository)
+	entityConfigWithCircuitBreaker := decorators.NewEntityConfigWithCircuitBreaker(entityConfigRepository)
+
 	// proxies
-	entityConfigProxy := proxies.NewEntityConfigProxy(entityConfigRepository, cache)
+	entityConfigCacheProxy := proxies.NewEntityConfigCacheProxy(entityConfigWithCircuitBreaker, cache)
 
 	// commands
-	checkCommand := commands.NewCheckCommand(relationTupleRepository, l)
-	expandCommand := commands.NewExpandCommand(relationTupleRepository, l)
+	checkCommand := commands.NewCheckCommand(relationTupleWithCircuitBreaker, l)
+	expandCommand := commands.NewExpandCommand(relationTupleWithCircuitBreaker, l)
 
 	// Services
-	schemaService := services.NewSchemaService(entityConfigProxy)
-	relationshipService := services.NewRelationshipService(relationTupleRepository)
-	permissionService := services.NewPermissionService(checkCommand, expandCommand, entityConfigProxy)
+	schemaService := services.NewSchemaService(entityConfigCacheProxy)
+	relationshipService := services.NewRelationshipService(relationTupleWithCircuitBreaker)
+	permissionService := services.NewPermissionService(checkCommand, expandCommand, entityConfigCacheProxy)
 
 	// HTTP Server
 	handler := echo.New()

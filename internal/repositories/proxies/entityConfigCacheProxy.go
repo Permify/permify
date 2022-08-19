@@ -9,28 +9,28 @@ import (
 	"github.com/Permify/permify/internal/repositories"
 )
 
-type EntityConfigProxy struct {
+type EntityConfigCacheProxy struct {
 	repository repositories.IEntityConfigRepository
 	cache      *ristretto.Cache
 }
 
-// NewEntityConfigProxy -.
-func NewEntityConfigProxy(entityConfigRepository repositories.IEntityConfigRepository, cache *ristretto.Cache) *EntityConfigProxy {
-	return &EntityConfigProxy{repository: entityConfigRepository, cache: cache}
+// NewEntityConfigCacheProxy -.
+func NewEntityConfigCacheProxy(entityConfigRepository repositories.IEntityConfigRepository, cache *ristretto.Cache) *EntityConfigCacheProxy {
+	return &EntityConfigCacheProxy{repository: entityConfigRepository, cache: cache}
 }
 
 // Migrate -
-func (r *EntityConfigProxy) Migrate() (err error) {
+func (r *EntityConfigCacheProxy) Migrate() (err error) {
 	return nil
 }
 
 // All -
-func (r *EntityConfigProxy) All(ctx context.Context, version string) (configs entities.EntityConfigs, err error) {
+func (r *EntityConfigCacheProxy) All(ctx context.Context, version string) (configs entities.EntityConfigs, err error) {
 	return r.repository.All(ctx, version)
 }
 
 // Read -
-func (r *EntityConfigProxy) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
+func (r *EntityConfigCacheProxy) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
 	var key string
 	var s interface{}
 	found := false
@@ -54,11 +54,11 @@ func (r *EntityConfigProxy) Read(ctx context.Context, name string, version strin
 }
 
 // Write -
-func (r *EntityConfigProxy) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error) {
+func (r *EntityConfigCacheProxy) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error) {
 	return r.repository.Write(ctx, configs, version)
 }
 
 // Clear -
-func (r *EntityConfigProxy) Clear(ctx context.Context, version string) error {
+func (r *EntityConfigCacheProxy) Clear(ctx context.Context, version string) error {
 	return r.repository.Clear(ctx, version)
 }

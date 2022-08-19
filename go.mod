@@ -6,6 +6,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/Eun/go-hit v0.5.23
 	github.com/Masterminds/squirrel v1.5.2
+	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/ristretto v0.1.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
