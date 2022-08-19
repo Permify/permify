@@ -133,6 +133,10 @@ Want to contribute ?
 
 See: [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
 
+## Stargazers
+
+[![Stargazers repo roster for permify/permify](https://reporoster.com/stars/permify/permify)](https://github.com/permify/permify/stargazers)
+
 ## License
 
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
