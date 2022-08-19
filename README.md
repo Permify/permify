@@ -10,8 +10,8 @@
     <a href="https://goreportcard.com/report/github.com/Permify/permify" target="_blank"><img src="https://goreportcard.com/badge/github.com/Permify/permify?style=for-the-badge&logo=go" alt="Permify Go Report Card" /></a>&nbsp;
     <a href="https://github.com/Permify/permify" target="_blank"><img src="https://img.shields.io/github/license/Permify/permify?style=for-the-badge" alt="Permify Licence" /></a>&nbsp;
     <a href="https://discord.gg/MJbUjwskdH" target="_blank"><img src="https://img.shields.io/discord/950799928047833088?style=for-the-badge&logo=discord&label=DISCORD" alt="Permify Discord Channel" /></a>&nbsp;
+    <a href="https://github.com/Permify/permify/pkgs/container/permify" target="_blank"><img src="https://img.shields.io/github/v/release/permify/permify?include_prereleases&style=for-the-badge" alt="Permify Release" /></a>&nbsp;
 </p>
-
 <p align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-demo-github.gif" alt="Permify - Open source authorization as a service"  width="820px" />
 </p>
@@ -101,12 +101,6 @@ Permify helps you convert & sync authorization data to a database you point at w
 
 We are building SDKs to make installation easier, leave us a feedback on which SDK we should build first.
 
-[//]: # (Stargazers)
-
-[//]: # (-----------)
-
-[//]: # ()
-[//]: # ([![Stargazers repo roster for @Permify/permify]&#40;https://reporoster.com/stars/Permify/permify&#41;]&#40;https://github.com/Permify/permify/stargazers&#41;)
 
 ## Community & Support
 You can join the conversation at our [Discord channel](https://discord.gg/MJbUjwskdH). We love to talk about authorization and access control - we would
