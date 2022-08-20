@@ -48,7 +48,8 @@ const (
 	// Delimiters
 	//
 
-	COMMA = "COMMA"
+	COMMA   = "COMMA"
+	COMMENT = "COMMENT"
 
 	LBRACE = "LBRACE"
 	RBRACE = "RBRACE"
@@ -89,8 +90,8 @@ const (
 	OPTION = "OPTION"
 )
 
-// Lookup -
-func Lookup(ident string) Type {
+// LookupKeywords -
+func LookupKeywords(ident string) Type {
 	if tok, ok := keywords[ident]; ok {
 		return tok
 	}

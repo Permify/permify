@@ -134,7 +134,8 @@ func (p *Parser) parseEntityStatement() *ast.EntityStatement {
 		p.next()
 	}
 
-	if p.expectAndNext(token.OPTION) {
+	if p.peekTokenIs(token.OPTION) {
+		p.next()
 		stmt.Option = p.currentToken
 	}
 
@@ -149,22 +150,29 @@ func (p *Parser) parseRelationStatement() *ast.RelationStatement {
 	}
 	stmt.Name = p.currentToken
 
-	if !p.expectAndNext(token.SIGN) {
-		return nil
+	//&& !p.currentTokenIs(token.RELATION)
+	for p.peekTokenIs(token.SIGN) && !p.peekTokenIs(token.OPTION) {
+		stmt.RelationTypes = append(stmt.RelationTypes, p.parseRelationTypeStatement())
 	}
 
-	stmt.Sign = p.currentToken
-
-	if !p.expectAndNext(token.IDENT) {
-		return nil
-	}
-
-	stmt.Type = p.currentToken
-
-	if p.expectAndNext(token.OPTION) {
+	if p.peekTokenIs(token.OPTION) {
+		p.next()
 		stmt.Option = p.currentToken
 	}
 
+	return stmt
+}
+
+// parseRelationTypeStatement -
+func (p *Parser) parseRelationTypeStatement() *ast.RelationTypeStatement {
+	if !p.expectAndNext(token.SIGN) {
+		return nil
+	}
+	stmt := &ast.RelationTypeStatement{Sign: p.currentToken}
+	if !p.expectAndNext(token.IDENT) {
+		return nil
+	}
+	stmt.Token = p.currentToken
 	return stmt
 }
 
@@ -206,9 +214,6 @@ func (p *Parser) expectAndNext(t token.Type) bool {
 	if p.peekTokenIs(t) {
 		p.next()
 		return true
-	}
-	if t == token.OPTION {
-		return false
 	}
 	p.peekError(t)
 	return false

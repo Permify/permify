@@ -73,8 +73,12 @@ func (l *Lexer) NextToken() (tok token.Token) {
 	default:
 		if isLetter(l.ch) {
 			tok.Literal = l.lexIdent()
-			tok.Type = token.Lookup(tok.Literal)
+			tok.Type = token.LookupKeywords(tok.Literal)
 		} else {
+			if l.ch == '/' && l.peekChar() == '/' {
+				l.skipUntilNewline()
+				break
+			}
 			tok = token.New(token.ILLEGAL, l.ch)
 		}
 	}
@@ -108,6 +112,13 @@ func (l *Lexer) skipWhitespace() {
 	}
 }
 
+// skipWhitespace -
+func (l *Lexer) skipUntilNewline() {
+	for !isNewline(l.ch) {
+		l.readChar()
+	}
+}
+
 // isBacktick -
 func isBacktick(r byte) bool {
 	return r == '`'
@@ -125,5 +136,5 @@ func isNewline(r byte) bool {
 
 // isLetter -
 func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '.'
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '.' || ch == '#'
 }

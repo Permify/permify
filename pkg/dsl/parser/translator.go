@@ -39,7 +39,12 @@ func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) (entity sc
 		relationSt := rs.(*ast.RelationStatement)
 		var relation schema.Relation
 		relation.Name = relationSt.Name.Literal
-		relation.Type = relationSt.Type.Literal
+
+		for _, rts := range relationSt.RelationTypes {
+			relationTypeSt := rts.(*ast.RelationTypeStatement)
+			relation.Types = append(relation.Types, relationTypeSt.Token.Literal)
+		}
+
 		entity.Relations = append(entity.Relations, relation)
 	}
 

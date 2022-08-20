@@ -76,8 +76,8 @@ func (e Entity) GetAction(name string) Action {
 
 // Relation -
 type Relation struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Name  string   `json:"name"`
+	Types []string `json:"type"`
 }
 
 // Action -

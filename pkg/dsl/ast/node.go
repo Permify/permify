@@ -72,20 +72,23 @@ func (ls *EntityStatement) String() string {
 
 	sb.WriteString("}")
 	sb.WriteString(" ")
-	sb.WriteString("`")
-	sb.WriteString(ls.Option.Literal)
-	sb.WriteString("`")
+
+	if ls.Option.Literal != "" {
+		sb.WriteString("`")
+		sb.WriteString(ls.Option.Literal)
+		sb.WriteString("`")
+	}
+
 	sb.WriteString("\n")
 	return sb.String()
 }
 
 // RelationStatement -
 type RelationStatement struct {
-	Token  token.Token // token.RELATION
-	Name   token.Token // token.IDENT
-	Sign   token.Token // token.SIGN
-	Type   token.Token // token.IDENT
-	Option token.Token // token.OPTION
+	Token         token.Token // token.RELATION
+	Name          token.Token // token.IDENT
+	RelationTypes []Statement
+	Option        token.Token // token.OPTION
 }
 
 // statementNode -
@@ -103,12 +106,41 @@ func (ls *RelationStatement) String() string {
 	sb.WriteString(" ")
 	sb.WriteString(ls.Name.Literal)
 	sb.WriteString(" ")
-	sb.WriteString(ls.Sign.Literal)
-	sb.WriteString(ls.Type.Literal)
+
+	for _, rs := range ls.RelationTypes {
+		sb.WriteString(rs.String())
+		sb.WriteString(" ")
+	}
+
 	sb.WriteString(" ")
-	sb.WriteString("`")
-	sb.WriteString(ls.Option.Literal)
-	sb.WriteString("`")
+
+	if ls.Option.Literal != "" {
+		sb.WriteString("`")
+		sb.WriteString(ls.Option.Literal)
+		sb.WriteString("`")
+	}
+
+	return sb.String()
+}
+
+// RelationTypeStatement -
+type RelationTypeStatement struct {
+	Sign  token.Token // token.sign
+	Token token.Token // token.IDENT
+}
+
+// statementNode -
+func (ls *RelationTypeStatement) statementNode() {}
+
+// TokenLiteral -
+func (ls *RelationTypeStatement) TokenLiteral() string {
+	return ls.Token.Literal
+}
+
+func (ls *RelationTypeStatement) String() string {
+	var sb strings.Builder
+	sb.WriteString(ls.Sign.Literal)
+	sb.WriteString(ls.Token.Literal)
 	return sb.String()
 }
 
