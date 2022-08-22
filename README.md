@@ -52,12 +52,12 @@ Data model is inspired by [Google Zanzibar White Paper](https://storage.googleap
 
 - [Install Permify] with running Permify container using docker.
 - Follow a guide to model your authorization using [Permify Schema].
-- Learn how Permify [moves & syncs your authorization data].
+- Learn how Permify [centralize & stores your authorization data].
 - Take a look at the overview of [Permify API].
 
 [Install Permify]: https://docs.permify.co/docs/installation
 [Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
-[moves & syncs your authorization data]: https://docs.permify.co/docs/getting-started/sync-data
+[centralize & stores your authorization data]: https://docs.permify.co/docs/getting-started/sync-data
 [Permify API]: https://docs.permify.co/docs/api-overview
 
 
