@@ -1,5 +1,4 @@
 
-
 <h1 align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
     Permify - Open Source Authorization Service
@@ -18,73 +17,37 @@
 
 ## What is Permify?
 
-Permify is an open-source authorization service for creating and maintaining fine-grained authorizations. You can run Permify container with docker and it works as a Rest API.
+Permify is an open-source authorization service for creating and maintaining fine-grained authorizations. You can run Permify image container and it works as a Rest API.
 
 Permify converts and syncs your authorization data as relation tuples into your preferred database. And you can check authorization with single request based on those tuples.
 
 Data model is inspired by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
-## Why Permify?
+## Permify works best:
 
-You can use Permify any stage of your development for your authorization needs but Permify works best:
-
-- If you want to create unified control mechanism for individual applications.
-- If you need to refactor your authorization.
-- If your data model is getting too complicated to handle your authorization within the service.
+- If you already have an identity/auth solution and want to plug in fine-grained authorization on top of that.
+- If you want to create a unified access control mechanism for individual applications.
 - If you’re managing authorization for growing micro-service infrastructure.
 - If your authorization logic is cluttering your code base.
+- If your data model is getting too complicated to handle your authorization within the service.
 - If your authorization is growing too complex to handle within code or API gateway.
 
-## Features
+### Features
 
-- Sync & coordinate your authorization data hassle-free.
-- Get Boolean - Yes/No decision returns.
-- Store your authorization data in-house with high availability & low latency.
-- Easily model, debug & refactor your authorization logic.
-- Enforce authorizations with a single request anywhere you call it.
-- Low latency with parallel graph engine for enforcement check.
+🔐 Convert & store authorization data **in house** with high availability.
 
-## Example Access Check
+🔮 Easily model and refactor your authorization with **Permify's DSL, Permify Schema**.
 
-Permify helps you convert & sync authorization data to a database you point at with a YAML config file. And after you model your authorization with Permify's DSL - Permify Schema, you can perform access checks with a single call anywhere on your app. Access decisions made according to stored relational tuples.
+📝 **Audit & Reason** your access control hassle-free with user interface.
 
-**Request**
+✅ Low latency with **parallel graph engine** on access checks.
 
-```json
-{
-  "entity": {
-    "type": "repository",
-    "id": "1"
-  },
-  "action": "push",
-  "subject": {
-    "type":"user",
-    "id": "1"
-  }
-}
-```
+🩺 Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin].
 
-***Can the user 1 push on a repository 1 ?***
+[jaeger]: https://www.jaegertracing.io/
+[signoz]: https://signoz.io/
+[zipkin]: https://zipkin.io/
 
-**Response**
-
-```json
-{
-  "can": false, // main decision
-  "decisions": { // decision logs
-    "organization:1#member": {
-      "prefix": "not",
-      "can": false,
-      "err": null
-    },
-    "repository:1#owner": {
-      "prefix": "",
-      "can": true,
-      "err": null
-    }
-  }
-}
-```
 ## Getting Started
 
 - [Install Permify] with running Permify container using docker.
