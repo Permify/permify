@@ -40,9 +40,9 @@ Data model is inspired by [Google Zanzibar White Paper](https://storage.googleap
 
 📝 **Audit & Reason** your access control hassle-free with user interface.
 
-✅ Low latency with **parallel graph engine** on access checks.
-
 🩺 Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin].
+
+✅ Low latency with **parallel graph engine** on access checks.
 
 [jaeger]: https://www.jaegertracing.io/
 [signoz]: https://signoz.io/
