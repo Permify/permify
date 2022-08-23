@@ -15,9 +15,9 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
+	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/decorators"
-	"github.com/Permify/permify/internal/repositories/proxies"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/httpserver"
@@ -86,23 +86,22 @@ func Run(cfg *config.Config) {
 	relationTupleWithCircuitBreaker := decorators.NewRelationTupleWithCircuitBreaker(relationTupleRepository)
 	entityConfigWithCircuitBreaker := decorators.NewEntityConfigWithCircuitBreaker(entityConfigRepository)
 
-	// proxies
-	entityConfigCacheProxy := proxies.NewEntityConfigCacheProxy(entityConfigWithCircuitBreaker, cache)
+	// manager
+	schemaManager := managers.NewEntityConfigManager(entityConfigWithCircuitBreaker, cache)
 
 	// commands
 	checkCommand := commands.NewCheckCommand(relationTupleWithCircuitBreaker, l)
 	expandCommand := commands.NewExpandCommand(relationTupleWithCircuitBreaker, l)
 
 	// Services
-	schemaService := services.NewSchemaService(entityConfigCacheProxy)
-	relationshipService := services.NewRelationshipService(relationTupleWithCircuitBreaker)
-	permissionService := services.NewPermissionService(checkCommand, expandCommand, entityConfigCacheProxy)
+	relationshipService := services.NewRelationshipService(relationTupleWithCircuitBreaker, schemaManager)
+	permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaManager)
 
 	// HTTP Server
 	handler := echo.New()
 	handler.Use(otelecho.Middleware("http.server"))
 
-	v1.NewRouter(handler, l, relationshipService, permissionService, schemaService)
+	v1.NewRouter(handler, l, relationshipService, permissionService, schemaManager)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 	l.Info(fmt.Sprintf("http server successfully started: %s", cfg.HTTP.Port))
 

@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	ActionCannotFoundError       = errors.New("action cannot found")
-	EntityConfigCannotFoundError = errors.New("entity config cannot found")
+	ActionCannotFoundError       = errors.New("internal:repository, action cannot found")
+	EntityConfigCannotFoundError = errors.New("internal:repository, entity config cannot found")
 )

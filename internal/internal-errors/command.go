@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	DepthError              = errors.New("depth error")
-	CanceledError           = errors.New("canceled error")
-	UndefinedChildTypeError = errors.New("undefined child type")
-	UndefinedChildKindError = errors.New("undefined child kind")
+	DepthError              = errors.New("internal:command, depth error")
+	CanceledError           = errors.New("internal:command, canceled error")
+	UndefinedChildTypeError = errors.New("internal:command, undefined child type")
+	UndefinedChildKindError = errors.New("internal:command, undefined child kind")
 )

@@ -11,9 +11,11 @@ import (
 	req "github.com/Permify/permify/internal/controllers/http/requests/relationship"
 	"github.com/Permify/permify/internal/controllers/http/responses"
 	"github.com/Permify/permify/internal/entities"
+	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // relationshipRoutes -
@@ -90,18 +92,26 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(v))
 	}
 
-	tuple := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String()}
-	err = r.relationshipService.WriteRelationship(ctx, []entities.RelationTuple{tuple})
+	t := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String()}
+	err = r.relationshipService.WriteRelationship(ctx, t, request.Body.SchemaVersion.String())
 	if err != nil {
 		if errors.Is(err, database.ErrUniqueConstraint) {
 			span.RecordError(database.ErrUniqueConstraint)
 			return c.JSON(http.StatusUnprocessableEntity, responses.MResponse("tuple already exists"))
 		}
+		if errors.Is(err, tuple.NotFoundInSpecifiedRelationTypes) {
+			span.RecordError(tuple.NotFoundInSpecifiedRelationTypes)
+			return c.JSON(http.StatusUnprocessableEntity, responses.MResponse(tuple.NotFoundInSpecifiedRelationTypes.Error()))
+		}
+		if errors.Is(err, internalErrors.EntityConfigCannotFoundError) {
+			span.RecordError(internalErrors.EntityConfigCannotFoundError)
+			return c.JSON(http.StatusUnprocessableEntity, responses.MResponse(internalErrors.EntityConfigCannotFoundError.Error()))
+		}
 		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
 	}
 
-	return c.JSON(http.StatusOK, responses.SuccessResponse(tuple.ToTuple()))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(t.ToTuple()))
 }
 
 // @Summary     Relationship
@@ -128,7 +138,7 @@ func (r *relationshipRoutes) delete(c echo.Context) (err error) {
 	}
 
 	tuple := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String()}
-	err = r.relationshipService.DeleteRelationship(ctx, []entities.RelationTuple{tuple})
+	err = r.relationshipService.DeleteRelationship(ctx, tuple)
 	if err != nil {
 		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError

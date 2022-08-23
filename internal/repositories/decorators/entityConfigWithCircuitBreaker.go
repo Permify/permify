@@ -26,9 +26,11 @@ func (r *EntityConfigWithCircuitBreaker) Migrate() (err error) {
 // All -
 func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string) (configs entities.EntityConfigs, err error) {
 	output := make(chan entities.EntityConfigs, 1)
+	outputErr := make(chan error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.all", hystrix.CommandConfig{Timeout: 1000})
 	errors := hystrix.Go("entityConfigRepository.all", func() error {
-		configs, _ = r.repository.All(ctx, version)
+		configs, err = r.repository.All(ctx, version)
+		outputErr <- err
 		output <- configs
 		return nil
 	}, nil)
@@ -36,6 +38,8 @@ func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string
 	select {
 	case out := <-output:
 		return out, nil
+	case err = <-outputErr:
+		return configs, err
 	case err = <-errors:
 		return configs, err
 	}
@@ -44,9 +48,11 @@ func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string
 // Read -
 func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
 	output := make(chan entities.EntityConfig, 1)
+	outputErr := make(chan error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.read", hystrix.CommandConfig{Timeout: 1000})
 	errors := hystrix.Go("entityConfigRepository.read", func() error {
-		config, _ = r.repository.Read(ctx, name, version)
+		config, err = r.repository.Read(ctx, name, version)
+		outputErr <- err
 		output <- config
 		return nil
 	}, nil)
@@ -54,6 +60,8 @@ func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, 
 	select {
 	case out := <-output:
 		return out, nil
+	case err = <-outputErr:
+		return config, err
 	case err = <-errors:
 		return config, err
 	}
@@ -61,17 +69,17 @@ func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, 
 
 // Write -
 func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error) {
-	output := make(chan bool, 1)
+	outputErr := make(chan error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.write", hystrix.CommandConfig{Timeout: 1000})
 	errors := hystrix.Go("entityConfigRepository.write", func() error {
-		_ = r.repository.Write(ctx, configs, version)
-		output <- true
+		err = r.repository.Write(ctx, configs, version)
+		outputErr <- err
 		return nil
 	}, nil)
 
 	select {
-	case _ = <-output:
-		return nil
+	case err = <-outputErr:
+		return err
 	case err = <-errors:
 		return err
 	}
@@ -79,17 +87,17 @@ func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs enti
 
 // Clear -
 func (r *EntityConfigWithCircuitBreaker) Clear(ctx context.Context, version string) (err error) {
-	output := make(chan bool, 1)
+	outputErr := make(chan error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.clear", hystrix.CommandConfig{Timeout: 1000})
 	errors := hystrix.Go("entityConfigRepository.clear", func() error {
-		_ = r.repository.Clear(ctx, version)
-		output <- true
+		err = r.repository.Clear(ctx, version)
+		outputErr <- err
 		return nil
 	}, nil)
 
 	select {
-	case _ = <-output:
-		return nil
+	case err = <-outputErr:
+		return err
 	case err = <-errors:
 		return err
 	}

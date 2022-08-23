@@ -4,40 +4,57 @@ import (
 	"context"
 
 	e "github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/filters"
+	"github.com/Permify/permify/pkg/dsl/schema"
 )
-
-// IRelationshipService -
-type IRelationshipService interface {
-	ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) ([]e.RelationTuple, error)
-	WriteRelationship(ctx context.Context, entities []e.RelationTuple) error
-	DeleteRelationship(ctx context.Context, entities []e.RelationTuple) error
-}
 
 // RelationshipService -
 type RelationshipService struct {
-	repository repositories.IRelationTupleRepository
+	mn managers.IEntityConfigManager
+	rt repositories.IRelationTupleRepository
 }
 
 // NewRelationshipService -
-func NewRelationshipService(repo repositories.IRelationTupleRepository) *RelationshipService {
+func NewRelationshipService(rt repositories.IRelationTupleRepository, mn managers.IEntityConfigManager) *RelationshipService {
 	return &RelationshipService{
-		repository: repo,
+		mn: mn,
+		rt: rt,
 	}
 }
 
 // ReadRelationships -
 func (service *RelationshipService) ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) ([]e.RelationTuple, error) {
-	return service.repository.Read(ctx, filter)
+	return service.rt.Read(ctx, filter)
 }
 
 // WriteRelationship -
-func (service *RelationshipService) WriteRelationship(ctx context.Context, entities []e.RelationTuple) error {
-	return service.repository.Write(ctx, entities)
+func (service *RelationshipService) WriteRelationship(ctx context.Context, en e.RelationTuple, version string) (err error) {
+	ct := en.ToTuple()
+	var entity schema.Entity
+	entity, err = service.mn.Read(ctx, ct.Entity.Type, version)
+	if err != nil {
+		return err
+	}
+
+	var vt []string
+	for _, rel := range entity.Relations {
+		if rel.Name == en.Relation {
+			vt = rel.Types
+			break
+		}
+	}
+
+	err = ct.Subject.ValidateSubjectType(vt)
+	if err != nil {
+		return err
+	}
+
+	return service.rt.Write(ctx, e.RelationTuples{en})
 }
 
 // DeleteRelationship -
-func (service *RelationshipService) DeleteRelationship(ctx context.Context, entities []e.RelationTuple) error {
-	return service.repository.Delete(ctx, entities)
+func (service *RelationshipService) DeleteRelationship(ctx context.Context, tuple e.RelationTuple) error {
+	return service.rt.Delete(ctx, e.RelationTuples{tuple})
 }

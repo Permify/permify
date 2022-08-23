@@ -6,6 +6,7 @@ import (
 	echoSwagger "github.com/swaggo/echo-swagger"
 	// Swagger docs.
 	_ "github.com/Permify/permify/docs"
+	"github.com/Permify/permify/internal/managers"
 
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
@@ -18,7 +19,7 @@ import (
 // @version     1.0
 // @host        localhost:3476
 // @BasePath    /v1
-func NewRouter(handler *echo.Echo, l logger.Interface, r services.IRelationshipService, t services.IPermissionService, s services.ISchemaService) {
+func NewRouter(handler *echo.Echo, l logger.Interface, r services.IRelationshipService, t services.IPermissionService, s managers.IEntityConfigManager) {
 	// Options
 	handler.Use(middleware.Logger())
 	handler.Use(middleware.Recover())

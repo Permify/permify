@@ -17,32 +17,22 @@ var _ = Describe("relationship-service", func() {
 		It("Write", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			tuples := []entities.RelationTuple{
-				{
-					Entity:          "organization",
-					ObjectID:        "1",
-					Relation:        "admin",
-					UsersetEntity:   "user",
-					UsersetObjectID: "1",
-					UsersetRelation: "",
-				},
-				{
-					Entity:          "organization",
-					ObjectID:        "1",
-					Relation:        "member",
-					UsersetEntity:   "user",
-					UsersetObjectID: "2",
-					UsersetRelation: "",
-				},
+			tuple := entities.RelationTuple{
+				Entity:          "organization",
+				ObjectID:        "1",
+				Relation:        "admin",
+				UsersetEntity:   "user",
+				UsersetObjectID: "1",
+				UsersetRelation: "",
 			}
 
-			relationTupleRepository.On("Write", tuples).Return(nil).Once()
+			relationTupleRepository.On("Write", tuple).Return(nil).Once()
 
 			relationshipService = &RelationshipService{
-				repository: relationTupleRepository,
+				rt: relationTupleRepository,
 			}
 
-			err := relationshipService.WriteRelationship(context.Background(), tuples)
+			err := relationshipService.WriteRelationship(context.Background(), tuple)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})
@@ -51,32 +41,22 @@ var _ = Describe("relationship-service", func() {
 		It("Write", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			tuples := []entities.RelationTuple{
-				{
-					Entity:          "organization",
-					ObjectID:        "1",
-					Relation:        "admin",
-					UsersetEntity:   "user",
-					UsersetObjectID: "1",
-					UsersetRelation: "",
-				},
-				{
-					Entity:          "organization",
-					ObjectID:        "1",
-					Relation:        "member",
-					UsersetEntity:   "user",
-					UsersetObjectID: "2",
-					UsersetRelation: "",
-				},
+			tuple := entities.RelationTuple{
+				Entity:          "organization",
+				ObjectID:        "1",
+				Relation:        "member",
+				UsersetEntity:   "user",
+				UsersetObjectID: "2",
+				UsersetRelation: "",
 			}
 
-			relationTupleRepository.On("Delete", tuples).Return(nil).Once()
+			relationTupleRepository.On("Delete", tuple).Return(nil).Once()
 
 			relationshipService = &RelationshipService{
-				repository: relationTupleRepository,
+				rt: relationTupleRepository,
 			}
 
-			err := relationshipService.DeleteRelationship(context.Background(), tuples)
+			err := relationshipService.DeleteRelationship(context.Background(), tuple)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})

@@ -4,16 +4,15 @@ import (
 	"context"
 
 	"github.com/Permify/permify/internal/commands"
-	"github.com/Permify/permify/internal/entities"
 	internalErrors "github.com/Permify/permify/internal/internal-errors"
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 // PermissionService -
 type PermissionService struct {
-	entityConfigRepository repositories.IEntityConfigRepository
+	manager managers.IEntityConfigManager
 
 	// commands
 	check  commands.ICheckCommand
@@ -21,32 +20,24 @@ type PermissionService struct {
 }
 
 // NewPermissionService -
-func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand, en repositories.IEntityConfigRepository) *PermissionService {
+func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand, en managers.IEntityConfigManager) *PermissionService {
 	return &PermissionService{
-		entityConfigRepository: en,
-		check:                  cc,
-		expand:                 ec,
+		manager: en,
+		check:   cc,
+		expand:  ec,
 	}
 }
 
 // Check -
 func (service *PermissionService) Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, version string, d int32) (response commands.CheckResponse, err error) {
-	var cnf entities.EntityConfig
-	cnf, err = service.entityConfigRepository.Read(ctx, entity.Type, version)
-	if err != nil {
-		return
-	}
-
-	var sch schema.Schema
-	sch, err = cnf.ToSchema()
+	var en schema.Entity
+	en, err = service.manager.Read(ctx, entity.Type, version)
 	if err != nil {
 		return
 	}
 
 	var child schema.Child
 
-	var en schema.Entity
-	en = sch.GetEntityByName(entity.Type)
 	for _, e := range en.Actions {
 		if e.Name == action {
 			child = e.Child
@@ -70,22 +61,14 @@ check:
 
 // Expand -
 func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entity, action string, version string) (response commands.ExpandResponse, err error) {
-	var cnf entities.EntityConfig
-	cnf, err = service.entityConfigRepository.Read(ctx, entity.Type, version)
-	if err != nil {
-		return
-	}
-
-	var sch schema.Schema
-	sch, err = cnf.ToSchema()
+	var en schema.Entity
+	en, err = service.manager.Read(ctx, entity.Type, version)
 	if err != nil {
 		return
 	}
 
 	var child schema.Child
 
-	var en schema.Entity
-	en = sch.GetEntityByName(entity.Type)
 	for _, e := range en.Actions {
 		if e.Name == action {
 			child = e.Child

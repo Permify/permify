@@ -5,7 +5,7 @@ import (
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/entities"
-	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -15,9 +15,9 @@ type IPermissionService interface {
 	Expand(ctx context.Context, entity tuple.Entity, action string, version string) (response commands.ExpandResponse, err error)
 }
 
-// ISchemaService -
-type ISchemaService interface {
-	All(ctx context.Context, version string) (sch schema.Schema, err error)
-	Read(ctx context.Context, name string, version string) (sch schema.Schema, err error)
-	Write(ctx context.Context, configs entities.EntityConfigs) (version string, err error)
+// IRelationshipService -
+type IRelationshipService interface {
+	ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) ([]entities.RelationTuple, error)
+	WriteRelationship(ctx context.Context, entities entities.RelationTuple, version string) error
+	DeleteRelationship(ctx context.Context, entities entities.RelationTuple) error
 }

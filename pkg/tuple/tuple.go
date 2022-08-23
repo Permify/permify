@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+
+	"github.com/Permify/permify/pkg/helper"
 )
 
 const (
@@ -160,6 +162,24 @@ func (s Subject) Equals(v interface{}) bool {
 		return s.ID == uv.ID
 	}
 	return uv.Relation == s.Relation && uv.ID == s.ID && uv.Type == s.Type
+}
+
+// ValidateSubjectType -
+func (s Subject) ValidateSubjectType(relationTypes []string) (err error) {
+	key := s.Type
+	if s.Relation.String() != "" {
+		if !s.IsUser() {
+			if s.Relation.String() == ELLIPSIS {
+				key += "#..."
+			} else {
+				key += "#" + s.Relation.String()
+			}
+		}
+	}
+	if !helper.InArray(key, relationTypes) {
+		return NotFoundInSpecifiedRelationTypes
+	}
+	return nil
 }
 
 // Tuple -

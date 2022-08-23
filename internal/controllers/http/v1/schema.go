@@ -16,7 +16,7 @@ import (
 	"github.com/Permify/permify/internal/controllers/http/responses"
 	res "github.com/Permify/permify/internal/controllers/http/responses/schema"
 	"github.com/Permify/permify/internal/entities"
-	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
@@ -25,13 +25,13 @@ import (
 )
 
 type schemaRoutes struct {
-	schemaService services.ISchemaService
+	schemaManager managers.IEntityConfigManager
 	l             logger.Interface
 }
 
 // newSchemaRoutes -
-func newSchemaRoutes(handler *echo.Group, s services.ISchemaService, l logger.Interface) {
-	r := &schemaRoutes{s, l}
+func newSchemaRoutes(handler *echo.Group, m managers.IEntityConfigManager, l logger.Interface) {
+	r := &schemaRoutes{m, l}
 
 	h := handler.Group("/schemas")
 	{
@@ -112,7 +112,7 @@ func (r *schemaRoutes) write(c echo.Context) (err error) {
 	}
 
 	var version string
-	version, err = r.schemaService.Write(ctx, cnf)
+	version, err = r.schemaManager.Write(ctx, cnf)
 	if err != nil {
 		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
@@ -147,7 +147,7 @@ func (r *schemaRoutes) read(c echo.Context) (err error) {
 	}
 
 	var response schema.Schema
-	response, err = r.schemaService.All(ctx, request.PathParams.SchemaVersion.String())
+	response, err = r.schemaManager.All(ctx, request.PathParams.SchemaVersion.String())
 	if err != nil {
 		return err
 	}

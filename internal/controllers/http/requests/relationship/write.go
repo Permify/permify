@@ -3,6 +3,7 @@ package relationship
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
+	`github.com/Permify/permify/internal/utils`
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -22,9 +23,10 @@ type WriteRequest struct {
 	 * Body
 	 */
 	Body struct {
-		Entity   tuple.Entity  `json:"entity"`
-		Relation string        `json:"relation"`
-		Subject  tuple.Subject `json:"subject"`
+		SchemaVersion utils.Version `json:"schema_version" form:"schema_version" xml:"schema_version"`
+		Entity        tuple.Entity  `json:"entity" form:"entity" xml:"entity"`
+		Relation      string        `json:"relation" form:"relation" xml:"relation"`
+		Subject       tuple.Subject `json:"subject" form:"subject" xml:"subject"`
 	}
 }
 
