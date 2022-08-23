@@ -48,6 +48,10 @@ Data model is inspired by [Google Zanzibar White Paper](https://storage.googleap
 [signoz]: https://signoz.io/
 [zipkin]: https://zipkin.io/
 
+## How it works
+
+![Value Chain Schema](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
+
 ## Getting Started
 
 - [Install Permify] with running Permify container using docker.
