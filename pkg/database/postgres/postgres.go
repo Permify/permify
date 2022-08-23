@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -43,18 +42,14 @@ func New(uri string, database string, opts ...Option) (*Postgres, error) {
 
 	poolConfig.MaxConns = int32(pg.maxPoolSize)
 
-	for pg.connAttempts > 0 {
-		pg.Pool, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
-		if err == nil {
-			break
-		}
-		log.Printf("Postgres is trying to connect, attempts left: %d", pg.connAttempts)
-		time.Sleep(pg.connTimeout)
-		pg.connAttempts--
+	pg.Pool, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
+	if err == nil {
+		return nil, err
 	}
 
+	_, err = pg.IsReady(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("postgres - NewPostgres - connAttempts == 0: %w", err)
+		return nil, err
 	}
 
 	return pg, nil
@@ -62,7 +57,8 @@ func New(uri string, database string, opts ...Option) (*Postgres, error) {
 
 // IsReady -
 func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, p.connTimeout)
 	defer cancel()
 
 	if err := p.Pool.Ping(ctx); err != nil {

@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,13 +33,16 @@ func New(uri string, database string, opts ...Option) (*Mongo, error) {
 		opt(mn)
 	}
 
-	// helper.Pre(cr.String())
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	var err error
+	mn.client, err = mongo.Connect(context.Background(), options.Client().ApplyURI(uri).SetMaxPoolSize(uint64(mn.maxPoolSize)))
 	if err != nil {
-		return nil, fmt.Errorf("mongo - NewMongo - mongo.Connect: %w", err)
+		return nil, err
 	}
 
-	mn.client = client
+	_, err = mn.IsReady(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
 	return mn, nil
 }
@@ -52,7 +54,8 @@ func (m *Mongo) Database() *mongo.Database {
 
 // IsReady -
 func (m *Mongo) IsReady(ctx context.Context) (bool, error) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, m.connTimeout)
 	defer cancel()
 
 	if err := m.client.Ping(ctx, readpref.Primary()); err != nil {

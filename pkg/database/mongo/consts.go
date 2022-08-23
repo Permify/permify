@@ -1,6 +1,10 @@
 package mongo
 
+import (
+	`time`
+)
+
 const (
-	_defaultMaxPoolSize = 1
-	_defaultConnTimeout = 30000
+	_defaultMaxPoolSize = 50
+	_defaultConnTimeout = time.Second
 )
