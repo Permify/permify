@@ -518,6 +518,9 @@ var doc = `{
                         "relation": {
                             "type": "string"
                         },
+                        "schema_version": {
+                            "type": "string"
+                        },
                         "subject": {
                             "$ref": "#/definitions/tuple.Subject"
                         }
@@ -605,7 +608,10 @@ var doc = `{
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

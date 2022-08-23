@@ -104,6 +104,8 @@ definitions:
             $ref: '#/definitions/tuple.Entity'
           relation:
             type: string
+          schema_version:
+            type: string
           subject:
             $ref: '#/definitions/tuple.Subject'
         type: object
@@ -162,7 +164,9 @@ definitions:
       name:
         type: string
       type:
-        type: string
+        items:
+          type: string
+        type: array
     type: object
   schema.WriteResponse:
     properties:
