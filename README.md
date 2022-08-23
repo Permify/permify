@@ -12,7 +12,7 @@
     <a href="https://github.com/Permify/permify/pkgs/container/permify" target="_blank"><img src="https://img.shields.io/github/v/release/permify/permify?include_prereleases&style=for-the-badge" alt="Permify Release" /></a>&nbsp;
 </p>
 <p align="center">
-    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-demo-github.gif" alt="Permify - Open source authorization as a service"  width="820px" />
+    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif" alt="Permify - Open source authorization as a service"  width="820px" />
 </p>
 
 ## What is Permify?
