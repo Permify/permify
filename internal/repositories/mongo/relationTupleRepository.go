@@ -120,7 +120,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 
 // Delete -.
 func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) error {
-	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
+	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 	for _, tuple := range tuples {
 		filter := bson.M{"entity": tuple.Entity, "object_id": tuple.ObjectID, "relation": tuple.Relation, "userset_entity": tuple.UsersetEntity, "userset_object_id": tuple.UsersetObjectID, "userset_relation": tuple.UsersetRelation}
 		_, err := coll.DeleteOne(ctx, filter)
