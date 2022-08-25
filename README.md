@@ -12,7 +12,7 @@
     <a href="https://github.com/Permify/permify/pkgs/container/permify" target="_blank"><img src="https://img.shields.io/github/v/release/permify/permify?include_prereleases&style=for-the-badge" alt="Permify Release" /></a>&nbsp;
 </p>
 <p align="center">
-    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif" alt="Permify - Open source authorization as a service"  width="820px" />
+    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif" alt="Permify - Open source authorization as a service" />
 </p>
 
 ## What is Permify?
@@ -88,7 +88,3 @@ See: [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTI
 ## Stargazers
 
 [![Stargazers repo roster for permify/permify](https://reporoster.com/stars/permify/permify)](https://github.com/permify/permify/stargazers)
-
-## License
-
-Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
