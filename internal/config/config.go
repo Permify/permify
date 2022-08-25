@@ -16,6 +16,7 @@ type (
 		App      `yaml:"app"`
 		HTTP     `yaml:"http"`
 		Log      `yaml:"logger"`
+		*Authn   `yaml:"authn"`
 		*Tracer  `yaml:"tracer"`
 		Database `yaml:"database"`
 	}
@@ -28,6 +29,12 @@ type (
 	// HTTP -.
 	HTTP struct {
 		Port string `env-required:"true" yaml:"port"`
+	}
+
+	// Authn -.
+	Authn struct {
+		Disabled bool     `yaml:"disabled"`
+		Keys     []string `yaml:"keys"`
 	}
 
 	// Log -.
@@ -47,6 +54,7 @@ type (
 		Write `env-required:"true" yaml:"write"`
 	}
 
+	// Write -
 	Write struct {
 		Connection string `env-required:"true" yaml:"connection"`
 		PoolMax    int    `env-required:"true" yaml:"pool_max"`

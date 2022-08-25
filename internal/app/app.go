@@ -7,11 +7,14 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/labstack/echo/v4/middleware"
+
 	"github.com/dgraph-io/ristretto"
 
 	"github.com/labstack/echo/v4"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 
+	"github.com/Permify/permify/internal/authn"
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
@@ -100,6 +103,15 @@ func Run(cfg *config.Config) {
 	// HTTP Server
 	handler := echo.New()
 	handler.Use(otelecho.Middleware("http.server"))
+
+	if cfg.Authn != nil && !cfg.Authn.Disabled {
+		if len(cfg.Authn.Keys) > 0 {
+			authenticator := authn.NewKeyAuthn(cfg.Authn.Keys)
+			handler.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+				Validator: authenticator.Validator(),
+			}))
+		}
+	}
 
 	v1.NewRouter(handler, l, relationshipService, permissionService, schemaManager)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
