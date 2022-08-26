@@ -15,7 +15,7 @@ type KeyAuthn struct {
 	Keys []string
 }
 
-func NewKeyAuthn(keys []string) *KeyAuthn {
+func NewKeyAuthn(keys ...string) *KeyAuthn {
 	return &KeyAuthn{
 		Keys: keys,
 	}

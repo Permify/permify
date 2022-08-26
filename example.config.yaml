@@ -6,7 +6,10 @@ http:
 
 logger:
   log_level: 'debug'
-  rollbar_env: 'permify'
+
+authn:
+  disabled: true
+  keys: []
 
 tracer:
   exporter: 'zipkin'

@@ -106,7 +106,7 @@ func Run(cfg *config.Config) {
 
 	if cfg.Authn != nil && !cfg.Authn.Disabled {
 		if len(cfg.Authn.Keys) > 0 {
-			authenticator := authn.NewKeyAuthn(cfg.Authn.Keys)
+			authenticator := authn.NewKeyAuthn(cfg.Authn.Keys...)
 			handler.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 				Validator: authenticator.Validator(),
 			}))
