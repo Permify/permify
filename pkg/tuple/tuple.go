@@ -169,13 +169,12 @@ func (s Subject) ValidateSubjectType(relationTypes []string) (err error) {
 	key := s.Type
 	if s.Relation.String() != "" {
 		if !s.IsUser() {
-			if s.Relation.String() == ELLIPSIS {
-				key += "#..."
-			} else {
+			if s.Relation.String() != ELLIPSIS {
 				key += "#" + s.Relation.String()
 			}
 		}
 	}
+
 	if !helper.InArray(key, relationTypes) {
 		return NotFoundInSpecifiedRelationTypes
 	}
