@@ -27,11 +27,17 @@ var _ = Describe("parser", func() {
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("parent"))
-			Expect(r1.Type.Literal).Should(Equal("organization"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.TokenLiteral()).Should(Equal("organization"))
+			}
 
 			r2 := st.RelationStatements[1].(*ast.RelationStatement)
 			Expect(r2.Name.Literal).Should(Equal("owner"))
-			Expect(r2.Type.Literal).Should(Equal("user"))
+
+			for _, a := range r2.RelationTypes {
+				Expect(a.TokenLiteral()).Should(Equal("user"))
+			}
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
 			Expect(a1.Name.Literal).Should(Equal("read"))
@@ -53,12 +59,20 @@ var _ = Describe("parser", func() {
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("parent"))
-			Expect(r1.Type.Literal).Should(Equal("organization"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.TokenLiteral()).Should(Equal("organization"))
+			}
+
 			Expect(r1.Option.Literal).Should(Equal(`rel:belongs-to|cols:organization_id`))
 
 			r2 := st.RelationStatements[1].(*ast.RelationStatement)
 			Expect(r2.Name.Literal).Should(Equal("owner"))
-			Expect(r2.Type.Literal).Should(Equal("user"))
+
+			for _, a := range r2.RelationTypes {
+				Expect(a.TokenLiteral()).Should(Equal("user"))
+			}
+
 			Expect(r2.Option.Literal).Should(Equal(`rel:belongs-to|cols:owner_id`))
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
@@ -81,7 +95,11 @@ var _ = Describe("parser", func() {
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("owner"))
-			Expect(r1.Type.Literal).Should(Equal("user"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.TokenLiteral()).Should(Equal("user"))
+			}
+
 			Expect(r1.Option.Literal).Should(Equal(""))
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
@@ -102,7 +120,11 @@ var _ = Describe("parser", func() {
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("owner"))
-			Expect(r1.Type.Literal).Should(Equal("user"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.TokenLiteral()).Should(Equal("user"))
+			}
+
 			Expect(r1.Option.Literal).Should(Equal(""))
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)

@@ -10,5 +10,5 @@ import (
 // TestSchema -
 func TestSchema(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "managers-suite")
+	RunSpecs(t, "schema-suite")
 }
