@@ -43,7 +43,7 @@ func New(uri string, database string, opts ...Option) (*Postgres, error) {
 	poolConfig.MaxConns = int32(pg.maxPoolSize)
 
 	pg.Pool, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 
