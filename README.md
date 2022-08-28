@@ -17,11 +17,11 @@
 
 ## What is Permify?
 
-Permify is an open-source authorization service for creating and maintaining fine-grained authorizations. You can run Permify image container and it works as a Rest API.
+Permify is an **open-source authorization service** for creating and maintaining fine-grained authorizations accross your individual applications and services.
 
-Permify converts and syncs your authorization data as relation tuples into your preferred database. And you can check authorization with single request based on those tuples.
+Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.
 
-Data model is inspired by [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
+Data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
 ## Permify works best:
 
@@ -63,7 +63,6 @@ Data model is inspired by [Google Zanzibar White Paper](https://storage.googleap
 [Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
 [centralize & stores your authorization data]: https://docs.permify.co/docs/getting-started/sync-data
 [Permify API]: https://docs.permify.co/docs/api-overview
-
 
 ## Community & Support
 Join our [Discord channel](https://discord.gg/MJbUjwskdH) for issues, feature requests, feedbacks or anything else. We love to talk about authorization and access control :heart:
