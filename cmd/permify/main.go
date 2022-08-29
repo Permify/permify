@@ -1,7 +1,7 @@
 package main
 
 import (
-	`fmt`
+	"fmt"
 	"log"
 
 	"github.com/Permify/permify/internal/app"

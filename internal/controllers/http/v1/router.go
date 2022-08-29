@@ -19,7 +19,7 @@ import (
 // @version     1.0
 // @host        localhost:3476
 // @BasePath    /v1
-func NewRouter(handler *echo.Echo, l logger.Interface, r services.IRelationshipService, t services.IPermissionService, s managers.IEntityConfigManager) {
+func NewRouter(handler *echo.Echo, l logger.Interface, r services.IRelationshipService, t services.IPermissionService, s services.ISchemaService, e managers.IEntityConfigManager) {
 	// Options
 	handler.Use(middleware.Logger())
 	handler.Use(middleware.Recover())
@@ -33,7 +33,7 @@ func NewRouter(handler *echo.Echo, l logger.Interface, r services.IRelationshipS
 	{
 		newPermissionRoutes(h, t, l)
 		newRelationshipRoutes(h, r, l)
-		newSchemaRoutes(h, s, l)
+		newSchemaRoutes(h, s, e, l)
 		newServerRoutes(h)
 	}
 }

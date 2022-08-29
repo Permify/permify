@@ -137,12 +137,12 @@ func (r *relationshipRoutes) delete(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, responses.ValidationResponse(v))
 	}
 
-	tuple := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String()}
-	err = r.relationshipService.DeleteRelationship(ctx, tuple)
+	t := entities.RelationTuple{Entity: request.Body.Entity.Type, ObjectID: request.Body.Entity.ID, Relation: request.Body.Relation, UsersetEntity: request.Body.Subject.Type, UsersetObjectID: request.Body.Subject.ID, UsersetRelation: request.Body.Subject.Relation.String()}
+	err = r.relationshipService.DeleteRelationship(ctx, t)
 	if err != nil {
 		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
 		return echo.ErrInternalServerError
 	}
 
-	return c.JSON(http.StatusOK, responses.SuccessResponse(tuple.ToTuple()))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(t.ToTuple()))
 }

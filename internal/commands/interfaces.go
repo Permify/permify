@@ -15,3 +15,8 @@ type ICheckCommand interface {
 type IExpandCommand interface {
 	Execute(ctx context.Context, q *ExpandQuery, child schema.Child) (response ExpandResponse, err error)
 }
+
+// ISchemaLookupCommand -
+type ISchemaLookupCommand interface {
+	Execute(ctx context.Context, q *SchemaLookupQuery, actions []schema.Action) (response SchemaLookupResponse, err error)
+}

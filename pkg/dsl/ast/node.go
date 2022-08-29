@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // Node -
@@ -30,6 +31,17 @@ type Statement interface {
 // Schema -
 type Schema struct {
 	Statements []Statement
+}
+
+// Validate -
+func (sch Schema) Validate() (err error) {
+	for _, st := range sch.Statements {
+		name := st.(*EntityStatement).Name.Literal
+		if name == tuple.USER {
+			return nil
+		}
+	}
+	return UserEntityRequiredErr
 }
 
 // EntityStatement -

@@ -36,18 +36,13 @@ func (service *PermissionService) Check(ctx context.Context, subject tuple.Subje
 		return
 	}
 
-	var child schema.Child
-
-	for _, e := range en.Actions {
-		if e.Name == action {
-			child = e.Child
-			goto check
-		}
+	var a schema.Action
+	a, err = en.GetAction(action)
+	if err != nil {
+		return response, internalErrors.ActionCannotFoundError
 	}
 
-	return response, internalErrors.ActionCannotFoundError
-
-check:
+	child := a.Child
 
 	q := &commands.CheckQuery{
 		Entity:  entity,
@@ -67,18 +62,13 @@ func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entit
 		return
 	}
 
-	var child schema.Child
-
-	for _, e := range en.Actions {
-		if e.Name == action {
-			child = e.Child
-			goto expand
-		}
+	var a schema.Action
+	a, err = en.GetAction(action)
+	if err != nil {
+		return response, internalErrors.ActionCannotFoundError
 	}
 
-	return response, internalErrors.ActionCannotFoundError
-
-expand:
+	child := a.Child
 
 	q := &commands.ExpandQuery{
 		Entity: entity,

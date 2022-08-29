@@ -95,10 +95,12 @@ func Run(cfg *config.Config) {
 	// commands
 	checkCommand := commands.NewCheckCommand(relationTupleWithCircuitBreaker, l)
 	expandCommand := commands.NewExpandCommand(relationTupleWithCircuitBreaker, l)
+	schemaLookupCommand := commands.NewSchemaLookupCommand(l)
 
 	// Services
 	relationshipService := services.NewRelationshipService(relationTupleWithCircuitBreaker, schemaManager)
 	permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaManager)
+	schemaService := services.NewSchemaService(schemaLookupCommand, schemaManager)
 
 	// HTTP Server
 	handler := echo.New()
@@ -113,7 +115,7 @@ func Run(cfg *config.Config) {
 		}
 	}
 
-	v1.NewRouter(handler, l, relationshipService, permissionService, schemaManager)
+	v1.NewRouter(handler, l, relationshipService, permissionService, schemaService, schemaManager)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 	l.Info(fmt.Sprintf("http server successfully started: %s", cfg.HTTP.Port))
 

@@ -125,23 +125,32 @@ definitions:
       message:
         type: string
     type: object
-  schema.Action:
+  schema.LookupRequest:
     properties:
-      child: {}
-      name:
-        type: string
+      body:
+        description: "*\n\t * Body"
+        properties:
+          entity_type:
+            type: string
+          relation_names:
+            items:
+              type: string
+            type: array
+          schema_version:
+            type: string
+        type: object
+      pathParams:
+        description: "*\n\t * PathParams"
+        type: object
+      queryParams:
+        description: "*\n\t * QueryParams"
+        type: object
     type: object
-  schema.Entity:
+  schema.LookupResponse:
     properties:
-      actions:
+      action_names:
         items:
-          $ref: '#/definitions/schema.Action'
-        type: array
-      name:
-        type: string
-      relations:
-        items:
-          $ref: '#/definitions/schema.Relation'
+          type: string
         type: array
     type: object
   schema.ReadRequest:
@@ -158,15 +167,6 @@ definitions:
       queryParams:
         description: "*\n\t * QueryParams"
         type: object
-    type: object
-  schema.Relation:
-    properties:
-      name:
-        type: string
-      type:
-        items:
-          type: string
-        type: array
     type: object
   schema.WriteResponse:
     properties:
@@ -340,6 +340,33 @@ paths:
       summary: Relationship
       tags:
       - Relationship
+  /schemas/lookup:
+    post:
+      consumes:
+      - application/json
+      description: lookup your authorization model
+      operationId: schemas.lookup
+      parameters:
+      - description: ''''''
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.LookupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.LookupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.HTTPErrorResponse'
+      summary: Schema
+      tags:
+      - Schema
   /schemas/read/:schema_version:
     get:
       consumes:
@@ -363,9 +390,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            items:
-              $ref: '#/definitions/schema.Entity'
-            type: array
+            $ref: '#/definitions/responses.HTTPErrorResponse'
       summary: Schema
       tags:
       - Schema

@@ -21,3 +21,8 @@ type IRelationshipService interface {
 	WriteRelationship(ctx context.Context, entities entities.RelationTuple, version string) error
 	DeleteRelationship(ctx context.Context, entities entities.RelationTuple) error
 }
+
+// ISchemaService -
+type ISchemaService interface {
+	Lookup(ctx context.Context, entityType string, relationNames []string, version string) (response commands.SchemaLookupResponse, err error)
+}

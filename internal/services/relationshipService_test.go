@@ -32,7 +32,7 @@ var _ = Describe("relationship-service", func() {
 				rt: relationTupleRepository,
 			}
 
-			err := relationshipService.WriteRelationship(context.Background(), tuple)
+			err := relationshipService.WriteRelationship(context.Background(), tuple, "")
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})

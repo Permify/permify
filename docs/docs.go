@@ -230,6 +230,47 @@ var doc = `{
                 }
             }
         },
+        "/schemas/lookup": {
+            "post": {
+                "description": "lookup your authorization model",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schema"
+                ],
+                "summary": "Schema",
+                "operationId": "schemas.lookup",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.LookupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schema.LookupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/schemas/read/:schema_version": {
             "get": {
                 "description": "read your authorization model",
@@ -265,10 +306,7 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/schema.Entity"
-                            }
+                            "$ref": "#/definitions/responses.HTTPErrorResponse"
                         }
                     }
                 }
@@ -550,31 +588,44 @@ var doc = `{
                 }
             }
         },
-        "schema.Action": {
+        "schema.LookupRequest": {
             "type": "object",
             "properties": {
-                "child": {},
-                "name": {
-                    "type": "string"
+                "body": {
+                    "description": "*\n\t * Body",
+                    "type": "object",
+                    "properties": {
+                        "entity_type": {
+                            "type": "string"
+                        },
+                        "relation_names": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "schema_version": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "pathParams": {
+                    "description": "*\n\t * PathParams",
+                    "type": "object"
+                },
+                "queryParams": {
+                    "description": "*\n\t * QueryParams",
+                    "type": "object"
                 }
             }
         },
-        "schema.Entity": {
+        "schema.LookupResponse": {
             "type": "object",
             "properties": {
-                "actions": {
+                "action_names": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/schema.Action"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                },
-                "relations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.Relation"
+                        "type": "string"
                     }
                 }
             }
@@ -598,20 +649,6 @@ var doc = `{
                 "queryParams": {
                     "description": "*\n\t * QueryParams",
                     "type": "object"
-                }
-            }
-        },
-        "schema.Relation": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },

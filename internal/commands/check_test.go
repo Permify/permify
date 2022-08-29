@@ -109,7 +109,10 @@ var _ = Describe("check-command", func() {
 
 			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
 
-			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("read").Child)
+			en, _ := sch.GetEntityByName(re.Entity.Type)
+			ac, _ := en.GetAction("read")
+
+			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(re.loadDepth()).Should(Equal(int32(3)))
 			Expect(true).Should(Equal(actualResult.Can))
@@ -166,7 +169,10 @@ var _ = Describe("check-command", func() {
 
 			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
 
-			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("update").Child)
+			en, _ := sch.GetEntityByName(re.Entity.Type)
+			ac, _ := en.GetAction("update")
+
+			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(re.loadDepth()).Should(Equal(int32(5)))
 			Expect(false).Should(Equal(actualResult.Can))
@@ -243,7 +249,10 @@ var _ = Describe("check-command", func() {
 
 			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
 
-			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("read").Child)
+			en, _ := sch.GetEntityByName(re.Entity.Type)
+			ac, _ := en.GetAction("read")
+
+			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(re.loadDepth()).Should(Equal(int32(2)))
 			Expect(false).Should(Equal(actualResult.Can))
@@ -295,7 +304,10 @@ var _ = Describe("check-command", func() {
 
 			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
 
-			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("push").Child)
+			en, _ := sch.GetEntityByName(re.Entity.Type)
+			ac, _ := en.GetAction("push")
+
+			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(re.loadDepth()).Should(Equal(int32(7)))
 			Expect(false).Should(Equal(actualResult.Can))
@@ -367,7 +379,10 @@ var _ = Describe("check-command", func() {
 			re.SetDepth(8)
 			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
 
-			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("push").Child)
+			en, _ := sch.GetEntityByName(re.Entity.Type)
+			ac, _ := en.GetAction("push")
+
+			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(re.loadDepth()).Should(Equal(int32(5)))
 			Expect(true).Should(Equal(actualResult.Can))
@@ -436,7 +451,10 @@ var _ = Describe("check-command", func() {
 
 			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
 
-			actualResult, err := checkCommand.Execute(context.Background(), re, sch.GetEntityByName(re.Entity.Type).GetAction("delete").Child)
+			en, _ := sch.GetEntityByName(re.Entity.Type)
+			ac, _ := en.GetAction("delete")
+
+			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(re.loadDepth()).Should(Equal(int32(1)))
 			Expect(false).Should(Equal(actualResult.Can))

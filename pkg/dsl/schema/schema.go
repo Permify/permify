@@ -40,8 +40,11 @@ type Schema struct {
 }
 
 // GetEntityByName -
-func (s Schema) GetEntityByName(name string) Entity {
-	return s.Entities[name]
+func (s Schema) GetEntityByName(name string) (entity Entity, err error) {
+	if en, ok := s.Entities[name]; ok {
+		return en, nil
+	}
+	return entity, EntityCanNotFoundErr
 }
 
 // NewSchema -
@@ -65,13 +68,23 @@ type Entity struct {
 }
 
 // GetAction -
-func (e Entity) GetAction(name string) Action {
+func (e Entity) GetAction(name string) (action Action, err error) {
 	for _, en := range e.Actions {
 		if en.Name == name {
-			return en
+			return en, nil
 		}
 	}
-	return Action{}
+	return action, ActionCanNotFoundErr
+}
+
+// GetRelation -
+func (e Entity) GetRelation(name string) (relation Relation, err error) {
+	for _, re := range e.Relations {
+		if re.Name == name {
+			return re, nil
+		}
+	}
+	return relation, RelationCanNotFoundErr
 }
 
 // Relation -
@@ -132,11 +145,11 @@ func (Leaf) GetKind() string {
 type Relations []Relation
 
 // GetRelationByName -
-func (r Relations) GetRelationByName(name string) (relation Relation) {
+func (r Relations) GetRelationByName(name string) (relation Relation, err error) {
 	for _, rel := range r {
 		if rel.Name == name {
-			return rel
+			return rel, nil
 		}
 	}
-	return
+	return relation, RelationCanNotFoundErr
 }
