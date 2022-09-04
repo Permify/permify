@@ -41,7 +41,7 @@ func newPermissionRoutes(handler *echo.Group, t services.IPermissionService, l l
 // @Accept      json
 // @Produce     json
 // @Param       request body permission.CheckRequest true "''"
-// @Success     200 {object} permission.ExpandResponse
+// @Success     200 {object} permission.CheckResponse
 // @Failure     400 {object} responses.HTTPErrorResponse
 // @Router      /permissions/check [post]
 func (r *permissionRoutes) check(c echo.Context) (err error) {

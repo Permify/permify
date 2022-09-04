@@ -1,12 +1,22 @@
 {
+    "schemes": [
+        "http",
+        "https"
+    ],
     "swagger": "2.0",
     "info": {
+        "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations accross your individual applications and services. \\n\\n Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
         "title": "Permify API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {
+            "name": "API Support",
+            "url": "https://github.com/Permify/permify/issues",
+            "email": "hello@permify.co"
+        },
+        "license": {
+            "name": "GNU Affero General Public License v3.0"
+        },
+        "version": "v0.0.0-alpha3"
     },
-    "host": "localhost:3476",
-    "basePath": "/v1",
     "paths": {
         "/permissions/check": {
             "post": {
@@ -37,7 +47,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/permission.ExpandResponse"
+                            "$ref": "#/definitions/permission.CheckResponse"
                         }
                     },
                     "400": {
@@ -444,6 +454,18 @@
                 }
             }
         },
+        "permission.CheckResponse": {
+            "type": "object",
+            "properties": {
+                "can": {
+                    "type": "boolean"
+                },
+                "decisions": {},
+                "remaining_depth": {
+                    "type": "integer"
+                }
+            }
+        },
         "permission.ExpandRequest": {
             "type": "object",
             "properties": {
@@ -683,6 +705,13 @@
                     "$ref": "#/definitions/tuple.Subject"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "api-key-auth",
+            "in": "header"
         }
     }
 }
