@@ -1,14 +1,15 @@
 package database
 
-// ConnectionType -
-type ConnectionType string
+// Engine -
+type Engine string
 
 const (
-	POSTGRES ConnectionType = "postgres"
-	MONGO    ConnectionType = "mongo"
+	POSTGRES Engine = "postgres"
+	MONGO    Engine = "mongo"
+	MEMORY   Engine = "memory"
 )
 
 // String -
-func (c ConnectionType) String() string {
+func (c Engine) String() string {
 	return string(c)
 }

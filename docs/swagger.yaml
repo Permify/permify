@@ -1,41 +1,50 @@
 definitions:
+  common.HTTPErrorResponse:
+    properties:
+      errors: {}
+    type: object
+  common.Message:
+    properties:
+      message:
+        type: string
+    type: object
+  filters.EntityFilter:
+    properties:
+      id:
+        type: string
+      type:
+        type: string
+    type: object
   filters.RelationTupleFilter:
     properties:
       entity:
+        $ref: '#/definitions/filters.EntityFilter'
+      relation:
         type: string
+      subject:
+        $ref: '#/definitions/filters.SubjectFilter'
+    type: object
+  filters.SubjectFilter:
+    properties:
       id:
         type: string
       relation:
         type: string
-      subject_id:
-        type: string
-      subject_relation:
-        type: string
-      subject_type:
+      type:
         type: string
     type: object
   permission.CheckRequest:
     properties:
-      body:
-        description: "*\n\t * Body"
-        properties:
-          action:
-            type: string
-          depth:
-            type: integer
-          entity:
-            $ref: '#/definitions/tuple.Entity'
-          schema_version:
-            type: string
-          subject:
-            $ref: '#/definitions/tuple.Subject'
-        type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
+      action:
+        type: string
+      depth:
+        type: integer
+      entity:
+        $ref: '#/definitions/tuple.Entity'
+      schema_version:
+        type: string
+      subject:
+        $ref: '#/definitions/tuple.Subject'
     type: object
   permission.CheckResponse:
     properties:
@@ -47,22 +56,12 @@ definitions:
     type: object
   permission.ExpandRequest:
     properties:
-      body:
-        description: "*\n\t * Body"
-        properties:
-          action:
-            type: string
-          entity:
-            $ref: '#/definitions/tuple.Entity'
-          schema_version:
-            type: string
-        type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
+      action:
+        type: string
+      entity:
+        $ref: '#/definitions/tuple.Entity'
+      schema_version:
+        type: string
     type: object
   permission.ExpandResponse:
     properties:
@@ -70,88 +69,58 @@ definitions:
     type: object
   relationship.DeleteRequest:
     properties:
-      body:
-        description: "*\n\t * Body"
-        properties:
-          entity:
-            $ref: '#/definitions/tuple.Entity'
-          relation:
-            type: string
-          subject:
-            $ref: '#/definitions/tuple.Subject'
-        type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
+      entity:
+        $ref: '#/definitions/tuple.Entity'
+      relation:
+        type: string
+      subject:
+        $ref: '#/definitions/tuple.Subject'
     type: object
   relationship.ReadRequest:
     properties:
-      body:
-        description: "*\n\t * Body"
-        properties:
-          filter:
-            $ref: '#/definitions/filters.RelationTupleFilter'
-        type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
+      filter:
+        $ref: '#/definitions/filters.RelationTupleFilter'
     type: object
   relationship.WriteRequest:
     properties:
-      body:
-        description: "*\n\t * Body"
-        properties:
-          entity:
-            $ref: '#/definitions/tuple.Entity'
-          relation:
-            type: string
-          schema_version:
-            type: string
-          subject:
-            $ref: '#/definitions/tuple.Subject'
-        type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
-    type: object
-  responses.HTTPErrorResponse:
-    properties:
-      errors: {}
-    type: object
-  responses.Message:
-    properties:
-      message:
+      entity:
+        $ref: '#/definitions/tuple.Entity'
+      relation:
         type: string
+      schema_version:
+        type: string
+      subject:
+        $ref: '#/definitions/tuple.Subject'
+    type: object
+  schema.Action:
+    properties:
+      child: {}
+      name:
+        type: string
+    type: object
+  schema.Entity:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/schema.Action'
+        type: array
+      name:
+        type: string
+      relations:
+        items:
+          $ref: '#/definitions/schema.Relation'
+        type: array
     type: object
   schema.LookupRequest:
     properties:
-      body:
-        description: "*\n\t * Body"
-        properties:
-          entity_type:
-            type: string
-          relation_names:
-            items:
-              type: string
-            type: array
-          schema_version:
-            type: string
-        type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
+      entity_type:
+        type: string
+      relation_names:
+        items:
+          type: string
+        type: array
+      schema_version:
+        type: string
     type: object
   schema.LookupResponse:
     properties:
@@ -162,18 +131,24 @@ definitions:
     type: object
   schema.ReadRequest:
     properties:
-      body:
-        description: "*\n\t * Body"
+      schema_version:
+        type: string
+    type: object
+  schema.ReadResponse:
+    properties:
+      entities:
+        additionalProperties:
+          $ref: '#/definitions/schema.Entity'
         type: object
-      pathParams:
-        description: "*\n\t * PathParams"
-        properties:
-          schemaVersion:
-            type: string
-        type: object
-      queryParams:
-        description: "*\n\t * QueryParams"
-        type: object
+    type: object
+  schema.Relation:
+    properties:
+      name:
+        type: string
+      type:
+        items:
+          type: string
+        type: array
     type: object
   schema.WriteResponse:
     properties:
@@ -210,14 +185,9 @@ info:
     email: hello@permify.co
     name: API Support
     url: https://github.com/Permify/permify/issues
-  description: Permify is an open-source authorization service for creating and maintaining
-    fine-grained authorizations accross your individual applications and services.
-    \n\n Permify converts authorization data as relational tuples into a database
-    you point at. We called that database a Write Database (WriteDB) and it behaves
-    as a centralized data source for your authorization system. You can model of your
-    authorization with Permify's DSL - Permify Schema - and perform access checks
-    with a single API call anywhere on your stack. Access decisions made according
-    to stored relational tuples.
+  description: |-
+    Permify is an open-source authorization service for creating and maintaining fine-grained authorizations accross your individual applications and services.
+    Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.
   license:
     name: GNU Affero General Public License v3.0
   title: Permify API
@@ -227,10 +197,10 @@ paths:
     post:
       consumes:
       - application/json
-      description: Check subject is authorized
+      description: check subject is authorized
       operationId: permissions.check
       parameters:
-      - description: ''''''
+      - description: check subject is authorized
         in: body
         name: request
         required: true
@@ -246,7 +216,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Permission
       tags:
       - Permission
@@ -254,9 +224,10 @@ paths:
     post:
       consumes:
       - application/json
+      description: expand relationships according to schema
       operationId: permissions.expand
       parameters:
-      - description: ''''''
+      - description: expand relationships according to schema
         in: body
         name: request
         required: true
@@ -272,7 +243,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Permission
       tags:
       - Permission
@@ -283,7 +254,7 @@ paths:
       description: delete relation tuple
       operationId: relationships.delete
       parameters:
-      - description: ''''''
+      - description: delete relation tuple
         in: body
         name: request
         required: true
@@ -299,7 +270,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Relationship
       tags:
       - Relationship
@@ -310,7 +281,7 @@ paths:
       description: read relation tuple(s)
       operationId: relationships.read
       parameters:
-      - description: ''''''
+      - description: read relation tuple(s)
         in: body
         name: request
         required: true
@@ -328,7 +299,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Relationship
       tags:
       - Relationship
@@ -339,7 +310,7 @@ paths:
       description: create new relation tuple
       operationId: relationships.write
       parameters:
-      - description: ''''''
+      - description: create new relation tuple
         in: body
         name: request
         required: true
@@ -355,7 +326,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Relationship
       tags:
       - Relationship
@@ -366,7 +337,7 @@ paths:
       description: lookup your authorization model
       operationId: schemas.lookup
       parameters:
-      - description: ''''''
+      - description: lookup your authorization model
         in: body
         name: request
         required: true
@@ -382,18 +353,18 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Schema
       tags:
       - Schema
-  /schemas/read/:schema_version:
-    get:
+  /schemas/read:
+    post:
       consumes:
       - application/json
       description: read your authorization model
       operationId: schemas.read
       parameters:
-      - description: ''''''
+      - description: read your authorization model
         in: body
         name: request
         required: true
@@ -405,11 +376,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Message'
+            $ref: '#/definitions/schema.ReadResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Schema
       tags:
       - Schema
@@ -417,8 +388,17 @@ paths:
     post:
       consumes:
       - application/json
-      description: replace your authorization model
+      description: write your authorization model
       operationId: schemas.write
+      parameters:
+      - description: schema file (expected extension .perm)
+        in: body
+        name: schema
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
       produces:
       - application/json
       responses:
@@ -429,7 +409,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Schema
       tags:
       - Schema
@@ -444,11 +424,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Message'
+            $ref: '#/definitions/common.Message'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Server
       tags:
       - Server
@@ -463,11 +443,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Message'
+            $ref: '#/definitions/common.Message'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.HTTPErrorResponse'
+            $ref: '#/definitions/common.HTTPErrorResponse'
       summary: Server
       tags:
       - Server

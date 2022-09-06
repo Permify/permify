@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/Permify/permify/internal/controllers/http/responses"
+	"github.com/Permify/permify/internal/controllers/http/common"
 )
 
 type serverRoutes struct{}
@@ -26,11 +26,11 @@ func newServerRoutes(handler *echo.Group) {
 // @Tags  	    Server
 // @Accept      json
 // @Produce     json
-// @Success     200 {object} responses.Message
-// @Failure     400 {object} responses.HTTPErrorResponse
+// @Success     200 {object} common.Message
+// @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /status/ping [get]
 func (serverRoutes) ping(c echo.Context) (err error) {
-	return c.JSON(http.StatusOK, responses.MResponse("pong"))
+	return c.JSON(http.StatusOK, common.MResponse("pong"))
 }
 
 // @Summary     Server
@@ -39,8 +39,8 @@ func (serverRoutes) ping(c echo.Context) (err error) {
 // @Tags  	    Server
 // @Accept      json
 // @Produce     json
-// @Success     200 {object} responses.Message
-// @Failure     400 {object} responses.HTTPErrorResponse
+// @Success     200 {object} common.Message
+// @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /status/version [get]
 func (serverRoutes) version(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, map[string]interface{}{

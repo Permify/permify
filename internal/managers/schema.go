@@ -3,22 +3,22 @@ package managers
 import (
 	"context"
 
-	"github.com/dgraph-io/ristretto"
 	"github.com/rs/xid"
 
-	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/entities"
+	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/dsl/schema"
 )
 
 // EntityConfigManager -
 type EntityConfigManager struct {
 	repository repositories.IEntityConfigRepository
-	cache      *ristretto.Cache
+	cache      cache.Cache
 }
 
 // NewEntityConfigManager -
-func NewEntityConfigManager(repository repositories.IEntityConfigRepository, cache *ristretto.Cache) IEntityConfigManager {
+func NewEntityConfigManager(repository repositories.IEntityConfigRepository, cache cache.Cache) IEntityConfigManager {
 	return &EntityConfigManager{
 		repository: repository,
 		cache:      cache,

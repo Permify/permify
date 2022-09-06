@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/internal-errors"
+	"github.com/Permify/permify/internal/repositories/entities"
 	db "github.com/Permify/permify/pkg/database/mongo"
 )
 
@@ -97,7 +97,7 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (version s
 	return entityConfig.Version, err
 }
 
-// Replace -
+// Write -
 func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error) {
 	if len(configs) < 1 {
 		return nil
@@ -112,17 +112,6 @@ func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.Ent
 	}
 
 	_, err = coll.InsertMany(ctx, docs)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// Clear -
-func (r *EntityConfigRepository) Clear(ctx context.Context, version string) error {
-	coll := r.Database.Database().Collection(entities.EntityConfig{}.Collection())
-	filter := bson.M{"version": version}
-	_, err := coll.DeleteMany(ctx, filter)
 	if err != nil {
 		return err
 	}

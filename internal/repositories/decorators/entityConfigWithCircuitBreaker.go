@@ -5,10 +5,11 @@ import (
 
 	"github.com/afex/hystrix-go/hystrix"
 
-	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/entities"
 )
 
+// EntityConfigWithCircuitBreaker -
 type EntityConfigWithCircuitBreaker struct {
 	repository repositories.IEntityConfigRepository
 }
@@ -73,24 +74,6 @@ func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs enti
 	hystrix.ConfigureCommand("entityConfigRepository.write", hystrix.CommandConfig{Timeout: 1000})
 	errors := hystrix.Go("entityConfigRepository.write", func() error {
 		err = r.repository.Write(ctx, configs, version)
-		outputErr <- err
-		return nil
-	}, nil)
-
-	select {
-	case err = <-outputErr:
-		return err
-	case err = <-errors:
-		return err
-	}
-}
-
-// Clear -
-func (r *EntityConfigWithCircuitBreaker) Clear(ctx context.Context, version string) (err error) {
-	outputErr := make(chan error, 1)
-	hystrix.ConfigureCommand("entityConfigRepository.clear", hystrix.CommandConfig{Timeout: 1000})
-	errors := hystrix.Go("entityConfigRepository.clear", func() error {
-		err = r.repository.Clear(ctx, version)
 		outputErr <- err
 		return nil
 	}, nil)

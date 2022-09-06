@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	"github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/internal/repositories/filters"
 )
 
@@ -27,5 +27,4 @@ type IEntityConfigRepository interface {
 	All(ctx context.Context, version string) (configs entities.EntityConfigs, err error)
 	Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error)
 	Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error)
-	Clear(ctx context.Context, version string) (err error)
 }

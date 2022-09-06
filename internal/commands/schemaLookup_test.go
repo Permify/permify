@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/logger"
 )
 

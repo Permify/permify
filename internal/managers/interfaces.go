@@ -3,7 +3,7 @@ package managers
 import (
 	"context"
 
-	"github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/dsl/schema"
 )
 

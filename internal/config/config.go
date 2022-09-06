@@ -57,9 +57,9 @@ type (
 	// Write -
 	Write struct {
 		Connection string `env-required:"true" yaml:"connection"`
-		PoolMax    int    `env-required:"true" yaml:"pool_max"`
-		Database   string `env-required:"true" yaml:"database"`
-		URI        string `env-required:"true" yaml:"uri"`
+		PoolMax    int    `yaml:"pool_max"`
+		Database   string `yaml:"database"`
+		URI        string `yaml:"uri"`
 	}
 )
 

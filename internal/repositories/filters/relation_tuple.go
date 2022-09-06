@@ -6,20 +6,41 @@ import (
 
 // RelationTupleFilter -
 type RelationTupleFilter struct {
-	Entity          string `json:"entity"`
-	ID              string `json:"id"`
-	Relation        string `json:"relation"`
-	SubjectType     string `json:"subject_type"`
-	SubjectID       string `json:"subject_id"`
-	SubjectRelation string `json:"subject_relation"`
+	Entity   EntityFilter  `json:"entity"`
+	Relation string        `json:"relation"`
+	Subject  SubjectFilter `json:"subject"`
 }
 
 // Validate -
 func (r RelationTupleFilter) Validate() (err error) {
-	// Validate Body
 	err = validation.ValidateStruct(&r,
-		// object
-		validation.Field(&r.Entity, validation.Required),
+		validation.Field(&r.Entity),
 	)
 	return
+}
+
+// EntityFilter -
+type EntityFilter struct {
+	Type string `json:"type"`
+	ID   string `json:"id"`
+}
+
+// Validate -
+func (r EntityFilter) Validate() (err error) {
+	err = validation.ValidateStruct(&r,
+		validation.Field(&r.Type, validation.Required),
+	)
+	return
+}
+
+// SubjectFilter -
+type SubjectFilter struct {
+	Type     string `json:"type"`
+	ID       string `json:"id"`
+	Relation string `json:"relation"`
+}
+
+// Validate -
+func (r SubjectFilter) Validate() (err error) {
+	return nil
 }

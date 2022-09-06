@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/internal/repositories/filters"
 )
 

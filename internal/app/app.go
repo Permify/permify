@@ -9,8 +9,6 @@ import (
 
 	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/dgraph-io/ristretto"
-
 	"github.com/labstack/echo/v4"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 
@@ -18,10 +16,11 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
 	v1 "github.com/Permify/permify/internal/controllers/http/v1"
+	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/managers"
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/httpserver"
 	"github.com/Permify/permify/pkg/logger"
@@ -35,12 +34,12 @@ func Run(cfg *config.Config) {
 
 	l := logger.New(cfg.Log.Level)
 
-	var DB database.Database
-	DB, err = database.DBFactory(cfg.Write)
+	var db database.Database
+	db, err = factories.DatabaseFactory(cfg.Write)
 	if err != nil {
 		l.Fatal(fmt.Errorf("permify - Run - DBFactory: %w", err))
 	}
-	defer DB.Close()
+	defer db.Close()
 
 	// Tracing
 	if cfg.Tracer != nil && !cfg.Tracer.Disabled {
@@ -62,24 +61,20 @@ func Run(cfg *config.Config) {
 	}
 
 	// cache
-	var cache *ristretto.Cache
-	cache, err = ristretto.NewCache(&ristretto.Config{
-		NumCounters: 1e7,
-		MaxCost:     1 << 30,
-		BufferItems: 64,
-	})
+	var ch cache.Cache
+	ch, err = factories.CacheFactory(cache.RISTRETTO)
 	if err != nil {
-		l.Fatal(fmt.Errorf("permify - Run - ristretto.NewCache: %w", err))
+		l.Fatal(fmt.Errorf("permify - Run - cache.Factory: %w", err))
 	}
 
 	// Repositories
-	relationTupleRepository := repositories.RelationTupleFactory(DB)
+	relationTupleRepository := factories.RelationTupleFactory(db)
 	err = relationTupleRepository.Migrate()
 	if err != nil {
 		l.Fatal(fmt.Errorf("permify - Run - relationTupleRepository.Migrate: %w", err))
 	}
 
-	entityConfigRepository := repositories.EntityConfigFactory(DB)
+	entityConfigRepository := factories.EntityConfigFactory(db)
 	err = entityConfigRepository.Migrate()
 	if err != nil {
 		l.Fatal(fmt.Errorf("permify - Run - entityConfigRepository.Migrate: %w", err))
@@ -90,7 +85,7 @@ func Run(cfg *config.Config) {
 	entityConfigWithCircuitBreaker := decorators.NewEntityConfigWithCircuitBreaker(entityConfigRepository)
 
 	// manager
-	schemaManager := managers.NewEntityConfigManager(entityConfigWithCircuitBreaker, cache)
+	schemaManager := managers.NewEntityConfigManager(entityConfigWithCircuitBreaker, ch)
 
 	// commands
 	checkCommand := commands.NewCheckCommand(relationTupleWithCircuitBreaker, l)

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Permify/permify/internal/commands"
-	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -17,9 +16,9 @@ type IPermissionService interface {
 
 // IRelationshipService -
 type IRelationshipService interface {
-	ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) ([]entities.RelationTuple, error)
-	WriteRelationship(ctx context.Context, entities entities.RelationTuple, version string) error
-	DeleteRelationship(ctx context.Context, entities entities.RelationTuple) error
+	ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) ([]tuple.Tuple, error)
+	WriteRelationship(ctx context.Context, entities tuple.Tuple, version string) error
+	DeleteRelationship(ctx context.Context, entities tuple.Tuple) error
 }
 
 // ISchemaService -

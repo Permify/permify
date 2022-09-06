@@ -183,9 +183,9 @@ func (s Subject) ValidateSubjectType(relationTypes []string) (err error) {
 
 // Tuple -
 type Tuple struct {
-	Entity   Entity  `json:"entity"`
-	Relation string  `json:"relation"`
-	Subject  Subject `json:"subject"`
+	Entity   Entity   `json:"entity"`
+	Relation Relation `json:"relation"`
+	Subject  Subject  `json:"subject"`
 }
 
 // String -

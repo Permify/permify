@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/Permify/permify/internal/entities"
+	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/mongo"
@@ -60,31 +60,31 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 	return
 }
 
-// Write -.
+// Read -.
 func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err error) {
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 
 	eq := bson.M{}
 	eq["entity"] = filter.Entity
 
-	if filter.ID != "" {
-		eq["object_id"] = filter.ID
+	if filter.Entity.ID != "" {
+		eq["object_id"] = filter.Entity.ID
 	}
 
 	if filter.Relation != "" {
 		eq["relation"] = filter.Relation
 	}
 
-	if filter.SubjectType != "" {
-		eq["userset_entity"] = filter.SubjectType
+	if filter.Subject.Type != "" {
+		eq["userset_entity"] = filter.Subject.Type
 	}
 
-	if filter.SubjectID != "" {
-		eq["userset_object_id"] = filter.SubjectID
+	if filter.Subject.ID != "" {
+		eq["userset_object_id"] = filter.Subject.ID
 	}
 
-	if filter.SubjectRelation != "" {
-		eq["userset_relation"] = filter.SubjectRelation
+	if filter.Subject.Relation != "" {
+		eq["userset_relation"] = filter.Subject.Relation
 	}
 
 	opts := options.Find().SetSort(bson.D{{"userset_entity", 1}, {"userset_relation", 1}})

@@ -4,11 +4,12 @@ import (
 	"github.com/afex/hystrix-go/hystrix"
 	"golang.org/x/net/context"
 
-	"github.com/Permify/permify/internal/entities"
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/internal/repositories/filters"
 )
 
+// RelationTupleWithCircuitBreaker -
 type RelationTupleWithCircuitBreaker struct {
 	repository repositories.IRelationTupleRepository
 }
@@ -45,7 +46,7 @@ func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entit
 	}
 }
 
-// QueryTuples -
+// Read -
 func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err error) {
 	output := make(chan entities.RelationTuples, 1)
 	outputErr := make(chan error, 1)
@@ -67,7 +68,7 @@ func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter filte
 	}
 }
 
-// QueryTuples -
+// Write -
 func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, tuples entities.RelationTuples) (err error) {
 	outputErr := make(chan error, 1)
 	hystrix.ConfigureCommand("relationTupleRepository.write", hystrix.CommandConfig{Timeout: 1000})

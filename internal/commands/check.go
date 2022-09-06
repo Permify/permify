@@ -6,9 +6,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/Permify/permify/internal/entities"
 	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"

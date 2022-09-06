@@ -25,7 +25,7 @@ const docTemplate = `{
     "paths": {
         "/permissions/check": {
             "post": {
-                "description": "Check subject is authorized",
+                "description": "check subject is authorized",
                 "consumes": [
                     "application/json"
                 ],
@@ -39,7 +39,7 @@ const docTemplate = `{
                 "operationId": "permissions.check",
                 "parameters": [
                     {
-                        "description": "''",
+                        "description": "check subject is authorized",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -58,7 +58,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -66,6 +66,7 @@ const docTemplate = `{
         },
         "/permissions/expand": {
             "post": {
+                "description": "expand relationships according to schema",
                 "consumes": [
                     "application/json"
                 ],
@@ -79,7 +80,7 @@ const docTemplate = `{
                 "operationId": "permissions.expand",
                 "parameters": [
                     {
-                        "description": "''",
+                        "description": "expand relationships according to schema",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -98,7 +99,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -120,7 +121,7 @@ const docTemplate = `{
                 "operationId": "relationships.delete",
                 "parameters": [
                     {
-                        "description": "''",
+                        "description": "delete relation tuple",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -139,7 +140,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -161,7 +162,7 @@ const docTemplate = `{
                 "operationId": "relationships.read",
                 "parameters": [
                     {
-                        "description": "''",
+                        "description": "read relation tuple(s)",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -183,7 +184,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -205,7 +206,7 @@ const docTemplate = `{
                 "operationId": "relationships.write",
                 "parameters": [
                     {
-                        "description": "''",
+                        "description": "create new relation tuple",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -224,7 +225,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -246,7 +247,7 @@ const docTemplate = `{
                 "operationId": "schemas.lookup",
                 "parameters": [
                     {
-                        "description": "''",
+                        "description": "lookup your authorization model",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -265,14 +266,14 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/schemas/read/:schema_version": {
-            "get": {
+        "/schemas/read": {
+            "post": {
                 "description": "read your authorization model",
                 "consumes": [
                     "application/json"
@@ -287,7 +288,7 @@ const docTemplate = `{
                 "operationId": "schemas.read",
                 "parameters": [
                     {
-                        "description": "''",
+                        "description": "read your authorization model",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -300,13 +301,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.Message"
+                            "$ref": "#/definitions/schema.ReadResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -314,7 +315,7 @@ const docTemplate = `{
         },
         "/schemas/write": {
             "post": {
-                "description": "replace your authorization model",
+                "description": "write your authorization model",
                 "consumes": [
                     "application/json"
                 ],
@@ -326,6 +327,20 @@ const docTemplate = `{
                 ],
                 "summary": "Schema",
                 "operationId": "schemas.write",
+                "parameters": [
+                    {
+                        "description": "schema file (expected extension .perm)",
+                        "name": "schema",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -336,7 +351,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -359,13 +374,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.Message"
+                            "$ref": "#/definitions/common.Message"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -388,13 +403,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.Message"
+                            "$ref": "#/definitions/common.Message"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.HTTPErrorResponse"
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
                         }
                     }
                 }
@@ -402,25 +417,55 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "common.HTTPErrorResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {}
+            }
+        },
+        "common.Message": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "filters.EntityFilter": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "filters.RelationTupleFilter": {
             "type": "object",
             "properties": {
                 "entity": {
+                    "$ref": "#/definitions/filters.EntityFilter"
+                },
+                "relation": {
                     "type": "string"
                 },
+                "subject": {
+                    "$ref": "#/definitions/filters.SubjectFilter"
+                }
+            }
+        },
+        "filters.SubjectFilter": {
+            "type": "object",
+            "properties": {
                 "id": {
                     "type": "string"
                 },
                 "relation": {
                     "type": "string"
                 },
-                "subject_id": {
-                    "type": "string"
-                },
-                "subject_relation": {
-                    "type": "string"
-                },
-                "subject_type": {
+                "type": {
                     "type": "string"
                 }
             }
@@ -428,34 +473,20 @@ const docTemplate = `{
         "permission.CheckRequest": {
             "type": "object",
             "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object",
-                    "properties": {
-                        "action": {
-                            "type": "string"
-                        },
-                        "depth": {
-                            "type": "integer"
-                        },
-                        "entity": {
-                            "$ref": "#/definitions/tuple.Entity"
-                        },
-                        "schema_version": {
-                            "type": "string"
-                        },
-                        "subject": {
-                            "$ref": "#/definitions/tuple.Subject"
-                        }
-                    }
+                "action": {
+                    "type": "string"
                 },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
-                    "type": "object"
+                "depth": {
+                    "type": "integer"
                 },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
+                "entity": {
+                    "$ref": "#/definitions/tuple.Entity"
+                },
+                "schema_version": {
+                    "type": "string"
+                },
+                "subject": {
+                    "$ref": "#/definitions/tuple.Subject"
                 }
             }
         },
@@ -474,28 +505,14 @@ const docTemplate = `{
         "permission.ExpandRequest": {
             "type": "object",
             "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object",
-                    "properties": {
-                        "action": {
-                            "type": "string"
-                        },
-                        "entity": {
-                            "$ref": "#/definitions/tuple.Entity"
-                        },
-                        "schema_version": {
-                            "type": "string"
-                        }
-                    }
+                "action": {
+                    "type": "string"
                 },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
-                    "type": "object"
+                "entity": {
+                    "$ref": "#/definitions/tuple.Entity"
                 },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
+                "schema_version": {
+                    "type": "string"
                 }
             }
         },
@@ -508,126 +525,85 @@ const docTemplate = `{
         "relationship.DeleteRequest": {
             "type": "object",
             "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object",
-                    "properties": {
-                        "entity": {
-                            "$ref": "#/definitions/tuple.Entity"
-                        },
-                        "relation": {
-                            "type": "string"
-                        },
-                        "subject": {
-                            "$ref": "#/definitions/tuple.Subject"
-                        }
-                    }
+                "entity": {
+                    "$ref": "#/definitions/tuple.Entity"
                 },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
-                    "type": "object"
+                "relation": {
+                    "type": "string"
                 },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
+                "subject": {
+                    "$ref": "#/definitions/tuple.Subject"
                 }
             }
         },
         "relationship.ReadRequest": {
             "type": "object",
             "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object",
-                    "properties": {
-                        "filter": {
-                            "$ref": "#/definitions/filters.RelationTupleFilter"
-                        }
-                    }
-                },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
-                    "type": "object"
-                },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
+                "filter": {
+                    "$ref": "#/definitions/filters.RelationTupleFilter"
                 }
             }
         },
         "relationship.WriteRequest": {
             "type": "object",
             "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object",
-                    "properties": {
-                        "entity": {
-                            "$ref": "#/definitions/tuple.Entity"
-                        },
-                        "relation": {
-                            "type": "string"
-                        },
-                        "schema_version": {
-                            "type": "string"
-                        },
-                        "subject": {
-                            "$ref": "#/definitions/tuple.Subject"
-                        }
-                    }
+                "entity": {
+                    "$ref": "#/definitions/tuple.Entity"
                 },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
-                    "type": "object"
+                "relation": {
+                    "type": "string"
                 },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
+                "schema_version": {
+                    "type": "string"
+                },
+                "subject": {
+                    "$ref": "#/definitions/tuple.Subject"
                 }
             }
         },
-        "responses.HTTPErrorResponse": {
+        "schema.Action": {
             "type": "object",
             "properties": {
-                "errors": {}
+                "child": {},
+                "name": {
+                    "type": "string"
+                }
             }
         },
-        "responses.Message": {
+        "schema.Entity": {
             "type": "object",
             "properties": {
-                "message": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.Action"
+                    }
+                },
+                "name": {
                     "type": "string"
+                },
+                "relations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.Relation"
+                    }
                 }
             }
         },
         "schema.LookupRequest": {
             "type": "object",
             "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object",
-                    "properties": {
-                        "entity_type": {
-                            "type": "string"
-                        },
-                        "relation_names": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "schema_version": {
-                            "type": "string"
-                        }
+                "entity_type": {
+                    "type": "string"
+                },
+                "relation_names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
-                    "type": "object"
-                },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
+                "schema_version": {
+                    "type": "string"
                 }
             }
         },
@@ -645,22 +621,33 @@ const docTemplate = `{
         "schema.ReadRequest": {
             "type": "object",
             "properties": {
-                "body": {
-                    "description": "*\n\t * Body",
-                    "type": "object"
-                },
-                "pathParams": {
-                    "description": "*\n\t * PathParams",
+                "schema_version": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ReadResponse": {
+            "type": "object",
+            "properties": {
+                "entities": {
                     "type": "object",
-                    "properties": {
-                        "schemaVersion": {
-                            "type": "string"
-                        }
+                    "additionalProperties": {
+                        "$ref": "#/definitions/schema.Entity"
                     }
+                }
+            }
+        },
+        "schema.Relation": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
                 },
-                "queryParams": {
-                    "description": "*\n\t * QueryParams",
-                    "type": "object"
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -728,7 +715,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "",
 	Schemes:          []string{"http", "https"},
 	Title:            "Permify API",
-	Description:      "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations accross your individual applications and services. \\n\\n Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
+	Description:      "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations accross your individual applications and services.\nPermify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }
