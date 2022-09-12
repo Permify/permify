@@ -11,6 +11,7 @@ import (
 	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/mongo"
+	"github.com/Permify/permify/pkg/errors"
 )
 
 // RelationTupleRepository -.
@@ -24,11 +25,12 @@ func NewRelationTupleRepository(mn *db.Mongo) *RelationTupleRepository {
 }
 
 // Migrate -
-func (r *RelationTupleRepository) Migrate() (err error) {
+func (r *RelationTupleRepository) Migrate() errors.Error {
+	var err error
 	command := bson.D{{"create", entities.RelationTuple{}.Collection()}}
 	var result bson.M
 	if err = r.Database.Database().RunCommand(context.TODO(), command).Decode(&result); err != nil {
-		return nil
+		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
 	}
 	_, err = r.Database.Database().Collection(entities.RelationTuple{}.Collection()).Indexes().CreateOne(context.Background(), mongo.IndexModel{
 		Keys: bson.M{
@@ -37,13 +39,15 @@ func (r *RelationTupleRepository) Migrate() (err error) {
 		Options: options.Index().SetUnique(true),
 	})
 	if err != nil {
-		return err
+		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
 	}
 	return nil
 }
 
 // QueryTuples -
-func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuples entities.RelationTuples, err error) {
+func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (entities.RelationTuples, errors.Error) {
+	var err error
+	var tuples entities.RelationTuples
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 	filter := bson.M{"entity": entity, "object_id": objectID, "relation": relation}
 	opts := options.Find().SetSort(bson.D{{"userset_entity", 1}, {"userset_relation", 1}})
@@ -51,17 +55,20 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 	var cursor *mongo.Cursor
 	cursor, err = coll.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
 	}
 
 	if err = cursor.All(ctx, &tuples); err != nil {
-		return nil, err
+		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
 	}
-	return
+	return tuples, nil
 }
 
 // Read -.
-func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err error) {
+func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (entities.RelationTuples, errors.Error) {
+	var err error
+	var tuples entities.RelationTuples
+
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 
 	eq := bson.M{}
@@ -92,17 +99,18 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 	var cursor *mongo.Cursor
 	cursor, err = coll.Find(ctx, eq, opts)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+	}
+	if err = cursor.All(ctx, &tuples); err != nil {
+		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
 	}
 
-	if err = cursor.All(ctx, &tuples); err != nil {
-		return nil, err
-	}
-	return
+	return tuples, nil
 }
 
 // Write -.
-func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) (err error) {
+func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) errors.Error {
+	var err error
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 	var docs []interface{}
 	for _, tup := range tuples {
@@ -111,21 +119,21 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 	_, err = coll.InsertMany(ctx, docs)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			return database.ErrUniqueConstraint
+			return errors.NewError(errors.Database).SetSubKind(database.ErrUniqueConstraint)
 		}
-		return err
+		return errors.NewError(errors.Database).SetMessage(err.Error())
 	}
 	return nil
 }
 
 // Delete -.
-func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) error {
+func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) errors.Error {
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
 	for _, tuple := range tuples {
 		filter := bson.M{"entity": tuple.Entity, "object_id": tuple.ObjectID, "relation": tuple.Relation, "userset_entity": tuple.UsersetEntity, "userset_object_id": tuple.UsersetObjectID, "userset_relation": tuple.UsersetRelation}
 		_, err := coll.DeleteOne(ctx, filter)
 		if err != nil {
-			return err
+			return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
 		}
 	}
 	return nil

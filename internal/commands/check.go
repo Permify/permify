@@ -6,23 +6,24 @@ import (
 	"sync"
 	"sync/atomic"
 
-	internalErrors "github.com/Permify/permify/internal/internal-errors"
+	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 // CheckDecision -
 type CheckDecision struct {
-	Prefix string `json:"prefix"`
-	Can    bool   `json:"can"`
-	Err    error  `json:"-"`
+	Prefix string       `json:"prefix"`
+	Can    bool         `json:"can"`
+	Err    errors.Error `json:"-"`
 }
 
 // sendCheckDecision -
-func sendCheckDecision(can bool, prefix string, err error) CheckDecision {
+func sendCheckDecision(can bool, prefix string, err errors.Error) CheckDecision {
 	return CheckDecision{
 		Prefix: prefix,
 		Can:    can,
@@ -99,7 +100,7 @@ type CheckResponse struct {
 }
 
 // Execute -
-func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child schema.Child) (response CheckResponse, err error) {
+func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child schema.Child) (response CheckResponse, err errors.Error) {
 	response.Can = false
 	response.Can, err = command.c(ctx, q, child)
 	response.Visits = q.LoadVisits()
@@ -108,7 +109,7 @@ func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child s
 }
 
 // c -
-func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child schema.Child) (bool, error) {
+func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child schema.Child) (bool, errors.Error) {
 	var fn CheckFunction
 	switch child.GetKind() {
 	case schema.RewriteKind.String():
@@ -171,7 +172,7 @@ func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []
 // check -
 func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, relation tuple.Relation, q *CheckQuery, exclusion bool) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- CheckDecision) {
-		var err error
+		var err errors.Error
 
 		q.decrease()
 
@@ -288,14 +289,14 @@ func checkIntersection(ctx context.Context, functions []CheckFunction) CheckDeci
 }
 
 // checkFail -
-func checkFail(err error) CheckFunction {
+func checkFail(err errors.Error) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- CheckDecision) {
 		decisionChan <- sendCheckDecision(false, "", err)
 	}
 }
 
 // getSubjects -
-func (command *CheckCommand) getSubjects(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (iterator tuple.ISubjectIterator, err error) {
+func (command *CheckCommand) getSubjects(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (iterator tuple.ISubjectIterator, err errors.Error) {
 	r := relation.Split()
 
 	var tuples []entities.RelationTuple

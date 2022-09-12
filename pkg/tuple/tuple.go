@@ -1,12 +1,12 @@
 package tuple
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/helper"
 )
 
@@ -75,44 +75,6 @@ func (s Subject) Validate() (err error) {
 	return
 }
 
-// Iterator -
-
-type ISubjectIterator interface {
-	HasNext() bool
-	GetNext() *Subject
-}
-
-// SubjectIterator -
-type SubjectIterator struct {
-	index    int
-	subjects []*Subject
-}
-
-// NewSubjectIterator -
-func NewSubjectIterator(subjects []*Subject) *SubjectIterator {
-	return &SubjectIterator{
-		subjects: subjects,
-	}
-}
-
-// HasNext -
-func (u *SubjectIterator) HasNext() bool {
-	if u.index < len(u.subjects) {
-		return true
-	}
-	return false
-}
-
-// GetNext -
-func (u *SubjectIterator) GetNext() *Subject {
-	if u.HasNext() {
-		t := u.subjects[u.index]
-		u.index++
-		return t
-	}
-	return nil
-}
-
 // String -
 func (s Subject) String() string {
 	if s.IsUser() {
@@ -165,7 +127,7 @@ func (s Subject) Equals(v interface{}) bool {
 }
 
 // ValidateSubjectType -
-func (s Subject) ValidateSubjectType(relationTypes []string) (err error) {
+func (s Subject) ValidateSubjectType(relationTypes []string) (err errors.Error) {
 	key := s.Type
 	if s.Relation.String() != "" {
 		if !s.IsUser() {
@@ -176,7 +138,45 @@ func (s Subject) ValidateSubjectType(relationTypes []string) (err error) {
 	}
 
 	if !helper.InArray(key, relationTypes) {
-		return NotFoundInSpecifiedRelationTypes
+		return errors.NewError(errors.Service).SetMessage("subject type is not found in defined types")
+	}
+	return nil
+}
+
+// Iterator -
+
+type ISubjectIterator interface {
+	HasNext() bool
+	GetNext() *Subject
+}
+
+// SubjectIterator -
+type SubjectIterator struct {
+	index    int
+	subjects []*Subject
+}
+
+// NewSubjectIterator -
+func NewSubjectIterator(subjects []*Subject) *SubjectIterator {
+	return &SubjectIterator{
+		subjects: subjects,
+	}
+}
+
+// HasNext -
+func (u *SubjectIterator) HasNext() bool {
+	if u.index < len(u.subjects) {
+		return true
+	}
+	return false
+}
+
+// GetNext -
+func (u *SubjectIterator) GetNext() *Subject {
+	if u.HasNext() {
+		t := u.subjects[u.index]
+		u.index++
+		return t
 	}
 	return nil
 }
@@ -193,43 +193,6 @@ func (r Tuple) String() string {
 	object := fmt.Sprintf(ENTITY, r.Entity.Type, r.Entity.ID)
 	relation := fmt.Sprintf(RELATION, r.Relation)
 	return object + relation + "@" + r.Subject.String()
-}
-
-// ConvertSubject -
-func ConvertSubject(v string) Subject {
-	parts := strings.Split(v, "#")
-	if len(parts) != 2 {
-		return Subject{
-			Type: USER,
-			ID:   v,
-		}
-	}
-
-	innerParts := strings.Split(parts[0], ":")
-	if len(innerParts) != 2 {
-		return Subject{
-			Type: USER,
-			ID:   v,
-		}
-	}
-
-	return Subject{
-		Type:     innerParts[0],
-		ID:       innerParts[1],
-		Relation: Relation(parts[1]),
-	}
-}
-
-// ConvertEntity -
-func ConvertEntity(v string) (Entity, error) {
-	obj := strings.Split(v, ":")
-	if len(obj) < 2 {
-		return Entity{}, errors.New("input is not suitable for the object")
-	}
-	return Entity{
-		Type: obj[0],
-		ID:   obj[1],
-	}, nil
 }
 
 const (

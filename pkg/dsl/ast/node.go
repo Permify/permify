@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/token"
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -34,14 +35,16 @@ type Schema struct {
 }
 
 // Validate -
-func (sch Schema) Validate() (err error) {
+func (sch Schema) Validate() (err errors.Error) {
 	for _, st := range sch.Statements {
 		name := st.(*EntityStatement).Name.Literal
 		if name == tuple.USER {
 			return nil
 		}
 	}
-	return UserEntityRequiredErr
+	return errors.NewError(errors.Kind("validation")).SetParams(map[string]interface{}{
+		"schema": UserEntityRequiredErr.Error(),
+	})
 }
 
 // EntityStatement -

@@ -1,7 +1,6 @@
 package permission
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -10,8 +9,9 @@ import (
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/controllers/http/common"
-	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 )
 
@@ -44,18 +44,20 @@ func NewPermissionRoutes(handler *echo.Group, t services.IPermissionService, l l
 // @Success     200 {object} CheckResponse
 // @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /permissions/check [post]
-func (r *permissionRoutes) check(c echo.Context) (err error) {
+func (r *permissionRoutes) check(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "permissions.check")
 	defer span.End()
 
 	request := new(CheckRequest)
-	if err = (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
+	if err := (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
 		return err
 	}
 	v := request.Validate()
 	if v != nil {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(v))
 	}
+
+	var err errors.Error
 
 	if request.Depth == 0 {
 		request.Depth = 20
@@ -64,20 +66,18 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 	var response commands.CheckResponse
 	response, err = r.service.Check(ctx, request.Subject, request.Action, request.Entity, request.SchemaVersion.String(), request.Depth)
 	if err != nil {
-		if errors.Is(err, internalErrors.DepthError) {
-			span.RecordError(internalErrors.DepthError)
-			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"depth": "depth is not enough to check"})
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
 		}
-		if errors.Is(err, internalErrors.ActionCannotFoundError) {
-			span.RecordError(internalErrors.ActionCannotFoundError)
-			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"action": "action cannot be found"})
-		}
-		if errors.Is(err, internalErrors.EntityConfigCannotFoundError) {
-			span.RecordError(internalErrors.EntityConfigCannotFoundError)
-			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"entity": "entity config cannot be found"})
-		}
-		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
-		return echo.ErrInternalServerError
 	}
 
 	return c.JSON(http.StatusOK, CheckResponse{
@@ -97,12 +97,12 @@ func (r *permissionRoutes) check(c echo.Context) (err error) {
 // @Success     200 {object} ExpandResponse
 // @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /permissions/expand [post]
-func (r *permissionRoutes) expand(c echo.Context) (err error) {
+func (r *permissionRoutes) expand(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "permissions.expand")
 	defer span.End()
 
 	request := new(ExpandRequest)
-	if err = (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
+	if err := (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
 		return err
 	}
 	v := request.Validate()
@@ -110,23 +110,23 @@ func (r *permissionRoutes) expand(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(v))
 	}
 
+	var err errors.Error
+
 	var response commands.ExpandResponse
 	response, err = r.service.Expand(ctx, request.Entity, request.Action, request.SchemaVersion.String())
 	if err != nil {
-		if errors.Is(err, internalErrors.DepthError) {
-			span.RecordError(internalErrors.DepthError)
-			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"depth": "depth is not enough to check"})
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
 		}
-		if errors.Is(err, internalErrors.ActionCannotFoundError) {
-			span.RecordError(internalErrors.ActionCannotFoundError)
-			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"action": "action cannot be found"})
-		}
-		if errors.Is(err, internalErrors.EntityConfigCannotFoundError) {
-			span.RecordError(internalErrors.EntityConfigCannotFoundError)
-			return c.JSON(http.StatusUnprocessableEntity, map[string]interface{}{"entity": "entity config cannot be found"})
-		}
-		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
-		return echo.ErrInternalServerError
 	}
 
 	return c.JSON(http.StatusOK, ExpandResponse{

@@ -1,13 +1,13 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/lexer"
 	"github.com/Permify/permify/pkg/dsl/token"
+	"github.com/Permify/permify/pkg/errors"
 )
 
 const (
@@ -75,11 +75,13 @@ func (p *Parser) peekTokenIs(t token.Type) bool {
 }
 
 // Error -
-func (p *Parser) Error() error {
+func (p *Parser) Error() errors.Error {
 	if len(p.errors) == 0 {
 		return nil
 	}
-	return errors.New(strings.Join(p.errors, ","))
+	return errors.NewError(errors.Validation).SetParams(map[string]interface{}{
+		"schema": strings.Join(p.errors, ","),
+	})
 }
 
 // Errors -

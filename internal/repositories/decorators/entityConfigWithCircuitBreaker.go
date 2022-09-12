@@ -7,6 +7,7 @@ import (
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/entities"
+	"github.com/Permify/permify/pkg/errors"
 )
 
 // EntityConfigWithCircuitBreaker -
@@ -20,16 +21,16 @@ func NewEntityConfigWithCircuitBreaker(entityConfigRepository repositories.IEnti
 }
 
 // Migrate -
-func (r *EntityConfigWithCircuitBreaker) Migrate() (err error) {
+func (r *EntityConfigWithCircuitBreaker) Migrate() (err errors.Error) {
 	return nil
 }
 
 // All -
-func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string) (configs entities.EntityConfigs, err error) {
+func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string) (configs entities.EntityConfigs, err errors.Error) {
 	output := make(chan entities.EntityConfigs, 1)
-	outputErr := make(chan error, 1)
+	outputErr := make(chan errors.Error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.all", hystrix.CommandConfig{Timeout: 1000})
-	errors := hystrix.Go("entityConfigRepository.all", func() error {
+	bErrors := hystrix.Go("entityConfigRepository.all", func() error {
 		configs, err = r.repository.All(ctx, version)
 		outputErr <- err
 		output <- configs
@@ -41,17 +42,17 @@ func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string
 		return out, nil
 	case err = <-outputErr:
 		return configs, err
-	case err = <-errors:
-		return configs, err
+	case <-bErrors:
+		return configs, errors.CircuitBreakerError
 	}
 }
 
 // Read -
-func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err error) {
+func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err errors.Error) {
 	output := make(chan entities.EntityConfig, 1)
-	outputErr := make(chan error, 1)
+	outputErr := make(chan errors.Error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.read", hystrix.CommandConfig{Timeout: 1000})
-	errors := hystrix.Go("entityConfigRepository.read", func() error {
+	bErrors := hystrix.Go("entityConfigRepository.read", func() error {
 		config, err = r.repository.Read(ctx, name, version)
 		outputErr <- err
 		output <- config
@@ -63,16 +64,16 @@ func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, 
 		return out, nil
 	case err = <-outputErr:
 		return config, err
-	case err = <-errors:
-		return config, err
+	case <-bErrors:
+		return config, errors.CircuitBreakerError
 	}
 }
 
 // Write -
-func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err error) {
-	outputErr := make(chan error, 1)
+func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err errors.Error) {
+	outputErr := make(chan errors.Error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.write", hystrix.CommandConfig{Timeout: 1000})
-	errors := hystrix.Go("entityConfigRepository.write", func() error {
+	bErrors := hystrix.Go("entityConfigRepository.write", func() error {
 		err = r.repository.Write(ctx, configs, version)
 		outputErr <- err
 		return nil
@@ -81,7 +82,7 @@ func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs enti
 	select {
 	case err = <-outputErr:
 		return err
-	case err = <-errors:
-		return err
+	case <-bErrors:
+		return errors.CircuitBreakerError
 	}
 }

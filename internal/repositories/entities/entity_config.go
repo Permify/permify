@@ -3,8 +3,10 @@ package entities
 import (
 	"time"
 
+	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
 )
 
 // EntityConfig -
@@ -26,7 +28,8 @@ func (EntityConfig) Collection() string {
 }
 
 // ToSchema -
-func (e EntityConfig) ToSchema() (sch schema.Schema, err error) {
+func (e EntityConfig) ToSchema() (schema.Schema, errors.Error) {
+	var err error
 	pr := parser.NewParser(string(e.SerializedConfig))
 	parsed := pr.Parse()
 	if pr.Error() != nil {
@@ -35,7 +38,7 @@ func (e EntityConfig) ToSchema() (sch schema.Schema, err error) {
 	var s *parser.SchemaTranslator
 	s, err = parser.NewSchemaTranslator(parsed)
 	if err != nil {
-		return schema.Schema{}, err
+		return schema.Schema{}, internalErrors.ConfigParserError
 	}
 	return s.Translate(), nil
 }
@@ -44,7 +47,8 @@ func (e EntityConfig) ToSchema() (sch schema.Schema, err error) {
 type EntityConfigs []EntityConfig
 
 // ToSchema -
-func (e EntityConfigs) ToSchema() (sch schema.Schema, err error) {
+func (e EntityConfigs) ToSchema() (schema.Schema, errors.Error) {
+	var err error
 	var configs string
 	for _, c := range e {
 		configs += string(c.SerializedConfig) + "\n"
@@ -52,12 +56,12 @@ func (e EntityConfigs) ToSchema() (sch schema.Schema, err error) {
 	pr := parser.NewParser(configs)
 	parsed := pr.Parse()
 	if pr.Error() != nil {
-		return schema.Schema{}, pr.Error()
+		return schema.Schema{}, internalErrors.ConfigParserError
 	}
 	var s *parser.SchemaTranslator
 	s, err = parser.NewSchemaTranslator(parsed)
 	if err != nil {
-		return schema.Schema{}, err
+		return schema.Schema{}, internalErrors.ConfigParserError
 	}
 	return s.Translate(), nil
 }

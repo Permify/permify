@@ -5,10 +5,14 @@ import (
 
 	"github.com/rs/xid"
 
+	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/cache"
+	"github.com/Permify/permify/pkg/dsl/ast"
+	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
 )
 
 // EntityConfigManager -
@@ -26,21 +30,36 @@ func NewEntityConfigManager(repository repositories.IEntityConfigRepository, cac
 }
 
 // All -
-func (manager *EntityConfigManager) All(ctx context.Context, version string) (sch schema.Schema, err error) {
+func (manager *EntityConfigManager) All(ctx context.Context, version string) (schema.Schema, errors.Error) {
+	var sch schema.Schema
+	var err errors.Error
 	var cn entities.EntityConfigs
 	cn, err = manager.repository.All(ctx, version)
 	if err != nil {
-		return schema.Schema{}, err
+		return sch, err
 	}
 	sch, err = cn.ToSchema()
 	if err != nil {
-		return schema.Schema{}, err
+		return sch, err
 	}
-	return
+	return sch, err
 }
 
 // Read -
-func (manager *EntityConfigManager) Read(ctx context.Context, name string, version string) (entity schema.Entity, err error) {
+func (manager *EntityConfigManager) Read(ctx context.Context, name string, version string) (entity schema.Entity, err errors.Error) {
+	if manager.cache == nil {
+		var config entities.EntityConfig
+		config, err = manager.repository.Read(ctx, name, version)
+
+		var sch schema.Schema
+		sch, err = config.ToSchema()
+		if err != nil {
+			return entity, err
+		}
+
+		return sch.Entities[name], err
+	}
+
 	var key string
 	var s interface{}
 	found := false
@@ -62,7 +81,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 		var sch schema.Schema
 		sch, err = config.ToSchema()
 		if err != nil {
-			return schema.Entity{}, err
+			return entity, err
 		}
 
 		return sch.Entities[name], err
@@ -72,14 +91,34 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 	var sch schema.Schema
 	sch, err = conf.ToSchema()
 	if err != nil {
-		return schema.Entity{}, err
+		return entity, err
 	}
 
 	return sch.Entities[name], err
 }
 
 // Write -
-func (manager *EntityConfigManager) Write(ctx context.Context, configs entities.EntityConfigs) (version string, err error) {
-	version = xid.New().String()
-	return version, manager.repository.Write(ctx, configs, version)
+func (manager *EntityConfigManager) Write(ctx context.Context, configs string) (string, errors.Error) {
+	version := xid.New().String()
+
+	pr := parser.NewParser(configs)
+	sch := pr.Parse()
+	if pr.Error() != nil {
+		return "", internalErrors.ConfigParserError.SetMessage(pr.Error().Error())
+	}
+
+	err := sch.Validate()
+	if err != nil {
+		return "", err
+	}
+
+	var cnf []entities.EntityConfig
+	for _, st := range sch.Statements {
+		cnf = append(cnf, entities.EntityConfig{
+			Entity:           st.(*ast.EntityStatement).Name.Literal,
+			SerializedConfig: []byte(st.String()),
+		})
+	}
+
+	return version, manager.repository.Write(ctx, cnf, version)
 }

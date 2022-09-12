@@ -3,10 +3,11 @@ package commands
 import (
 	"context"
 
-	internalErrors "github.com/Permify/permify/internal/internal-errors"
+	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -109,13 +110,13 @@ type ExpandResponse struct {
 }
 
 // Execute -
-func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child schema.Child) (response ExpandResponse, err error) {
+func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child schema.Child) (response ExpandResponse, err errors.Error) {
 	response.Tree, err = command.e(ctx, q, child)
 	return
 }
 
 // e -
-func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child schema.Child) (Node, error) {
+func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child schema.Child) (Node, errors.Error) {
 	var fn ExpandFunction
 	switch child.GetKind() {
 	case schema.RewriteKind.String():
@@ -173,7 +174,7 @@ func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children 
 // expand -
 func (command *ExpandCommand) expand(ctx context.Context, entity tuple.Entity, relation tuple.Relation, q *ExpandQuery) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- Node) {
-		var err error
+		var err errors.Error
 
 		var iterator tuple.ISubjectIterator
 		iterator, err = command.getSubjects(ctx, entity, relation)
@@ -288,7 +289,7 @@ func expandFail(err error) ExpandFunction {
 }
 
 // getSubjects -
-func (command *ExpandCommand) getSubjects(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (iterator tuple.ISubjectIterator, err error) {
+func (command *ExpandCommand) getSubjects(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (iterator tuple.ISubjectIterator, err errors.Error) {
 	r := relation.Split()
 
 	var tuples []entities.RelationTuple

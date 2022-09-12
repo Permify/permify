@@ -6,6 +6,7 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
 )
 
 // SchemaService -
@@ -25,7 +26,7 @@ func NewSchemaService(sc commands.ISchemaLookupCommand, en managers.IEntityConfi
 }
 
 // Lookup -
-func (service *SchemaService) Lookup(ctx context.Context, entityType string, relations []string, version string) (response commands.SchemaLookupResponse, err error) {
+func (service *SchemaService) Lookup(ctx context.Context, entityType string, relations []string, version string) (response commands.SchemaLookupResponse, err errors.Error) {
 	var en schema.Entity
 	en, err = service.manager.Read(ctx, entityType, version)
 	if err != nil {

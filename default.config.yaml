@@ -1,0 +1,16 @@
+app:
+  name: 'permify'
+
+http:
+  port: 3476
+
+logger:
+  log_level: 'debug'
+
+authn:
+  disabled: true
+  keys: []
+
+database:
+  write:
+    connection: 'memory'

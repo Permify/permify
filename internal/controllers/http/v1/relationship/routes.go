@@ -1,7 +1,6 @@
 package relationship
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -9,9 +8,9 @@ import (
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/controllers/http/common"
-	internalErrors "github.com/Permify/permify/internal/internal-errors"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -46,7 +45,7 @@ func NewRelationshipRoutes(handler *echo.Group, t services.IRelationshipService,
 // @Success     200 {object} []tuple.Tuple
 // @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /relationships/read [post]
-func (r *relationshipRoutes) read(c echo.Context) (err error) {
+func (r *relationshipRoutes) read(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "relationships.read")
 	defer span.End()
 
@@ -59,11 +58,23 @@ func (r *relationshipRoutes) read(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(v))
 	}
 
+	var err errors.Error
+
 	var tuples []tuple.Tuple
 	tuples, err = r.relationshipService.ReadRelationships(ctx, request.Filter)
 	if err != nil {
-		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
-		return echo.ErrInternalServerError
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		}
 	}
 
 	return c.JSON(http.StatusOK, common.SuccessResponse(tuples))
@@ -79,7 +90,7 @@ func (r *relationshipRoutes) read(c echo.Context) (err error) {
 // @Success     200 {object} tuple.Tuple
 // @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /relationships/write [post]
-func (r *relationshipRoutes) write(c echo.Context) (err error) {
+func (r *relationshipRoutes) write(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "relationships.write")
 	defer span.End()
 
@@ -92,23 +103,23 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(v))
 	}
 
+	var err errors.Error
+
 	t := tuple.Tuple{Entity: request.Entity, Relation: tuple.Relation(request.Relation), Subject: request.Subject}
 	err = r.relationshipService.WriteRelationship(ctx, t, request.SchemaVersion.String())
 	if err != nil {
-		if errors.Is(err, database.ErrUniqueConstraint) {
-			span.RecordError(database.ErrUniqueConstraint)
-			return c.JSON(http.StatusUnprocessableEntity, common.MResponse("tuple already exists"))
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
 		}
-		if errors.Is(err, tuple.NotFoundInSpecifiedRelationTypes) {
-			span.RecordError(tuple.NotFoundInSpecifiedRelationTypes)
-			return c.JSON(http.StatusUnprocessableEntity, common.MResponse(tuple.NotFoundInSpecifiedRelationTypes.Error()))
-		}
-		if errors.Is(err, internalErrors.EntityConfigCannotFoundError) {
-			span.RecordError(internalErrors.EntityConfigCannotFoundError)
-			return c.JSON(http.StatusUnprocessableEntity, common.MResponse(internalErrors.EntityConfigCannotFoundError.Error()))
-		}
-		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
-		return echo.ErrInternalServerError
 	}
 
 	return c.JSON(http.StatusOK, common.SuccessResponse(t))
@@ -124,7 +135,7 @@ func (r *relationshipRoutes) write(c echo.Context) (err error) {
 // @Success     200 {object} tuple.Tuple
 // @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /relationships/delete [post]
-func (r *relationshipRoutes) delete(c echo.Context) (err error) {
+func (r *relationshipRoutes) delete(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "relationships.delete")
 	defer span.End()
 
@@ -137,11 +148,23 @@ func (r *relationshipRoutes) delete(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(v))
 	}
 
+	var err errors.Error
+
 	t := tuple.Tuple{Entity: request.Entity, Relation: tuple.Relation(request.Relation), Subject: request.Subject}
 	err = r.relationshipService.DeleteRelationship(ctx, t)
 	if err != nil {
-		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
-		return echo.ErrInternalServerError
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		}
 	}
 
 	return c.JSON(http.StatusOK, common.SuccessResponse(t))

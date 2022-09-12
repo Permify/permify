@@ -27,7 +27,7 @@ func (a *KeyAuthn) SetKeys(keys []string) {
 }
 
 // Validator -
-func (a KeyAuthn) Validator() func(key string, c echo.Context) (bool, error) {
+func (a *KeyAuthn) Validator() func(key string, c echo.Context) (bool, error) {
 	return func(key string, c echo.Context) (bool, error) {
 		for _, k := range a.Keys {
 			if key == k {

@@ -1,5 +1,9 @@
 package schema
 
+import (
+	"github.com/Permify/permify/pkg/errors"
+)
+
 // OPType -
 type OPType string
 
@@ -44,7 +48,7 @@ func (s Schema) GetEntityByName(name string) (entity Entity, err error) {
 	if en, ok := s.Entities[name]; ok {
 		return en, nil
 	}
-	return entity, EntityCanNotFoundErr
+	return entity, errors.NewError(errors.Service).SetMessage("schema not found")
 }
 
 // NewSchema -
@@ -68,23 +72,23 @@ type Entity struct {
 }
 
 // GetAction -
-func (e Entity) GetAction(name string) (action Action, err error) {
+func (e Entity) GetAction(name string) (action Action, err errors.Error) {
 	for _, en := range e.Actions {
 		if en.Name == name {
 			return en, nil
 		}
 	}
-	return action, ActionCanNotFoundErr
+	return action, errors.NewError(errors.Validation).AddParam("action", "action con not found")
 }
 
 // GetRelation -
-func (e Entity) GetRelation(name string) (relation Relation, err error) {
+func (e Entity) GetRelation(name string) (relation Relation, err errors.Error) {
 	for _, re := range e.Relations {
 		if re.Name == name {
 			return re, nil
 		}
 	}
-	return relation, RelationCanNotFoundErr
+	return relation, errors.NewError(errors.Validation).AddParam("relation", "relation con not found")
 }
 
 // Relation -
@@ -151,5 +155,5 @@ func (r Relations) GetRelationByName(name string) (relation Relation, err error)
 			return rel, nil
 		}
 	}
-	return relation, RelationCanNotFoundErr
+	return relation, errors.NewError(errors.Service).SetMessage("relation not found")
 }

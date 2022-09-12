@@ -8,6 +8,7 @@ import (
 	e "github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -26,7 +27,7 @@ func NewRelationshipService(rt repositories.IRelationTupleRepository, mn manager
 }
 
 // ReadRelationships -
-func (service *RelationshipService) ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) (tuples []tuple.Tuple, err error) {
+func (service *RelationshipService) ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) (tuples []tuple.Tuple, err errors.Error) {
 	var t []e.RelationTuple
 	t, err = service.rt.Read(ctx, filter)
 	for _, tup := range t {
@@ -36,7 +37,7 @@ func (service *RelationshipService) ReadRelationships(ctx context.Context, filte
 }
 
 // WriteRelationship -
-func (service *RelationshipService) WriteRelationship(ctx context.Context, tup tuple.Tuple, version string) (err error) {
+func (service *RelationshipService) WriteRelationship(ctx context.Context, tup tuple.Tuple, version string) (err errors.Error) {
 	var entity schema.Entity
 	entity, err = service.mn.Read(ctx, tup.Entity.Type, version)
 	if err != nil {
@@ -67,7 +68,7 @@ func (service *RelationshipService) WriteRelationship(ctx context.Context, tup t
 }
 
 // DeleteRelationship -
-func (service *RelationshipService) DeleteRelationship(ctx context.Context, tup tuple.Tuple) error {
+func (service *RelationshipService) DeleteRelationship(ctx context.Context, tup tuple.Tuple) errors.Error {
 	return service.rt.Delete(ctx, e.RelationTuples{e.RelationTuple{
 		Entity:          tup.Entity.Type,
 		ObjectID:        tup.Entity.ID,

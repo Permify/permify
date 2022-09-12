@@ -7,7 +7,9 @@ import (
 
 	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/internal/repositories/filters"
+	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
+	"github.com/Permify/permify/pkg/errors"
 )
 
 // RelationTupleRepository -.
@@ -21,30 +23,34 @@ func NewRelationTupleRepository(mm *db.Memory) *RelationTupleRepository {
 }
 
 // Migrate -
-func (r *RelationTupleRepository) Migrate() (err error) {
+func (r *RelationTupleRepository) Migrate() (err errors.Error) {
 	return nil
 }
 
 // QueryTuples -
-func (r *RelationTupleRepository) QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (tuples entities.RelationTuples, err error) {
+func (r *RelationTupleRepository) QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (entities.RelationTuples, errors.Error) {
+	var tuples entities.RelationTuples
+	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 
 	var it memdb.ResultIterator
 	it, err = txn.Get(entities.RelationTuple{}.Table(), "entity-index", namespace, objectID, relation)
 	if err != nil {
-		return tuples, err
+		return tuples, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
 	}
 
 	for obj := it.Next(); obj != nil; obj = it.Next() {
 		tuples = append(tuples, obj.(entities.RelationTuple))
 	}
 
-	return tuples, err
+	return tuples, nil
 }
 
 // Read -
-func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err error) {
+func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (entities.RelationTuples, errors.Error) {
+	var tuples entities.RelationTuples
+	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -84,7 +90,7 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 	var it memdb.ResultIterator
 	it, err = txn.Get(entities.RelationTuple{}.Table(), "entity", filter.Entity.Type)
 	if err != nil {
-		return tuples, err
+		return tuples, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
 	}
 
 	filtered := memdb.NewFilterIterator(it, filterFactory(filter))
@@ -92,15 +98,16 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 		tuples = append(tuples, obj.(entities.RelationTuple))
 	}
 
-	return tuples, err
+	return tuples, nil
 }
 
 // Write -
-func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) (err error) {
+func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) errors.Error {
+	var err error
 	txn := r.Database.DB.Txn(true)
 	for _, tuple := range tuples {
 		if err = txn.Insert(entities.RelationTuple{}.Table(), tuple); err != nil {
-			return err
+			return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
 		}
 	}
 	txn.Commit()
@@ -108,11 +115,12 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 }
 
 // Delete -
-func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) (err error) {
+func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) errors.Error {
+	var err error
 	txn := r.Database.DB.Txn(true)
 	for _, tuple := range tuples {
 		if err = txn.Delete(entities.RelationTuple{}.Table(), tuple); err != nil {
-			return err
+			return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
 		}
 	}
 	txn.Commit()

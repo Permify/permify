@@ -15,11 +15,10 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/controllers/http/common"
 	"github.com/Permify/permify/internal/managers"
-	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/internal/services"
-	"github.com/Permify/permify/pkg/dsl/ast"
-	"github.com/Permify/permify/pkg/dsl/parser"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 )
 
@@ -53,15 +52,16 @@ func NewSchemaRoutes(handler *echo.Group, ss services.ISchemaService, m managers
 // @Success     200 {object} WriteResponse
 // @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /schemas/write [post]
-func (r *schemaRoutes) write(c echo.Context) (err error) {
+func (r *schemaRoutes) write(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "schemas.write")
 	defer span.End()
 
-	var file *multipart.FileHeader
-	file, err = c.FormFile("schema")
-	if err != nil {
+	var err errors.Error
+
+	file, e := c.FormFile("schema")
+	if e != nil {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(map[string]string{
-			"schema": err.Error(),
+			"schema": e.Error(),
 		}))
 	}
 
@@ -73,45 +73,36 @@ func (r *schemaRoutes) write(c echo.Context) (err error) {
 	}
 
 	var src multipart.File
-	src, err = file.Open()
-	if err != nil {
-		return err
-	}
+	src, e = file.Open()
 	defer src.Close()
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(map[string]string{
+			"schema": "file can not open",
+		}))
+	}
 
 	buf := bytes.NewBuffer(nil)
-	if _, err = io.Copy(buf, src); err != nil {
-		return err
-	}
-
-	pr := parser.NewParser(string(buf.Bytes()))
-	sch := pr.Parse()
-	if pr.Error() != nil {
+	if _, e = io.Copy(buf, src); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(map[string]string{
-			"schema": pr.Error().Error(),
+			"schema": "file can not open",
 		}))
-	}
-
-	err = sch.Validate()
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(map[string]string{
-			"schema": "must have user entity",
-		}))
-	}
-
-	var cnf []entities.EntityConfig
-	for _, st := range sch.Statements {
-		cnf = append(cnf, entities.EntityConfig{
-			Entity:           st.(*ast.EntityStatement).Name.Literal,
-			SerializedConfig: []byte(st.String()),
-		})
 	}
 
 	var version string
-	version, err = r.schemaManager.Write(ctx, cnf)
+	version, err = r.schemaManager.Write(ctx, string(buf.Bytes()))
 	if err != nil {
-		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
-		return echo.ErrInternalServerError
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		}
 	}
 
 	return c.JSON(http.StatusOK, common.SuccessResponse(WriteResponse{
@@ -129,12 +120,12 @@ func (r *schemaRoutes) write(c echo.Context) (err error) {
 // @Success     200 {object} ReadResponse
 // @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /schemas/read [post]
-func (r *schemaRoutes) read(c echo.Context) (err error) {
+func (r *schemaRoutes) read(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "schemas.read")
 	defer span.End()
 
 	request := new(ReadRequest)
-	if err = (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
+	if err := (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
 		return err
 	}
 	v := request.Validate()
@@ -142,10 +133,23 @@ func (r *schemaRoutes) read(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(v))
 	}
 
+	var err errors.Error
+
 	var response schema.Schema
 	response, err = r.schemaManager.All(ctx, request.SchemaVersion.String())
 	if err != nil {
-		return err
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		}
 	}
 
 	return c.JSON(http.StatusOK, common.SuccessResponse(ReadResponse{
@@ -163,12 +167,12 @@ func (r *schemaRoutes) read(c echo.Context) (err error) {
 // @Success     200 {object} LookupResponse
 // @Failure     400 {object} common.HTTPErrorResponse
 // @Router      /schemas/lookup [post]
-func (r *schemaRoutes) lookup(c echo.Context) (err error) {
+func (r *schemaRoutes) lookup(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "schemas.lookup")
 	defer span.End()
 
 	request := new(LookupRequest)
-	if err = (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
+	if err := (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
 		return err
 	}
 	v := request.Validate()
@@ -176,12 +180,23 @@ func (r *schemaRoutes) lookup(c echo.Context) (err error) {
 		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(v))
 	}
 
+	var err errors.Error
+
 	var response commands.SchemaLookupResponse
 	response, err = r.schemaService.Lookup(ctx, request.EntityType, request.RelationNames, request.SchemaVersion.String())
-
 	if err != nil {
-		span.SetStatus(codes.Error, echo.ErrInternalServerError.Error())
-		return echo.ErrInternalServerError
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		}
 	}
 
 	return c.JSON(http.StatusOK, common.SuccessResponse(LookupResponse{

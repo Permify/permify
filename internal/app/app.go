@@ -21,6 +21,7 @@ import (
 	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/cache"
+	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/httpserver"
 	"github.com/Permify/permify/pkg/logger"
@@ -62,7 +63,7 @@ func Run(cfg *config.Config) {
 
 	// cache
 	var ch cache.Cache
-	ch, err = factories.CacheFactory(cache.RISTRETTO)
+	ch, err = ristretto.New()
 	if err != nil {
 		l.Fatal(fmt.Errorf("permify - Run - cache.Factory: %w", err))
 	}

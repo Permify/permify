@@ -5,6 +5,7 @@ import (
 
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
 )
 
 // SchemaTranslator -
@@ -13,7 +14,7 @@ type SchemaTranslator struct {
 }
 
 // NewSchemaTranslator -
-func NewSchemaTranslator(sch *ast.Schema) (*SchemaTranslator, error) {
+func NewSchemaTranslator(sch *ast.Schema) (*SchemaTranslator, errors.Error) {
 	return &SchemaTranslator{
 		schema: sch,
 	}, nil
