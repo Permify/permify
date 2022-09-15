@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -37,7 +36,7 @@ func New(uri string, database string, opts ...Option) (*Postgres, error) {
 
 	poolConfig, err := pgxpool.ParseConfig(uri + "/" + database)
 	if err != nil {
-		return nil, fmt.Errorf("postgres - NewPostgres - pgxpool.ParseConfig: %w", err)
+		return nil, err
 	}
 
 	poolConfig.MaxConns = int32(pg.maxPoolSize)

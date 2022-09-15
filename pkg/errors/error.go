@@ -1,9 +1,7 @@
 package errors
 
 import (
-	"bytes"
 	"fmt"
-	"text/template"
 )
 
 var (
@@ -98,9 +96,9 @@ func (e ErrorObject) AddParam(name string, value interface{}) Error {
 // Params -
 func (e ErrorObject) Params() map[string]interface{} {
 	if e.params == nil {
-		//e.params = map[string]interface{}{
-		//	"info": e.Error(),
-		//}
+		e.params = map[string]interface{}{
+			"info": e.Error(),
+		}
 	}
 	return e.params
 }
@@ -120,14 +118,20 @@ func (e ErrorObject) Message() string {
 func (e ErrorObject) Error() string {
 	msg := e.message
 	if msg == "" {
-		msg = fmt.Sprintf("message: %s%s", e.kind.String(), ", "+e.subKind.String())
+		msg = fmt.Sprintf("%v error ", e.kind.String())
+		if e.subKind != "" {
+			msg += ":" + e.subKind.String()
+		}
 	}
 	if len(e.params) == 0 {
 		return msg
+	} else {
+		msg += ","
+		for key, value := range e.params {
+			msg += fmt.Sprintf("%v:%v\n", key, value)
+		}
 	}
-	res := bytes.Buffer{}
-	_ = template.Must(template.New("err").Parse(msg)).Execute(&res, e.params)
-	return res.String()
+	return msg
 }
 
 var _ Error = ErrorObject{}

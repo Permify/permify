@@ -30,7 +30,7 @@ func (r *RelationTupleRepository) Migrate() errors.Error {
 	command := bson.D{{"create", entities.RelationTuple{}.Collection()}}
 	var result bson.M
 	if err = r.Database.Database().RunCommand(context.TODO(), command).Decode(&result); err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 	_, err = r.Database.Database().Collection(entities.RelationTuple{}.Collection()).Indexes().CreateOne(context.Background(), mongo.IndexModel{
 		Keys: bson.M{
@@ -39,7 +39,7 @@ func (r *RelationTupleRepository) Migrate() errors.Error {
 		Options: options.Index().SetUnique(true),
 	})
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 	return nil
 }
@@ -55,11 +55,11 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 	var cursor *mongo.Cursor
 	cursor, err = coll.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 
 	if err = cursor.All(ctx, &tuples); err != nil {
-		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 	return tuples, nil
 }
@@ -121,7 +121,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 		if mongo.IsDuplicateKeyError(err) {
 			return errors.NewError(errors.Database).SetSubKind(database.ErrUniqueConstraint)
 		}
-		return errors.NewError(errors.Database).SetMessage(err.Error())
+		return errors.DatabaseError.SetMessage(err.Error())
 	}
 	return nil
 }
@@ -133,7 +133,7 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.Re
 		filter := bson.M{"entity": tuple.Entity, "object_id": tuple.ObjectID, "relation": tuple.Relation, "userset_entity": tuple.UsersetEntity, "userset_object_id": tuple.UsersetObjectID, "userset_relation": tuple.UsersetRelation}
 		_, err := coll.DeleteOne(ctx, filter)
 		if err != nil {
-			return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+			return errors.DatabaseError.SetSubKind(database.ErrExecution)
 		}
 	}
 	return nil

@@ -35,32 +35,32 @@ func (r *RelationTupleRepository) Migrate() errors.Error {
 	var tx pgx.Tx
 	tx, err = r.Database.Pool.Begin(ctx)
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleMigration())
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.DropRelationTupleTypeColumnIfExistMigration())
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleUserSetIndexIfNotExistMigration())
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleUserSetRelationIndexIfNotExistMigration())
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	return nil
@@ -75,13 +75,13 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": entity, "object_id": objectID, "relation": relation}).OrderBy("userset_entity, userset_relation ASC").
 		ToSql()
 	if err != nil {
-		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 
 	var rows pgx.Rows
 	rows, err = r.Database.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 	defer rows.Close()
 
@@ -91,7 +91,7 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 		rt := entities.RelationTuple{}
 		err = rows.Scan(&rt.Entity, &rt.ObjectID, &rt.Relation, &rt.UsersetEntity, &rt.UsersetObjectID, &rt.UsersetRelation)
 		if err != nil {
-			return nil, errors.NewError(errors.Database).SetMessage(err.Error())
+			return nil, errors.DatabaseError.SetMessage(err.Error())
 		}
 		ent = append(ent, rt)
 	}
@@ -132,13 +132,13 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation, commit_time").From(entities.RelationTuple{}.Table()).Where(eq).OrderBy("userset_entity, userset_relation ASC").
 		ToSql()
 	if err != nil {
-		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 
 	var rows pgx.Rows
 	rows, err = r.Database.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 	defer rows.Close()
 
@@ -149,7 +149,7 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 
 		err = rows.Scan(&e.Entity, &e.ObjectID, &e.Relation, &e.UsersetEntity, &e.UsersetObjectID, &e.UsersetRelation, &e.CommitTime)
 		if err != nil {
-			return ent, errors.NewError(errors.Database).SetSubKind(database.ErrScan)
+			return ent, errors.DatabaseError.SetSubKind(database.ErrScan)
 		}
 
 		ent = append(ent, e)
@@ -178,7 +178,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 	var args []interface{}
 	query, args, err = sql.ToSql()
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+		return errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 
 	_, err = r.Database.Pool.Exec(ctx, query, args...)
@@ -187,12 +187,12 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 		if e.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-				return errors.NewError(errors.Database).SetSubKind(database.ErrUniqueConstraint)
+				return errors.DatabaseError.SetSubKind(database.ErrUniqueConstraint)
 			default:
-				return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+				return errors.DatabaseError.SetSubKind(database.ErrExecution)
 			}
 		}
-		return errors.NewError(errors.Database).SetMessage(err.Error())
+		return errors.DatabaseError.SetMessage(err.Error())
 	}
 
 	return nil
@@ -202,7 +202,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) errors.Error {
 	tx, err := r.Database.Pool.Begin(ctx)
 	if err != nil {
-		return errors.NewError(errors.Database).SetMessage(err.Error())
+		return errors.DatabaseError.SetMessage(err.Error())
 	}
 	batch := &pgx.Batch{}
 	for _, tuple := range tuples {
@@ -210,16 +210,16 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.Re
 			Delete(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": tuple.Entity, "object_id": tuple.ObjectID, "relation": tuple.Relation, "userset_entity": tuple.UsersetEntity, "userset_object_id": tuple.UsersetObjectID, "userset_relation": tuple.UsersetRelation}).
 			ToSql()
 		if err != nil {
-			return errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+			return errors.DatabaseError.SetSubKind(database.ErrBuilder)
 		}
 		batch.Queue(sql, args...)
 	}
 	results := tx.SendBatch(ctx, batch)
 	if err = results.Close(); err != nil {
-		return errors.NewError(errors.Database).SetMessage(err.Error())
+		return errors.DatabaseError.SetMessage(err.Error())
 	}
 	if err = tx.Commit(ctx); err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 	return nil
 }

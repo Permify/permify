@@ -36,9 +36,9 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
 			if e.Is(err, pgx.ErrNoRows) {
-				return configs, errors.NewError(errors.Database).SetSubKind(database.ErrRecordNotFound)
+				return configs, errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 			}
-			return configs, errors.NewError(errors.Database).SetMessage(err.Error())
+			return configs, errors.DatabaseError.SetMessage(err.Error())
 		}
 	}
 
@@ -47,7 +47,7 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 	var it memdb.ResultIterator
 	it, err = txn.Get(entities.EntityConfig{}.Table(), "version", version)
 	if err != nil {
-		return configs, errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+		return configs, errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 	for obj := it.Next(); obj != nil; obj = it.Next() {
 		configs = append(configs, obj.(entities.EntityConfig))
@@ -63,9 +63,9 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
 			if e.Is(err, pgx.ErrNoRows) {
-				return config, errors.NewError(errors.Database).SetSubKind(database.ErrRecordNotFound)
+				return config, errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 			}
-			return config, errors.NewError(errors.Database).SetMessage(err.Error())
+			return config, errors.DatabaseError.SetMessage(err.Error())
 		}
 	}
 
@@ -74,12 +74,12 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	var raw interface{}
 	raw, err = txn.First(entities.EntityConfig{}.Table(), "id", name, version)
 	if err != nil {
-		return config, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return config, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 	if _, ok := raw.(entities.EntityConfig); ok {
 		return raw.(entities.EntityConfig), nil
 	}
-	return entities.EntityConfig{}, errors.NewError(errors.Database).SetSubKind(database.ErrScan)
+	return entities.EntityConfig{}, errors.DatabaseError.SetSubKind(database.ErrScan)
 }
 
 // Write -
@@ -89,7 +89,7 @@ func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.Ent
 	for _, config := range configs {
 		config.Version = version
 		if err = txn.Insert(entities.EntityConfig{}.Table(), config); err != nil {
-			return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+			return errors.DatabaseError.SetSubKind(database.ErrExecution)
 		}
 	}
 	txn.Commit()
@@ -104,10 +104,10 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 	var raw interface{}
 	raw, err = txn.Last(entities.EntityConfig{}.Table(), "version")
 	if err != nil {
-		return "", errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return "", errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 	if _, ok := raw.(entities.EntityConfig); ok {
 		return raw.(entities.EntityConfig).Version, nil
 	}
-	return "", errors.NewError(errors.Database).SetSubKind(database.ErrScan)
+	return "", errors.DatabaseError.SetSubKind(database.ErrScan)
 }

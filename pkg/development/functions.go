@@ -5,8 +5,10 @@ import (
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/managers"
+	`github.com/Permify/permify/internal/repositories/filters`
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	`github.com/Permify/permify/pkg/errors`
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -18,26 +20,31 @@ type CheckQuery struct {
 }
 
 // Check -
-func Check(ctx context.Context, service services.IPermissionService, subject tuple.Subject, action string, entity tuple.Entity) (res commands.CheckResponse, err error) {
-	return service.Check(ctx, subject, action, entity, "", 20)
+func Check(ctx context.Context, service services.IPermissionService, subject tuple.Subject, action string, entity tuple.Entity, version string) (res commands.CheckResponse, err errors.Error) {
+	return service.Check(ctx, subject, action, entity, version, 20)
 }
 
 // WriteTuple -
-func WriteTuple(ctx context.Context, service services.IRelationshipService, tuple tuple.Tuple) (err error) {
-	return service.WriteRelationship(ctx, tuple, "")
+func WriteTuple(ctx context.Context, service services.IRelationshipService, tuple tuple.Tuple, version string) (err errors.Error) {
+	return service.WriteRelationship(ctx, tuple, version)
+}
+
+// ReadTuple -
+func ReadTuple(ctx context.Context, service services.IRelationshipService, filter filters.RelationTupleFilter) (tuples []tuple.Tuple, err errors.Error) {
+	return service.ReadRelationships(ctx, filter)
 }
 
 // DeleteTuple -
-func DeleteTuple(ctx context.Context, service services.IRelationshipService, tuple tuple.Tuple) (err error) {
+func DeleteTuple(ctx context.Context, service services.IRelationshipService, tuple tuple.Tuple) (err errors.Error) {
 	return service.DeleteRelationship(ctx, tuple)
 }
 
 // WriteSchema -
-func WriteSchema(ctx context.Context, manager managers.IEntityConfigManager, configs string) (version string, err error) {
+func WriteSchema(ctx context.Context, manager managers.IEntityConfigManager, configs string) (version string, err errors.Error) {
 	return manager.Write(ctx, configs)
 }
 
 // ReadSchema -
-func ReadSchema(ctx context.Context, manager managers.IEntityConfigManager) (sch schema.Schema, err error) {
-	return manager.All(ctx, "")
+func ReadSchema(ctx context.Context, manager managers.IEntityConfigManager, version string) (sch schema.Schema, err errors.Error) {
+	return manager.All(ctx, version)
 }

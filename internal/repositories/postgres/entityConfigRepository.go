@@ -34,27 +34,27 @@ func (r *EntityConfigRepository) Migrate() errors.Error {
 	var tx pgx.Tx
 	tx, err = r.Database.Pool.Begin(ctx)
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigMigration())
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigVersionField())
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigChangePrimaryKey())
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return errors.NewError(errors.Database).SetSubKind(database.ErrMigration)
+		return errors.DatabaseError.SetSubKind(database.ErrMigration)
 	}
 
 	return nil
@@ -67,7 +67,7 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
-			return configs, errors.NewError(errors.Database).SetMessage(err.Error())
+			return configs, errors.DatabaseError.SetMessage(err.Error())
 		}
 	}
 
@@ -77,13 +77,13 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 		Select("entity, serialized_config, version").From(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"version": version}).
 		ToSql()
 	if err != nil {
-		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 
 	var rows pgx.Rows
 	rows, err = r.Database.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 	defer rows.Close()
 
@@ -93,7 +93,7 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 		c := entities.EntityConfig{}
 		err = rows.Scan(&c.Entity, &c.SerializedConfig, &c.Version)
 		if err != nil {
-			return configs, errors.NewError(errors.Database).SetSubKind(database.ErrScan)
+			return configs, errors.DatabaseError.SetSubKind(database.ErrScan)
 		}
 		ent = append(ent, c)
 	}
@@ -108,7 +108,7 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
-			return config, errors.NewError(errors.Database).SetMessage(err.Error())
+			return config, errors.DatabaseError.SetMessage(err.Error())
 		}
 	}
 	var sql string
@@ -117,16 +117,16 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 		Select("entity, serialized_config, version").From(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"entity": name, "version": version}).Limit(1).
 		ToSql()
 	if err != nil {
-		return config, errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+		return config, errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 	var row pgx.Row
 	row = r.Database.Pool.QueryRow(ctx, sql, args...)
 	err = row.Scan(&config.Entity, &config.SerializedConfig, &config.Version)
 	if err != nil {
 		if e.Is(err, pgx.ErrNoRows) {
-			return config, errors.NewError(errors.Database).SetSubKind(database.ErrRecordNotFound)
+			return config, errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 		}
-		return config, errors.NewError(errors.Database).SetMessage(err.Error())
+		return config, errors.DatabaseError.SetMessage(err.Error())
 	}
 
 	return config, nil
@@ -160,12 +160,12 @@ func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.Ent
 		if e.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-				return errors.NewError(errors.Database).SetSubKind(database.ErrUniqueConstraint)
+				return errors.DatabaseError.SetSubKind(database.ErrUniqueConstraint)
 			default:
-				return errors.NewError(errors.Database).SetMessage(err.Error())
+				return errors.DatabaseError.SetMessage(err.Error())
 			}
 		}
-		return errors.NewError(errors.Database).SetMessage(err.Error())
+		return errors.DatabaseError.SetMessage(err.Error())
 	}
 
 	return nil
@@ -181,16 +181,16 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 		Select("version").From(entities.EntityConfig{}.Table()).OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
-		return "", errors.NewError(errors.Database).SetSubKind(database.ErrBuilder)
+		return "", errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 	var row pgx.Row
 	row = r.Database.Pool.QueryRow(ctx, sql, args...)
 	err = row.Scan(&version)
 	if err != nil {
 		if e.Is(err, pgx.ErrNoRows) {
-			return version, errors.NewError(errors.Database).SetSubKind(database.ErrRecordNotFound)
+			return version, errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 		}
-		return version, errors.NewError(errors.Database).SetMessage(err.Error())
+		return version, errors.DatabaseError.SetMessage(err.Error())
 	}
 	return version, nil
 }

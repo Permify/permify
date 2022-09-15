@@ -53,11 +53,11 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 	var cursor *mongo.Cursor
 	cursor, err = coll.Find(ctx, filter)
 	if err != nil {
-		return nil, errors.NewError(errors.Database).SetMessage(err.Error())
+		return nil, errors.DatabaseError.SetMessage(err.Error())
 	}
 
 	if err = cursor.All(ctx, &configs); err != nil {
-		return nil, errors.NewError(errors.Database).SetMessage(err.Error())
+		return nil, errors.DatabaseError.SetMessage(err.Error())
 	}
 
 	return configs, nil
@@ -72,9 +72,9 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
 			if e.Is(err, mongo.ErrNoDocuments) {
-				return config, errors.NewError(errors.Database).SetSubKind(database.ErrRecordNotFound)
+				return config, errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 			}
-			return config, errors.NewError(errors.Database).SetMessage(err.Error())
+			return config, errors.DatabaseError.SetMessage(err.Error())
 		}
 	}
 
@@ -83,9 +83,9 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	err = coll.FindOne(ctx, filter).Decode(&config)
 	if err != nil {
 		if e.Is(err, mongo.ErrNoDocuments) {
-			return config, errors.NewError(errors.Database).SetSubKind(database.ErrRecordNotFound)
+			return config, errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 		}
-		return config, errors.NewError(errors.Database).SetMessage(err.Error())
+		return config, errors.DatabaseError.SetMessage(err.Error())
 	}
 	return config, nil
 }
@@ -101,9 +101,9 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 	err = coll.FindOne(ctx, filter, opts).Decode(&entityConfig)
 	if err != nil {
 		if e.Is(err, mongo.ErrNoDocuments) {
-			return version, errors.NewError(errors.Database).SetSubKind(database.ErrRecordNotFound)
+			return version, errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 		}
-		return version, errors.NewError(errors.Database).SetMessage(err.Error())
+		return version, errors.DatabaseError.SetMessage(err.Error())
 	}
 	return entityConfig.Version, nil
 }
@@ -123,7 +123,7 @@ func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.Ent
 
 	_, err = coll.InsertMany(ctx, docs)
 	if err != nil {
-		return errors.NewError(errors.Database).SetMessage(err.Error())
+		return errors.DatabaseError.SetMessage(err.Error())
 	}
 	return nil
 }

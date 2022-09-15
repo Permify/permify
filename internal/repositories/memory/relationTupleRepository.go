@@ -37,7 +37,7 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, namespace str
 	var it memdb.ResultIterator
 	it, err = txn.Get(entities.RelationTuple{}.Table(), "entity-index", namespace, objectID, relation)
 	if err != nil {
-		return tuples, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 
 	for obj := it.Next(); obj != nil; obj = it.Next() {
@@ -90,7 +90,7 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 	var it memdb.ResultIterator
 	it, err = txn.Get(entities.RelationTuple{}.Table(), "entity", filter.Entity.Type)
 	if err != nil {
-		return tuples, errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 
 	filtered := memdb.NewFilterIterator(it, filterFactory(filter))
@@ -107,7 +107,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 	txn := r.Database.DB.Txn(true)
 	for _, tuple := range tuples {
 		if err = txn.Insert(entities.RelationTuple{}.Table(), tuple); err != nil {
-			return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+			return errors.DatabaseError.SetSubKind(database.ErrExecution)
 		}
 	}
 	txn.Commit()
@@ -120,7 +120,7 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.Re
 	txn := r.Database.DB.Txn(true)
 	for _, tuple := range tuples {
 		if err = txn.Delete(entities.RelationTuple{}.Table(), tuple); err != nil {
-			return errors.NewError(errors.Database).SetSubKind(database.ErrExecution)
+			return errors.DatabaseError.SetSubKind(database.ErrExecution)
 		}
 	}
 	txn.Commit()
