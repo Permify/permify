@@ -9,6 +9,7 @@ import (
 	"syscall/js"
 
 	"github.com/Permify/permify/internal/commands"
+	`github.com/Permify/permify/internal/repositories/filters`
 	"github.com/Permify/permify/pkg/development"
 	`github.com/Permify/permify/pkg/dsl/schema`
 	`github.com/Permify/permify/pkg/errors`
@@ -65,6 +66,23 @@ func writeTuple() js.Func {
 	})
 }
 
+// deleteTuple -
+func deleteTuple() js.Func {
+	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		var t = &tuple.Tuple{}
+		mErr := json.Unmarshal([]byte(string(args[0].String())), t)
+		if mErr != nil {
+			return js.ValueOf([]interface{}{mErr.Error()})
+		}
+		var err errors.Error
+		err = development.DeleteTuple(context.Background(), dev.R, *t)
+		if err != nil {
+			return js.ValueOf([]interface{}{err.Error()})
+		}
+		return js.ValueOf([]interface{}{nil})
+	})
+}
+
 // readSchema -
 func readSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
@@ -74,11 +92,34 @@ func readSchema() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		pretty, err := json.MarshalIndent(sch, "", "  ")
-		if err != nil {
-			return "", err
+		result, mErr := json.Marshal(sch)
+		if mErr != nil {
+			return js.ValueOf([]interface{}{nil, mErr.Error()})
 		}
-		return js.ValueOf([]interface{}{string(pretty), nil})
+		return js.ValueOf([]interface{}{string(result), nil})
+	})
+}
+
+// readTuple -
+func readTuple() js.Func {
+	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		params := &filters.RelationTupleFilter{}
+		mErr := json.Unmarshal([]byte(string(args[0].String())), params)
+		if mErr != nil {
+			return js.ValueOf([]interface{}{false, mErr.Error()})
+		}
+		var tuples []tuple.Tuple
+		var err errors.Error
+		tuples, err = development.ReadTuple(context.Background(), dev.R, *params)
+		if err != nil {
+			return js.ValueOf([]interface{}{nil, err.Error()})
+		}
+		var result []byte
+		result, mErr = json.Marshal(tuples)
+		if mErr != nil {
+			return js.ValueOf([]interface{}{nil, mErr.Error()})
+		}
+		return js.ValueOf([]interface{}{string(result), nil})
 	})
 }
 
@@ -89,7 +130,8 @@ func main() {
 	js.Global().Set("check", check())
 	js.Global().Set("writeSchema", writeSchema())
 	js.Global().Set("writeTuple", writeTuple())
-	js.Global().Set("ReadSchema", readSchema())
-	// js.Global().Set("DeleteTuple", deleteTuple())
+	js.Global().Set("readSchema", readSchema())
+	js.Global().Set("readTuple", readTuple())
+	js.Global().Set("deleteTuple", deleteTuple())
 	<-ch
 }

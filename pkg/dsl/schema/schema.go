@@ -58,6 +58,15 @@ func NewSchema(entities ...Entity) (schema Schema) {
 	}
 
 	for _, entity := range entities {
+
+		if entity.Relations == nil {
+			entity.Relations = []Relation{}
+		}
+
+		if entity.Actions == nil {
+			entity.Actions = []Action{}
+		}
+
 		schema.Entities[entity.Name] = entity
 	}
 
