@@ -6,6 +6,7 @@ import (
 	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	`github.com/Permify/permify/pkg/dsl/translator`
 	"github.com/Permify/permify/pkg/errors"
 )
 
@@ -35,8 +36,8 @@ func (e EntityConfig) ToSchema() (schema.Schema, errors.Error) {
 	if pr.Error() != nil {
 		return schema.Schema{}, pr.Error()
 	}
-	var s *parser.SchemaTranslator
-	s, err = parser.NewSchemaTranslator(parsed)
+	var s *translator.SchemaTranslator
+	s, err = translator.NewSchemaTranslator(parsed)
 	if err != nil {
 		return schema.Schema{}, internalErrors.ConfigParserError
 	}
@@ -58,8 +59,8 @@ func (e EntityConfigs) ToSchema() (schema.Schema, errors.Error) {
 	if pr.Error() != nil {
 		return schema.Schema{}, internalErrors.ConfigParserError
 	}
-	var s *parser.SchemaTranslator
-	s, err = parser.NewSchemaTranslator(parsed)
+	var s *translator.SchemaTranslator
+	s, err = translator.NewSchemaTranslator(parsed)
 	if err != nil {
 		return schema.Schema{}, internalErrors.ConfigParserError
 	}

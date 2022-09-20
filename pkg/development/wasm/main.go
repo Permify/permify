@@ -13,6 +13,7 @@ import (
 	"github.com/Permify/permify/pkg/development"
 	`github.com/Permify/permify/pkg/dsl/schema`
 	`github.com/Permify/permify/pkg/errors`
+	`github.com/Permify/permify/pkg/graph`
 	`github.com/Permify/permify/pkg/tuple`
 )
 
@@ -123,15 +124,39 @@ func readTuple() js.Func {
 	})
 }
 
+// readSchemaGraph -
+func readSchemaGraph() js.Func {
+	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		var sch schema.Schema
+		var err errors.Error
+		sch, err = development.ReadSchema(context.Background(), dev.M, string(args[0].String()))
+		if err != nil {
+			return js.ValueOf([]interface{}{nil, err.Error()})
+		}
+		r, gErr := sch.ToGraph()
+		if gErr != nil {
+			return js.ValueOf([]interface{}{nil, gErr.Error()})
+		}
+		result, mErr := json.Marshal(struct {
+			Nodes []*graph.Node `json:"nodes"`
+			Edges []*graph.Edge `json:"edges"`
+		}{Nodes: r.Nodes(), Edges: r.Edges()})
+		if mErr != nil {
+			return js.ValueOf([]interface{}{nil, mErr.Error()})
+		}
+		return js.ValueOf([]interface{}{string(result), nil})
+	})
+}
+
 func main() {
 	ch := make(chan struct{}, 0)
 	dev = development.NewDevelopment()
-
 	js.Global().Set("check", check())
 	js.Global().Set("writeSchema", writeSchema())
 	js.Global().Set("writeTuple", writeTuple())
 	js.Global().Set("readSchema", readSchema())
 	js.Global().Set("readTuple", readTuple())
 	js.Global().Set("deleteTuple", deleteTuple())
+	js.Global().Set("readSchemaGraph", readSchemaGraph())
 	<-ch
 }

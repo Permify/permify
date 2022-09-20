@@ -1,7 +1,12 @@
 package schema
 
 import (
+	`fmt`
+	`github.com/rs/xid`
+	`strings`
+
 	"github.com/Permify/permify/pkg/errors"
+	`github.com/Permify/permify/pkg/graph`
 )
 
 // OPType -
@@ -165,4 +170,97 @@ func (r Relations) GetRelationByName(name string) (relation Relation, err error)
 		}
 	}
 	return relation, errors.NewError(errors.Service).SetMessage("relation not found")
+}
+
+// ToGraph -
+func (s Schema) ToGraph() (g graph.Graph, error errors.Error) {
+	for _, en := range s.Entities {
+		eg, err := en.ToGraph()
+		if err != nil {
+			return graph.Graph{}, err
+		}
+		g.AddNodes(eg.Nodes())
+		g.AddEdges(eg.Edges())
+	}
+	return
+}
+
+// ToGraph -
+func (e Entity) ToGraph() (g graph.Graph, error errors.Error) {
+	enNode := &graph.Node{
+		Type:  "entity",
+		ID:    fmt.Sprintf("entity:%s", e.Name),
+		Label: e.Name,
+	}
+	g.AddNode(enNode)
+
+	for _, re := range e.Relations {
+		reNode := &graph.Node{
+			Type:  "relation",
+			ID:    fmt.Sprintf("entity:%s:relation:%s", e.Name, re.Name),
+			Label: re.Name,
+		}
+		g.AddNode(reNode)
+		g.AddEdge(enNode, reNode, nil)
+	}
+
+	for _, ac := range e.Actions {
+		acNode := &graph.Node{
+			Type:  "action",
+			ID:    fmt.Sprintf("entity:%s:action:%s", e.Name, ac.Name),
+			Label: ac.Name,
+		}
+		g.AddNode(acNode)
+		g.AddEdge(enNode, acNode, nil)
+		ag, err := e.buildActionGraph(acNode, []Child{ac.Child})
+		if err != nil {
+			return graph.Graph{}, err
+		}
+		g.AddNodes(ag.Nodes())
+		g.AddEdges(ag.Edges())
+	}
+	return
+}
+
+// buildActionGraph -
+func (e Entity) buildActionGraph(from *graph.Node, children []Child) (g graph.Graph, error errors.Error) {
+	for _, child := range children {
+		switch child.GetKind() {
+		case RewriteKind.String():
+			rw := &graph.Node{
+				Type:  "logic",
+				ID:    xid.New().String(),
+				Label: child.GetType(),
+			}
+			g.AddNode(rw)
+			g.AddEdge(from, rw, nil)
+			ag, err := e.buildActionGraph(rw, child.(Rewrite).Children)
+			if err != nil {
+				return graph.Graph{}, err
+			}
+			g.AddNodes(ag.Nodes())
+			g.AddEdges(ag.Edges())
+		case LeafKind.String():
+			ch := child.(Leaf)
+			if ch.Type == ComputedUserSetType {
+				g.AddEdge(from, &graph.Node{
+					Type:  "relation",
+					ID:    fmt.Sprintf("entity:%s:relation:%s", e.Name, ch.Value),
+					Label: ch.Value,
+				}, ch.Exclusion)
+			} else {
+				v := strings.Split(ch.Value, ".")
+				re, err := e.GetRelation(v[0])
+				if err != nil {
+					return graph.Graph{}, errors.NewError(errors.Service).SetMessage("relation not found")
+				}
+				g.AddEdge(from, &graph.Node{
+					Type:  "relation",
+					ID:    fmt.Sprintf("entity:%s:relation:%s", re.Types[0], v[1]),
+					Label: v[1],
+				}, ch.Exclusion)
+			}
+		}
+	}
+	return
 }
