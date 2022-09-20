@@ -15,6 +15,9 @@
 <p align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif" alt="Permify - Open source authorization as a service" />
 </p>
+<p align="center">
+    <a href="https://play.permify.co" target="_blank"><img src="https://img.shields.io/badge/Try-Try%20Permify-blueviolet?style=for-the-badge" alt="Try Permify" /></a>&nbsp;
+</p>
 
 ## What is Permify?
 
