@@ -8,10 +8,10 @@ import (
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/cache"
+	`github.com/Permify/permify/pkg/dsl/ast`
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
-	`github.com/Permify/permify/pkg/helper`
 )
 
 // EntityConfigManager -
@@ -100,25 +100,23 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 func (manager *EntityConfigManager) Write(ctx context.Context, configs string) (string, errors.Error) {
 	version := xid.New().String()
 
-	_, err := parser.NewParser(configs).Parse()
+	sch, err := parser.NewParser(configs).Parse()
 	if err != nil {
 		return "", err
 	}
 
-	helper.Pre("no error")
-
-	//err := sch.Validate()
-	//if err != nil {
-	//	return "", err
-	//}
+	err = sch.Validate()
+	if err != nil {
+		return "", err
+	}
 
 	var cnf []entities.EntityConfig
-	//for _, st := range sch.Statements {
-	//	cnf = append(cnf, entities.EntityConfig{
-	//		Entity:           st.(*ast.EntityStatement).Name.Literal,
-	//		SerializedConfig: []byte(st.String()),
-	//	})
-	//}
+	for _, st := range sch.Statements {
+		cnf = append(cnf, entities.EntityConfig{
+			Entity:           st.(*ast.EntityStatement).Name.Literal,
+			SerializedConfig: []byte(st.String()),
+		})
+	}
 
 	return version, manager.repository.Write(ctx, cnf, version)
 }
