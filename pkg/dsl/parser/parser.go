@@ -84,53 +84,71 @@ func (p *Parser) Error() errors.Error {
 	})
 }
 
-// Errors -
-func (p *Parser) Errors() []string {
-	return p.errors
-}
-
 // Parse -
-func (p *Parser) Parse() *ast.Schema {
+func (p *Parser) Parse() (*ast.Schema, errors.Error) {
 	schema := &ast.Schema{}
 	schema.Statements = []ast.Statement{}
 
 	for !p.currentTokenIs(token.EOF) {
-		stmt := p.parseStatement()
+		stmt, err := p.parseStatement()
+		if err != nil {
+			return nil, p.Error()
+		}
 		if stmt != nil {
 			schema.Statements = append(schema.Statements, stmt)
 		}
 		p.next()
 	}
 
-	return schema
+	return schema, nil
 }
 
 // parseStatement method based on defined token types
-func (p *Parser) parseStatement() ast.Statement {
+func (p *Parser) parseStatement() (ast.Statement, errors.Error) {
 	switch p.currentToken.Type {
 	case token.ENTITY:
 		return p.parseEntityStatement()
 	default:
-		return nil
+		return nil, nil
 	}
 }
 
 // parseEntityStatement returns a LET Statement AST Node
-func (p *Parser) parseEntityStatement() *ast.EntityStatement {
+func (p *Parser) parseEntityStatement() (*ast.EntityStatement, errors.Error) {
 	stmt := &ast.EntityStatement{Token: p.currentToken}
 	if !p.expectAndNext(token.IDENT) {
-		return nil
+		return nil, p.Error()
 	}
 	stmt.Name = p.currentToken
+	if !p.expectAndNext(token.LBRACE) {
+		return nil, p.Error()
+	}
+
 	for !p.currentTokenIs(token.RBRACE) {
+		if p.currentTokenIs(token.EOF) {
+			p.currentError(token.RBRACE)
+			break
+		}
 		switch p.currentToken.Type {
 		case token.RELATION:
-			stmt.RelationStatements = append(stmt.RelationStatements, p.parseRelationStatement())
+			relation, err := p.parseRelationStatement()
+			if err != nil {
+				return nil, p.Error()
+			}
+			stmt.RelationStatements = append(stmt.RelationStatements, relation)
 			break
 		case token.ACTION:
-			stmt.ActionStatements = append(stmt.ActionStatements, p.parseActionStatement())
+			action, err := p.parseActionStatement()
+			if err != nil {
+				return nil, p.Error()
+			}
+			stmt.ActionStatements = append(stmt.ActionStatements, action)
 			break
 		default:
+			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
+				p.currentError(token.RELATION, token.ACTION)
+				return nil, p.Error()
+			}
 			break
 		}
 		p.next()
@@ -141,20 +159,27 @@ func (p *Parser) parseEntityStatement() *ast.EntityStatement {
 		stmt.Option = p.currentToken
 	}
 
-	return stmt
+	return stmt, nil
 }
 
 // parseRelationStatement -
-func (p *Parser) parseRelationStatement() *ast.RelationStatement {
+func (p *Parser) parseRelationStatement() (*ast.RelationStatement, errors.Error) {
 	stmt := &ast.RelationStatement{Token: p.currentToken}
 	if !p.expectAndNext(token.IDENT) {
-		return nil
+		return nil, p.Error()
 	}
 	stmt.Name = p.currentToken
 
-	//&& !p.currentTokenIs(token.RELATION)
+	if !p.expect(token.SIGN) {
+		return nil, p.Error()
+	}
+
 	for p.peekTokenIs(token.SIGN) && !p.peekTokenIs(token.OPTION) {
-		stmt.RelationTypes = append(stmt.RelationTypes, p.parseRelationTypeStatement())
+		relSt, err := p.parseRelationTypeStatement()
+		if err != nil {
+			return nil, p.Error()
+		}
+		stmt.RelationTypes = append(stmt.RelationTypes, relSt)
 	}
 
 	if p.peekTokenIs(token.OPTION) {
@@ -162,41 +187,41 @@ func (p *Parser) parseRelationStatement() *ast.RelationStatement {
 		stmt.Option = p.currentToken
 	}
 
-	return stmt
+	return stmt, nil
 }
 
 // parseRelationTypeStatement -
-func (p *Parser) parseRelationTypeStatement() *ast.RelationTypeStatement {
+func (p *Parser) parseRelationTypeStatement() (*ast.RelationTypeStatement, errors.Error) {
 	if !p.expectAndNext(token.SIGN) {
-		return nil
+		return nil, p.Error()
 	}
 	stmt := &ast.RelationTypeStatement{Sign: p.currentToken}
 	if !p.expectAndNext(token.IDENT) {
-		return nil
+		return nil, p.Error()
 	}
 	stmt.Token = p.currentToken
-	return stmt
+	return stmt, nil
 }
 
 // parseActionStatement -
-func (p *Parser) parseActionStatement() ast.Statement {
+func (p *Parser) parseActionStatement() (ast.Statement, errors.Error) {
 	stmt := &ast.ActionStatement{Token: p.currentToken}
 
 	if !p.expectAndNext(token.IDENT) {
-		return nil
+		return nil, p.Error()
 	}
 
 	stmt.Name = p.currentToken
 
 	if !p.expectAndNext(token.ASSIGN) {
-		return nil
+		return nil, p.Error()
 	}
 
 	p.next()
 
 	stmt.ExpressionStatement = p.parseExpressionStatement()
 
-	return stmt
+	return stmt, nil
 }
 
 // parseExpressionStatement -
@@ -204,8 +229,11 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	stmt := &ast.ExpressionStatement{}
 	stmt.Expression = p.parseExpression(LOWEST)
 
-	if p.currentTokenIs(token.NEWLINE) {
+	if p.peekTokenIs(token.RPAREN) {
 		p.next()
+		for p.currentTokenIs(token.RPAREN) {
+			p.next()
+		}
 	}
 
 	return stmt
@@ -215,6 +243,15 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 func (p *Parser) expectAndNext(t token.Type) bool {
 	if p.peekTokenIs(t) {
 		p.next()
+		return true
+	}
+	p.peekError(t)
+	return false
+}
+
+// expect -
+func (p *Parser) expect(t token.Type) bool {
+	if p.peekTokenIs(t) {
 		return true
 	}
 	p.peekError(t)
@@ -329,12 +366,24 @@ func (p *Parser) registerInfix(tokenType token.Type, fn infixParseFn) {
 
 // noPrefixParseFnError -
 func (p *Parser) noPrefixParseFnError(t token.Type) {
-	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	msg := fmt.Sprintf("%v:%v:no prefix parse function for %s found", p.l.GetLinePosition(), p.l.GetColumnPosition(), t)
+	p.errors = append(p.errors, msg)
+}
+
+// illegal -
+func (p *Parser) illegal() {
+	msg := fmt.Sprintf("%v:%v:illegal token found", p.l.GetLinePosition(), p.l.GetColumnPosition())
 	p.errors = append(p.errors, msg)
 }
 
 // peekError -
-func (p *Parser) peekError(t token.Type) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+func (p *Parser) peekError(t ...token.Type) {
+	msg := fmt.Sprintf("%v:%v:expected next token to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), t, p.peekToken.Type)
+	p.errors = append(p.errors, msg)
+}
+
+// currentError -
+func (p *Parser) currentError(t ...token.Type) {
+	msg := fmt.Sprintf("%v:%v:expected token to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), t, p.currentToken.Type)
 	p.errors = append(p.errors, msg)
 }

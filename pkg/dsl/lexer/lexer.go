@@ -6,17 +6,29 @@ import (
 
 // Lexer -
 type Lexer struct {
-	input        string
-	position     int
-	readPosition int
-	ch           byte
+	input          string
+	position       int
+	readPosition   int
+	linePosition   int
+	columnPosition int
+	ch             byte
 }
 
 // NewLexer -
 func NewLexer(input string) (l *Lexer) {
-	l = &Lexer{input: input}
+	l = &Lexer{input: input, linePosition: 1, columnPosition: 1}
 	l.readChar()
 	return
+}
+
+// GetLinePosition -
+func (l *Lexer) GetLinePosition() int {
+	return l.linePosition
+}
+
+// GetColumnPosition -
+func (l *Lexer) GetColumnPosition() int {
+	return l.columnPosition
 }
 
 // readChar -
@@ -28,6 +40,7 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition
 	l.readPosition++
+	l.columnPosition++
 }
 
 // peekChar -
@@ -44,8 +57,10 @@ func (l *Lexer) NextToken() (tok token.Token) {
 	l.skipWhitespace()
 	switch l.ch {
 	case '\n':
+		l.newLine()
 		tok = token.New(token.NEWLINE, l.ch)
 	case '\r':
+		l.newLine()
 		tok = token.New(token.NEWLINE, l.ch)
 	case ';':
 		tok = token.New(token.NEWLINE, l.ch)
@@ -64,6 +79,7 @@ func (l *Lexer) NextToken() (tok token.Token) {
 	case '`':
 		tok.Type = token.OPTION
 		tok.Literal = l.lexBacktick()
+		return
 	case '"':
 		tok = token.New(token.QUOTE, l.ch)
 	case ',':
@@ -74,12 +90,15 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		if isLetter(l.ch) {
 			tok.Literal = l.lexIdent()
 			tok.Type = token.LookupKeywords(tok.Literal)
+			return
 		} else {
 			if l.ch == '/' && l.peekChar() == '/' {
 				l.skipUntilNewline()
-				break
+				l.newLine()
+				tok = token.New(token.NEWLINE, l.ch)
+			} else {
+				tok = token.New(token.ILLEGAL, l.ch)
 			}
-			tok = token.New(token.ILLEGAL, l.ch)
 		}
 	}
 	l.readChar()
@@ -94,6 +113,12 @@ func (l *Lexer) lexBacktick() (lit string) {
 		l.readChar()
 	}
 	return l.input[position:l.position]
+}
+
+// newLine -
+func (l *Lexer) newLine() {
+	l.linePosition++
+	l.columnPosition = 1
 }
 
 // lexIdent -
@@ -112,7 +137,7 @@ func (l *Lexer) skipWhitespace() {
 	}
 }
 
-// skipWhitespace -
+// skipUntilNewline -
 func (l *Lexer) skipUntilNewline() {
 	for !isNewline(l.ch) {
 		l.readChar()

@@ -118,7 +118,7 @@ func (e ErrorObject) Message() string {
 func (e ErrorObject) Error() string {
 	msg := e.message
 	if msg == "" {
-		msg = fmt.Sprintf("%v error ", e.kind.String())
+		msg = fmt.Sprintf("%v error", e.kind.String())
 		if e.subKind != "" {
 			msg += ":" + e.subKind.String()
 		}

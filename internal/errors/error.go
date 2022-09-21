@@ -14,6 +14,5 @@ var (
 	DepthError              = errors.ValidationError.AddParam("depth", "depth not enough")
 	UndefinedChildTypeError = errors.ValidationError.AddParam("schema", "undefined child type")
 	UndefinedChildKindError = errors.ValidationError.AddParam("schema", "undefined child kind")
-	ConfigParserError       = errors.ValidationError.AddParam("schema", "undefined error")
 	ActionCannotFoundError  = errors.ValidationError.AddParam("action", "action can not found")
 )

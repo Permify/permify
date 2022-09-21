@@ -3,7 +3,6 @@ package entities
 import (
 	"time"
 
-	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	`github.com/Permify/permify/pkg/dsl/translator`
@@ -31,15 +30,14 @@ func (EntityConfig) Collection() string {
 // ToSchema -
 func (e EntityConfig) ToSchema() (schema.Schema, errors.Error) {
 	var err error
-	pr := parser.NewParser(string(e.SerializedConfig))
-	parsed := pr.Parse()
-	if pr.Error() != nil {
-		return schema.Schema{}, pr.Error()
+	pr, pErr := parser.NewParser(string(e.SerializedConfig)).Parse()
+	if pErr != nil {
+		return schema.Schema{}, pErr
 	}
 	var s *translator.SchemaTranslator
-	s, err = translator.NewSchemaTranslator(parsed)
+	s, err = translator.NewSchemaTranslator(pr)
 	if err != nil {
-		return schema.Schema{}, internalErrors.ConfigParserError
+		return schema.Schema{}, errors.ValidationError.AddParam("schema", err.Error())
 	}
 	return s.Translate(), nil
 }
@@ -54,15 +52,14 @@ func (e EntityConfigs) ToSchema() (schema.Schema, errors.Error) {
 	for _, c := range e {
 		configs += string(c.SerializedConfig) + "\n"
 	}
-	pr := parser.NewParser(configs)
-	parsed := pr.Parse()
-	if pr.Error() != nil {
-		return schema.Schema{}, internalErrors.ConfigParserError
+	pr, pErr := parser.NewParser(configs).Parse()
+	if pErr != nil {
+		return schema.Schema{}, pErr
 	}
 	var s *translator.SchemaTranslator
-	s, err = translator.NewSchemaTranslator(parsed)
+	s, err = translator.NewSchemaTranslator(pr)
 	if err != nil {
-		return schema.Schema{}, internalErrors.ConfigParserError
+		return schema.Schema{}, errors.ValidationError.AddParam("schema", err.Error())
 	}
 	return s.Translate(), nil
 }

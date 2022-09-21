@@ -48,8 +48,7 @@ const (
 	// Delimiters
 	//
 
-	COMMA   = "COMMA"
-	COMMENT = "COMMENT"
+	COMMA = "COMMA"
 
 	LBRACE = "LBRACE"
 	RBRACE = "RBRACE"
@@ -59,9 +58,6 @@ const (
 
 	ASSIGN = "ASSIGN"
 	SIGN   = "SIGN"
-	DOT    = "DOT"
-
-	COLON = "COLON"
 
 	NEWLINE = "NEWLINE"
 
