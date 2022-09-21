@@ -127,7 +127,7 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, errors.Error) {
 	for !p.currentTokenIs(token.RBRACE) {
 		if p.currentTokenIs(token.EOF) {
 			p.currentError(token.RBRACE)
-			break
+			return nil, p.Error()
 		}
 		switch p.currentToken.Type {
 		case token.RELATION:
