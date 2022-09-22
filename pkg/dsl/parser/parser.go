@@ -8,7 +8,6 @@ import (
 	"github.com/Permify/permify/pkg/dsl/lexer"
 	"github.com/Permify/permify/pkg/dsl/token"
 	"github.com/Permify/permify/pkg/errors"
-	`github.com/Permify/permify/pkg/helper`
 )
 
 const (
@@ -146,10 +145,10 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, errors.Error) {
 			stmt.ActionStatements = append(stmt.ActionStatements, action)
 			break
 		default:
-			//if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
-			//	p.currentError(token.RELATION, token.ACTION)
-			//	return nil, p.Error()
-			//}
+			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
+				p.currentError(token.RELATION, token.ACTION)
+				return nil, p.Error()
+			}
 			break
 		}
 		p.next()
@@ -226,7 +225,6 @@ func (p *Parser) parseActionStatement() (ast.Statement, errors.Error) {
 	}
 	stmt.ExpressionStatement = ex
 
-	helper.Pre(stmt)
 	return stmt, nil
 }
 
