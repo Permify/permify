@@ -8,6 +8,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/lexer"
 	"github.com/Permify/permify/pkg/dsl/token"
 	"github.com/Permify/permify/pkg/errors"
+	`github.com/Permify/permify/pkg/helper`
 )
 
 const (
@@ -34,8 +35,8 @@ type Parser struct {
 }
 
 type (
-	prefixParseFn func() ast.Expression
-	infixParseFn  func(ast.Expression) ast.Expression
+	prefixParseFn func() (ast.Expression, errors.Error)
+	infixParseFn  func(ast.Expression) (ast.Expression, errors.Error)
 )
 
 // NewParser -
@@ -145,10 +146,10 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, errors.Error) {
 			stmt.ActionStatements = append(stmt.ActionStatements, action)
 			break
 		default:
-			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
-				p.currentError(token.RELATION, token.ACTION)
-				return nil, p.Error()
-			}
+			//if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
+			//	p.currentError(token.RELATION, token.ACTION)
+			//	return nil, p.Error()
+			//}
 			break
 		}
 		p.next()
@@ -219,15 +220,24 @@ func (p *Parser) parseActionStatement() (ast.Statement, errors.Error) {
 
 	p.next()
 
-	stmt.ExpressionStatement = p.parseExpressionStatement()
+	ex, err := p.parseExpressionStatement()
+	if err != nil {
+		return nil, p.Error()
+	}
+	stmt.ExpressionStatement = ex
 
+	helper.Pre(stmt)
 	return stmt, nil
 }
 
 // parseExpressionStatement -
-func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+func (p *Parser) parseExpressionStatement() (*ast.ExpressionStatement, errors.Error) {
 	stmt := &ast.ExpressionStatement{}
-	stmt.Expression = p.parseExpression(LOWEST)
+	var err errors.Error
+	stmt.Expression, err = p.parseExpression(LOWEST)
+	if err != nil {
+		return nil, p.Error()
+	}
 
 	if p.peekTokenIs(token.RPAREN) {
 		p.next()
@@ -236,7 +246,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 		}
 	}
 
-	return stmt
+	return stmt, nil
 }
 
 // expectAndNext -
@@ -259,7 +269,7 @@ func (p *Parser) expect(t token.Type) bool {
 }
 
 // parseExpression -
-func (p *Parser) parseExpression(precedence int) ast.Expression {
+func (p *Parser) parseExpression(precedence int) (ast.Expression, errors.Error) {
 	if p.currentTokenIs(token.LPAREN) {
 		p.next()
 		return p.parseInnerParen()
@@ -268,24 +278,30 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix := p.prefixParseFns[p.currentToken.Type]
 	if prefix == nil {
 		p.noPrefixParseFnError(p.currentToken.Type)
-		return nil
+		return nil, p.Error()
 	}
-	left := prefix()
+	exp, err := prefix()
+	if err != nil {
+		return nil, p.Error()
+	}
 
 	for !p.peekTokenIs(token.NEWLINE) && precedence < p.peekPrecedence() {
 		infix := p.infixParseFunc[p.peekToken.Type]
 		if infix == nil {
-			return left
+			return exp, nil
 		}
 		p.next()
-		left = infix(left)
+		exp, err = infix(exp)
+		if err != nil {
+			return nil, p.Error()
+		}
 	}
 
-	return left
+	return exp, nil
 }
 
 // parseInnerParen -
-func (p *Parser) parseInnerParen() ast.Expression {
+func (p *Parser) parseInnerParen() (ast.Expression, errors.Error) {
 	if p.currentTokenIs(token.LPAREN) {
 		return p.parseExpression(LOWEST)
 	}
@@ -293,35 +309,44 @@ func (p *Parser) parseInnerParen() ast.Expression {
 	prefix := p.prefixParseFns[p.currentToken.Type]
 	if prefix == nil {
 		p.noPrefixParseFnError(p.currentToken.Type)
-		return nil
+		return nil, p.Error()
 	}
-	left := prefix()
+	exp, err := prefix()
+	if err != nil {
+		return nil, p.Error()
+	}
 
 	for !p.currentTokenIs(token.RPAREN) {
+		if p.peekTokenIs(token.RPAREN) {
+			p.next()
+		}
 		infix := p.infixParseFunc[p.peekToken.Type]
 		if infix == nil {
-			return left
+			return exp, nil
 		}
 		p.next()
-		left = infix(left)
+		exp, err = infix(exp)
+		if err != nil {
+			return nil, p.Error()
+		}
 	}
 
-	return left
+	return exp, nil
 }
 
 // parsePrefixExpression -
-func (p *Parser) parsePrefixExpression() ast.Expression {
+func (p *Parser) parsePrefixExpression() (ast.Expression, errors.Error) {
 	expression := &ast.PrefixExpression{
 		Token:    p.currentToken,
 		Operator: p.currentToken.Literal,
 	}
 	p.next()
 	expression.Value = p.currentToken.Literal
-	return expression
+	return expression, nil
 }
 
 // parseInfixExpression
-func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, errors.Error) {
 	expression := &ast.InfixExpression{
 		Token:    p.currentToken, // and, or
 		Left:     left,
@@ -329,8 +354,12 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	}
 	precedence := p.currentPrecedence()
 	p.next()
-	expression.Right = p.parseExpression(precedence)
-	return expression
+	ex, err := p.parseExpression(precedence)
+	if err != nil {
+		return nil, p.Error()
+	}
+	expression.Right = ex
+	return expression, nil
 }
 
 // peekPrecedence -
@@ -343,15 +372,15 @@ func (p *Parser) peekPrecedence() int {
 
 // peekPrecedence -
 func (p *Parser) currentPrecedence() int {
-	if p, ok := precedences[p.currentToken.Type]; ok {
-		return p
+	if pr, ok := precedences[p.currentToken.Type]; ok {
+		return pr
 	}
 	return LOWEST
 }
 
 // parseIdentifier
-func (p *Parser) parseIdentifier() ast.Expression {
-	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+func (p *Parser) parseIdentifier() (ast.Expression, errors.Error) {
+	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}, nil
 }
 
 // registerPrefix
@@ -367,6 +396,12 @@ func (p *Parser) registerInfix(tokenType token.Type, fn infixParseFn) {
 // noPrefixParseFnError -
 func (p *Parser) noPrefixParseFnError(t token.Type) {
 	msg := fmt.Sprintf("%v:%v:no prefix parse function for %s found", p.l.GetLinePosition(), p.l.GetColumnPosition(), t)
+	p.errors = append(p.errors, msg)
+}
+
+// noInfixParseFnError -
+func (p *Parser) noInfixParseFnError(t token.Type) {
+	msg := fmt.Sprintf("%v:%v:no infix parse function for %s found", p.l.GetLinePosition(), p.l.GetColumnPosition(), t)
 	p.errors = append(p.errors, msg)
 }
 
