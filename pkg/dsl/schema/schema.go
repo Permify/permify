@@ -251,6 +251,11 @@ func (e Entity) buildActionGraph(from *graph.Node, children []Child) (g graph.Gr
 			} else {
 				v := strings.Split(ch.Value, ".")
 				re, err := e.GetRelation(v[0])
+				g.AddEdge(from, &graph.Node{
+					Type:  "relation",
+					ID:    fmt.Sprintf("entity:%s", v[0]),
+					Label: v[1],
+				}, ch.Exclusion)
 				if err != nil {
 					return graph.Graph{}, errors.NewError(errors.Service).SetMessage("relation not found")
 				}
