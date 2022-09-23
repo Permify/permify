@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories/entities"
@@ -105,6 +104,7 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) errors.Error {
 	var err error
 	txn := r.Database.DB.Txn(true)
+	defer txn.Abort()
 	for _, tuple := range tuples {
 		if err = txn.Insert(entities.RelationTuple{}.Table(), tuple); err != nil {
 			return errors.DatabaseError.SetSubKind(database.ErrExecution)
@@ -118,9 +118,14 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) errors.Error {
 	var err error
 	txn := r.Database.DB.Txn(true)
+	defer txn.Abort()
 	for _, tuple := range tuples {
 		if err = txn.Delete(entities.RelationTuple{}.Table(), tuple); err != nil {
-			return errors.DatabaseError.SetSubKind(database.ErrExecution)
+			if err.Error() == "not found" {
+				//errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
+				return nil
+			}
+			return errors.DatabaseError.SetSubKind(database.ErrUniqueConstraint)
 		}
 	}
 	txn.Commit()

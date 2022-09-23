@@ -86,6 +86,7 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.EntityConfigs, version string) errors.Error {
 	var err error
 	txn := r.Database.DB.Txn(true)
+	defer txn.Abort()
 	for _, config := range configs {
 		config.Version = version
 		if err = txn.Insert(entities.EntityConfig{}.Table(), config); err != nil {
