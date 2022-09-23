@@ -54,7 +54,9 @@ func (service *RelationshipService) WriteRelationship(ctx context.Context, tup t
 
 	err = tup.Subject.ValidateSubjectType(vt)
 	if err != nil {
-		return err
+		return errors.ValidationError.SetParams(map[string]interface{}{
+			"relation": err.Error(),
+		})
 	}
 
 	return service.rt.Write(ctx, e.RelationTuples{e.RelationTuple{
