@@ -138,7 +138,7 @@ func (s Subject) ValidateSubjectType(relationTypes []string) (err errors.Error) 
 	}
 
 	if !helper.InArray(key, relationTypes) {
-		return errors.NewError(errors.Service).SetMessage("subject type is not found in defined types")
+		return errors.NewError(errors.Validation).SetMessage("subject type is not found in defined types")
 	}
 	return nil
 }
