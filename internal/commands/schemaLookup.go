@@ -57,6 +57,7 @@ type SchemaLookupResponse struct {
 
 // Execute -
 func (command *SchemaLookupCommand) Execute(ctx context.Context, q *SchemaLookupQuery, actions []schema.Action) (response SchemaLookupResponse, err errors.Error) {
+	response.ActionNames = []string{}
 	for _, action := range actions {
 		var can bool
 		can, err = command.l(ctx, q, action.Child)
