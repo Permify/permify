@@ -15,9 +15,6 @@
 <p align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif" alt="Permify - Open source authorization as a service" />
 </p>
-<p align="center">
-    <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
-</p>
 
 ## What is Permify?
 
@@ -26,6 +23,12 @@ Permify is an **open-source authorization service** for creating and maintaining
 Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.
 
 Data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
+
+<p align="center">
+    <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
+    <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
+</p>
+
 
 ## Permify works best:
 
@@ -67,6 +70,8 @@ Data model is inspired by Google’s consistent, global authorization system, [G
 [Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
 [centralize & stores your authorization data]: https://docs.permify.co/docs/getting-started/sync-data
 [Permify API]: https://docs.permify.co/docs/api-overview
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de?action=collection%2Ffork&collection-url=entityId%3D16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de%26entityType%3Dcollection%26workspaceId%3Dd3a8746c-fa57-49c0-83a5-6fcf25a7fc05)
 
 ## Community & Support
 Join our [Discord channel](https://discord.gg/MJbUjwskdH) for issues, feature requests, feedbacks or anything else. We love to talk about authorization and access control :heart:
