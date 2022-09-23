@@ -26,7 +26,6 @@ Data model is inspired by Google’s consistent, global authorization system, [G
 
 <p align="center">
     <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
-    <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
 </p>
 
 
