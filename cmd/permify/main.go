@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	version = "v0.0.0-alpha3"
+	version = "v0.0.0-alpha4"
 	color   = "\033[0;37m%s\033[0m"
 	banner  = `
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗

@@ -106,6 +106,9 @@ definitions:
         type: array
       name:
         type: string
+      option:
+        additionalProperties: true
+        type: object
       relations:
         items:
           $ref: '#/definitions/schema.Relation'
@@ -145,6 +148,9 @@ definitions:
     properties:
       name:
         type: string
+      option:
+        additionalProperties: true
+        type: object
       type:
         items:
           type: string

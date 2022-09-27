@@ -582,6 +582,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "option": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "relations": {
                     "type": "array",
                     "items": {
@@ -642,6 +646,10 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "option": {
+                    "type": "object",
+                    "additionalProperties": true
                 },
                 "type": {
                     "type": "array",
