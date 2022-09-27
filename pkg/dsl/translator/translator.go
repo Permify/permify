@@ -34,16 +34,38 @@ func (t *SchemaTranslator) Translate() (sch schema.Schema) {
 // translateToEntity -
 func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) (entity schema.Entity) {
 	entity.Name = sc.Name.Literal
+	entity.Option = map[string]interface{}{}
+
+	if sc.Option.Literal != "" {
+		options := strings.Split(sc.Option.Literal, "|")
+		for _, option := range options {
+			op := strings.Split(option, ":")
+			if len(op) == 2 {
+				entity.Option[op[0]] = op[1]
+			}
+		}
+	}
 
 	// relations
 	for _, rs := range sc.RelationStatements {
 		relationSt := rs.(*ast.RelationStatement)
 		var relation schema.Relation
+		relation.Option = map[string]interface{}{}
 		relation.Name = relationSt.Name.Literal
 
 		for _, rts := range relationSt.RelationTypes {
 			relationTypeSt := rts.(*ast.RelationTypeStatement)
 			relation.Types = append(relation.Types, relationTypeSt.Token.Literal)
+		}
+
+		if relationSt.Option.Literal != "" {
+			options := strings.Split(sc.Option.Literal, "|")
+			for _, option := range options {
+				op := strings.Split(option, ":")
+				if len(op) == 2 {
+					relation.Option[op[0]] = op[1]
+				}
+			}
 		}
 
 		entity.Relations = append(entity.Relations, relation)
