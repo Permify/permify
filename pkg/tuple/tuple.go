@@ -56,6 +56,42 @@ func (e Entity) Validate() (err error) {
 	return
 }
 
+type IEntityIterator interface {
+	HasNext() bool
+	GetNext() *Entity
+}
+
+// EntityIterator -
+type EntityIterator struct {
+	index    int
+	entities []*Entity
+}
+
+// NewEntityIterator -
+func NewEntityIterator(entities []*Entity) *EntityIterator {
+	return &EntityIterator{
+		entities: entities,
+	}
+}
+
+// HasNext -
+func (u *EntityIterator) HasNext() bool {
+	if u.index < len(u.entities) {
+		return true
+	}
+	return false
+}
+
+// GetNext -
+func (u *EntityIterator) GetNext() *Entity {
+	if u.HasNext() {
+		t := u.entities[u.index]
+		u.index++
+		return t
+	}
+	return nil
+}
+
 // Subject -
 type Subject struct {
 	Type     string   `json:"type"`
@@ -193,6 +229,11 @@ func (r Tuple) String() string {
 	object := fmt.Sprintf(ENTITY, r.Entity.Type, r.Entity.ID)
 	relation := fmt.Sprintf(RELATION, r.Relation)
 	return object + relation + "@" + r.Subject.String()
+}
+
+// IsEntityAndSubjectEquals -
+func (r Tuple) IsEntityAndSubjectEquals() bool {
+	return r.Entity.Type == r.Subject.Type && r.Entity.ID == r.Subject.ID && r.Relation == r.Subject.Relation
 }
 
 const (
