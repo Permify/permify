@@ -5,7 +5,7 @@ import (
 
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	`github.com/Permify/permify/pkg/dsl/translator`
+	"github.com/Permify/permify/pkg/dsl/translator"
 	"github.com/Permify/permify/pkg/errors"
 )
 
