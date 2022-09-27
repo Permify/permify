@@ -44,6 +44,12 @@ func (service *RelationshipService) WriteRelationship(ctx context.Context, tup t
 		return err
 	}
 
+	if tup.IsEntityAndSubjectEquals() {
+		return errors.ValidationError.SetParams(map[string]interface{}{
+			"subject": "entity and subject cannot be equal",
+		})
+	}
+
 	var vt []string
 	for _, rel := range entity.Relations {
 		if rel.Name == tup.Relation.String() {
