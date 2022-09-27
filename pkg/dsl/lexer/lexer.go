@@ -79,7 +79,6 @@ func (l *Lexer) NextToken() (tok token.Token) {
 	case '`':
 		tok.Type = token.OPTION
 		tok.Literal = l.lexBacktick()
-		return
 	case '"':
 		tok = token.New(token.QUOTE, l.ch)
 	case ',':
@@ -109,7 +108,7 @@ func (l *Lexer) NextToken() (tok token.Token) {
 func (l *Lexer) lexBacktick() (lit string) {
 	l.readChar()
 	position := l.position
-	for !isBacktick(l.ch) {
+	for !isBacktick(l.ch) && l.ch != 0 {
 		l.readChar()
 	}
 	return l.input[position:l.position]
@@ -139,7 +138,7 @@ func (l *Lexer) skipWhitespace() {
 
 // skipUntilNewline -
 func (l *Lexer) skipUntilNewline() {
-	for !isNewline(l.ch) {
+	for !isNewline(l.ch) && l.ch != 0 {
 		l.readChar()
 	}
 }
