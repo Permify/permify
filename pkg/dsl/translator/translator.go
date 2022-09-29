@@ -59,7 +59,7 @@ func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) (entity sc
 		}
 
 		if relationSt.Option.Literal != "" {
-			options := strings.Split(sc.Option.Literal, "|")
+			options := strings.Split(relationSt.Option.Literal, "|")
 			for _, option := range options {
 				op := strings.Split(option, ":")
 				if len(op) == 2 {
