@@ -25,17 +25,19 @@ func (r *RelationTupleWithCircuitBreaker) Migrate() (err errors.Error) {
 	return nil
 }
 
-// QueryTuples -
-func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuples entities.RelationTuples, err errors.Error) {
+// ReverseQueryTuples -
+func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (tuples entities.RelationTuples, err errors.Error) {
 	output := make(chan entities.RelationTuples, 1)
 	outputErr := make(chan errors.Error, 1)
-	hystrix.ConfigureCommand("relationTupleRepository.queryTuples", hystrix.CommandConfig{Timeout: 1000})
-	bErrors := hystrix.Go("entityConfigRepository.queryTuples", func() error {
-		tuples, err = r.repository.QueryTuples(ctx, entity, objectID, relation)
+	hystrix.ConfigureCommand("relationTupleRepository.reverseQueryTuples", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("entityConfigRepository.reverseQueryTuples", func() error {
+		tuples, err = r.repository.ReverseQueryTuples(ctx, entity, relation, subjectEntity, subjectID, subjectRelation)
 		outputErr <- err
 		output <- tuples
 		return nil
-	}, nil)
+	}, func(err error) error {
+		return nil
+	})
 
 	select {
 	case out := <-output:
@@ -47,23 +49,51 @@ func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entit
 	}
 }
 
-// Read -
-func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err errors.Error) {
-	output := make(chan entities.RelationTuples, 1)
-	outputErr := make(chan errors.Error, 1)
-	hystrix.ConfigureCommand("relationTupleRepository.read", hystrix.CommandConfig{Timeout: 1000})
-	bErrors := hystrix.Go("entityConfigRepository.read", func() error {
-		tuples, err = r.repository.Read(ctx, filter)
-		outputErr <- err
-		output <- tuples
+// QueryTuples -
+func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuples entities.RelationTuples, err errors.Error) {
+	type circuitBreakerResponse struct {
+		Tuples entities.RelationTuples
+		Error  errors.Error
+	}
+
+	output := make(chan circuitBreakerResponse, 1)
+	hystrix.ConfigureCommand("relationTupleRepository.queryTuples", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("entityConfigRepository.queryTuples", func() error {
+		tup, cErr := r.repository.QueryTuples(ctx, entity, objectID, relation)
+		output <- circuitBreakerResponse{Tuples: tup, Error: cErr}
 		return nil
-	}, nil)
+	}, func(err error) error {
+		return nil
+	})
 
 	select {
 	case out := <-output:
-		return out, err
-	case err = <-outputErr:
-		return tuples, err
+		return out.Tuples, out.Error
+	case <-bErrors:
+		return tuples, errors.CircuitBreakerError
+	}
+}
+
+// Read -
+func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err errors.Error) {
+	type circuitBreakerResponse struct {
+		Tuples entities.RelationTuples
+		Error  errors.Error
+	}
+
+	output := make(chan circuitBreakerResponse, 1)
+	hystrix.ConfigureCommand("relationTupleRepository.read", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("entityConfigRepository.read", func() error {
+		tup, cErr := r.repository.Read(ctx, filter)
+		output <- circuitBreakerResponse{Tuples: tup, Error: cErr}
+		return nil
+	}, func(err error) error {
+		return nil
+	})
+
+	select {
+	case out := <-output:
+		return out.Tuples, out.Error
 	case <-bErrors:
 		return tuples, errors.CircuitBreakerError
 	}
@@ -77,7 +107,9 @@ func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, tuples enti
 		err = r.repository.Write(ctx, tuples)
 		outputErr <- err
 		return nil
-	}, nil)
+	}, func(err error) error {
+		return nil
+	})
 
 	select {
 	case err = <-outputErr:
@@ -95,7 +127,9 @@ func (r *RelationTupleWithCircuitBreaker) Delete(ctx context.Context, tuples ent
 		err = r.repository.Delete(ctx, tuples)
 		outputErr <- err
 		return nil
-	}, nil)
+	}, func(err error) error {
+		return nil
+	})
 
 	select {
 	case err = <-outputErr:
