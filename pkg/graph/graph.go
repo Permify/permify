@@ -1,7 +1,7 @@
 package graph
 
 import (
-	`sync`
+	"sync"
 )
 
 // Node -

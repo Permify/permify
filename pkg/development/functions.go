@@ -5,10 +5,10 @@ import (
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/managers"
-	`github.com/Permify/permify/internal/repositories/filters`
+	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	`github.com/Permify/permify/pkg/errors`
+	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
