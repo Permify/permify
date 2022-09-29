@@ -8,7 +8,7 @@ import (
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/cache"
-	`github.com/Permify/permify/pkg/dsl/ast`
+	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
