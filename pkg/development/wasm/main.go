@@ -9,12 +9,12 @@ import (
 	"syscall/js"
 
 	"github.com/Permify/permify/internal/commands"
-	`github.com/Permify/permify/internal/repositories/filters`
+	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/development"
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/errors`
-	`github.com/Permify/permify/pkg/graph`
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/errors"
+	"github.com/Permify/permify/pkg/graph"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var dev *development.Development
@@ -53,7 +53,7 @@ func writeSchema() js.Func {
 // writeTuple -
 func writeTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		var t = &tuple.Tuple{}
+		t := &tuple.Tuple{}
 		mErr := json.Unmarshal([]byte(string(args[0].String())), t)
 		if mErr != nil {
 			return js.ValueOf([]interface{}{mErr.Error()})
@@ -70,7 +70,7 @@ func writeTuple() js.Func {
 // deleteTuple -
 func deleteTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		var t = &tuple.Tuple{}
+		t := &tuple.Tuple{}
 		mErr := json.Unmarshal([]byte(string(args[0].String())), t)
 		if mErr != nil {
 			return js.ValueOf([]interface{}{mErr.Error()})
