@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
-	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -159,11 +158,8 @@ func (command *LookupQueryCommand) build(ctx context.Context, entityType string,
 	return func(ctx context.Context, decisionChan chan<- BuildStatementResult) {
 		qu := q
 		qu.Vars = append(qu.Vars, q.Resolver()...)
-
 		fmt.Println(qu.Map)
 		fmt.Println(qu.Join)
-		helper.Pre(qu.Vars)
-
 		return
 	}
 }
