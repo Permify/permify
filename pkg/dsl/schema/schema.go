@@ -1,12 +1,13 @@
 package schema
 
 import (
-	`fmt`
-	`github.com/rs/xid`
-	`strings`
+	"fmt"
+	"strings"
+
+	"github.com/rs/xid"
 
 	"github.com/Permify/permify/pkg/errors"
-	`github.com/Permify/permify/pkg/graph`
+	"github.com/Permify/permify/pkg/graph"
 )
 
 // OPType -
@@ -80,9 +81,10 @@ func NewSchema(entities ...Entity) (schema Schema) {
 
 // Entity -
 type Entity struct {
-	Name      string     `json:"name"`
-	Relations []Relation `json:"relations"`
-	Actions   []Action   `json:"actions"`
+	Name      string                 `json:"name"`
+	Relations []Relation             `json:"relations"`
+	Actions   []Action               `json:"actions"`
+	Option    map[string]interface{} `json:"option"`
 }
 
 // GetAction -
@@ -105,10 +107,45 @@ func (e Entity) GetRelation(name string) (relation Relation, err errors.Error) {
 	return relation, errors.NewError(errors.Validation).AddParam("relation", "relation con not found")
 }
 
+// GetTable -
+func (e Entity) GetTable() string {
+	if en, ok := e.Option["table"]; ok {
+		return en.(string)
+	}
+	return e.Name
+}
+
+// GetIdentifier -
+func (e Entity) GetIdentifier() string {
+	if en, ok := e.Option["identifier"]; ok {
+		return en.(string)
+	}
+	return "id"
+}
+
 // Relation -
 type Relation struct {
-	Name  string   `json:"name"`
-	Types []string `json:"type"`
+	Name   string                 `json:"name"`
+	Types  []string               `json:"type"`
+	Option map[string]interface{} `json:"option"`
+}
+
+// Type -
+func (r Relation) Type() string {
+	for _, typ := range r.Types {
+		if !strings.Contains(typ, "#") {
+			return typ
+		}
+	}
+	return ""
+}
+
+// GetColumn -
+func (r Relation) GetColumn() (string, bool) {
+	if col, ok := r.Option["column"]; ok {
+		return col.(string), true
+	}
+	return "", false
 }
 
 // Action -
