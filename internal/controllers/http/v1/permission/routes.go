@@ -31,6 +31,7 @@ func NewPermissionRoutes(handler *echo.Group, t services.IPermissionService, l l
 	{
 		h.POST("/check", r.check)
 		h.POST("/expand", r.expand)
+		// h.POST("/lookup-query", r.lookupQuery)
 	}
 }
 
@@ -131,5 +132,43 @@ func (r *permissionRoutes) expand(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, ExpandResponse{
 		Tree: response.Tree,
+	})
+}
+
+// lookupQuery -
+func (r *permissionRoutes) lookupQuery(c echo.Context) error {
+	ctx, span := tracer.Start(c.Request().Context(), "permissions.expand")
+	defer span.End()
+
+	request := new(LookupQueryRequest)
+	if err := (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
+		return err
+	}
+	v := request.Validate()
+	if v != nil {
+		return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(v))
+	}
+
+	var err errors.Error
+
+	var response commands.LookupQueryResponse
+	response, err = r.service.LookupQuery(ctx, request.EntityType, request.Subject, request.Action, request.SchemaVersion.String())
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		switch err.Kind() {
+		case errors.Database:
+			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
+		case errors.Validation:
+			return c.JSON(http.StatusUnprocessableEntity, common.ValidationResponse(err.Params()))
+		case errors.Service:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		default:
+			return c.JSON(http.StatusInternalServerError, common.MResponse(err.Error()))
+		}
+	}
+
+	return c.JSON(http.StatusOK, LookupQueryResponse{
+		Query: response.Query,
 	})
 }

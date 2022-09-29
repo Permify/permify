@@ -16,7 +16,8 @@ type Migratable interface {
 // IRelationTupleRepository -
 type IRelationTupleRepository interface {
 	Migratable
-	QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (entities.RelationTuples, errors.Error)
+	QueryTuples(ctx context.Context, entityType, entityID, relation string) (entities.RelationTuples, errors.Error)
+	ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (entities.RelationTuples, errors.Error)
 	Read(ctx context.Context, filter filters.RelationTupleFilter) (entities.RelationTuples, errors.Error)
 	Write(context.Context, entities.RelationTuples) errors.Error
 	Delete(context.Context, entities.RelationTuples) errors.Error

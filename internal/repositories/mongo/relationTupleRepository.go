@@ -44,6 +44,25 @@ func (r *RelationTupleRepository) Migrate() errors.Error {
 	return nil
 }
 
+// ReverseQueryTuples -
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (entities.RelationTuples, errors.Error) {
+	var err error
+	var tuples entities.RelationTuples
+	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
+	filter := bson.M{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": subjectID, "userset_relation": subjectRelation}
+
+	var cursor *mongo.Cursor
+	cursor, err = coll.Find(ctx, filter)
+	if err != nil {
+		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
+	}
+
+	if err = cursor.All(ctx, &tuples); err != nil {
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
+	}
+	return tuples, nil
+}
+
 // QueryTuples -
 func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (entities.RelationTuples, errors.Error) {
 	var err error

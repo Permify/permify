@@ -16,16 +16,18 @@ type PermissionService struct {
 	manager managers.IEntityConfigManager
 
 	// commands
-	check  commands.ICheckCommand
-	expand commands.IExpandCommand
+	check       commands.ICheckCommand
+	expand      commands.IExpandCommand
+	lookupQuery commands.ILookupQueryCommand
 }
 
 // NewPermissionService -
-func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand, en managers.IEntityConfigManager) *PermissionService {
+func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand, lq commands.ILookupQueryCommand, en managers.IEntityConfigManager) *PermissionService {
 	return &PermissionService{
-		manager: en,
-		check:   cc,
-		expand:  ec,
+		manager:     en,
+		check:       cc,
+		expand:      ec,
+		lookupQuery: lq,
 	}
 }
 
@@ -34,7 +36,7 @@ func (service *PermissionService) Check(ctx context.Context, subject tuple.Subje
 	var en schema.Entity
 	en, err = service.manager.Read(ctx, entity.Type, version)
 	if err != nil {
-		return
+		return response, internalErrors.EntityTypeCannotFoundError
 	}
 
 	var a schema.Action
@@ -60,7 +62,7 @@ func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entit
 	var en schema.Entity
 	en, err = service.manager.Read(ctx, entity.Type, version)
 	if err != nil {
-		return
+		return response, internalErrors.EntityTypeCannotFoundError
 	}
 
 	var a schema.Action
@@ -76,4 +78,39 @@ func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entit
 	}
 
 	return service.expand.Execute(ctx, q, child)
+}
+
+// LookupQuery -
+func (service *PermissionService) LookupQuery(ctx context.Context, entityType string, subject tuple.Subject, action string, version string) (response commands.LookupQueryResponse, err errors.Error) {
+	var sch schema.Schema
+	sch, err = service.manager.All(ctx, version)
+	if err != nil {
+		return response, internalErrors.SchemaCannotFoundError
+	}
+
+	var en schema.Entity
+	for key, ent := range sch.Entities {
+		if key == entityType {
+			en = ent
+			break
+		}
+	}
+
+	var a schema.Action
+	a, err = en.GetAction(action)
+	if err != nil {
+		return response, internalErrors.ActionCannotFoundError
+	}
+
+	child := a.Child
+
+	q := &commands.LookupQueryQuery{
+		EntityType: entityType,
+		Action:     action,
+		Subject:    subject,
+	}
+
+	q.SetSchema(sch)
+
+	return service.lookupQuery.Execute(ctx, q, child)
 }

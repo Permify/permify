@@ -14,14 +14,14 @@ type SchemaService struct {
 	manager managers.IEntityConfigManager
 
 	// commands
-	lookup commands.ISchemaLookupCommand
+	schemaLookup commands.ISchemaLookupCommand
 }
 
 // NewSchemaService -
 func NewSchemaService(sc commands.ISchemaLookupCommand, en managers.IEntityConfigManager) *SchemaService {
 	return &SchemaService{
-		manager: en,
-		lookup:  sc,
+		manager:      en,
+		schemaLookup: sc,
 	}
 }
 
@@ -37,5 +37,5 @@ func (service *SchemaService) Lookup(ctx context.Context, entityType string, rel
 		Relations: relations,
 	}
 
-	return service.lookup.Execute(ctx, q, en.Actions)
+	return service.schemaLookup.Execute(ctx, q, en.Actions)
 }

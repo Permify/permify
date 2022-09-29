@@ -91,11 +91,12 @@ func Run(cfg *config.Config) {
 	// commands
 	checkCommand := commands.NewCheckCommand(relationTupleWithCircuitBreaker, l)
 	expandCommand := commands.NewExpandCommand(relationTupleWithCircuitBreaker, l)
+	lookupQueryCommand := commands.NewLookupQueryCommand(relationTupleWithCircuitBreaker, l)
 	schemaLookupCommand := commands.NewSchemaLookupCommand(l)
 
 	// Services
 	relationshipService := services.NewRelationshipService(relationTupleWithCircuitBreaker, schemaManager)
-	permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaManager)
+	permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaManager)
 	schemaService := services.NewSchemaService(schemaLookupCommand, schemaManager)
 
 	// HTTP Server

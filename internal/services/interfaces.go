@@ -13,6 +13,7 @@ import (
 type IPermissionService interface {
 	Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, version string, d int32) (response commands.CheckResponse, err errors.Error)
 	Expand(ctx context.Context, entity tuple.Entity, action string, version string) (response commands.ExpandResponse, err errors.Error)
+	LookupQuery(ctx context.Context, entityType string, subject tuple.Subject, action string, version string) (response commands.LookupQueryResponse, err errors.Error)
 }
 
 // IRelationshipService -

@@ -15,3 +15,8 @@ type CheckResponse struct {
 type ExpandResponse struct {
 	Tree commands.Node `json:"tree"`
 }
+
+// LookupQueryResponse -
+type LookupQueryResponse struct {
+	Query string `json:"query"`
+}

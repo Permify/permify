@@ -21,3 +21,8 @@ type IExpandCommand interface {
 type ISchemaLookupCommand interface {
 	Execute(ctx context.Context, q *SchemaLookupQuery, actions []schema.Action) (response SchemaLookupResponse, err errors.Error)
 }
+
+// ILookupQueryCommand -
+type ILookupQueryCommand interface {
+	Execute(ctx context.Context, q *LookupQueryQuery, child schema.Child) (response LookupQueryResponse, err errors.Error)
+}

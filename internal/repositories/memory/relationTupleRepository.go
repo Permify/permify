@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories/entities"
@@ -26,15 +27,35 @@ func (r *RelationTupleRepository) Migrate() (err errors.Error) {
 	return nil
 }
 
+// ReverseQueryTuples -
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (entities.RelationTuples, errors.Error) {
+	var tuples entities.RelationTuples
+	// var err error
+	txn := r.Database.DB.Txn(false)
+	defer txn.Abort()
+
+	var it memdb.ResultIterator
+	//it, err = txn.Get(entities.RelationTuple{}.Table(), "subject-index", entity, relation, subjectEntity, subjectID, subjectRelation)
+	//if err != nil {
+	//	return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
+	//}
+
+	for obj := it.Next(); obj != nil; obj = it.Next() {
+		tuples = append(tuples, obj.(entities.RelationTuple))
+	}
+
+	return tuples, nil
+}
+
 // QueryTuples -
-func (r *RelationTupleRepository) QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (entities.RelationTuples, errors.Error) {
+func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (entities.RelationTuples, errors.Error) {
 	var tuples entities.RelationTuples
 	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 
 	var it memdb.ResultIterator
-	it, err = txn.Get(entities.RelationTuple{}.Table(), "entity-index", namespace, objectID, relation)
+	it, err = txn.Get(entities.RelationTuple{}.Table(), "entity-index", entity, objectID, relation)
 	if err != nil {
 		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
@@ -122,7 +143,7 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.Re
 	for _, tuple := range tuples {
 		if err = txn.Delete(entities.RelationTuple{}.Table(), tuple); err != nil {
 			if err.Error() == "not found" {
-				//errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
+				// errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 				return nil
 			}
 			return errors.DatabaseError.SetSubKind(database.ErrUniqueConstraint)

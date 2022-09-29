@@ -44,3 +44,22 @@ func (r ExpandRequest) Validate() (err error) {
 	)
 	return
 }
+
+// LookupQueryRequest -
+type LookupQueryRequest struct {
+	SchemaVersion utils.Version `json:"schema_version"`
+	EntityType    string        `json:"entity_type"`
+	Action        string        `json:"action"`
+	Subject       tuple.Subject `json:"subject"`
+}
+
+// Validate -
+func (r LookupQueryRequest) Validate() (err error) {
+	// Validate Body
+	err = validation.ValidateStruct(&r,
+		validation.Field(&r.EntityType, validation.Required),
+		validation.Field(&r.Action, validation.Required),
+		validation.Field(&r.Subject, validation.Required),
+	)
+	return
+}

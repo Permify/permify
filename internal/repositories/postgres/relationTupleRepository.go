@@ -66,13 +66,46 @@ func (r *RelationTupleRepository) Migrate() errors.Error {
 	return nil
 }
 
-// QueryTuples -
-func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (entities.RelationTuples, errors.Error) {
+// ReverseQueryTuples -
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (entities.RelationTuples, errors.Error) {
 	var err error
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": entity, "object_id": objectID, "relation": relation}).OrderBy("userset_entity, userset_relation ASC").
+		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": subjectID, "userset_relation": subjectRelation}).
+		ToSql()
+	if err != nil {
+		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
+	}
+
+	var rows pgx.Rows
+	rows, err = r.Database.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
+	}
+	defer rows.Close()
+
+	ent := make([]entities.RelationTuple, 0, _defaultEntityCap)
+
+	for rows.Next() {
+		rt := entities.RelationTuple{}
+		err = rows.Scan(&rt.Entity, &rt.ObjectID, &rt.Relation, &rt.UsersetEntity, &rt.UsersetObjectID, &rt.UsersetRelation)
+		if err != nil {
+			return nil, errors.DatabaseError.SetMessage(err.Error())
+		}
+		ent = append(ent, rt)
+	}
+
+	return ent, nil
+}
+
+// QueryTuples -
+func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, entityID string, relation string) (entities.RelationTuples, errors.Error) {
+	var err error
+	var sql string
+	var args []interface{}
+	sql, args, err = r.Database.Builder.
+		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": entity, "object_id": entityID, "relation": relation}).OrderBy("userset_entity, userset_relation ASC").
 		ToSql()
 	if err != nil {
 		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
