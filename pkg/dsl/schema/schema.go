@@ -54,7 +54,7 @@ func (s Schema) GetEntityByName(name string) (entity Entity, err error) {
 	if en, ok := s.Entities[name]; ok {
 		return en, nil
 	}
-	return entity, errors.NewError(errors.Service).SetMessage("schema not found")
+	return entity, errors.NewError(errors.Service).SetMessage("entity not found")
 }
 
 // NewSchema -
