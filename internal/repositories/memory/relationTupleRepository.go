@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories/entities"
@@ -30,17 +29,37 @@ func (r *RelationTupleRepository) Migrate() (err errors.Error) {
 // ReverseQueryTuples -
 func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (entities.RelationTuples, errors.Error) {
 	var tuples entities.RelationTuples
-	// var err error
+	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 
-	var it memdb.ResultIterator
-	//it, err = txn.Get(entities.RelationTuple{}.Table(), "subject-index", entity, relation, subjectEntity, subjectID, subjectRelation)
-	//if err != nil {
-	//	return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
-	//}
+	filterFactory := func(subjectRelation string, relation string) func(interface{}) bool {
+		return func(raw interface{}) bool {
+			obj, ok := raw.(entities.RelationTuple)
+			if !ok {
+				return true
+			}
 
-	for obj := it.Next(); obj != nil; obj = it.Next() {
+			if subjectRelation != "" && subjectRelation != obj.UsersetRelation {
+				return true
+			}
+
+			if relation != "" && relation != obj.Relation {
+				return true
+			}
+
+			return false
+		}
+	}
+
+	var it memdb.ResultIterator
+	it, err = txn.Get(entities.RelationTuple{}.Table(), "subject-index", entity, subjectEntity, subjectID)
+	if err != nil {
+		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
+	}
+
+	filtered := memdb.NewFilterIterator(it, filterFactory(subjectRelation, relation))
+	for obj := filtered.Next(); obj != nil; obj = it.Next() {
 		tuples = append(tuples, obj.(entities.RelationTuple))
 	}
 
