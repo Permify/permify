@@ -3,8 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
-
-	"github.com/Masterminds/squirrel"
+	`github.com/doug-martin/goqu/v9`
 
 	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
@@ -15,53 +14,80 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// BuildStatementResult -
-type BuildStatementResult struct {
-	Query query
-	Err   errors.Error `json:"err"`
+type BuilderNodeKind string
+
+const (
+	QUERY BuilderNodeKind = "query"
+	LOGIC BuilderNodeKind = "logic"
+)
+
+// IBuilderNode -
+type IBuilderNode interface {
+	GetKind() BuilderNodeKind
+	Error() error
 }
 
-// query -
-type query struct {
-	Resolver ResolverFunction
-	Map      string
-	Join     string
-	Vars     []string
+// LogicNode -
+type LogicNode struct {
+	Operation schema.OPType  `json:"operation"`
+	Children  []IBuilderNode `json:"children"`
+	Err       error          `json:"-"`
 }
 
-func (q query) String() string {
-	return ""
+// GetKind -
+func (LogicNode) GetKind() BuilderNodeKind {
+	return LOGIC
 }
 
-// sendBuildResult -
-func sendBuildResult(query query, err errors.Error) BuildStatementResult {
-	return BuildStatementResult{
-		Query: query,
-		Err:   err,
-	}
+// Error -
+func (e LogicNode) Error() error {
+	return e.Err
+}
+
+// QueryNode -
+type QueryNode struct {
+	idResolver ResolverFunction
+	Key        string          `json:"condition"`
+	Join       map[string]join `json:"join"`
+	Args       []string        `json:"vars"`
+	Exclusion  bool            `json:"exclusion"`
+	Err        error           `json:"-"`
+}
+
+type join struct {
+	key   string
+	value string
+}
+
+// GetKind -
+func (QueryNode) GetKind() BuilderNodeKind {
+	return QUERY
+}
+
+// Error -
+func (e QueryNode) Error() error {
+	return e.Err
 }
 
 // LookupQueryCommand -
 type LookupQueryCommand struct {
 	relationTupleRepository repositories.IRelationTupleRepository
 	logger                  logger.Interface
-	builder                 squirrel.StatementBuilderType
 }
 
 // BuildFunction -
-type BuildFunction func(ctx context.Context, resultChan chan<- BuildStatementResult)
+type BuildFunction func(ctx context.Context, resultChan chan<- IBuilderNode)
 
 // ResolverFunction -
 type ResolverFunction func() []string
 
 // BuildCombiner .
-type BuildCombiner func(ctx context.Context, functions []BuildFunction) BuildStatementResult
+type BuildCombiner func(ctx context.Context, functions []BuildFunction) IBuilderNode
 
 // NewLookupQueryCommand -
 func NewLookupQueryCommand(rr repositories.IRelationTupleRepository, l logger.Interface) *LookupQueryCommand {
 	return &LookupQueryCommand{
 		logger:                  l,
-		builder:                 squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 		relationTupleRepository: rr,
 	}
 }
@@ -74,24 +100,36 @@ type LookupQueryQuery struct {
 	schema     schema.Schema
 }
 
+// SetSchema -
 func (l *LookupQueryQuery) SetSchema(sch schema.Schema) {
 	l.schema = sch
 }
 
 // LookupQueryResponse -
 type LookupQueryResponse struct {
-	Results []BuildStatementResult
-	Query   string
-	Table   string
+	Node  IBuilderNode
+	Query string
+	Args  []interface{}
+}
+
+// NewLookupQueryResponse -
+func NewLookupQueryResponse(Node IBuilderNode, table string) LookupQueryResponse {
+	query, args := rootNodeToSql(Node, table)
+	return LookupQueryResponse{
+		Node:  Node,
+		Query: query,
+		Args:  args,
+	}
 }
 
 // Execute -
 func (command *LookupQueryCommand) Execute(ctx context.Context, q *LookupQueryQuery, child schema.Child) (response LookupQueryResponse, err errors.Error) {
-	response.Query, err = command.l(ctx, q, child)
-	return
+	return command.l(ctx, q, child)
 }
 
-func (command *LookupQueryCommand) l(ctx context.Context, q *LookupQueryQuery, child schema.Child) (query string, err errors.Error) {
+func (command *LookupQueryCommand) l(ctx context.Context, q *LookupQueryQuery, child schema.Child) (response LookupQueryResponse, err errors.Error) {
+	en, _ := q.schema.GetEntityByName(q.EntityType)
+
 	var fn BuildFunction
 	switch child.GetKind() {
 	case schema.RewriteKind.String():
@@ -101,11 +139,11 @@ func (command *LookupQueryCommand) l(ctx context.Context, q *LookupQueryQuery, c
 	}
 
 	if fn == nil {
-		return "", internalErrors.UndefinedChildKindError
+		return LookupQueryResponse{}, internalErrors.UndefinedChildKindError
 	}
 
-	// result := buildUnion(ctx, []BuildFunction{fn})
-	return "", nil
+	result := buildUnion(ctx, []BuildFunction{fn})
+	return NewLookupQueryResponse(result, en.GetTable()), nil
 }
 
 // set -
@@ -122,7 +160,7 @@ func (command *LookupQueryCommand) set(ctx context.Context, q *LookupQueryQuery,
 		}
 	}
 
-	return func(ctx context.Context, resultChan chan<- BuildStatementResult) {
+	return func(ctx context.Context, resultChan chan<- IBuilderNode) {
 		resultChan <- combiner(ctx, functions)
 	}
 }
@@ -131,9 +169,9 @@ func (command *LookupQueryCommand) set(ctx context.Context, q *LookupQueryQuery,
 func (command *LookupQueryCommand) buildRewrite(ctx context.Context, q *LookupQueryQuery, child schema.Rewrite) BuildFunction {
 	switch child.GetType() {
 	case schema.Union.String():
-		return command.set(ctx, q, child.Children, buildCombiner)
+		return command.set(ctx, q, child.Children, buildUnion)
 	case schema.Intersection.String():
-		return command.set(ctx, q, child.Children, buildCombiner)
+		return command.set(ctx, q, child.Children, buildIntersection)
 	default:
 		return buildFail(internalErrors.UndefinedChildTypeError)
 	}
@@ -143,76 +181,92 @@ func (command *LookupQueryCommand) buildRewrite(ctx context.Context, q *LookupQu
 func (command *LookupQueryCommand) buildLeaf(ctx context.Context, q *LookupQueryQuery, child schema.Leaf) BuildFunction {
 	switch child.GetType() {
 	case schema.TupleToUserSetType.String():
-		rel := tuple.Relation(child.Value)
-		return command.build(ctx, q.EntityType, rel, child.Exclusion, command.buildTupleToUserSetQuery(q.Subject, q.EntityType, rel, q.schema))
+		return command.build(ctx, child.Exclusion, command.buildTupleToUserSetQuery(ctx, q.Subject, q.EntityType, tuple.Relation(child.Value), q.schema))
 	case schema.ComputedUserSetType.String():
-		rel := tuple.Relation(child.Value)
-		return command.build(ctx, q.EntityType, tuple.Relation(child.Value), child.Exclusion, command.buildComputedUserSetQuery(q.Subject, q.EntityType, rel, q.schema))
+		return command.build(ctx, child.Exclusion, command.buildComputedUserSetQuery(ctx, q.Subject, q.EntityType, tuple.Relation(child.Value), q.schema))
 	default:
 		return buildFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
 // build -
-func (command *LookupQueryCommand) build(ctx context.Context, entityType string, relation tuple.Relation, exclusion bool, q query) BuildFunction {
-	return func(ctx context.Context, decisionChan chan<- BuildStatementResult) {
+func (command *LookupQueryCommand) build(ctx context.Context, exclusion bool, q QueryNode) BuildFunction {
+	return func(ctx context.Context, builderChan chan<- IBuilderNode) {
 		qu := q
-		qu.Vars = append(qu.Vars, q.Resolver()...)
-		fmt.Println(qu.Map)
-		fmt.Println(qu.Join)
+		qu.Exclusion = exclusion
+		if q.idResolver != nil {
+			qu.Args = append(qu.Args, q.idResolver()...)
+		}
+		builderChan <- qu
 		return
 	}
 }
 
 // buildTupleToUserSetQuery -
-func (command *LookupQueryCommand) buildTupleToUserSetQuery(subject tuple.Subject, entityType string, relation tuple.Relation, sch schema.Schema) query {
-	var qu query
+func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context, subject tuple.Subject, entityType string, relation tuple.Relation, sch schema.Schema) QueryNode {
+	var qu QueryNode
 	var err error
 	r := relation.Split()
-	var re schema.Relation
 	var entity schema.Entity
 	entity, err = sch.GetEntityByName(entityType)
 	if err != nil {
-		return query{}
+		return QueryNode{
+			Err: err,
+		}
 	}
 	var rel schema.Relation
 	rel, err = schema.Relations(entity.Relations).GetRelationByName(r[0].String())
 	if err != nil {
-		return query{}
+		return QueryNode{
+			Err: err,
+		}
 	}
 	column, columnExist := rel.GetColumn()
 	var parentEntity schema.Entity
-	parentEntity, err = sch.GetEntityByName(re.Type())
+	parentEntity, err = sch.GetEntityByName(rel.Type())
 	if err != nil {
-		return query{}
+		return QueryNode{
+			Err: err,
+		}
 	}
 	var parentRel schema.Relation
 	parentRel, err = schema.Relations(parentEntity.Relations).GetRelationByName(r[1].String())
 	if err != nil {
-		return query{}
+		return QueryNode{
+			Err: err,
+		}
 	}
 	parentColumn, parentColumnExist := parentRel.GetColumn()
 	if !columnExist {
-		qu.Map = fmt.Sprintf("%s.%s", entity.GetTable(), entity.GetIdentifier())
-		qu.Resolver = func() []string {
-			parentIDs := command.getEntityIDs(context.TODO(), rel.Type(), tuple.Relation(r[1].String()), subject)
-			return command.getEntityIDs(context.TODO(), entity.Name, tuple.Relation(rel.Name), tuple.Subject{
-				Type:     rel.Type(),
-				ID:       parentIDs[0],
-				Relation: tuple.ELLIPSIS,
-			})
+		qu.Key = fmt.Sprintf("%s.%s", entity.GetTable(), entity.GetIdentifier())
+		qu.idResolver = func() []string {
+			parentIDs := command.getEntityIDs(ctx, rel.Type(), tuple.Relation(r[1].String()), subject)
+			if len(parentIDs) > 0 {
+				return command.getEntityIDs(ctx, entity.Name, tuple.Relation(rel.Name), tuple.Subject{
+					Type:     rel.Type(),
+					ID:       parentIDs[0],
+					Relation: tuple.ELLIPSIS,
+				})
+			}
+			return []string{}
 		}
 	} else {
 		if !parentColumnExist {
-			qu.Map = fmt.Sprintf("%s.%s", entity.GetTable(), column)
-			qu.Resolver = func() []string {
-				return command.getEntityIDs(context.TODO(), rel.Type(), tuple.Relation(r[1].String()), subject)
+			qu.Key = fmt.Sprintf("%s.%s", entity.GetTable(), column)
+			qu.idResolver = func() []string {
+				return command.getEntityIDs(ctx, rel.Type(), tuple.Relation(r[1].String()), subject)
 			}
 		} else {
-			qu.Map = fmt.Sprintf("%s.%s", parentEntity.GetTable(), parentColumn)
-			qu.Join = fmt.Sprintf("%s ON %s.%s = %s.%s", parentEntity.GetTable(), entity.GetTable(), parentColumn, parentEntity.GetTable(), parentEntity.GetIdentifier())
-			qu.Resolver = func() []string {
-				return command.getEntityIDs(context.TODO(), rel.Type(), tuple.Relation(r[1].String()), subject)
+			qu.Key = fmt.Sprintf("%s.%s", parentEntity.GetTable(), parentColumn)
+			j := join{
+				key:   fmt.Sprintf("%s.%s", entity.GetTable(), parentColumn),
+				value: fmt.Sprintf("%s.%s", parentEntity.GetTable(), parentEntity.GetIdentifier()),
+			}
+			qu.Join = map[string]join{
+				parentEntity.GetTable(): j,
+			}
+			qu.idResolver = func() []string {
+				return command.getEntityIDs(ctx, rel.Type(), tuple.Relation(r[1].String()), subject)
 			}
 		}
 	}
@@ -220,65 +274,97 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(subject tuple.Subjec
 }
 
 // buildComputedUserSetQuery -
-func (command *LookupQueryCommand) buildComputedUserSetQuery(subject tuple.Subject, entityType string, relation tuple.Relation, sch schema.Schema) (qu query) {
+func (command *LookupQueryCommand) buildComputedUserSetQuery(ctx context.Context, subject tuple.Subject, entityType string, relation tuple.Relation, sch schema.Schema) (qu QueryNode) {
 	var err error
 	var entity schema.Entity
 	entity, err = sch.GetEntityByName(entityType)
 	if err != nil {
-		return query{}
+		return QueryNode{
+			Err: err,
+			idResolver: func() []string {
+				return nil
+			},
+		}
 	}
 	var rel schema.Relation
 	rel, err = schema.Relations(entity.Relations).GetRelationByName(relation.String())
 	if err != nil {
-		return query{}
+		return QueryNode{
+			Err: err,
+			idResolver: func() []string {
+				return nil
+			},
+		}
 	}
 	column, columnExist := rel.GetColumn()
 	if !columnExist {
-		qu.Map = fmt.Sprintf("%s.%s", entity.GetTable(), entity.GetIdentifier())
-		qu.Resolver = func() []string {
-			return command.getUserIDs(context.TODO(), subject)
+		qu.Key = fmt.Sprintf("%s.%s", entity.GetTable(), entity.GetIdentifier())
+		qu.idResolver = func() []string {
+			return command.getEntityIDs(ctx, entity.Name, tuple.Relation(rel.Name), subject)
 		}
 	} else {
-		qu.Map = fmt.Sprintf("%s.%s", entity.GetTable(), column)
-		qu.Resolver = func() []string {
-			return command.getUserIDs(context.TODO(), subject)
+		qu.Key = fmt.Sprintf("%s.%s", entity.GetTable(), column)
+		qu.idResolver = func() []string {
+			return command.getUserIDs(ctx, subject)
 		}
 	}
 	return qu
 }
 
-// buildUnion -
-func buildCombiner(ctx context.Context, functions []BuildFunction) BuildStatementResult {
-	if len(functions) == 0 {
-		return sendBuildResult(query{}, nil)
-	}
+// buildSetOperation -
+func buildSetOperation(
+	ctx context.Context,
+	functions []BuildFunction,
+	op schema.OPType,
+) IBuilderNode {
+	children := make([]IBuilderNode, 0, len(functions))
 
-	builderChan := make(chan BuildStatementResult, len(functions))
-	childCtx, cancel := context.WithCancel(ctx)
+	c, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	result := make([]chan IBuilderNode, 0, len(functions))
 	for _, fn := range functions {
-		go fn(childCtx, builderChan)
+		en := make(chan IBuilderNode)
+		result = append(result, en)
+		go fn(c, en)
 	}
 
-	for i := 0; i < len(functions); i++ {
+	for _, resultChan := range result {
 		select {
-		case result := <-builderChan:
-			if result.Err == nil {
-				return sendBuildResult(result.Query, nil)
+		case res := <-resultChan:
+			if res.Error() != nil {
+				return LogicNode{
+					Err: res.Error(),
+				}
 			}
+			children = append(children, res)
 		case <-ctx.Done():
-			return sendBuildResult(query{}, internalErrors.CanceledError)
+			return nil
 		}
 	}
 
-	return sendBuildResult(query{}, nil)
+	return &LogicNode{
+		Operation: op,
+		Children:  children,
+	}
+}
+
+// buildUnion -
+func buildUnion(ctx context.Context, functions []BuildFunction) IBuilderNode {
+	return buildSetOperation(ctx, functions, schema.Union)
+}
+
+// buildIntersection -
+func buildIntersection(ctx context.Context, functions []BuildFunction) IBuilderNode {
+	return buildSetOperation(ctx, functions, schema.Intersection)
 }
 
 // buildFail -
 func buildFail(err errors.Error) BuildFunction {
-	return func(ctx context.Context, decisionChan chan<- BuildStatementResult) {
-		decisionChan <- sendBuildResult(query{}, err)
+	return func(ctx context.Context, builderChan chan<- IBuilderNode) {
+		builderChan <- LogicNode{
+			Err: err,
+		}
 	}
 }
 
@@ -361,4 +447,59 @@ func (command *LookupQueryCommand) getEntities(ctx context.Context, entityType s
 	}
 
 	return tuple.NewEntityIterator(ent), err
+}
+
+// StatementBuilder -
+type StatementBuilder struct {
+	joins map[string]join
+}
+
+// rootNodeToSql -
+func rootNodeToSql(node IBuilderNode, table string) (sql string, args []interface{}) {
+	var st = &StatementBuilder{
+		joins: map[string]join{},
+	}
+	expressions, _ := st.buildSql([]IBuilderNode{node}, goqu.Ex{})
+	if len(st.joins) > 0 {
+		sql, args, _ = goqu.From(table).Where(expressions).Prepared(true).ToSQL()
+	} else {
+		ex := goqu.From(table).Where(expressions)
+		for t, j := range st.joins {
+			ex = ex.InnerJoin(goqu.T(t), goqu.On(goqu.Ex{j.key: goqu.I(j.value)}))
+		}
+		sql, args, _ = goqu.From(table).Where(expressions).Prepared(true).ToSQL()
+	}
+	return
+}
+
+// buildSql -
+func (builder *StatementBuilder) buildSql(children []IBuilderNode, exp goqu.Expression) (m goqu.Expression, s []goqu.Expression) {
+	var ex []goqu.Expression
+	for _, child := range children {
+		switch child.GetKind() {
+		case LOGIC:
+			ln := child.(*LogicNode)
+			b, sub := builder.buildSql(ln.Children, exp)
+			sub = append(sub, b.Expression())
+			switch ln.Operation {
+			case schema.Union:
+				exp = goqu.Or(sub...)
+			case schema.Intersection:
+				exp = goqu.And(sub...)
+			}
+		case QUERY:
+			qn := child.(QueryNode)
+			if qn.Exclusion {
+				ex = append(ex, goqu.C(qn.Key).NotIn(qn.Args))
+			} else {
+				ex = append(ex, goqu.C(qn.Key).In(qn.Args))
+			}
+			if len(qn.Join) > 0 {
+				for k, j := range qn.Join {
+					builder.joins[k] = j
+				}
+			}
+		}
+	}
+	return exp, ex
 }
