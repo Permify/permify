@@ -9,16 +9,19 @@ import (
 )
 
 const (
-	version = "v0.0.0-alpha4"
+	// Version of Permify
+	Version = "v0.0.0-alpha6"
 	color   = "\033[0;37m%s\033[0m"
 	banner  = `
+
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
 ██╔══██╗██╔════╝██╔══██╗████╗ ████║██║██╔════╝╚██╗ ██╔╝
 ██████╔╝█████╗  ██████╔╝██╔████╔██║██║█████╗   ╚████╔╝ 
 ██╔═══╝ ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██╔══╝    ╚██╔╝  
 ██║     ███████╗██║  ██║██║ ╚═╝ ██║██║██║        ██║   
 ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝        ╚═╝   
-High performance authorization service %s
+_______________________________________________________
+Fine-grained Authorization System %s
 `
 )
 
@@ -29,7 +32,7 @@ func main() {
 		log.Fatalf("Config error: %s", err)
 	}
 
-	log.Printf(color, fmt.Sprintf(banner, version))
+	log.Printf(color, fmt.Sprintf(banner, Version))
 
 	// Run
 	app.Run(cfg)
