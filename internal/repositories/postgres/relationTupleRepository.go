@@ -67,12 +67,12 @@ func (r *RelationTupleRepository) Migrate() errors.Error {
 }
 
 // ReverseQueryTuples -
-func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (entities.RelationTuples, errors.Error) {
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (entities.RelationTuples, errors.Error) {
 	var err error
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": subjectID, "userset_relation": subjectRelation}).
+		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": subjectIDs, "userset_relation": subjectRelation}).
 		ToSql()
 	if err != nil {
 		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)

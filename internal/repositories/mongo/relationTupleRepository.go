@@ -45,11 +45,11 @@ func (r *RelationTupleRepository) Migrate() errors.Error {
 }
 
 // ReverseQueryTuples -
-func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (entities.RelationTuples, errors.Error) {
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (entities.RelationTuples, errors.Error) {
 	var err error
 	var tuples entities.RelationTuples
 	coll := r.Database.Database().Collection(entities.RelationTuple{}.Collection())
-	filter := bson.M{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": subjectID, "userset_relation": subjectRelation}
+	filter := bson.M{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": bson.M{"$in": subjectIDs}, "userset_relation": subjectRelation}
 
 	var cursor *mongo.Cursor
 	cursor, err = coll.Find(ctx, filter)

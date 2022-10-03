@@ -12,30 +12,30 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-type NodeKind string
+type ExpandNodeKind string
 
 const (
-	EXPAND NodeKind = "expand"
-	LEAF   NodeKind = "leaf"
-	BRANCH NodeKind = "branch"
+	EXPAND ExpandNodeKind = "expand"
+	LEAF   ExpandNodeKind = "leaf"
+	BRANCH ExpandNodeKind = "branch"
 )
 
-// Node -
-type Node interface {
-	GetKind() NodeKind
+// IExpandNode -
+type IExpandNode interface {
+	GetKind() ExpandNodeKind
 	Error() error
 }
 
 // ExpandNode -
 type ExpandNode struct {
-	Kind      NodeKind      `json:"kind"`
-	Operation schema.OPType `json:"operation"`
-	Children  []Node        `json:"children"`
-	Err       error         `json:"-"`
+	Kind      ExpandNodeKind `json:"kind"`
+	Operation schema.OPType  `json:"operation"`
+	Children  []IExpandNode  `json:"children"`
+	Err       error          `json:"-"`
 }
 
 // GetKind -
-func (ExpandNode) GetKind() NodeKind {
+func (ExpandNode) GetKind() ExpandNodeKind {
 	return EXPAND
 }
 
@@ -46,13 +46,13 @@ func (e ExpandNode) Error() error {
 
 // LeafNode -
 type LeafNode struct {
-	Kind    NodeKind      `json:"kind"`
-	Subject tuple.Subject `json:"subject"`
-	Err     error         `json:"-"`
+	Kind    ExpandNodeKind `json:"kind"`
+	Subject tuple.Subject  `json:"subject"`
+	Err     error          `json:"-"`
 }
 
 // GetKind -
-func (LeafNode) GetKind() NodeKind {
+func (LeafNode) GetKind() ExpandNodeKind {
 	return LEAF
 }
 
@@ -63,14 +63,14 @@ func (e LeafNode) Error() error {
 
 // BranchNode -
 type BranchNode struct {
-	Kind     NodeKind                `json:"kind"`
+	Kind     ExpandNodeKind          `json:"kind"`
 	Target   tuple.EntityAndRelation `json:"target"`
-	Children []Node                  `json:"children"`
+	Children []IExpandNode           `json:"children"`
 	Err      error                   `json:"-"`
 }
 
 // GetKind -
-func (BranchNode) GetKind() NodeKind {
+func (BranchNode) GetKind() ExpandNodeKind {
 	return BRANCH
 }
 
@@ -80,10 +80,10 @@ func (e BranchNode) Error() error {
 }
 
 // ExpandFunction -
-type ExpandFunction func(ctx context.Context, expandChan chan<- Node)
+type ExpandFunction func(ctx context.Context, expandChan chan<- IExpandNode)
 
 // ExpandCombiner .
-type ExpandCombiner func(ctx context.Context, requests []ExpandFunction) Node
+type ExpandCombiner func(ctx context.Context, requests []ExpandFunction) IExpandNode
 
 // ExpandCommand -
 type ExpandCommand struct {
@@ -106,7 +106,7 @@ type ExpandQuery struct {
 
 // ExpandResponse -
 type ExpandResponse struct {
-	Tree Node
+	Tree IExpandNode
 }
 
 // Execute -
@@ -116,7 +116,7 @@ func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child
 }
 
 // e -
-func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child schema.Child) (Node, errors.Error) {
+func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child schema.Child) (IExpandNode, errors.Error) {
 	var fn ExpandFunction
 	switch child.GetKind() {
 	case schema.RewriteKind.String():
@@ -166,14 +166,14 @@ func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children 
 		}
 	}
 
-	return func(ctx context.Context, resultChan chan<- Node) {
+	return func(ctx context.Context, resultChan chan<- IExpandNode) {
 		resultChan <- combiner(ctx, functions)
 	}
 }
 
 // expand -
 func (command *ExpandCommand) expand(ctx context.Context, entity tuple.Entity, relation tuple.Relation, q *ExpandQuery) ExpandFunction {
-	return func(ctx context.Context, expandChan chan<- Node) {
+	return func(ctx context.Context, expandChan chan<- IExpandNode) {
 		var err errors.Error
 
 		var iterator tuple.ISubjectIterator
@@ -189,7 +189,7 @@ func (command *ExpandCommand) expand(ctx context.Context, entity tuple.Entity, r
 			Entity:   entity,
 			Relation: relation,
 		}
-		branch.Children = []Node{}
+		branch.Children = []IExpandNode{}
 
 		var expandFunctions []ExpandFunction
 
@@ -222,8 +222,8 @@ func expandSetOperation(
 	ctx context.Context,
 	functions []ExpandFunction,
 	op schema.OPType,
-) Node {
-	children := make([]Node, 0, len(functions))
+) IExpandNode {
+	children := make([]IExpandNode, 0, len(functions))
 
 	if len(functions) == 0 {
 		return &ExpandNode{
@@ -236,9 +236,9 @@ func expandSetOperation(
 	c, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	result := make([]chan Node, 0, len(functions))
+	result := make([]chan IExpandNode, 0, len(functions))
 	for _, fn := range functions {
-		en := make(chan Node)
+		en := make(chan IExpandNode)
 		result = append(result, en)
 		go fn(c, en)
 	}
@@ -265,23 +265,23 @@ func expandSetOperation(
 }
 
 // expandUnion -
-func expandRoot(ctx context.Context, functions []ExpandFunction) Node {
+func expandRoot(ctx context.Context, functions []ExpandFunction) IExpandNode {
 	return expandSetOperation(ctx, functions, "root")
 }
 
 // expandUnion -
-func expandUnion(ctx context.Context, functions []ExpandFunction) Node {
+func expandUnion(ctx context.Context, functions []ExpandFunction) IExpandNode {
 	return expandSetOperation(ctx, functions, schema.Union)
 }
 
 // expandIntersection -
-func expandIntersection(ctx context.Context, functions []ExpandFunction) Node {
+func expandIntersection(ctx context.Context, functions []ExpandFunction) IExpandNode {
 	return expandSetOperation(ctx, functions, schema.Intersection)
 }
 
 // expandFail -
 func expandFail(err error) ExpandFunction {
-	return func(ctx context.Context, expandChan chan<- Node) {
+	return func(ctx context.Context, expandChan chan<- IExpandNode) {
 		expandChan <- ExpandNode{
 			Err: err,
 		}

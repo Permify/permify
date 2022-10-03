@@ -47,6 +47,7 @@ func (r ExpandRequest) Validate() (err error) {
 
 // LookupQueryRequest -
 type LookupQueryRequest struct {
+	//Dialect       string        `json:"dialect"`
 	SchemaVersion utils.Version `json:"schema_version"`
 	EntityType    string        `json:"entity_type"`
 	Action        string        `json:"action"`

@@ -9,6 +9,7 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/errors"
+	`github.com/Permify/permify/pkg/helper`
 )
 
 // RelationTupleRepository -.
@@ -27,7 +28,7 @@ func (r *RelationTupleRepository) Migrate() (err errors.Error) {
 }
 
 // ReverseQueryTuples -
-func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity, relation, subjectEntity, subjectID, subjectRelation string) (entities.RelationTuples, errors.Error) {
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (entities.RelationTuples, errors.Error) {
 	var tuples entities.RelationTuples
 	var err error
 	txn := r.Database.DB.Txn(false)
@@ -48,12 +49,16 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 				return true
 			}
 
+			if len(subjectIDs) > 0 && !helper.InArray(obj.UsersetObjectID, subjectIDs) {
+				return true
+			}
+
 			return false
 		}
 	}
 
 	var it memdb.ResultIterator
-	it, err = txn.Get(entities.RelationTuple{}.Table(), "subject-index", entity, subjectEntity, subjectID)
+	it, err = txn.Get(entities.RelationTuple{}.Table(), "subject-index", entity, subjectEntity)
 	if err != nil {
 		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}

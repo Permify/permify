@@ -31,7 +31,7 @@ func NewPermissionRoutes(handler *echo.Group, t services.IPermissionService, l l
 	{
 		h.POST("/check", r.check)
 		h.POST("/expand", r.expand)
-		// h.POST("/lookup-query", r.lookupQuery)
+		h.POST("/lookup-query", r.lookupQuery)
 	}
 }
 
@@ -135,7 +135,16 @@ func (r *permissionRoutes) expand(c echo.Context) error {
 	})
 }
 
-// lookupQuery -
+// @Summary     Permission
+// @Description lookupQuery
+// @ID          permissions.lookupQuery
+// @Tags  	    Permission
+// @Accept      json
+// @Produce     json
+// @Param       request body LookupQueryRequest true "''"
+// @Success     200 {object} LookupQueryResponse
+// @Failure     400 {object} common.HTTPErrorResponse
+// @Router      /permissions/lookup-query [post]
 func (r *permissionRoutes) lookupQuery(c echo.Context) error {
 	ctx, span := tracer.Start(c.Request().Context(), "permissions.expand")
 	defer span.End()
@@ -170,5 +179,6 @@ func (r *permissionRoutes) lookupQuery(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, LookupQueryResponse{
 		Query: response.Query,
+		Args:  response.Args,
 	})
 }

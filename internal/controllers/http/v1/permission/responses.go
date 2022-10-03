@@ -13,10 +13,11 @@ type CheckResponse struct {
 
 // ExpandResponse -
 type ExpandResponse struct {
-	Tree commands.Node `json:"tree"`
+	Tree commands.IExpandNode `json:"tree"`
 }
 
 // LookupQueryResponse -
 type LookupQueryResponse struct {
-	Query string `json:"query"`
+	Query string        `json:"query"`
+	Args  []interface{} `json:"args"`
 }

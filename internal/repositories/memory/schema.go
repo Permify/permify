@@ -57,6 +57,17 @@ var Schema = &memdb.DBSchema{
 						},
 					},
 				},
+				"subject-index": {
+					Name:   "subject-index",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "Entity"},
+							&memdb.StringFieldIndex{Field: "UsersetEntity"},
+						},
+						AllowMissing: true,
+					},
+				},
 				"entity": {
 					Name:   "entity",
 					Unique: false,

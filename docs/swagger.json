@@ -15,7 +15,7 @@
         "license": {
             "name": "GNU Affero General Public License v3.0"
         },
-        "version": "v0.0.0-alpha4"
+        "version": "v0.0.0-alpha6"
     },
     "paths": {
         "/permissions/check": {
@@ -89,6 +89,47 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/permission.ExpandResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/permissions/lookup-query": {
+            "post": {
+                "description": "lookupQuery",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Permission"
+                ],
+                "summary": "Permission",
+                "operationId": "permissions.lookupQuery",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/permission.LookupQueryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/permission.LookupQueryResponse"
                         }
                     },
                     "400": {
@@ -515,6 +556,31 @@
             "type": "object",
             "properties": {
                 "tree": {}
+            }
+        },
+        "permission.LookupQueryRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "entity_type": {
+                    "type": "string"
+                },
+                "schema_version": {
+                    "type": "string"
+                },
+                "subject": {
+                    "$ref": "#/definitions/tuple.Subject"
+                }
+            }
+        },
+        "permission.LookupQueryResponse": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string"
+                }
             }
         },
         "relationship.DeleteRequest": {

@@ -105,6 +105,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/permissions/lookup-query": {
+            "post": {
+                "description": "lookupQuery",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Permission"
+                ],
+                "summary": "Permission",
+                "operationId": "permissions.lookupQuery",
+                "parameters": [
+                    {
+                        "description": "''",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/permission.LookupQueryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/permission.LookupQueryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/common.HTTPErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/relationships/delete": {
             "post": {
                 "description": "delete relation tuple",
@@ -522,6 +563,31 @@ const docTemplate = `{
                 "tree": {}
             }
         },
+        "permission.LookupQueryRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "entity_type": {
+                    "type": "string"
+                },
+                "schema_version": {
+                    "type": "string"
+                },
+                "subject": {
+                    "$ref": "#/definitions/tuple.Subject"
+                }
+            }
+        },
+        "permission.LookupQueryResponse": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
         "relationship.DeleteRequest": {
             "type": "object",
             "properties": {
@@ -718,7 +784,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "v0.0.0-alpha4",
+	Version:          "v0.0.0-alpha6",
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{"http", "https"},

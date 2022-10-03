@@ -67,6 +67,22 @@ definitions:
     properties:
       tree: {}
     type: object
+  permission.LookupQueryRequest:
+    properties:
+      action:
+        type: string
+      entity_type:
+        type: string
+      schema_version:
+        type: string
+      subject:
+        $ref: '#/definitions/tuple.Subject'
+    type: object
+  permission.LookupQueryResponse:
+    properties:
+      query:
+        type: string
+    type: object
   relationship.DeleteRequest:
     properties:
       entity:
@@ -197,7 +213,7 @@ info:
   license:
     name: GNU Affero General Public License v3.0
   title: Permify API
-  version: v0.0.0-alpha4
+  version: v0.0.0-alpha6
 paths:
   /permissions/check:
     post:
@@ -246,6 +262,33 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/permission.ExpandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.HTTPErrorResponse'
+      summary: Permission
+      tags:
+      - Permission
+  /permissions/lookup-query:
+    post:
+      consumes:
+      - application/json
+      description: lookupQuery
+      operationId: permissions.lookupQuery
+      parameters:
+      - description: ''''''
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/permission.LookupQueryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/permission.LookupQueryResponse'
         "400":
           description: Bad Request
           schema:
