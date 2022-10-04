@@ -583,6 +583,10 @@ const docTemplate = `{
         "permission.LookupQueryResponse": {
             "type": "object",
             "properties": {
+                "args": {
+                    "type": "array",
+                    "items": {}
+                },
                 "query": {
                     "type": "string"
                 }

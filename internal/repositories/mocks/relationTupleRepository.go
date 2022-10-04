@@ -19,6 +19,31 @@ func (_m *RelationTupleRepository) Migrate() errors.Error {
 	return nil
 }
 
+// ReverseQueryTuples -
+func (_m *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (entities.RelationTuples, errors.Error) {
+	ret := _m.Called(entity, relation, subjectEntity, subjectIDs, subjectRelation)
+
+	var r0 []entities.RelationTuple
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, []string, string) entities.RelationTuples); ok {
+		r0 = rf(ctx, entity, relation, subjectEntity, subjectIDs, subjectRelation)
+	} else {
+		r0 = ret.Get(0).(entities.RelationTuples)
+	}
+
+	var r1 errors.Error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, []string, string) errors.Error); ok {
+		r1 = rf(ctx, entity, relation, subjectEntity, subjectIDs, subjectRelation)
+	} else {
+		if e, ok := ret.Get(1).(errors.Error); ok {
+			r1 = e
+		} else {
+			r1 = nil
+		}
+	}
+
+	return r0, r1
+}
+
 // QueryTuples -
 func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, namespace string, objectID string, relation string) (tuples entities.RelationTuples, err errors.Error) {
 	ret := _m.Called(namespace, objectID, relation)
@@ -34,7 +59,11 @@ func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, namespace st
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) errors.Error); ok {
 		r1 = rf(ctx, namespace, objectID, relation)
 	} else {
-		r1 = ret.Get(1).(errors.Error)
+		if e, ok := ret.Get(1).(errors.Error); ok {
+			r1 = e
+		} else {
+			r1 = nil
+		}
 	}
 
 	return r0, r1
@@ -55,7 +84,11 @@ func (_m *RelationTupleRepository) Read(ctx context.Context, filter filters.Rela
 	if rf, ok := ret.Get(1).(func(context.Context, filters.RelationTupleFilter) errors.Error); ok {
 		r1 = rf(ctx, filter)
 	} else {
-		r1 = ret.Get(1).(errors.Error)
+		if e, ok := ret.Get(1).(errors.Error); ok {
+			r1 = e
+		} else {
+			r1 = nil
+		}
 	}
 
 	return r0, r1
@@ -69,7 +102,11 @@ func (_m *RelationTupleRepository) Write(ctx context.Context, tuples entities.Re
 	if rf, ok := ret.Get(0).(func(context.Context, []entities.RelationTuple) errors.Error); ok {
 		r0 = rf(ctx, tuples)
 	} else {
-		r0 = ret.Get(1).(errors.Error)
+		if e, ok := ret.Get(1).(errors.Error); ok {
+			r0 = e
+		} else {
+			r0 = nil
+		}
 	}
 
 	return r0
@@ -83,7 +120,11 @@ func (_m *RelationTupleRepository) Delete(ctx context.Context, tuples entities.R
 	if rf, ok := ret.Get(0).(func(context.Context, []entities.RelationTuple) errors.Error); ok {
 		r0 = rf(ctx, tuples)
 	} else {
-		r0 = ret.Get(1).(errors.Error)
+		if e, ok := ret.Get(1).(errors.Error); ok {
+			r0 = e
+		} else {
+			r0 = nil
+		}
 	}
 
 	return r0

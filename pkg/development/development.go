@@ -52,10 +52,11 @@ func NewDevelopment() *Development {
 	// commands
 	checkCommand := commands.NewCheckCommand(relationTupleRepository, l)
 	expandCommand := commands.NewExpandCommand(relationTupleRepository, l)
+	lookupQueryCommand := commands.NewLookupQueryCommand(relationTupleRepository, l)
 
 	// Services
 	relationshipService := services.NewRelationshipService(relationTupleRepository, schemaManager)
-	permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaManager)
+	permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaManager)
 
 	return &Development{
 		P: permissionService,

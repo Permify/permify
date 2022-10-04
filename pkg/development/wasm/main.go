@@ -37,6 +37,24 @@ func check() js.Func {
 	})
 }
 
+// lookupQuery -
+func lookupQuery() js.Func {
+	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		params := &development.LookupQueryQuery{}
+		mErr := json.Unmarshal([]byte(string(args[0].String())), params)
+		if mErr != nil {
+			return js.ValueOf([]interface{}{"", []interface{}{}, mErr.Error()})
+		}
+		var err errors.Error
+		var result commands.LookupQueryResponse
+		result, err = development.LookupQuery(context.Background(), dev.P, params.EntityType, params.Action, params.Subject, string(args[1].String()))
+		if err != nil {
+			return js.ValueOf([]interface{}{"", []interface{}{}, err.Error()})
+		}
+		return js.ValueOf([]interface{}{result.Query, result.Args, nil})
+	})
+}
+
 // writeSchema -
 func writeSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
@@ -158,5 +176,6 @@ func main() {
 	js.Global().Set("readTuple", readTuple())
 	js.Global().Set("deleteTuple", deleteTuple())
 	js.Global().Set("readSchemaGraph", readSchemaGraph())
+	js.Global().Set("lookupQuery", lookupQuery())
 	<-ch
 }

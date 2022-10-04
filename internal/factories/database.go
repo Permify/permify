@@ -7,8 +7,7 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/repositories/memory"
 	"github.com/Permify/permify/pkg/database"
-	MMDatabase "github.com/Permify/permify/pkg/database/memory"
-	MNDatabase "github.com/Permify/permify/pkg/database/mongo"
+	IMDatabase "github.com/Permify/permify/pkg/database/memory"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
@@ -21,14 +20,8 @@ func DatabaseFactory(conf config.Write) (db database.Database, err error) {
 			return nil, err
 		}
 		return
-	case database.MONGO.String():
-		db, err = MNDatabase.New(conf.URI, conf.Database, MNDatabase.MaxPoolSize(conf.PoolMax))
-		if err != nil {
-			return nil, err
-		}
-		return
 	case database.MEMORY.String():
-		db, err = MMDatabase.New(memory.Schema)
+		db, err = IMDatabase.New(memory.Schema)
 		if err != nil {
 			return nil, err
 		}

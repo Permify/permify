@@ -3,15 +3,16 @@ package commands
 import (
 	"context"
 	"fmt"
-	`github.com/doug-martin/goqu/v9`
-	`strings`
+	"strings"
+
+	"github.com/doug-martin/goqu/v9"
 
 	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
-	`github.com/Permify/permify/pkg/helper`
+	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -81,7 +82,7 @@ type LookupQueryCommand struct {
 type BuildFunction func(ctx context.Context, resultChan chan<- IBuilderNode)
 
 // ResolverFunction -
-type ResolverFunction func() []string
+type ResolverFunction func() ([]string, errors.Error)
 
 // BuildCombiner .
 type BuildCombiner func(ctx context.Context, functions []BuildFunction) IBuilderNode
@@ -197,7 +198,12 @@ func (command *LookupQueryCommand) build(ctx context.Context, exclusion bool, q 
 		qu := q
 		qu.Exclusion = exclusion
 		if q.idResolver != nil {
-			qu.Args = append(qu.Args, q.idResolver()...)
+			ids, err := q.idResolver()
+			if err != nil {
+				buildFail(err)
+				return
+			}
+			qu.Args = append(qu.Args, ids...)
 		}
 		builderChan <- qu
 		return
@@ -241,17 +247,20 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context,
 	parentColumn, parentColumnExist := parentRel.GetColumn()
 	if !columnExist {
 		qu.Key = fmt.Sprintf("%s.%s", entity.GetTable(), entity.GetIdentifier())
-		qu.idResolver = func() []string {
-			parentIDs := command.getEntityIDs(ctx, rel.Type(), tuple.Relation(r[1].String()), subject.Type, []string{subject.ID}, subject.Relation)
+		qu.idResolver = func() ([]string, errors.Error) {
+			parentIDs, err := command.getEntityIDs(ctx, rel.Type(), tuple.Relation(r[1].String()), subject.Type, []string{subject.ID}, subject.Relation)
+			if err != nil {
+				return nil, err
+			}
 			if len(parentIDs) > 0 {
 				return command.getEntityIDs(ctx, entity.Name, tuple.Relation(rel.Name), rel.Type(), parentIDs, tuple.ELLIPSIS)
 			}
-			return []string{}
+			return []string{}, nil
 		}
 	} else {
 		if !parentColumnExist {
 			qu.Key = fmt.Sprintf("%s.%s", entity.GetTable(), column)
-			qu.idResolver = func() []string {
+			qu.idResolver = func() ([]string, errors.Error) {
 				return command.getEntityIDs(ctx, rel.Type(), tuple.Relation(r[1].String()), subject.Type, []string{subject.ID}, subject.Relation)
 			}
 		} else {
@@ -263,7 +272,7 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context,
 			qu.Join = map[string]join{
 				parentEntity.GetTable(): j,
 			}
-			qu.idResolver = func() []string {
+			qu.idResolver = func() ([]string, errors.Error) {
 				return command.getUserIDs(ctx, subject)
 			}
 		}
@@ -291,12 +300,12 @@ func (command *LookupQueryCommand) buildComputedUserSetQuery(ctx context.Context
 	column, columnExist := rel.GetColumn()
 	if !columnExist {
 		qu.Key = fmt.Sprintf("%s.%s", entity.GetTable(), entity.GetIdentifier())
-		qu.idResolver = func() []string {
+		qu.idResolver = func() ([]string, errors.Error) {
 			return command.getEntityIDs(ctx, entity.Name, tuple.Relation(rel.Name), subject.Type, []string{subject.ID}, subject.Relation)
 		}
 	} else {
 		qu.Key = fmt.Sprintf("%s.%s", entity.GetTable(), column)
-		qu.idResolver = func() []string {
+		qu.idResolver = func() ([]string, errors.Error) {
 			return command.getUserIDs(ctx, subject)
 		}
 	}
@@ -361,7 +370,7 @@ func buildFail(err errors.Error) BuildFunction {
 }
 
 // getUserIDs -
-func (command *LookupQueryCommand) getUserIDs(ctx context.Context, s tuple.Subject) (r []string) {
+func (command *LookupQueryCommand) getUserIDs(ctx context.Context, s tuple.Subject) (r []string, err errors.Error) {
 	if s.IsUser() {
 		r = append(r, s.ID)
 	} else {
@@ -370,26 +379,30 @@ func (command *LookupQueryCommand) getUserIDs(ctx context.Context, s tuple.Subje
 			ID:   s.ID,
 		}, s.Relation)
 		if err != nil {
-			return
+			return nil, err
 		}
 		for iterator.HasNext() {
-			r = append(r, command.getUserIDs(ctx, *iterator.GetNext())...)
+			ids, err := command.getUserIDs(ctx, *iterator.GetNext())
+			if err != nil {
+				return nil, err
+			}
+			r = append(r, ids...)
 		}
 	}
-	return helper.RemoveDuplicate(r)
+	return helper.RemoveDuplicate(r), nil
 }
 
 // getEntityIDs -
-func (command *LookupQueryCommand) getEntityIDs(ctx context.Context, entityType string, relation tuple.Relation, subjectType string, subjectIDs []string, subjectRelation tuple.Relation) (r []string) {
+func (command *LookupQueryCommand) getEntityIDs(ctx context.Context, entityType string, relation tuple.Relation, subjectType string, subjectIDs []string, subjectRelation tuple.Relation) (r []string, error2 errors.Error) {
 	iterator, err := command.getEntities(ctx, entityType, relation, subjectType, subjectIDs, subjectRelation)
 	if err != nil {
-		return
+		return nil, err
 	}
 	for iterator.HasNext() {
 		entity := *iterator.GetNext()
 		r = append(r, entity.ID)
 	}
-	return helper.RemoveDuplicate(r)
+	return helper.RemoveDuplicate(r), nil
 }
 
 // getSubjects -
@@ -448,9 +461,8 @@ type StatementBuilder struct {
 
 // rootNodeToSql -
 func rootNodeToSql(node IBuilderNode, table string) (sql string, args []interface{}, e errors.Error) {
-	//dialect := goqu.Dialect("postgres")
 	var err error
-	var st = &StatementBuilder{
+	st := &StatementBuilder{
 		joins: map[string]join{},
 	}
 	expressions, _ := st.buildSql([]IBuilderNode{node}, goqu.Ex{})

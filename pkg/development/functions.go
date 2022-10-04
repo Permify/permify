@@ -24,6 +24,18 @@ func Check(ctx context.Context, service services.IPermissionService, subject tup
 	return service.Check(ctx, subject, action, entity, version, 20)
 }
 
+// LookupQueryQuery -
+type LookupQueryQuery struct {
+	EntityType string
+	Action     string
+	Subject    tuple.Subject
+}
+
+// LookupQuery -
+func LookupQuery(ctx context.Context, service services.IPermissionService, entityType string, action string, subject tuple.Subject, version string) (res commands.LookupQueryResponse, err errors.Error) {
+	return service.LookupQuery(ctx, entityType, subject, action, version)
+}
+
 // WriteTuple -
 func WriteTuple(ctx context.Context, service services.IRelationshipService, tuple tuple.Tuple, version string) (err errors.Error) {
 	return service.WriteRelationship(ctx, tuple, version)

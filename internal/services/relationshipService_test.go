@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("relationship-service", func() {
@@ -17,13 +17,16 @@ var _ = Describe("relationship-service", func() {
 		It("Write", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			tuple := entities.RelationTuple{
-				Entity:          "organization",
-				ObjectID:        "1",
-				Relation:        "admin",
-				UsersetEntity:   "user",
-				UsersetObjectID: "1",
-				UsersetRelation: "",
+			tuple := tuple.Tuple{
+				Entity: tuple.Entity{
+					Type: "organization",
+					ID:   "1",
+				},
+				Relation: "admin",
+				Subject: tuple.Subject{
+					Type: "user",
+					ID:   "1",
+				},
 			}
 
 			relationTupleRepository.On("Write", tuple).Return(nil).Once()
@@ -41,13 +44,16 @@ var _ = Describe("relationship-service", func() {
 		It("Write", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			tuple := entities.RelationTuple{
-				Entity:          "organization",
-				ObjectID:        "1",
-				Relation:        "member",
-				UsersetEntity:   "user",
-				UsersetObjectID: "2",
-				UsersetRelation: "",
+			tuple := tuple.Tuple{
+				Entity: tuple.Entity{
+					Type: "organization",
+					ID:   "1",
+				},
+				Relation: "member",
+				Subject: tuple.Subject{
+					Type: "user",
+					ID:   "2",
+				},
 			}
 
 			relationTupleRepository.On("Delete", tuple).Return(nil).Once()

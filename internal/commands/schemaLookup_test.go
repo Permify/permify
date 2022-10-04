@@ -31,7 +31,7 @@ var _ = Describe("schema-lookup-command", func() {
 		},
 		{
 			Entity:           "doc",
-			SerializedConfig: []byte("entity doc {\nelation\tparent\t@organization\nrelation\towner\t@user\n  action read = (owner or parent.collaborator) or parent.admin\naction update = owner and parent.admin\n action delete = owner or parent.admin\n}"),
+			SerializedConfig: []byte("entity doc {\nrelation\tparent\t@organization\nrelation\towner\t@user\n  action read = (owner or parent.collaborator) or parent.admin\naction update = owner and parent.admin\n action delete = owner or parent.admin\n}"),
 		},
 	}
 

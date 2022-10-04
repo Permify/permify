@@ -33,11 +33,12 @@ var _ = Describe("check-command", func() {
 		},
 		{
 			Entity:           "doc",
-			SerializedConfig: []byte("entity doc {\nelation\tparent\t@organization\nrelation\towner\t@user\n  action read = (owner or parent.collaborator) or parent.admin\naction update = owner and parent.admin\n action delete = owner or parent.admin\n}"),
+			SerializedConfig: []byte("entity doc {\n relation\tparent\t@organization\nrelation\towner\t@user\n  action read = (owner or parent.collaborator) or parent.admin\naction update = owner and parent.admin\n action delete = owner or parent.admin\n}"),
 		},
 	}
 
 	Context("Drive Sample: Check", func() {
+
 		It("Drive Sample: Case 1", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
@@ -107,10 +108,14 @@ var _ = Describe("check-command", func() {
 
 			re.SetDepth(8)
 
-			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
+			sch, err := entities.EntityConfigs(driveConfigs).ToSchema()
+			Expect(err).ShouldNot(HaveOccurred())
 
-			en, _ := sch.GetEntityByName(re.Entity.Type)
-			ac, _ := en.GetAction("read")
+			en, err := sch.GetEntityByName(re.Entity.Type)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			ac, err := en.GetAction("read")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -257,6 +262,7 @@ var _ = Describe("check-command", func() {
 			Expect(re.loadDepth()).Should(Equal(int32(2)))
 			Expect(false).Should(Equal(actualResult.Can))
 		})
+
 	})
 
 	// GITHUB SAMPLE
@@ -280,7 +286,7 @@ var _ = Describe("check-command", func() {
 		It("Github Sample: Case 1", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getDocParent := []entities.RelationTuple{
+			getRepositoryOwner := []entities.RelationTuple{
 				{
 					Entity:          "repository",
 					ObjectID:        "1",
@@ -291,7 +297,7 @@ var _ = Describe("check-command", func() {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getDocParent, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getRepositoryOwner, nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
@@ -316,7 +322,7 @@ var _ = Describe("check-command", func() {
 		It("Github Sample: Case 2", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getDocParent := []entities.RelationTuple{
+			getRepositoryOwners := []entities.RelationTuple{
 				{
 					Entity:          "repository",
 					ObjectID:        "1",
@@ -327,7 +333,7 @@ var _ = Describe("check-command", func() {
 				},
 			}
 
-			getOrgAdmins := []entities.RelationTuple{
+			getOrganizationAdmins := []entities.RelationTuple{
 				{
 					Entity:          "organization",
 					ObjectID:        "2",
@@ -354,7 +360,7 @@ var _ = Describe("check-command", func() {
 				},
 			}
 
-			getOrgMembers := []entities.RelationTuple{
+			getOrganizationMembers := []entities.RelationTuple{
 				{
 					Entity:          "organization",
 					ObjectID:        "3",
@@ -365,9 +371,9 @@ var _ = Describe("check-command", func() {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getDocParent, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "2", "admin").Return(getOrgAdmins, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(getOrgMembers, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getRepositoryOwners, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "2", "admin").Return(getOrganizationAdmins, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(getOrganizationMembers, nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 

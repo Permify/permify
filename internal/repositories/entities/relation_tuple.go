@@ -8,22 +8,17 @@ import (
 
 // RelationTuple -
 type RelationTuple struct {
-	Entity          string    `json:"entity" bson:"entity"`
-	ObjectID        string    `json:"object_id" bson:"object_id"`
-	Relation        string    `json:"relation" bson:"relation"`
-	UsersetEntity   string    `json:"userset_entity" bson:"userset_entity"`
-	UsersetObjectID string    `json:"userset_object_id" bson:"userset_object_id"`
-	UsersetRelation string    `json:"userset_relation" bson:"userset_relation"`
-	CommitTime      time.Time `json:"commit_time" bson:"commit_time"`
+	Entity          string    `json:"entity"`
+	ObjectID        string    `json:"object_id"`
+	Relation        string    `json:"relation"`
+	UsersetEntity   string    `json:"userset_entity"`
+	UsersetObjectID string    `json:"userset_object_id"`
+	UsersetRelation string    `json:"userset_relation"`
+	CommitTime      time.Time `json:"commit_time"`
 }
 
 // Table -
 func (RelationTuple) Table() string {
-	return "relation_tuple"
-}
-
-// Collection -
-func (RelationTuple) Collection() string {
 	return "relation_tuple"
 }
 

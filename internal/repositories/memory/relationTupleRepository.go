@@ -9,7 +9,7 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/errors"
-	`github.com/Permify/permify/pkg/helper`
+	"github.com/Permify/permify/pkg/helper"
 )
 
 // RelationTupleRepository -.
@@ -34,7 +34,7 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 
-	filterFactory := func(subjectRelation string, relation string) func(interface{}) bool {
+	filterFactory := func(subjectRelation string, subjectIDs []string) func(interface{}) bool {
 		return func(raw interface{}) bool {
 			obj, ok := raw.(entities.RelationTuple)
 			if !ok {
@@ -42,10 +42,6 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 			}
 
 			if subjectRelation != "" && subjectRelation != obj.UsersetRelation {
-				return true
-			}
-
-			if relation != "" && relation != obj.Relation {
 				return true
 			}
 
@@ -58,12 +54,12 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 	}
 
 	var it memdb.ResultIterator
-	it, err = txn.Get(entities.RelationTuple{}.Table(), "subject-index", entity, subjectEntity)
+	it, err = txn.Get(entities.RelationTuple{}.Table(), "subject-index", entity, relation, subjectEntity)
 	if err != nil {
 		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
 
-	filtered := memdb.NewFilterIterator(it, filterFactory(subjectRelation, relation))
+	filtered := memdb.NewFilterIterator(it, filterFactory(subjectRelation, subjectIDs))
 	for obj := filtered.Next(); obj != nil; obj = it.Next() {
 		tuples = append(tuples, obj.(entities.RelationTuple))
 	}

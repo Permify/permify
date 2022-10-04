@@ -27,13 +27,17 @@ func (r *RelationTupleWithCircuitBreaker) Migrate() (err errors.Error) {
 
 // ReverseQueryTuples -
 func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuples entities.RelationTuples, err errors.Error) {
-	output := make(chan entities.RelationTuples, 1)
-	outputErr := make(chan errors.Error, 1)
+	type circuitBreakerResponse struct {
+		Tuples entities.RelationTuples
+		Error  errors.Error
+	}
+
+	output := make(chan circuitBreakerResponse, 1)
+
 	hystrix.ConfigureCommand("relationTupleRepository.reverseQueryTuples", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.reverseQueryTuples", func() error {
-		tuples, err = r.repository.ReverseQueryTuples(ctx, entity, relation, subjectEntity, subjectIDs, subjectRelation)
-		outputErr <- err
-		output <- tuples
+		tup, cErr := r.repository.ReverseQueryTuples(ctx, entity, relation, subjectEntity, subjectIDs, subjectRelation)
+		output <- circuitBreakerResponse{Tuples: tup, Error: cErr}
 		return nil
 	}, func(err error) error {
 		return nil
@@ -41,9 +45,7 @@ func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context
 
 	select {
 	case out := <-output:
-		return out, nil
-	case err = <-outputErr:
-		return tuples, err
+		return out.Tuples, out.Error
 	case <-bErrors:
 		return tuples, errors.CircuitBreakerError
 	}

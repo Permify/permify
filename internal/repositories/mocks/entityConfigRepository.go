@@ -32,7 +32,11 @@ func (_m *EntityConfigRepository) All(ctx context.Context, version string) (conf
 	if rf, ok := ret.Get(1).(func(context.Context, string) errors.Error); ok {
 		r1 = rf(ctx, version)
 	} else {
-		r1 = ret.Get(1).(errors.Error)
+		if e, ok := ret.Get(1).(errors.Error); ok {
+			r1 = e
+		} else {
+			r1 = nil
+		}
 	}
 
 	return r0, r1
@@ -53,7 +57,11 @@ func (_m *EntityConfigRepository) Read(ctx context.Context, entityName string, v
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) errors.Error); ok {
 		r1 = rf(ctx, entityName, version)
 	} else {
-		r1 = ret.Get(1).(errors.Error)
+		if e, ok := ret.Get(1).(errors.Error); ok {
+			r1 = e
+		} else {
+			r1 = nil
+		}
 	}
 
 	return r0, r1
@@ -67,7 +75,11 @@ func (_m *EntityConfigRepository) Write(ctx context.Context, configs entities.En
 	if rf, ok := ret.Get(1).(func(context.Context, entities.EntityConfigs, string) errors.Error); ok {
 		r0 = rf(ctx, configs, version)
 	} else {
-		r0 = ret.Get(1).(errors.Error)
+		if e, ok := ret.Get(1).(errors.Error); ok {
+			r0 = e
+		} else {
+			r0 = nil
+		}
 	}
 
 	return r0

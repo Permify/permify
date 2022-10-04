@@ -80,6 +80,9 @@ definitions:
     type: object
   permission.LookupQueryResponse:
     properties:
+      args:
+        items: {}
+        type: array
       query:
         type: string
     type: object

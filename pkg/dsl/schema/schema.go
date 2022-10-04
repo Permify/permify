@@ -50,7 +50,7 @@ type Schema struct {
 }
 
 // GetEntityByName -
-func (s Schema) GetEntityByName(name string) (entity Entity, err error) {
+func (s Schema) GetEntityByName(name string) (entity Entity, err errors.Error) {
 	if en, ok := s.Entities[name]; ok {
 		return en, nil
 	}
