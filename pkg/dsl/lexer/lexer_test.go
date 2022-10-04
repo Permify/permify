@@ -112,6 +112,7 @@ var _ = Describe("lexer", func() {
 				{token.IDENT, "admin"},
 				{token.OR, "or"},
 				{token.IDENT, "member"},
+				{token.NEWLINE, "\n"},
 				{token.ACTION, "action"},
 				{token.IDENT, "delete"},
 				{token.ASSIGN, "="},

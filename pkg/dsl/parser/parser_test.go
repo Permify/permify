@@ -19,7 +19,8 @@ var _ = Describe("parser", func() {
 	Context("Statement", func() {
 		It("Case 1", func() {
 			pr := NewParser("entity repository {\n\nrelation parent @organization \nrelation owner  @user\naction read = owner and (parent.admin and not parent.member)\n\n\n} `table:repository|identifier:id`\n\n")
-			schema := pr.Parse()
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("repository"))
@@ -51,7 +52,8 @@ var _ = Describe("parser", func() {
 
 		It("Case 2", func() {
 			pr := NewParser("entity repository {\n\nrelation parent   @organization `rel:belongs-to|cols:organization_id`\nrelation owner  @user `rel:belongs-to|cols:owner_id`\n\naction read = (owner and parent.admin) and parent.member\n\n\n} `table:repository|identifier:id`\n\n")
-			schema := pr.Parse()
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("repository"))
@@ -87,7 +89,8 @@ var _ = Describe("parser", func() {
 
 		It("Case 3", func() {
 			pr := NewParser("entity organization {\n\nrelation owner @user\n\naction delete = owner\n\n\n} `table:organization|identifier:id`\n\n")
-			schema := pr.Parse()
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("organization"))
@@ -112,7 +115,9 @@ var _ = Describe("parser", func() {
 
 		It("Case 4", func() {
 			pr := NewParser("entity organization {\n\nrelation owner @user\n\naction delete = not owner\n\n\n}\n\n")
-			schema := pr.Parse()
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("organization"))
