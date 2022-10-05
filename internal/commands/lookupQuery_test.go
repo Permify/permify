@@ -97,5 +97,31 @@ var _ = Describe("lookup-query-command", func() {
 			Expect(actualResult.Args).Should(Equal([]interface{}{"1", "3", "6"}))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
+
+		It("Github Sample: Case 2", func() {
+			relationTupleRepository := new(mocks.RelationTupleRepository)
+
+			lookupQueryCommand = NewLookupQueryCommand(relationTupleRepository, l)
+
+			lq := &LookupQueryQuery{
+				EntityType: "repository",
+				Action:     "read",
+				Subject:    tuple.Subject{Type: tuple.USER, ID: "1"},
+			}
+
+			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
+			lq.SetSchema(sch)
+
+			en, _ := sch.GetEntityByName(lq.EntityType)
+			ac, _ := en.GetAction("push")
+
+			actualResult, err := lookupQueryCommand.Execute(context.Background(), lq, ac.Child)
+			query, _, e := goqu.Select("*").From("repositories").Where(goqu.And(goqu.I("repositories.owner_id").Eq("1"))).Prepared(true).ToSQL()
+
+			Expect(e).ShouldNot(HaveOccurred())
+			Expect(actualResult.Query).Should(Equal(strings.ReplaceAll(query, "\"", "")))
+			Expect(actualResult.Args).Should(Equal([]interface{}{"1"}))
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 })
