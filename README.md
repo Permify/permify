@@ -20,7 +20,7 @@
 
 Permify is an **open-source authorization service** for creating and maintaining fine-grained authorizations accross your individual applications and services.
 
-Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.
+Permify stores access control relations on a database you choose and performs authorization checks based on the stored relations. We called that database Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model your authorization with Permify's DSL - Permify Schema and perform access checks with a single API call anywhere on your stack.
 
 Data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
@@ -34,6 +34,7 @@ Data model is inspired by Google’s consistent, global authorization system, [G
 - If you already have an identity/auth solution and want to plug in fine-grained authorization on top of that.
 - If you want to create a unified access control mechanism for individual applications.
 - If you’re managing authorization for growing micro-service infrastructure.
+- If you want to make future-proof authorization system and don't want to spend engineering effort for it.
 - If your authorization logic is cluttering your code base.
 - If your data model is getting too complicated to handle your authorization within the service.
 - If your authorization is growing too complex to handle within code or API gateway.
@@ -60,14 +61,14 @@ Data model is inspired by Google’s consistent, global authorization system, [G
 
 ## Getting Started
 
-- [Install Permify] with running Permify container using docker.
+- [Install Permify] with running Permify container.
 - Follow a guide to model your authorization using [Permify Schema].
-- Learn how Permify [centralize & stores your authorization data].
+- See our [playground], build your authorization logic and test it with sample data.
 - Take a look at the overview of [Permify API].
 
 [Install Permify]: https://docs.permify.co/docs/installation
 [Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
-[centralize & stores your authorization data]: https://docs.permify.co/docs/getting-started/sync-data
+[playground]: https://play.permify.co/
 [Permify API]: https://docs.permify.co/docs/api-overview
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de?action=collection%2Ffork&collection-url=entityId%3D16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de%26entityType%3Dcollection%26workspaceId%3Dd3a8746c-fa57-49c0-83a5-6fcf25a7fc05)
