@@ -37,7 +37,8 @@ func (t *SchemaTranslator) Translate() (sch *base.Schema) {
 // translateToEntity -
 func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) *base.EntityDefinition {
 	var entityDefinition = &base.EntityDefinition{
-		Name: sc.Name.Literal,
+		Name:   sc.Name.Literal,
+		Option: map[string]*anypb.Any{},
 	}
 
 	if sc.Option.Literal != "" {
@@ -56,7 +57,8 @@ func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) *base.Enti
 	for _, rs := range sc.RelationStatements {
 		relationSt := rs.(*ast.RelationStatement)
 		var relationDefinition = &base.RelationDefinition{
-			Name: relationSt.Name.Literal,
+			Name:   relationSt.Name.Literal,
+			Option: map[string]*anypb.Any{},
 		}
 
 		for _, rts := range relationSt.RelationTypes {
