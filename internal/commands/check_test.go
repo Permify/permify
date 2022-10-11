@@ -6,10 +6,12 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/repositories/entities"
-
+	`github.com/Permify/permify/internal/repositories`
 	"github.com/Permify/permify/internal/repositories/mocks"
+	`github.com/Permify/permify/pkg/dsl/schema`
+	`github.com/Permify/permify/pkg/dsl/translator`
 	"github.com/Permify/permify/pkg/logger"
+	base `github.com/Permify/permify/pkg/pb/base/v1`
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -19,7 +21,7 @@ var _ = Describe("check-command", func() {
 
 	// DRIVE SAMPLE
 
-	driveConfigs := []entities.EntityConfig{
+	driveConfigs := []repositories.EntityConfig{
 		{
 			Entity:           "user",
 			SerializedConfig: []byte("entity user {}"),
@@ -42,140 +44,186 @@ var _ = Describe("check-command", func() {
 		It("Drive Sample: Case 1", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getDocParent := []entities.RelationTuple{
+			getDocParent := []*base.Tuple{
 				{
-					Entity:          "doc",
-					ObjectID:        "1",
-					Relation:        "parent",
-					UsersetEntity:   "folder",
-					UsersetObjectID: "1",
-					UsersetRelation: tuple.ELLIPSIS,
+					Entity: &base.Entity{
+						Type: "doc",
+						Id:   "1",
+					},
+					Relation: "parent",
+					Subject: &base.Subject{
+						Type:     "folder",
+						Id:       "1",
+						Relation: tuple.ELLIPSIS,
+					},
 				},
 			}
 
-			getParentAdmins := []entities.RelationTuple{
+			getParentAdmins := []*base.Tuple{
 				{
-					Entity:          "folder",
-					ObjectID:        "1",
-					Relation:        "admin",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "1",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "folder",
+						Id:   "1",
+					},
+					Relation: "admin",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
+					},
 				},
 			}
 
-			getParentCollaborators := []entities.RelationTuple{
+			getParentCollaborators := []*base.Tuple{
 				{
-					Entity:          "folder",
-					ObjectID:        "1",
-					Relation:        "collaborator",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "1",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "folder",
+						Id:   "1",
+					},
+					Relation: "collaborator",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
+					},
 				},
 				{
-					Entity:          "folder",
-					ObjectID:        "1",
-					Relation:        "collaborator",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "3",
-					UsersetRelation: "",
-				},
-			}
-
-			getDocOwners := []entities.RelationTuple{
-				{
-					Entity:          "doc",
-					ObjectID:        "1",
-					Relation:        "owner",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "2",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "folder",
+						Id:   "1",
+					},
+					Relation: "collaborator",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "3",
+						Relation: "",
+					},
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(getDocParent, nil).Times(2)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(getParentCollaborators, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(getDocOwners, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(getParentAdmins, nil).Times(1)
+			getDocOwners := []*base.Tuple{
+				{
+					Entity: &base.Entity{
+						Type: "doc",
+						Id:   "1",
+					},
+					Relation: "owner",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
+					},
+				},
+			}
+
+			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(tuple.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(2)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(tuple.NewTupleCollection(getParentCollaborators...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(tuple.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(tuple.NewTupleCollection(getParentAdmins...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
-				Entity:  tuple.Entity{Type: "doc", ID: "1"},
-				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
+				Entity:  &base.Entity{Type: "doc", Id: "1"},
+				Subject: &base.Subject{Type: tuple.USER, Id: "1"},
 			}
 
 			re.SetDepth(8)
 
-			sch, err := entities.EntityConfigs(driveConfigs).ToSchema()
+			var serializedConfigs []string
+			for _, c := range driveConfigs {
+				serializedConfigs = append(serializedConfigs, c.Serialized())
+			}
+
+			sch, err := translator.StringToSchema(serializedConfigs...)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			en, err := sch.GetEntityByName(re.Entity.Type)
+			en, err := schema.GetEntityByName(sch, re.Entity.Type)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := en.GetAction("read")
+			ac, err := schema.GetAction(en, "read")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(re.loadDepth()).Should(Equal(int32(3)))
+			Expect(re.loadDepth()).Should(Equal(int32(4)))
 			Expect(true).Should(Equal(actualResult.Can))
 		})
 
 		It("Drive Sample: Case 2", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getDocParent := []entities.RelationTuple{
+			getDocParent := []*base.Tuple{
 				{
-					Entity:          "doc",
-					ObjectID:        "1",
-					Relation:        "parent",
-					UsersetEntity:   "folder",
-					UsersetObjectID: "1",
-					UsersetRelation: tuple.ELLIPSIS,
+					Entity: &base.Entity{
+						Type: "doc",
+						Id:   "1",
+					},
+					Relation: "parent",
+					Subject: &base.Subject{
+						Type:     "folder",
+						Id:       "1",
+						Relation: tuple.ELLIPSIS,
+					},
 				},
 			}
 
-			getParentAdmins := []entities.RelationTuple{
+			getParentAdmins := []*base.Tuple{
 				{
-					Entity:          "folder",
-					ObjectID:        "1",
-					Relation:        "admin",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "2",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "folder",
+						Id:   "1",
+					},
+					Relation: "admin",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
+					},
 				},
 			}
 
-			getDocOwners := []entities.RelationTuple{
+			getDocOwners := []*base.Tuple{
 				{
-					Entity:          "doc",
-					ObjectID:        "1",
-					Relation:        "owner",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "1",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "doc",
+						Id:   "1",
+					},
+					Relation: "owner",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
+					},
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(getDocParent, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(getParentAdmins, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(getDocOwners, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(tuple.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(tuple.NewTupleCollection(getParentAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(tuple.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
-				Entity:  tuple.Entity{Type: "doc", ID: "1"},
-				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
+				Entity:  &base.Entity{Type: "doc", Id: "1"},
+				Subject: &base.Subject{Type: tuple.USER, Id: "1"},
 			}
 
 			re.SetDepth(8)
 
-			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
+			var serializedConfigs []string
+			for _, c := range driveConfigs {
+				serializedConfigs = append(serializedConfigs, c.Serialized())
+			}
 
-			en, _ := sch.GetEntityByName(re.Entity.Type)
-			ac, _ := en.GetAction("update")
+			sch, err := translator.StringToSchema(serializedConfigs...)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, re.Entity.Type)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			ac, err := schema.GetAction(en, "update")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -186,87 +234,116 @@ var _ = Describe("check-command", func() {
 		It("Drive Sample: Case 3", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getDocParent := []entities.RelationTuple{
+			getDocParent := []*base.Tuple{
 				{
-					Entity:          "doc",
-					ObjectID:        "1",
-					Relation:        "parent",
-					UsersetEntity:   "folder",
-					UsersetObjectID: "1",
-					UsersetRelation: tuple.ELLIPSIS,
+					Entity: &base.Entity{
+						Type: "doc",
+						Id:   "1",
+					},
+					Relation: "parent",
+					Subject: &base.Subject{
+						Type:     "folder",
+						Id:       "1",
+						Relation: tuple.ELLIPSIS,
+					},
 				},
 			}
 
-			getParentAdmins := []entities.RelationTuple{
+			getParentAdmins := []*base.Tuple{
 				{
-					Entity:          "folder",
-					ObjectID:        "1",
-					Relation:        "admin",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "2",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "folder",
+						Id:   "1",
+					},
+					Relation: "admin",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
+					},
 				},
 			}
 
-			getParentCollaborators := []entities.RelationTuple{
+			getParentCollaborators := []*base.Tuple{
 				{
-					Entity:          "folder",
-					ObjectID:        "1",
-					Relation:        "collaborator",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "2",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "folder",
+						Id:   "1",
+					},
+					Relation: "collaborator",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
+					},
 				},
 				{
-					Entity:          "folder",
-					ObjectID:        "1",
-					Relation:        "collaborator",
-					UsersetEntity:   "folder",
-					UsersetObjectID: "1",
-					UsersetRelation: "admin",
-				},
-			}
-
-			getDocOwners := []entities.RelationTuple{
-				{
-					Entity:          "doc",
-					ObjectID:        "1",
-					Relation:        "owner",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "2",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "folder",
+						Id:   "1",
+					},
+					Relation: "collaborator",
+					Subject: &base.Subject{
+						Type:     "folder",
+						Id:       "1",
+						Relation: "admin",
+					},
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(getDocParent, nil).Times(2)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(getParentCollaborators, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(getParentAdmins, nil).Times(2)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(getDocOwners, nil).Times(1)
+			getDocOwners := []*base.Tuple{
+				{
+					Entity: &base.Entity{
+						Type: "doc",
+						Id:   "1",
+					},
+					Relation: "owner",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
+					},
+				},
+			}
+
+			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(tuple.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(2)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(tuple.NewTupleCollection(getParentCollaborators...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "admin").Return(tuple.NewTupleCollection(getParentAdmins...).CreateTupleIterator(), nil).Times(2)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(tuple.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
-				Entity:  tuple.Entity{Type: "doc", ID: "1"},
-				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
+				Entity:  &base.Entity{Type: "doc", Id: "1"},
+				Subject: &base.Subject{Type: tuple.USER, Id: "1"},
 			}
 
 			re.SetDepth(8)
 
-			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
+			var serializedConfigs []string
+			for _, c := range driveConfigs {
+				serializedConfigs = append(serializedConfigs, c.Serialized())
+			}
 
-			en, _ := sch.GetEntityByName(re.Entity.Type)
-			ac, _ := en.GetAction("read")
+			sch, err := translator.StringToSchema(serializedConfigs...)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, re.Entity.Type)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			ac, err := schema.GetAction(en, "read")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(re.loadDepth()).Should(Equal(int32(2)))
+			Expect(re.loadDepth()).Should(Equal(int32(4)))
 			Expect(false).Should(Equal(actualResult.Can))
 		})
 	})
 
 	// GITHUB SAMPLE
 
-	githubConfigs := []entities.EntityConfig{
+	githubConfigs := []repositories.EntityConfig{
 		{
 			Entity:           "user",
 			SerializedConfig: []byte("entity user {}"),
@@ -285,32 +362,45 @@ var _ = Describe("check-command", func() {
 		It("Github Sample: Case 1", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getRepositoryOwner := []entities.RelationTuple{
+			getRepositoryOwner := []*base.Tuple{
 				{
-					Entity:          "repository",
-					ObjectID:        "1",
-					Relation:        "owner",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "2",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "repository",
+						Id:   "1",
+					},
+					Relation: "owner",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
+					},
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getRepositoryOwner, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(tuple.NewTupleCollection(getRepositoryOwner...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
-				Entity:  tuple.Entity{Type: "repository", ID: "1"},
-				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
+				Entity:  &base.Entity{Type: "repository", Id: "1"},
+				Subject: &base.Subject{Type: tuple.USER, Id: "1"},
 			}
 
 			re.SetDepth(8)
 
-			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
+			var serializedConfigs []string
+			for _, c := range githubConfigs {
+				serializedConfigs = append(serializedConfigs, c.Serialized())
+			}
 
-			en, _ := sch.GetEntityByName(re.Entity.Type)
-			ac, _ := en.GetAction("push")
+			sch, err := translator.StringToSchema(serializedConfigs...)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, re.Entity.Type)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			ac, err := schema.GetAction(en, "push")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -321,71 +411,101 @@ var _ = Describe("check-command", func() {
 		It("Github Sample: Case 2", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getRepositoryOwners := []entities.RelationTuple{
+			getRepositoryOwners := []*base.Tuple{
 				{
-					Entity:          "repository",
-					ObjectID:        "1",
-					Relation:        "owner",
-					UsersetEntity:   "organization",
-					UsersetObjectID: "2",
-					UsersetRelation: "admin",
+					Entity: &base.Entity{
+						Type: "repository",
+						Id:   "1",
+					},
+					Relation: "owner",
+					Subject: &base.Subject{
+						Type:     "organization",
+						Id:       "2",
+						Relation: "admin",
+					},
 				},
 			}
 
-			getOrganizationAdmins := []entities.RelationTuple{
+			getOrganizationAdmins := []*base.Tuple{
 				{
-					Entity:          "organization",
-					ObjectID:        "2",
-					Relation:        "admin",
-					UsersetEntity:   "organization",
-					UsersetObjectID: "3",
-					UsersetRelation: "member",
+					Entity: &base.Entity{
+						Type: "organization",
+						Id:   "2",
+					},
+					Relation: "admin",
+					Subject: &base.Subject{
+						Type:     "organization",
+						Id:       "3",
+						Relation: "member",
+					},
 				},
 				{
-					Entity:          "organization",
-					ObjectID:        "2",
-					Relation:        "admin",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "3",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "organization",
+						Id:   "2",
+					},
+					Relation: "admin",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "3",
+						Relation: "",
+					},
 				},
 				{
-					Entity:          "organization",
-					ObjectID:        "2",
-					Relation:        "admin",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "8",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "organization",
+						Id:   "2",
+					},
+					Relation: "admin",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "8",
+						Relation: "",
+					},
 				},
 			}
 
-			getOrganizationMembers := []entities.RelationTuple{
+			getOrganizationMembers := []*base.Tuple{
 				{
-					Entity:          "organization",
-					ObjectID:        "3",
-					Relation:        "member",
-					UsersetEntity:   tuple.USER,
-					UsersetObjectID: "1",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "organization",
+						Id:   "3",
+					},
+					Relation: "member",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
+					},
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getRepositoryOwners, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "2", "admin").Return(getOrganizationAdmins, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(getOrganizationMembers, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(tuple.NewTupleCollection(getRepositoryOwners...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "2", "admin").Return(tuple.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(tuple.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
-				Entity:  tuple.Entity{Type: "repository", ID: "1"},
-				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
+				Entity:  &base.Entity{Type: "repository", Id: "1"},
+				Subject: &base.Subject{Type: tuple.USER, Id: "1"},
 			}
 
 			re.SetDepth(8)
-			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
 
-			en, _ := sch.GetEntityByName(re.Entity.Type)
-			ac, _ := en.GetAction("push")
+			var serializedConfigs []string
+			for _, c := range githubConfigs {
+				serializedConfigs = append(serializedConfigs, c.Serialized())
+			}
+
+			sch, err := translator.StringToSchema(serializedConfigs...)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, re.Entity.Type)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			ac, err := schema.GetAction(en, "push")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -396,72 +516,97 @@ var _ = Describe("check-command", func() {
 		It("Github Sample: Case 3", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getRepositoryParent := []entities.RelationTuple{
+			getRepositoryParent := []*base.Tuple{
 				{
-					Entity:          "repository",
-					ObjectID:        "1",
-					Relation:        "parent",
-					UsersetEntity:   "organization",
-					UsersetObjectID: "8",
-					UsersetRelation: tuple.ELLIPSIS,
+					Entity: &base.Entity{
+						Type: "repository",
+						Id:   "1",
+					},
+					Relation: "parent",
+					Subject: &base.Subject{
+						Type:     "organization",
+						Id:       "8",
+						Relation: tuple.ELLIPSIS,
+					},
 				},
 			}
 
-			getOrganizationMembers := []entities.RelationTuple{
+			getOrganizationMembers := []*base.Tuple{
 				{
-					Entity:          "organization",
-					ObjectID:        "8",
-					Relation:        "member",
-					UsersetEntity:   "user",
-					UsersetObjectID: "1",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "organization",
+						Id:   "8",
+					},
+					Relation: "member",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
+					},
 				},
 			}
 
-			getOrganizationAdmins := []entities.RelationTuple{
+			getOrganizationAdmins := []*base.Tuple{
 				{
-					Entity:          "organization",
-					ObjectID:        "8",
-					Relation:        "admin",
-					UsersetEntity:   "user",
-					UsersetObjectID: "2",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "organization",
+						Id:   "8",
+					},
+					Relation: "admin",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
+					},
 				},
 			}
 
-			getRepositoryOwners := []entities.RelationTuple{
+			getRepositoryOwners := []*base.Tuple{
 				{
-					Entity:          "repository",
-					ObjectID:        "1",
-					Relation:        "owner",
-					UsersetEntity:   "user",
-					UsersetObjectID: "7",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "repository",
+						Id:   "1",
+					},
+					Relation: "owner",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "7",
+						Relation: "",
+					},
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "parent").Return(getRepositoryParent, nil).Times(2)
-			relationTupleRepository.On("QueryTuples", "organization", "8", "member").Return(getOrganizationMembers, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "8", "admin").Return(getOrganizationAdmins, nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(getRepositoryOwners, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "parent").Return(tuple.NewTupleCollection(getRepositoryParent...).CreateTupleIterator(), nil).Times(2)
+			relationTupleRepository.On("QueryTuples", "organization", "8", "member").Return(tuple.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "8", "admin").Return(tuple.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(tuple.NewTupleCollection(getRepositoryOwners...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
 			re := &CheckQuery{
-				Entity:  tuple.Entity{Type: "repository", ID: "1"},
-				Subject: tuple.Subject{Type: tuple.USER, ID: "1"},
+				Entity:  &base.Entity{Type: "repository", Id: "1"},
+				Subject: &base.Subject{Type: tuple.USER, Id: "1"},
 			}
 
 			re.SetDepth(6)
 
-			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
+			var serializedConfigs []string
+			for _, c := range githubConfigs {
+				serializedConfigs = append(serializedConfigs, c.Serialized())
+			}
 
-			en, _ := sch.GetEntityByName(re.Entity.Type)
-			ac, _ := en.GetAction("delete")
+			sch, err := translator.StringToSchema(serializedConfigs...)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, re.Entity.Type)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			ac, err := schema.GetAction(en, "delete")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(re.loadDepth()).Should(Equal(int32(1)))
+			Expect(re.loadDepth()).Should(Equal(int32(2)))
 			Expect(false).Should(Equal(actualResult.Can))
 		})
 	})
