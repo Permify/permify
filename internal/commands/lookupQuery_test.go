@@ -2,8 +2,9 @@ package commands
 
 import (
 	"context"
-	`github.com/doug-martin/goqu/v9`
-	`strings`
+	"strings"
+
+	"github.com/doug-martin/goqu/v9"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

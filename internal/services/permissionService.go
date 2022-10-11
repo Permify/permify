@@ -8,7 +8,7 @@ import (
 	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
-	"github.com/Permify/permify/pkg/tuple"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // PermissionService -
@@ -32,15 +32,15 @@ func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand,
 }
 
 // Check -
-func (service *PermissionService) Check(ctx context.Context, subject tuple.Subject, action string, entity tuple.Entity, version string, d int32) (response commands.CheckResponse, err errors.Error) {
-	var en schema.Entity
-	en, err = service.manager.Read(ctx, entity.Type, version)
+func (service *PermissionService) Check(ctx context.Context, subject *base.Subject, action string, entity *base.Entity, version string, d int32) (response commands.CheckResponse, err errors.Error) {
+	var en *base.EntityDefinition
+	en, err = service.manager.Read(ctx, entity.GetType(), version)
 	if err != nil {
 		return response, internalErrors.EntityTypeCannotFoundError
 	}
 
-	var a schema.Action
-	a, err = en.GetAction(action)
+	var a *base.ActionDefinition
+	a, err = schema.GetAction(en, action)
 	if err != nil {
 		return response, internalErrors.ActionCannotFoundError
 	}
@@ -58,15 +58,15 @@ func (service *PermissionService) Check(ctx context.Context, subject tuple.Subje
 }
 
 // Expand -
-func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entity, action string, version string) (response commands.ExpandResponse, err errors.Error) {
-	var en schema.Entity
-	en, err = service.manager.Read(ctx, entity.Type, version)
+func (service *PermissionService) Expand(ctx context.Context, entity *base.Entity, action string, version string) (response commands.ExpandResponse, err errors.Error) {
+	var en *base.EntityDefinition
+	en, err = service.manager.Read(ctx, entity.GetType(), version)
 	if err != nil {
 		return response, internalErrors.EntityTypeCannotFoundError
 	}
 
-	var a schema.Action
-	a, err = en.GetAction(action)
+	var a *base.ActionDefinition
+	a, err = schema.GetAction(en, action)
 	if err != nil {
 		return response, internalErrors.ActionCannotFoundError
 	}
@@ -81,23 +81,22 @@ func (service *PermissionService) Expand(ctx context.Context, entity tuple.Entit
 }
 
 // LookupQuery -
-func (service *PermissionService) LookupQuery(ctx context.Context, entityType string, subject tuple.Subject, action string, version string) (response commands.LookupQueryResponse, err errors.Error) {
-	var sch schema.Schema
+func (service *PermissionService) LookupQuery(ctx context.Context, entityType string, subject *base.Subject, action string, version string) (response commands.LookupQueryResponse, err errors.Error) {
+	var sch *base.Schema
 	sch, err = service.manager.All(ctx, version)
 	if err != nil {
 		return response, internalErrors.SchemaCannotFoundError
 	}
 
-	var en schema.Entity
-	for key, ent := range sch.Entities {
-		if key == entityType {
-			en = ent
-			break
-		}
+	//entityType
+	var en *base.EntityDefinition
+	en, err = schema.GetEntityByName(sch, entityType)
+	if err != nil {
+		return response, internalErrors.EntityTypeCannotFoundError
 	}
 
-	var a schema.Action
-	a, err = en.GetAction(action)
+	var a *base.ActionDefinition
+	a, err = schema.GetAction(en, action)
 	if err != nil {
 		return response, internalErrors.ActionCannotFoundError
 	}

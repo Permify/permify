@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+option go_package = "pkg/pb/base/v1";
+
+import "validate/validate.proto";
+import "google/protobuf/any.proto";
+
+
+// Child
+message Child {
+  oneof type {
+    option (validate.required) = true;
+    Leaf leaf = 1 [(validate.rules).message.required = true];
+    Rewrite rewrite = 2 [(validate.rules).message.required = true];
+  }
+}
+
+// Leaf
+message Leaf {
+  bool exclusion = 1;
+  oneof type {
+    option (validate.required) = true;
+    ComputedUserSet computed_user_set = 2 [(validate.rules).message.required = true];
+    TupleToUserSet tuple_to_user_set = 3 [(validate.rules).message.required = true];
+  }
+}
+
+// Rewrite
+message Rewrite {
+  // Operation
+  enum Operation {
+    INVALID = 0;
+    UNION = 1;
+    INTERSECTION = 2;
+  }
+
+  Operation rewrite_operation = 1;
+
+  repeated Child children = 2;
+}
+
+// Schema
+message Schema {
+  map<string, EntityDefinition> entity_definitions = 1;
+}
+
+// EntityDefinition
+message EntityDefinition {
+  string name = 1 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 128,
+  }];
+
+  repeated RelationDefinition relations = 2;
+
+  repeated ActionDefinition actions = 3;
+
+  map<string, google.protobuf.Any> option = 4;
+}
+
+// RelationDefinition
+message RelationDefinition {
+  string name = 1 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 128,
+  }];
+
+  repeated RelationType types = 2;
+
+  map<string, google.protobuf.Any> option = 3;
+}
+
+// ActionDefinition
+message ActionDefinition {
+  string name = 1 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 128,
+  }];
+
+  Child child = 2;
+}
+
+// Type
+message RelationType {
+  string name = 1 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 128,
+  }];
+}
+
+// ComputedUserSet
+message ComputedUserSet {
+  string relation = 1 [(validate.rules).string = {
+    pattern : "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 64,
+  }];
+}
+
+// TupleToUserSet
+message TupleToUserSet {
+  string relation = 1 [(validate.rules).string = {
+    pattern : "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 64,
+  }];
+
+  //  TODO
+  //  string tupleSet = 1;
+  //  ComputedUserSet computed = 2;
+}

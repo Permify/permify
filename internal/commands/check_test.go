@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/repositories/entities"
+
 	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/tuple"
@@ -38,7 +39,6 @@ var _ = Describe("check-command", func() {
 	}
 
 	Context("Drive Sample: Check", func() {
-
 		It("Drive Sample: Case 1", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
@@ -262,7 +262,6 @@ var _ = Describe("check-command", func() {
 			Expect(re.loadDepth()).Should(Equal(int32(2)))
 			Expect(false).Should(Equal(actualResult.Can))
 		})
-
 	})
 
 	// GITHUB SAMPLE

@@ -5,10 +5,9 @@ import (
 
 	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/repositories"
-	e "github.com/Permify/permify/internal/repositories/entities"
-	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -27,62 +26,42 @@ func NewRelationshipService(rt repositories.IRelationTupleRepository, mn manager
 }
 
 // ReadRelationships -
-func (service *RelationshipService) ReadRelationships(ctx context.Context, filter filters.RelationTupleFilter) (tuples []tuple.Tuple, err errors.Error) {
-	var t []e.RelationTuple
-	t, err = service.rt.Read(ctx, filter)
-	for _, tup := range t {
-		tuples = append(tuples, tup.ToTuple())
-	}
-	return tuples, err
+func (service *RelationshipService) ReadRelationships(ctx context.Context, filter *base.TupleFilter) (tuples tuple.ITupleCollection, err errors.Error) {
+	return service.rt.Read(ctx, filter)
 }
 
 // WriteRelationship -
-func (service *RelationshipService) WriteRelationship(ctx context.Context, tup tuple.Tuple, version string) (err errors.Error) {
-	var entity schema.Entity
-	entity, err = service.mn.Read(ctx, tup.Entity.Type, version)
+func (service *RelationshipService) WriteRelationship(ctx context.Context, tup *base.Tuple, version string) (err errors.Error) {
+	var entity *base.EntityDefinition
+	entity, err = service.mn.Read(ctx, tup.GetEntity().GetType(), version)
 	if err != nil {
 		return err
 	}
 
-	if tup.IsEntityAndSubjectEquals() {
+	if tuple.IsEntityAndSubjectEquals(tup) {
 		return errors.ValidationError.SetParams(map[string]interface{}{
 			"subject": "entity and subject cannot be equal",
 		})
 	}
 
+	var rel *base.RelationDefinition
 	var vt []string
-	for _, rel := range entity.Relations {
-		if rel.Name == tup.Relation.String() {
-			vt = rel.Types
-			break
-		}
+	rel, err = schema.GetRelation(entity, tup.GetRelation())
+	for _, t := range rel.GetTypes() {
+		vt = append(vt, t.GetName())
 	}
 
-	err = tup.Subject.ValidateSubjectType(vt)
+	err = tuple.ValidateSubjectType(tup.Subject, vt)
 	if err != nil {
 		return errors.ValidationError.SetParams(map[string]interface{}{
 			"relation": err.Error(),
 		})
 	}
 
-	return service.rt.Write(ctx, e.RelationTuples{e.RelationTuple{
-		Entity:          tup.Entity.Type,
-		ObjectID:        tup.Entity.ID,
-		Relation:        tup.Relation.String(),
-		UsersetEntity:   tup.Subject.Type,
-		UsersetObjectID: tup.Subject.ID,
-		UsersetRelation: tup.Subject.Relation.String(),
-	}})
+	return service.rt.Write(ctx, tuple.NewTupleCollection(tup).CreateTupleIterator())
 }
 
 // DeleteRelationship -
-func (service *RelationshipService) DeleteRelationship(ctx context.Context, tup tuple.Tuple) errors.Error {
-	return service.rt.Delete(ctx, e.RelationTuples{e.RelationTuple{
-		Entity:          tup.Entity.Type,
-		ObjectID:        tup.Entity.ID,
-		Relation:        tup.Relation.String(),
-		UsersetEntity:   tup.Subject.Type,
-		UsersetObjectID: tup.Subject.ID,
-		UsersetRelation: tup.Subject.Relation.String(),
-	}})
+func (service *RelationshipService) DeleteRelationship(ctx context.Context, tup *base.Tuple) errors.Error {
+	return service.rt.Delete(ctx, tuple.NewTupleCollection(tup).CreateTupleIterator())
 }

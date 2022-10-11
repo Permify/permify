@@ -3,87 +3,19 @@ package commands
 import (
 	"context"
 
-	internalErrors "github.com/Permify/permify/internal/errors"
+	internalErrors `github.com/Permify/permify/internal/errors`
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/entities"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
-	"github.com/Permify/permify/pkg/tuple"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	`github.com/Permify/permify/pkg/tuple`
 )
-
-type ExpandNodeKind string
-
-const (
-	EXPAND ExpandNodeKind = "expand"
-	LEAF   ExpandNodeKind = "leaf"
-	BRANCH ExpandNodeKind = "branch"
-)
-
-// IExpandNode -
-type IExpandNode interface {
-	GetKind() ExpandNodeKind
-	Error() error
-}
-
-// ExpandNode -
-type ExpandNode struct {
-	Kind      ExpandNodeKind `json:"kind"`
-	Operation schema.OPType  `json:"operation"`
-	Children  []IExpandNode  `json:"children"`
-	Err       error          `json:"-"`
-}
-
-// GetKind -
-func (ExpandNode) GetKind() ExpandNodeKind {
-	return EXPAND
-}
-
-// Error -
-func (e ExpandNode) Error() error {
-	return e.Err
-}
-
-// LeafNode -
-type LeafNode struct {
-	Kind    ExpandNodeKind `json:"kind"`
-	Subject tuple.Subject  `json:"subject"`
-	Err     error          `json:"-"`
-}
-
-// GetKind -
-func (LeafNode) GetKind() ExpandNodeKind {
-	return LEAF
-}
-
-// Error -
-func (e LeafNode) Error() error {
-	return e.Err
-}
-
-// BranchNode -
-type BranchNode struct {
-	Kind     ExpandNodeKind          `json:"kind"`
-	Target   tuple.EntityAndRelation `json:"target"`
-	Children []IExpandNode           `json:"children"`
-	Err      error                   `json:"-"`
-}
-
-// GetKind -
-func (BranchNode) GetKind() ExpandNodeKind {
-	return BRANCH
-}
-
-// Error -
-func (e BranchNode) Error() error {
-	return e.Err
-}
 
 // ExpandFunction -
-type ExpandFunction func(ctx context.Context, expandChan chan<- IExpandNode)
+type ExpandFunction func(ctx context.Context, expandChan chan<- *base.Expand)
 
 // ExpandCombiner .
-type ExpandCombiner func(ctx context.Context, requests []ExpandFunction) IExpandNode
+type ExpandCombiner func(ctx context.Context, functions []ExpandFunction) *base.Expand
 
 // ExpandCommand -
 type ExpandCommand struct {
@@ -99,146 +31,155 @@ func NewExpandCommand(rr repositories.IRelationTupleRepository, l logger.Interfa
 	}
 }
 
+// GetRelationTupleRepository -
+func (command *ExpandCommand) GetRelationTupleRepository() repositories.IRelationTupleRepository {
+	return command.relationTupleRepository
+}
+
 // ExpandQuery -
 type ExpandQuery struct {
-	Entity tuple.Entity
+	Entity *base.Entity
 }
 
 // ExpandResponse -
 type ExpandResponse struct {
-	Tree IExpandNode
+	Tree *base.Expand `json:"tree"`
 }
 
 // Execute -
-func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child schema.Child) (response ExpandResponse, err errors.Error) {
+func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child *base.Child) (response ExpandResponse, err errors.Error) {
 	response.Tree, err = command.e(ctx, q, child)
 	return
 }
 
 // e -
-func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child schema.Child) (IExpandNode, errors.Error) {
+func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child *base.Child) (*base.Expand, errors.Error) {
 	var fn ExpandFunction
-	switch child.GetKind() {
-	case schema.RewriteKind.String():
-		fn = command.expandRewrite(ctx, q, child.(schema.Rewrite)) // ExpandNode
-	case schema.LeafKind.String():
-		fn = command.expandLeaf(ctx, q, child.(schema.Leaf)) // Branch or Leaf
+	switch op := child.GetType().(type) {
+	case *base.Child_Rewrite:
+		fn = command.expandRewrite(ctx, q, op.Rewrite)
+	case *base.Child_Leaf:
+		fn = command.expandLeaf(ctx, q, op.Leaf)
 	}
 	result := expandRoot(ctx, []ExpandFunction{fn})
 	return result, nil
 }
 
 // expandRewrite -
-func (command *ExpandCommand) expandRewrite(ctx context.Context, q *ExpandQuery, child schema.Rewrite) ExpandFunction {
-	switch child.GetType() {
-	case schema.Union.String():
-		return command.set(ctx, q, child.Children, expandUnion)
-	case schema.Intersection.String():
-		return command.set(ctx, q, child.Children, expandIntersection)
+func (command *ExpandCommand) expandRewrite(ctx context.Context, q *ExpandQuery, rewrite *base.Rewrite) ExpandFunction {
+	switch rewrite.GetRewriteOperation() {
+	case *base.Rewrite_UNION.Enum():
+		return command.set(ctx, q, rewrite.GetChildren(), expandUnion)
+	case *base.Rewrite_INTERSECTION.Enum():
+		return command.set(ctx, q, rewrite.GetChildren(), expandIntersection)
 	default:
 		return expandFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
 // expandLeaf -
-func (command *ExpandCommand) expandLeaf(ctx context.Context, q *ExpandQuery, child schema.Leaf) ExpandFunction {
-	switch child.GetType() {
-	case schema.TupleToUserSetType.String():
-		return command.expand(ctx, q.Entity, tuple.Relation(child.Value), q)
-	case schema.ComputedUserSetType.String():
-		return command.expand(ctx, q.Entity, tuple.Relation(child.Value), q)
+func (command *ExpandCommand) expandLeaf(ctx context.Context, q *ExpandQuery, leaf *base.Leaf) ExpandFunction {
+	switch op := leaf.GetType().(type) {
+	case *base.Leaf_TupleToUserSet:
+		return command.expand(ctx, &base.EntityAndRelation{
+			Entity:   q.Entity,
+			Relation: op.TupleToUserSet.GetRelation(),
+		}, q, leaf.GetExclusion())
+	case *base.Leaf_ComputedUserSet:
+		return command.expand(ctx, &base.EntityAndRelation{
+			Entity:   q.Entity,
+			Relation: op.ComputedUserSet.GetRelation(),
+		}, q, leaf.GetExclusion())
 	default:
 		return expandFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
 // set -
-func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children []schema.Child, combiner ExpandCombiner) ExpandFunction {
+func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children []*base.Child, combiner ExpandCombiner) ExpandFunction {
 	var functions []ExpandFunction
 	for _, child := range children {
-		switch child.GetKind() {
-		case schema.RewriteKind.String():
-			functions = append(functions, command.expandRewrite(ctx, q, child.(schema.Rewrite)))
-		case schema.LeafKind.String():
-			functions = append(functions, command.expandLeaf(ctx, q, child.(schema.Leaf)))
+		switch child.GetType().(type) {
+		case *base.Child_Rewrite:
+			functions = append(functions, command.expandRewrite(ctx, q, child.GetRewrite()))
+		case *base.Child_Leaf:
+			functions = append(functions, command.expandLeaf(ctx, q, child.GetLeaf()))
 		default:
 			return expandFail(internalErrors.UndefinedChildKindError)
 		}
 	}
 
-	return func(ctx context.Context, resultChan chan<- IExpandNode) {
+	return func(ctx context.Context, resultChan chan<- *base.Expand) {
 		resultChan <- combiner(ctx, functions)
 	}
 }
 
 // expand -
-func (command *ExpandCommand) expand(ctx context.Context, entity tuple.Entity, relation tuple.Relation, q *ExpandQuery) ExpandFunction {
-	return func(ctx context.Context, expandChan chan<- IExpandNode) {
+func (command *ExpandCommand) expand(ctx context.Context, entityAndRelation *base.EntityAndRelation, q *ExpandQuery, exclusion bool) ExpandFunction {
+	return func(ctx context.Context, expandChan chan<- *base.Expand) {
 		var err errors.Error
 
 		var iterator tuple.ISubjectIterator
-		iterator, err = command.getSubjects(ctx, entity, relation)
+		iterator, err = getSubjects(ctx, command, entityAndRelation.GetEntity(), entityAndRelation.GetRelation())
 		if err != nil {
-			checkFail(err)
+			expandFail(err)
 			return
 		}
 
-		var branch BranchNode
-		branch.Kind = BRANCH
-		branch.Target = tuple.EntityAndRelation{
-			Entity:   entity,
-			Relation: relation,
+		var node = &base.Expand{
+			Expanded: entityAndRelation,
 		}
-		branch.Children = []IExpandNode{}
+
+		var subjects = &base.Subjects{
+			Exclusion: exclusion,
+		}
 
 		var expandFunctions []ExpandFunction
 
 		for iterator.HasNext() {
 			subject := iterator.GetNext()
-			if subject.IsUser() {
-				branch.Children = append(branch.Children, &LeafNode{
-					Kind: LEAF,
-					Subject: tuple.Subject{
-						Type: tuple.USER,
-						ID:   subject.ID,
-					},
+			if tuple.IsSubjectUser(subject) {
+				subjects.Subjects = append(subjects.Subjects, &base.Subject{
+					Type: tuple.USER,
+					Id:   subject.GetId(),
 				})
 			} else {
-				expandFunctions = append(expandFunctions, command.expand(ctx, tuple.Entity{ID: subject.ID, Type: subject.Type}, subject.Relation, q))
+				expandFunctions = append(expandFunctions, command.expand(ctx, &base.EntityAndRelation{
+					Entity: &base.Entity{
+						Id:   subject.GetId(),
+						Type: subject.GetType(),
+					},
+					Relation: subject.GetRelation(),
+				}, q, exclusion))
 			}
 		}
 
-		if len(expandFunctions) > 0 {
-			branch.Children = append(branch.Children, expandUnion(ctx, expandFunctions))
-		}
+		node.NodeType = &base.Expand_Subjects{Subjects: subjects}
 
-		expandChan <- &branch
+		//if len(expandFunctions) > 0 {
+		//	expandChan <- expandUnion(ctx, entityAndRelation, expandFunctions)
+		//}
+
+		expandChan <- node
 		return
 	}
 }
 
-// expandSetOperation -
-func expandSetOperation(
+// expandOperation -
+func expandOperation(
 	ctx context.Context,
 	functions []ExpandFunction,
-	op schema.OPType,
-) IExpandNode {
-	children := make([]IExpandNode, 0, len(functions))
-
-	if len(functions) == 0 {
-		return &ExpandNode{
-			Kind:      EXPAND,
-			Operation: op,
-			Children:  children,
-		}
-	}
+	op base.ExpandTreeNode_Operation,
+) *base.Expand {
+	nodes := make([]*base.Expand, 0, len(functions))
 
 	c, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	result := make([]chan IExpandNode, 0, len(functions))
+	result := make([]chan *base.Expand, 0, len(functions))
+
 	for _, fn := range functions {
-		en := make(chan IExpandNode)
+		en := make(chan *base.Expand)
 		result = append(result, en)
 		go fn(c, en)
 	}
@@ -246,76 +187,38 @@ func expandSetOperation(
 	for _, resultChan := range result {
 		select {
 		case res := <-resultChan:
-			if res.Error() != nil {
-				return ExpandNode{
-					Err: res.Error(),
-				}
-			}
-			children = append(children, res)
+			nodes = append(nodes, res)
 		case <-ctx.Done():
 			return nil
 		}
 	}
 
-	return &ExpandNode{
-		Kind:      EXPAND,
-		Operation: op,
-		Children:  children,
+	return &base.Expand{
+		NodeType: &base.Expand_Expand{Expand: &base.ExpandTreeNode{
+			Operation: op,
+			Nodes:     nodes,
+		}},
 	}
 }
 
 // expandUnion -
-func expandRoot(ctx context.Context, functions []ExpandFunction) IExpandNode {
-	return expandSetOperation(ctx, functions, "root")
+func expandRoot(ctx context.Context, functions []ExpandFunction) *base.Expand {
+	return expandOperation(ctx, functions, base.ExpandTreeNode_ROOT)
 }
 
 // expandUnion -
-func expandUnion(ctx context.Context, functions []ExpandFunction) IExpandNode {
-	return expandSetOperation(ctx, functions, schema.Union)
+func expandUnion(ctx context.Context, functions []ExpandFunction) *base.Expand {
+	return expandOperation(ctx, functions, base.ExpandTreeNode_UNION)
 }
 
 // expandIntersection -
-func expandIntersection(ctx context.Context, functions []ExpandFunction) IExpandNode {
-	return expandSetOperation(ctx, functions, schema.Intersection)
+func expandIntersection(ctx context.Context, functions []ExpandFunction) *base.Expand {
+	return expandOperation(ctx, functions, base.ExpandTreeNode_INTERSECTION)
 }
 
 // expandFail -
 func expandFail(err error) ExpandFunction {
-	return func(ctx context.Context, expandChan chan<- IExpandNode) {
-		expandChan <- ExpandNode{
-			Err: err,
-		}
+	return func(ctx context.Context, expandChan chan<- *base.Expand) {
+		expandChan <- &base.Expand{}
 	}
-}
-
-// getSubjects -
-func (command *ExpandCommand) getSubjects(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (iterator tuple.ISubjectIterator, err errors.Error) {
-	r := relation.Split()
-
-	var tuples []entities.RelationTuple
-	tuples, err = command.relationTupleRepository.QueryTuples(ctx, entity.Type, entity.ID, r[0].String())
-	if err != nil {
-		return nil, err
-	}
-
-	var subjects []*tuple.Subject
-	for _, tup := range tuples {
-		ct := tup.ToTuple()
-		if !ct.Subject.IsUser() {
-			subject := ct.Subject
-			if tup.UsersetRelation == tuple.ELLIPSIS {
-				subject.Relation = r[1]
-			} else {
-				subject.Relation = ct.Subject.Relation
-			}
-			subjects = append(subjects, &subject)
-		} else {
-			subjects = append(subjects, &tuple.Subject{
-				Type: tuple.USER,
-				ID:   tup.UsersetObjectID,
-			})
-		}
-	}
-
-	return tuple.NewSubjectIterator(subjects), err
 }

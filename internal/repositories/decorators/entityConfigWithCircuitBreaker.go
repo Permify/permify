@@ -6,7 +6,6 @@ import (
 	"github.com/afex/hystrix-go/hystrix"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/entities"
 	"github.com/Permify/permify/pkg/errors"
 )
 
@@ -26,9 +25,9 @@ func (r *EntityConfigWithCircuitBreaker) Migrate() (err errors.Error) {
 }
 
 // All -
-func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string) (configs entities.EntityConfigs, err errors.Error) {
+func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string) (configs []repositories.EntityConfig, err errors.Error) {
 	type circuitBreakerResponse struct {
-		Configs entities.EntityConfigs
+		Configs []repositories.EntityConfig
 		Error   errors.Error
 	}
 
@@ -52,9 +51,9 @@ func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string
 }
 
 // Read -
-func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, version string) (config entities.EntityConfig, err errors.Error) {
+func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, version string) (config repositories.EntityConfig, err errors.Error) {
 	type circuitBreakerResponse struct {
-		Config entities.EntityConfig
+		Config repositories.EntityConfig
 		Error  errors.Error
 	}
 
@@ -78,7 +77,7 @@ func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, 
 }
 
 // Write -
-func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err errors.Error) {
+func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs []repositories.EntityConfig, version string) (err errors.Error) {
 	outputErr := make(chan errors.Error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.write", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.write", func() error {

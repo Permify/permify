@@ -36,17 +36,15 @@ func New(handler http.Handler, opts ...Option) *Server {
 		shutdownTimeout: _defaultShutdownTimeout,
 	}
 
-	// Custom options
+	// custom options
 	for _, opt := range opts {
 		opt(s)
 	}
 
-	s.start()
-
 	return s
 }
 
-func (s *Server) start() {
+func (s *Server) Run() {
 	go func() {
 		s.notify <- s.server.ListenAndServe()
 		close(s.notify)

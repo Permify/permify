@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+option go_package = "pkg/pb/base/v1";
+
+import "tuple.proto";
+import "validate/validate.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/wrappers.proto";
+
+// ** PERMISSION SERVICE **
+
+// Permission
+service PermissionAPI {
+  rpc Check(CheckRequest) returns (CheckResponse) {}
+  rpc Expand(ExpandRequest) returns (ExpandResponse) {}
+  rpc LookupQuery(LookupQueryRequest) returns (LookupQueryResponse) {}
+}
+
+// CHECK
+
+// CheckRequest
+message CheckRequest {
+  string schema_version = 1;
+
+  Entity entity = 2 [(validate.rules).message.required = true];
+
+  string action = 3 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  Subject subject = 4 [(validate.rules).message.required = true];
+
+  google.protobuf.Int32Value depth = 5 [(validate.rules).int32.gte = 3];
+}
+
+// CheckResponse
+message CheckResponse {
+  bool can = 1;
+  repeated google.protobuf.Any decisions = 2;
+  int32 remaining_depth = 3;
+}
+
+// EXPAND
+
+// ExpandRequest
+message ExpandRequest {
+  string schema_version = 1;
+
+  Entity entity = 2 [(validate.rules).message.required = true];
+
+  string action = 3 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: true,
+  }];
+}
+
+// ExpandResponse
+message ExpandResponse {
+  Expand Tree = 1;
+}
+
+// LOOKUP QUERY
+
+// LookupQueryRequest
+message LookupQueryRequest {
+  string schema_version = 1;
+
+  string entity_type = 2 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  string action = 3 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  Subject subject = 4 [(validate.rules).message.required = true];
+}
+
+// LookupQueryResponse
+message LookupQueryResponse {
+  string query = 1;
+  repeated string args = 2;
+}
+
+// ** SCHEMA SERVICE **
+
+// Schema
+service SchemaAPI {
+  rpc Write(SchemaWriteRequest) returns (SchemaWriteResponse) {}
+  rpc Read(SchemaReadRequest) returns (SchemaReadResponse) {}
+  rpc Lookup(SchemaLookupRequest) returns (SchemaLookupResponse) {}
+}
+
+// WRITE
+
+// SchemaWriteRequest
+message SchemaWriteRequest {
+  string schema = 1 ;
+}
+
+// SchemaWriteResponse
+message SchemaWriteResponse {
+  string schema_version = 1;
+}
+
+// READ
+
+// SchemaReadRequest
+message SchemaReadRequest {
+  string schema_version = 1;
+}
+
+// SchemaReadRequest
+message SchemaReadResponse {
+  // Entities map[string]schema.Entity `json:"entities"`
+}
+
+//LOOKUP
+
+// SchemaLookupRequest
+message SchemaLookupRequest {
+  string schema_version = 1;
+
+  string entity_type = 2 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  repeated string relation_names = 3;
+}
+
+// SchemaLookupResponse
+message SchemaLookupResponse {
+  repeated string action_names = 1;
+}
+
+// ** RELATIONSHIP SERVICE **
+
+// Schema
+service RelationshipAPI {
+  rpc Write(RelationshipWriteRequest) returns (RelationshipWriteResponse) {}
+  rpc Read(RelationshipReadRequest) returns (RelationshipReadResponse) {}
+  rpc Delete(RelationshipDeleteRequest) returns (RelationshipDeleteResponse) {}
+}
+
+// RelationshipWriteRequest
+message RelationshipWriteRequest {
+  string schema_version = 1;
+
+  Entity entity = 2 [(validate.rules).message.required = true];
+
+  string relation = 3 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: true,
+  }];
+
+  Subject subject = 4 [(validate.rules).message.required = true];
+}
+
+// RelationshipWriteResponse
+message RelationshipWriteResponse {
+  Tuple tuple = 1;
+}
+
+// RelationshipWriteRequest
+message RelationshipReadRequest {
+  TupleFilter filter = 1;
+}
+
+// RelationshipWriteResponse
+message RelationshipReadResponse {
+  repeated Tuple tuples = 1;
+}
+
+// RelationshipWriteRequest
+message RelationshipDeleteRequest {
+  Entity entity = 2 [(validate.rules).message.required = true];
+
+  string relation = 3 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: true,
+  }];
+
+  Subject subject = 4 [(validate.rules).message.required = true];
+}
+
+// RelationshipWriteRequest
+message RelationshipDeleteResponse {
+  Tuple tuple = 1;
+}

@@ -2,14 +2,14 @@ package postgres
 
 import (
 	"context"
-	e "errors"
+	e `errors`
 
 	"github.com/Masterminds/squirrel"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 
-	"github.com/Permify/permify/internal/repositories/entities"
+	`github.com/Permify/permify/internal/repositories`
 	"github.com/Permify/permify/internal/repositories/postgres/migrations"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
@@ -61,20 +61,19 @@ func (r *EntityConfigRepository) Migrate() errors.Error {
 }
 
 // All -
-func (r *EntityConfigRepository) All(ctx context.Context, version string) (entities.EntityConfigs, errors.Error) {
-	var configs entities.EntityConfigs
+func (r *EntityConfigRepository) All(ctx context.Context, version string) ([]repositories.EntityConfig, errors.Error) {
 	var err error
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
-			return configs, errors.DatabaseError.SetMessage(err.Error())
+			return nil, errors.DatabaseError.SetMessage(err.Error())
 		}
 	}
 
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, serialized_config, version").From(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"version": version}).
+		Select("entity, serialized_config, version").From("entity_config").Where(squirrel.Eq{"version": version}).
 		ToSql()
 	if err != nil {
 		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
@@ -87,13 +86,13 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 	}
 	defer rows.Close()
 
-	ent := make([]entities.EntityConfig, 0, _defaultEntityCap)
+	ent := make([]repositories.EntityConfig, 0, _defaultEntityCap)
 
 	for rows.Next() {
-		c := entities.EntityConfig{}
+		c := repositories.EntityConfig{}
 		err = rows.Scan(&c.Entity, &c.SerializedConfig, &c.Version)
 		if err != nil {
-			return configs, errors.DatabaseError.SetSubKind(database.ErrScan)
+			return nil, errors.DatabaseError.SetSubKind(database.ErrScan)
 		}
 		ent = append(ent, c)
 	}
@@ -102,8 +101,8 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 }
 
 // Read -
-func (r *EntityConfigRepository) Read(ctx context.Context, name string, version string) (entities.EntityConfig, errors.Error) {
-	var config entities.EntityConfig
+func (r *EntityConfigRepository) Read(ctx context.Context, name string, version string) (repositories.EntityConfig, errors.Error) {
+	var config repositories.EntityConfig
 	var err error
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
@@ -114,7 +113,7 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, serialized_config, version").From(entities.EntityConfig{}.Table()).Where(squirrel.Eq{"entity": name, "version": version}).Limit(1).
+		Select("entity, serialized_config, version").From("entity_config").Where(squirrel.Eq{"entity": name, "version": version}).Limit(1).
 		ToSql()
 	if err != nil {
 		return config, errors.DatabaseError.SetSubKind(database.ErrBuilder)
@@ -133,14 +132,14 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 }
 
 // Write -
-func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.EntityConfigs, version string) errors.Error {
+func (r *EntityConfigRepository) Write(ctx context.Context, configs []repositories.EntityConfig, version string) errors.Error {
 	var err error
 	if len(configs) < 1 {
 		return nil
 	}
 
 	sql := r.Database.Builder.
-		Insert(entities.EntityConfig{}.Table()).
+		Insert("entity_config").
 		Columns("entity, serialized_config, version")
 
 	for _, config := range configs {
@@ -178,7 +177,7 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("version").From(entities.EntityConfig{}.Table()).OrderBy("version DESC").Limit(1).
+		Select("version").From("entity_config").OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
 		return "", errors.DatabaseError.SetSubKind(database.ErrBuilder)

@@ -10,7 +10,7 @@ import (
 
 const (
 	// Version of Permify
-	Version = "v0.0.0-alpha6"
+	Version = "v0.0.0-alpha7"
 	color   = "\033[0;37m%s\033[0m"
 	banner  = `
 

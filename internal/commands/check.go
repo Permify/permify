@@ -8,10 +8,9 @@ import (
 
 	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/entities"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -22,8 +21,8 @@ type CheckDecision struct {
 	Err    errors.Error `json:"-"`
 }
 
-// sendCheckDecision -
-func sendCheckDecision(can bool, prefix string, err errors.Error) CheckDecision {
+// newCheckDecision -
+func newCheckDecision(can bool, prefix string, err errors.Error) CheckDecision {
 	return CheckDecision{
 		Prefix: prefix,
 		Can:    can,
@@ -51,10 +50,15 @@ func NewCheckCommand(rr repositories.IRelationTupleRepository, l logger.Interfac
 	}
 }
 
+// GetRelationTupleRepository -
+func (command *CheckCommand) GetRelationTupleRepository() repositories.IRelationTupleRepository {
+	return command.relationTupleRepository
+}
+
 // CheckQuery -
 type CheckQuery struct {
-	Entity  tuple.Entity
-	Subject tuple.Subject
+	Entity  *base.Entity
+	Subject *base.Subject
 	depth   int32
 	visits  sync.Map
 }
@@ -100,7 +104,7 @@ type CheckResponse struct {
 }
 
 // Execute -
-func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child schema.Child) (response CheckResponse, err errors.Error) {
+func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child *base.Child) (response CheckResponse, err errors.Error) {
 	response.Can = false
 	response.Can, err = command.c(ctx, q, child)
 	response.Visits = q.LoadVisits()
@@ -109,13 +113,13 @@ func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child s
 }
 
 // c -
-func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child schema.Child) (bool, errors.Error) {
+func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child *base.Child) (bool, errors.Error) {
 	var fn CheckFunction
-	switch child.GetKind() {
-	case schema.RewriteKind.String():
-		fn = command.checkRewrite(ctx, q, child.(schema.Rewrite))
-	case schema.LeafKind.String():
-		fn = command.checkLeaf(ctx, q, child.(schema.Leaf))
+	switch op := child.GetType().(type) {
+	case *base.Child_Rewrite:
+		fn = command.checkRewrite(ctx, q, op.Rewrite)
+	case *base.Child_Leaf:
+		fn = command.checkLeaf(ctx, q, op.Leaf)
 	}
 
 	if fn == nil {
@@ -127,38 +131,38 @@ func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child schema.
 }
 
 // checkRewrite -
-func (command *CheckCommand) checkRewrite(ctx context.Context, q *CheckQuery, child schema.Rewrite) CheckFunction {
-	switch child.GetType() {
-	case schema.Union.String():
-		return command.set(ctx, q, child.Children, checkUnion)
-	case schema.Intersection.String():
-		return command.set(ctx, q, child.Children, checkIntersection)
+func (command *CheckCommand) checkRewrite(ctx context.Context, q *CheckQuery, rewrite *base.Rewrite) CheckFunction {
+	switch rewrite.GetRewriteOperation() {
+	case *base.Rewrite_UNION.Enum():
+		return command.set(ctx, q, rewrite.GetChildren(), checkUnion)
+	case *base.Rewrite_INTERSECTION.Enum():
+		return command.set(ctx, q, rewrite.GetChildren(), checkIntersection)
 	default:
 		return checkFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
 // checkLeaf -
-func (command *CheckCommand) checkLeaf(ctx context.Context, q *CheckQuery, child schema.Leaf) CheckFunction {
-	switch child.GetType() {
-	case schema.TupleToUserSetType.String():
-		return command.check(ctx, q.Entity, tuple.Relation(child.Value), q, child.Exclusion)
-	case schema.ComputedUserSetType.String():
-		return command.check(ctx, q.Entity, tuple.Relation(child.Value), q, child.Exclusion)
+func (command *CheckCommand) checkLeaf(ctx context.Context, q *CheckQuery, leaf *base.Leaf) CheckFunction {
+	switch op := leaf.GetType().(type) {
+	case *base.Leaf_TupleToUserSet:
+		return command.check(ctx, q.Entity, op.TupleToUserSet.GetRelation(), q, leaf.GetExclusion())
+	case *base.Leaf_ComputedUserSet:
+		return command.check(ctx, q.Entity, op.ComputedUserSet.GetRelation(), q, leaf.GetExclusion())
 	default:
 		return checkFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
 // set -
-func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []schema.Child, combiner CheckCombiner) CheckFunction {
+func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []*base.Child, combiner CheckCombiner) CheckFunction {
 	var functions []CheckFunction
 	for _, child := range children {
-		switch child.GetKind() {
-		case schema.RewriteKind.String():
-			functions = append(functions, command.checkRewrite(ctx, q, child.(schema.Rewrite)))
-		case schema.LeafKind.String():
-			functions = append(functions, command.checkLeaf(ctx, q, child.(schema.Leaf)))
+		switch child.GetType().(type) {
+		case *base.Child_Rewrite:
+			functions = append(functions, command.checkRewrite(ctx, q, child.GetRewrite()))
+		case *base.Child_Leaf:
+			functions = append(functions, command.checkLeaf(ctx, q, child.GetLeaf()))
 		default:
 			return checkFail(internalErrors.UndefinedChildKindError)
 		}
@@ -170,19 +174,19 @@ func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []
 }
 
 // check -
-func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, relation tuple.Relation, q *CheckQuery, exclusion bool) CheckFunction {
+func (command *CheckCommand) check(ctx context.Context, entity *base.Entity, relation string, q *CheckQuery, exclusion bool) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- CheckDecision) {
 		var err errors.Error
 
 		q.decrease()
 
 		if q.isDepthFinish() {
-			decisionChan <- sendCheckDecision(false, "", internalErrors.DepthError)
+			decisionChan <- newCheckDecision(false, "", internalErrors.DepthError)
 			return
 		}
 
 		var iterator tuple.ISubjectIterator
-		iterator, err = command.getSubjects(ctx, entity, relation)
+		iterator, err = getSubjects(ctx, command, entity, relation)
 		if err != nil {
 			checkFail(err)
 			return
@@ -192,19 +196,22 @@ func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, rel
 
 		for iterator.HasNext() {
 			subject := iterator.GetNext()
-			if subject.Equals(q.Subject) {
+			if tuple.AreSubjectsEqual(subject, q.Subject) {
 				var dec CheckDecision
 				if exclusion {
-					dec = sendCheckDecision(false, "not", err)
+					dec = newCheckDecision(false, "not", err)
 				} else {
-					dec = sendCheckDecision(true, "", err)
+					dec = newCheckDecision(true, "", err)
 				}
-				q.SetVisit(tuple.EntityAndRelation{Entity: entity, Relation: relation}.String(), dec)
+				q.SetVisit(tuple.EntityAndRelationToString(&base.EntityAndRelation{
+					Entity:   entity,
+					Relation: relation,
+				}), dec)
 				decisionChan <- dec
 				return
 			} else {
-				if !subject.IsUser() {
-					checkFunctions = append(checkFunctions, command.check(ctx, tuple.Entity{ID: subject.ID, Type: subject.Type}, subject.Relation, q, exclusion))
+				if !tuple.IsSubjectUser(subject) {
+					checkFunctions = append(checkFunctions, command.check(ctx, &base.Entity{Id: subject.GetId(), Type: subject.GetType()}, subject.GetRelation(), q, exclusion))
 				}
 			}
 		}
@@ -216,11 +223,15 @@ func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, rel
 
 		var dec CheckDecision
 		if exclusion {
-			dec = sendCheckDecision(true, "not", err)
+			dec = newCheckDecision(true, "not", err)
 		} else {
-			dec = sendCheckDecision(false, "", err)
+			dec = newCheckDecision(false, "", err)
 		}
-		q.SetVisit(tuple.EntityAndRelation{Entity: entity, Relation: relation}.String(), dec)
+
+		q.SetVisit(tuple.EntityAndRelationToString(&base.EntityAndRelation{
+			Entity:   entity,
+			Relation: relation,
+		}), dec)
 		decisionChan <- dec
 		return
 	}
@@ -229,7 +240,7 @@ func (command *CheckCommand) check(ctx context.Context, entity tuple.Entity, rel
 // union -
 func checkUnion(ctx context.Context, functions []CheckFunction) CheckDecision {
 	if len(functions) == 0 {
-		return sendCheckDecision(false, "", nil)
+		return newCheckDecision(false, "", nil)
 	}
 
 	decisionChan := make(chan CheckDecision, len(functions))
@@ -244,23 +255,23 @@ func checkUnion(ctx context.Context, functions []CheckFunction) CheckDecision {
 		select {
 		case result := <-decisionChan:
 			if result.Err == nil && result.Can {
-				return sendCheckDecision(true, result.Prefix, nil)
+				return newCheckDecision(true, result.Prefix, nil)
 			}
 			if result.Err != nil {
-				return sendCheckDecision(false, result.Prefix, result.Err)
+				return newCheckDecision(false, result.Prefix, result.Err)
 			}
 		case <-ctx.Done():
-			return sendCheckDecision(false, "", internalErrors.CanceledError)
+			return newCheckDecision(false, "", internalErrors.CanceledError)
 		}
 	}
 
-	return sendCheckDecision(false, "", nil)
+	return newCheckDecision(false, "", nil)
 }
 
 // intersection -
 func checkIntersection(ctx context.Context, functions []CheckFunction) CheckDecision {
 	if len(functions) == 0 {
-		return sendCheckDecision(false, "", nil)
+		return newCheckDecision(false, "", nil)
 	}
 
 	decisionChan := make(chan CheckDecision, len(functions))
@@ -275,54 +286,22 @@ func checkIntersection(ctx context.Context, functions []CheckFunction) CheckDeci
 		select {
 		case result := <-decisionChan:
 			if result.Err == nil && !result.Can {
-				return sendCheckDecision(false, result.Prefix, nil)
+				return newCheckDecision(false, result.Prefix, nil)
 			}
 			if result.Err != nil {
-				return sendCheckDecision(false, result.Prefix, result.Err)
+				return newCheckDecision(false, result.Prefix, result.Err)
 			}
 		case <-ctx.Done():
-			return sendCheckDecision(false, "", internalErrors.CanceledError)
+			return newCheckDecision(false, "", internalErrors.CanceledError)
 		}
 	}
 
-	return sendCheckDecision(true, "", nil)
+	return newCheckDecision(true, "", nil)
 }
 
 // checkFail -
 func checkFail(err errors.Error) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- CheckDecision) {
-		decisionChan <- sendCheckDecision(false, "", err)
+		decisionChan <- newCheckDecision(false, "", err)
 	}
-}
-
-// getSubjects -
-func (command *CheckCommand) getSubjects(ctx context.Context, entity tuple.Entity, relation tuple.Relation) (iterator tuple.ISubjectIterator, err errors.Error) {
-	r := relation.Split()
-
-	var tuples []entities.RelationTuple
-	tuples, err = command.relationTupleRepository.QueryTuples(ctx, entity.Type, entity.ID, r[0].String())
-	if err != nil {
-		return nil, err
-	}
-
-	var subjects []*tuple.Subject
-	for _, tup := range tuples {
-		ct := tup.ToTuple()
-		if !ct.Subject.IsUser() {
-			subject := ct.Subject
-			if tup.UsersetRelation == tuple.ELLIPSIS {
-				subject.Relation = r[1]
-			} else {
-				subject.Relation = ct.Subject.Relation
-			}
-			subjects = append(subjects, &subject)
-		} else {
-			subjects = append(subjects, &tuple.Subject{
-				Type: tuple.USER,
-				ID:   tup.UsersetObjectID,
-			})
-		}
-	}
-
-	return tuple.NewSubjectIterator(subjects), err
 }

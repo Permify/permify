@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-memdb"
 	"github.com/jackc/pgx/v4"
 
-	"github.com/Permify/permify/internal/repositories/entities"
+	`github.com/Permify/permify/internal/repositories`
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/errors"
@@ -29,8 +29,8 @@ func (r *EntityConfigRepository) Migrate() (err errors.Error) {
 }
 
 // All -
-func (r *EntityConfigRepository) All(ctx context.Context, version string) (entities.EntityConfigs, errors.Error) {
-	var configs entities.EntityConfigs
+func (r *EntityConfigRepository) All(ctx context.Context, version string) ([]repositories.EntityConfig, errors.Error) {
+	var configs []repositories.EntityConfig
 	var err error
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
@@ -45,19 +45,19 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) (entit
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
-	it, err = txn.Get(entities.EntityConfig{}.Table(), "version", version)
+	it, err = txn.Get("entity_config", "version", version)
 	if err != nil {
 		return configs, errors.DatabaseError.SetSubKind(database.ErrBuilder)
 	}
 	for obj := it.Next(); obj != nil; obj = it.Next() {
-		configs = append(configs, obj.(entities.EntityConfig))
+		configs = append(configs, obj.(repositories.EntityConfig))
 	}
 	return configs, nil
 }
 
 // Read -
-func (r *EntityConfigRepository) Read(ctx context.Context, name string, version string) (entities.EntityConfig, errors.Error) {
-	var config entities.EntityConfig
+func (r *EntityConfigRepository) Read(ctx context.Context, name string, version string) (repositories.EntityConfig, errors.Error) {
+	var config repositories.EntityConfig
 	var err error
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
@@ -72,24 +72,24 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(entities.EntityConfig{}.Table(), "id", name, version)
+	raw, err = txn.First("entity_config", "id", name, version)
 	if err != nil {
 		return config, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
-	if _, ok := raw.(entities.EntityConfig); ok {
-		return raw.(entities.EntityConfig), nil
+	if _, ok := raw.(repositories.EntityConfig); ok {
+		return raw.(repositories.EntityConfig), nil
 	}
-	return entities.EntityConfig{}, errors.DatabaseError.SetSubKind(database.ErrScan)
+	return repositories.EntityConfig{}, errors.DatabaseError.SetSubKind(database.ErrScan)
 }
 
 // Write -
-func (r *EntityConfigRepository) Write(ctx context.Context, configs entities.EntityConfigs, version string) errors.Error {
+func (r *EntityConfigRepository) Write(ctx context.Context, configs []repositories.EntityConfig, version string) errors.Error {
 	var err error
 	txn := r.Database.DB.Txn(true)
 	defer txn.Abort()
 	for _, config := range configs {
 		config.Version = version
-		if err = txn.Insert(entities.EntityConfig{}.Table(), config); err != nil {
+		if err = txn.Insert("entity_config", config); err != nil {
 			return errors.DatabaseError.SetSubKind(database.ErrExecution)
 		}
 	}
@@ -103,12 +103,12 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.Last(entities.EntityConfig{}.Table(), "version")
+	raw, err = txn.Last("entity_config", "version")
 	if err != nil {
 		return "", errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
-	if _, ok := raw.(entities.EntityConfig); ok {
-		return raw.(entities.EntityConfig).Version, nil
+	if _, ok := raw.(repositories.EntityConfig); ok {
+		return raw.(repositories.EntityConfig).Version, nil
 	}
 	return "", errors.DatabaseError.SetSubKind(database.ErrScan)
 }

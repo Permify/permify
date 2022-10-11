@@ -9,18 +9,19 @@ import (
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 // CheckQuery -
 type CheckQuery struct {
-	Subject tuple.Subject
+	Subject *base.Subject
 	Action  string
-	Entity  tuple.Entity
+	Entity  *base.Entity
 }
 
 // Check -
-func Check(ctx context.Context, service services.IPermissionService, subject tuple.Subject, action string, entity tuple.Entity, version string) (res commands.CheckResponse, err errors.Error) {
+func Check(ctx context.Context, service services.IPermissionService, subject *base.Subject, action string, entity *base.Entity, version string) (res commands.CheckResponse, err errors.Error) {
 	return service.Check(ctx, subject, action, entity, version, 20)
 }
 
@@ -32,22 +33,22 @@ type LookupQueryQuery struct {
 }
 
 // LookupQuery -
-func LookupQuery(ctx context.Context, service services.IPermissionService, entityType string, action string, subject tuple.Subject, version string) (res commands.LookupQueryResponse, err errors.Error) {
+func LookupQuery(ctx context.Context, service services.IPermissionService, entityType string, action string, subject *base.Subject, version string) (res commands.LookupQueryResponse, err errors.Error) {
 	return service.LookupQuery(ctx, entityType, subject, action, version)
 }
 
 // WriteTuple -
-func WriteTuple(ctx context.Context, service services.IRelationshipService, tuple tuple.Tuple, version string) (err errors.Error) {
+func WriteTuple(ctx context.Context, service services.IRelationshipService, tuple *base.Tuple, version string) (err errors.Error) {
 	return service.WriteRelationship(ctx, tuple, version)
 }
 
 // ReadTuple -
-func ReadTuple(ctx context.Context, service services.IRelationshipService, filter filters.RelationTupleFilter) (tuples []tuple.Tuple, err errors.Error) {
+func ReadTuple(ctx context.Context, service services.IRelationshipService, filter filters.RelationTupleFilter) (tuples tuple.ITupleCollection, err errors.Error) {
 	return service.ReadRelationships(ctx, filter)
 }
 
 // DeleteTuple -
-func DeleteTuple(ctx context.Context, service services.IRelationshipService, tuple tuple.Tuple) (err errors.Error) {
+func DeleteTuple(ctx context.Context, service services.IRelationshipService, tuple *base.Tuple) (err errors.Error) {
 	return service.DeleteRelationship(ctx, tuple)
 }
 

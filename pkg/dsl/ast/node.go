@@ -21,6 +21,7 @@ type Expression interface {
 	expressionNode()
 	IsInfix() bool
 	Type() string
+	GetValue() string
 }
 
 // Statement -
@@ -188,6 +189,11 @@ func (ls *Identifier) Type() string {
 	return "identifier"
 }
 
+// GetValue -
+func (ls *Identifier) GetValue() string {
+	return ls.Value
+}
+
 // ActionStatement -
 type ActionStatement struct {
 	Token               token.Token // token.ACTION
@@ -273,6 +279,11 @@ func (ie *InfixExpression) Type() string {
 	return "inflix"
 }
 
+// GetValue -
+func (ie *InfixExpression) GetValue() string {
+	return ie.Token.Literal
+}
+
 // PrefixExpression -
 type PrefixExpression struct {
 	Token    token.Token // not
@@ -302,5 +313,10 @@ func (pe *PrefixExpression) IsInfix() bool {
 
 // Type -
 func (pe *PrefixExpression) Type() string {
+	return "prefix"
+}
+
+// GetValue -
+func (pe *PrefixExpression) GetValue() string {
 	return "prefix"
 }

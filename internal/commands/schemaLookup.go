@@ -4,11 +4,10 @@ import (
 	"context"
 
 	internalErrors "github.com/Permify/permify/internal/errors"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
-	"github.com/Permify/permify/pkg/tuple"
+	base `github.com/Permify/permify/pkg/pb/base/v1`
 )
 
 // SchemaLookupDecision -
@@ -56,7 +55,7 @@ type SchemaLookupResponse struct {
 }
 
 // Execute -
-func (command *SchemaLookupCommand) Execute(ctx context.Context, q *SchemaLookupQuery, actions []schema.Action) (response SchemaLookupResponse, err errors.Error) {
+func (command *SchemaLookupCommand) Execute(ctx context.Context, q *SchemaLookupQuery, actions []*base.ActionDefinition) (response SchemaLookupResponse, err errors.Error) {
 	response.ActionNames = []string{}
 	for _, action := range actions {
 		var can bool
@@ -72,13 +71,13 @@ func (command *SchemaLookupCommand) Execute(ctx context.Context, q *SchemaLookup
 }
 
 // c -
-func (command *SchemaLookupCommand) l(ctx context.Context, q *SchemaLookupQuery, child schema.Child) (bool, errors.Error) {
+func (command *SchemaLookupCommand) l(ctx context.Context, q *SchemaLookupQuery, child *base.Child) (bool, errors.Error) {
 	var fn SchemaLookupFunction
-	switch child.GetKind() {
-	case schema.RewriteKind.String():
-		fn = command.lookupRewrite(ctx, q, child.(schema.Rewrite))
-	case schema.LeafKind.String():
-		fn = command.lookupLeaf(ctx, q, child.(schema.Leaf))
+	switch child.Type.(type) {
+	case *base.Child_Rewrite:
+		fn = command.lookupRewrite(ctx, q, child.GetRewrite())
+	case *base.Child_Leaf:
+		fn = command.lookupLeaf(ctx, q, child.GetLeaf())
 	}
 
 	if fn == nil {
@@ -90,31 +89,38 @@ func (command *SchemaLookupCommand) l(ctx context.Context, q *SchemaLookupQuery,
 }
 
 // lookupRewrite -
-func (command *SchemaLookupCommand) lookupRewrite(ctx context.Context, q *SchemaLookupQuery, child schema.Rewrite) SchemaLookupFunction {
-	switch child.GetType() {
-	case schema.Union.String():
-		return command.set(ctx, q, child.Children, schemaLookupUnion)
-	case schema.Intersection.String():
-		return command.set(ctx, q, child.Children, schemaLookupIntersection)
+func (command *SchemaLookupCommand) lookupRewrite(ctx context.Context, q *SchemaLookupQuery, rewrite *base.Rewrite) SchemaLookupFunction {
+	switch rewrite.GetRewriteOperation() {
+	case *base.Rewrite_UNION.Enum():
+		return command.set(ctx, q, rewrite.GetChildren(), schemaLookupUnion)
+	case *base.Rewrite_INTERSECTION.Enum():
+		return command.set(ctx, q, rewrite.GetChildren(), schemaLookupIntersection)
 	default:
 		return schemaLookupFail(internalErrors.UndefinedChildTypeError)
 	}
 }
 
 // checkLeaf -
-func (command *SchemaLookupCommand) lookupLeaf(ctx context.Context, q *SchemaLookupQuery, child schema.Leaf) SchemaLookupFunction {
-	return command.lookup(ctx, tuple.Relation(child.Value), q, child.Exclusion)
+func (command *SchemaLookupCommand) lookupLeaf(ctx context.Context, q *SchemaLookupQuery, leaf *base.Leaf) SchemaLookupFunction {
+	switch leaf.GetType().(type) {
+	case *base.Leaf_TupleToUserSet:
+		return command.lookup(ctx, leaf.GetTupleToUserSet().GetRelation(), q, leaf.GetExclusion())
+	case *base.Leaf_ComputedUserSet:
+		return command.lookup(ctx, leaf.GetComputedUserSet().GetRelation(), q, leaf.GetExclusion())
+	default:
+		return schemaLookupFail(internalErrors.UndefinedChildTypeError)
+	}
 }
 
 // set -
-func (command *SchemaLookupCommand) set(ctx context.Context, q *SchemaLookupQuery, children []schema.Child, combiner SchemaLookupCombiner) SchemaLookupFunction {
+func (command *SchemaLookupCommand) set(ctx context.Context, q *SchemaLookupQuery, children []*base.Child, combiner SchemaLookupCombiner) SchemaLookupFunction {
 	var functions []SchemaLookupFunction
 	for _, child := range children {
-		switch child.GetKind() {
-		case schema.RewriteKind.String():
-			functions = append(functions, command.lookupRewrite(ctx, q, child.(schema.Rewrite)))
-		case schema.LeafKind.String():
-			functions = append(functions, command.lookupLeaf(ctx, q, child.(schema.Leaf)))
+		switch child.GetType().(type) {
+		case *base.Child_Rewrite:
+			functions = append(functions, command.lookupRewrite(ctx, q, child.GetRewrite()))
+		case *base.Child_Leaf:
+			functions = append(functions, command.lookupLeaf(ctx, q, child.GetLeaf()))
 		default:
 			return schemaLookupFail(internalErrors.UndefinedChildKindError)
 		}
@@ -126,14 +132,14 @@ func (command *SchemaLookupCommand) set(ctx context.Context, q *SchemaLookupQuer
 }
 
 // check -
-func (command *SchemaLookupCommand) lookup(ctx context.Context, relation tuple.Relation, q *SchemaLookupQuery, exclusion bool) SchemaLookupFunction {
+func (command *SchemaLookupCommand) lookup(ctx context.Context, relation string, q *SchemaLookupQuery, exclusion bool) SchemaLookupFunction {
 	return func(ctx context.Context, lookupChan chan<- SchemaLookupDecision) {
 		var err errors.Error
 		if exclusion {
-			lookupChan <- sendSchemaLookupDecision(!helper.InArray(relation.String(), q.Relations), "not", err)
+			lookupChan <- sendSchemaLookupDecision(!helper.InArray(relation, q.Relations), "not", err)
 			return
 		}
-		lookupChan <- sendSchemaLookupDecision(helper.InArray(relation.String(), q.Relations), "", err)
+		lookupChan <- sendSchemaLookupDecision(helper.InArray(relation, q.Relations), "", err)
 		return
 	}
 }

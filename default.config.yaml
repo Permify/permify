@@ -4,6 +4,9 @@ app:
 http:
   port: 3476
 
+grpc:
+  port: 3478
+
 logger:
   log_level: 'debug'
 

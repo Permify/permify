@@ -2,14 +2,16 @@ package memory
 
 import (
 	"context"
+
 	"github.com/hashicorp/go-memdb"
 
-	"github.com/Permify/permify/internal/repositories/entities"
-	"github.com/Permify/permify/internal/repositories/filters"
+	`github.com/Permify/permify/internal/repositories`
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/helper"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // RelationTupleRepository -.
@@ -28,24 +30,23 @@ func (r *RelationTupleRepository) Migrate() (err errors.Error) {
 }
 
 // ReverseQueryTuples -
-func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (entities.RelationTuples, errors.Error) {
-	var tuples entities.RelationTuples
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuple.ITupleIterator, errors.Error) {
 	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 
 	filterFactory := func(subjectRelation string, subjectIDs []string) func(interface{}) bool {
 		return func(raw interface{}) bool {
-			obj, ok := raw.(entities.RelationTuple)
+			obj, ok := raw.(repositories.RelationTuple)
 			if !ok {
 				return true
 			}
 
-			if subjectRelation != "" && subjectRelation != obj.UsersetRelation {
+			if subjectRelation != "" && subjectRelation != obj.SubjectRelation {
 				return true
 			}
 
-			if len(subjectIDs) > 0 && !helper.InArray(obj.UsersetObjectID, subjectIDs) {
+			if len(subjectIDs) > 0 && !helper.InArray(obj.SubjectID, subjectIDs) {
 				return true
 			}
 
@@ -54,54 +55,58 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 	}
 
 	var it memdb.ResultIterator
-	it, err = txn.Get(entities.RelationTuple{}.Table(), "subject-index", entity, relation, subjectEntity)
+	it, err = txn.Get("relation_tuple", "subject-index", entity, relation, subjectEntity)
 	if err != nil {
-		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
+
+	collection := tuple.NewTupleCollection()
 
 	filtered := memdb.NewFilterIterator(it, filterFactory(subjectRelation, subjectIDs))
 	for obj := filtered.Next(); obj != nil; obj = it.Next() {
-		tuples = append(tuples, obj.(entities.RelationTuple))
+		t := obj.(repositories.RelationTuple)
+		collection.Add(t.ToTuple())
 	}
 
-	return tuples, nil
+	return collection.CreateTupleIterator(), nil
 }
 
 // QueryTuples -
-func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (entities.RelationTuples, errors.Error) {
-	var tuples entities.RelationTuples
+func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuple.ITupleIterator, errors.Error) {
 	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 
 	var it memdb.ResultIterator
-	it, err = txn.Get(entities.RelationTuple{}.Table(), "entity-index", entity, objectID, relation)
+	it, err = txn.Get("relation_tuple", "entity-index", entity, objectID, relation)
 	if err != nil {
-		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
+
+	collection := tuple.NewTupleCollection()
 
 	for obj := it.Next(); obj != nil; obj = it.Next() {
-		tuples = append(tuples, obj.(entities.RelationTuple))
+		t := obj.(repositories.RelationTuple)
+		collection.Add(t.ToTuple())
 	}
 
-	return tuples, nil
+	return collection.CreateTupleIterator(), nil
 }
 
 // Read -
-func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (entities.RelationTuples, errors.Error) {
-	var tuples entities.RelationTuples
+func (r *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFilter) (tuple.ITupleCollection, errors.Error) {
 	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
 
-	filterFactory := func(filter filters.RelationTupleFilter) func(interface{}) bool {
+	filterFactory := func(filter *base.TupleFilter) func(interface{}) bool {
 		return func(raw interface{}) bool {
-			obj, ok := raw.(entities.RelationTuple)
+			obj, ok := raw.(repositories.RelationTuple)
 			if !ok {
 				return true
 			}
 
-			if filter.Entity.ID != "" && filter.Entity.ID != obj.ObjectID {
+			if filter.GetEntity().GetId() != "" && filter.GetEntity().GetId() != obj.EntityID {
 				return true
 			}
 
@@ -109,16 +114,16 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 				return true
 			}
 
-			if filter.Subject != (filters.SubjectFilter{}) {
-				if filter.Subject.Type != "" && filter.Subject.Type != obj.UsersetEntity {
+			if filter.GetSubject() != nil {
+				if filter.GetSubject().GetType() != "" && filter.GetSubject().GetType() != obj.SubjectEntity {
 					return true
 				}
 
-				if filter.Subject.ID != "" && filter.Subject.ID != obj.UsersetObjectID {
+				if filter.GetSubject().GetId() != "" && filter.GetSubject().GetId() != obj.SubjectID {
 					return true
 				}
 
-				if filter.Subject.Relation != "" && filter.Subject.Relation != obj.UsersetRelation {
+				if filter.GetSubject().GetRelation() != "" && filter.GetSubject().GetRelation() != obj.SubjectRelation {
 					return true
 				}
 			}
@@ -128,40 +133,73 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 	}
 
 	var it memdb.ResultIterator
-	it, err = txn.Get(entities.RelationTuple{}.Table(), "entity", filter.Entity.Type)
+	it, err = txn.Get("relation_tuple", "entity", filter.Entity.Type)
 	if err != nil {
-		return tuples, errors.DatabaseError.SetSubKind(database.ErrExecution)
+		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
 	}
+
+	collection := tuple.NewTupleCollection()
 
 	filtered := memdb.NewFilterIterator(it, filterFactory(filter))
 	for obj := filtered.Next(); obj != nil; obj = it.Next() {
-		tuples = append(tuples, obj.(entities.RelationTuple))
+		t := obj.(repositories.RelationTuple)
+		collection.Add(t.ToTuple())
 	}
 
-	return tuples, nil
+	return collection, nil
 }
 
 // Write -
-func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) errors.Error {
+func (r *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITupleIterator) errors.Error {
 	var err error
+
+	if !iterator.HasNext() {
+		return nil
+	}
+
 	txn := r.Database.DB.Txn(true)
 	defer txn.Abort()
-	for _, tuple := range tuples {
-		if err = txn.Insert(entities.RelationTuple{}.Table(), tuple); err != nil {
+
+	for iterator.HasNext() {
+		bt := iterator.GetNext()
+		t := repositories.RelationTuple{
+			Entity:          bt.GetEntity().GetType(),
+			EntityID:        bt.GetEntity().GetId(),
+			Relation:        bt.GetRelation(),
+			SubjectEntity:   bt.GetSubject().GetType(),
+			SubjectID:       bt.GetSubject().GetId(),
+			SubjectRelation: bt.GetSubject().GetRelation(),
+		}
+		if err = txn.Insert("relation_tuple", t); err != nil {
 			return errors.DatabaseError.SetSubKind(database.ErrExecution)
 		}
 	}
+
 	txn.Commit()
 	return nil
 }
 
 // Delete -
-func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) errors.Error {
+func (r *RelationTupleRepository) Delete(ctx context.Context, iterator tuple.ITupleIterator) errors.Error {
+	if !iterator.HasNext() {
+		return nil
+	}
+
 	var err error
 	txn := r.Database.DB.Txn(true)
 	defer txn.Abort()
-	for _, tuple := range tuples {
-		if err = txn.Delete(entities.RelationTuple{}.Table(), tuple); err != nil {
+
+	for iterator.HasNext() {
+		bt := iterator.GetNext()
+		t := repositories.RelationTuple{
+			Entity:          bt.GetEntity().GetType(),
+			EntityID:        bt.GetEntity().GetId(),
+			Relation:        bt.GetRelation(),
+			SubjectEntity:   bt.GetSubject().GetType(),
+			SubjectID:       bt.GetSubject().GetId(),
+			SubjectRelation: bt.GetSubject().GetRelation(),
+		}
+		if err = txn.Delete("relation_tuple", t); err != nil {
 			if err.Error() == "not found" {
 				// errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 				return nil
@@ -169,6 +207,7 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.Re
 			return errors.DatabaseError.SetSubKind(database.ErrUniqueConstraint)
 		}
 	}
+
 	txn.Commit()
 	return nil
 }

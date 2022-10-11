@@ -2,14 +2,12 @@ package memory
 
 import (
 	"github.com/hashicorp/go-memdb"
-
-	"github.com/Permify/permify/internal/repositories/entities"
 )
 
 var Schema = &memdb.DBSchema{
 	Tables: map[string]*memdb.TableSchema{
-		entities.EntityConfig{}.Table(): {
-			Name: entities.EntityConfig{}.Table(),
+		"entity_config": {
+			Name: "entity_config",
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -28,8 +26,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		entities.RelationTuple{}.Table(): {
-			Name: entities.RelationTuple{}.Table(),
+		"relation_tuple": {
+			Name: "relation_tuple",
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -37,11 +35,11 @@ var Schema = &memdb.DBSchema{
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "Entity"},
-							&memdb.StringFieldIndex{Field: "ObjectID"},
+							&memdb.StringFieldIndex{Field: "EntityID"},
 							&memdb.StringFieldIndex{Field: "Relation"},
-							&memdb.StringFieldIndex{Field: "UsersetEntity"},
-							&memdb.StringFieldIndex{Field: "UsersetObjectID"},
-							&memdb.StringFieldIndex{Field: "UsersetRelation"},
+							&memdb.StringFieldIndex{Field: "SubjectEntity"},
+							&memdb.StringFieldIndex{Field: "SubjectID"},
+							&memdb.StringFieldIndex{Field: "SubjectRelation"},
 						},
 						AllowMissing: true,
 					},
@@ -52,7 +50,7 @@ var Schema = &memdb.DBSchema{
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "Entity"},
-							&memdb.StringFieldIndex{Field: "ObjectID"},
+							&memdb.StringFieldIndex{Field: "EntityID"},
 							&memdb.StringFieldIndex{Field: "Relation"},
 						},
 					},
@@ -64,7 +62,7 @@ var Schema = &memdb.DBSchema{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "Entity"},
 							&memdb.StringFieldIndex{Field: "Relation"},
-							&memdb.StringFieldIndex{Field: "UsersetEntity"},
+							&memdb.StringFieldIndex{Field: "SubjectEntity"},
 						},
 					},
 				},

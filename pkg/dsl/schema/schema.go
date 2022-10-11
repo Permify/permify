@@ -8,211 +8,106 @@ import (
 
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/graph"
+	base `github.com/Permify/permify/pkg/pb/base/v1`
 )
-
-// OPType -
-type OPType string
-
-const (
-	Union        OPType = "union"
-	Intersection OPType = "intersection"
-)
-
-func (o OPType) String() string {
-	return string(o)
-}
-
-// LeafType -
-type LeafType string
-
-const (
-	ComputedUserSetType LeafType = "computed_user_set"
-	TupleToUserSetType  LeafType = "tuple_to_user_set"
-)
-
-func (o LeafType) String() string {
-	return string(o)
-}
-
-type ChildKind string
-
-const (
-	LeafKind    ChildKind = "leaf"
-	RewriteKind ChildKind = "rewrite"
-)
-
-func (o ChildKind) String() string {
-	return string(o)
-}
-
-type Schema struct {
-	Entities map[string]Entity `json:"entities"`
-}
 
 // GetEntityByName -
-func (s Schema) GetEntityByName(name string) (entity Entity, err errors.Error) {
-	if en, ok := s.Entities[name]; ok {
+func GetEntityByName(schema *base.Schema, name string) (entityDefinition *base.EntityDefinition, err errors.Error) {
+	if en, ok := schema.GetEntityDefinitions()[name]; ok {
 		return en, nil
 	}
-	return entity, errors.NewError(errors.Service).SetMessage("entity not found")
+	return nil, errors.NewError(errors.Service).SetMessage("entity not found")
 }
 
 // NewSchema -
-func NewSchema(entities ...Entity) (schema Schema) {
-	schema = Schema{
-		Entities: map[string]Entity{},
+func NewSchema(entities ...*base.EntityDefinition) (schema *base.Schema) {
+	schema = &base.Schema{
+		EntityDefinitions: map[string]*base.EntityDefinition{},
 	}
-
 	for _, entity := range entities {
-
 		if entity.Relations == nil {
-			entity.Relations = []Relation{}
+			entity.Relations = []*base.RelationDefinition{}
 		}
-
 		if entity.Actions == nil {
-			entity.Actions = []Action{}
+			entity.Actions = []*base.ActionDefinition{}
 		}
-
-		schema.Entities[entity.Name] = entity
+		schema.EntityDefinitions[entity.Name] = entity
 	}
-
 	return
 }
 
-// Entity -
-type Entity struct {
-	Name      string                 `json:"name"`
-	Relations []Relation             `json:"relations"`
-	Actions   []Action               `json:"actions"`
-	Option    map[string]interface{} `json:"option"`
-}
-
 // GetAction -
-func (e Entity) GetAction(name string) (action Action, err errors.Error) {
-	for _, en := range e.Actions {
-		if en.Name == name {
+func GetAction(entityDefinition *base.EntityDefinition, name string) (actionDefinition *base.ActionDefinition, err errors.Error) {
+	for _, en := range entityDefinition.Actions {
+		if en.GetName() == name {
 			return en, nil
 		}
 	}
-	return action, errors.NewError(errors.Validation).AddParam("action", "action con not found")
+	return nil, errors.NewError(errors.Validation).AddParam("action", "action con not found")
 }
 
 // GetRelation -
-func (e Entity) GetRelation(name string) (relation Relation, err errors.Error) {
-	for _, re := range e.Relations {
-		if re.Name == name {
+func GetRelation(entityDefinition *base.EntityDefinition, name string) (relationDefinition *base.RelationDefinition, err errors.Error) {
+	for _, re := range entityDefinition.Relations {
+		if re.GetName() == name {
 			return re, nil
 		}
 	}
-	return relation, errors.NewError(errors.Validation).AddParam("relation", "relation con not found")
+	return nil, errors.NewError(errors.Validation).AddParam("relation", "relation con not found")
 }
 
 // GetTable -
-func (e Entity) GetTable() string {
-	if en, ok := e.Option["table"]; ok {
-		return en.(string)
+func GetTable(definition *base.EntityDefinition) string {
+	if en, ok := definition.GetOption()["table"]; ok {
+		return en.String()
 	}
-	return e.Name
+	return definition.GetName()
 }
 
 // GetIdentifier -
-func (e Entity) GetIdentifier() string {
-	if en, ok := e.Option["identifier"]; ok {
-		return en.(string)
+func GetIdentifier(definition *base.EntityDefinition) string {
+	if en, ok := definition.GetOption()["identifier"]; ok {
+		return en.String()
 	}
 	return "id"
 }
 
-// Relation -
-type Relation struct {
-	Name   string                 `json:"name"`
-	Types  []string               `json:"type"`
-	Option map[string]interface{} `json:"option"`
-}
-
 // Type -
-func (r Relation) Type() string {
-	for _, typ := range r.Types {
-		if !strings.Contains(typ, "#") {
-			return typ
+func Type(definition *base.RelationDefinition) string {
+	for _, typ := range definition.Types {
+		if !strings.Contains(typ.GetName(), "#") {
+			return typ.GetName()
 		}
 	}
 	return ""
 }
 
 // GetColumn -
-func (r Relation) GetColumn() (string, bool) {
-	if col, ok := r.Option["column"]; ok {
-		return col.(string), true
+func GetColumn(definition *base.RelationDefinition) (string, bool) {
+	if col, ok := definition.GetOption()["column"]; ok {
+		return col.String(), true
 	}
 	return "", false
 }
 
-// Action -
-type Action struct {
-	Name  string `json:"name"`
-	Child Exp    `json:"child"`
-}
-
-// Child -
-type Child Exp
-
-type Exp interface {
-	GetType() string
-	GetKind() string
-}
-
-// Rewrite -
-type Rewrite struct {
-	Type     OPType  `json:"type"` // union or intersection
-	Children []Child `json:"children"`
-}
-
-// GetType -
-func (r Rewrite) GetType() string {
-	return r.Type.String()
-}
-
-// GetKind -
-func (Rewrite) GetKind() string {
-	return "rewrite"
-}
-
-// Leaf -
-type Leaf struct {
-	Exclusion bool     `json:"exclusion"`
-	Type      LeafType `json:"type"` // tupleToUserSet or computedUserSet
-	Value     string   `json:"value"`
-}
-
-// GetType -
-func (l Leaf) GetType() string {
-	return l.Type.String()
-}
-
-// GetKind -
-func (Leaf) GetKind() string {
-	return "leaf"
-}
-
 // COLLECTIONS
 
-type Relations []Relation
+type Relations []*base.RelationDefinition
 
 // GetRelationByName -
-func (r Relations) GetRelationByName(name string) (relation Relation, err error) {
+func (r Relations) GetRelationByName(name string) (definition *base.RelationDefinition, err error) {
 	for _, rel := range r {
 		if rel.Name == name {
 			return rel, nil
 		}
 	}
-	return relation, errors.NewError(errors.Service).SetMessage("relation not found")
+	return nil, errors.NewError(errors.Service).SetMessage("relation not found")
 }
 
-// ToGraph -
-func (s Schema) ToGraph() (g graph.Graph, error errors.Error) {
-	for _, en := range s.Entities {
-		eg, err := en.ToGraph()
+// GraphSchema -
+func GraphSchema(schema *base.Schema) (g graph.Graph, error errors.Error) {
+	for _, en := range schema.GetEntityDefinitions() {
+		eg, err := GraphEntity(en)
 		if err != nil {
 			return graph.Graph{}, err
 		}
@@ -222,34 +117,34 @@ func (s Schema) ToGraph() (g graph.Graph, error errors.Error) {
 	return
 }
 
-// ToGraph -
-func (e Entity) ToGraph() (g graph.Graph, error errors.Error) {
+// GraphEntity -
+func GraphEntity(entity *base.EntityDefinition) (g graph.Graph, error errors.Error) {
 	enNode := &graph.Node{
 		Type:  "entity",
-		ID:    fmt.Sprintf("entity:%s", e.Name),
-		Label: e.Name,
+		ID:    fmt.Sprintf("entity:%s", entity.GetName()),
+		Label: entity.GetName(),
 	}
 	g.AddNode(enNode)
 
-	for _, re := range e.Relations {
+	for _, re := range entity.GetRelations() {
 		reNode := &graph.Node{
 			Type:  "relation",
-			ID:    fmt.Sprintf("entity:%s:relation:%s", e.Name, re.Name),
+			ID:    fmt.Sprintf("entity:%s:relation:%s", entity.GetName(), re.GetName()),
 			Label: re.Name,
 		}
 		g.AddNode(reNode)
 		g.AddEdge(enNode, reNode, nil)
 	}
 
-	for _, ac := range e.Actions {
+	for _, action := range entity.GetActions() {
 		acNode := &graph.Node{
 			Type:  "action",
-			ID:    fmt.Sprintf("entity:%s:action:%s", e.Name, ac.Name),
-			Label: ac.Name,
+			ID:    fmt.Sprintf("entity:%s:action:%s", entity.GetName(), action.GetName()),
+			Label: action.GetName(),
 		}
 		g.AddNode(acNode)
 		g.AddEdge(enNode, acNode, nil)
-		ag, err := e.buildActionGraph(acNode, []Child{ac.Child})
+		ag, err := buildActionGraph(entity, acNode, []*base.Child{action.GetChild()})
 		if err != nil {
 			return graph.Graph{}, err
 		}
@@ -260,42 +155,47 @@ func (e Entity) ToGraph() (g graph.Graph, error errors.Error) {
 }
 
 // buildActionGraph -
-func (e Entity) buildActionGraph(from *graph.Node, children []Child) (g graph.Graph, error errors.Error) {
+func buildActionGraph(entity *base.EntityDefinition, from *graph.Node, children []*base.Child) (g graph.Graph, error errors.Error) {
 	for _, child := range children {
-		switch child.GetKind() {
-		case RewriteKind.String():
+		switch child.GetType().(type) {
+		case *base.Child_Rewrite:
 			rw := &graph.Node{
 				Type:  "logic",
 				ID:    xid.New().String(),
-				Label: child.GetType(),
+				Label: child.String(),
 			}
 			g.AddNode(rw)
 			g.AddEdge(from, rw, nil)
-			ag, err := e.buildActionGraph(rw, child.(Rewrite).Children)
+			ag, err := buildActionGraph(entity, rw, child.GetRewrite().GetChildren())
 			if err != nil {
 				return graph.Graph{}, err
 			}
 			g.AddNodes(ag.Nodes())
 			g.AddEdges(ag.Edges())
-		case LeafKind.String():
-			ch := child.(Leaf)
-			if ch.Type == ComputedUserSetType {
-				g.AddEdge(from, &graph.Node{
-					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:relation:%s", e.Name, ch.Value),
-					Label: ch.Value,
-				}, ch.Exclusion)
-			} else {
-				v := strings.Split(ch.Value, ".")
-				re, err := e.GetRelation(v[0])
+		case *base.Child_Leaf:
+			leaf := child.GetLeaf()
+			switch leaf.GetType().(type) {
+			case *base.Leaf_TupleToUserSet:
+				v := strings.Split(leaf.GetTupleToUserSet().GetRelation(), ".")
+				re, err := GetRelation(entity, v[0])
 				if err != nil {
 					return graph.Graph{}, errors.NewError(errors.Service).SetMessage("relation not found")
 				}
 				g.AddEdge(from, &graph.Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:relation:%s", re.Types[0], v[1]),
+					ID:    fmt.Sprintf("entity:%s:relation:%s", Type(re), v[1]),
 					Label: v[1],
-				}, ch.Exclusion)
+				}, leaf.GetExclusion())
+				break
+			case *base.Leaf_ComputedUserSet:
+				g.AddEdge(from, &graph.Node{
+					Type:  "relation",
+					ID:    fmt.Sprintf("entity:%s:relation:%s", entity.GetName(), leaf.GetComputedUserSet().GetRelation()),
+					Label: leaf.GetComputedUserSet().GetRelation(),
+				}, leaf.GetExclusion())
+				break
+			default:
+				break
 			}
 		}
 	}

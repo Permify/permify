@@ -5,9 +5,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/entities"
-	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/errors"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // RelationTupleWithCircuitBreaker -
@@ -26,10 +26,10 @@ func (r *RelationTupleWithCircuitBreaker) Migrate() (err errors.Error) {
 }
 
 // ReverseQueryTuples -
-func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuples entities.RelationTuples, err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (Iterator tuple.ITupleIterator, err errors.Error) {
 	type circuitBreakerResponse struct {
-		Tuples entities.RelationTuples
-		Error  errors.Error
+		Iterator tuple.ITupleIterator
+		Error    errors.Error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
@@ -37,7 +37,7 @@ func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context
 	hystrix.ConfigureCommand("relationTupleRepository.reverseQueryTuples", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.reverseQueryTuples", func() error {
 		tup, cErr := r.repository.ReverseQueryTuples(ctx, entity, relation, subjectEntity, subjectIDs, subjectRelation)
-		output <- circuitBreakerResponse{Tuples: tup, Error: cErr}
+		output <- circuitBreakerResponse{Iterator: tup, Error: cErr}
 		return nil
 	}, func(err error) error {
 		return nil
@@ -45,24 +45,24 @@ func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context
 
 	select {
 	case out := <-output:
-		return out.Tuples, out.Error
+		return out.Iterator, out.Error
 	case <-bErrors:
-		return tuples, errors.CircuitBreakerError
+		return Iterator, errors.CircuitBreakerError
 	}
 }
 
 // QueryTuples -
-func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuples entities.RelationTuples, err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (Iterator tuple.ITupleIterator, err errors.Error) {
 	type circuitBreakerResponse struct {
-		Tuples entities.RelationTuples
-		Error  errors.Error
+		Iterator tuple.ITupleIterator
+		Error    errors.Error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
 	hystrix.ConfigureCommand("relationTupleRepository.queryTuples", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.queryTuples", func() error {
 		tup, cErr := r.repository.QueryTuples(ctx, entity, objectID, relation)
-		output <- circuitBreakerResponse{Tuples: tup, Error: cErr}
+		output <- circuitBreakerResponse{Iterator: tup, Error: cErr}
 		return nil
 	}, func(err error) error {
 		return nil
@@ -70,24 +70,24 @@ func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entit
 
 	select {
 	case out := <-output:
-		return out.Tuples, out.Error
+		return out.Iterator, out.Error
 	case <-bErrors:
-		return tuples, errors.CircuitBreakerError
+		return Iterator, errors.CircuitBreakerError
 	}
 }
 
 // Read -
-func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter filters.RelationTupleFilter) (tuples entities.RelationTuples, err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter *base.TupleFilter) (collection tuple.ITupleCollection, err errors.Error) {
 	type circuitBreakerResponse struct {
-		Tuples entities.RelationTuples
-		Error  errors.Error
+		Collection tuple.ITupleCollection
+		Error      errors.Error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
 	hystrix.ConfigureCommand("relationTupleRepository.read", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.read", func() error {
 		tup, cErr := r.repository.Read(ctx, filter)
-		output <- circuitBreakerResponse{Tuples: tup, Error: cErr}
+		output <- circuitBreakerResponse{Collection: tup, Error: cErr}
 		return nil
 	}, func(err error) error {
 		return nil
@@ -95,18 +95,18 @@ func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter filte
 
 	select {
 	case out := <-output:
-		return out.Tuples, out.Error
+		return out.Collection, out.Error
 	case <-bErrors:
-		return tuples, errors.CircuitBreakerError
+		return collection, errors.CircuitBreakerError
 	}
 }
 
 // Write -
-func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, tuples entities.RelationTuples) (err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, iterator tuple.ITupleIterator) (err errors.Error) {
 	outputErr := make(chan errors.Error, 1)
 	hystrix.ConfigureCommand("relationTupleRepository.write", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.write", func() error {
-		err = r.repository.Write(ctx, tuples)
+		err = r.repository.Write(ctx, iterator)
 		outputErr <- err
 		return nil
 	}, func(err error) error {
@@ -122,11 +122,11 @@ func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, tuples enti
 }
 
 // Delete -
-func (r *RelationTupleWithCircuitBreaker) Delete(ctx context.Context, tuples entities.RelationTuples) (err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) Delete(ctx context.Context, iterator tuple.ITupleIterator) (err errors.Error) {
 	outputErr := make(chan errors.Error, 1)
 	hystrix.ConfigureCommand("relationTupleRepository.delete", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.delete", func() error {
-		err = r.repository.Delete(ctx, tuples)
+		err = r.repository.Delete(ctx, iterator)
 		outputErr <- err
 		return nil
 	}, func(err error) error {

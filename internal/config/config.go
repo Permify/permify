@@ -14,21 +14,25 @@ const (
 type (
 	// Config -.
 	Config struct {
-		App      `yaml:"app"`
 		HTTP     `yaml:"http"`
+		GRPC     `yaml:"grpc"`
 		Log      `yaml:"logger"`
 		*Authn   `yaml:"authn"`
 		*Tracer  `yaml:"tracer"`
 		Database `yaml:"database"`
 	}
 
-	// App -.
-	App struct {
-		Name string `env-required:"true" yaml:"name"`
-	}
+	//// App -.
+	//App struct {
+	//	Name string `env-required:"true" yaml:"name"`
+	//}
 
 	// HTTP -.
 	HTTP struct {
+		Port string `env-required:"true" yaml:"port"`
+	}
+
+	GRPC struct {
 		Port string `env-required:"true" yaml:"port"`
 	}
 

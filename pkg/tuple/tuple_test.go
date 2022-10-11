@@ -5,6 +5,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // TestTuple -
@@ -17,27 +19,27 @@ var _ = Describe("tuple", func() {
 	Context("EntityAndRelation", func() {
 		It("String", func() {
 			tests := []struct {
-				target   EntityAndRelation
+				target   *base.EntityAndRelation
 				expected string
 			}{
-				{EntityAndRelation{
-					Entity: Entity{
+				{&base.EntityAndRelation{
+					Entity: &base.Entity{
 						Type: "repository",
-						ID:   "1",
+						Id:   "1",
 					},
 					Relation: "admin",
 				}, "repository:1#admin"},
-				{EntityAndRelation{
-					Entity: Entity{
+				{&base.EntityAndRelation{
+					Entity: &base.Entity{
 						Type: "doc",
-						ID:   "1",
+						Id:   "1",
 					},
 					Relation: "viewer",
 				}, "doc:1#viewer"},
 			}
 
 			for _, tt := range tests {
-				Expect(tt.target.String()).Should(Equal(tt.expected))
+				Expect(EntityAndRelationToString(tt.target)).Should(Equal(tt.expected))
 			}
 		})
 	})
@@ -45,28 +47,28 @@ var _ = Describe("tuple", func() {
 	Context("Relation", func() {
 		It("Split", func() {
 			tests := []struct {
-				target   Relation
-				expected []Relation
+				target   string
+				expected []string
 			}{
-				{"parent.admin", []Relation{
+				{"parent.admin", []string{
 					"parent", "admin",
 				}},
-				{"owner", []Relation{
+				{"owner", []string{
 					"owner", "",
 				}},
-				{"parent.parent.admin", []Relation{
+				{"parent.parent.admin", []string{
 					"parent", "parent", "admin",
 				}},
 			}
 
 			for _, tt := range tests {
-				Expect(tt.target.Split()).Should(Equal(tt.expected))
+				Expect(SplitRelation(tt.target)).Should(Equal(tt.expected))
 			}
 		})
 
 		It("IsComputed", func() {
 			tests := []struct {
-				target   Relation
+				target   string
 				expected bool
 			}{
 				{"parent.admin", false},
@@ -76,7 +78,7 @@ var _ = Describe("tuple", func() {
 			}
 
 			for _, tt := range tests {
-				Expect(tt.target.IsComputed()).Should(Equal(tt.expected))
+				Expect(IsRelationComputed(tt.target)).Should(Equal(tt.expected))
 			}
 		})
 	})
@@ -84,82 +86,82 @@ var _ = Describe("tuple", func() {
 	Context("Subject", func() {
 		It("Equals", func() {
 			tests := []struct {
-				target   Subject
-				v        interface{}
+				target   *base.Subject
+				v        *base.Subject
 				expected bool
 			}{
-				{target: Subject{
+				{target: &base.Subject{
 					Type: "user",
-					ID:   "1",
-				}, v: Subject{
+					Id:   "1",
+				}, v: &base.Subject{
 					Type: "user",
-					ID:   "1",
+					Id:   "1",
 				}, expected: true},
-				{target: Subject{
+				{target: &base.Subject{
 					Type: "organization",
-					ID:   "1",
-				}, v: Subject{
+					Id:   "1",
+				}, v: &base.Subject{
 					Type:     "organization",
-					ID:       "1",
+					Id:       "1",
 					Relation: "admin",
 				}, expected: false},
-				{target: Subject{
+				{target: &base.Subject{
 					Type:     "organization",
-					ID:       "1",
+					Id:       "1",
 					Relation: "member",
-				}, v: Subject{
+				}, v: &base.Subject{
 					Type:     "organization",
-					ID:       "1",
+					Id:       "1",
 					Relation: "member",
 				}, expected: true},
 			}
 
 			for _, tt := range tests {
-				Expect(tt.target.Equals(tt.v)).Should(Equal(tt.expected))
+				Expect(AreSubjectsEqual(tt.target, tt.v)).Should(Equal(tt.expected))
 			}
 		})
 
 		It("IsValid", func() {
 			tests := []struct {
-				target   Subject
+				target   *base.Subject
 				expected bool
 			}{
 				{
-					target: Subject{
+					target: &base.Subject{
 						Type:     "",
-						ID:       "1",
+						Id:       "1",
 						Relation: "",
 					},
 					expected: false,
 				},
 				{
-					target: Subject{
+					target: &base.Subject{
 						Type:     USER,
-						ID:       "1",
+						Id:       "1",
 						Relation: "",
 					},
 					expected: true,
 				},
 				{
-					target: Subject{
+					target: &base.Subject{
 						Type:     USER,
-						ID:       "1",
+						Id:       "1",
 						Relation: "admin",
 					},
 					expected: false,
 				},
 				{
-					target: Subject{
+					target: &base.Subject{
 						Type:     USER,
-						ID:       "1",
+						Id:       "1",
 						Relation: "admin",
 					},
 					expected: false,
 				},
 				{
-					target: Subject{
+					target: &base.Subject{
 						Type:     "organization",
-						ID:       "1",
+						Id:       "1",
 						Relation: "admin",
 					},
 					expected: true,
@@ -167,7 +169,7 @@ var _ = Describe("tuple", func() {
 			}
 
 			for _, tt := range tests {
-				Expect(tt.target.IsValid()).Should(Equal(tt.expected))
+				Expect(IsSubjectValid(tt.target)).Should(Equal(tt.expected))
 			}
 		})
 	})

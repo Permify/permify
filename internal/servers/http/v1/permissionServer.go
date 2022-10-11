@@ -1,55 +1,54 @@
-package relationship
+package v1
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 
-	"github.com/Permify/permify/internal/controllers/http/common"
+	"github.com/Permify/permify/internal/commands"
+	"github.com/Permify/permify/internal/servers/http/common"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
-	"github.com/Permify/permify/pkg/tuple"
+	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var tracer = otel.Tracer("routes")
-
-// relationshipRoutes -
-type relationshipRoutes struct {
-	relationshipService services.IRelationshipService
-	logger              logger.Interface
+// PermissionServer -
+type PermissionServer struct {
+	service services.IPermissionService
+	l       logger.Interface
 }
 
-// NewRelationshipRoutes -
-func NewRelationshipRoutes(handler *echo.Group, t services.IRelationshipService, l logger.Interface) {
-	r := &relationshipRoutes{t, l}
+// NewPermissionServer -
+func NewPermissionServer(handler *echo.Group, t services.IPermissionService, l logger.Interface) {
+	r := &PermissionServer{t, l}
 
-	h := handler.Group("/relationships")
+	h := handler.Group("/permissions")
 	{
-		h.POST("/read", r.read)
-		h.POST("/write", r.write)
-		h.POST("/delete", r.delete)
+		h.POST("/check", r.check)
+		h.POST("/expand", r.expand)
+		h.POST("/lookup-query", r.lookupQuery)
 	}
 }
 
-// @Summary     Relationship
-// @Description read relation tuple(s)
-// @ID          relationships.read
-// @Tags  	    Relationship
+// @Summary     Permission
+// @Description check subject is authorized
+// @ID          permissions.check
+// @Tags  	    Permission
 // @Accept      json
 // @Produce     json
-// @Param       request body ReadRequest true "read relation tuple(s)"
-// @Success     200 {object} []tuple.Tuple
+// @Param       request body *v1.CheckRequest true "check subject is authorized"
+// @Success     200 {object} *v1.CheckResponse
 // @Failure     400 {object} common.HTTPErrorResponse
-// @Router      /relationships/read [post]
-func (r *relationshipRoutes) read(c echo.Context) error {
-	ctx, span := tracer.Start(c.Request().Context(), "relationships.read")
+// @Router      /permissions/check [post]
+func (r *PermissionServer) check(c echo.Context) error {
+	ctx, span := tracer.Start(c.Request().Context(), "permissions.check")
 	defer span.End()
 
-	request := new(ReadRequest)
+	request := new(v1.CheckRequest)
 	if err := (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
 		return err
 	}
@@ -60,11 +59,17 @@ func (r *relationshipRoutes) read(c echo.Context) error {
 
 	var err errors.Error
 
-	var tuples []tuple.Tuple
-	tuples, err = r.relationshipService.ReadRelationships(ctx, request.Filter)
+	var depth int32 = 20
+	if request.Depth != nil {
+		depth = request.Depth.Value
+	}
+
+	var response commands.CheckResponse
+	response, err = r.service.Check(ctx, request.GetSubject(), request.GetAction(), request.GetEntity(), "", depth)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
+		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
 			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
@@ -77,24 +82,26 @@ func (r *relationshipRoutes) read(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, common.SuccessResponse(tuples))
+	return c.JSON(http.StatusOK, &v1.CheckResponse{
+		Can: response.Can,
+	})
 }
 
-// @Summary     Relationship
-// @Description create new relation tuple
-// @ID          relationships.write
-// @Tags  	    Relationship
+// @Summary     Permission
+// @Description expand relationships according to schema
+// @ID          permissions.expand
+// @Tags  	    Permission
 // @Accept      json
 // @Produce     json
-// @Param       request body WriteRequest true "create new relation tuple"
-// @Success     200 {object} tuple.Tuple
+// @Param       request body *v1.ExpandRequest true "expand relationships according to schema"
+// @Success     200 {object} *v1.ExpandResponse
 // @Failure     400 {object} common.HTTPErrorResponse
-// @Router      /relationships/write [post]
-func (r *relationshipRoutes) write(c echo.Context) error {
-	ctx, span := tracer.Start(c.Request().Context(), "relationships.write")
+// @Router      /permissions/expand [post]
+func (r *PermissionServer) expand(c echo.Context) error {
+	ctx, span := tracer.Start(c.Request().Context(), "permissions.expand")
 	defer span.End()
 
-	request := new(WriteRequest)
+	request := new(v1.ExpandRequest)
 	if err := (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
 		return err
 	}
@@ -105,11 +112,12 @@ func (r *relationshipRoutes) write(c echo.Context) error {
 
 	var err errors.Error
 
-	t := tuple.Tuple{Entity: request.Entity, Relation: tuple.Relation(request.Relation), Subject: request.Subject}
-	err = r.relationshipService.WriteRelationship(ctx, t, request.SchemaVersion.String())
+	var response commands.ExpandResponse
+	response, err = r.service.Expand(ctx, request.GetEntity(), request.GetAction(), request.GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
+		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
 			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
@@ -122,24 +130,26 @@ func (r *relationshipRoutes) write(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, common.SuccessResponse(t))
+	return c.JSON(http.StatusOK, &v1.ExpandResponse{
+		Tree: response.Tree,
+	})
 }
 
-// @Summary     Relationship
-// @Description delete relation tuple
-// @ID          relationships.delete
-// @Tags  	    Relationship
+// @Summary     Permission
+// @Description lookupQuery
+// @ID          permissions.lookupQuery
+// @Tags  	    Permission
 // @Accept      json
 // @Produce     json
-// @Param       request body DeleteRequest true "delete relation tuple"
-// @Success     200 {object} tuple.Tuple
+// @Param       request body *v1.LookupQueryRequest true "''"
+// @Success     200 {object} *v1.LookupQueryResponse
 // @Failure     400 {object} common.HTTPErrorResponse
-// @Router      /relationships/delete [post]
-func (r *relationshipRoutes) delete(c echo.Context) error {
-	ctx, span := tracer.Start(c.Request().Context(), "relationships.delete")
+// @Router      /permissions/lookup-query [post]
+func (r *PermissionServer) lookupQuery(c echo.Context) error {
+	ctx, span := tracer.Start(c.Request().Context(), "permissions.lookupQuery")
 	defer span.End()
 
-	request := new(DeleteRequest)
+	request := new(v1.LookupQueryRequest)
 	if err := (&echo.DefaultBinder{}).BindBody(c, &request); err != nil {
 		return err
 	}
@@ -149,12 +159,12 @@ func (r *relationshipRoutes) delete(c echo.Context) error {
 	}
 
 	var err errors.Error
-
-	t := tuple.Tuple{Entity: request.Entity, Relation: tuple.Relation(request.Relation), Subject: request.Subject}
-	err = r.relationshipService.DeleteRelationship(ctx, t)
+	var response commands.LookupQueryResponse
+	response, err = r.service.LookupQuery(ctx, request.EntityType, request.Subject, request.Action, request.SchemaVersion)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
+		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
 			return c.JSON(database.GetKindToHttpStatus(err.SubKind()), common.MResponse(err.Error()))
@@ -167,5 +177,8 @@ func (r *relationshipRoutes) delete(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, common.SuccessResponse(t))
+	return c.JSON(http.StatusOK, &v1.LookupQueryResponse{
+		Query: response.Query,
+		Args:  response.Args,
+	})
 }

@@ -15,16 +15,19 @@ import (
 	"github.com/Permify/permify/internal/authn"
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
-	v1 "github.com/Permify/permify/internal/controllers/http/v1"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/repositories/decorators"
+	grpcServerV1 "github.com/Permify/permify/internal/servers/grpc/v1"
+	httpV1 "github.com/Permify/permify/internal/servers/http/v1"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/grpcserver"
 	"github.com/Permify/permify/pkg/httpserver"
 	"github.com/Permify/permify/pkg/logger"
+	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/telemetry/exporters"
 )
@@ -112,9 +115,19 @@ func Run(cfg *config.Config) {
 		}
 	}
 
-	v1.NewRouter(handler, l, relationshipService, permissionService, schemaService, schemaManager)
+	// HTTP SERVER
+	httpV1.NewServer(handler, l, relationshipService, permissionService, schemaService, schemaManager)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
-	l.Info(fmt.Sprintf("http server successfully started: %s", cfg.HTTP.Port))
+	httpServer.Run()
+	l.Info(fmt.Sprintf("🚀 http server successfully started: %s", cfg.HTTP.Port))
+
+	// GRPC SERVER
+	grpcServer := grpcserver.New(grpcserver.Port(cfg.GRPC.Port))
+	grpcV1.RegisterPermissionAPIServer(grpcServer.Server, grpcServerV1.NewPermissionServer(permissionService, l))
+	grpcV1.RegisterSchemaAPIServer(grpcServer.Server, grpcServerV1.NewSchemaServer(schemaManager, schemaService, l))
+	grpcV1.RegisterRelationshipAPIServer(grpcServer.Server, grpcServerV1.NewRelationshipServer(relationshipService, l))
+	grpcServer.Run()
+	l.Info(fmt.Sprintf("🚀 grpc server successfully started: %s", cfg.GRPC.Port))
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)
@@ -122,14 +135,21 @@ func Run(cfg *config.Config) {
 
 	select {
 	case s := <-interrupt:
-		l.Info("permify - Run - signal: " + s.String())
+		l.Info(s.String())
 	case err = <-httpServer.Notify():
-		l.Error(fmt.Errorf("permify - Run - httpServer.Notify: %w", err))
+		l.Error(err.Error())
+	case err = <-grpcServer.Notify():
+		l.Error(err.Error())
 	}
 
 	// Shutdown
 	err = httpServer.Shutdown()
 	if err != nil {
-		l.Error(fmt.Errorf("permify - Run - httpServer.Shutdown: %w", err))
+		l.Error(err.Error())
+	}
+
+	err = grpcServer.Shutdown()
+	if err != nil {
+		l.Error(err.Error())
 	}
 }

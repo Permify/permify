@@ -4,7 +4,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/net/context"
 
-	"github.com/Permify/permify/internal/repositories/entities"
+	`github.com/Permify/permify/internal/repositories`
 	"github.com/Permify/permify/pkg/errors"
 )
 
@@ -18,14 +18,14 @@ func (_m *EntityConfigRepository) Migrate() errors.Error {
 }
 
 // All -
-func (_m *EntityConfigRepository) All(ctx context.Context, version string) (configs entities.EntityConfigs, err errors.Error) {
+func (_m *EntityConfigRepository) All(ctx context.Context, version string) (configs []repositories.EntityConfig, err errors.Error) {
 	ret := _m.Called(version)
 
-	var r0 []entities.EntityConfig
-	if rf, ok := ret.Get(0).(func(context.Context, string) []entities.EntityConfig); ok {
+	var r0 []repositories.EntityConfig
+	if rf, ok := ret.Get(0).(func(context.Context, string) []repositories.EntityConfig); ok {
 		r0 = rf(ctx, version)
 	} else {
-		r0 = ret.Get(0).([]entities.EntityConfig)
+		r0 = ret.Get(0).([]repositories.EntityConfig)
 	}
 
 	var r1 errors.Error
@@ -43,14 +43,14 @@ func (_m *EntityConfigRepository) All(ctx context.Context, version string) (conf
 }
 
 // Replace -
-func (_m *EntityConfigRepository) Read(ctx context.Context, entityName string, version string) (entities.EntityConfig, errors.Error) {
+func (_m *EntityConfigRepository) Read(ctx context.Context, entityName string, version string) (repositories.EntityConfig, errors.Error) {
 	ret := _m.Called(entityName, version)
 
-	var r0 entities.EntityConfig
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) entities.EntityConfig); ok {
+	var r0 repositories.EntityConfig
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) repositories.EntityConfig); ok {
 		r0 = rf(ctx, entityName, version)
 	} else {
-		r0 = ret.Get(0).(entities.EntityConfig)
+		r0 = ret.Get(0).(repositories.EntityConfig)
 	}
 
 	var r1 errors.Error
@@ -68,11 +68,11 @@ func (_m *EntityConfigRepository) Read(ctx context.Context, entityName string, v
 }
 
 // Write -
-func (_m *EntityConfigRepository) Write(ctx context.Context, configs entities.EntityConfigs, version string) (err errors.Error) {
+func (_m *EntityConfigRepository) Write(ctx context.Context, configs []repositories.EntityConfig, version string) (err errors.Error) {
 	ret := _m.Called(configs, version)
 
 	var r0 errors.Error
-	if rf, ok := ret.Get(1).(func(context.Context, entities.EntityConfigs, string) errors.Error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, []repositories.EntityConfig, string) errors.Error); ok {
 		r0 = rf(ctx, configs, version)
 	} else {
 		if e, ok := ret.Get(1).(errors.Error); ok {

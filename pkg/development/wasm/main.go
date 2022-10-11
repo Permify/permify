@@ -14,6 +14,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/graph"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -71,7 +72,7 @@ func writeSchema() js.Func {
 // writeTuple -
 func writeTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		t := &tuple.Tuple{}
+		t := &base.Tuple{}
 		mErr := json.Unmarshal([]byte(string(args[0].String())), t)
 		if mErr != nil {
 			return js.ValueOf([]interface{}{mErr.Error()})
@@ -88,7 +89,7 @@ func writeTuple() js.Func {
 // deleteTuple -
 func deleteTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		t := &tuple.Tuple{}
+		t := &base.Tuple{}
 		mErr := json.Unmarshal([]byte(string(args[0].String())), t)
 		if mErr != nil {
 			return js.ValueOf([]interface{}{mErr.Error()})
@@ -127,7 +128,7 @@ func readTuple() js.Func {
 		if mErr != nil {
 			return js.ValueOf([]interface{}{false, mErr.Error()})
 		}
-		var tuples []tuple.Tuple
+		var tuples tuple.ITupleCollection
 		var err errors.Error
 		tuples, err = development.ReadTuple(context.Background(), dev.R, *params)
 		if err != nil {

@@ -9,12 +9,13 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
 
-	"github.com/Permify/permify/internal/repositories/entities"
-	"github.com/Permify/permify/internal/repositories/filters"
+	`github.com/Permify/permify/internal/repositories`
 	"github.com/Permify/permify/internal/repositories/postgres/migrations"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/errors"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // RelationTupleRepository -.
@@ -67,12 +68,12 @@ func (r *RelationTupleRepository) Migrate() errors.Error {
 }
 
 // ReverseQueryTuples -
-func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (entities.RelationTuples, errors.Error) {
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuple.ITupleIterator, errors.Error) {
 	var err error
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": subjectIDs, "userset_relation": subjectRelation}).
+		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From("relation_tuple").Where(squirrel.Eq{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": subjectIDs, "userset_relation": subjectRelation}).
 		ToSql()
 	if err != nil {
 		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
@@ -85,27 +86,27 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 	}
 	defer rows.Close()
 
-	ent := make([]entities.RelationTuple, 0, _defaultEntityCap)
+	collection := tuple.NewTupleCollection()
 
 	for rows.Next() {
-		rt := entities.RelationTuple{}
-		err = rows.Scan(&rt.Entity, &rt.ObjectID, &rt.Relation, &rt.UsersetEntity, &rt.UsersetObjectID, &rt.UsersetRelation)
+		rt := repositories.RelationTuple{}
+		err = rows.Scan(&rt.Entity, &rt.EntityID, &rt.Relation, &rt.SubjectEntity, &rt.SubjectID, &rt.SubjectRelation)
 		if err != nil {
 			return nil, errors.DatabaseError.SetMessage(err.Error())
 		}
-		ent = append(ent, rt)
+		collection.Add(rt.ToTuple())
 	}
 
-	return ent, nil
+	return collection.CreateTupleIterator(), nil
 }
 
 // QueryTuples -
-func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, entityID string, relation string) (entities.RelationTuples, errors.Error) {
+func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, entityID string, relation string) (tuple.ITupleIterator, errors.Error) {
 	var err error
 	var sql string
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": entity, "object_id": entityID, "relation": relation}).OrderBy("userset_entity, userset_relation ASC").
+		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From("relation_tuple").Where(squirrel.Eq{"entity": entity, "object_id": entityID, "relation": relation}).OrderBy("userset_entity, userset_relation ASC").
 		ToSql()
 	if err != nil {
 		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
@@ -118,51 +119,51 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 	}
 	defer rows.Close()
 
-	ent := make([]entities.RelationTuple, 0, _defaultEntityCap)
+	collection := tuple.NewTupleCollection()
 
 	for rows.Next() {
-		rt := entities.RelationTuple{}
-		err = rows.Scan(&rt.Entity, &rt.ObjectID, &rt.Relation, &rt.UsersetEntity, &rt.UsersetObjectID, &rt.UsersetRelation)
+		rt := repositories.RelationTuple{}
+		err = rows.Scan(&rt.Entity, &rt.EntityID, &rt.Relation, &rt.SubjectEntity, &rt.SubjectID, &rt.SubjectRelation)
 		if err != nil {
 			return nil, errors.DatabaseError.SetMessage(err.Error())
 		}
-		ent = append(ent, rt)
+		collection.Add(rt.ToTuple())
 	}
 
-	return ent, nil
+	return collection.CreateTupleIterator(), nil
 }
 
 // Read -.
-func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.RelationTupleFilter) (entities.RelationTuples, errors.Error) {
+func (r *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFilter) (tuple.ITupleCollection, errors.Error) {
 	var err error
 	var sql string
 
 	eq := squirrel.Eq{}
 	eq["entity"] = filter.Entity.Type
 
-	if filter.Entity.ID != "" {
-		eq["object_id"] = filter.Entity.ID
+	if filter.GetEntity().GetId() != "" {
+		eq["object_id"] = filter.GetEntity().GetId()
 	}
 
-	if filter.Relation != "" {
-		eq["relation"] = filter.Relation
+	if filter.GetRelation() != "" {
+		eq["relation"] = filter.GetRelation()
 	}
 
-	if filter.Subject.Type != "" {
-		eq["userset_entity"] = filter.Subject.Type
+	if filter.GetSubject().GetType() != "" {
+		eq["userset_entity"] = filter.GetSubject().GetType()
 	}
 
-	if filter.Subject.ID != "" {
-		eq["userset_object_id"] = filter.Subject.ID
+	if filter.GetSubject().GetId() != "" {
+		eq["userset_object_id"] = filter.GetSubject().GetId()
 	}
 
-	if filter.Subject.Relation != "" {
-		eq["userset_relation"] = filter.Subject.Relation
+	if filter.GetSubject().GetRelation() != "" {
+		eq["userset_relation"] = filter.GetSubject().GetRelation()
 	}
 
 	var args []interface{}
 	sql, args, err = r.Database.Builder.
-		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation, commit_time").From(entities.RelationTuple{}.Table()).Where(eq).OrderBy("userset_entity, userset_relation ASC").
+		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation, commit_time").From("relation_tuple").Where(eq).OrderBy("userset_entity, userset_relation ASC").
 		ToSql()
 	if err != nil {
 		return nil, errors.DatabaseError.SetSubKind(database.ErrBuilder)
@@ -175,36 +176,35 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter filters.Relat
 	}
 	defer rows.Close()
 
-	ent := make([]entities.RelationTuple, 0, _defaultEntityCap)
+	collection := tuple.NewTupleCollection()
 
 	for rows.Next() {
-		e := entities.RelationTuple{}
-
-		err = rows.Scan(&e.Entity, &e.ObjectID, &e.Relation, &e.UsersetEntity, &e.UsersetObjectID, &e.UsersetRelation, &e.CommitTime)
+		rt := repositories.RelationTuple{}
+		err = rows.Scan(&rt.Entity, &rt.EntityID, &rt.Relation, &rt.SubjectEntity, &rt.SubjectID, &rt.SubjectRelation)
 		if err != nil {
-			return ent, errors.DatabaseError.SetSubKind(database.ErrScan)
+			return nil, errors.DatabaseError.SetMessage(err.Error())
 		}
-
-		ent = append(ent, e)
+		collection.Add(rt.ToTuple())
 	}
 
-	return ent, nil
+	return collection, nil
 }
 
 // Write -.
-func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.RelationTuples) errors.Error {
+func (r *RelationTupleRepository) Write(ctx context.Context, tuples tuple.ITupleIterator) errors.Error {
 	var err error
 
-	if len(tuples) < 1 {
+	if !tuples.HasNext() {
 		return nil
 	}
 
 	sql := r.Database.Builder.
-		Insert(entities.RelationTuple{}.Table()).
+		Insert("relation_tuple").
 		Columns("entity, object_id, relation, userset_entity, userset_object_id, userset_relation")
 
-	for _, entity := range tuples {
-		sql = sql.Values(entity.Entity, entity.ObjectID, entity.Relation, entity.UsersetEntity, entity.UsersetObjectID, entity.UsersetRelation)
+	for tuples.HasNext() {
+		t := tuples.GetNext()
+		sql = sql.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation())
 	}
 
 	var query string
@@ -232,15 +232,16 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples entities.Rel
 }
 
 // Delete -.
-func (r *RelationTupleRepository) Delete(ctx context.Context, tuples entities.RelationTuples) errors.Error {
+func (r *RelationTupleRepository) Delete(ctx context.Context, tuples tuple.ITupleIterator) errors.Error {
 	tx, err := r.Database.Pool.Begin(ctx)
 	if err != nil {
 		return errors.DatabaseError.SetMessage(err.Error())
 	}
 	batch := &pgx.Batch{}
-	for _, tuple := range tuples {
+	for tuples.HasNext() {
+		t := tuples.GetNext()
 		sql, args, err := r.Database.Builder.
-			Delete(entities.RelationTuple{}.Table()).Where(squirrel.Eq{"entity": tuple.Entity, "object_id": tuple.ObjectID, "relation": tuple.Relation, "userset_entity": tuple.UsersetEntity, "userset_object_id": tuple.UsersetObjectID, "userset_relation": tuple.UsersetRelation}).
+			Delete("relation_tuple").Where(squirrel.Eq{"entity": t.GetEntity().GetType(), "object_id": t.GetEntity().GetId(), "relation": t.GetRelation(), "userset_entity": t.GetSubject().GetType(), "userset_object_id": t.GetSubject().GetId(), "userset_relation": t.GetSubject().GetRelation()}).
 			ToSql()
 		if err != nil {
 			return errors.DatabaseError.SetSubKind(database.ErrBuilder)
