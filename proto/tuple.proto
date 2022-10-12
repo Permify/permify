@@ -105,7 +105,7 @@ message SubjectFilter {
   }];
 }
 
-// Expand
+// ExpandTreeNode
 message ExpandTreeNode {
   // Operation
   enum Operation {
@@ -117,24 +117,22 @@ message ExpandTreeNode {
 
   Operation operation = 1;
 
-  repeated Expand nodes = 2;
+  repeated Expand children = 2;
 }
 
-// ExpandTreeNode
+// Expand
 message Expand {
-  EntityAndRelation expanded = 1;
+  EntityAndRelation target = 1;
 
-  oneof node_type {
+  oneof node {
     ExpandTreeNode expand = 2;
-    Subjects subjects = 3;
+    Subjects leaf = 3;
   }
 }
 
 // Subjects
 message Subjects {
-
   bool exclusion = 1;
-
   repeated Subject subjects = 2;
 }
 

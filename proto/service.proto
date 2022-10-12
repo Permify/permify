@@ -3,6 +3,7 @@ syntax = "proto3";
 option go_package = "pkg/pb/base/v1";
 
 import "tuple.proto";
+import "schema.proto";
 import "validate/validate.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/wrappers.proto";
@@ -38,7 +39,7 @@ message CheckRequest {
 // CheckResponse
 message CheckResponse {
   bool can = 1;
-  repeated google.protobuf.Any decisions = 2;
+  map<string, google.protobuf.Any> decisions = 2;
   int32 remaining_depth = 3;
 }
 
@@ -59,7 +60,7 @@ message ExpandRequest {
 
 // ExpandResponse
 message ExpandResponse {
-  Expand Tree = 1;
+  Expand tree = 1;
 }
 
 // LOOKUP QUERY
@@ -119,7 +120,7 @@ message SchemaReadRequest {
 
 // SchemaReadRequest
 message SchemaReadResponse {
-  // Entities map[string]schema.Entity `json:"entities"`
+   Schema schema = 1;
 }
 
 //LOOKUP
