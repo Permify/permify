@@ -318,5 +318,5 @@ func (pe *PrefixExpression) Type() string {
 
 // GetValue -
 func (pe *PrefixExpression) GetValue() string {
-	return "prefix"
+	return pe.Value
 }

@@ -72,9 +72,9 @@ func GetIdentifier(definition *base.EntityDefinition) string {
 	return "id"
 }
 
-// Type -
-func Type(definition *base.RelationDefinition) string {
-	for _, typ := range definition.Types {
+// GetType -
+func GetType(definition *base.RelationDefinition) string {
+	for _, typ := range definition.GetTypes() {
 		if !strings.Contains(typ.GetName(), "#") {
 			return typ.GetName()
 		}
@@ -183,7 +183,7 @@ func buildActionGraph(entity *base.EntityDefinition, from *graph.Node, children 
 				}
 				g.AddEdge(from, &graph.Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:relation:%s", Type(re), v[1]),
+					ID:    fmt.Sprintf("entity:%s:relation:%s", GetType(re), v[1]),
 					Label: v[1],
 				}, leaf.GetExclusion())
 				break

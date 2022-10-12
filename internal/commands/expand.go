@@ -134,9 +134,8 @@ func (command *ExpandCommand) expand(ctx context.Context, entityAndRelation *bas
 
 		for iterator.HasNext() {
 			subject := iterator.GetNext()
-			if tuple.IsSubjectUser(subject) {
-				subjects.Subjects = append(subjects.Subjects, subject)
-			} else {
+			subjects.Subjects = append(subjects.Subjects, subject)
+			if !tuple.IsSubjectUser(subject) {
 				expandFunctions = append(expandFunctions, command.expand(ctx, &base.EntityAndRelation{
 					Entity: &base.Entity{
 						Type: subject.GetType(),
@@ -154,10 +153,10 @@ func (command *ExpandCommand) expand(ctx context.Context, entityAndRelation *bas
 
 		if len(expandFunctions) > 0 {
 			expandChan <- expandUnion(ctx, expandFunctions, node)
-		} else {
-			expandChan <- node
+			return
 		}
 
+		expandChan <- node
 		return
 	}
 }

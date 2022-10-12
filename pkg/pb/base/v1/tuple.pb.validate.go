@@ -807,13 +807,13 @@ func (m *ExpandTreeNode) Validate() error {
 
 	// no validation rules for Operation
 
-	for idx, item := range m.GetNodes() {
+	for idx, item := range m.GetChildren() {
 		_, _ = idx, item
 
 		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ExpandTreeNodeValidationError{
-					field:  fmt.Sprintf("Nodes[%v]", idx),
+					field:  fmt.Sprintf("Children[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -886,17 +886,17 @@ func (m *Expand) Validate() error {
 		return nil
 	}
 
-	if v, ok := interface{}(m.GetExpanded()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetTarget()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ExpandValidationError{
-				field:  "Expanded",
+				field:  "Target",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	switch m.NodeType.(type) {
+	switch m.Node.(type) {
 
 	case *Expand_Expand:
 
@@ -910,12 +910,12 @@ func (m *Expand) Validate() error {
 			}
 		}
 
-	case *Expand_Subjects:
+	case *Expand_Leaf:
 
-		if v, ok := interface{}(m.GetSubjects()).(interface{ Validate() error }); ok {
+		if v, ok := interface{}(m.GetLeaf()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ExpandValidationError{
-					field:  "Subjects",
+					field:  "Leaf",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

@@ -171,13 +171,15 @@ func (m *CheckResponse) Validate() error {
 
 	// no validation rules for Can
 
-	for idx, item := range m.GetDecisions() {
-		_, _ = idx, item
+	for key, val := range m.GetDecisions() {
+		_ = val
 
-		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+		// no validation rules for Decisions[key]
+
+		if v, ok := interface{}(val).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return CheckResponseValidationError{
-					field:  fmt.Sprintf("Decisions[%v]", idx),
+					field:  fmt.Sprintf("Decisions[%v]", key),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -824,6 +826,16 @@ var _ interface {
 func (m *SchemaReadResponse) Validate() error {
 	if m == nil {
 		return nil
+	}
+
+	if v, ok := interface{}(m.GetSchema()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SchemaReadResponseValidationError{
+				field:  "Schema",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	return nil
