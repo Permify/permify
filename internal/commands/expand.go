@@ -15,7 +15,7 @@ import (
 type ExpandFunction func(ctx context.Context, expandChan chan<- *base.Expand)
 
 // ExpandCombiner .
-type ExpandCombiner func(ctx context.Context, functions []ExpandFunction) *base.Expand
+type ExpandCombiner func(ctx context.Context, functions []ExpandFunction, expand ...*base.Expand) *base.Expand
 
 // ExpandCommand -
 type ExpandCommand struct {
@@ -61,7 +61,7 @@ func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child *base
 	case *base.Child_Leaf:
 		fn = command.expandLeaf(ctx, q, op.Leaf)
 	}
-	result := expandRoot(ctx, []ExpandFunction{fn})
+	result := expandRoot(ctx, fn)
 	return result, nil
 }
 
@@ -126,10 +126,6 @@ func (command *ExpandCommand) expand(ctx context.Context, entityAndRelation *bas
 			return
 		}
 
-		var node = &base.Expand{
-			Expanded: entityAndRelation,
-		}
-
 		var subjects = &base.Subjects{
 			Exclusion: exclusion,
 		}
@@ -139,28 +135,29 @@ func (command *ExpandCommand) expand(ctx context.Context, entityAndRelation *bas
 		for iterator.HasNext() {
 			subject := iterator.GetNext()
 			if tuple.IsSubjectUser(subject) {
-				subjects.Subjects = append(subjects.Subjects, &base.Subject{
-					Type: tuple.USER,
-					Id:   subject.GetId(),
-				})
+				subjects.Subjects = append(subjects.Subjects, subject)
 			} else {
 				expandFunctions = append(expandFunctions, command.expand(ctx, &base.EntityAndRelation{
 					Entity: &base.Entity{
-						Id:   subject.GetId(),
 						Type: subject.GetType(),
+						Id:   subject.GetId(),
 					},
 					Relation: subject.GetRelation(),
 				}, q, exclusion))
 			}
 		}
 
-		node.NodeType = &base.Expand_Subjects{Subjects: subjects}
+		var node = &base.Expand{
+			Target: entityAndRelation,
+			Node:   &base.Expand_Leaf{Leaf: subjects},
+		}
 
-		//if len(expandFunctions) > 0 {
-		//	expandChan <- expandUnion(ctx, entityAndRelation, expandFunctions)
-		//}
+		if len(expandFunctions) > 0 {
+			expandChan <- expandUnion(ctx, expandFunctions, node)
+		} else {
+			expandChan <- node
+		}
 
-		expandChan <- node
 		return
 	}
 }
@@ -170,9 +167,8 @@ func expandOperation(
 	ctx context.Context,
 	functions []ExpandFunction,
 	op base.ExpandTreeNode_Operation,
+	node ...*base.Expand,
 ) *base.Expand {
-	nodes := make([]*base.Expand, 0, len(functions))
-
 	c, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -184,36 +180,49 @@ func expandOperation(
 		go fn(c, en)
 	}
 
+	children := make([]*base.Expand, 0, len(functions)+len(node))
+
+	if len(node) > 0 {
+		children = append(children, node...)
+	}
+
 	for _, resultChan := range result {
 		select {
-		case res := <-resultChan:
-			nodes = append(nodes, res)
+		case child := <-resultChan:
+			children = append(children, child)
 		case <-ctx.Done():
 			return nil
 		}
 	}
 
 	return &base.Expand{
-		NodeType: &base.Expand_Expand{Expand: &base.ExpandTreeNode{
+		Node: &base.Expand_Expand{Expand: &base.ExpandTreeNode{
 			Operation: op,
-			Nodes:     nodes,
+			Children:  children,
 		}},
 	}
 }
 
-// expandUnion -
-func expandRoot(ctx context.Context, functions []ExpandFunction) *base.Expand {
-	return expandOperation(ctx, functions, base.ExpandTreeNode_ROOT)
+// expandRoot -
+func expandRoot(ctx context.Context, fn ExpandFunction) *base.Expand {
+	resultChan := make(chan *base.Expand, 1)
+	go fn(ctx, resultChan)
+	select {
+	case result := <-resultChan:
+		return result
+	case <-ctx.Done():
+		return nil
+	}
 }
 
 // expandUnion -
-func expandUnion(ctx context.Context, functions []ExpandFunction) *base.Expand {
-	return expandOperation(ctx, functions, base.ExpandTreeNode_UNION)
+func expandUnion(ctx context.Context, functions []ExpandFunction, expand ...*base.Expand) *base.Expand {
+	return expandOperation(ctx, functions, base.ExpandTreeNode_UNION, expand...)
 }
 
 // expandIntersection -
-func expandIntersection(ctx context.Context, functions []ExpandFunction) *base.Expand {
-	return expandOperation(ctx, functions, base.ExpandTreeNode_INTERSECTION)
+func expandIntersection(ctx context.Context, functions []ExpandFunction, expand ...*base.Expand) *base.Expand {
+	return expandOperation(ctx, functions, base.ExpandTreeNode_INTERSECTION, expand...)
 }
 
 // expandFail -
