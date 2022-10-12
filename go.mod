@@ -9,9 +9,8 @@ require (
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/ristretto v0.1.0
-	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/envoyproxy/protoc-gen-validate v0.6.13
-	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0
 	github.com/hashicorp/go-memdb v1.3.3
 	github.com/ilyakaznacheev/cleanenv v1.2.6
 	github.com/jackc/pgconn v1.10.1
@@ -37,6 +36,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.9.0
 	golang.org/x/net v0.0.0-20221004154528-8021a29435af
 	google.golang.org/grpc v1.46.2
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -46,11 +46,12 @@ require (
 	github.com/Eun/go-doppelgangerreader v0.0.0-20190911075941-30f1527f16b2 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
+	github.com/doug-martin/goqu/v9 v9.18.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -63,8 +64,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/gookit/color v1.4.2 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/itchyny/gojq v0.12.5 // indirect

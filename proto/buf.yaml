@@ -1,0 +1,10 @@
+version: v1
+name: buf.build/permify/api
+deps:
+  - buf.build/envoyproxy/protoc-gen-validate
+  - buf.build/grpc-ecosystem/grpc-gateway
+  - buf.build/googleapis/googleapis
+breaking:
+  ignore_unstable_packages: true
+lint:
+  allow_comment_ignores: true
