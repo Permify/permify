@@ -7,6 +7,6 @@ import (
 // Database -
 type Database interface {
 	IsReady(ctx context.Context) (bool, error)
-	GetConnectionType() string
+	GetEngineType() string
 	Close()
 }

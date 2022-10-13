@@ -1,21 +1,22 @@
 package commands
 
 import (
-	`context`
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/repositories/mocks`
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/dsl/translator`
-	`github.com/Permify/permify/pkg/logger`
-	base `github.com/Permify/permify/pkg/pb/base/v1`
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/dsl/translator"
+	"github.com/Permify/permify/pkg/logger"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("expand-command", func() {
 	var expandCommand *ExpandCommand
-	var l = logger.New("debug")
+	l := logger.New("debug")
 
 	// DRIVE SAMPLE
 	driveSchema := `
@@ -47,9 +48,7 @@ entity doc {
 `
 
 	Context("Drive Sample: Expand", func() {
-
 		It("Drive Sample: Case 1", func() {
-
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
 			getDocOwners := []*base.Tuple{
@@ -168,69 +167,71 @@ entity doc {
 					Expand: &base.ExpandTreeNode{
 						Operation: base.ExpandTreeNode_UNION,
 						Children: []*base.Expand{
-							&base.Expand{Node: &base.Expand_Expand{
-								Expand: &base.ExpandTreeNode{
-									Operation: base.ExpandTreeNode_UNION,
-									Children: []*base.Expand{
-										&base.Expand{
-											Target: &base.EntityAndRelation{
-												Entity: &base.Entity{
-													Type: "doc",
-													Id:   "1",
-												},
-												Relation: "owner",
-											}, Node: &base.Expand_Leaf{
-												Leaf: &base.Subjects{
-													Subjects: []*base.Subject{
-														&base.Subject{
-															Type: tuple.USER,
-															Id:   "2",
+							{
+								Node: &base.Expand_Expand{
+									Expand: &base.ExpandTreeNode{
+										Operation: base.ExpandTreeNode_UNION,
+										Children: []*base.Expand{
+											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "doc",
+														Id:   "1",
+													},
+													Relation: "owner",
+												}, Node: &base.Expand_Leaf{
+													Leaf: &base.Subjects{
+														Subjects: []*base.Subject{
+															{
+																Type: tuple.USER,
+																Id:   "2",
+															},
 														},
 													},
 												},
 											},
-										},
-										&base.Expand{
-											Node: &base.Expand_Expand{
-												Expand: &base.ExpandTreeNode{
-													Operation: base.ExpandTreeNode_UNION,
-													Children: []*base.Expand{
-														&base.Expand{
-															Target: &base.EntityAndRelation{
-																Entity: &base.Entity{
-																	Type: "doc",
-																	Id:   "1",
-																},
-																Relation: "parent.collaborator",
-															}, Node: &base.Expand_Leaf{
-																Leaf: &base.Subjects{
-																	Subjects: []*base.Subject{
-																		&base.Subject{
-																			Type:     "folder",
-																			Id:       "1",
-																			Relation: "collaborator",
+											{
+												Node: &base.Expand_Expand{
+													Expand: &base.ExpandTreeNode{
+														Operation: base.ExpandTreeNode_UNION,
+														Children: []*base.Expand{
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "parent.collaborator",
+																}, Node: &base.Expand_Leaf{
+																	Leaf: &base.Subjects{
+																		Subjects: []*base.Subject{
+																			{
+																				Type:     "folder",
+																				Id:       "1",
+																				Relation: "collaborator",
+																			},
 																		},
 																	},
 																},
 															},
-														},
-														&base.Expand{
-															Target: &base.EntityAndRelation{
-																Entity: &base.Entity{
-																	Type: "folder",
-																	Id:   "1",
-																},
-																Relation: "collaborator",
-															}, Node: &base.Expand_Leaf{
-																Leaf: &base.Subjects{
-																	Subjects: []*base.Subject{
-																		&base.Subject{
-																			Type: tuple.USER,
-																			Id:   "1",
-																		},
-																		&base.Subject{
-																			Type: tuple.USER,
-																			Id:   "3",
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "folder",
+																		Id:   "1",
+																	},
+																	Relation: "collaborator",
+																}, Node: &base.Expand_Leaf{
+																	Leaf: &base.Subjects{
+																		Subjects: []*base.Subject{
+																			{
+																				Type: tuple.USER,
+																				Id:   "1",
+																			},
+																			{
+																				Type: tuple.USER,
+																				Id:   "3",
+																			},
 																		},
 																	},
 																},
@@ -242,12 +243,11 @@ entity doc {
 										},
 									},
 								},
-							},
-							}, &base.Expand{Node: &base.Expand_Expand{
+							}, {Node: &base.Expand_Expand{
 								Expand: &base.ExpandTreeNode{
 									Operation: base.ExpandTreeNode_UNION,
 									Children: []*base.Expand{
-										&base.Expand{
+										{
 											Target: &base.EntityAndRelation{
 												Entity: &base.Entity{
 													Type: "doc",
@@ -257,7 +257,7 @@ entity doc {
 											}, Node: &base.Expand_Leaf{
 												Leaf: &base.Subjects{
 													Subjects: []*base.Subject{
-														&base.Subject{
+														{
 															Type:     "organization",
 															Id:       "1",
 															Relation: "admin",
@@ -266,7 +266,7 @@ entity doc {
 												},
 											},
 										},
-										&base.Expand{
+										{
 											Target: &base.EntityAndRelation{
 												Entity: &base.Entity{
 													Type: "organization",
@@ -276,7 +276,7 @@ entity doc {
 											}, Node: &base.Expand_Leaf{
 												Leaf: &base.Subjects{
 													Subjects: []*base.Subject{
-														&base.Subject{
+														{
 															Type:     tuple.USER,
 															Id:       "1",
 															Relation: "",

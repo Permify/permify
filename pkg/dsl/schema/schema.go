@@ -8,7 +8,8 @@ import (
 
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/graph"
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // GetEntityByName -
@@ -59,7 +60,7 @@ func GetRelation(entityDefinition *base.EntityDefinition, name string) (relation
 // GetTable -
 func GetTable(definition *base.EntityDefinition) string {
 	if en, ok := definition.GetOption()["table"]; ok {
-		return en.String()
+		return string(en.Value)
 	}
 	return definition.GetName()
 }
@@ -67,7 +68,7 @@ func GetTable(definition *base.EntityDefinition) string {
 // GetIdentifier -
 func GetIdentifier(definition *base.EntityDefinition) string {
 	if en, ok := definition.GetOption()["identifier"]; ok {
-		return en.String()
+		return string(en.Value)
 	}
 	return "id"
 }
@@ -79,13 +80,13 @@ func GetType(definition *base.RelationDefinition) string {
 			return typ.GetName()
 		}
 	}
-	return ""
+	return tuple.USER
 }
 
 // GetColumn -
 func GetColumn(definition *base.RelationDefinition) (string, bool) {
 	if col, ok := definition.GetOption()["column"]; ok {
-		return col.String(), true
+		return string(col.Value), true
 	}
 	return "", false
 }

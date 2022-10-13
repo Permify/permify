@@ -24,20 +24,7 @@ type Server struct {
 
 // New -
 func New(opts ...Option) *Server {
-	sr := grpc.NewServer(
-		//grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
-		//	grpc_ctxtags.StreamServerInterceptor(),
-		//	grpc_opentracing.StreamServerInterceptor(),
-		//	grpc_auth.StreamServerInterceptor(myAuthFunction),
-		//	grpc_recovery.StreamServerInterceptor(),
-		//)),
-		//grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-		//	grpc_ctxtags.UnaryServerInterceptor(),
-		//	grpc_opentracing.UnaryServerInterceptor(),
-		//	grpc_auth.UnaryServerInterceptor(myAuthFunction),
-		//	grpc_recovery.UnaryServerInterceptor(),
-		//)),
-	)
+	sr := grpc.NewServer()
 
 	s := &Server{
 		Server:          sr,

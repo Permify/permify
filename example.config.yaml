@@ -1,27 +1,24 @@
-app:
-  name: 'permify'
-
-http:
-  port: 3476
-
-grpc:
-  port: 3478
+server:
+  http:
+    enabled: true
+    port: 3476
+  grpc:
+    port: 3478
 
 logger:
-  log_level: 'debug'
+  level: 'debug'
 
 authn:
-  disabled: true
+  enabled: false
   keys: []
 
 tracer:
   exporter: 'zipkin'
   endpoint: 'http://localhost:9411/api/v2/spans'
-  disabled: false
+  enabled: true
 
 database:
-  write:
-    connection: 'postgres'
-    database: 'db_name'
-    uri: 'postgres://user:password@host:5432'
-    pool_max: 20
+  engine: 'postgres'
+  database: 'db_name'
+  uri: 'postgres://user:password@host:5432'
+  pool_max: 20

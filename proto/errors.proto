@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "pkg/pb/base/v1";
+
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+enum ErrorCode {
+  no_error = 0;
+
+  // authn
+  missing_bearer_token = 1001;
+  unauthenticated = 1002;
+
+  // validation
+  validation_error = 2000;
+  schema_not_found = 2001;
+  undefined_child_type = 2002;
+  undefined_child_kind = 2003;
+  action_can_not_found = 2004;
+  entity_type_can_not_found = 2005;
+}
+
+// ErrorResponse
+message ErrorResponse {
+  ErrorCode code = 1;
+  string message = 2;
+}

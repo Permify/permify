@@ -1,4 +1,4 @@
-package v1
+package servers
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -51,7 +52,7 @@ func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipR
 		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
-			return nil, status.Error(codes.NotFound, err.Error())
+			return nil, status.Error(database.GetKindToGRPCStatus(err.SubKind()), err.Error())
 		case errors.Validation:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		case errors.Service:
@@ -86,7 +87,7 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
-			return nil, status.Error(codes.NotFound, err.Error())
+			return nil, status.Error(database.GetKindToGRPCStatus(err.SubKind()), err.Error())
 		case errors.Validation:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		case errors.Service:
@@ -121,7 +122,7 @@ func (r *RelationshipServer) Delete(ctx context.Context, request *v1.Relationshi
 		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
-			return nil, status.Error(codes.NotFound, err.Error())
+			return nil, status.Error(database.GetKindToGRPCStatus(err.SubKind()), err.Error())
 		case errors.Validation:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		case errors.Service:

@@ -1,4 +1,4 @@
-package v1
+package servers
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/pb/base/v1"
@@ -55,7 +56,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.CheckRequest) 
 		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
-			return nil, status.Error(codes.NotFound, err.Error())
+			return nil, status.Error(database.GetKindToGRPCStatus(err.SubKind()), err.Error())
 		case errors.Validation:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		case errors.Service:
@@ -67,6 +68,8 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.CheckRequest) 
 
 	return &v1.CheckResponse{
 		Can: response.Can,
+		// Decisions:      response.Visits,
+		RemainingDepth: response.RemainingDepth,
 	}, nil
 }
 
@@ -89,7 +92,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.ExpandRequest
 		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
-			return nil, status.Error(codes.NotFound, err.Error())
+			return nil, status.Error(database.GetKindToGRPCStatus(err.SubKind()), err.Error())
 		case errors.Validation:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		case errors.Service:
@@ -121,7 +124,7 @@ func (r *PermissionServer) LookupQuery(ctx context.Context, request *v1.LookupQu
 		r.l.Error(fmt.Sprintf(err.Error()))
 		switch err.Kind() {
 		case errors.Database:
-			return nil, status.Error(codes.NotFound, err.Error())
+			return nil, status.Error(database.GetKindToGRPCStatus(err.SubKind()), err.Error())
 		case errors.Validation:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		case errors.Service:

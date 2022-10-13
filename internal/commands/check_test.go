@@ -7,10 +7,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/repositories/mocks"
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/dsl/translator`
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/dsl/translator"
 	"github.com/Permify/permify/pkg/logger"
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -170,7 +170,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 2", func() {
-
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
 			getDocOwners := []*base.Tuple{

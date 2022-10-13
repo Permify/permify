@@ -3,12 +3,12 @@ package commands
 import (
 	"context"
 
-	internalErrors `github.com/Permify/permify/internal/errors`
+	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // ExpandFunction -
@@ -115,18 +115,18 @@ func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children 
 }
 
 // expand -
-func (command *ExpandCommand) expand(ctx context.Context, entityAndRelation *base.EntityAndRelation, q *ExpandQuery, exclusion bool) ExpandFunction {
+func (command *ExpandCommand) expand(ctx context.Context, ear *base.EntityAndRelation, q *ExpandQuery, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- *base.Expand) {
 		var err errors.Error
 
 		var iterator tuple.ISubjectIterator
-		iterator, err = getSubjects(ctx, command, entityAndRelation.GetEntity(), entityAndRelation.GetRelation())
+		iterator, err = getSubjects(ctx, command, ear)
 		if err != nil {
 			expandFail(err)
 			return
 		}
 
-		var subjects = &base.Subjects{
+		subjects := &base.Subjects{
 			Exclusion: exclusion,
 		}
 
@@ -146,8 +146,8 @@ func (command *ExpandCommand) expand(ctx context.Context, entityAndRelation *bas
 			}
 		}
 
-		var node = &base.Expand{
-			Target: entityAndRelation,
+		node := &base.Expand{
+			Target: ear,
 			Node:   &base.Expand_Leaf{Leaf: subjects},
 		}
 

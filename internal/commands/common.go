@@ -8,11 +8,11 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-func getSubjects(ctx context.Context, command ICommand, entity *base.Entity, relation string) (iterator tuple.ISubjectIterator, err errors.Error) {
-	r := tuple.SplitRelation(relation)
+func getSubjects(ctx context.Context, command ICommand, ear *base.EntityAndRelation) (iterator tuple.ISubjectIterator, err errors.Error) {
+	r := tuple.SplitRelation(ear.GetRelation())
 
 	var tupleIterator tuple.ITupleIterator
-	tupleIterator, err = command.GetRelationTupleRepository().QueryTuples(ctx, entity.GetType(), entity.GetId(), r[0])
+	tupleIterator, err = command.GetRelationTupleRepository().QueryTuples(ctx, ear.GetEntity().GetType(), ear.GetEntity().GetId(), r[0])
 	if err != nil {
 		return nil, err
 	}

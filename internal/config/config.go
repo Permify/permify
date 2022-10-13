@@ -14,57 +14,61 @@ const (
 type (
 	// Config -.
 	Config struct {
-		HTTP     `yaml:"http"`
-		GRPC     `yaml:"grpc"`
+		Server   `yaml:"server"`
 		Log      `yaml:"logger"`
 		*Authn   `yaml:"authn"`
 		*Tracer  `yaml:"tracer"`
 		Database `yaml:"database"`
 	}
 
-	//// App -.
-	//App struct {
-	//	Name string `env-required:"true" yaml:"name"`
-	//}
+	Server struct {
+		HTTP `yaml:"http"`
+		GRPC `yaml:"grpc"`
+	}
 
 	// HTTP -.
 	HTTP struct {
-		Port string `env-required:"true" yaml:"port"`
+		Enabled            bool       `yaml:"enabled"`
+		Port               string     `env-required:"true" yaml:"port"`
+		TLSConfig          *TLSConfig `yaml:"tls_config"`
+		CORSAllowedOrigins []string   `yaml:"cors_allowed_origins"`
+		CORSAllowedHeaders []string   `yaml:"cors_allowed_headers"`
 	}
 
 	GRPC struct {
-		Port string `env-required:"true" yaml:"port"`
+		Port      string     `env-required:"true" yaml:"port"`
+		TLSConfig *TLSConfig `yaml:"tls_config"`
+	}
+
+	TLSConfig struct {
+		CertPath string `yaml:"cert_path"`
+		KeyPath  string `yaml:"key_path"`
 	}
 
 	// Authn -.
 	Authn struct {
-		Disabled bool     `yaml:"disabled"`
-		Keys     []string `yaml:"keys"`
+		Enabled bool     `yaml:"enabled"`
+		Keys    []string `yaml:"keys"`
 	}
 
 	// Log -.
 	Log struct {
-		Level string `env-required:"true" yaml:"log_level"`
+		Level string `env-required:"true" yaml:"level"`
 	}
 
 	// Tracer -.
 	Tracer struct {
 		Exporter string `yaml:"exporter"`
 		Endpoint string `yaml:"endpoint"`
-		Disabled bool   `yaml:"disabled"`
+		Enabled  bool   `yaml:"enabled"`
 	}
 
 	// Database -.
 	Database struct {
-		Write `env-required:"true" yaml:"write"`
-	}
-
-	// Write -
-	Write struct {
-		Connection string `env-required:"true" yaml:"connection"`
-		PoolMax    int    `yaml:"pool_max"`
-		Database   string `yaml:"database"`
-		URI        string `yaml:"uri"`
+		Engine   string `env-required:"true" yaml:"engine"`
+		PoolMax  int    `yaml:"pool_max"`
+		Database string `yaml:"database"`
+		URI      string `yaml:"uri"`
 	}
 )
 

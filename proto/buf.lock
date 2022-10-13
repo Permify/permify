@@ -6,6 +6,10 @@ deps:
     repository: protoc-gen-validate
     commit: 45685e052c7e406b9fbd441fc7a568a5
   - remote: buf.build
+    owner: gogo
+    repository: protobuf
+    commit: 5461a3dfa9d941da82028ab185dc2a0e
+  - remote: buf.build
     owner: googleapis
     repository: googleapis
     commit: d1263fe26f8e430a967dc22a4d0cad18

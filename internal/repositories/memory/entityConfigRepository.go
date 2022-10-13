@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-memdb"
 	"github.com/jackc/pgx/v4"
 
-	`github.com/Permify/permify/internal/repositories`
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/errors"

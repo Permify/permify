@@ -67,8 +67,8 @@ func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// GetConnectionType -
-func (p *Postgres) GetConnectionType() string {
+// GetEngineType -
+func (p *Postgres) GetEngineType() string {
 	return "postgres"
 }
 

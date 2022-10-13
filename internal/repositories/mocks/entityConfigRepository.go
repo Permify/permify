@@ -4,7 +4,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/net/context"
 
-	`github.com/Permify/permify/internal/repositories`
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/errors"
 )
 

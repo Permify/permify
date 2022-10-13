@@ -1,13 +1,14 @@
 package commands
 
 import (
-	"context"
+	`context`
+
+	`github.com/Permify/permify/pkg/dsl/schema`
+	`github.com/Permify/permify/pkg/dsl/translator`
+	`github.com/Permify/permify/pkg/logger`
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/Permify/permify/internal/repositories/entities"
-	"github.com/Permify/permify/pkg/logger"
 )
 
 var _ = Describe("schema-lookup-command", func() {
@@ -16,24 +17,33 @@ var _ = Describe("schema-lookup-command", func() {
 
 	// DRIVE SAMPLE
 
-	driveConfigs := []entities.EntityConfig{
-		{
-			Entity:           "user",
-			SerializedConfig: []byte("entity user {}"),
-		},
-		{
-			Entity:           "organization",
-			SerializedConfig: []byte("entity organization {\nrelation admin @user\n}"),
-		},
-		{
-			Entity:           "folder",
-			SerializedConfig: []byte("entity folder {\n relation\tparent\t@organization\nrelation\tcreator\t@user\nrelation\tcollaborator\t@user\n action read = collaborator\naction update = collaborator\naction delete = creator or parent.admin\n}"),
-		},
-		{
-			Entity:           "doc",
-			SerializedConfig: []byte("entity doc {\nrelation\tparent\t@organization\nrelation\towner\t@user\n  action read = (owner or parent.collaborator) or parent.admin\naction update = owner and parent.admin\n action delete = owner or parent.admin\n}"),
-		},
-	}
+	driveSchema := `
+entity user {}
+
+entity organization {
+	relation admin @user
+}
+
+entity folder {
+	relation org @organization
+	relation creator @user
+	relation collaborator @user
+
+	action read = collaborator
+	action update = collaborator
+	action delete = creator or org.admin
+}
+
+entity doc {
+	relation org @organization
+	relation parent @folder
+	relation owner @user
+	
+	action read = (owner or parent.collaborator) or org.admin
+	action update = owner and org.admin
+	action delete = owner or org.admin
+}
+`
 
 	Context("Drive Sample: Schema Lookup", func() {
 		It("Drive Sample: Case 1", func() {
@@ -42,10 +52,13 @@ var _ = Describe("schema-lookup-command", func() {
 				Relations: []string{"creator"},
 			}
 
-			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
-			en, _ := sch.GetEntityByName("folder")
+			sch, err := translator.StringToSchema(driveSchema)
+			Expect(err).ShouldNot(HaveOccurred())
 
-			actualResult, err := schemaLookupCommand.Execute(context.Background(), re, en.Actions)
+			en, err := schema.GetEntityByName(sch, "folder")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			actualResult, err := schemaLookupCommand.Execute(context.Background(), re, en.GetActions())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect([]string{"delete"}).Should(Equal(actualResult.ActionNames))
 		})
@@ -53,13 +66,16 @@ var _ = Describe("schema-lookup-command", func() {
 		It("Drive Sample: Case 2", func() {
 			schemaLookupCommand = NewSchemaLookupCommand(l)
 			re := &SchemaLookupQuery{
-				Relations: []string{"owner", "parent.admin"},
+				Relations: []string{"owner", "org.admin"},
 			}
 
-			sch, _ := entities.EntityConfigs(driveConfigs).ToSchema()
-			en, _ := sch.GetEntityByName("doc")
+			sch, err := translator.StringToSchema(driveSchema)
+			Expect(err).ShouldNot(HaveOccurred())
 
-			actualResult, err := schemaLookupCommand.Execute(context.Background(), re, en.Actions)
+			en, err := schema.GetEntityByName(sch, "doc")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			actualResult, err := schemaLookupCommand.Execute(context.Background(), re, en.GetActions())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect([]string{"read", "update", "delete"}).Should(Equal(actualResult.ActionNames))
 		})
@@ -67,30 +83,40 @@ var _ = Describe("schema-lookup-command", func() {
 
 	// GITHUB SAMPLE
 
-	githubConfigs := []entities.EntityConfig{
-		{
-			Entity:           "user",
-			SerializedConfig: []byte("entity user {}"),
-		},
-		{
-			Entity:           "organization",
-			SerializedConfig: []byte("entity organization {\nrelation admin @user\nrelation member @user\naction create_repository = admin or member\naction delete = admin\n}"),
-		},
-		{
-			Entity:           "repository",
-			SerializedConfig: []byte("entity repository {\nrelation parent @organization\n relation owner @user\n  action push   = owner\n    action read   = owner and (parent.admin or parent.member)\n    action delete = parent.member and (parent.admin or owner)\n}"),
-		},
+	githubSchema := `
+	entity user {}
+	
+	entity organization {
+		relation admin @user
+		relation member @user
+	
+		action create_repository = admin or member
+		action delete = admin
 	}
+	
+	entity repository {
+		relation parent @organization
+		relation owner @user
+	
+		action push   = owner
+	    action read   = owner and (parent.admin or parent.member)
+	    action delete = parent.member and (parent.admin or owner)
+	}
+	`
 
 	Context("Github Sample: Schema Lookup", func() {
+
 		It("Github Sample: Case 1", func() {
 			schemaLookupCommand = NewSchemaLookupCommand(l)
 			re := &SchemaLookupQuery{
 				Relations: []string{"admin"},
 			}
 
-			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
-			en, _ := sch.GetEntityByName("organization")
+			sch, err := translator.StringToSchema(githubSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := schemaLookupCommand.Execute(context.Background(), re, en.Actions)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -103,8 +129,11 @@ var _ = Describe("schema-lookup-command", func() {
 				Relations: []string{"parent.admin", "parent.member"},
 			}
 
-			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
-			en, _ := sch.GetEntityByName("repository")
+			sch, err := translator.StringToSchema(githubSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, "repository")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := schemaLookupCommand.Execute(context.Background(), re, en.Actions)
 			Expect(err).ShouldNot(HaveOccurred())

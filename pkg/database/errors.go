@@ -3,6 +3,8 @@ package database
 import (
 	"net/http"
 
+	"google.golang.org/grpc/codes"
+
 	"github.com/Permify/permify/pkg/errors"
 )
 
@@ -39,6 +41,25 @@ var KindToHttpStatus = map[errors.Kind]int{
 // GetKindToHttpStatus -
 func GetKindToHttpStatus(kind errors.Kind) int {
 	status, ok := KindToHttpStatus[kind]
+	if !ok {
+		return http.StatusInternalServerError
+	}
+	return status
+}
+
+// KindToGrpcStatus -
+var KindToGrpcStatus = map[errors.Kind]codes.Code{
+	ErrRecordNotFound:   codes.InvalidArgument,
+	ErrUniqueConstraint: codes.InvalidArgument,
+	ErrBuilder:          codes.Internal,
+	ErrExecution:        codes.Internal,
+	ErrScan:             codes.Internal,
+	ErrMigration:        codes.Internal,
+}
+
+// GetKindToGRPCStatus -
+func GetKindToGRPCStatus(kind errors.Kind) codes.Code {
+	status, ok := KindToGrpcStatus[kind]
 	if !ok {
 		return http.StatusInternalServerError
 	}

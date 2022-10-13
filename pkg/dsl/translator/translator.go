@@ -1,14 +1,15 @@
 package translator
 
 import (
-	`google.golang.org/protobuf/types/known/anypb`
 	"strings"
 
+	"google.golang.org/protobuf/types/known/anypb"
+
 	"github.com/Permify/permify/pkg/dsl/ast"
-	`github.com/Permify/permify/pkg/dsl/parser`
+	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // SchemaTranslator -
@@ -36,7 +37,7 @@ func (t *SchemaTranslator) Translate() (sch *base.Schema) {
 
 // translateToEntity -
 func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) *base.EntityDefinition {
-	var entityDefinition = &base.EntityDefinition{
+	entityDefinition := &base.EntityDefinition{
 		Name:   sc.Name.Literal,
 		Option: map[string]*anypb.Any{},
 	}
@@ -56,7 +57,7 @@ func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) *base.Enti
 	// relations
 	for _, rs := range sc.RelationStatements {
 		relationSt := rs.(*ast.RelationStatement)
-		var relationDefinition = &base.RelationDefinition{
+		relationDefinition := &base.RelationDefinition{
 			Name:   relationSt.Name.Literal,
 			Option: map[string]*anypb.Any{},
 		}
@@ -84,7 +85,7 @@ func (t *SchemaTranslator) translateToEntity(sc *ast.EntityStatement) *base.Enti
 	// actions
 	for _, as := range sc.ActionStatements {
 		st := as.(*ast.ActionStatement)
-		var actionDefinition = &base.ActionDefinition{
+		actionDefinition := &base.ActionDefinition{
 			Name:  st.Name.Literal,
 			Child: parseChild(st.ExpressionStatement.(*ast.ExpressionStatement)),
 		}
@@ -103,8 +104,8 @@ func parseChild(expression *ast.ExpressionStatement) *base.Child {
 func parseChildren(expression ast.Expression) (children *base.Child) {
 	if expression.IsInfix() {
 		exp := expression.(*ast.InfixExpression)
-		var child = &base.Child{}
-		var rewrite = &base.Rewrite{}
+		child := &base.Child{}
+		rewrite := &base.Rewrite{}
 
 		switch exp.Operator {
 		case "or":
@@ -127,10 +128,10 @@ func parseChildren(expression ast.Expression) (children *base.Child) {
 		child.GetRewrite().Children = ch
 		return child
 	} else {
-		var child = &base.Child{}
-		var s = strings.Split(expression.String(), ".")
+		child := &base.Child{}
+		s := strings.Split(expression.String(), ".")
 
-		var leaf = &base.Leaf{}
+		leaf := &base.Leaf{}
 		var exp ast.Expression
 		switch expression.Type() {
 		case "identifier":
@@ -145,11 +146,11 @@ func parseChildren(expression ast.Expression) (children *base.Child) {
 		}
 
 		if len(s) > 1 {
-			var tupleToUserSet = &base.TupleToUserSet{}
+			tupleToUserSet := &base.TupleToUserSet{}
 			tupleToUserSet.Relation = exp.GetValue()
 			leaf.Type = &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet}
 		} else {
-			var computedUserSet = &base.ComputedUserSet{}
+			computedUserSet := &base.ComputedUserSet{}
 			computedUserSet.Relation = exp.GetValue()
 			leaf.Type = &base.Leaf_ComputedUserSet{ComputedUserSet: computedUserSet}
 		}

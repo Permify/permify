@@ -8,51 +8,96 @@ import "validate/validate.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/wrappers.proto";
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 // ** PERMISSION SERVICE **
 
 // Permission
 service PermissionAPI {
-  rpc Check(CheckRequest) returns (CheckResponse) {}
-  rpc Expand(ExpandRequest) returns (ExpandResponse) {}
-  rpc LookupQuery(LookupQueryRequest) returns (LookupQueryResponse) {}
+  rpc Check(CheckRequest) returns (CheckResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions/check"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?"
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.check"
+    };
+  }
+
+  rpc Expand(ExpandRequest) returns (ExpandResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions/expand"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "expand relationships according to schema"
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.expand"
+    };
+  }
+
+  rpc LookupQuery(LookupQueryRequest) returns (LookupQueryResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions/lookup-query"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: ""
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.lookupQuery"
+    };
+  }
 }
 
 // CHECK
 
 // CheckRequest
 message CheckRequest {
-  string schema_version = 1;
+  string schema_version = 1 [json_name = "schema_version"];
 
-  Entity entity = 2 [(validate.rules).message.required = true];
+  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
-  string action = 3 [(validate.rules).string = {
+  string action = 3 [json_name = "action", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  Subject subject = 4 [(validate.rules).message.required = true];
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
 
-  google.protobuf.Int32Value depth = 5 [(validate.rules).int32.gte = 3];
+  google.protobuf.Int32Value depth = 5 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // CheckResponse
 message CheckResponse {
-  bool can = 1;
-  map<string, google.protobuf.Any> decisions = 2;
-  int32 remaining_depth = 3;
+  bool can = 1 [json_name = "can", (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    example: "true"
+  }];
+  map<string, google.protobuf.Any> decisions = 2 [json_name = "decisions"];
+  int32 remaining_depth = 3 [json_name = "remaining_depth"];
 }
 
 // EXPAND
 
 // ExpandRequest
 message ExpandRequest {
-  string schema_version = 1;
+  string schema_version = 1 [json_name = "schema_version"];
 
-  Entity entity = 2 [(validate.rules).message.required = true];
+  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
-  string action = 3 [(validate.rules).string = {
+  string action = 3 [json_name = "action", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
@@ -61,142 +106,224 @@ message ExpandRequest {
 
 // ExpandResponse
 message ExpandResponse {
-  Expand tree = 1;
+  Expand tree = 1 [json_name = "tree"];
 }
 
 // LOOKUP QUERY
 
 // LookupQueryRequest
 message LookupQueryRequest {
-  string schema_version = 1;
+  string schema_version = 1 [json_name = "schema_version"];
 
-  string entity_type = 2 [(validate.rules).string = {
+  string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  string action = 3 [(validate.rules).string = {
+  string action = 3 [json_name = "action", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  Subject subject = 4 [(validate.rules).message.required = true];
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
 }
 
 // LookupQueryResponse
 message LookupQueryResponse {
-  string query = 1;
-  repeated string args = 2;
+  string query = 1 [json_name = "query"];
+  repeated string args = 2 [json_name = "args"];
 }
 
 // ** SCHEMA SERVICE **
 
 // Schema
 service SchemaAPI {
-  rpc Write(SchemaWriteRequest) returns (SchemaWriteResponse) {}
-  rpc Read(SchemaReadRequest) returns (SchemaReadResponse) {}
-  rpc Lookup(SchemaLookupRequest) returns (SchemaLookupResponse) {}
+  rpc Write(SchemaWriteRequest) returns (SchemaWriteResponse) {
+    option (google.api.http) = {
+      post: "/v1/schemas/write"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "write your authorization model"
+      tags: [
+        "Schema"
+      ]
+      operation_id: "schemas.write"
+    };
+  }
+
+  rpc Read(SchemaReadRequest) returns (SchemaReadResponse) {
+    option (google.api.http) = {
+      post: "/v1/schemas/read"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "read your authorization model"
+      tags: [
+        "Schema"
+      ]
+      operation_id: "schemas.read"
+    };
+  }
+
+  rpc Lookup(SchemaLookupRequest) returns (SchemaLookupResponse) {
+    option (google.api.http) = {
+      post: "/v1/schemas/lookup"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "lookup your authorization model"
+      tags: [
+        "Schema"
+      ]
+      operation_id: "schemas.lookup"
+    };
+  }
 }
 
 // WRITE
 
 // SchemaWriteRequest
 message SchemaWriteRequest {
-  string schema = 1 ;
+  string schema = 1 [json_name = "schema"];
 }
 
 // SchemaWriteResponse
 message SchemaWriteResponse {
-  string schema_version = 1;
+  string schema_version = 1 [json_name = "schema_version"];
 }
 
 // READ
 
 // SchemaReadRequest
 message SchemaReadRequest {
-  string schema_version = 1;
+  string schema_version = 1 [json_name = "schema_version"];
 }
 
 // SchemaReadRequest
 message SchemaReadResponse {
-  Schema schema = 1;
+  Schema schema = 1 [json_name = "schema"];
 }
 
 //LOOKUP
 
 // SchemaLookupRequest
 message SchemaLookupRequest {
-  string schema_version = 1;
+  string schema_version = 1 [json_name = "schema_version"];
 
-  string entity_type = 2 [(validate.rules).string = {
+  string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  repeated string relation_names = 3;
+  repeated string relation_names = 3 [json_name = "relation_names"];
 }
 
 // SchemaLookupResponse
 message SchemaLookupResponse {
-  repeated string action_names = 1;
+  repeated string action_names = 1 [json_name = "action_names"];
 }
 
 // ** RELATIONSHIP SERVICE **
 
 // Schema
 service RelationshipAPI {
-  rpc Write(RelationshipWriteRequest) returns (RelationshipWriteResponse) {}
-  rpc Read(RelationshipReadRequest) returns (RelationshipReadResponse) {}
-  rpc Delete(RelationshipDeleteRequest) returns (RelationshipDeleteResponse) {}
+  rpc Write(RelationshipWriteRequest) returns (RelationshipWriteResponse) {
+    option (google.api.http) = {
+      post: "/v1/relationships/write"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "create new relation tuple"
+      tags: [
+        "Relationship"
+      ]
+      operation_id: "relationships.write"
+    };
+  }
+
+  rpc Read(RelationshipReadRequest) returns (RelationshipReadResponse) {
+    option (google.api.http) = {
+      post: "/v1/relationships/read"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "read relation tuple(s)"
+      tags: [
+        "Relationship"
+      ]
+      operation_id: "relationships.read"
+    };
+  }
+
+  rpc Delete(RelationshipDeleteRequest) returns (RelationshipDeleteResponse) {
+    option (google.api.http) = {
+      post: "/v1/relationships/delete"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "delete relation tuple"
+      tags: [
+        "Relationship"
+      ]
+      operation_id: "relationships.delete"
+    };
+  }
 }
 
 // RelationshipWriteRequest
 message RelationshipWriteRequest {
-  string schema_version = 1;
+  string schema_version = 1 [json_name = "schema_version"];
 
-  Entity entity = 2 [(validate.rules).message.required = true];
+  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
-  string relation = 3 [(validate.rules).string = {
+  string relation = 3 [json_name = "relation", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
 
-  Subject subject = 4 [(validate.rules).message.required = true];
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
 }
 
 // RelationshipWriteResponse
 message RelationshipWriteResponse {
-  Tuple tuple = 1;
+  Tuple tuple = 1 [json_name = "tuple"];
 }
 
-// RelationshipWriteRequest
+// RelationshipReadRequest
 message RelationshipReadRequest {
-  TupleFilter filter = 1;
+  TupleFilter filter = 1 [json_name = "filter"];
 }
 
-// RelationshipWriteResponse
+// RelationshipReadResponse
 message RelationshipReadResponse {
-  repeated Tuple tuples = 1;
+  repeated Tuple tuples = 1 [json_name = "tuples"];
 }
 
-// RelationshipWriteRequest
+// RelationshipDeleteRequest
 message RelationshipDeleteRequest {
-  Entity entity = 2 [(validate.rules).message.required = true];
+  Entity entity = 1 [json_name = "entity", (validate.rules).message.required = true];
 
-  string relation = 3 [(validate.rules).string = {
+  string relation = 2 [json_name = "relation", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
 
-  Subject subject = 4 [(validate.rules).message.required = true];
+  Subject subject = 3 [json_name = "subject", (validate.rules).message.required = true];
 }
 
-// RelationshipWriteRequest
+// RelationshipDeleteResponse
 message RelationshipDeleteResponse {
-  Tuple tuple = 1;
+  Tuple tuple = 1 [json_name = "tuple"];
 }

@@ -27,8 +27,8 @@ func (m *Memory) IsReady(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// GetConnectionType -
-func (m *Memory) GetConnectionType() string {
+// GetEngineType -
+func (m *Memory) GetEngineType() string {
 	return "memory"
 }
 

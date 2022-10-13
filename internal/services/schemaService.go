@@ -6,7 +6,7 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/pkg/errors"
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // SchemaService -

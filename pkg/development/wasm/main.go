@@ -9,7 +9,6 @@ import (
 	"syscall/js"
 
 	"github.com/Permify/permify/internal/commands"
-	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"

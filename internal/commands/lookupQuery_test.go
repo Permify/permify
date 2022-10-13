@@ -9,9 +9,12 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/repositories/entities"
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/dsl/translator"
 	"github.com/Permify/permify/pkg/logger"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -19,7 +22,7 @@ var _ = Describe("lookup-query-command", func() {
 	var lookupQueryCommand *LookupQueryCommand
 	l := logger.New("debug")
 
-	githubConfigs := []entities.EntityConfig{
+	githubConfigs := []repositories.EntityConfig{
 		{
 			Entity:           "user",
 			SerializedConfig: []byte("entity user {}"),
@@ -38,64 +41,85 @@ var _ = Describe("lookup-query-command", func() {
 		It("Github Sample: Case 1", func() {
 			relationTupleRepository := new(mocks.RelationTupleRepository)
 
-			getRepositoryParent := entities.RelationTuples{
+			getRepositoryParent := []*base.Tuple{
 				{
-					Entity:          "repository",
-					ObjectID:        "1",
-					Relation:        "parent",
-					UsersetEntity:   "organization",
-					UsersetObjectID: "3",
-					UsersetRelation: tuple.ELLIPSIS,
+					Entity: &base.Entity{
+						Type: "repository",
+						Id:   "1",
+					},
+					Relation: "parent",
+					Subject: &base.Subject{
+						Type:     "organization",
+						Id:       "6",
+						Relation: tuple.ELLIPSIS,
+					},
 				},
 			}
 
-			getOrganizationMembers := entities.RelationTuples{
+			getOrganizationMembers := []*base.Tuple{
 				{
-					Entity:          "organization",
-					ObjectID:        "6",
-					Relation:        "member",
-					UsersetEntity:   "user",
-					UsersetObjectID: "1",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "organization",
+						Id:   "6",
+					},
+					Relation: "member",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
+					},
 				},
 			}
 
-			getOrganizationAdmins := entities.RelationTuples{
+			getOrganizationAdmins := []*base.Tuple{
 				{
-					Entity:          "organization",
-					ObjectID:        "3",
-					Relation:        "admin",
-					UsersetEntity:   "user",
-					UsersetObjectID: "1",
-					UsersetRelation: "",
+					Entity: &base.Entity{
+						Type: "organization",
+						Id:   "6",
+					},
+					Relation: "admin",
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
+					},
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "parent").Return(getRepositoryParent, nil).Times(1)
-
-			relationTupleRepository.On("ReverseQueryTuples", "organization", "member", "user", []string{"1"}, "").Return(getOrganizationMembers, nil).Times(1)
-			relationTupleRepository.On("ReverseQueryTuples", "organization", "admin", "user", []string{"1"}, "").Return(getOrganizationAdmins, nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "parent").Return(tuple.NewTupleCollection(getRepositoryParent...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("ReverseQueryTuples", "organization", "member", "user", []string{"1"}, "").Return(tuple.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("ReverseQueryTuples", "organization", "admin", "user", []string{"1"}, "").Return(tuple.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
 
 			lookupQueryCommand = NewLookupQueryCommand(relationTupleRepository, l)
 
 			lq := &LookupQueryQuery{
 				EntityType: "repository",
 				Action:     "read",
-				Subject:    tuple.Subject{Type: tuple.USER, ID: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
 			}
 
-			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
-			lq.SetSchema(sch)
+			var serializedConfigs []string
+			for _, c := range githubConfigs {
+				serializedConfigs = append(serializedConfigs, c.Serialized())
+			}
 
-			en, _ := sch.GetEntityByName(lq.EntityType)
-			ac, _ := en.GetAction("read")
+			sch, err := translator.StringToSchema(serializedConfigs...)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, lq.EntityType)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			ac, err := schema.GetAction(en, "read")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			lq.SetSchema(sch)
 
 			actualResult, err := lookupQueryCommand.Execute(context.Background(), lq, ac.Child)
 			query, _, e := goqu.Select("*").From("repositories").Where(goqu.And(goqu.I("repositories.owner_id").Eq("1")), goqu.And(goqu.And(goqu.I("repositories.organization_id").Eq("6"), goqu.I("repositories.organization_id").Eq("3")))).Prepared(true).ToSQL()
 
 			Expect(e).ShouldNot(HaveOccurred())
 			Expect(actualResult.Query).Should(Equal(strings.ReplaceAll(query, "\"", "")))
-			Expect(actualResult.Args).Should(Equal([]interface{}{"1", "3", "6"}))
+			Expect(actualResult.Args).Should(Equal([]string{"1", "6", "6"}))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -107,21 +131,31 @@ var _ = Describe("lookup-query-command", func() {
 			lq := &LookupQueryQuery{
 				EntityType: "repository",
 				Action:     "read",
-				Subject:    tuple.Subject{Type: tuple.USER, ID: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
 			}
 
-			sch, _ := entities.EntityConfigs(githubConfigs).ToSchema()
-			lq.SetSchema(sch)
+			var serializedConfigs []string
+			for _, c := range githubConfigs {
+				serializedConfigs = append(serializedConfigs, c.Serialized())
+			}
 
-			en, _ := sch.GetEntityByName(lq.EntityType)
-			ac, _ := en.GetAction("push")
+			sch, err := translator.StringToSchema(serializedConfigs...)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			en, err := schema.GetEntityByName(sch, lq.EntityType)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			ac, err := schema.GetAction(en, "push")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			lq.SetSchema(sch)
 
 			actualResult, err := lookupQueryCommand.Execute(context.Background(), lq, ac.Child)
 			query, _, e := goqu.Select("*").From("repositories").Where(goqu.And(goqu.I("repositories.owner_id").Eq("1"))).Prepared(true).ToSQL()
 
 			Expect(e).ShouldNot(HaveOccurred())
 			Expect(actualResult.Query).Should(Equal(strings.ReplaceAll(query, "\"", "")))
-			Expect(actualResult.Args).Should(Equal([]interface{}{"1"}))
+			Expect(actualResult.Args).Should(Equal([]string{"1"}))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})

@@ -7,7 +7,7 @@ import (
 	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // SchemaLookupDecision -

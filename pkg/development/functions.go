@@ -5,9 +5,7 @@ import (
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/managers"
-	"github.com/Permify/permify/internal/repositories/filters"
 	"github.com/Permify/permify/internal/services"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/errors"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -29,7 +27,7 @@ func Check(ctx context.Context, service services.IPermissionService, subject *ba
 type LookupQueryQuery struct {
 	EntityType string
 	Action     string
-	Subject    tuple.Subject
+	Subject    *base.Subject
 }
 
 // LookupQuery -
@@ -43,7 +41,7 @@ func WriteTuple(ctx context.Context, service services.IRelationshipService, tupl
 }
 
 // ReadTuple -
-func ReadTuple(ctx context.Context, service services.IRelationshipService, filter filters.RelationTupleFilter) (tuples tuple.ITupleCollection, err errors.Error) {
+func ReadTuple(ctx context.Context, service services.IRelationshipService, filter *base.TupleFilter) (tuples tuple.ITupleCollection, err errors.Error) {
 	return service.ReadRelationships(ctx, filter)
 }
 
@@ -58,6 +56,6 @@ func WriteSchema(ctx context.Context, manager managers.IEntityConfigManager, con
 }
 
 // ReadSchema -
-func ReadSchema(ctx context.Context, manager managers.IEntityConfigManager, version string) (sch schema.Schema, err errors.Error) {
+func ReadSchema(ctx context.Context, manager managers.IEntityConfigManager, version string) (sch *base.Schema, err errors.Error) {
 	return manager.All(ctx, version)
 }

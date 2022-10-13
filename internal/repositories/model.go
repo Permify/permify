@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	`time`
+	"time"
 
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // RelationTuple -

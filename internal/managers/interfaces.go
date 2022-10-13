@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Permify/permify/pkg/errors"
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // IEntityConfigManager -

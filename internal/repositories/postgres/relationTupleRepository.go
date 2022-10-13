@@ -9,7 +9,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
 
-	`github.com/Permify/permify/internal/repositories`
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/postgres/migrations"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"

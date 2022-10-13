@@ -1,19 +1,16 @@
-app:
-  name: 'permify'
-
-http:
-  port: 3476
-
-grpc:
-  port: 3478
+server:
+  http:
+    enabled: true
+    port: 3476
+  grpc:
+    port: 3478
 
 logger:
-  log_level: 'debug'
+  level: 'debug'
 
 authn:
-  disabled: true
+  enabled: false
   keys: []
 
 database:
-  write:
-    connection: 'memory'
+  engine: 'memory'

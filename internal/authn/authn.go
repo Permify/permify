@@ -1,39 +1,53 @@
 package authn
 
 import (
-	"github.com/labstack/echo/v4"
+	"context"
+
+	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+)
+
+var (
+	Unauthenticated         = status.Error(codes.Code(base.ErrorCode_unauthenticated), "unauthenticated")
+	MissingBearerTokenError = status.Error(codes.Code(base.ErrorCode_missing_bearer_token), "missing bearer token")
 )
 
 // KeyAuthenticator -
 type KeyAuthenticator interface {
-	SetKeys(keys []string)
-	Validator() func(key string, c echo.Context) (bool, error)
+	Authenticate(ctx context.Context) error
 }
 
 // KeyAuthn -
 type KeyAuthn struct {
-	Keys []string
+	Keys map[string]struct{}
 }
 
-func NewKeyAuthn(keys ...string) *KeyAuthn {
+// NewKeyAuthn -
+func NewKeyAuthn(keys ...string) (*KeyAuthn, error) {
+	if len(keys) < 1 {
+		return nil, errors.New("pre shared key authn must have at least one key")
+	}
+	mapKeys := make(map[string]struct{})
+	for _, k := range keys {
+		mapKeys[k] = struct{}{}
+	}
 	return &KeyAuthn{
-		Keys: keys,
-	}
+		Keys: mapKeys,
+	}, nil
 }
 
-// SetKeys -
-func (a *KeyAuthn) SetKeys(keys []string) {
-	a.Keys = keys
-}
-
-// Validator -
-func (a *KeyAuthn) Validator() func(key string, c echo.Context) (bool, error) {
-	return func(key string, c echo.Context) (bool, error) {
-		for _, k := range a.Keys {
-			if key == k {
-				return true, nil
-			}
-		}
-		return false, nil
+// Authenticate -
+func (a *KeyAuthn) Authenticate(ctx context.Context) error {
+	key, err := grpcAuth.AuthFromMD(ctx, "Bearer")
+	if err != nil {
+		return MissingBearerTokenError
 	}
+	if _, found := a.Keys[key]; found {
+		return nil
+	}
+	return Unauthenticated
 }

@@ -11,7 +11,7 @@ import (
 
 // RelationTupleFactory -
 func RelationTupleFactory(db database.Database) (repo repositories.IRelationTupleRepository) {
-	switch db.GetConnectionType() {
+	switch db.GetEngineType() {
 	case "postgres":
 		return PQRepository.NewRelationTupleRepository(db.(*PQDatabase.Postgres))
 	case "memory":
@@ -23,7 +23,7 @@ func RelationTupleFactory(db database.Database) (repo repositories.IRelationTupl
 
 // EntityConfigFactory -
 func EntityConfigFactory(db database.Database) (repo repositories.IEntityConfigRepository) {
-	switch db.GetConnectionType() {
+	switch db.GetEngineType() {
 	case "postgres":
 		return PQRepository.NewEntityConfigRepository(db.(*PQDatabase.Postgres))
 	case "memory":

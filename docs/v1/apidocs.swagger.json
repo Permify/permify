@@ -1,8 +1,18 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "schema.proto",
-    "version": "version not set"
+    "title": "Permify API",
+    "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
+    "version": "v0.0.0-alpha7",
+    "contact": {
+      "name": "API Support",
+      "url": "https://github.com/Permify/permify/issues",
+      "email": "hello@permify.co"
+    },
+    "license": {
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://github.com/Permify/permify/blob/master/LICENSE"
+    }
   },
   "tags": [
     {
@@ -15,6 +25,9 @@
       "name": "RelationshipAPI"
     }
   ],
+  "schemes": [
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -22,9 +35,10 @@
     "application/json"
   ],
   "paths": {
-    "/v1/example/echo": {
+    "/v1/permissions/check": {
       "post": {
-        "operationId": "PermissionAPI_Check",
+        "summary": "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?",
+        "operationId": "permissions.check",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -50,12 +64,287 @@
           }
         ],
         "tags": [
-          "PermissionAPI"
+          "Permission"
+        ]
+      }
+    },
+    "/v1/permissions/expand": {
+      "post": {
+        "summary": "expand relationships according to schema",
+        "operationId": "permissions.expand",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ExpandResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ExpandRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ]
+      }
+    },
+    "/v1/permissions/lookup-query": {
+      "post": {
+        "operationId": "permissions.lookupQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/LookupQueryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LookupQueryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ]
+      }
+    },
+    "/v1/relationships/delete": {
+      "post": {
+        "summary": "delete relation tuple",
+        "operationId": "relationships.delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/RelationshipDeleteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RelationshipDeleteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Relationship"
+        ]
+      }
+    },
+    "/v1/relationships/read": {
+      "post": {
+        "summary": "read relation tuple(s)",
+        "operationId": "relationships.read",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/RelationshipReadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RelationshipReadRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Relationship"
+        ]
+      }
+    },
+    "/v1/relationships/write": {
+      "post": {
+        "summary": "create new relation tuple",
+        "operationId": "relationships.write",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/RelationshipWriteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RelationshipWriteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Relationship"
+        ]
+      }
+    },
+    "/v1/schemas/lookup": {
+      "post": {
+        "summary": "lookup your authorization model",
+        "operationId": "schemas.lookup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SchemaLookupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SchemaLookupRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Schema"
+        ]
+      }
+    },
+    "/v1/schemas/read": {
+      "post": {
+        "summary": "read your authorization model",
+        "operationId": "schemas.read",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SchemaReadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SchemaReadRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Schema"
+        ]
+      }
+    },
+    "/v1/schemas/write": {
+      "post": {
+        "summary": "write your authorization model",
+        "operationId": "schemas.write",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SchemaWriteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SchemaWriteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Schema"
         ]
       }
     }
   },
   "definitions": {
+    ".Schema": {
+      "type": "object",
+      "properties": {
+        "entityDefinitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/EntityDefinition"
+          }
+        }
+      },
+      "title": "Schema"
+    },
     "ActionDefinition": {
       "type": "object",
       "properties": {
@@ -82,7 +371,7 @@
     "CheckRequest": {
       "type": "object",
       "properties": {
-        "schemaVersion": {
+        "schema_version": {
           "type": "string"
         },
         "entity": {
@@ -105,7 +394,8 @@
       "type": "object",
       "properties": {
         "can": {
-          "type": "boolean"
+          "type": "boolean",
+          "example": true
         },
         "decisions": {
           "type": "object",
@@ -113,7 +403,7 @@
             "$ref": "#/definitions/Any"
           }
         },
-        "remainingDepth": {
+        "remaining_depth": {
           "type": "integer",
           "format": "int32"
         }
@@ -217,6 +507,21 @@
       },
       "title": "Expand"
     },
+    "ExpandRequest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity"
+        },
+        "action": {
+          "type": "string"
+        }
+      },
+      "title": "ExpandRequest"
+    },
     "ExpandResponse": {
       "type": "object",
       "properties": {
@@ -267,6 +572,24 @@
       },
       "title": "Leaf"
     },
+    "LookupQueryRequest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "entity_type": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject"
+        }
+      },
+      "title": "LookupQueryRequest"
+    },
     "LookupQueryResponse": {
       "type": "object",
       "properties": {
@@ -312,6 +635,21 @@
       },
       "title": "Type"
     },
+    "RelationshipDeleteRequest": {
+      "type": "object",
+      "properties": {
+        "entity": {
+          "$ref": "#/definitions/Entity"
+        },
+        "relation": {
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject"
+        }
+      },
+      "title": "RelationshipDeleteRequest"
+    },
     "RelationshipDeleteResponse": {
       "type": "object",
       "properties": {
@@ -319,7 +657,16 @@
           "$ref": "#/definitions/Tuple"
         }
       },
-      "title": "RelationshipWriteRequest"
+      "title": "RelationshipDeleteResponse"
+    },
+    "RelationshipReadRequest": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "$ref": "#/definitions/TupleFilter"
+        }
+      },
+      "title": "RelationshipReadRequest"
     },
     "RelationshipReadResponse": {
       "type": "object",
@@ -331,7 +678,25 @@
           }
         }
       },
-      "title": "RelationshipWriteResponse"
+      "title": "RelationshipReadResponse"
+    },
+    "RelationshipWriteRequest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity"
+        },
+        "relation": {
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject"
+        }
+      },
+      "title": "RelationshipWriteRequest"
     },
     "RelationshipWriteResponse": {
       "type": "object",
@@ -367,22 +732,28 @@
       "default": "INVALID",
       "title": "Operation"
     },
-    "Schema": {
+    "SchemaLookupRequest": {
       "type": "object",
       "properties": {
-        "entityDefinitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/EntityDefinition"
+        "schema_version": {
+          "type": "string"
+        },
+        "entity_type": {
+          "type": "string"
+        },
+        "relation_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       },
-      "title": "Schema"
+      "title": "SchemaLookupRequest"
     },
     "SchemaLookupResponse": {
       "type": "object",
       "properties": {
-        "actionNames": {
+        "action_names": {
           "type": "array",
           "items": {
             "type": "string"
@@ -391,19 +762,37 @@
       },
       "title": "SchemaLookupResponse"
     },
-    "SchemaReadResponse": {
+    "SchemaReadRequest": {
       "type": "object",
       "properties": {
-        "schema": {
-          "$ref": "#/definitions/Schema"
+        "schema_version": {
+          "type": "string"
         }
       },
       "title": "SchemaReadRequest"
     },
+    "SchemaReadResponse": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "$ref": "#/definitions/.Schema"
+        }
+      },
+      "title": "SchemaReadRequest"
+    },
+    "SchemaWriteRequest": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "string"
+        }
+      },
+      "title": "SchemaWriteRequest"
+    },
     "SchemaWriteResponse": {
       "type": "object",
       "properties": {
-        "schemaVersion": {
+        "schema_version": {
           "type": "string"
         }
       },

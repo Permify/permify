@@ -10,9 +10,9 @@ import (
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	`github.com/Permify/permify/pkg/dsl/translator`
+	"github.com/Permify/permify/pkg/dsl/translator"
 	"github.com/Permify/permify/pkg/errors"
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // EntityConfigManager -
