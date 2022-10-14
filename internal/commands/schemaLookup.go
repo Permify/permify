@@ -2,9 +2,8 @@ package commands
 
 import (
 	"context"
+	"errors"
 
-	internalErrors "github.com/Permify/permify/internal/errors"
-	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -12,17 +11,17 @@ import (
 
 // SchemaLookupDecision -
 type SchemaLookupDecision struct {
-	Prefix string       `json:"prefix"`
-	Can    bool         `json:"can"`
-	Err    errors.Error `json:"-"`
+	Exclusion bool  `json:"exclusion"`
+	Can       bool  `json:"can"`
+	Err       error `json:"-"`
 }
 
 // sendSchemaLookupDecision -
-func sendSchemaLookupDecision(can bool, prefix string, err errors.Error) SchemaLookupDecision {
+func sendSchemaLookupDecision(can bool, exclusion bool, err error) SchemaLookupDecision {
 	return SchemaLookupDecision{
-		Prefix: prefix,
-		Can:    can,
-		Err:    err,
+		Exclusion: exclusion,
+		Can:       can,
+		Err:       err,
 	}
 }
 
@@ -55,7 +54,7 @@ type SchemaLookupResponse struct {
 }
 
 // Execute -
-func (command *SchemaLookupCommand) Execute(ctx context.Context, q *SchemaLookupQuery, actions []*base.ActionDefinition) (response SchemaLookupResponse, err errors.Error) {
+func (command *SchemaLookupCommand) Execute(ctx context.Context, q *SchemaLookupQuery, actions []*base.ActionDefinition) (response SchemaLookupResponse, err error) {
 	response.ActionNames = []string{}
 	for _, action := range actions {
 		var can bool
@@ -71,7 +70,7 @@ func (command *SchemaLookupCommand) Execute(ctx context.Context, q *SchemaLookup
 }
 
 // c -
-func (command *SchemaLookupCommand) l(ctx context.Context, q *SchemaLookupQuery, child *base.Child) (bool, errors.Error) {
+func (command *SchemaLookupCommand) l(ctx context.Context, q *SchemaLookupQuery, child *base.Child) (bool, error) {
 	var fn SchemaLookupFunction
 	switch child.Type.(type) {
 	case *base.Child_Rewrite:
@@ -81,7 +80,7 @@ func (command *SchemaLookupCommand) l(ctx context.Context, q *SchemaLookupQuery,
 	}
 
 	if fn == nil {
-		return false, internalErrors.UndefinedChildKindError
+		return false, errors.New(base.ErrorCode_undefined_child_kind.String())
 	}
 
 	result := schemaLookupUnion(ctx, []SchemaLookupFunction{fn})
@@ -96,7 +95,7 @@ func (command *SchemaLookupCommand) lookupRewrite(ctx context.Context, q *Schema
 	case *base.Rewrite_INTERSECTION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), schemaLookupIntersection)
 	default:
-		return schemaLookupFail(internalErrors.UndefinedChildTypeError)
+		return schemaLookupFail(errors.New(base.ErrorCode_undefined_child_type.String()))
 	}
 }
 
@@ -108,7 +107,7 @@ func (command *SchemaLookupCommand) lookupLeaf(ctx context.Context, q *SchemaLoo
 	case *base.Leaf_ComputedUserSet:
 		return command.lookup(ctx, leaf.GetComputedUserSet().GetRelation(), q, leaf.GetExclusion())
 	default:
-		return schemaLookupFail(internalErrors.UndefinedChildTypeError)
+		return schemaLookupFail(errors.New(base.ErrorCode_undefined_child_type.String()))
 	}
 }
 
@@ -122,7 +121,7 @@ func (command *SchemaLookupCommand) set(ctx context.Context, q *SchemaLookupQuer
 		case *base.Child_Leaf:
 			functions = append(functions, command.lookupLeaf(ctx, q, child.GetLeaf()))
 		default:
-			return schemaLookupFail(internalErrors.UndefinedChildKindError)
+			return schemaLookupFail(errors.New(base.ErrorCode_undefined_child_kind.String()))
 		}
 	}
 
@@ -134,12 +133,12 @@ func (command *SchemaLookupCommand) set(ctx context.Context, q *SchemaLookupQuer
 // check -
 func (command *SchemaLookupCommand) lookup(ctx context.Context, relation string, q *SchemaLookupQuery, exclusion bool) SchemaLookupFunction {
 	return func(ctx context.Context, lookupChan chan<- SchemaLookupDecision) {
-		var err errors.Error
+		var err error
 		if exclusion {
-			lookupChan <- sendSchemaLookupDecision(!helper.InArray(relation, q.Relations), "not", err)
+			lookupChan <- sendSchemaLookupDecision(!helper.InArray(relation, q.Relations), true, err)
 			return
 		}
-		lookupChan <- sendSchemaLookupDecision(helper.InArray(relation, q.Relations), "", err)
+		lookupChan <- sendSchemaLookupDecision(helper.InArray(relation, q.Relations), false, err)
 		return
 	}
 }
@@ -147,7 +146,7 @@ func (command *SchemaLookupCommand) lookup(ctx context.Context, relation string,
 // union -
 func schemaLookupUnion(ctx context.Context, functions []SchemaLookupFunction) SchemaLookupDecision {
 	if len(functions) == 0 {
-		return sendSchemaLookupDecision(true, "", nil)
+		return sendSchemaLookupDecision(true, false, nil)
 	}
 
 	lookupChan := make(chan SchemaLookupDecision, len(functions))
@@ -162,23 +161,23 @@ func schemaLookupUnion(ctx context.Context, functions []SchemaLookupFunction) Sc
 		select {
 		case result := <-lookupChan:
 			if result.Err == nil && result.Can {
-				return sendSchemaLookupDecision(true, result.Prefix, nil)
+				return sendSchemaLookupDecision(true, result.Exclusion, nil)
 			}
 			if result.Err != nil {
-				return sendSchemaLookupDecision(false, result.Prefix, result.Err)
+				return sendSchemaLookupDecision(false, result.Exclusion, result.Err)
 			}
 		case <-ctx.Done():
-			return sendSchemaLookupDecision(false, "", internalErrors.CanceledError)
+			return sendSchemaLookupDecision(false, false, errors.New(base.ErrorCode_cancelled.String()))
 		}
 	}
 
-	return sendSchemaLookupDecision(false, "", nil)
+	return sendSchemaLookupDecision(false, false, nil)
 }
 
 // intersection -
 func schemaLookupIntersection(ctx context.Context, functions []SchemaLookupFunction) SchemaLookupDecision {
 	if len(functions) == 0 {
-		return sendSchemaLookupDecision(true, "", nil)
+		return sendSchemaLookupDecision(true, false, nil)
 	}
 
 	lookupChan := make(chan SchemaLookupDecision, len(functions))
@@ -193,22 +192,22 @@ func schemaLookupIntersection(ctx context.Context, functions []SchemaLookupFunct
 		select {
 		case result := <-lookupChan:
 			if result.Err == nil && !result.Can {
-				return sendSchemaLookupDecision(false, result.Prefix, nil)
+				return sendSchemaLookupDecision(false, result.Exclusion, nil)
 			}
 			if result.Err != nil {
-				return sendSchemaLookupDecision(false, result.Prefix, result.Err)
+				return sendSchemaLookupDecision(false, result.Exclusion, result.Err)
 			}
 		case <-ctx.Done():
-			return sendSchemaLookupDecision(false, "", internalErrors.CanceledError)
+			return sendSchemaLookupDecision(false, false, errors.New(base.ErrorCode_cancelled.String()))
 		}
 	}
 
-	return sendSchemaLookupDecision(true, "", nil)
+	return sendSchemaLookupDecision(true, false, nil)
 }
 
 // schemaLookupFail -
-func schemaLookupFail(err errors.Error) SchemaLookupFunction {
+func schemaLookupFail(err error) SchemaLookupFunction {
 	return func(ctx context.Context, decisionChan chan<- SchemaLookupDecision) {
-		decisionChan <- sendSchemaLookupDecision(false, "", err)
+		decisionChan <- sendSchemaLookupDecision(false, false, err)
 	}
 }

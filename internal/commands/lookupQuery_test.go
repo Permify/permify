@@ -11,8 +11,8 @@ import (
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/dsl/translator"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -103,7 +103,7 @@ var _ = Describe("lookup-query-command", func() {
 				serializedConfigs = append(serializedConfigs, c.Serialized())
 			}
 
-			sch, err := translator.StringToSchema(serializedConfigs...)
+			sch, err := compiler.StringToSchema(serializedConfigs...)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, lq.EntityType)
@@ -139,7 +139,7 @@ var _ = Describe("lookup-query-command", func() {
 				serializedConfigs = append(serializedConfigs, c.Serialized())
 			}
 
-			sch, err := translator.StringToSchema(serializedConfigs...)
+			sch, err := compiler.StringToSchema(serializedConfigs...)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, lq.EntityType)

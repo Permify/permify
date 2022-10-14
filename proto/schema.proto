@@ -46,8 +46,8 @@ message Schema {
 // EntityDefinition
 message EntityDefinition {
   string name = 1 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
-    max_bytes : 128,
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
   }];
 
   repeated RelationDefinition relations = 2;
@@ -60,8 +60,8 @@ message EntityDefinition {
 // RelationDefinition
 message RelationDefinition {
   string name = 1 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
-    max_bytes : 128,
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
   }];
 
   repeated RelationType types = 2;
@@ -72,8 +72,8 @@ message RelationDefinition {
 // ActionDefinition
 message ActionDefinition {
   string name = 1 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
-    max_bytes : 128,
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
   }];
 
   Child child = 2;
@@ -82,8 +82,8 @@ message ActionDefinition {
 // Type
 message RelationType {
   string name = 1 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
-    max_bytes : 128,
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
   }];
 }
 

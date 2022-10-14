@@ -8,10 +8,9 @@ import (
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/dsl/ast"
+	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/dsl/translator"
-	"github.com/Permify/permify/pkg/errors"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -30,9 +29,9 @@ func NewEntityConfigManager(repository repositories.IEntityConfigRepository, cac
 }
 
 // All -
-func (manager *EntityConfigManager) All(ctx context.Context, version string) (*base.Schema, errors.Error) {
+func (manager *EntityConfigManager) All(ctx context.Context, version string) (*base.Schema, error) {
 	var sch *base.Schema
-	var err errors.Error
+	var err error
 	var cn []repositories.EntityConfig
 	cn, err = manager.repository.All(ctx, version)
 	if err != nil {
@@ -42,7 +41,7 @@ func (manager *EntityConfigManager) All(ctx context.Context, version string) (*b
 	for _, c := range cn {
 		serializedConfigs = append(serializedConfigs, c.Serialized())
 	}
-	sch, err = translator.StringToSchema(serializedConfigs...)
+	sch, err = compiler.StringToSchema(serializedConfigs...)
 	if err != nil {
 		return sch, err
 	}
@@ -50,13 +49,13 @@ func (manager *EntityConfigManager) All(ctx context.Context, version string) (*b
 }
 
 // Read -
-func (manager *EntityConfigManager) Read(ctx context.Context, name string, version string) (entityDefinition *base.EntityDefinition, err errors.Error) {
+func (manager *EntityConfigManager) Read(ctx context.Context, name string, version string) (entityDefinition *base.EntityDefinition, err error) {
 	if manager.cache == nil {
 		var config repositories.EntityConfig
 		config, err = manager.repository.Read(ctx, name, version)
 
 		var sch *base.Schema
-		sch, err = translator.StringToSchema(config.Serialized())
+		sch, err = compiler.StringToSchema(config.Serialized())
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +82,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 		manager.cache.Set(key, config, 1)
 
 		var sch *base.Schema
-		sch, err = translator.StringToSchema(config.Serialized())
+		sch, err = compiler.StringToSchema(config.Serialized())
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +92,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 
 	conf := s.(repositories.EntityConfig)
 	var sch *base.Schema
-	sch, err = translator.StringToSchema(conf.Serialized())
+	sch, err = compiler.StringToSchema(conf.Serialized())
 	if err != nil {
 		return nil, err
 	}
@@ -102,15 +101,15 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 }
 
 // Write -
-func (manager *EntityConfigManager) Write(ctx context.Context, configs string) (string, errors.Error) {
+func (manager *EntityConfigManager) Write(ctx context.Context, schema string) (string, error) {
 	version := xid.New().String()
 
-	sch, err := parser.NewParser(configs).Parse()
+	sch, err := parser.NewParser(schema).Parse()
 	if err != nil {
 		return "", err
 	}
 
-	err = sch.Validate()
+	_, err = compiler.NewCompiler(sch).Compile()
 	if err != nil {
 		return "", err
 	}

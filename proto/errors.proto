@@ -13,11 +13,33 @@ enum ErrorCode {
 
   // validation
   validation_error = 2000;
-  schema_not_found = 2001;
   undefined_child_type = 2002;
   undefined_child_kind = 2003;
-  action_can_not_found = 2004;
-  entity_type_can_not_found = 2005;
+  undefined_relation_reference = 2006;
+  not_supported_relation_walk = 2007;
+  entity_and_subject_cannot_be_equal = 2008;
+  depth_not_enough = 2009;
+
+  // not found
+  not_found_error = 4000;
+  entity_type_can_not_found = 4001;
+  action_can_not_found = 4002;
+  schema_not_found = 4003;
+  subject_type_not_found = 4004;
+  entity_definition_not_found = 4005;
+  action_definition_not_found = 4006;
+  relation_definition_not_found = 4007;
+  record_not_found = 4008;
+
+  // internal
+  internal_error = 5000;
+  cancelled = 5001;
+  sql_builder_error = 5002;
+  circuit_breaker_error = 5003;
+  unique_constraint = 5004;
+  execution = 5005;
+  scan = 5006;
+  migration = 5007;
 }
 
 // ErrorResponse

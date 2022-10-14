@@ -2,13 +2,12 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
 
-	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -16,13 +15,13 @@ import (
 
 // CheckDecision -
 type CheckDecision struct {
-	Exclusion bool         `json:"exclusion,omitempty"`
-	Can       bool         `json:"can"`
-	Err       errors.Error `json:"-"`
+	Exclusion bool  `json:"exclusion,omitempty"`
+	Can       bool  `json:"can"`
+	Err       error `json:"-"`
 }
 
 // newCheckDecision -
-func newCheckDecision(can bool, exclusion bool, err errors.Error) CheckDecision {
+func newCheckDecision(can bool, exclusion bool, err error) CheckDecision {
 	return CheckDecision{
 		Exclusion: exclusion,
 		Can:       can,
@@ -99,12 +98,12 @@ func (r *CheckQuery) isDepthFinish() bool {
 // CheckResponse -
 type CheckResponse struct {
 	Can            bool
-	Visits         map[string]interface{}
+	Visits         any
 	RemainingDepth int32
 }
 
 // Execute -
-func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child *base.Child) (response CheckResponse, err errors.Error) {
+func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child *base.Child) (response CheckResponse, err error) {
 	response.Can = false
 	response.Can, err = command.c(ctx, q, child)
 	response.Visits = q.LoadVisits()
@@ -113,7 +112,7 @@ func (command *CheckCommand) Execute(ctx context.Context, q *CheckQuery, child *
 }
 
 // c -
-func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child *base.Child) (bool, errors.Error) {
+func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child *base.Child) (bool, error) {
 	var fn CheckFunction
 	switch op := child.GetType().(type) {
 	case *base.Child_Rewrite:
@@ -123,7 +122,7 @@ func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child *base.C
 	}
 
 	if fn == nil {
-		return false, internalErrors.UndefinedChildKindError
+		return false, errors.New(base.ErrorCode_undefined_child_kind.String())
 	}
 
 	result := checkUnion(ctx, []CheckFunction{fn})
@@ -138,7 +137,7 @@ func (command *CheckCommand) checkRewrite(ctx context.Context, q *CheckQuery, re
 	case *base.Rewrite_INTERSECTION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), checkIntersection)
 	default:
-		return checkFail(internalErrors.UndefinedChildTypeError)
+		return checkFail(errors.New(base.ErrorCode_undefined_child_type.String()))
 	}
 }
 
@@ -150,7 +149,7 @@ func (command *CheckCommand) checkLeaf(ctx context.Context, q *CheckQuery, leaf 
 	case *base.Leaf_ComputedUserSet:
 		return command.check(ctx, &base.EntityAndRelation{Entity: q.Entity, Relation: op.ComputedUserSet.GetRelation()}, q, leaf.GetExclusion())
 	default:
-		return checkFail(internalErrors.UndefinedChildTypeError)
+		return checkFail(errors.New(base.ErrorCode_undefined_child_type.String()))
 	}
 }
 
@@ -164,7 +163,7 @@ func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []
 		case *base.Child_Leaf:
 			functions = append(functions, command.checkLeaf(ctx, q, child.GetLeaf()))
 		default:
-			return checkFail(internalErrors.UndefinedChildKindError)
+			return checkFail(errors.New(base.ErrorCode_undefined_child_kind.String()))
 		}
 	}
 
@@ -176,12 +175,12 @@ func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []
 // check -
 func (command *CheckCommand) check(ctx context.Context, ear *base.EntityAndRelation, q *CheckQuery, exclusion bool) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- CheckDecision) {
-		var err errors.Error
+		var err error
 
 		q.decrease()
 
 		if q.isDepthFinish() {
-			decisionChan <- newCheckDecision(false, exclusion, internalErrors.DepthError)
+			decisionChan <- newCheckDecision(false, exclusion, errors.New(base.ErrorCode_depth_not_enough.String()))
 			return
 		}
 
@@ -255,7 +254,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction) CheckDecision {
 				return newCheckDecision(false, result.Exclusion, result.Err)
 			}
 		case <-ctx.Done():
-			return newCheckDecision(false, false, internalErrors.CanceledError)
+			return newCheckDecision(false, false, errors.New(base.ErrorCode_cancelled.String()))
 		}
 	}
 
@@ -286,7 +285,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction) CheckDeci
 				return newCheckDecision(false, result.Exclusion, result.Err)
 			}
 		case <-ctx.Done():
-			return newCheckDecision(false, false, internalErrors.CanceledError)
+			return newCheckDecision(false, false, errors.New(base.ErrorCode_cancelled.String()))
 		}
 	}
 
@@ -294,7 +293,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction) CheckDeci
 }
 
 // checkFail -
-func checkFail(err errors.Error) CheckFunction {
+func checkFail(err error) CheckFunction {
 	return func(ctx context.Context, decisionChan chan<- CheckDecision) {
 		decisionChan <- newCheckDecision(false, false, err)
 	}

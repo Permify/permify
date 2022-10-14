@@ -729,10 +729,10 @@ func (m *EntityDefinition) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetName()) > 128 {
+	if len(m.GetName()) > 64 {
 		err := EntityDefinitionValidationError{
 			field:  "Name",
-			reason: "value length must be at most 128 bytes",
+			reason: "value length must be at most 64 bytes",
 		}
 		if !all {
 			return err
@@ -743,7 +743,7 @@ func (m *EntityDefinition) validate(all bool) error {
 	if !_EntityDefinition_Name_Pattern.MatchString(m.GetName()) {
 		err := EntityDefinitionValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$\"",
+			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
 		if !all {
 			return err
@@ -943,7 +943,7 @@ var _ interface {
 	ErrorName() string
 } = EntityDefinitionValidationError{}
 
-var _EntityDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$")
+var _EntityDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on RelationDefinition with the rules
 // defined in the proto definition for this message. If any rules are
@@ -967,10 +967,10 @@ func (m *RelationDefinition) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetName()) > 128 {
+	if len(m.GetName()) > 64 {
 		err := RelationDefinitionValidationError{
 			field:  "Name",
-			reason: "value length must be at most 128 bytes",
+			reason: "value length must be at most 64 bytes",
 		}
 		if !all {
 			return err
@@ -981,7 +981,7 @@ func (m *RelationDefinition) validate(all bool) error {
 	if !_RelationDefinition_Name_Pattern.MatchString(m.GetName()) {
 		err := RelationDefinitionValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$\"",
+			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
 		if !all {
 			return err
@@ -1149,7 +1149,7 @@ var _ interface {
 	ErrorName() string
 } = RelationDefinitionValidationError{}
 
-var _RelationDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$")
+var _RelationDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on ActionDefinition with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -1173,10 +1173,10 @@ func (m *ActionDefinition) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetName()) > 128 {
+	if len(m.GetName()) > 64 {
 		err := ActionDefinitionValidationError{
 			field:  "Name",
-			reason: "value length must be at most 128 bytes",
+			reason: "value length must be at most 64 bytes",
 		}
 		if !all {
 			return err
@@ -1187,7 +1187,7 @@ func (m *ActionDefinition) validate(all bool) error {
 	if !_ActionDefinition_Name_Pattern.MatchString(m.GetName()) {
 		err := ActionDefinitionValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$\"",
+			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
 		if !all {
 			return err
@@ -1302,7 +1302,7 @@ var _ interface {
 	ErrorName() string
 } = ActionDefinitionValidationError{}
 
-var _ActionDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$")
+var _ActionDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on RelationType with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -1326,10 +1326,10 @@ func (m *RelationType) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetName()) > 128 {
+	if len(m.GetName()) > 64 {
 		err := RelationTypeValidationError{
 			field:  "Name",
-			reason: "value length must be at most 128 bytes",
+			reason: "value length must be at most 64 bytes",
 		}
 		if !all {
 			return err
@@ -1340,7 +1340,7 @@ func (m *RelationType) validate(all bool) error {
 	if !_RelationType_Name_Pattern.MatchString(m.GetName()) {
 		err := RelationTypeValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$\"",
+			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
 		if !all {
 			return err
@@ -1425,7 +1425,7 @@ var _ interface {
 	ErrorName() string
 } = RelationTypeValidationError{}
 
-var _RelationType_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$")
+var _RelationType_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on ComputedUserSet with the rules defined
 // in the proto definition for this message. If any rules are violated, the

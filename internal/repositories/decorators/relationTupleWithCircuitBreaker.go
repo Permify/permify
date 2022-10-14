@@ -1,11 +1,12 @@
 package decorators
 
 import (
+	"errors"
+
 	"github.com/afex/hystrix-go/hystrix"
 	"golang.org/x/net/context"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/errors"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -21,15 +22,15 @@ func NewRelationTupleWithCircuitBreaker(relationTupleRepository repositories.IRe
 }
 
 // Migrate -
-func (r *RelationTupleWithCircuitBreaker) Migrate() (err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) Migrate() (err error) {
 	return nil
 }
 
 // ReverseQueryTuples -
-func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (Iterator tuple.ITupleIterator, err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (Iterator tuple.ITupleIterator, err error) {
 	type circuitBreakerResponse struct {
 		Iterator tuple.ITupleIterator
-		Error    errors.Error
+		Error    error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
@@ -47,15 +48,15 @@ func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context
 	case out := <-output:
 		return out.Iterator, out.Error
 	case <-bErrors:
-		return Iterator, errors.CircuitBreakerError
+		return Iterator, errors.New(base.ErrorCode_circuit_breaker_error.String())
 	}
 }
 
 // QueryTuples -
-func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (Iterator tuple.ITupleIterator, err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (Iterator tuple.ITupleIterator, err error) {
 	type circuitBreakerResponse struct {
 		Iterator tuple.ITupleIterator
-		Error    errors.Error
+		Error    error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
@@ -72,15 +73,15 @@ func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entit
 	case out := <-output:
 		return out.Iterator, out.Error
 	case <-bErrors:
-		return Iterator, errors.CircuitBreakerError
+		return Iterator, errors.New(base.ErrorCode_circuit_breaker_error.String())
 	}
 }
 
 // Read -
-func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter *base.TupleFilter) (collection tuple.ITupleCollection, err errors.Error) {
+func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter *base.TupleFilter) (collection tuple.ITupleCollection, err error) {
 	type circuitBreakerResponse struct {
 		Collection tuple.ITupleCollection
-		Error      errors.Error
+		Error      error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
@@ -97,13 +98,13 @@ func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter *base
 	case out := <-output:
 		return out.Collection, out.Error
 	case <-bErrors:
-		return collection, errors.CircuitBreakerError
+		return collection, errors.New(base.ErrorCode_circuit_breaker_error.String())
 	}
 }
 
 // Write -
-func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, iterator tuple.ITupleIterator) (err errors.Error) {
-	outputErr := make(chan errors.Error, 1)
+func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, iterator tuple.ITupleIterator) (err error) {
+	outputErr := make(chan error, 1)
 	hystrix.ConfigureCommand("relationTupleRepository.write", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.write", func() error {
 		err = r.repository.Write(ctx, iterator)
@@ -117,13 +118,13 @@ func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, iterator tu
 	case err = <-outputErr:
 		return err
 	case <-bErrors:
-		return errors.CircuitBreakerError
+		return errors.New(base.ErrorCode_circuit_breaker_error.String())
 	}
 }
 
 // Delete -
-func (r *RelationTupleWithCircuitBreaker) Delete(ctx context.Context, iterator tuple.ITupleIterator) (err errors.Error) {
-	outputErr := make(chan errors.Error, 1)
+func (r *RelationTupleWithCircuitBreaker) Delete(ctx context.Context, iterator tuple.ITupleIterator) (err error) {
+	outputErr := make(chan error, 1)
 	hystrix.ConfigureCommand("relationTupleRepository.delete", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.delete", func() error {
 		err = r.repository.Delete(ctx, iterator)
@@ -137,6 +138,6 @@ func (r *RelationTupleWithCircuitBreaker) Delete(ctx context.Context, iterator t
 	case err = <-outputErr:
 		return err
 	case <-bErrors:
-		return errors.CircuitBreakerError
+		return errors.New(base.ErrorCode_circuit_breaker_error.String())
 	}
 }

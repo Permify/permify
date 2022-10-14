@@ -2,10 +2,9 @@ package commands
 
 import (
 	"context"
+	"errors"
 
-	internalErrors "github.com/Permify/permify/internal/errors"
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -47,13 +46,13 @@ type ExpandResponse struct {
 }
 
 // Execute -
-func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child *base.Child) (response ExpandResponse, err errors.Error) {
+func (command *ExpandCommand) Execute(ctx context.Context, q *ExpandQuery, child *base.Child) (response ExpandResponse, err error) {
 	response.Tree, err = command.e(ctx, q, child)
 	return
 }
 
 // e -
-func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child *base.Child) (*base.Expand, errors.Error) {
+func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child *base.Child) (*base.Expand, error) {
 	var fn ExpandFunction
 	switch op := child.GetType().(type) {
 	case *base.Child_Rewrite:
@@ -73,7 +72,7 @@ func (command *ExpandCommand) expandRewrite(ctx context.Context, q *ExpandQuery,
 	case *base.Rewrite_INTERSECTION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), expandIntersection)
 	default:
-		return expandFail(internalErrors.UndefinedChildTypeError)
+		return expandFail(errors.New(base.ErrorCode_undefined_child_type.String()))
 	}
 }
 
@@ -91,7 +90,7 @@ func (command *ExpandCommand) expandLeaf(ctx context.Context, q *ExpandQuery, le
 			Relation: op.ComputedUserSet.GetRelation(),
 		}, q, leaf.GetExclusion())
 	default:
-		return expandFail(internalErrors.UndefinedChildTypeError)
+		return expandFail(errors.New(base.ErrorCode_undefined_child_type.String()))
 	}
 }
 
@@ -105,7 +104,7 @@ func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children 
 		case *base.Child_Leaf:
 			functions = append(functions, command.expandLeaf(ctx, q, child.GetLeaf()))
 		default:
-			return expandFail(internalErrors.UndefinedChildKindError)
+			return expandFail(errors.New(base.ErrorCode_undefined_child_kind.String()))
 		}
 	}
 
@@ -117,7 +116,7 @@ func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children 
 // expand -
 func (command *ExpandCommand) expand(ctx context.Context, ear *base.EntityAndRelation, q *ExpandQuery, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- *base.Expand) {
-		var err errors.Error
+		var err error
 
 		var iterator tuple.ISubjectIterator
 		iterator, err = getSubjects(ctx, command, ear)

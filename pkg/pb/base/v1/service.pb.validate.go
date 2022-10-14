@@ -279,52 +279,6 @@ func (m *CheckResponse) validate(all bool) error {
 
 	// no validation rules for Can
 
-	{
-		sorted_keys := make([]string, len(m.GetDecisions()))
-		i := 0
-		for key := range m.GetDecisions() {
-			sorted_keys[i] = key
-			i++
-		}
-		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
-		for _, key := range sorted_keys {
-			val := m.GetDecisions()[key]
-			_ = val
-
-			// no validation rules for Decisions[key]
-
-			if all {
-				switch v := interface{}(val).(type) {
-				case interface{ ValidateAll() error }:
-					if err := v.ValidateAll(); err != nil {
-						errors = append(errors, CheckResponseValidationError{
-							field:  fmt.Sprintf("Decisions[%v]", key),
-							reason: "embedded message failed validation",
-							cause:  err,
-						})
-					}
-				case interface{ Validate() error }:
-					if err := v.Validate(); err != nil {
-						errors = append(errors, CheckResponseValidationError{
-							field:  fmt.Sprintf("Decisions[%v]", key),
-							reason: "embedded message failed validation",
-							cause:  err,
-						})
-					}
-				}
-			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return CheckResponseValidationError{
-						field:  fmt.Sprintf("Decisions[%v]", key),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-
-		}
-	}
-
 	// no validation rules for RemainingDepth
 
 	if len(errors) > 0 {

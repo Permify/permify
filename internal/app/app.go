@@ -14,7 +14,7 @@ import (
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/repositories/decorators"
-	`github.com/Permify/permify/internal/servers`
+	"github.com/Permify/permify/internal/servers"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"

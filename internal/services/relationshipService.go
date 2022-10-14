@@ -2,11 +2,11 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/errors"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -26,12 +26,12 @@ func NewRelationshipService(rt repositories.IRelationTupleRepository, mn manager
 }
 
 // ReadRelationships -
-func (service *RelationshipService) ReadRelationships(ctx context.Context, filter *base.TupleFilter) (tuples tuple.ITupleCollection, err errors.Error) {
+func (service *RelationshipService) ReadRelationships(ctx context.Context, filter *base.TupleFilter) (tuples tuple.ITupleCollection, err error) {
 	return service.rt.Read(ctx, filter)
 }
 
 // WriteRelationship -
-func (service *RelationshipService) WriteRelationship(ctx context.Context, tup *base.Tuple, version string) (err errors.Error) {
+func (service *RelationshipService) WriteRelationship(ctx context.Context, tup *base.Tuple, version string) (err error) {
 	var entity *base.EntityDefinition
 	entity, err = service.mn.Read(ctx, tup.GetEntity().GetType(), version)
 	if err != nil {
@@ -39,9 +39,7 @@ func (service *RelationshipService) WriteRelationship(ctx context.Context, tup *
 	}
 
 	if tuple.IsEntityAndSubjectEquals(tup) {
-		return errors.ValidationError.SetParams(map[string]interface{}{
-			"subject": "entity and subject cannot be equal",
-		})
+		return errors.New(base.ErrorCode_entity_and_subject_cannot_be_equal.String())
 	}
 
 	var rel *base.RelationDefinition
@@ -53,15 +51,13 @@ func (service *RelationshipService) WriteRelationship(ctx context.Context, tup *
 
 	err = tuple.ValidateSubjectType(tup.Subject, vt)
 	if err != nil {
-		return errors.ValidationError.SetParams(map[string]interface{}{
-			"relation": err.Error(),
-		})
+		return errors.New(base.ErrorCode_validation_error.String())
 	}
 
 	return service.rt.Write(ctx, tuple.NewTupleCollection(tup).CreateTupleIterator())
 }
 
 // DeleteRelationship -
-func (service *RelationshipService) DeleteRelationship(ctx context.Context, tup *base.Tuple) errors.Error {
+func (service *RelationshipService) DeleteRelationship(ctx context.Context, tup *base.Tuple) error {
 	return service.rt.Delete(ctx, tuple.NewTupleCollection(tup).CreateTupleIterator())
 }

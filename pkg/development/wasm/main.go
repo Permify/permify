@@ -77,7 +77,7 @@ func writeTuple() js.Func {
 			return js.ValueOf([]interface{}{mErr.Error()})
 		}
 		var err errors.Error
-		err = development.WriteTuple(context.Background(), dev.R, *t, string(args[1].String()))
+		err = development.WriteTuple(context.Background(), dev.R, t, string(args[1].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
@@ -94,7 +94,7 @@ func deleteTuple() js.Func {
 			return js.ValueOf([]interface{}{mErr.Error()})
 		}
 		var err errors.Error
-		err = development.DeleteTuple(context.Background(), dev.R, *t)
+		err = development.DeleteTuple(context.Background(), dev.R, t)
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
@@ -122,14 +122,14 @@ func readSchema() js.Func {
 // readTuple -
 func readTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &filters.RelationTupleFilter{}
+		params := &base.TupleFilter{}
 		mErr := json.Unmarshal([]byte(string(args[0].String())), params)
 		if mErr != nil {
 			return js.ValueOf([]interface{}{false, mErr.Error()})
 		}
 		var tuples tuple.ITupleCollection
 		var err errors.Error
-		tuples, err = development.ReadTuple(context.Background(), dev.R, *params)
+		tuples, err = development.ReadTuple(context.Background(), dev.R, params)
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
@@ -151,7 +151,7 @@ func readSchemaGraph() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		r, gErr := sch.ToGraph()
+		r, gErr := schema.GraphSchema(sch)
 		if gErr != nil {
 			return js.ValueOf([]interface{}{nil, gErr.Error()})
 		}

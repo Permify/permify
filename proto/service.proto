@@ -5,7 +5,6 @@ option go_package = "pkg/pb/base/v1";
 import "tuple.proto";
 import "schema.proto";
 import "validate/validate.proto";
-import "google/protobuf/any.proto";
 import "google/protobuf/wrappers.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
@@ -85,7 +84,6 @@ message CheckResponse {
   bool can = 1 [json_name = "can", (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     example: "true"
   }];
-  map<string, google.protobuf.Any> decisions = 2 [json_name = "decisions"];
   int32 remaining_depth = 3 [json_name = "remaining_depth"];
 }
 

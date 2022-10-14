@@ -397,12 +397,6 @@
           "type": "boolean",
           "example": true
         },
-        "decisions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/Any"
-          }
-        },
         "remaining_depth": {
           "type": "integer",
           "format": "int32"

@@ -1,10 +1,10 @@
 package tuple
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/helper"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -66,7 +66,7 @@ func IsEntityAndSubjectEquals(t *base.Tuple) bool {
 }
 
 // ValidateSubjectType -
-func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err errors.Error) {
+func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err error) {
 	key := subject.GetType()
 	if subject.GetRelation() != "" {
 		if !IsSubjectUser(subject) {
@@ -77,7 +77,7 @@ func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err err
 	}
 
 	if !helper.InArray(key, relationTypes) {
-		return errors.NewError(errors.Validation).SetMessage("subject type is not found in defined types")
+		return errors.New(base.ErrorCode_subject_type_not_found.String())
 	}
 	return nil
 }

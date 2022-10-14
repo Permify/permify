@@ -26,7 +26,7 @@ func NewDevelopment() *Development {
 	var err error
 
 	var db database.Database
-	db, err = factories.DatabaseFactory(config.Write{Connection: database.MEMORY.String()})
+	db, err = factories.DatabaseFactory(config.Database{Engine: database.MEMORY.String()})
 	if err != nil {
 		db.Close()
 		fmt.Println(err)

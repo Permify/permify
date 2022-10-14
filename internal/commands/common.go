@@ -3,12 +3,11 @@ package commands
 import (
 	"golang.org/x/net/context"
 
-	"github.com/Permify/permify/pkg/errors"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-func getSubjects(ctx context.Context, command ICommand, ear *base.EntityAndRelation) (iterator tuple.ISubjectIterator, err errors.Error) {
+func getSubjects(ctx context.Context, command ICommand, ear *base.EntityAndRelation) (iterator tuple.ISubjectIterator, err error) {
 	r := tuple.SplitRelation(ear.GetRelation())
 
 	var tupleIterator tuple.ITupleIterator

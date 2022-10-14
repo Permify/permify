@@ -2,11 +2,12 @@ package decorators
 
 import (
 	"context"
+	"errors"
 
 	"github.com/afex/hystrix-go/hystrix"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/errors"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // EntityConfigWithCircuitBreaker -
@@ -20,15 +21,15 @@ func NewEntityConfigWithCircuitBreaker(entityConfigRepository repositories.IEnti
 }
 
 // Migrate -
-func (r *EntityConfigWithCircuitBreaker) Migrate() (err errors.Error) {
+func (r *EntityConfigWithCircuitBreaker) Migrate() (err error) {
 	return nil
 }
 
 // All -
-func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string) (configs []repositories.EntityConfig, err errors.Error) {
+func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string) (configs []repositories.EntityConfig, err error) {
 	type circuitBreakerResponse struct {
 		Configs []repositories.EntityConfig
-		Error   errors.Error
+		Error   error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
@@ -46,15 +47,15 @@ func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string
 	case out := <-output:
 		return out.Configs, out.Error
 	case <-bErrors:
-		return configs, errors.CircuitBreakerError
+		return configs, errors.New(base.ErrorCode_circuit_breaker_error.String())
 	}
 }
 
 // Read -
-func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, version string) (config repositories.EntityConfig, err errors.Error) {
+func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, version string) (config repositories.EntityConfig, err error) {
 	type circuitBreakerResponse struct {
 		Config repositories.EntityConfig
-		Error  errors.Error
+		Error  error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
@@ -72,13 +73,13 @@ func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, 
 	case out := <-output:
 		return out.Config, out.Error
 	case <-bErrors:
-		return config, errors.CircuitBreakerError
+		return config, errors.New(base.ErrorCode_circuit_breaker_error.String())
 	}
 }
 
 // Write -
-func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs []repositories.EntityConfig, version string) (err errors.Error) {
-	outputErr := make(chan errors.Error, 1)
+func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs []repositories.EntityConfig, version string) (err error) {
+	outputErr := make(chan error, 1)
 	hystrix.ConfigureCommand("entityConfigRepository.write", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("entityConfigRepository.write", func() error {
 		err = r.repository.Write(ctx, configs, version)
@@ -92,6 +93,6 @@ func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs []re
 	case err = <-outputErr:
 		return err
 	case <-bErrors:
-		return errors.CircuitBreakerError
+		return errors.New(base.ErrorCode_circuit_breaker_error.String())
 	}
 }

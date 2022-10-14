@@ -294,7 +294,7 @@ func (m *Entity) validate(all bool) error {
 	if !_Entity_Id_Pattern.MatchString(m.GetId()) {
 		err := EntityValidationError{
 			field:  "Id",
-			reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\\\*)$\"",
+			reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\\\*)$\"",
 		}
 		if !all {
 			return err
@@ -381,7 +381,7 @@ var _ interface {
 
 var _Entity_Type_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-var _Entity_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$")
+var _Entity_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$")
 
 // Validate checks the field values on EntityAndRelation with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -606,7 +606,7 @@ func (m *Subject) validate(all bool) error {
 	if !_Subject_Id_Pattern.MatchString(m.GetId()) {
 		err := SubjectValidationError{
 			field:  "Id",
-			reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\\\*)$\"",
+			reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\\\*)$\"",
 		}
 		if !all {
 			return err
@@ -719,7 +719,7 @@ var _ interface {
 
 var _Subject_Type_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-var _Subject_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$")
+var _Subject_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$")
 
 var _Subject_Relation_Pattern = regexp.MustCompile("^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$")
 
@@ -801,7 +801,7 @@ func (m *TupleFilter) validate(all bool) error {
 		if !_TupleFilter_Relation_Pattern.MatchString(m.GetRelation()) {
 			err := TupleFilterValidationError{
 				field:  "Relation",
-				reason: "value does not match regex pattern \"^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$\"",
+				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 			}
 			if !all {
 				return err
@@ -917,7 +917,7 @@ var _ interface {
 	ErrorName() string
 } = TupleFilterValidationError{}
 
-var _TupleFilter_Relation_Pattern = regexp.MustCompile("^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$")
+var _TupleFilter_Relation_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on EntityFilter with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -979,7 +979,7 @@ func (m *EntityFilter) validate(all bool) error {
 		if !_EntityFilter_Id_Pattern.MatchString(m.GetId()) {
 			err := EntityFilterValidationError{
 				field:  "Id",
-				reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\\\*)$\"",
+				reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\\\*)$\"",
 			}
 			if !all {
 				return err
@@ -1068,7 +1068,7 @@ var _ interface {
 
 var _EntityFilter_Type_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-var _EntityFilter_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$")
+var _EntityFilter_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$")
 
 // Validate checks the field values on SubjectFilter with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -1134,7 +1134,7 @@ func (m *SubjectFilter) validate(all bool) error {
 		if !_SubjectFilter_Id_Pattern.MatchString(m.GetId()) {
 			err := SubjectFilterValidationError{
 				field:  "Id",
-				reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\\\*)$\"",
+				reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\\\*)$\"",
 			}
 			if !all {
 				return err
@@ -1250,7 +1250,7 @@ var _ interface {
 
 var _SubjectFilter_Type_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-var _SubjectFilter_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$")
+var _SubjectFilter_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$")
 
 var _SubjectFilter_Relation_Pattern = regexp.MustCompile("^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$")
 

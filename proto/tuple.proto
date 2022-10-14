@@ -3,6 +3,7 @@ syntax = "proto3";
 option go_package = "pkg/pb/base/v1";
 
 import "validate/validate.proto";
+import "google/protobuf/any.proto";
 
 // Tuple
 message Tuple {
@@ -24,7 +25,7 @@ message Entity {
   }];
 
   string id = 2 [(validate.rules).string = {
-    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$",
+    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
     max_bytes : 128,
   }];
 }
@@ -46,7 +47,7 @@ message Subject {
   }];
 
   string id = 2 [(validate.rules).string = {
-    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$",
+    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
     max_bytes : 128,
   }];
 
@@ -63,7 +64,7 @@ message TupleFilter {
   EntityFilter entity = 1 [(validate.rules).message.required = true];
 
   string relation = 2 [(validate.rules).string = {
-    pattern : "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
@@ -78,7 +79,7 @@ message EntityFilter {
   }];
 
   string id = 2 [(validate.rules).string = {
-    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$",
+    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
     max_bytes : 128,
     ignore_empty: true,
   }];
@@ -93,7 +94,7 @@ message SubjectFilter {
   }];
 
   string id = 2 [(validate.rules).string = {
-    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$",
+    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
     max_bytes : 128,
     ignore_empty: true,
   }];
@@ -135,4 +136,3 @@ message Subjects {
   bool exclusion = 1;
   repeated Subject subjects = 2;
 }
-

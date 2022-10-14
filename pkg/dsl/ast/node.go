@@ -4,9 +4,28 @@ import (
 	"bytes"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/Permify/permify/pkg/dsl/token"
-	"github.com/Permify/permify/pkg/errors"
-	"github.com/Permify/permify/pkg/tuple"
+)
+
+type (
+	ExpressionType string
+	Operator       string
+)
+
+// String -
+func (o Operator) String() string {
+	return string(o)
+}
+
+const (
+	IDENTIFIER ExpressionType = "identifier"
+	PREFIX     ExpressionType = "prefix"
+	INFLIX     ExpressionType = "inflix"
+
+	AND Operator = "and"
+	OR  Operator = "or"
 )
 
 // Node -
@@ -20,7 +39,7 @@ type Expression interface {
 	Node
 	expressionNode()
 	IsInfix() bool
-	Type() string
+	GetType() ExpressionType
 	GetValue() string
 }
 
@@ -33,19 +52,62 @@ type Statement interface {
 // Schema -
 type Schema struct {
 	Statements []Statement
+
+	entityReferences   map[string]struct{}
+	relationReferences map[string][]RelationTypeStatement
 }
 
-// Validate -
-func (sch Schema) Validate() (err errors.Error) {
-	for _, st := range sch.Statements {
-		name := st.(*EntityStatement).Name.Literal
-		if name == tuple.USER {
-			return nil
+// ValidateReferences -
+func (sch *Schema) ValidateReferences() error {
+	for _, st := range sch.relationReferences {
+		entityReferenceCount := 0
+		for _, s := range st {
+			if s.IsEntityReference() {
+				if !sch.IsEntityReferenceExist(s.Token.Literal) {
+					return errors.New("relation reference not found in entity references")
+				}
+				entityReferenceCount++
+			}
+			if entityReferenceCount > 1 {
+				return errors.New("relation reference must have one entity reference")
+			}
 		}
 	}
-	return errors.NewError(errors.Kind("validation")).SetParams(map[string]interface{}{
-		"schema": UserEntityRequiredErr.Error(),
-	})
+	return nil
+}
+
+// SetEntityReferences -
+func (sch *Schema) SetEntityReferences(r map[string]struct{}) {
+	sch.entityReferences = r
+}
+
+// SetRelationReferences -
+func (sch *Schema) SetRelationReferences(r map[string][]RelationTypeStatement) {
+	sch.relationReferences = r
+}
+
+// IsEntityReferenceExist -
+func (sch *Schema) IsEntityReferenceExist(name string) bool {
+	if _, ok := sch.entityReferences[name]; ok {
+		return ok
+	}
+	return false
+}
+
+// IsRelationReferenceExist -
+func (sch *Schema) IsRelationReferenceExist(name string) bool {
+	if _, ok := sch.relationReferences[name]; ok {
+		return true
+	}
+	return false
+}
+
+// GetRelationReferenceIfExist -
+func (sch *Schema) GetRelationReferenceIfExist(name string) ([]RelationTypeStatement, bool) {
+	if _, ok := sch.relationReferences[name]; ok {
+		return sch.relationReferences[name], true
+	}
+	return nil, false
 }
 
 // EntityStatement -
@@ -153,11 +215,20 @@ func (ls *RelationTypeStatement) TokenLiteral() string {
 	return ls.Token.Literal
 }
 
+// String -
 func (ls *RelationTypeStatement) String() string {
 	var sb strings.Builder
 	sb.WriteString(ls.Sign.Literal)
 	sb.WriteString(ls.Token.Literal)
 	return sb.String()
+}
+
+// IsEntityReference -
+func (ls *RelationTypeStatement) IsEntityReference() bool {
+	if !strings.Contains(ls.Token.Literal, "#") {
+		return true
+	}
+	return false
 }
 
 // Identifier -
@@ -184,9 +255,9 @@ func (ls *Identifier) IsInfix() bool {
 	return false
 }
 
-// Type -
-func (ls *Identifier) Type() string {
-	return "identifier"
+// GetType -
+func (ls *Identifier) GetType() ExpressionType {
+	return IDENTIFIER
 }
 
 // GetValue -
@@ -245,7 +316,7 @@ func (es *ExpressionStatement) String() string {
 type InfixExpression struct {
 	Token    token.Token // The operator token, e.g. and, or
 	Left     Expression
-	Operator string
+	Operator Operator
 	Right    Expression
 }
 
@@ -262,7 +333,7 @@ func (ie *InfixExpression) String() string {
 	var sb strings.Builder
 	sb.WriteString("(")
 	sb.WriteString(ie.Left.String())
-	sb.WriteString(" " + ie.Operator)
+	sb.WriteString(" " + ie.Operator.String())
 	sb.WriteString(" ")
 	sb.WriteString(ie.Right.String())
 	sb.WriteString(")")
@@ -274,9 +345,9 @@ func (ie *InfixExpression) IsInfix() bool {
 	return true
 }
 
-// Type -
-func (ie *InfixExpression) Type() string {
-	return "inflix"
+// GetType -
+func (ie *InfixExpression) GetType() ExpressionType {
+	return INFLIX
 }
 
 // GetValue -
@@ -311,12 +382,25 @@ func (pe *PrefixExpression) IsInfix() bool {
 	return false
 }
 
-// Type -
-func (pe *PrefixExpression) Type() string {
-	return "prefix"
+// GetType -
+func (pe *PrefixExpression) GetType() ExpressionType {
+	return PREFIX
 }
 
 // GetValue -
 func (pe *PrefixExpression) GetValue() string {
 	return pe.Value
+}
+
+// RelationTypeStatements -
+type RelationTypeStatements []RelationTypeStatement
+
+// GetEntityReference -
+func (st RelationTypeStatements) GetEntityReference() string {
+	for _, rt := range st {
+		if rt.IsEntityReference() {
+			return rt.TokenLiteral()
+		}
+	}
+	return ""
 }

@@ -1,11 +1,11 @@
 package commands
 
 import (
-	`context`
+	"context"
 
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/dsl/translator`
-	`github.com/Permify/permify/pkg/logger`
+	"github.com/Permify/permify/pkg/dsl/compiler"
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/logger"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -52,7 +52,7 @@ entity doc {
 				Relations: []string{"creator"},
 			}
 
-			sch, err := translator.StringToSchema(driveSchema)
+			sch, err := compiler.StringToSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, "folder")
@@ -69,7 +69,7 @@ entity doc {
 				Relations: []string{"owner", "org.admin"},
 			}
 
-			sch, err := translator.StringToSchema(driveSchema)
+			sch, err := compiler.StringToSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, "doc")
@@ -105,14 +105,13 @@ entity doc {
 	`
 
 	Context("Github Sample: Schema Lookup", func() {
-
 		It("Github Sample: Case 1", func() {
 			schemaLookupCommand = NewSchemaLookupCommand(l)
 			re := &SchemaLookupQuery{
 				Relations: []string{"admin"},
 			}
 
-			sch, err := translator.StringToSchema(githubSchema)
+			sch, err := compiler.StringToSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, "organization")
@@ -129,7 +128,7 @@ entity doc {
 				Relations: []string{"parent.admin", "parent.member"},
 			}
 
-			sch, err := translator.StringToSchema(githubSchema)
+			sch, err := compiler.StringToSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, "repository")

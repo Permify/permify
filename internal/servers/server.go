@@ -3,7 +3,6 @@ package servers
 import (
 	"context"
 	"fmt"
-	`google.golang.org/grpc/reflection`
 	"net"
 	"net/http"
 	"time"
@@ -17,6 +16,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	health "google.golang.org/grpc/health/grpc_health_v1"
 
@@ -113,6 +114,17 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		healthClient := health.NewHealthClient(conn)
 		muxOpts := []runtime.ServeMuxOption{
 			runtime.WithHealthzEndpoint(healthClient),
+			runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
+				Marshaler: &runtime.JSONPb{
+					MarshalOptions: protojson.MarshalOptions{
+						UseProtoNames:   true,
+						EmitUnpopulated: true,
+					},
+					UnmarshalOptions: protojson.UnmarshalOptions{
+						DiscardUnknown: true,
+					},
+				},
+			}),
 		}
 
 		mux := runtime.NewServeMux(muxOpts...)

@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/dsl/translator"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -150,7 +150,7 @@ entity doc {
 				Entity: &base.Entity{Type: "doc", Id: "1"},
 			}
 
-			sch, err := translator.StringToSchema(driveSchema)
+			sch, err := compiler.StringToSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, re.Entity.Type)

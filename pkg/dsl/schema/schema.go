@@ -1,23 +1,23 @@
 package schema
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/rs/xid"
 
-	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/graph"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 // GetEntityByName -
-func GetEntityByName(schema *base.Schema, name string) (entityDefinition *base.EntityDefinition, err errors.Error) {
+func GetEntityByName(schema *base.Schema, name string) (entityDefinition *base.EntityDefinition, err error) {
 	if en, ok := schema.GetEntityDefinitions()[name]; ok {
 		return en, nil
 	}
-	return nil, errors.NewError(errors.Service).SetMessage("entity not found")
+	return nil, errors.New(base.ErrorCode_entity_definition_not_found.String())
 }
 
 // NewSchema -
@@ -38,23 +38,23 @@ func NewSchema(entities ...*base.EntityDefinition) (schema *base.Schema) {
 }
 
 // GetAction -
-func GetAction(entityDefinition *base.EntityDefinition, name string) (actionDefinition *base.ActionDefinition, err errors.Error) {
+func GetAction(entityDefinition *base.EntityDefinition, name string) (actionDefinition *base.ActionDefinition, err error) {
 	for _, en := range entityDefinition.Actions {
 		if en.GetName() == name {
 			return en, nil
 		}
 	}
-	return nil, errors.NewError(errors.Validation).AddParam("action", "action con not found")
+	return nil, errors.New(base.ErrorCode_action_can_not_found.String())
 }
 
 // GetRelation -
-func GetRelation(entityDefinition *base.EntityDefinition, name string) (relationDefinition *base.RelationDefinition, err errors.Error) {
+func GetRelation(entityDefinition *base.EntityDefinition, name string) (relationDefinition *base.RelationDefinition, err error) {
 	for _, re := range entityDefinition.Relations {
 		if re.GetName() == name {
 			return re, nil
 		}
 	}
-	return nil, errors.NewError(errors.Validation).AddParam("relation", "relation con not found")
+	return nil, errors.New(base.ErrorCode_action_definition_not_found.String())
 }
 
 // GetTable -
@@ -102,11 +102,11 @@ func (r Relations) GetRelationByName(name string) (definition *base.RelationDefi
 			return rel, nil
 		}
 	}
-	return nil, errors.NewError(errors.Service).SetMessage("relation not found")
+	return nil, errors.New(base.ErrorCode_relation_definition_not_found.String())
 }
 
 // GraphSchema -
-func GraphSchema(schema *base.Schema) (g graph.Graph, error errors.Error) {
+func GraphSchema(schema *base.Schema) (g graph.Graph, error error) {
 	for _, en := range schema.GetEntityDefinitions() {
 		eg, err := GraphEntity(en)
 		if err != nil {
@@ -119,7 +119,7 @@ func GraphSchema(schema *base.Schema) (g graph.Graph, error errors.Error) {
 }
 
 // GraphEntity -
-func GraphEntity(entity *base.EntityDefinition) (g graph.Graph, error errors.Error) {
+func GraphEntity(entity *base.EntityDefinition) (g graph.Graph, error error) {
 	enNode := &graph.Node{
 		Type:  "entity",
 		ID:    fmt.Sprintf("entity:%s", entity.GetName()),
@@ -156,7 +156,7 @@ func GraphEntity(entity *base.EntityDefinition) (g graph.Graph, error errors.Err
 }
 
 // buildActionGraph -
-func buildActionGraph(entity *base.EntityDefinition, from *graph.Node, children []*base.Child) (g graph.Graph, error errors.Error) {
+func buildActionGraph(entity *base.EntityDefinition, from *graph.Node, children []*base.Child) (g graph.Graph, error error) {
 	for _, child := range children {
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
@@ -180,7 +180,7 @@ func buildActionGraph(entity *base.EntityDefinition, from *graph.Node, children 
 				v := strings.Split(leaf.GetTupleToUserSet().GetRelation(), ".")
 				re, err := GetRelation(entity, v[0])
 				if err != nil {
-					return graph.Graph{}, errors.NewError(errors.Service).SetMessage("relation not found")
+					return graph.Graph{}, errors.New(base.ErrorCode_relation_definition_not_found.String())
 				}
 				g.AddEdge(from, &graph.Node{
 					Type:  "relation",

@@ -2,13 +2,12 @@ package memory
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/helper"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -25,12 +24,12 @@ func NewRelationTupleRepository(mm *db.Memory) *RelationTupleRepository {
 }
 
 // Migrate -
-func (r *RelationTupleRepository) Migrate() (err errors.Error) {
+func (r *RelationTupleRepository) Migrate() (err error) {
 	return nil
 }
 
 // ReverseQueryTuples -
-func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuple.ITupleIterator, errors.Error) {
+func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuple.ITupleIterator, error) {
 	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
@@ -57,7 +56,7 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 	var it memdb.ResultIterator
 	it, err = txn.Get("relation_tuple", "subject-index", entity, relation, subjectEntity)
 	if err != nil {
-		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
+		return nil, errors.New(base.ErrorCode_execution.String())
 	}
 
 	collection := tuple.NewTupleCollection()
@@ -72,7 +71,7 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 }
 
 // QueryTuples -
-func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuple.ITupleIterator, errors.Error) {
+func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string, objectID string, relation string) (tuple.ITupleIterator, error) {
 	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
@@ -80,7 +79,7 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 	var it memdb.ResultIterator
 	it, err = txn.Get("relation_tuple", "entity-index", entity, objectID, relation)
 	if err != nil {
-		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
+		return nil, errors.New(base.ErrorCode_execution.String())
 	}
 
 	collection := tuple.NewTupleCollection()
@@ -94,7 +93,7 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 }
 
 // Read -
-func (r *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFilter) (tuple.ITupleCollection, errors.Error) {
+func (r *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFilter) (tuple.ITupleCollection, error) {
 	var err error
 	txn := r.Database.DB.Txn(false)
 	defer txn.Abort()
@@ -135,7 +134,7 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFi
 	var it memdb.ResultIterator
 	it, err = txn.Get("relation_tuple", "entity", filter.Entity.Type)
 	if err != nil {
-		return nil, errors.DatabaseError.SetSubKind(database.ErrExecution)
+		return nil, errors.New(base.ErrorCode_execution.String())
 	}
 
 	collection := tuple.NewTupleCollection()
@@ -150,7 +149,7 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFi
 }
 
 // Write -
-func (r *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITupleIterator) errors.Error {
+func (r *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITupleIterator) error {
 	var err error
 
 	if !iterator.HasNext() {
@@ -171,7 +170,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITup
 			SubjectRelation: bt.GetSubject().GetRelation(),
 		}
 		if err = txn.Insert("relation_tuple", t); err != nil {
-			return errors.DatabaseError.SetSubKind(database.ErrExecution)
+			return errors.New(base.ErrorCode_execution.String())
 		}
 	}
 
@@ -180,7 +179,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITup
 }
 
 // Delete -
-func (r *RelationTupleRepository) Delete(ctx context.Context, iterator tuple.ITupleIterator) errors.Error {
+func (r *RelationTupleRepository) Delete(ctx context.Context, iterator tuple.ITupleIterator) error {
 	if !iterator.HasNext() {
 		return nil
 	}
@@ -204,7 +203,7 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, iterator tuple.ITu
 				// errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 				return nil
 			}
-			return errors.DatabaseError.SetSubKind(database.ErrUniqueConstraint)
+			return errors.New(base.ErrorCode_unique_constraint.String())
 		}
 	}
 
