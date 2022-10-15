@@ -446,7 +446,7 @@ type RelationDefinition struct {
 
 	Name            string             `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	EntityReference *RelationReference `protobuf:"bytes,2,opt,name=entity_reference,json=entityReference,proto3" json:"entity_reference,omitempty"`
-	// relation reference include entity reference
+	// relation reference includes entity reference
 	RelationReferences []*RelationReference  `protobuf:"bytes,3,rep,name=relation_references,json=relationReferences,proto3" json:"relation_references,omitempty"`
 	Option             map[string]*anypb.Any `protobuf:"bytes,4,rep,name=option,proto3" json:"option,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }

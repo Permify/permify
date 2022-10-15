@@ -16,13 +16,15 @@ import (
 
 // Compiler -
 type Compiler struct {
-	schema *ast.Schema
+	schema                     *ast.Schema
+	withoutReferenceValidation bool
 }
 
 // NewCompiler -
-func NewCompiler(sch *ast.Schema) *Compiler {
+func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 	return &Compiler{
-		schema: sch,
+		withoutReferenceValidation: w,
+		schema:                     sch,
 	}
 }
 
@@ -30,9 +32,11 @@ func NewCompiler(sch *ast.Schema) *Compiler {
 func (t *Compiler) Compile() (sch *base.Schema, err error) {
 	var entities []*base.EntityDefinition
 
-	err = t.schema.ValidateReferences()
-	if err != nil {
-		return nil, err
+	if !t.withoutReferenceValidation {
+		err = t.schema.ValidateReferences()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	for _, sc := range t.schema.Statements {
@@ -97,7 +101,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			}
 		}
 
-		entityDefinition.Relations[fmt.Sprintf("%v#%v", entityDefinition.GetName(), relationDefinition.GetName())] = relationDefinition
+		entityDefinition.Relations[relationDefinition.GetName()] = relationDefinition
 	}
 
 	// actions
@@ -111,7 +115,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			Name:  st.Name.Literal,
 			Child: ch,
 		}
-		entityDefinition.Actions[fmt.Sprintf("%v#%v", entityDefinition.GetName(), actionDefinition.GetName())] = actionDefinition
+		entityDefinition.Actions[actionDefinition.GetName()] = actionDefinition
 	}
 
 	return entityDefinition, nil
@@ -183,23 +187,27 @@ func (t *Compiler) parseChildren(entityName string, expression ast.Expression) (
 		if len(s) == 1 {
 			computedUserSet := &base.ComputedUserSet{}
 			computedUserSet.Relation = exp.GetValue()
-			exist := t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, s[0]))
-			if !exist {
-				return nil, errors.New(base.ErrorCode_undefined_relation_reference.String())
+			if !t.withoutReferenceValidation {
+				exist := t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, s[0]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_undefined_relation_reference.String())
+				}
 			}
 			leaf.Type = &base.Leaf_ComputedUserSet{ComputedUserSet: computedUserSet}
 		} else if len(s) == 2 {
 			tupleToUserSet := &base.TupleToUserSet{}
 			tupleToUserSet.Relation = exp.GetValue()
 
-			value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
-			if !exist {
-				return nil, errors.New(base.ErrorCode_undefined_relation_reference.String())
-			}
+			if !t.withoutReferenceValidation {
+				value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_undefined_relation_reference.String())
+				}
 
-			exist = t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
-			if !exist {
-				return nil, errors.New(base.ErrorCode_undefined_relation_reference.String())
+				exist = t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_undefined_relation_reference.String())
+				}
 			}
 
 			leaf.Type = &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet}
@@ -219,7 +227,21 @@ func NewSchema(schema ...string) (*base.Schema, error) {
 		return nil, err
 	}
 	var s *base.Schema
-	s, err = NewCompiler(sch).Compile()
+	s, err = NewCompiler(false, sch).Compile()
+	if err != nil {
+		return nil, err
+	}
+	return s, err
+}
+
+// NewSchemaWithoutReferenceValidation -
+func NewSchemaWithoutReferenceValidation(schema ...string) (*base.Schema, error) {
+	sch, err := parser.NewParser(strings.Join(schema, "\n")).Parse()
+	if err != nil {
+		return nil, err
+	}
+	var s *base.Schema
+	s, err = NewCompiler(true, sch).Compile()
 	if err != nil {
 		return nil, err
 	}

@@ -105,8 +105,6 @@ func GetColumn(definition *base.RelationDefinition) (string, bool) {
 	return "", false
 }
 
-// COLLECTIONS
-
 // GraphSchema -
 func GraphSchema(schema *base.Schema) (g graph.Graph, error error) {
 	for _, en := range schema.GetEntityDefinitions() {

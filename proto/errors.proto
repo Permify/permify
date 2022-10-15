@@ -26,6 +26,8 @@ enum ErrorCode {
   duplicated_action_reference = 2014;
   schema_parse = 2015;
   schema_compile = 2016;
+  subject_relation_must_be_empty = 2017;
+  subject_relation_cannot_be_empty = 2018;
 
   // not found
   not_found_error = 4000;
@@ -47,6 +49,7 @@ enum ErrorCode {
   execution = 5005;
   scan = 5006;
   migration = 5007;
+  type_conversation_error = 5008;
 }
 
 // ErrorResponse

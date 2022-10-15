@@ -80,20 +80,20 @@ func Start(cfg *config.Config) {
 	var ch cache.Cache
 	ch, err = ristretto.New()
 	if err != nil {
-		l.Fatal(fmt.Errorf("permify - Run - cache.Factory: %w", err))
+		l.Fatal(err)
 	}
 
 	// Repositories
 	relationTupleRepository := factories.RelationTupleFactory(db)
 	err = relationTupleRepository.Migrate()
 	if err != nil {
-		l.Fatal(fmt.Errorf("permify - Run - relationTupleRepository.Migrate: %w", err))
+		l.Fatal(err)
 	}
 
 	entityConfigRepository := factories.EntityConfigFactory(db)
 	err = entityConfigRepository.Migrate()
 	if err != nil {
-		l.Fatal(fmt.Errorf("permify - Run - entityConfigRepository.Migrate: %w", err))
+		l.Fatal(err)
 	}
 
 	// decorators

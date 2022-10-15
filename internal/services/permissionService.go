@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/managers"
@@ -35,13 +34,13 @@ func (service *PermissionService) Check(ctx context.Context, subject *base.Subje
 	var en *base.EntityDefinition
 	en, err = service.manager.Read(ctx, entity.GetType(), version)
 	if err != nil {
-		return response, errors.New(base.ErrorCode_entity_type_can_not_found.String())
+		return response, err
 	}
 
 	var a *base.ActionDefinition
 	a, err = schema.GetActionByNameInEntityDefinition(en, action)
 	if err != nil {
-		return response, errors.New(base.ErrorCode_action_can_not_found.String())
+		return response, err
 	}
 
 	child := a.Child
@@ -61,13 +60,13 @@ func (service *PermissionService) Expand(ctx context.Context, entity *base.Entit
 	var en *base.EntityDefinition
 	en, err = service.manager.Read(ctx, entity.GetType(), version)
 	if err != nil {
-		return response, errors.New(base.ErrorCode_entity_type_can_not_found.String())
+		return response, err
 	}
 
 	var a *base.ActionDefinition
 	a, err = schema.GetActionByNameInEntityDefinition(en, action)
 	if err != nil {
-		return response, errors.New(base.ErrorCode_action_can_not_found.String())
+		return response, err
 	}
 
 	child := a.Child
@@ -84,20 +83,20 @@ func (service *PermissionService) LookupQuery(ctx context.Context, entityType st
 	var sch *base.Schema
 	sch, err = service.manager.All(ctx, version)
 	if err != nil {
-		return response, errors.New(base.ErrorCode_schema_not_found.String())
+		return response, err
 	}
 
 	// entityType
 	var en *base.EntityDefinition
 	en, err = schema.GetEntityByName(sch, entityType)
 	if err != nil {
-		return response, errors.New(base.ErrorCode_entity_type_can_not_found.String())
+		return response, err
 	}
 
 	var a *base.ActionDefinition
 	a, err = schema.GetActionByNameInEntityDefinition(en, action)
 	if err != nil {
-		return response, errors.New(base.ErrorCode_action_can_not_found.String())
+		return response, err
 	}
 
 	child := a.Child

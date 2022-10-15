@@ -629,7 +629,7 @@
           "items": {
             "$ref": "#/definitions/RelationReference"
           },
-          "title": "relation reference include entity reference"
+          "title": "relation reference includes entity reference"
         },
         "option": {
           "type": "object",

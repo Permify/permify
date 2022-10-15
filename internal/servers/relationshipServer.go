@@ -65,6 +65,11 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 		return nil, v
 	}
 
+	v = tuple.ValidateSubject(request.GetSubject())
+	if v != nil {
+		return nil, v
+	}
+
 	var err error
 	t := &v1.Tuple{Entity: request.GetEntity(), Relation: request.GetRelation(), Subject: request.GetSubject()}
 	err = r.relationshipService.WriteRelationship(ctx, t, request.SchemaVersion)
@@ -86,6 +91,11 @@ func (r *RelationshipServer) Delete(ctx context.Context, request *v1.Relationshi
 	defer span.End()
 
 	v := request.Validate()
+	if v != nil {
+		return nil, v
+	}
+
+	v = tuple.ValidateSubject(request.GetSubject())
 	if v != nil {
 		return nil, v
 	}

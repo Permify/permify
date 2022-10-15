@@ -34,6 +34,20 @@ func IsSubjectUser(subject *base.Subject) bool {
 	return false
 }
 
+// ValidateSubject -
+func ValidateSubject(subject *base.Subject) error {
+	if subject.Type == USER {
+		if subject.GetRelation() != "" {
+			return errors.New(base.ErrorCode_subject_relation_must_be_empty.String())
+		}
+	} else {
+		if subject.GetRelation() == "" {
+			return errors.New(base.ErrorCode_subject_relation_cannot_be_empty.String())
+		}
+	}
+	return nil
+}
+
 // AreSubjectsEqual -
 func AreSubjectsEqual(s1 *base.Subject, s2 *base.Subject) bool {
 	if IsSubjectUser(s1) {

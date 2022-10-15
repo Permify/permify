@@ -2,6 +2,8 @@ package managers
 
 import (
 	"context"
+	`errors`
+	`fmt`
 
 	"github.com/rs/xid"
 
@@ -55,7 +57,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 		config, err = manager.repository.Read(ctx, name, version)
 
 		var sch *base.Schema
-		sch, err = compiler.NewSchema(config.Serialized())
+		sch, err = compiler.NewSchemaWithoutReferenceValidation(config.Serialized())
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +70,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 	found := false
 
 	if version != "" {
-		key = name + "|" + version
+		key = fmt.Sprintf("%s|%s", name, version)
 		s, found = manager.cache.Get(key)
 	}
 
@@ -78,26 +80,27 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 		if err != nil {
 			return nil, err
 		}
-		key = name + "|" + config.Version
-		manager.cache.Set(key, config, 1)
-
+		key = fmt.Sprintf("%s|%s", name, config.Version)
 		var sch *base.Schema
-		sch, err = compiler.NewSchema(config.Serialized())
+		sch, err = compiler.NewSchemaWithoutReferenceValidation(config.Serialized())
 		if err != nil {
 			return nil, err
 		}
-
-		return schema.GetEntityByName(sch, name)
+		var def *base.EntityDefinition
+		def, err = schema.GetEntityByName(sch, name)
+		if err != nil {
+			return nil, err
+		}
+		manager.cache.Set(key, def, 1)
+		return def, nil
 	}
 
-	conf := s.(repositories.EntityConfig)
-	var sch *base.Schema
-	sch, err = compiler.NewSchema(conf.Serialized())
-	if err != nil {
-		return nil, err
+	def, ok := s.(*base.EntityDefinition)
+	if !ok {
+		return nil, errors.New(base.ErrorCode_type_conversation_error.String())
 	}
 
-	return schema.GetEntityByName(sch, name)
+	return def, err
 }
 
 // Write -
@@ -109,7 +112,7 @@ func (manager *EntityConfigManager) Write(ctx context.Context, schema string) (s
 		return "", err
 	}
 
-	_, err = compiler.NewCompiler(sch).Compile()
+	_, err = compiler.NewCompiler(false, sch).Compile()
 	if err != nil {
 		return "", err
 	}
