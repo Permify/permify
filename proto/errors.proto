@@ -19,6 +19,13 @@ enum ErrorCode {
   not_supported_relation_walk = 2007;
   entity_and_subject_cannot_be_equal = 2008;
   depth_not_enough = 2009;
+  relation_reference_not_found_in_entity_references = 2010;
+  relation_reference_must_have_one_entity_reference = 2011;
+  duplicated_entity_reference = 2012;
+  duplicated_relation_reference = 2013;
+  duplicated_action_reference = 2014;
+  schema_parse = 2015;
+  schema_compile = 2016;
 
   // not found
   not_found_error = 4000;

@@ -9,8 +9,32 @@ import (
 
 	"github.com/Permify/permify/pkg/graph"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
+
+// NewSchema -
+func NewSchema(entities ...*base.EntityDefinition) (schema *base.Schema) {
+	schema = &base.Schema{
+		EntityDefinitions:   map[string]*base.EntityDefinition{},
+		RelationDefinitions: map[string]*base.RelationDefinition{},
+		ActionDefinitions:   map[string]*base.ActionDefinition{},
+	}
+	for _, entity := range entities {
+		if entity.Relations == nil {
+			entity.Relations = map[string]*base.RelationDefinition{}
+		}
+		if entity.Actions == nil {
+			entity.Actions = map[string]*base.ActionDefinition{}
+		}
+		schema.EntityDefinitions[entity.Name] = entity
+		for _, relation := range entity.GetRelations() {
+			schema.RelationDefinitions[fmt.Sprintf("%v#%v", entity.GetName(), relation.GetName())] = relation
+		}
+		for _, action := range entity.GetActions() {
+			schema.ActionDefinitions[fmt.Sprintf("%v#%v", entity.GetName(), action.GetName())] = action
+		}
+	}
+	return
+}
 
 // GetEntityByName -
 func GetEntityByName(schema *base.Schema, name string) (entityDefinition *base.EntityDefinition, err error) {
@@ -20,41 +44,41 @@ func GetEntityByName(schema *base.Schema, name string) (entityDefinition *base.E
 	return nil, errors.New(base.ErrorCode_entity_definition_not_found.String())
 }
 
-// NewSchema -
-func NewSchema(entities ...*base.EntityDefinition) (schema *base.Schema) {
-	schema = &base.Schema{
-		EntityDefinitions: map[string]*base.EntityDefinition{},
+// GetRelationWithKey Key -> entity_name#relation_name
+func GetRelationWithKey(schema *base.Schema, key string) (relationDefinition *base.RelationDefinition, err error) {
+	if en, ok := schema.GetRelationDefinitions()[key]; ok {
+		return en, nil
 	}
-	for _, entity := range entities {
-		if entity.Relations == nil {
-			entity.Relations = []*base.RelationDefinition{}
-		}
-		if entity.Actions == nil {
-			entity.Actions = []*base.ActionDefinition{}
-		}
-		schema.EntityDefinitions[entity.Name] = entity
-	}
-	return
+	return nil, errors.New(base.ErrorCode_relation_definition_not_found.String())
 }
 
-// GetAction -
-func GetAction(entityDefinition *base.EntityDefinition, name string) (actionDefinition *base.ActionDefinition, err error) {
-	for _, en := range entityDefinition.Actions {
-		if en.GetName() == name {
-			return en, nil
-		}
+// GetActionWithKey Key -> entity_name#action_name
+func GetActionWithKey(schema *base.Schema, key string) (actionDefinition *base.ActionDefinition, err error) {
+	if en, ok := schema.GetActionDefinitions()[key]; ok {
+		return en, nil
+	}
+	return nil, errors.New(base.ErrorCode_action_definition_not_found.String())
+}
+
+// GetActionByNameInEntityDefinition -
+func GetActionByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (actionDefinition *base.ActionDefinition, err error) {
+	if re, ok := entityDefinition.GetActions()[name]; ok {
+		return re, nil
 	}
 	return nil, errors.New(base.ErrorCode_action_can_not_found.String())
 }
 
-// GetRelation -
-func GetRelation(entityDefinition *base.EntityDefinition, name string) (relationDefinition *base.RelationDefinition, err error) {
-	for _, re := range entityDefinition.Relations {
-		if re.GetName() == name {
-			return re, nil
-		}
+// GetRelationByNameInEntityDefinition -
+func GetRelationByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (relationDefinition *base.RelationDefinition, err error) {
+	if re, ok := entityDefinition.GetRelations()[name]; ok {
+		return re, nil
 	}
 	return nil, errors.New(base.ErrorCode_action_definition_not_found.String())
+}
+
+// GetEntityReference -
+func GetEntityReference(definition *base.RelationDefinition) string {
+	return definition.GetEntityReference().GetName()
 }
 
 // GetTable -
@@ -73,16 +97,6 @@ func GetIdentifier(definition *base.EntityDefinition) string {
 	return "id"
 }
 
-// GetType -
-func GetType(definition *base.RelationDefinition) string {
-	for _, typ := range definition.GetTypes() {
-		if !strings.Contains(typ.GetName(), "#") {
-			return typ.GetName()
-		}
-	}
-	return tuple.USER
-}
-
 // GetColumn -
 func GetColumn(definition *base.RelationDefinition) (string, bool) {
 	if col, ok := definition.GetOption()["column"]; ok {
@@ -92,18 +106,6 @@ func GetColumn(definition *base.RelationDefinition) (string, bool) {
 }
 
 // COLLECTIONS
-
-type Relations []*base.RelationDefinition
-
-// GetRelationByName -
-func (r Relations) GetRelationByName(name string) (definition *base.RelationDefinition, err error) {
-	for _, rel := range r {
-		if rel.Name == name {
-			return rel, nil
-		}
-	}
-	return nil, errors.New(base.ErrorCode_relation_definition_not_found.String())
-}
 
 // GraphSchema -
 func GraphSchema(schema *base.Schema) (g graph.Graph, error error) {
@@ -178,13 +180,13 @@ func buildActionGraph(entity *base.EntityDefinition, from *graph.Node, children 
 			switch leaf.GetType().(type) {
 			case *base.Leaf_TupleToUserSet:
 				v := strings.Split(leaf.GetTupleToUserSet().GetRelation(), ".")
-				re, err := GetRelation(entity, v[0])
+				re, err := GetRelationByNameInEntityDefinition(entity, v[0])
 				if err != nil {
 					return graph.Graph{}, errors.New(base.ErrorCode_relation_definition_not_found.String())
 				}
 				g.AddEdge(from, &graph.Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:relation:%s", GetType(re), v[1]),
+					ID:    fmt.Sprintf("entity:%s:relation:%s", GetEntityReference(re), v[1]),
 					Label: v[1],
 				}, leaf.GetExclusion())
 				break

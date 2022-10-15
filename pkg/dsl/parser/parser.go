@@ -3,11 +3,11 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/lexer"
 	"github.com/Permify/permify/pkg/dsl/token"
+	base `github.com/Permify/permify/pkg/pb/base/v1`
 )
 
 const (
@@ -35,6 +35,7 @@ type Parser struct {
 	// references
 	entityReferences   map[string]struct{}
 	relationReferences map[string][]ast.RelationTypeStatement
+	actionReferences   map[string]struct{}
 }
 
 type (
@@ -49,6 +50,7 @@ func NewParser(str string) (p *Parser) {
 		errors:             []string{},
 		entityReferences:   map[string]struct{}{},
 		relationReferences: map[string][]ast.RelationTypeStatement{},
+		actionReferences:   map[string]struct{}{},
 	}
 
 	p.prefixParseFns = make(map[token.Type]prefixParseFn)
@@ -64,14 +66,31 @@ func NewParser(str string) (p *Parser) {
 	return
 }
 
-// SetEntityReference -
-func (p *Parser) setEntityReference(key string) {
+// setEntityReference -
+func (p *Parser) setEntityReference(key string) error {
+	if _, ok := p.entityReferences[key]; ok {
+		return errors.New(base.ErrorCode_duplicated_entity_reference.String())
+	}
 	p.entityReferences[key] = struct{}{}
+	return nil
 }
 
-// SetRelationReference -
-func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatement) {
+// setRelationReference -
+func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatement) error {
+	if _, ok := p.entityReferences[key]; ok {
+		return errors.New(base.ErrorCode_duplicated_relation_reference.String())
+	}
 	p.relationReferences[key] = types
+	return nil
+}
+
+// setActionReference -
+func (p *Parser) setActionReference(key string) error {
+	if _, ok := p.entityReferences[key]; ok {
+		return errors.New(base.ErrorCode_duplicated_action_reference.String())
+	}
+	p.actionReferences[key] = struct{}{}
+	return nil
 }
 
 // next -
@@ -95,7 +114,7 @@ func (p *Parser) Error() error {
 	if len(p.errors) == 0 {
 		return nil
 	}
-	return errors.New(strings.Join(p.errors, ","))
+	return errors.New(base.ErrorCode_schema_parse.String())
 }
 
 // Parse -
@@ -138,7 +157,10 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 
 	var entityName string
 	stmt.Name = p.currentToken
-	p.setEntityReference(stmt.Name.Literal)
+	err := p.setEntityReference(stmt.Name.Literal)
+	if err != nil {
+		return nil, err
+	}
 	entityName = stmt.Name.Literal
 
 	if !p.expectAndNext(token.LBRACE) {
@@ -209,7 +231,10 @@ func (p *Parser) parseRelationStatement(entityName string) (*ast.RelationStateme
 		relationTypeStatements = append(relationTypeStatements, *relSt)
 	}
 
-	p.setRelationReference(fmt.Sprintf("%v#%v", entityName, relationName), relationTypeStatements)
+	err := p.setRelationReference(fmt.Sprintf("%v#%v", entityName, relationName), relationTypeStatements)
+	if err != nil {
+		return nil, err
+	}
 
 	if p.peekTokenIs(token.OPTION) {
 		p.next()
@@ -241,6 +266,10 @@ func (p *Parser) parseActionStatement() (ast.Statement, error) {
 	}
 
 	stmt.Name = p.currentToken
+	err := p.setActionReference(stmt.Name.Literal)
+	if err != nil {
+		return nil, err
+	}
 
 	if !p.expectAndNext(token.ASSIGN) {
 		return nil, p.Error()

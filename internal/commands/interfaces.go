@@ -23,7 +23,7 @@ type IExpandCommand interface {
 
 // ISchemaLookupCommand -
 type ISchemaLookupCommand interface {
-	Execute(ctx context.Context, q *SchemaLookupQuery, actions []*base.ActionDefinition) (response SchemaLookupResponse, err error)
+	Execute(ctx context.Context, q *SchemaLookupQuery, actions map[string]*base.ActionDefinition) (response SchemaLookupResponse, err error)
 }
 
 // ILookupQueryCommand -

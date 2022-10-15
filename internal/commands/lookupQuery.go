@@ -231,7 +231,7 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context,
 		}
 	}
 	var rel *base.RelationDefinition
-	rel, err = schema.Relations(entity.Relations).GetRelationByName(r[0])
+	rel, err = schema.GetRelationByNameInEntityDefinition(entity, r[0])
 	if err != nil {
 		return QueryNode{
 			Err: err,
@@ -239,14 +239,14 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context,
 	}
 	column, columnExist := schema.GetColumn(rel)
 	var parentEntity *base.EntityDefinition
-	parentEntity, err = schema.GetEntityByName(sch, schema.GetType(rel))
+	parentEntity, err = schema.GetEntityByName(sch, schema.GetEntityReference(rel))
 	if err != nil {
 		return QueryNode{
 			Err: err,
 		}
 	}
 	var parentRel *base.RelationDefinition
-	parentRel, err = schema.Relations(parentEntity.Relations).GetRelationByName(r[1])
+	parentRel, err = schema.GetRelationByNameInEntityDefinition(parentEntity, r[0])
 	if err != nil {
 		return QueryNode{
 			Err: err,
@@ -256,12 +256,12 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context,
 	if !columnExist {
 		qu.Key = fmt.Sprintf("%s.%s", schema.GetTable(entity), schema.GetIdentifier(entity))
 		qu.idResolver = func() ([]string, error) {
-			parentIDs, err := command.getEntityIDs(ctx, schema.GetType(rel), r[1], subject.GetType(), []string{subject.GetId()}, subject.GetRelation())
+			parentIDs, err := command.getEntityIDs(ctx, schema.GetEntityReference(rel), r[1], subject.GetType(), []string{subject.GetId()}, subject.GetRelation())
 			if err != nil {
 				return nil, err
 			}
 			if len(parentIDs) > 0 {
-				return command.getEntityIDs(ctx, entity.Name, rel.Name, schema.GetType(rel), parentIDs, tuple.ELLIPSIS)
+				return command.getEntityIDs(ctx, entity.Name, rel.Name, schema.GetEntityReference(rel), parentIDs, tuple.ELLIPSIS)
 			}
 			return []string{}, nil
 		}
@@ -269,7 +269,7 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context,
 		if !parentColumnExist {
 			qu.Key = fmt.Sprintf("%s.%s", schema.GetTable(entity), column)
 			qu.idResolver = func() ([]string, error) {
-				return command.getEntityIDs(ctx, schema.GetType(rel), r[1], subject.Type, []string{subject.GetId()}, subject.Relation)
+				return command.getEntityIDs(ctx, schema.GetEntityReference(rel), r[1], subject.Type, []string{subject.GetId()}, subject.Relation)
 			}
 		} else {
 			qu.Key = fmt.Sprintf("%s.%s", schema.GetTable(parentEntity), parentColumn)
@@ -299,7 +299,7 @@ func (command *LookupQueryCommand) buildComputedUserSetQuery(ctx context.Context
 		}
 	}
 	var rel *base.RelationDefinition
-	rel, err = schema.Relations(entity.Relations).GetRelationByName(relation)
+	rel, err = schema.GetRelationByNameInEntityDefinition(entity, relation)
 	if err != nil {
 		return QueryNode{
 			Err: err,

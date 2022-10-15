@@ -44,8 +44,8 @@ func (service *RelationshipService) WriteRelationship(ctx context.Context, tup *
 
 	var rel *base.RelationDefinition
 	var vt []string
-	rel, err = schema.GetRelation(entity, tup.GetRelation())
-	for _, t := range rel.GetTypes() {
+	rel, err = schema.GetRelationByNameInEntityDefinition(entity, tup.GetRelation())
+	for _, t := range rel.GetRelationReferences() {
 		vt = append(vt, t.GetName())
 	}
 

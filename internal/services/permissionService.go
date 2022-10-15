@@ -39,7 +39,7 @@ func (service *PermissionService) Check(ctx context.Context, subject *base.Subje
 	}
 
 	var a *base.ActionDefinition
-	a, err = schema.GetAction(en, action)
+	a, err = schema.GetActionByNameInEntityDefinition(en, action)
 	if err != nil {
 		return response, errors.New(base.ErrorCode_action_can_not_found.String())
 	}
@@ -65,7 +65,7 @@ func (service *PermissionService) Expand(ctx context.Context, entity *base.Entit
 	}
 
 	var a *base.ActionDefinition
-	a, err = schema.GetAction(en, action)
+	a, err = schema.GetActionByNameInEntityDefinition(en, action)
 	if err != nil {
 		return response, errors.New(base.ErrorCode_action_can_not_found.String())
 	}
@@ -95,7 +95,7 @@ func (service *PermissionService) LookupQuery(ctx context.Context, entityType st
 	}
 
 	var a *base.ActionDefinition
-	a, err = schema.GetAction(en, action)
+	a, err = schema.GetActionByNameInEntityDefinition(en, action)
 	if err != nil {
 		return response, errors.New(base.ErrorCode_action_can_not_found.String())
 	}

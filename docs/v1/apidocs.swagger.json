@@ -341,6 +341,20 @@
           "additionalProperties": {
             "$ref": "#/definitions/EntityDefinition"
           }
+        },
+        "relationDefinitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/RelationDefinition"
+          },
+          "title": "[\"entity_name#relation_name\"] =\u003e RelationDefinition"
+        },
+        "actionDefinitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ActionDefinition"
+          },
+          "title": "[\"entity_name#action_name\"] =\u003e ActionDefinition"
         }
       },
       "title": "Schema"
@@ -455,16 +469,18 @@
           "type": "string"
         },
         "relations": {
-          "type": "array",
-          "items": {
+          "type": "object",
+          "additionalProperties": {
             "$ref": "#/definitions/RelationDefinition"
-          }
+          },
+          "title": "[\"relation_name\"] =\u003e RelationDefinition"
         },
         "actions": {
-          "type": "array",
-          "items": {
+          "type": "object",
+          "additionalProperties": {
             "$ref": "#/definitions/ActionDefinition"
-          }
+          },
+          "title": "[\"action_name\"] =\u003e ActionDefinition"
         },
         "option": {
           "type": "object",
@@ -605,11 +621,15 @@
         "name": {
           "type": "string"
         },
-        "types": {
+        "entityReference": {
+          "$ref": "#/definitions/RelationReference"
+        },
+        "relationReferences": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/RelationType"
-          }
+            "$ref": "#/definitions/RelationReference"
+          },
+          "title": "relation reference include entity reference"
         },
         "option": {
           "type": "object",
@@ -620,14 +640,14 @@
       },
       "title": "RelationDefinition"
     },
-    "RelationType": {
+    "RelationReference": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string"
         }
       },
-      "title": "Type"
+      "title": "RelationReference"
     },
     "RelationshipDeleteRequest": {
       "type": "object",

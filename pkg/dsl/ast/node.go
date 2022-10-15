@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/Permify/permify/pkg/dsl/token"
+	base `github.com/Permify/permify/pkg/pb/base/v1`
 )
 
 type (
@@ -64,12 +65,12 @@ func (sch *Schema) ValidateReferences() error {
 		for _, s := range st {
 			if s.IsEntityReference() {
 				if !sch.IsEntityReferenceExist(s.Token.Literal) {
-					return errors.New("relation reference not found in entity references")
+					return errors.New(base.ErrorCode_relation_reference_not_found_in_entity_references.String())
 				}
 				entityReferenceCount++
 			}
 			if entityReferenceCount > 1 {
-				return errors.New("relation reference must have one entity reference")
+				return errors.New(base.ErrorCode_relation_reference_must_have_one_entity_reference.String())
 			}
 		}
 	}

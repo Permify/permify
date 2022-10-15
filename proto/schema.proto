@@ -41,6 +41,12 @@ message Rewrite {
 // Schema
 message Schema {
   map<string, EntityDefinition> entity_definitions = 1;
+
+  // ["entity_name#relation_name"] => RelationDefinition
+  map<string, RelationDefinition> relation_definitions = 2;
+
+  // ["entity_name#action_name"] => ActionDefinition
+  map<string, ActionDefinition> action_definitions = 3;
 }
 
 // EntityDefinition
@@ -50,9 +56,11 @@ message EntityDefinition {
     max_bytes : 64,
   }];
 
-  repeated RelationDefinition relations = 2;
+  // ["relation_name"] => RelationDefinition
+  map<string, RelationDefinition> relations = 2;
 
-  repeated ActionDefinition actions = 3;
+  // ["action_name"] => ActionDefinition
+  map<string, ActionDefinition> actions = 3;
 
   map<string, google.protobuf.Any> option = 4;
 }
@@ -64,9 +72,12 @@ message RelationDefinition {
     max_bytes : 64,
   }];
 
-  repeated RelationType types = 2;
+  RelationReference entity_reference = 2;
 
-  map<string, google.protobuf.Any> option = 3;
+  // relation reference includes entity reference
+  repeated RelationReference relation_references = 3;
+
+  map<string, google.protobuf.Any> option = 4;
 }
 
 // ActionDefinition
@@ -79,8 +90,8 @@ message ActionDefinition {
   Child child = 2;
 }
 
-// Type
-message RelationType {
+// RelationReference
+message RelationReference {
   string name = 1 [(validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,

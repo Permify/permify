@@ -41,7 +41,7 @@ func (manager *EntityConfigManager) All(ctx context.Context, version string) (*b
 	for _, c := range cn {
 		serializedConfigs = append(serializedConfigs, c.Serialized())
 	}
-	sch, err = compiler.StringToSchema(serializedConfigs...)
+	sch, err = compiler.NewSchema(serializedConfigs...)
 	if err != nil {
 		return sch, err
 	}
@@ -55,7 +55,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 		config, err = manager.repository.Read(ctx, name, version)
 
 		var sch *base.Schema
-		sch, err = compiler.StringToSchema(config.Serialized())
+		sch, err = compiler.NewSchema(config.Serialized())
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +82,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 		manager.cache.Set(key, config, 1)
 
 		var sch *base.Schema
-		sch, err = compiler.StringToSchema(config.Serialized())
+		sch, err = compiler.NewSchema(config.Serialized())
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +92,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 
 	conf := s.(repositories.EntityConfig)
 	var sch *base.Schema
-	sch, err = compiler.StringToSchema(conf.Serialized())
+	sch, err = compiler.NewSchema(conf.Serialized())
 	if err != nil {
 		return nil, err
 	}

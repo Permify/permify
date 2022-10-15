@@ -50,8 +50,10 @@ func (t *Compiler) Compile() (sch *base.Schema, err error) {
 // translateToEntity -
 func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, error) {
 	entityDefinition := &base.EntityDefinition{
-		Name:   sc.Name.Literal,
-		Option: map[string]*anypb.Any{},
+		Name:      sc.Name.Literal,
+		Option:    map[string]*anypb.Any{},
+		Relations: map[string]*base.RelationDefinition{},
+		Actions:   map[string]*base.ActionDefinition{},
 	}
 
 	if sc.Option.Literal != "" {
@@ -70,13 +72,17 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 	for _, rs := range sc.RelationStatements {
 		relationSt := rs.(*ast.RelationStatement)
 		relationDefinition := &base.RelationDefinition{
-			Name:   relationSt.Name.Literal,
-			Option: map[string]*anypb.Any{},
+			Name:               relationSt.Name.Literal,
+			Option:             map[string]*anypb.Any{},
+			RelationReferences: []*base.RelationReference{},
 		}
 
 		for _, rts := range relationSt.RelationTypes {
 			relationTypeSt := rts.(*ast.RelationTypeStatement)
-			relationDefinition.Types = append(relationDefinition.Types, &base.RelationType{Name: relationTypeSt.Token.Literal})
+			if relationTypeSt.IsEntityReference() {
+				relationDefinition.EntityReference = &base.RelationReference{Name: relationTypeSt.Token.Literal}
+			}
+			relationDefinition.RelationReferences = append(relationDefinition.RelationReferences, &base.RelationReference{Name: relationTypeSt.Token.Literal})
 		}
 
 		if relationSt.Option.Literal != "" {
@@ -91,7 +97,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			}
 		}
 
-		entityDefinition.Relations = append(entityDefinition.Relations, relationDefinition)
+		entityDefinition.Relations[fmt.Sprintf("%v#%v", entityDefinition.GetName(), relationDefinition.GetName())] = relationDefinition
 	}
 
 	// actions
@@ -105,7 +111,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			Name:  st.Name.Literal,
 			Child: ch,
 		}
-		entityDefinition.Actions = append(entityDefinition.Actions, actionDefinition)
+		entityDefinition.Actions[fmt.Sprintf("%v#%v", entityDefinition.GetName(), actionDefinition.GetName())] = actionDefinition
 	}
 
 	return entityDefinition, nil
@@ -206,9 +212,9 @@ func (t *Compiler) parseChildren(entityName string, expression ast.Expression) (
 	}
 }
 
-// StringToSchema -
-func StringToSchema(configs ...string) (*base.Schema, error) {
-	sch, err := parser.NewParser(strings.Join(configs, "\n")).Parse()
+// NewSchema -
+func NewSchema(schema ...string) (*base.Schema, error) {
+	sch, err := parser.NewParser(strings.Join(schema, "\n")).Parse()
 	if err != nil {
 		return nil, err
 	}

@@ -630,6 +630,98 @@ func (m *Schema) validate(all bool) error {
 		}
 	}
 
+	{
+		sorted_keys := make([]string, len(m.GetRelationDefinitions()))
+		i := 0
+		for key := range m.GetRelationDefinitions() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetRelationDefinitions()[key]
+			_ = val
+
+			// no validation rules for RelationDefinitions[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, SchemaValidationError{
+							field:  fmt.Sprintf("RelationDefinitions[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, SchemaValidationError{
+							field:  fmt.Sprintf("RelationDefinitions[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return SchemaValidationError{
+						field:  fmt.Sprintf("RelationDefinitions[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	{
+		sorted_keys := make([]string, len(m.GetActionDefinitions()))
+		i := 0
+		for key := range m.GetActionDefinitions() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetActionDefinitions()[key]
+			_ = val
+
+			// no validation rules for ActionDefinitions[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, SchemaValidationError{
+							field:  fmt.Sprintf("ActionDefinitions[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, SchemaValidationError{
+							field:  fmt.Sprintf("ActionDefinitions[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return SchemaValidationError{
+						field:  fmt.Sprintf("ActionDefinitions[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
 	if len(errors) > 0 {
 		return SchemaMultiError(errors)
 	}
@@ -751,72 +843,96 @@ func (m *EntityDefinition) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	for idx, item := range m.GetRelations() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, EntityDefinitionValidationError{
-						field:  fmt.Sprintf("Relations[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, EntityDefinitionValidationError{
-						field:  fmt.Sprintf("Relations[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return EntityDefinitionValidationError{
-					field:  fmt.Sprintf("Relations[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
+	{
+		sorted_keys := make([]string, len(m.GetRelations()))
+		i := 0
+		for key := range m.GetRelations() {
+			sorted_keys[i] = key
+			i++
 		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetRelations()[key]
+			_ = val
 
+			// no validation rules for Relations[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, EntityDefinitionValidationError{
+							field:  fmt.Sprintf("Relations[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, EntityDefinitionValidationError{
+							field:  fmt.Sprintf("Relations[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return EntityDefinitionValidationError{
+						field:  fmt.Sprintf("Relations[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
 	}
 
-	for idx, item := range m.GetActions() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, EntityDefinitionValidationError{
-						field:  fmt.Sprintf("Actions[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, EntityDefinitionValidationError{
-						field:  fmt.Sprintf("Actions[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return EntityDefinitionValidationError{
-					field:  fmt.Sprintf("Actions[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
+	{
+		sorted_keys := make([]string, len(m.GetActions()))
+		i := 0
+		for key := range m.GetActions() {
+			sorted_keys[i] = key
+			i++
 		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetActions()[key]
+			_ = val
 
+			// no validation rules for Actions[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, EntityDefinitionValidationError{
+							field:  fmt.Sprintf("Actions[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, EntityDefinitionValidationError{
+							field:  fmt.Sprintf("Actions[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return EntityDefinitionValidationError{
+						field:  fmt.Sprintf("Actions[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
 	}
 
 	{
@@ -989,7 +1105,36 @@ func (m *RelationDefinition) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	for idx, item := range m.GetTypes() {
+	if all {
+		switch v := interface{}(m.GetEntityReference()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RelationDefinitionValidationError{
+					field:  "EntityReference",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RelationDefinitionValidationError{
+					field:  "EntityReference",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEntityReference()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RelationDefinitionValidationError{
+				field:  "EntityReference",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetRelationReferences() {
 		_, _ = idx, item
 
 		if all {
@@ -997,7 +1142,7 @@ func (m *RelationDefinition) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, RelationDefinitionValidationError{
-						field:  fmt.Sprintf("Types[%v]", idx),
+						field:  fmt.Sprintf("RelationReferences[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1005,7 +1150,7 @@ func (m *RelationDefinition) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, RelationDefinitionValidationError{
-						field:  fmt.Sprintf("Types[%v]", idx),
+						field:  fmt.Sprintf("RelationReferences[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1014,7 +1159,7 @@ func (m *RelationDefinition) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return RelationDefinitionValidationError{
-					field:  fmt.Sprintf("Types[%v]", idx),
+					field:  fmt.Sprintf("RelationReferences[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1304,22 +1449,22 @@ var _ interface {
 
 var _ActionDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-// Validate checks the field values on RelationType with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *RelationType) Validate() error {
+// Validate checks the field values on RelationReference with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *RelationReference) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on RelationType with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in RelationTypeMultiError, or
-// nil if none found.
-func (m *RelationType) ValidateAll() error {
+// ValidateAll checks the field values on RelationReference with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RelationReferenceMultiError, or nil if none found.
+func (m *RelationReference) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *RelationType) validate(all bool) error {
+func (m *RelationReference) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1327,7 +1472,7 @@ func (m *RelationType) validate(all bool) error {
 	var errors []error
 
 	if len(m.GetName()) > 64 {
-		err := RelationTypeValidationError{
+		err := RelationReferenceValidationError{
 			field:  "Name",
 			reason: "value length must be at most 64 bytes",
 		}
@@ -1337,8 +1482,8 @@ func (m *RelationType) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_RelationType_Name_Pattern.MatchString(m.GetName()) {
-		err := RelationTypeValidationError{
+	if !_RelationReference_Name_Pattern.MatchString(m.GetName()) {
+		err := RelationReferenceValidationError{
 			field:  "Name",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
@@ -1349,18 +1494,19 @@ func (m *RelationType) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return RelationTypeMultiError(errors)
+		return RelationReferenceMultiError(errors)
 	}
 
 	return nil
 }
 
-// RelationTypeMultiError is an error wrapping multiple validation errors
-// returned by RelationType.ValidateAll() if the designated constraints aren't met.
-type RelationTypeMultiError []error
+// RelationReferenceMultiError is an error wrapping multiple validation errors
+// returned by RelationReference.ValidateAll() if the designated constraints
+// aren't met.
+type RelationReferenceMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m RelationTypeMultiError) Error() string {
+func (m RelationReferenceMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1369,11 +1515,11 @@ func (m RelationTypeMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m RelationTypeMultiError) AllErrors() []error { return m }
+func (m RelationReferenceMultiError) AllErrors() []error { return m }
 
-// RelationTypeValidationError is the validation error returned by
-// RelationType.Validate if the designated constraints aren't met.
-type RelationTypeValidationError struct {
+// RelationReferenceValidationError is the validation error returned by
+// RelationReference.Validate if the designated constraints aren't met.
+type RelationReferenceValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1381,22 +1527,24 @@ type RelationTypeValidationError struct {
 }
 
 // Field function returns field value.
-func (e RelationTypeValidationError) Field() string { return e.field }
+func (e RelationReferenceValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e RelationTypeValidationError) Reason() string { return e.reason }
+func (e RelationReferenceValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e RelationTypeValidationError) Cause() error { return e.cause }
+func (e RelationReferenceValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e RelationTypeValidationError) Key() bool { return e.key }
+func (e RelationReferenceValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e RelationTypeValidationError) ErrorName() string { return "RelationTypeValidationError" }
+func (e RelationReferenceValidationError) ErrorName() string {
+	return "RelationReferenceValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e RelationTypeValidationError) Error() string {
+func (e RelationReferenceValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1408,14 +1556,14 @@ func (e RelationTypeValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sRelationType.%s: %s%s",
+		"invalid %sRelationReference.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = RelationTypeValidationError{}
+var _ error = RelationReferenceValidationError{}
 
 var _ interface {
 	Field() string
@@ -1423,9 +1571,9 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = RelationTypeValidationError{}
+} = RelationReferenceValidationError{}
 
-var _RelationType_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _RelationReference_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on ComputedUserSet with the rules defined
 // in the proto definition for this message. If any rules are violated, the
