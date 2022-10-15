@@ -43,7 +43,7 @@ func (t *Compiler) Compile() (sch *base.Schema, err error) {
 		var en *base.EntityDefinition
 		es, ok := sc.(*ast.EntityStatement)
 		if !ok {
-			return nil, errors.New(base.ErrorCode_schema_parse.String())
+			return nil, errors.New(base.ErrorCode_schema_compile.String())
 		}
 		en, err = t.compile(es)
 		if err != nil {
