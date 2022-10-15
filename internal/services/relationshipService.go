@@ -51,7 +51,7 @@ func (service *RelationshipService) WriteRelationship(ctx context.Context, tup *
 
 	err = tuple.ValidateSubjectType(tup.Subject, vt)
 	if err != nil {
-		return errors.New(base.ErrorCode_validation_error.String())
+		return err
 	}
 
 	return service.rt.Write(ctx, tuple.NewTupleCollection(tup).CreateTupleIterator())
