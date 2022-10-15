@@ -79,11 +79,17 @@ func (sch *Schema) ValidateReferences() error {
 
 // SetEntityReferences -
 func (sch *Schema) SetEntityReferences(r map[string]struct{}) {
+	if sch.entityReferences == nil {
+		sch.entityReferences = map[string]struct{}{}
+	}
 	sch.entityReferences = r
 }
 
 // SetRelationReferences -
 func (sch *Schema) SetRelationReferences(r map[string][]RelationTypeStatement) {
+	if sch.relationReferences == nil {
+		sch.relationReferences = map[string][]RelationTypeStatement{}
+	}
 	sch.relationReferences = r
 }
 

@@ -41,7 +41,11 @@ func (t *Compiler) Compile() (sch *base.Schema, err error) {
 
 	for _, sc := range t.schema.Statements {
 		var en *base.EntityDefinition
-		en, err = t.compile(sc.(*ast.EntityStatement))
+		es, ok := sc.(*ast.EntityStatement)
+		if !ok {
+			return nil, errors.New(base.ErrorCode_schema_parse.String())
+		}
+		en, err = t.compile(es)
 		if err != nil {
 			return nil, err
 		}
