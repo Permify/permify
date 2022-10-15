@@ -72,6 +72,7 @@ func (p *Parser) setEntityReference(key string) error {
 		p.entityReferences = map[string]struct{}{}
 	}
 	if _, ok := p.entityReferences[key]; ok {
+		p.errors = append(p.errors, base.ErrorCode_duplicated_entity_reference.String())
 		return errors.New(base.ErrorCode_duplicated_entity_reference.String())
 	}
 	p.entityReferences[key] = struct{}{}
@@ -84,6 +85,7 @@ func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatem
 		p.relationReferences = map[string][]ast.RelationTypeStatement{}
 	}
 	if _, ok := p.relationReferences[key]; ok {
+		p.errors = append(p.errors, base.ErrorCode_duplicated_relation_reference.String())
 		return errors.New(base.ErrorCode_duplicated_relation_reference.String())
 	}
 	p.relationReferences[key] = types
@@ -96,6 +98,7 @@ func (p *Parser) setActionReference(key string) error {
 		p.actionReferences = map[string]struct{}{}
 	}
 	if _, ok := p.actionReferences[key]; ok {
+		p.errors = append(p.errors, base.ErrorCode_duplicated_action_reference.String())
 		return errors.New(base.ErrorCode_duplicated_action_reference.String())
 	}
 	p.actionReferences[key] = struct{}{}
@@ -123,7 +126,7 @@ func (p *Parser) Error() error {
 	if len(p.errors) == 0 {
 		return nil
 	}
-	return errors.New(base.ErrorCode_schema_parse.String())
+	return errors.New(p.errors[0])
 }
 
 // Parse -
@@ -220,11 +223,10 @@ func (p *Parser) parseRelationStatement(entityName string) (*ast.RelationStateme
 		return nil, p.Error()
 	}
 
-	var relationName string
 	var relationTypeStatements []ast.RelationTypeStatement
 
 	stmt.Name = p.currentToken
-	relationName = stmt.Name.Literal
+	relationName := stmt.Name.Literal
 
 	if !p.expect(token.SIGN) {
 		return nil, p.Error()
