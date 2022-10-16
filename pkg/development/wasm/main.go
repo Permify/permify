@@ -6,15 +6,15 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"google.golang.org/protobuf/encoding/protojson"
 	"syscall/js"
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/errors"
 	"github.com/Permify/permify/pkg/graph"
-	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
+	"github.com/Permify/permify/pkg/pb/base/v1"
+	`github.com/Permify/permify/pkg/tuple`
 )
 
 var dev *development.Development
@@ -22,12 +22,11 @@ var dev *development.Development
 // check -
 func check() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &development.CheckQuery{}
-		mErr := json.Unmarshal([]byte(string(args[0].String())), params)
-		if mErr != nil {
-			return js.ValueOf([]interface{}{false, mErr.Error()})
+		params := &v1.CheckRequest{}
+		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
+		if err != nil {
+			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		var err errors.Error
 		var result commands.CheckResponse
 		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Action, params.Entity, string(args[1].String()))
 		if err != nil {
@@ -40,12 +39,11 @@ func check() js.Func {
 // lookupQuery -
 func lookupQuery() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &development.LookupQueryQuery{}
-		mErr := json.Unmarshal([]byte(string(args[0].String())), params)
-		if mErr != nil {
-			return js.ValueOf([]interface{}{"", []interface{}{}, mErr.Error()})
+		params := &v1.LookupQueryRequest{}
+		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
+		if err != nil {
+			return js.ValueOf([]interface{}{"", []interface{}{}, err.Error()})
 		}
-		var err errors.Error
 		var result commands.LookupQueryResponse
 		result, err = development.LookupQuery(context.Background(), dev.P, params.EntityType, params.Action, params.Subject, string(args[1].String()))
 		if err != nil {
@@ -58,9 +56,7 @@ func lookupQuery() js.Func {
 // writeSchema -
 func writeSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		var err errors.Error
-		var version string
-		version, err = development.WriteSchema(context.Background(), dev.M, string(args[0].String()))
+		version, err := development.WriteSchema(context.Background(), dev.M, string(args[0].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{"", err.Error()})
 		}
@@ -71,12 +67,11 @@ func writeSchema() js.Func {
 // writeTuple -
 func writeTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		t := &base.Tuple{}
-		mErr := json.Unmarshal([]byte(string(args[0].String())), t)
-		if mErr != nil {
-			return js.ValueOf([]interface{}{mErr.Error()})
+		t := &v1.Tuple{}
+		err := protojson.Unmarshal([]byte(string(args[0].String())), t)
+		if err != nil {
+			return js.ValueOf([]interface{}{err.Error()})
 		}
-		var err errors.Error
 		err = development.WriteTuple(context.Background(), dev.R, t, string(args[1].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
@@ -88,12 +83,11 @@ func writeTuple() js.Func {
 // deleteTuple -
 func deleteTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		t := &base.Tuple{}
-		mErr := json.Unmarshal([]byte(string(args[0].String())), t)
-		if mErr != nil {
-			return js.ValueOf([]interface{}{mErr.Error()})
+		t := &v1.Tuple{}
+		err := protojson.Unmarshal([]byte(string(args[0].String())), t)
+		if err != nil {
+			return js.ValueOf([]interface{}{err.Error()})
 		}
-		var err errors.Error
 		err = development.DeleteTuple(context.Background(), dev.R, t)
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
@@ -105,15 +99,13 @@ func deleteTuple() js.Func {
 // readSchema -
 func readSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		var sch schema.Schema
-		var err errors.Error
-		sch, err = development.ReadSchema(context.Background(), dev.M, string(args[0].String()))
+		sch, err := development.ReadSchema(context.Background(), dev.M, string(args[0].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		result, mErr := json.Marshal(sch)
-		if mErr != nil {
-			return js.ValueOf([]interface{}{nil, mErr.Error()})
+		result, err := protojson.Marshal(sch)
+		if err != nil {
+			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
 		return js.ValueOf([]interface{}{string(result), nil})
 	})
@@ -122,21 +114,23 @@ func readSchema() js.Func {
 // readTuple -
 func readTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &base.TupleFilter{}
-		mErr := json.Unmarshal([]byte(string(args[0].String())), params)
-		if mErr != nil {
-			return js.ValueOf([]interface{}{false, mErr.Error()})
+		params := &v1.TupleFilter{}
+		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
+		if err != nil {
+			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		var tuples tuple.ITupleCollection
-		var err errors.Error
-		tuples, err = development.ReadTuple(context.Background(), dev.R, params)
+		var collection tuple.ITupleCollection
+		collection, err = development.ReadTuple(context.Background(), dev.R, params)
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
 		var result []byte
-		result, mErr = json.Marshal(tuples)
-		if mErr != nil {
-			return js.ValueOf([]interface{}{nil, mErr.Error()})
+		t := &v1.Tuples{
+			Tuples: collection.GetTuples(),
+		}
+		result, err = protojson.Marshal(t)
+		if err != nil {
+			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
 		return js.ValueOf([]interface{}{string(result), nil})
 	})
@@ -145,22 +139,20 @@ func readTuple() js.Func {
 // readSchemaGraph -
 func readSchemaGraph() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		var sch schema.Schema
-		var err errors.Error
-		sch, err = development.ReadSchema(context.Background(), dev.M, string(args[0].String()))
+		sch, err := development.ReadSchema(context.Background(), dev.M, string(args[0].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		r, gErr := schema.GraphSchema(sch)
-		if gErr != nil {
-			return js.ValueOf([]interface{}{nil, gErr.Error()})
+		r, err := schema.GraphSchema(sch)
+		if err != nil {
+			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		result, mErr := json.Marshal(struct {
+		result, err := json.Marshal(struct {
 			Nodes []*graph.Node `json:"nodes"`
 			Edges []*graph.Edge `json:"edges"`
 		}{Nodes: r.Nodes(), Edges: r.Edges()})
-		if mErr != nil {
-			return js.ValueOf([]interface{}{nil, mErr.Error()})
+		if err != nil {
+			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
 		return js.ValueOf([]interface{}{string(result), nil})
 	})
