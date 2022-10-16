@@ -28,6 +28,7 @@ enum ErrorCode {
   schema_compile = 2016;
   subject_relation_must_be_empty = 2017;
   subject_relation_cannot_be_empty = 2018;
+  schema_must_have_user_entity_definition = 2019;
 
   // not found
   not_found_error = 4000;
