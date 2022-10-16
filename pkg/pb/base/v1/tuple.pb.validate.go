@@ -237,6 +237,138 @@ var _ interface {
 
 var _Tuple_Relation_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
+// Validate checks the field values on Tuples with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Tuples) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Tuples with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in TuplesMultiError, or nil if none found.
+func (m *Tuples) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Tuples) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetTuples() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TuplesValidationError{
+						field:  fmt.Sprintf("Tuples[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TuplesValidationError{
+						field:  fmt.Sprintf("Tuples[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TuplesValidationError{
+					field:  fmt.Sprintf("Tuples[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return TuplesMultiError(errors)
+	}
+
+	return nil
+}
+
+// TuplesMultiError is an error wrapping multiple validation errors returned by
+// Tuples.ValidateAll() if the designated constraints aren't met.
+type TuplesMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TuplesMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TuplesMultiError) AllErrors() []error { return m }
+
+// TuplesValidationError is the validation error returned by Tuples.Validate if
+// the designated constraints aren't met.
+type TuplesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TuplesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TuplesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TuplesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TuplesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TuplesValidationError) ErrorName() string { return "TuplesValidationError" }
+
+// Error satisfies the builtin error interface
+func (e TuplesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTuples.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TuplesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TuplesValidationError{}
+
 // Validate checks the field values on Entity with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
