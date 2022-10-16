@@ -342,7 +342,7 @@ func buildSetOperation(
 		select {
 		case res := <-resultChan:
 			if res.Error() != nil {
-				return LogicNode{
+				return &LogicNode{
 					Err: res.Error(),
 				}
 			}
@@ -371,7 +371,7 @@ func buildIntersection(ctx context.Context, functions []BuildFunction) IBuilderN
 // buildFail -
 func buildFail(err error) BuildFunction {
 	return func(ctx context.Context, builderChan chan<- IBuilderNode) {
-		builderChan <- LogicNode{
+		builderChan <- &LogicNode{
 			Err: err,
 		}
 	}

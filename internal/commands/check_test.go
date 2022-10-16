@@ -154,13 +154,13 @@ entity doc {
 
 			re.SetDepth(8)
 
-			sch, err := compiler.StringToSchema(driveSchema)
+			sch, err := compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, re.Entity.Type)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := schema.GetAction(en, "read")
+			ac, err := schema.GetActionByNameInEntityDefinition(en, "read")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
@@ -230,13 +230,13 @@ entity doc {
 
 			re.SetDepth(8)
 
-			sch, err := compiler.StringToSchema(driveSchema)
+			sch, err := compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, re.Entity.Type)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := schema.GetAction(en, "update")
+			ac, err := schema.GetActionByNameInEntityDefinition(en, "update")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
@@ -350,13 +350,13 @@ entity doc {
 
 			re.SetDepth(8)
 
-			sch, err := compiler.StringToSchema(driveSchema)
+			sch, err := compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, re.Entity.Type)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := schema.GetAction(en, "read")
+			ac, err := schema.GetActionByNameInEntityDefinition(en, "read")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
@@ -419,13 +419,13 @@ entity doc {
 
 			re.SetDepth(8)
 
-			sch, err := compiler.StringToSchema(githubSchema)
+			sch, err := compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, re.Entity.Type)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := schema.GetAction(en, "push")
+			ac, err := schema.GetActionByNameInEntityDefinition(en, "push")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
@@ -519,13 +519,13 @@ entity doc {
 
 			re.SetDepth(8)
 
-			sch, err := compiler.StringToSchema(githubSchema)
+			sch, err := compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, re.Entity.Type)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := schema.GetAction(en, "push")
+			ac, err := schema.GetActionByNameInEntityDefinition(en, "push")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)
@@ -611,13 +611,13 @@ entity doc {
 
 			re.SetDepth(6)
 
-			sch, err := compiler.StringToSchema(githubSchema)
+			sch, err := compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, re.Entity.Type)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := schema.GetAction(en, "delete")
+			ac, err := schema.GetActionByNameInEntityDefinition(en, "delete")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			actualResult, err := checkCommand.Execute(context.Background(), re, ac.Child)

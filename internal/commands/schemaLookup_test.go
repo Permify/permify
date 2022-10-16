@@ -52,7 +52,7 @@ entity doc {
 				Relations: []string{"creator"},
 			}
 
-			sch, err := compiler.StringToSchema(driveSchema)
+			sch, err := compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, "folder")
@@ -69,7 +69,7 @@ entity doc {
 				Relations: []string{"owner", "org.admin"},
 			}
 
-			sch, err := compiler.StringToSchema(driveSchema)
+			sch, err := compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, "doc")
@@ -111,7 +111,7 @@ entity doc {
 				Relations: []string{"admin"},
 			}
 
-			sch, err := compiler.StringToSchema(githubSchema)
+			sch, err := compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, "organization")
@@ -128,7 +128,7 @@ entity doc {
 				Relations: []string{"parent.admin", "parent.member"},
 			}
 
-			sch, err := compiler.StringToSchema(githubSchema)
+			sch, err := compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, "repository")

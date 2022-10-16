@@ -103,13 +103,13 @@ var _ = Describe("lookup-query-command", func() {
 				serializedConfigs = append(serializedConfigs, c.Serialized())
 			}
 
-			sch, err := compiler.StringToSchema(serializedConfigs...)
+			sch, err := compiler.NewSchema(serializedConfigs...)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, lq.EntityType)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := schema.GetAction(en, "read")
+			ac, err := schema.GetActionByNameInEntityDefinition(en, "read")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			lq.SetSchema(sch)
@@ -139,13 +139,13 @@ var _ = Describe("lookup-query-command", func() {
 				serializedConfigs = append(serializedConfigs, c.Serialized())
 			}
 
-			sch, err := compiler.StringToSchema(serializedConfigs...)
+			sch, err := compiler.NewSchema(serializedConfigs...)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			en, err := schema.GetEntityByName(sch, lq.EntityType)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ac, err := schema.GetAction(en, "push")
+			ac, err := schema.GetActionByNameInEntityDefinition(en, "push")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			lq.SetSchema(sch)
