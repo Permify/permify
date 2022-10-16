@@ -8,6 +8,7 @@ import (
 
 	"github.com/Permify/permify/pkg/dsl/token"
 	base `github.com/Permify/permify/pkg/pb/base/v1`
+	`github.com/Permify/permify/pkg/tuple`
 )
 
 type (
@@ -60,6 +61,9 @@ type Schema struct {
 
 // ValidateReferences -
 func (sch *Schema) ValidateReferences() error {
+	if !sch.IsEntityReferenceExist(tuple.USER) {
+		return errors.New(base.ErrorCode_schema_must_have_user_entity_definition.String())
+	}
 	for _, st := range sch.relationReferences {
 		entityReferenceCount := 0
 		for _, s := range st {
