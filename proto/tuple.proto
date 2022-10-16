@@ -17,6 +17,11 @@ message Tuple {
   Subject subject = 3 [(validate.rules).message.required = true];
 }
 
+// Tuples
+message Tuples {
+  repeated Tuple tuples = 1;
+}
+
 // Entity
 message Entity {
   string type = 1 [(validate.rules).string = {
