@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/Permify/permify/pkg/errors"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -15,12 +14,12 @@ type RelationTupleRepository struct {
 	mock.Mock
 }
 
-func (_m *RelationTupleRepository) Migrate() errors.Error {
+func (_m *RelationTupleRepository) Migrate() error {
 	return nil
 }
 
 // ReverseQueryTuples -
-func (_m *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuple.ITupleIterator, errors.Error) {
+func (_m *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuple.ITupleIterator, error) {
 	ret := _m.Called(entity, relation, subjectEntity, subjectIDs, subjectRelation)
 
 	var r0 *tuple.TupleIterator
@@ -30,11 +29,11 @@ func (_m *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entit
 		r0 = ret.Get(0).(*tuple.TupleIterator)
 	}
 
-	var r1 errors.Error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, []string, string) errors.Error); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, []string, string) error); ok {
 		r1 = rf(ctx, entity, relation, subjectEntity, subjectIDs, subjectRelation)
 	} else {
-		if e, ok := ret.Get(1).(errors.Error); ok {
+		if e, ok := ret.Get(1).(error); ok {
 			r1 = e
 		} else {
 			r1 = nil
@@ -45,7 +44,7 @@ func (_m *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entit
 }
 
 // QueryTuples -
-func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, entityType string, entityID string, relation string) (tuple.ITupleIterator, errors.Error) {
+func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, entityType string, entityID string, relation string) (tuple.ITupleIterator, error) {
 	ret := _m.Called(entityType, entityID, relation)
 
 	var r0 *tuple.TupleIterator
@@ -55,11 +54,11 @@ func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, entityType s
 		r0 = ret.Get(0).(*tuple.TupleIterator)
 	}
 
-	var r1 errors.Error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) errors.Error); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
 		r1 = rf(ctx, entityType, entityID, relation)
 	} else {
-		if e, ok := ret.Get(1).(errors.Error); ok {
+		if e, ok := ret.Get(1).(error); ok {
 			r1 = e
 		} else {
 			r1 = nil
@@ -70,7 +69,7 @@ func (_m *RelationTupleRepository) QueryTuples(ctx context.Context, entityType s
 }
 
 // Read -
-func (_m *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFilter) (tuple.ITupleCollection, errors.Error) {
+func (_m *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFilter) (tuple.ITupleCollection, error) {
 	ret := _m.Called(filter)
 
 	var r0 *tuple.TupleCollection
@@ -80,11 +79,11 @@ func (_m *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleF
 		r0 = ret.Get(0).(*tuple.TupleCollection)
 	}
 
-	var r1 errors.Error
-	if rf, ok := ret.Get(1).(func(context.Context, *base.TupleFilter) errors.Error); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *base.TupleFilter) error); ok {
 		r1 = rf(ctx, filter)
 	} else {
-		if e, ok := ret.Get(1).(errors.Error); ok {
+		if e, ok := ret.Get(1).(error); ok {
 			r1 = e
 		} else {
 			r1 = nil
@@ -95,14 +94,14 @@ func (_m *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleF
 }
 
 // Write -
-func (_m *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITupleIterator) errors.Error {
+func (_m *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITupleIterator) error {
 	ret := _m.Called(iterator)
 
-	var r0 errors.Error
-	if rf, ok := ret.Get(0).(func(context.Context, tuple.ITupleIterator) errors.Error); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, tuple.ITupleIterator) error); ok {
 		r0 = rf(ctx, iterator)
 	} else {
-		if e, ok := ret.Get(1).(errors.Error); ok {
+		if e, ok := ret.Get(1).(error); ok {
 			r0 = e
 		} else {
 			r0 = nil
@@ -113,14 +112,14 @@ func (_m *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITu
 }
 
 // Delete -
-func (_m *RelationTupleRepository) Delete(ctx context.Context, iterator tuple.ITupleIterator) errors.Error {
+func (_m *RelationTupleRepository) Delete(ctx context.Context, iterator tuple.ITupleIterator) error {
 	ret := _m.Called(iterator)
 
-	var r0 errors.Error
-	if rf, ok := ret.Get(0).(func(context.Context, tuple.ITupleIterator) errors.Error); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, tuple.ITupleIterator) error); ok {
 		r0 = rf(ctx, iterator)
 	} else {
-		if e, ok := ret.Get(1).(errors.Error); ok {
+		if e, ok := ret.Get(1).(error); ok {
 			r0 = e
 		} else {
 			r0 = nil
