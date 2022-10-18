@@ -50,10 +50,7 @@ func ValidateSubject(subject *base.Subject) error {
 
 // AreSubjectsEqual -
 func AreSubjectsEqual(s1 *base.Subject, s2 *base.Subject) bool {
-	if IsSubjectUser(s1) {
-		return s1.GetId() == s2.GetId()
-	}
-	return s1.GetRelation() == s2.GetRelation() && s1.GetId() == s2.GetId() && s1.GetType() == s1.GetType()
+	return s1.GetRelation() == s2.GetRelation() && s1.GetId() == s2.GetId() && s1.GetType() == s2.GetType()
 }
 
 // EntityAndRelationToString -
@@ -81,6 +78,11 @@ func IsEntityAndSubjectEquals(t *base.Tuple) bool {
 
 // ValidateSubjectType -
 func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err error) {
+
+	if len(relationTypes) == 0 {
+		return errors.New(base.ErrorCode_subject_type_not_found.String())
+	}
+
 	key := subject.GetType()
 	if subject.GetRelation() != "" {
 		if !IsSubjectUser(subject) {
