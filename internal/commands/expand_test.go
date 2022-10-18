@@ -180,15 +180,15 @@ entity doc {
 													},
 													Relation: "owner",
 												}, Node: &base.Expand_Leaf{
-												Leaf: &base.Subjects{
-													Subjects: []*base.Subject{
-														{
-															Type: tuple.USER,
-															Id:   "2",
+													Leaf: &base.Subjects{
+														Subjects: []*base.Subject{
+															{
+																Type: tuple.USER,
+																Id:   "2",
+															},
 														},
 													},
 												},
-											},
 											},
 											{
 												Node: &base.Expand_Expand{
@@ -203,16 +203,16 @@ entity doc {
 																	},
 																	Relation: "parent.collaborator",
 																}, Node: &base.Expand_Leaf{
-																Leaf: &base.Subjects{
-																	Subjects: []*base.Subject{
-																		{
-																			Type:     "folder",
-																			Id:       "1",
-																			Relation: "collaborator",
+																	Leaf: &base.Subjects{
+																		Subjects: []*base.Subject{
+																			{
+																				Type:     "folder",
+																				Id:       "1",
+																				Relation: "collaborator",
+																			},
 																		},
 																	},
 																},
-															},
 															},
 															{
 																Target: &base.EntityAndRelation{
@@ -222,19 +222,19 @@ entity doc {
 																	},
 																	Relation: "collaborator",
 																}, Node: &base.Expand_Leaf{
-																Leaf: &base.Subjects{
-																	Subjects: []*base.Subject{
-																		{
-																			Type: tuple.USER,
-																			Id:   "1",
-																		},
-																		{
-																			Type: tuple.USER,
-																			Id:   "3",
+																	Leaf: &base.Subjects{
+																		Subjects: []*base.Subject{
+																			{
+																				Type: tuple.USER,
+																				Id:   "1",
+																			},
+																			{
+																				Type: tuple.USER,
+																				Id:   "3",
+																			},
 																		},
 																	},
 																},
-															},
 															},
 														},
 													},
@@ -255,16 +255,16 @@ entity doc {
 												},
 												Relation: "org.admin",
 											}, Node: &base.Expand_Leaf{
-											Leaf: &base.Subjects{
-												Subjects: []*base.Subject{
-													{
-														Type:     "organization",
-														Id:       "1",
-														Relation: "admin",
+												Leaf: &base.Subjects{
+													Subjects: []*base.Subject{
+														{
+															Type:     "organization",
+															Id:       "1",
+															Relation: "admin",
+														},
 													},
 												},
 											},
-										},
 										},
 										{
 											Target: &base.EntityAndRelation{
@@ -274,16 +274,16 @@ entity doc {
 												},
 												Relation: "admin",
 											}, Node: &base.Expand_Leaf{
-											Leaf: &base.Subjects{
-												Subjects: []*base.Subject{
-													{
-														Type:     tuple.USER,
-														Id:       "1",
-														Relation: "",
+												Leaf: &base.Subjects{
+													Subjects: []*base.Subject{
+														{
+															Type:     tuple.USER,
+															Id:       "1",
+															Relation: "",
+														},
 													},
 												},
 											},
-										},
 										},
 									},
 								},

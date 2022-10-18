@@ -6,15 +6,16 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"google.golang.org/protobuf/encoding/protojson"
 	"syscall/js"
+
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/graph"
 	"github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var dev *development.Development

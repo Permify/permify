@@ -78,7 +78,6 @@ func IsEntityAndSubjectEquals(t *base.Tuple) bool {
 
 // ValidateSubjectType -
 func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err error) {
-
 	if len(relationTypes) == 0 {
 		return errors.New(base.ErrorCode_subject_type_not_found.String())
 	}

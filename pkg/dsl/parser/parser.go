@@ -7,7 +7,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/lexer"
 	"github.com/Permify/permify/pkg/dsl/token"
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 const (
