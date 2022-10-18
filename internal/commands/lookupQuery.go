@@ -246,7 +246,7 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context,
 		}
 	}
 	var parentRel *base.RelationDefinition
-	parentRel, err = schema.GetRelationByNameInEntityDefinition(parentEntity, r[0])
+	parentRel, err = schema.GetRelationByNameInEntityDefinition(parentEntity, r[1])
 	if err != nil {
 		return QueryNode{
 			Err: err,
@@ -342,7 +342,7 @@ func buildSetOperation(
 		select {
 		case res := <-resultChan:
 			if res.Error() != nil {
-				return &LogicNode{
+				return LogicNode{
 					Err: res.Error(),
 				}
 			}
@@ -352,7 +352,7 @@ func buildSetOperation(
 		}
 	}
 
-	return &LogicNode{
+	return LogicNode{
 		Operation: op,
 		Children:  children,
 	}
@@ -371,7 +371,7 @@ func buildIntersection(ctx context.Context, functions []BuildFunction) IBuilderN
 // buildFail -
 func buildFail(err error) BuildFunction {
 	return func(ctx context.Context, builderChan chan<- IBuilderNode) {
-		builderChan <- &LogicNode{
+		builderChan <- LogicNode{
 			Err: err,
 		}
 	}
@@ -468,7 +468,7 @@ func (builder *StatementBuilder) buildSql(children []IBuilderNode, exp goqu.Expr
 	for _, child := range children {
 		switch child.GetKind() {
 		case LOGIC:
-			ln := child.(*LogicNode)
+			ln := child.(LogicNode)
 			b, sub := builder.buildSql(ln.Children, exp)
 			sub = append(sub, b.Expression())
 			switch ln.Operation {
