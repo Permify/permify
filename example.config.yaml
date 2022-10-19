@@ -2,8 +2,16 @@ server:
   http:
     enabled: true
     port: 3476
+    tls:
+      enabled: true
+      cert: /etc/letsencrypt/live/yourdomain.com/fullchain.pem
+      key: /etc/letsencrypt/live/yourdomain.com/privkey.pem
   grpc:
     port: 3478
+    tls:
+      enabled: true
+      cert: /etc/letsencrypt/live/yourdomain.com/fullchain.pem
+      key: /etc/letsencrypt/live/yourdomain.com/privkey.pem
 
 logger:
   level: 'debug'

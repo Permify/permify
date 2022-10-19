@@ -2,11 +2,18 @@ server:
   http:
     enabled: true
     port: 3476
+    tls:
+      enabled: false
   grpc:
     port: 3478
+    tls:
+      enabled: false
 
 logger:
   level: 'debug'
+
+tracer:
+  enabled: false
 
 authn:
   enabled: false

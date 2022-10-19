@@ -58,7 +58,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		grpc.ChainUnaryInterceptor(interceptors...),
 	}
 
-	if cfg.GRPC.TLSConfig != nil {
+	if cfg.GRPC.TLSConfig.Enabled {
 		c, err := credentials.NewServerTLSFromFile(cfg.GRPC.TLSConfig.CertPath, cfg.GRPC.TLSConfig.KeyPath)
 		if err != nil {
 			return err
@@ -73,7 +73,8 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	reflection.Register(grpcServer)
 
-	lis, err := net.Listen("tcp", ":"+cfg.GRPC.Port)
+	var lis net.Listener
+	lis, err = net.Listen("tcp", ":"+cfg.GRPC.Port)
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 			grpc.WithBlock(),
 			grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 		}
-		if cfg.GRPC.TLSConfig != nil {
+		if cfg.GRPC.TLSConfig.Enabled {
 			c, err := credentials.NewClientTLSFromFile(cfg.GRPC.TLSConfig.CertPath, "")
 			if err != nil {
 				return err
@@ -154,7 +155,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 
 		go func() {
 			var err error
-			if cfg.HTTP.TLSConfig != nil {
+			if cfg.HTTP.TLSConfig.Enabled {
 				err = httpServer.ListenAndServeTLS(cfg.HTTP.TLSConfig.CertPath, cfg.HTTP.TLSConfig.KeyPath)
 			} else {
 				err = httpServer.ListenAndServe()

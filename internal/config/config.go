@@ -16,8 +16,8 @@ type (
 	Config struct {
 		Server   `yaml:"server"`
 		Log      `yaml:"logger"`
-		*Authn   `yaml:"authn"`
-		*Tracer  `yaml:"tracer"`
+		Authn    `yaml:"authn"`
+		Tracer   `yaml:"tracer"`
 		Database `yaml:"database"`
 	}
 
@@ -28,19 +28,20 @@ type (
 
 	// HTTP -.
 	HTTP struct {
-		Enabled            bool       `yaml:"enabled"`
-		Port               string     `env-required:"true" yaml:"port"`
-		TLSConfig          *TLSConfig `yaml:"tls_config"`
-		CORSAllowedOrigins []string   `yaml:"cors_allowed_origins"`
-		CORSAllowedHeaders []string   `yaml:"cors_allowed_headers"`
+		Enabled            bool      `yaml:"enabled"`
+		Port               string    `env-required:"true" yaml:"port"`
+		TLSConfig          TLSConfig `yaml:"tls"`
+		CORSAllowedOrigins []string  `yaml:"cors_allowed_origins"`
+		CORSAllowedHeaders []string  `yaml:"cors_allowed_headers"`
 	}
 
 	GRPC struct {
-		Port      string     `env-required:"true" yaml:"port"`
-		TLSConfig *TLSConfig `yaml:"tls_config"`
+		Port      string    `env-required:"true" yaml:"port"`
+		TLSConfig TLSConfig `yaml:"tls"`
 	}
 
 	TLSConfig struct {
+		Enabled  bool   `yaml:"enabled"`
 		CertPath string `yaml:"cert_path"`
 		KeyPath  string `yaml:"key_path"`
 	}
