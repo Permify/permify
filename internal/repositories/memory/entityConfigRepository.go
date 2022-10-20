@@ -37,7 +37,7 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) ([]rep
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
 			if e.Is(err, pgx.ErrNoRows) {
-				return configs, errors.New(base.ErrorCode_not_found_error.String())
+				return configs, errors.New(base.ErrorCode_schema_not_found.String())
 			}
 			return configs, errors.New(base.ErrorCode_internal_error.String())
 		}
@@ -64,7 +64,7 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
 			if e.Is(err, pgx.ErrNoRows) {
-				return config, errors.New(base.ErrorCode_not_found_error.String())
+				return config, errors.New(base.ErrorCode_schema_not_found.String())
 			}
 			return config, errors.New(base.ErrorCode_internal_error.String())
 		}

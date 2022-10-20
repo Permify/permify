@@ -124,7 +124,7 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	err = row.Scan(&config.Entity, &config.SerializedConfig, &config.Version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return config, errors.New(base.ErrorCode_record_not_found.String())
+			return config, errors.New(base.ErrorCode_schema_not_found.String())
 		}
 		return config, err
 	}
@@ -188,7 +188,7 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 	err = row.Scan(&version)
 	if err != nil {
 		if e.Is(err, pgx.ErrNoRows) {
-			return version, errors.New(base.ErrorCode_record_not_found.String())
+			return version, errors.New(base.ErrorCode_schema_not_found.String())
 		}
 		return version, err
 	}
