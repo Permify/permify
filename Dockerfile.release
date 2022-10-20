@@ -2,4 +2,5 @@ ARG BASE=distroless.dev/static
 FROM $BASE
 EXPOSE 3476
 COPY permify /usr/local/bin/permify
+COPY default.config.yaml /default.config.yaml
 ENTRYPOINT ["permify"]

@@ -9,4 +9,5 @@ RUN go build -v ./cmd/permify/
 FROM alpine:3.16.1
 EXPOSE 3476
 COPY --from=permify-builder /go/src/app/permify /usr/local/bin/permify
+COPY default.config.yaml /default.config.yaml
 ENTRYPOINT ["permify"]
