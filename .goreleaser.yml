@@ -19,11 +19,29 @@ nfpms:
     homepage: "https://permify.co"
     maintainer: "permify <help@permify.co>"
     description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
-    license: "Apache 2.0"
+    license: "GNU General Public License v3.0"
     formats:
       - "deb"
       - "rpm"
       - "apk"
+brews:
+  - tap:
+      owner: "permify"
+      name: "homebrew-tap"
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    folder: Formula
+    url_template: "https://github.com/Permify/permify/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: "permify-bot"
+      email: "hello@permify.co"
+    homepage: "https://permify.co/"
+    description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
+    license: "GNU General Public License v3.0"
+    dependencies:
+      - name: "go"
+        type: "build"
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
 dockers:
   # ARM64
   - image_templates:
