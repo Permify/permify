@@ -1,14 +1,11 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
 const (
-	Path        = "config/config.yaml"
-	DefaultPath = "default.config.yaml"
+	Path = "config/config.yaml"
 )
 
 type (
@@ -73,17 +70,50 @@ type (
 	}
 )
 
-// NewConfig returns permify config.
+// NewConfig returns new config.
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
 	err := cleanenv.ReadConfig("./"+Path, cfg)
 	if err != nil {
-		err = cleanenv.ReadConfig("./"+DefaultPath, cfg)
-		if err != nil {
-			return nil, fmt.Errorf("config error: %w", err)
-		}
+		cfg = DefaultConfig()
 	}
 
 	return cfg, nil
+}
+
+// DefaultConfig returns default config.
+func DefaultConfig() *Config {
+	return &Config{
+		Server: Server{
+			HTTP: HTTP{
+				Enabled: true,
+				Port:    "3476",
+				TLSConfig: TLSConfig{
+					Enabled: false,
+				},
+				CORSAllowedOrigins: []string{"*"},
+				CORSAllowedHeaders: []string{"*"},
+			},
+			GRPC: GRPC{
+				Port: "3478",
+				TLSConfig: TLSConfig{
+					Enabled: false,
+				},
+			},
+		},
+		Log: Log{
+			Level: "debug",
+		},
+		Tracer: Tracer{
+			Enabled: false,
+		},
+		Authn: Authn{
+			Enabled: false,
+			Keys:    []string{},
+		},
+		Database: Database{
+			Engine: "memory",
+		},
+	}
 }
