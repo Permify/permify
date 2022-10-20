@@ -1,88 +1,94 @@
-# This is an example .goreleaser.yml file with some sane defaults.
-# Make sure to check the documentation at http://goreleaser.com
+---
+project_name: permify
+universal_binaries:
+  - replace: true
 builds:
-  - main: "./cmd/permify"
+  -
     env:
       - CGO_ENABLED=0
-    goos:
-      - "linux"
-      - "windows"
-      - "darwin"
     goarch:
-      - "amd64"
-      - "arm64"
-    mod_timestamp: '{{ .CommitTimestamp }}'
+      - amd64
+      - arm64
+    goos:
+      - linux
+      - windows
+      - darwin
     ldflags:
       - "-s -w"
-nfpms:
-  - vendor: "permify inc."
-    homepage: "https://permify.co"
-    maintainer: "permify <help@permify.co>"
-    description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
-    license: "GNU General Public License v3.0"
-    formats:
-      - "deb"
-      - "rpm"
-      - "apk"
+    main: ./cmd/permify
+    mod_timestamp: "{{ .CommitTimestamp }}"
 brews:
-  - tap:
-      owner: "permify"
-      name: "homebrew-tap"
-      branch: main
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    url_template: "https://github.com/Permify/permify/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    download_strategy: "CurlDownloadStrategy"
-    folder: Formula
-    commit_author:
-      name: "permify-bot"
-      email: "hello@permify.co"
-    homepage: "https://github.com/Permify/permify"
-    description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
-    license: "GNU General Public License v3.0"
+  -
     dependencies:
-      - name: "go"
-        type: "build"
-    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+      -
+        name: go
+        type: build
+    description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
+    download_strategy: CurlDownloadStrategy
+    folder: Formula
+    homepage: "https://github.com/Permify/permify"
+    license: "GNU General Public License v3.0"
+    custom_block: |
+      head "https://github.com/Permify/permify.git", :branch => "master"
     install: |
-      if !File.exists? "permify"
-        system "go build ./cmd/permify"
-      end
-      bin.install "permify"
-
-dockers:
-  # ARM64
-  - image_templates:
-      - ghcr.io/permify/permify:v{{ .Version }}-arm64
-    dockerfile:  Dockerfile.release
-    goarch: arm64
-    use: buildx
-    build_flag_templates:
-      - --platform=linux/arm64
-  # AMD64
-  - image_templates:
-      - ghcr.io/permify/permify:v{{ .Version }}-amd64
-    dockerfile: Dockerfile.release
-    use: buildx
-    goarch: amd64
-    build_flag_templates:
-      - --platform=linux/amd64
+        if !File.exists? "permify"
+          system "go build --ldflags ./cmd/permify"
+        end
+        bin.install "permify"
+    tap:
+      name: homebrew-tap
+      owner: permify
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: permify-bot
+      email: hello@permify.co
+    url_template: "https://github.com/Permify/permify/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
 docker_manifests:
-  # GitHub Registry
-  - name_template: ghcr.io/permify/permify:v{{ .Version }}
+  -
     image_templates:
-      - ghcr.io/permify/permify:v{{ .Version }}-amd64
-      - ghcr.io/permify/permify:v{{ .Version }}-arm64
-  - name_template: ghcr.io/permify/permify:latest
+      - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
+      - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
+    name_template: "ghcr.io/permify/permify:v{{ .Version }}"
+  -
     image_templates:
-      - ghcr.io/permify/permify:v{{ .Version }}-amd64
-      - ghcr.io/permify/permify:v{{ .Version }}-arm64
-checksum:
-  name_template: 'checksums.txt'
+      - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
+      - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
+    name_template: "ghcr.io/permify/permify:latest"
+dockers:
+  -
+    build_flag_templates:
+      - "--platform=linux/arm64"
+    dockerfile: Dockerfile.release
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
+    use: buildx
+  -
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    dockerfile: Dockerfile.release
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
+    use: buildx
+nfpms:
+  -
+    description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
+    formats:
+      - deb
+      - rpm
+      - apk
+    homepage: "https://permify.co"
+    license: "GNU General Public License v3.0"
+    maintainer: "permify <help@permify.co>"
+    vendor: "permify inc."
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
+      - "^docs:"
+      - "^test:"
+checksum:
+  name_template: checksums.txt
