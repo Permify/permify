@@ -30,18 +30,25 @@ brews:
       name: "homebrew-tap"
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    folder: Formula
     url_template: "https://github.com/Permify/permify/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    download_strategy: "CurlDownloadStrategy"
+    folder: Formula
     commit_author:
       name: "permify-bot"
       email: "hello@permify.co"
-    homepage: "https://permify.co/"
+    homepage: "https://github.com/Permify/permify"
     description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
     license: "GNU General Public License v3.0"
     dependencies:
       - name: "go"
         type: "build"
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    install: |
+      if !File.exists? "permify"
+        system "go build ./cmd/permify"
+      end
+      bin.install "permify"
+
 dockers:
   # ARM64
   - image_templates:
