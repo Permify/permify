@@ -55,6 +55,9 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 	if manager.cache == nil {
 		var config repositories.EntityConfig
 		config, err = manager.repository.Read(ctx, name, version)
+		if err != nil {
+			return nil, err
+		}
 
 		var sch *base.Schema
 		sch, err = compiler.NewSchemaWithoutReferenceValidation(config.Serialized())
