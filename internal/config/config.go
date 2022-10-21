@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	`os`
 )
 
 const (
@@ -74,8 +75,12 @@ type (
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
-	err := cleanenv.ReadConfig("./"+Path, cfg)
-	if err != nil {
+	if _, err := os.Stat("./" + Path); !os.IsNotExist(err) {
+		err = cleanenv.ReadConfig("./"+Path, cfg)
+		if err != nil {
+			return nil, err
+		}
+	} else {
 		cfg = DefaultConfig()
 	}
 
