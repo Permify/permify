@@ -147,7 +147,6 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 			l.Error(err)
 		}
 
-		l.Info("server is shutting down")
 		return nil
 	}
 }
