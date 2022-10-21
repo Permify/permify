@@ -169,7 +169,6 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	}
 
 	<-ctx.Done()
-	l.Info("Gracefully shutting down")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -182,6 +181,8 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	}
 
 	grpcServer.GracefulStop()
+
+	l.Info("gracefully shutting down")
 
 	return nil
 }
