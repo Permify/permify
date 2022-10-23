@@ -16,8 +16,8 @@ func TestTuple(t *testing.T) {
 }
 
 var _ = Describe("tuple", func() {
-	Context("EntityAndRelation", func() {
-		It("String", func() {
+	Context("TupleToString", func() {
+		It("EntityAndRelationToString", func() {
 			tests := []struct {
 				target   *base.EntityAndRelation
 				expected string
@@ -44,8 +44,171 @@ var _ = Describe("tuple", func() {
 		})
 	})
 
+	Context("StringToTuple", func() {
+		It("Tuple", func() {
+			tests := []struct {
+				target   string
+				err      error
+				expected *base.Tuple
+			}{
+				{
+					target: "repository:1#admin@user:1",
+					expected: &base.Tuple{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "1",
+						},
+						Relation: "admin",
+						Subject: &base.Subject{
+							Type: USER,
+							Id:   "1",
+						},
+					},
+				},
+				{
+					target: "repository:1#parent@organization:1#...",
+					expected: &base.Tuple{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "1",
+						},
+						Relation: "parent",
+						Subject: &base.Subject{
+							Type:     "organization",
+							Id:       "1",
+							Relation: ELLIPSIS,
+						},
+					},
+				},
+				{
+					target: "repository:1#admin@organization:1#member",
+					expected: &base.Tuple{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "1",
+						},
+						Relation: "admin",
+						Subject: &base.Subject{
+							Type:     "organization",
+							Id:       "1",
+							Relation: "member",
+						},
+					},
+				},
+				{
+					target: "repository:1#wrong:1#member",
+					err:    ErrInvalidTuple,
+				},
+			}
+
+			for _, tt := range tests {
+				e, err := Tuple(tt.target)
+				if err != nil {
+					Expect(err).Should(Equal(tt.err))
+				} else {
+					Expect(e).Should(Equal(tt.expected))
+				}
+			}
+		})
+
+		It("EAR", func() {
+			tests := []struct {
+				target   string
+				err      error
+				expected *base.EntityAndRelation
+			}{
+				{
+					target: "repository:1#admin",
+					expected: &base.EntityAndRelation{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "1",
+						},
+						Relation: "admin",
+					},
+				},
+				{
+					target: "test:1#x",
+					expected: &base.EntityAndRelation{
+						Entity: &base.Entity{
+							Type: "test",
+							Id:   "1",
+						},
+						Relation: "x",
+					},
+				},
+				{
+					target: "test:5",
+					expected: &base.EntityAndRelation{
+						Entity: &base.Entity{
+							Type: "test",
+							Id:   "5",
+						},
+						Relation: "",
+					},
+				},
+				{
+					target:   "wrong",
+					expected: nil,
+					err:      ErrInvalidEntity,
+				},
+			}
+
+			for _, tt := range tests {
+				e, err := EAR(tt.target)
+				if err != nil {
+					Expect(err).Should(Equal(tt.err))
+				} else {
+					Expect(e).Should(Equal(tt.expected))
+				}
+			}
+		})
+
+		It("E", func() {
+			tests := []struct {
+				target   string
+				err      error
+				expected *base.Entity
+			}{
+				{
+					target: "repository:1",
+					expected: &base.Entity{
+						Type: "repository",
+						Id:   "1",
+					},
+				},
+				{
+					target: "test:4",
+					expected: &base.Entity{
+						Type: "test",
+						Id:   "4",
+					},
+				},
+				{
+					target:   "wrong",
+					expected: nil,
+					err:      ErrInvalidEntity,
+				},
+				{
+					target:   "wrong:wrong:wrong:wrong",
+					expected: nil,
+					err:      ErrInvalidEntity,
+				},
+			}
+
+			for _, tt := range tests {
+				e, err := E(tt.target)
+				if err != nil {
+					Expect(err).Should(Equal(tt.err))
+				} else {
+					Expect(e).Should(Equal(tt.expected))
+				}
+			}
+		})
+	})
+
 	Context("Relation", func() {
-		It("Split", func() {
+		It("SplitRelation", func() {
 			tests := []struct {
 				target   string
 				expected []string
@@ -66,7 +229,7 @@ var _ = Describe("tuple", func() {
 			}
 		})
 
-		It("IsComputed", func() {
+		It("IsRelationComputed", func() {
 			tests := []struct {
 				target   string
 				expected bool

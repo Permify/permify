@@ -134,3 +134,97 @@ func IsSubjectValid(subject *base.Subject) bool {
 		return subject.GetRelation() != ""
 	}
 }
+
+// Tuple -
+func Tuple(tuple string) (*base.Tuple, error) {
+	s := strings.Split(strings.TrimSpace(tuple), "@")
+	if len(s) != 2 {
+		return nil, ErrInvalidTuple
+	}
+	ear, err := EAR(s[0])
+	if err != nil {
+		return nil, err
+	}
+	sub, err := EAR(s[1])
+	if err != nil {
+		return nil, err
+	}
+	return &base.Tuple{
+		Entity:   ear.Entity,
+		Relation: ear.Relation,
+		Subject: &base.Subject{
+			Type:     sub.Entity.Type,
+			Id:       sub.Entity.Id,
+			Relation: sub.Relation,
+		},
+	}, nil
+}
+
+// EAR EntityAndRelation
+func EAR(ear string) (*base.EntityAndRelation, error) {
+	s := strings.Split(strings.TrimSpace(ear), "#")
+	if len(s) == 1 {
+		e, err := E(s[0])
+		if err != nil {
+			return nil, err
+		}
+		return &base.EntityAndRelation{
+			Entity:   e,
+			Relation: "",
+		}, nil
+	} else if len(s) == 2 {
+		e, err := E(s[0])
+		if err != nil {
+			return nil, err
+		}
+		return &base.EntityAndRelation{
+			Entity:   e,
+			Relation: s[1],
+		}, nil
+	} else {
+		return nil, ErrInvalidEntityAndRelation
+	}
+}
+
+// E New Entity from string
+func E(e string) (*base.Entity, error) {
+	s := strings.Split(strings.TrimSpace(e), ":")
+	if len(s) != 2 {
+		return nil, ErrInvalidEntity
+	}
+	return &base.Entity{
+		Type: s[0],
+		Id:   s[1],
+	}, nil
+}
+
+type Query struct {
+	Subject *base.Subject
+	Entity  *base.Entity
+	Action  string
+}
+
+// NewQueryFromString sample query: can user:1 push repository:1
+func NewQueryFromString(query string) (*Query, error) {
+	q := strings.Split(strings.TrimSpace(query), " ")
+	if len(q) != 4 {
+		return nil, ErrInvalidQuery
+	}
+	subject, err := EAR(q[1])
+	if err != nil {
+		return nil, err
+	}
+	entity, err := E(q[3])
+	if err != nil {
+		return nil, err
+	}
+	return &Query{
+		Entity: entity,
+		Subject: &base.Subject{
+			Type:     subject.Entity.Type,
+			Id:       subject.Entity.Id,
+			Relation: subject.Relation,
+		},
+		Action: q[2],
+	}, nil
+}
