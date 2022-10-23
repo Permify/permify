@@ -19,7 +19,7 @@
 ## What is Permify?
 [Permify](https://github.com/Permify/permify) is an **open-source authorization service** for creating and maintaining fine-grained authorizations in your applications.
 
-With Permify you can model common authorization patterns, store authorization relevant data in your own server, and interact with Permify API to respond to all authorization questions from any of your applications.
+With Permify you can easily structure your authorization model, store authorization data in your own servers securely, and interact with Permify API to handle all authorization questions from any of your applications.
 
 Permify's data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
