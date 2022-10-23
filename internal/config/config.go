@@ -1,8 +1,9 @@
 package config
 
 import (
+	"os"
+
 	"github.com/ilyakaznacheev/cleanenv"
-	`os`
 )
 
 const (

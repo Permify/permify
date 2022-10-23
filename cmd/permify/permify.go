@@ -1,11 +1,11 @@
 package main
 
 import (
-	`log`
-	`os`
+	"log"
+	"os"
 
-	`github.com/Permify/permify/internal/config`
-	`github.com/Permify/permify/pkg/cmd`
+	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/pkg/cmd"
 )
 
 func main() {
@@ -20,6 +20,9 @@ func main() {
 	serve := cmd.NewServeCommand(cfg)
 	cmd.RegisterServeFlags(serve, cfg)
 	root.AddCommand(serve)
+
+	validate := cmd.NewValidateCommand()
+	root.AddCommand(validate)
 
 	if err := root.Execute(); err != nil {
 		os.Exit(1)

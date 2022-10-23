@@ -12,15 +12,15 @@ import (
 	"github.com/Permify/permify/pkg/logger"
 )
 
-// Development -
-type Development struct {
+// Container -
+type Container struct {
 	P services.IPermissionService
 	R services.IRelationshipService
 	M managers.IEntityConfigManager
 }
 
-// NewDevelopment -
-func NewDevelopment() *Development {
+// NewContainer -
+func NewContainer() *Container {
 	l := logger.New("debug")
 
 	var err error
@@ -58,7 +58,7 @@ func NewDevelopment() *Development {
 	relationshipService := services.NewRelationshipService(relationTupleRepository, schemaManager)
 	permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaManager)
 
-	return &Development{
+	return &Container{
 		P: permissionService,
 		R: relationshipService,
 		M: schemaManager,

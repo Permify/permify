@@ -18,7 +18,7 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-var dev *development.Development
+var dev *development.Container
 
 // check -
 func check() js.Func {
@@ -161,7 +161,7 @@ func readSchemaGraph() js.Func {
 
 func main() {
 	ch := make(chan struct{}, 0)
-	dev = development.NewDevelopment()
+	dev = development.NewContainer()
 	js.Global().Set("check", check())
 	js.Global().Set("writeSchema", writeSchema())
 	js.Global().Set("writeTuple", writeTuple())

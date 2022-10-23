@@ -2,12 +2,10 @@ package memory
 
 import (
 	"context"
-	e "errors"
 
 	"github.com/pkg/errors"
 
 	"github.com/hashicorp/go-memdb"
-	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/repositories"
 	db "github.com/Permify/permify/pkg/database/memory"
@@ -36,10 +34,7 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) ([]rep
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
-			if e.Is(err, pgx.ErrNoRows) {
-				return configs, errors.New(base.ErrorCode_schema_not_found.String())
-			}
-			return configs, errors.New(base.ErrorCode_internal_error.String())
+			return configs, err
 		}
 	}
 
@@ -63,10 +58,7 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	if version == "" {
 		version, err = r.findLastVersion(ctx)
 		if err != nil {
-			if e.Is(err, pgx.ErrNoRows) {
-				return config, errors.New(base.ErrorCode_schema_not_found.String())
-			}
-			return config, errors.New(base.ErrorCode_internal_error.String())
+			return config, err
 		}
 	}
 
@@ -80,7 +72,7 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	if _, ok := raw.(repositories.EntityConfig); ok {
 		return raw.(repositories.EntityConfig), nil
 	}
-	return repositories.EntityConfig{}, errors.New(base.ErrorCode_scan.String())
+	return repositories.EntityConfig{}, errors.New(base.ErrorCode_schema_not_found.String())
 }
 
 // Write -
@@ -111,5 +103,5 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 	if _, ok := raw.(repositories.EntityConfig); ok {
 		return raw.(repositories.EntityConfig).Version, nil
 	}
-	return "", errors.New(base.ErrorCode_scan.String())
+	return "", errors.New(base.ErrorCode_schema_not_found.String())
 }
