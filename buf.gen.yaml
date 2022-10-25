@@ -4,27 +4,27 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: github.com/Permify/permify/pkg/pb/base/v1
+    default: github.com/Permify/permify/pkg/pb
     except:
       - buf.build/googleapis/googleapis
       - buf.build/envoyproxy/protoc-gen-validate
       - buf.build/grpc-ecosystem/grpc-gateway
 plugins:
   - remote: buf.build/protocolbuffers/plugins/go:v1.28.0-1
-    out: pkg/pb/base/v1
+    out: pkg/pb
     opt:
       - paths=source_relative
   - remote: buf.build/grpc/plugins/go:v1.2.0-1
-    out: pkg/pb/base/v1
+    out: pkg/pb
     opt:
       - paths=source_relative
   - remote: buf.build/jirkad/plugins/protoc-gen-validate:v0.6.7
-    out: pkg/pb/base/v1
+    out: pkg/pb
     opt:
       - paths=source_relative
       - lang=go
   - remote: buf.build/grpc-ecosystem/plugins/grpc-gateway:v2.10.0-1
-    out: pkg/pb/base/v1
+    out: pkg/pb
     opt:
       - paths=source_relative
       - logtostderr=true

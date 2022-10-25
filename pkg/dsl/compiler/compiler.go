@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"google.golang.org/protobuf/types/known/anypb"
-
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/dsl/schema"
@@ -59,7 +57,7 @@ func (t *Compiler) Compile() (sch *base.Schema, err error) {
 func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, error) {
 	entityDefinition := &base.EntityDefinition{
 		Name:      sc.Name.Literal,
-		Option:    map[string]*anypb.Any{},
+		Option:    map[string]string{},
 		Relations: map[string]*base.RelationDefinition{},
 		Actions:   map[string]*base.ActionDefinition{},
 	}
@@ -69,9 +67,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		for _, option := range options {
 			op := strings.Split(option, ":")
 			if len(op) == 2 {
-				entityDefinition.Option[op[0]] = &anypb.Any{
-					Value: []byte(op[1]),
-				}
+				entityDefinition.Option[op[0]] = op[1]
 			}
 		}
 	}
@@ -81,7 +77,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		relationSt := rs.(*ast.RelationStatement)
 		relationDefinition := &base.RelationDefinition{
 			Name:               relationSt.Name.Literal,
-			Option:             map[string]*anypb.Any{},
+			Option:             map[string]string{},
 			RelationReferences: []*base.RelationReference{},
 		}
 
@@ -98,9 +94,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			for _, option := range options {
 				op := strings.Split(option, ":")
 				if len(op) == 2 {
-					relationDefinition.Option[op[0]] = &anypb.Any{
-						Value: []byte(op[1]),
-					}
+					relationDefinition.Option[op[0]] = op[1]
 				}
 			}
 		}

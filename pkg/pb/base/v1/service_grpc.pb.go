@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             (unknown)
-// source: service.proto
+// source: base/v1/service.proto
 
-package v1
+package basev1
 
 import (
 	context "context"
@@ -37,7 +37,7 @@ func NewPermissionAPIClient(cc grpc.ClientConnInterface) PermissionAPIClient {
 
 func (c *permissionAPIClient) Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error) {
 	out := new(CheckResponse)
-	err := c.cc.Invoke(ctx, "/PermissionAPI/Check", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.PermissionAPI/Check", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (c *permissionAPIClient) Check(ctx context.Context, in *CheckRequest, opts 
 
 func (c *permissionAPIClient) Expand(ctx context.Context, in *ExpandRequest, opts ...grpc.CallOption) (*ExpandResponse, error) {
 	out := new(ExpandResponse)
-	err := c.cc.Invoke(ctx, "/PermissionAPI/Expand", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.PermissionAPI/Expand", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (c *permissionAPIClient) Expand(ctx context.Context, in *ExpandRequest, opt
 
 func (c *permissionAPIClient) LookupQuery(ctx context.Context, in *LookupQueryRequest, opts ...grpc.CallOption) (*LookupQueryResponse, error) {
 	out := new(LookupQueryResponse)
-	err := c.cc.Invoke(ctx, "/PermissionAPI/LookupQuery", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.PermissionAPI/LookupQuery", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func _PermissionAPI_Check_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/PermissionAPI/Check",
+		FullMethod: "/base.v1.PermissionAPI/Check",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PermissionAPIServer).Check(ctx, req.(*CheckRequest))
@@ -126,7 +126,7 @@ func _PermissionAPI_Expand_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/PermissionAPI/Expand",
+		FullMethod: "/base.v1.PermissionAPI/Expand",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PermissionAPIServer).Expand(ctx, req.(*ExpandRequest))
@@ -144,7 +144,7 @@ func _PermissionAPI_LookupQuery_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/PermissionAPI/LookupQuery",
+		FullMethod: "/base.v1.PermissionAPI/LookupQuery",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PermissionAPIServer).LookupQuery(ctx, req.(*LookupQueryRequest))
@@ -156,7 +156,7 @@ func _PermissionAPI_LookupQuery_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var PermissionAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "PermissionAPI",
+	ServiceName: "base.v1.PermissionAPI",
 	HandlerType: (*PermissionAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -173,7 +173,7 @@ var PermissionAPI_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "service.proto",
+	Metadata: "base/v1/service.proto",
 }
 
 // SchemaAPIClient is the client API for SchemaAPI service.
@@ -195,7 +195,7 @@ func NewSchemaAPIClient(cc grpc.ClientConnInterface) SchemaAPIClient {
 
 func (c *schemaAPIClient) Write(ctx context.Context, in *SchemaWriteRequest, opts ...grpc.CallOption) (*SchemaWriteResponse, error) {
 	out := new(SchemaWriteResponse)
-	err := c.cc.Invoke(ctx, "/SchemaAPI/Write", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.SchemaAPI/Write", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (c *schemaAPIClient) Write(ctx context.Context, in *SchemaWriteRequest, opt
 
 func (c *schemaAPIClient) Read(ctx context.Context, in *SchemaReadRequest, opts ...grpc.CallOption) (*SchemaReadResponse, error) {
 	out := new(SchemaReadResponse)
-	err := c.cc.Invoke(ctx, "/SchemaAPI/Read", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.SchemaAPI/Read", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (c *schemaAPIClient) Read(ctx context.Context, in *SchemaReadRequest, opts 
 
 func (c *schemaAPIClient) Lookup(ctx context.Context, in *SchemaLookupRequest, opts ...grpc.CallOption) (*SchemaLookupResponse, error) {
 	out := new(SchemaLookupResponse)
-	err := c.cc.Invoke(ctx, "/SchemaAPI/Lookup", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.SchemaAPI/Lookup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func _SchemaAPI_Write_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/SchemaAPI/Write",
+		FullMethod: "/base.v1.SchemaAPI/Write",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaAPIServer).Write(ctx, req.(*SchemaWriteRequest))
@@ -284,7 +284,7 @@ func _SchemaAPI_Read_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/SchemaAPI/Read",
+		FullMethod: "/base.v1.SchemaAPI/Read",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaAPIServer).Read(ctx, req.(*SchemaReadRequest))
@@ -302,7 +302,7 @@ func _SchemaAPI_Lookup_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/SchemaAPI/Lookup",
+		FullMethod: "/base.v1.SchemaAPI/Lookup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaAPIServer).Lookup(ctx, req.(*SchemaLookupRequest))
@@ -314,7 +314,7 @@ func _SchemaAPI_Lookup_Handler(srv interface{}, ctx context.Context, dec func(in
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SchemaAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "SchemaAPI",
+	ServiceName: "base.v1.SchemaAPI",
 	HandlerType: (*SchemaAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -331,7 +331,7 @@ var SchemaAPI_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "service.proto",
+	Metadata: "base/v1/service.proto",
 }
 
 // RelationshipAPIClient is the client API for RelationshipAPI service.
@@ -353,7 +353,7 @@ func NewRelationshipAPIClient(cc grpc.ClientConnInterface) RelationshipAPIClient
 
 func (c *relationshipAPIClient) Write(ctx context.Context, in *RelationshipWriteRequest, opts ...grpc.CallOption) (*RelationshipWriteResponse, error) {
 	out := new(RelationshipWriteResponse)
-	err := c.cc.Invoke(ctx, "/RelationshipAPI/Write", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.RelationshipAPI/Write", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func (c *relationshipAPIClient) Write(ctx context.Context, in *RelationshipWrite
 
 func (c *relationshipAPIClient) Read(ctx context.Context, in *RelationshipReadRequest, opts ...grpc.CallOption) (*RelationshipReadResponse, error) {
 	out := new(RelationshipReadResponse)
-	err := c.cc.Invoke(ctx, "/RelationshipAPI/Read", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.RelationshipAPI/Read", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +371,7 @@ func (c *relationshipAPIClient) Read(ctx context.Context, in *RelationshipReadRe
 
 func (c *relationshipAPIClient) Delete(ctx context.Context, in *RelationshipDeleteRequest, opts ...grpc.CallOption) (*RelationshipDeleteResponse, error) {
 	out := new(RelationshipDeleteResponse)
-	err := c.cc.Invoke(ctx, "/RelationshipAPI/Delete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.RelationshipAPI/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +424,7 @@ func _RelationshipAPI_Write_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/RelationshipAPI/Write",
+		FullMethod: "/base.v1.RelationshipAPI/Write",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RelationshipAPIServer).Write(ctx, req.(*RelationshipWriteRequest))
@@ -442,7 +442,7 @@ func _RelationshipAPI_Read_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/RelationshipAPI/Read",
+		FullMethod: "/base.v1.RelationshipAPI/Read",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RelationshipAPIServer).Read(ctx, req.(*RelationshipReadRequest))
@@ -460,7 +460,7 @@ func _RelationshipAPI_Delete_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/RelationshipAPI/Delete",
+		FullMethod: "/base.v1.RelationshipAPI/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RelationshipAPIServer).Delete(ctx, req.(*RelationshipDeleteRequest))
@@ -472,7 +472,7 @@ func _RelationshipAPI_Delete_Handler(srv interface{}, ctx context.Context, dec f
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var RelationshipAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "RelationshipAPI",
+	ServiceName: "base.v1.RelationshipAPI",
 	HandlerType: (*RelationshipAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -489,5 +489,5 @@ var RelationshipAPI_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "service.proto",
+	Metadata: "base/v1/service.proto",
 }

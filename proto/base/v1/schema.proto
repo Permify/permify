@@ -1,6 +1,7 @@
 syntax = "proto3";
+package base.v1;
 
-option go_package = "pkg/pb/base/v1";
+option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
 import "validate/validate.proto";
 import "google/protobuf/any.proto";
@@ -62,7 +63,7 @@ message EntityDefinition {
   // ["action_name"] => ActionDefinition
   map<string, ActionDefinition> actions = 3;
 
-  map<string, google.protobuf.Any> option = 4;
+  map<string, string> option = 4;
 }
 
 // RelationDefinition
@@ -77,7 +78,7 @@ message RelationDefinition {
   // relation reference includes entity reference
   repeated RelationReference relation_references = 3;
 
-  map<string, google.protobuf.Any> option = 4;
+  map<string, string> option = 4;
 }
 
 // ActionDefinition

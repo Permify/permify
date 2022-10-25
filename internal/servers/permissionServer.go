@@ -10,7 +10,7 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
-	"github.com/Permify/permify/pkg/pb/base/v1"
+	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // PermissionServer -

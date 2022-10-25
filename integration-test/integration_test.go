@@ -13,7 +13,7 @@ import (
 const (
 	// Attempts connection
 	host       = "permify:3476"
-	healthPath = "http://" + host + "/status/ping"
+	healthPath = "http://" + host + "/healthz"
 	attempts   = 20
 
 	// HTTP REST

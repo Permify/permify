@@ -83,24 +83,24 @@ func GetEntityReference(definition *base.RelationDefinition) string {
 
 // GetTable -
 func GetTable(definition *base.EntityDefinition) string {
-	if en, ok := definition.GetOption()["table"]; ok {
-		return string(en.Value)
+	if table, ok := definition.GetOption()["table"]; ok {
+		return table
 	}
 	return definition.GetName()
 }
 
 // GetIdentifier -
 func GetIdentifier(definition *base.EntityDefinition) string {
-	if en, ok := definition.GetOption()["identifier"]; ok {
-		return string(en.Value)
+	if identifier, ok := definition.GetOption()["identifier"]; ok {
+		return identifier
 	}
 	return "id"
 }
 
 // GetColumn -
 func GetColumn(definition *base.RelationDefinition) (string, bool) {
-	if col, ok := definition.GetOption()["column"]; ok {
-		return string(col.Value), true
+	if column, ok := definition.GetOption()["column"]; ok {
+		return column, true
 	}
 	return "", false
 }

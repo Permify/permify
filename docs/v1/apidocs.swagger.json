@@ -6,14 +6,25 @@
     "version": "v0.0.0-alpha8",
     "contact": {
       "name": "API Support",
-      "url": "https://github.com/Permify/permify/issues",
-      "email": "hello@permify.co"
+      "url": "https://github.com/Permify/base/issues",
+      "email": "hello@base.co"
     },
     "license": {
       "name": "GNU Affero General Public License v3.0",
-      "url": "https://github.com/Permify/permify/blob/master/LICENSE"
+      "url": "https://github.com/Permify/base/blob/master/LICENSE"
     }
   },
+  "tags": [
+    {
+      "name": "PermissionAPI"
+    },
+    {
+      "name": "SchemaAPI"
+    },
+    {
+      "name": "RelationshipAPI"
+    }
+  ],
   "schemes": [
     "https"
   ],
@@ -322,32 +333,6 @@
     }
   },
   "definitions": {
-    ".Schema": {
-      "type": "object",
-      "properties": {
-        "entityDefinitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/EntityDefinition"
-          }
-        },
-        "relationDefinitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/RelationDefinition"
-          },
-          "title": "[\"entity_name#relation_name\"] =\u003e RelationDefinition"
-        },
-        "actionDefinitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/ActionDefinition"
-          },
-          "title": "[\"entity_name#action_name\"] =\u003e ActionDefinition"
-        }
-      },
-      "title": "Schema"
-    },
     "ActionDefinition": {
       "type": "object",
       "properties": {
@@ -474,7 +459,7 @@
         "option": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/Any"
+            "type": "string"
           }
         }
       },
@@ -623,7 +608,7 @@
         "option": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/Any"
+            "type": "string"
           }
         }
       },
@@ -778,7 +763,7 @@
       "type": "object",
       "properties": {
         "schema": {
-          "$ref": "#/definitions/.Schema"
+          "$ref": "#/definitions/v1.Schema"
         }
       },
       "title": "SchemaReadRequest"
@@ -901,6 +886,32 @@
         }
       },
       "title": "TupleToUserSet"
+    },
+    "v1.Schema": {
+      "type": "object",
+      "properties": {
+        "entityDefinitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/EntityDefinition"
+          }
+        },
+        "relationDefinitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/RelationDefinition"
+          },
+          "title": "[\"entity_name#relation_name\"] =\u003e RelationDefinition"
+        },
+        "actionDefinitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ActionDefinition"
+          },
+          "title": "[\"entity_name#action_name\"] =\u003e ActionDefinition"
+        }
+      },
+      "title": "Schema"
     }
   },
   "securityDefinitions": {

@@ -1,8 +1,9 @@
 syntax = "proto3";
+package base.v1;
 
-option go_package = "pkg/pb/base/v1";
+option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
-import "protoc-gen-openapiv2/options/annotations.proto";
+//import "protoc-gen-openapiv2/options/annotations.proto";
 
 enum ErrorCode {
   no_error = 0;
