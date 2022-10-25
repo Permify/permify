@@ -17,31 +17,25 @@
 </p>
 
 ## What is Permify?
+[Permify](https://github.com/Permify/permify) is an **open-source authorization service** for creating and maintaining fine-grained authorizations in your applications.
 
-Permify is an **open-source authorization service** for creating and maintaining fine-grained authorizations accross your individual applications and services.
+With Permify you can easily structure your authorization model, store authorization data in your own servers securely, and interact with Permify API to handle all authorization questions from any of your applications.
 
-Permify stores access control relations on a database you choose and performs authorization checks based on the stored relations. We called that database Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model your authorization with Permify's DSL - Permify Schema and perform access checks with a single API call anywhere on your stack.
-
-Data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
-
-<p align="center">
-    <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
-</p>
-
+Permify's data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
 ## Permify works best:
 
 - If you already have an identity/auth solution and want to plug in fine-grained authorization on top of that.
-- If you want to create a unified access control mechanism for individual applications.
-- If you’re managing authorization for growing micro-service infrastructure.
+- If you want to create a unified access control mechanism to use across your individual applications.
 - If you want to make future-proof authorization system and don't want to spend engineering effort for it.
+- If you’re managing authorization for growing micro-service infrastructure.
 - If your authorization logic is cluttering your code base.
 - If your data model is getting too complicated to handle your authorization within the service.
 - If your authorization is growing too complex to handle within code or API gateway.
 
 ### Features
 
-🔐 Convert & store authorization data **in house** with high availability.
+🔐 Centralize & store authorization data **in house** with high availability.
 
 🔮 Easily model and refactor your authorization with **Permify's DSL, Permify Schema**.
 
@@ -49,7 +43,7 @@ Data model is inspired by Google’s consistent, global authorization system, [G
 
 🩺 Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin].
 
-✅ Low latency with **parallel graph engine** on access checks.
+✅ Low latency with **parallel graph engine** on authorization checks.
 
 [jaeger]: https://www.jaegertracing.io/
 [signoz]: https://signoz.io/
@@ -57,25 +51,33 @@ Data model is inspired by Google’s consistent, global authorization system, [G
 
 ## How it works
 
+Permify stores access control relations on a database you choose and performs authorization checks based on the stored relations. We called that database Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model your authorization with Permify's DSL - Permify Schema and perform access checks with a single API call anywhere on your stack.
+
 ![Value Chain Schema](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
 
 ## Getting Started
 
-- [Install Permify] with running Permify container.
+- [Set Up & Run Permify Service] in your enviroment.
 - Follow a guide to model your authorization using [Permify Schema].
+- Learn how Permify [Store Authorization Data] as relations.
 - See our [playground], build your authorization logic and test it with sample data.
 - Take a look at the overview of [Permify API].
 
-[Install Permify]: https://docs.permify.co/docs/installation
+[Set Up & Run Permify Service]: https://docs.permify.co/docs/installation/overview
+[Store Authorization Data]: https://docs.permify.co/docs/getting-started/sync-data
 [Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
 [playground]: https://play.permify.co/
-[Permify API]: https://docs.permify.co/docs/api-overview
+[Permify API]: https://docs.permify.co/docs/api-overview/overview
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de?action=collection%2Ffork&collection-url=entityId%3D16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de%26entityType%3Dcollection%26workspaceId%3Dd3a8746c-fa57-49c0-83a5-6fcf25a7fc05)
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://app.swaggerhub.com/apis-docs/permify/permify-api/v0.0.0-alpha4)
 
 ## Community & Support
-Join our [Discord channel](https://discord.gg/MJbUjwskdH) for issues, feature requests, feedbacks or anything else. We love to talk about authorization and access control :heart:
+We love to talk about authorization also we would love to hear from you :heart:
+
+You can get immidiate help on our [Discord](https://discord.gg/MJbUjwskdH) channel. This can be any kind of questions related to Permify, authorization, or even from authentication or identity access control. We'd love to discuss anything related with access control space.
+
+For feature requests, bugs or any improvements you can always open an issue. If you like Permify, please consider giving us a :star:
 
 <p align="left">
 <a href="https://discord.gg/MJbUjwskdH">
