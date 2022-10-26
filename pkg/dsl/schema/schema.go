@@ -12,8 +12,8 @@ import (
 )
 
 // NewSchema -
-func NewSchema(entities ...*base.EntityDefinition) (schema *base.Schema) {
-	schema = &base.Schema{
+func NewSchema(entities ...*base.EntityDefinition) (schema *base.IndexedSchema) {
+	schema = &base.IndexedSchema{
 		EntityDefinitions:   map[string]*base.EntityDefinition{},
 		RelationDefinitions: map[string]*base.RelationDefinition{},
 		ActionDefinitions:   map[string]*base.ActionDefinition{},
@@ -37,27 +37,27 @@ func NewSchema(entities ...*base.EntityDefinition) (schema *base.Schema) {
 }
 
 // GetEntityByName -
-func GetEntityByName(schema *base.Schema, name string) (entityDefinition *base.EntityDefinition, err error) {
+func GetEntityByName(schema *base.IndexedSchema, name string) (entityDefinition *base.EntityDefinition, err error) {
 	if en, ok := schema.GetEntityDefinitions()[name]; ok {
 		return en, nil
 	}
-	return nil, errors.New(base.ErrorCode_entity_definition_not_found.String())
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String())
 }
 
 // GetRelationWithKey Key -> entity_name#relation_name
-func GetRelationWithKey(schema *base.Schema, key string) (relationDefinition *base.RelationDefinition, err error) {
+func GetRelationWithKey(schema *base.IndexedSchema, key string) (relationDefinition *base.RelationDefinition, err error) {
 	if en, ok := schema.GetRelationDefinitions()[key]; ok {
 		return en, nil
 	}
-	return nil, errors.New(base.ErrorCode_relation_definition_not_found.String())
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 }
 
 // GetActionWithKey Key -> entity_name#action_name
-func GetActionWithKey(schema *base.Schema, key string) (actionDefinition *base.ActionDefinition, err error) {
+func GetActionWithKey(schema *base.IndexedSchema, key string) (actionDefinition *base.ActionDefinition, err error) {
 	if en, ok := schema.GetActionDefinitions()[key]; ok {
 		return en, nil
 	}
-	return nil, errors.New(base.ErrorCode_action_definition_not_found.String())
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
 }
 
 // GetActionByNameInEntityDefinition -
@@ -65,7 +65,7 @@ func GetActionByNameInEntityDefinition(entityDefinition *base.EntityDefinition, 
 	if re, ok := entityDefinition.GetActions()[name]; ok {
 		return re, nil
 	}
-	return nil, errors.New(base.ErrorCode_action_can_not_found.String())
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
 }
 
 // GetRelationByNameInEntityDefinition -
@@ -73,7 +73,7 @@ func GetRelationByNameInEntityDefinition(entityDefinition *base.EntityDefinition
 	if re, ok := entityDefinition.GetRelations()[name]; ok {
 		return re, nil
 	}
-	return nil, errors.New(base.ErrorCode_action_definition_not_found.String())
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
 }
 
 // GetEntityReference -
@@ -106,7 +106,7 @@ func GetColumn(definition *base.RelationDefinition) (string, bool) {
 }
 
 // GraphSchema -
-func GraphSchema(schema *base.Schema) (g graph.Graph, error error) {
+func GraphSchema(schema *base.IndexedSchema) (g graph.Graph, error error) {
 	for _, en := range schema.GetEntityDefinitions() {
 		eg, err := GraphEntity(en)
 		if err != nil {
@@ -180,7 +180,7 @@ func buildActionGraph(entity *base.EntityDefinition, from *graph.Node, children 
 				v := strings.Split(leaf.GetTupleToUserSet().GetRelation(), ".")
 				re, err := GetRelationByNameInEntityDefinition(entity, v[0])
 				if err != nil {
-					return graph.Graph{}, errors.New(base.ErrorCode_relation_definition_not_found.String())
+					return graph.Graph{}, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 				}
 				g.AddEdge(from, &graph.Node{
 					Type:  "relation",

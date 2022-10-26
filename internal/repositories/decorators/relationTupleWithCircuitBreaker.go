@@ -48,7 +48,7 @@ func (r *RelationTupleWithCircuitBreaker) ReverseQueryTuples(ctx context.Context
 	case out := <-output:
 		return out.Iterator, out.Error
 	case <-bErrors:
-		return Iterator, errors.New(base.ErrorCode_circuit_breaker_error.String())
+		return Iterator, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
 
@@ -73,7 +73,7 @@ func (r *RelationTupleWithCircuitBreaker) QueryTuples(ctx context.Context, entit
 	case out := <-output:
 		return out.Iterator, out.Error
 	case <-bErrors:
-		return Iterator, errors.New(base.ErrorCode_circuit_breaker_error.String())
+		return Iterator, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
 
@@ -98,7 +98,7 @@ func (r *RelationTupleWithCircuitBreaker) Read(ctx context.Context, filter *base
 	case out := <-output:
 		return out.Collection, out.Error
 	case <-bErrors:
-		return collection, errors.New(base.ErrorCode_circuit_breaker_error.String())
+		return collection, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
 
@@ -118,7 +118,7 @@ func (r *RelationTupleWithCircuitBreaker) Write(ctx context.Context, iterator tu
 	case err = <-outputErr:
 		return err
 	case <-bErrors:
-		return errors.New(base.ErrorCode_circuit_breaker_error.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
 
@@ -138,6 +138,6 @@ func (r *RelationTupleWithCircuitBreaker) Delete(ctx context.Context, iterator t
 	case err = <-outputErr:
 		return err
 	case <-bErrors:
-		return errors.New(base.ErrorCode_circuit_breaker_error.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }

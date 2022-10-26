@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/permify/api
+name: buf.build/permify/permify
 deps:
   - buf.build/envoyproxy/protoc-gen-validate
   - buf.build/grpc-ecosystem/grpc-gateway
@@ -8,3 +8,7 @@ breaking:
   ignore_unstable_packages: true
 lint:
   allow_comment_ignores: true
+  except:
+    - PACKAGE_VERSION_SUFFIX
+    - FIELD_LOWER_SNAKE_CASE
+    - SERVICE_SUFFIX

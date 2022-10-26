@@ -41,6 +41,6 @@ func WriteSchema(ctx context.Context, manager managers.IEntityConfigManager, con
 }
 
 // ReadSchema -
-func ReadSchema(ctx context.Context, manager managers.IEntityConfigManager, version string) (sch *v1.Schema, err error) {
+func ReadSchema(ctx context.Context, manager managers.IEntityConfigManager, version string) (sch *v1.IndexedSchema, err error) {
 	return manager.All(ctx, version)
 }

@@ -563,21 +563,22 @@ var _ interface {
 	ErrorName() string
 } = RewriteValidationError{}
 
-// Validate checks the field values on Schema with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
+// Validate checks the field values on IndexedSchema with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *Schema) Validate() error {
+func (m *IndexedSchema) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Schema with the rules defined in the
-// proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in SchemaMultiError, or nil if none found.
-func (m *Schema) ValidateAll() error {
+// ValidateAll checks the field values on IndexedSchema with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in IndexedSchemaMultiError, or
+// nil if none found.
+func (m *IndexedSchema) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Schema) validate(all bool) error {
+func (m *IndexedSchema) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -602,7 +603,7 @@ func (m *Schema) validate(all bool) error {
 				switch v := interface{}(val).(type) {
 				case interface{ ValidateAll() error }:
 					if err := v.ValidateAll(); err != nil {
-						errors = append(errors, SchemaValidationError{
+						errors = append(errors, IndexedSchemaValidationError{
 							field:  fmt.Sprintf("EntityDefinitions[%v]", key),
 							reason: "embedded message failed validation",
 							cause:  err,
@@ -610,7 +611,7 @@ func (m *Schema) validate(all bool) error {
 					}
 				case interface{ Validate() error }:
 					if err := v.Validate(); err != nil {
-						errors = append(errors, SchemaValidationError{
+						errors = append(errors, IndexedSchemaValidationError{
 							field:  fmt.Sprintf("EntityDefinitions[%v]", key),
 							reason: "embedded message failed validation",
 							cause:  err,
@@ -619,7 +620,7 @@ func (m *Schema) validate(all bool) error {
 				}
 			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
-					return SchemaValidationError{
+					return IndexedSchemaValidationError{
 						field:  fmt.Sprintf("EntityDefinitions[%v]", key),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -648,7 +649,7 @@ func (m *Schema) validate(all bool) error {
 				switch v := interface{}(val).(type) {
 				case interface{ ValidateAll() error }:
 					if err := v.ValidateAll(); err != nil {
-						errors = append(errors, SchemaValidationError{
+						errors = append(errors, IndexedSchemaValidationError{
 							field:  fmt.Sprintf("RelationDefinitions[%v]", key),
 							reason: "embedded message failed validation",
 							cause:  err,
@@ -656,7 +657,7 @@ func (m *Schema) validate(all bool) error {
 					}
 				case interface{ Validate() error }:
 					if err := v.Validate(); err != nil {
-						errors = append(errors, SchemaValidationError{
+						errors = append(errors, IndexedSchemaValidationError{
 							field:  fmt.Sprintf("RelationDefinitions[%v]", key),
 							reason: "embedded message failed validation",
 							cause:  err,
@@ -665,7 +666,7 @@ func (m *Schema) validate(all bool) error {
 				}
 			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
-					return SchemaValidationError{
+					return IndexedSchemaValidationError{
 						field:  fmt.Sprintf("RelationDefinitions[%v]", key),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -694,7 +695,7 @@ func (m *Schema) validate(all bool) error {
 				switch v := interface{}(val).(type) {
 				case interface{ ValidateAll() error }:
 					if err := v.ValidateAll(); err != nil {
-						errors = append(errors, SchemaValidationError{
+						errors = append(errors, IndexedSchemaValidationError{
 							field:  fmt.Sprintf("ActionDefinitions[%v]", key),
 							reason: "embedded message failed validation",
 							cause:  err,
@@ -702,7 +703,7 @@ func (m *Schema) validate(all bool) error {
 					}
 				case interface{ Validate() error }:
 					if err := v.Validate(); err != nil {
-						errors = append(errors, SchemaValidationError{
+						errors = append(errors, IndexedSchemaValidationError{
 							field:  fmt.Sprintf("ActionDefinitions[%v]", key),
 							reason: "embedded message failed validation",
 							cause:  err,
@@ -711,7 +712,7 @@ func (m *Schema) validate(all bool) error {
 				}
 			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
-					return SchemaValidationError{
+					return IndexedSchemaValidationError{
 						field:  fmt.Sprintf("ActionDefinitions[%v]", key),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -723,18 +724,19 @@ func (m *Schema) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return SchemaMultiError(errors)
+		return IndexedSchemaMultiError(errors)
 	}
 
 	return nil
 }
 
-// SchemaMultiError is an error wrapping multiple validation errors returned by
-// Schema.ValidateAll() if the designated constraints aren't met.
-type SchemaMultiError []error
+// IndexedSchemaMultiError is an error wrapping multiple validation errors
+// returned by IndexedSchema.ValidateAll() if the designated constraints
+// aren't met.
+type IndexedSchemaMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m SchemaMultiError) Error() string {
+func (m IndexedSchemaMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -743,11 +745,11 @@ func (m SchemaMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m SchemaMultiError) AllErrors() []error { return m }
+func (m IndexedSchemaMultiError) AllErrors() []error { return m }
 
-// SchemaValidationError is the validation error returned by Schema.Validate if
-// the designated constraints aren't met.
-type SchemaValidationError struct {
+// IndexedSchemaValidationError is the validation error returned by
+// IndexedSchema.Validate if the designated constraints aren't met.
+type IndexedSchemaValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -755,22 +757,22 @@ type SchemaValidationError struct {
 }
 
 // Field function returns field value.
-func (e SchemaValidationError) Field() string { return e.field }
+func (e IndexedSchemaValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e SchemaValidationError) Reason() string { return e.reason }
+func (e IndexedSchemaValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e SchemaValidationError) Cause() error { return e.cause }
+func (e IndexedSchemaValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e SchemaValidationError) Key() bool { return e.key }
+func (e IndexedSchemaValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e SchemaValidationError) ErrorName() string { return "SchemaValidationError" }
+func (e IndexedSchemaValidationError) ErrorName() string { return "IndexedSchemaValidationError" }
 
 // Error satisfies the builtin error interface
-func (e SchemaValidationError) Error() string {
+func (e IndexedSchemaValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -782,14 +784,14 @@ func (e SchemaValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sSchema.%s: %s%s",
+		"invalid %sIndexedSchema.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = SchemaValidationError{}
+var _ error = IndexedSchemaValidationError{}
 
 var _ interface {
 	Field() string
@@ -797,7 +799,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = SchemaValidationError{}
+} = IndexedSchemaValidationError{}
 
 // Validate checks the field values on EntityDefinition with the rules defined
 // in the proto definition for this message. If any rules are violated, the

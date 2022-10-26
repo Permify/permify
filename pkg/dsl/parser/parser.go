@@ -72,8 +72,8 @@ func (p *Parser) setEntityReference(key string) error {
 		p.entityReferences = map[string]struct{}{}
 	}
 	if _, ok := p.entityReferences[key]; ok {
-		p.errors = append(p.errors, base.ErrorCode_duplicated_entity_reference.String())
-		return errors.New(base.ErrorCode_duplicated_entity_reference.String())
+		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_ENTITY_REFERENCE.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_DUPLICATED_ENTITY_REFERENCE.String())
 	}
 	p.entityReferences[key] = struct{}{}
 	return nil
@@ -85,8 +85,8 @@ func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatem
 		p.relationReferences = map[string][]ast.RelationTypeStatement{}
 	}
 	if _, ok := p.relationReferences[key]; ok {
-		p.errors = append(p.errors, base.ErrorCode_duplicated_relation_reference.String())
-		return errors.New(base.ErrorCode_duplicated_relation_reference.String())
+		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
 	}
 	p.relationReferences[key] = types
 	return nil
@@ -98,8 +98,8 @@ func (p *Parser) setActionReference(key string) error {
 		p.actionReferences = map[string]struct{}{}
 	}
 	if _, ok := p.actionReferences[key]; ok {
-		p.errors = append(p.errors, base.ErrorCode_duplicated_action_reference.String())
-		return errors.New(base.ErrorCode_duplicated_action_reference.String())
+		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_ACTION_REFERENCE.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_DUPLICATED_ACTION_REFERENCE.String())
 	}
 	p.actionReferences[key] = struct{}{}
 	return nil

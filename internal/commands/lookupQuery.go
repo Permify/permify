@@ -104,11 +104,11 @@ type LookupQueryQuery struct {
 	EntityType string
 	Action     string
 	Subject    *base.Subject
-	schema     *base.Schema
+	schema     *base.IndexedSchema
 }
 
 // SetSchema -
-func (l *LookupQueryQuery) SetSchema(sch *base.Schema) {
+func (l *LookupQueryQuery) SetSchema(sch *base.IndexedSchema) {
 	l.schema = sch
 }
 
@@ -116,7 +116,6 @@ func (l *LookupQueryQuery) SetSchema(sch *base.Schema) {
 type LookupQueryResponse struct {
 	Node  IBuilderNode
 	Query string
-	Args  []string
 }
 
 // NewLookupQueryResponse -
@@ -129,7 +128,6 @@ func NewLookupQueryResponse(node IBuilderNode, table string) (LookupQueryRespons
 	return LookupQueryResponse{
 		Node:  node,
 		Query: query,
-		Args:  strArgs,
 	}, err
 }
 
@@ -150,7 +148,7 @@ func (command *LookupQueryCommand) l(ctx context.Context, q *LookupQueryQuery, c
 	}
 
 	if fn == nil {
-		return LookupQueryResponse{}, errors.New(base.ErrorCode_undefined_child_kind.String())
+		return LookupQueryResponse{}, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String())
 	}
 
 	result := buildUnion(ctx, []BuildFunction{fn})
@@ -167,7 +165,7 @@ func (command *LookupQueryCommand) set(ctx context.Context, q *LookupQueryQuery,
 		case *base.Child_Leaf:
 			functions = append(functions, command.buildLeaf(ctx, q, child.GetLeaf()))
 		default:
-			return buildFail(errors.New(base.ErrorCode_undefined_child_kind.String()))
+			return buildFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 		}
 	}
 
@@ -179,12 +177,12 @@ func (command *LookupQueryCommand) set(ctx context.Context, q *LookupQueryQuery,
 // buildRewrite -
 func (command *LookupQueryCommand) buildRewrite(ctx context.Context, q *LookupQueryQuery, rewrite *base.Rewrite) BuildFunction {
 	switch rewrite.GetRewriteOperation() {
-	case *base.Rewrite_UNION.Enum():
+	case *base.Rewrite_OPERATION_UNION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), buildUnion)
-	case *base.Rewrite_INTERSECTION.Enum():
+	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), buildIntersection)
 	default:
-		return buildFail(errors.New(base.ErrorCode_undefined_child_type.String()))
+		return buildFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -196,7 +194,7 @@ func (command *LookupQueryCommand) buildLeaf(ctx context.Context, q *LookupQuery
 	case *base.Leaf_ComputedUserSet:
 		return command.build(ctx, leaf.GetExclusion(), command.buildComputedUserSetQuery(ctx, q.Subject, q.EntityType, op.ComputedUserSet.GetRelation(), q.schema))
 	default:
-		return buildFail(errors.New(base.ErrorCode_undefined_child_type.String()))
+		return buildFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -219,7 +217,7 @@ func (command *LookupQueryCommand) build(ctx context.Context, exclusion bool, q 
 }
 
 // buildTupleToUserSetQuery -
-func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context, subject *base.Subject, entityType string, relation string, sch *base.Schema) QueryNode {
+func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context, subject *base.Subject, entityType string, relation string, sch *base.IndexedSchema) QueryNode {
 	var qu QueryNode
 	var err error
 	r := tuple.SplitRelation(relation)
@@ -289,7 +287,7 @@ func (command *LookupQueryCommand) buildTupleToUserSetQuery(ctx context.Context,
 }
 
 // buildComputedUserSetQuery -
-func (command *LookupQueryCommand) buildComputedUserSetQuery(ctx context.Context, subject *base.Subject, entityType string, relation string, sch *base.Schema) (qu QueryNode) {
+func (command *LookupQueryCommand) buildComputedUserSetQuery(ctx context.Context, subject *base.Subject, entityType string, relation string, sch *base.IndexedSchema) (qu QueryNode) {
 	var err error
 	var entity *base.EntityDefinition
 	entity, err = schema.GetEntityByName(sch, entityType)
@@ -360,12 +358,12 @@ func buildSetOperation(
 
 // buildUnion -
 func buildUnion(ctx context.Context, functions []BuildFunction) IBuilderNode {
-	return buildSetOperation(ctx, functions, base.Rewrite_UNION)
+	return buildSetOperation(ctx, functions, base.Rewrite_OPERATION_UNION)
 }
 
 // buildIntersection -
 func buildIntersection(ctx context.Context, functions []BuildFunction) IBuilderNode {
-	return buildSetOperation(ctx, functions, base.Rewrite_INTERSECTION)
+	return buildSetOperation(ctx, functions, base.Rewrite_OPERATION_INTERSECTION)
 }
 
 // buildFail -
@@ -451,12 +449,12 @@ func rootNodeToSql(node IBuilderNode, table string) (sql string, args []interfac
 		for t, j := range st.joins {
 			ex = ex.InnerJoin(goqu.T(t), goqu.On(goqu.Ex{j.key: goqu.I(j.value)}))
 		}
-		sql, args, err = ex.Prepared(true).ToSQL()
+		sql, args, err = ex.ToSQL()
 	} else {
 		q := goqu.From(table).Where(expressions)
-		sql, args, err = q.Prepared(true).ToSQL()
+		sql, args, err = q.ToSQL()
 		if err != nil {
-			return "", []interface{}{}, errors.New(base.ErrorCode_sql_builder_error.String())
+			return "", []interface{}{}, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 		}
 	}
 	return strings.ReplaceAll(sql, "\"", ""), args, nil
@@ -472,9 +470,9 @@ func (builder *StatementBuilder) buildSql(children []IBuilderNode, exp goqu.Expr
 			b, sub := builder.buildSql(ln.Children, exp)
 			sub = append(sub, b.Expression())
 			switch ln.Operation {
-			case base.Rewrite_UNION:
+			case base.Rewrite_OPERATION_UNION:
 				exp = goqu.Or(sub...)
-			case base.Rewrite_INTERSECTION:
+			case base.Rewrite_OPERATION_INTERSECTION:
 				exp = goqu.And(sub...)
 			}
 		case QUERY:

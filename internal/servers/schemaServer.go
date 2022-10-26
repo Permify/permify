@@ -16,7 +16,7 @@ import (
 
 // SchemaServer -
 type SchemaServer struct {
-	v1.UnimplementedSchemaAPIServer
+	v1.UnimplementedSchemaServer
 
 	schemaManager managers.IEntityConfigManager
 	schemaService services.ISchemaService
@@ -58,7 +58,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	defer span.End()
 
 	var err error
-	var response *v1.Schema
+	var response *v1.IndexedSchema
 	response, err = r.schemaManager.All(ctx, request.SchemaVersion)
 	if err != nil {
 		span.RecordError(err)

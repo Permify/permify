@@ -47,7 +47,7 @@ func (r *EntityConfigWithCircuitBreaker) All(ctx context.Context, version string
 	case out := <-output:
 		return out.Configs, out.Error
 	case <-bErrors:
-		return configs, errors.New(base.ErrorCode_circuit_breaker_error.String())
+		return configs, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
 
@@ -73,7 +73,7 @@ func (r *EntityConfigWithCircuitBreaker) Read(ctx context.Context, name string, 
 	case out := <-output:
 		return out.Config, out.Error
 	case <-bErrors:
-		return config, errors.New(base.ErrorCode_circuit_breaker_error.String())
+		return config, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
 
@@ -93,6 +93,6 @@ func (r *EntityConfigWithCircuitBreaker) Write(ctx context.Context, configs []re
 	case err = <-outputErr:
 		return err
 	case <-bErrors:
-		return errors.New(base.ErrorCode_circuit_breaker_error.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }

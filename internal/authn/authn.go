@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	Unauthenticated         = status.Error(codes.Code(base.ErrorCode_unauthenticated), "unauthenticated")
-	MissingBearerTokenError = status.Error(codes.Code(base.ErrorCode_missing_bearer_token), "missing bearer token")
+	Unauthenticated         = status.Error(codes.Code(base.ErrorCode_ERROR_CODE_UNAUTHENTICATED), "unauthenticated")
+	MissingBearerTokenError = status.Error(codes.Code(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN), "missing bearer token")
 )
 
 // KeyAuthenticator -

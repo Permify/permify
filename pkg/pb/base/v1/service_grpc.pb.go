@@ -18,474 +18,474 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// PermissionAPIClient is the client API for PermissionAPI service.
+// PermissionClient is the client API for Permission service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type PermissionAPIClient interface {
-	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error)
-	Expand(ctx context.Context, in *ExpandRequest, opts ...grpc.CallOption) (*ExpandResponse, error)
-	LookupQuery(ctx context.Context, in *LookupQueryRequest, opts ...grpc.CallOption) (*LookupQueryResponse, error)
+type PermissionClient interface {
+	Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResponse, error)
+	Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error)
+	LookupQuery(ctx context.Context, in *PermissionLookupQueryRequest, opts ...grpc.CallOption) (*PermissionLookupQueryResponse, error)
 }
 
-type permissionAPIClient struct {
+type permissionClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewPermissionAPIClient(cc grpc.ClientConnInterface) PermissionAPIClient {
-	return &permissionAPIClient{cc}
+func NewPermissionClient(cc grpc.ClientConnInterface) PermissionClient {
+	return &permissionClient{cc}
 }
 
-func (c *permissionAPIClient) Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error) {
-	out := new(CheckResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.PermissionAPI/Check", in, out, opts...)
+func (c *permissionClient) Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResponse, error) {
+	out := new(PermissionCheckResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Permission/Check", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *permissionAPIClient) Expand(ctx context.Context, in *ExpandRequest, opts ...grpc.CallOption) (*ExpandResponse, error) {
-	out := new(ExpandResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.PermissionAPI/Expand", in, out, opts...)
+func (c *permissionClient) Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error) {
+	out := new(PermissionExpandResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Permission/Expand", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *permissionAPIClient) LookupQuery(ctx context.Context, in *LookupQueryRequest, opts ...grpc.CallOption) (*LookupQueryResponse, error) {
-	out := new(LookupQueryResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.PermissionAPI/LookupQuery", in, out, opts...)
+func (c *permissionClient) LookupQuery(ctx context.Context, in *PermissionLookupQueryRequest, opts ...grpc.CallOption) (*PermissionLookupQueryResponse, error) {
+	out := new(PermissionLookupQueryResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Permission/LookupQuery", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// PermissionAPIServer is the server API for PermissionAPI service.
-// All implementations must embed UnimplementedPermissionAPIServer
+// PermissionServer is the server API for Permission service.
+// All implementations must embed UnimplementedPermissionServer
 // for forward compatibility
-type PermissionAPIServer interface {
-	Check(context.Context, *CheckRequest) (*CheckResponse, error)
-	Expand(context.Context, *ExpandRequest) (*ExpandResponse, error)
-	LookupQuery(context.Context, *LookupQueryRequest) (*LookupQueryResponse, error)
-	mustEmbedUnimplementedPermissionAPIServer()
+type PermissionServer interface {
+	Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResponse, error)
+	Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error)
+	LookupQuery(context.Context, *PermissionLookupQueryRequest) (*PermissionLookupQueryResponse, error)
+	mustEmbedUnimplementedPermissionServer()
 }
 
-// UnimplementedPermissionAPIServer must be embedded to have forward compatible implementations.
-type UnimplementedPermissionAPIServer struct {
+// UnimplementedPermissionServer must be embedded to have forward compatible implementations.
+type UnimplementedPermissionServer struct {
 }
 
-func (UnimplementedPermissionAPIServer) Check(context.Context, *CheckRequest) (*CheckResponse, error) {
+func (UnimplementedPermissionServer) Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
 }
-func (UnimplementedPermissionAPIServer) Expand(context.Context, *ExpandRequest) (*ExpandResponse, error) {
+func (UnimplementedPermissionServer) Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Expand not implemented")
 }
-func (UnimplementedPermissionAPIServer) LookupQuery(context.Context, *LookupQueryRequest) (*LookupQueryResponse, error) {
+func (UnimplementedPermissionServer) LookupQuery(context.Context, *PermissionLookupQueryRequest) (*PermissionLookupQueryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupQuery not implemented")
 }
-func (UnimplementedPermissionAPIServer) mustEmbedUnimplementedPermissionAPIServer() {}
+func (UnimplementedPermissionServer) mustEmbedUnimplementedPermissionServer() {}
 
-// UnsafePermissionAPIServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to PermissionAPIServer will
+// UnsafePermissionServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PermissionServer will
 // result in compilation errors.
-type UnsafePermissionAPIServer interface {
-	mustEmbedUnimplementedPermissionAPIServer()
+type UnsafePermissionServer interface {
+	mustEmbedUnimplementedPermissionServer()
 }
 
-func RegisterPermissionAPIServer(s grpc.ServiceRegistrar, srv PermissionAPIServer) {
-	s.RegisterService(&PermissionAPI_ServiceDesc, srv)
+func RegisterPermissionServer(s grpc.ServiceRegistrar, srv PermissionServer) {
+	s.RegisterService(&Permission_ServiceDesc, srv)
 }
 
-func _PermissionAPI_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckRequest)
+func _Permission_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermissionCheckRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PermissionAPIServer).Check(ctx, in)
+		return srv.(PermissionServer).Check(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.PermissionAPI/Check",
+		FullMethod: "/base.v1.Permission/Check",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PermissionAPIServer).Check(ctx, req.(*CheckRequest))
+		return srv.(PermissionServer).Check(ctx, req.(*PermissionCheckRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PermissionAPI_Expand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExpandRequest)
+func _Permission_Expand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermissionExpandRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PermissionAPIServer).Expand(ctx, in)
+		return srv.(PermissionServer).Expand(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.PermissionAPI/Expand",
+		FullMethod: "/base.v1.Permission/Expand",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PermissionAPIServer).Expand(ctx, req.(*ExpandRequest))
+		return srv.(PermissionServer).Expand(ctx, req.(*PermissionExpandRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PermissionAPI_LookupQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LookupQueryRequest)
+func _Permission_LookupQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermissionLookupQueryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PermissionAPIServer).LookupQuery(ctx, in)
+		return srv.(PermissionServer).LookupQuery(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.PermissionAPI/LookupQuery",
+		FullMethod: "/base.v1.Permission/LookupQuery",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PermissionAPIServer).LookupQuery(ctx, req.(*LookupQueryRequest))
+		return srv.(PermissionServer).LookupQuery(ctx, req.(*PermissionLookupQueryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// PermissionAPI_ServiceDesc is the grpc.ServiceDesc for PermissionAPI service.
+// Permission_ServiceDesc is the grpc.ServiceDesc for Permission service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var PermissionAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "base.v1.PermissionAPI",
-	HandlerType: (*PermissionAPIServer)(nil),
+var Permission_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "base.v1.Permission",
+	HandlerType: (*PermissionServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Check",
-			Handler:    _PermissionAPI_Check_Handler,
+			Handler:    _Permission_Check_Handler,
 		},
 		{
 			MethodName: "Expand",
-			Handler:    _PermissionAPI_Expand_Handler,
+			Handler:    _Permission_Expand_Handler,
 		},
 		{
 			MethodName: "LookupQuery",
-			Handler:    _PermissionAPI_LookupQuery_Handler,
+			Handler:    _Permission_LookupQuery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "base/v1/service.proto",
 }
 
-// SchemaAPIClient is the client API for SchemaAPI service.
+// SchemaClient is the client API for Schema service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type SchemaAPIClient interface {
+type SchemaClient interface {
 	Write(ctx context.Context, in *SchemaWriteRequest, opts ...grpc.CallOption) (*SchemaWriteResponse, error)
 	Read(ctx context.Context, in *SchemaReadRequest, opts ...grpc.CallOption) (*SchemaReadResponse, error)
 	Lookup(ctx context.Context, in *SchemaLookupRequest, opts ...grpc.CallOption) (*SchemaLookupResponse, error)
 }
 
-type schemaAPIClient struct {
+type schemaClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewSchemaAPIClient(cc grpc.ClientConnInterface) SchemaAPIClient {
-	return &schemaAPIClient{cc}
+func NewSchemaClient(cc grpc.ClientConnInterface) SchemaClient {
+	return &schemaClient{cc}
 }
 
-func (c *schemaAPIClient) Write(ctx context.Context, in *SchemaWriteRequest, opts ...grpc.CallOption) (*SchemaWriteResponse, error) {
+func (c *schemaClient) Write(ctx context.Context, in *SchemaWriteRequest, opts ...grpc.CallOption) (*SchemaWriteResponse, error) {
 	out := new(SchemaWriteResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.SchemaAPI/Write", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.Schema/Write", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *schemaAPIClient) Read(ctx context.Context, in *SchemaReadRequest, opts ...grpc.CallOption) (*SchemaReadResponse, error) {
+func (c *schemaClient) Read(ctx context.Context, in *SchemaReadRequest, opts ...grpc.CallOption) (*SchemaReadResponse, error) {
 	out := new(SchemaReadResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.SchemaAPI/Read", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.Schema/Read", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *schemaAPIClient) Lookup(ctx context.Context, in *SchemaLookupRequest, opts ...grpc.CallOption) (*SchemaLookupResponse, error) {
+func (c *schemaClient) Lookup(ctx context.Context, in *SchemaLookupRequest, opts ...grpc.CallOption) (*SchemaLookupResponse, error) {
 	out := new(SchemaLookupResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.SchemaAPI/Lookup", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.Schema/Lookup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// SchemaAPIServer is the server API for SchemaAPI service.
-// All implementations must embed UnimplementedSchemaAPIServer
+// SchemaServer is the server API for Schema service.
+// All implementations must embed UnimplementedSchemaServer
 // for forward compatibility
-type SchemaAPIServer interface {
+type SchemaServer interface {
 	Write(context.Context, *SchemaWriteRequest) (*SchemaWriteResponse, error)
 	Read(context.Context, *SchemaReadRequest) (*SchemaReadResponse, error)
 	Lookup(context.Context, *SchemaLookupRequest) (*SchemaLookupResponse, error)
-	mustEmbedUnimplementedSchemaAPIServer()
+	mustEmbedUnimplementedSchemaServer()
 }
 
-// UnimplementedSchemaAPIServer must be embedded to have forward compatible implementations.
-type UnimplementedSchemaAPIServer struct {
+// UnimplementedSchemaServer must be embedded to have forward compatible implementations.
+type UnimplementedSchemaServer struct {
 }
 
-func (UnimplementedSchemaAPIServer) Write(context.Context, *SchemaWriteRequest) (*SchemaWriteResponse, error) {
+func (UnimplementedSchemaServer) Write(context.Context, *SchemaWriteRequest) (*SchemaWriteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
 }
-func (UnimplementedSchemaAPIServer) Read(context.Context, *SchemaReadRequest) (*SchemaReadResponse, error) {
+func (UnimplementedSchemaServer) Read(context.Context, *SchemaReadRequest) (*SchemaReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
 }
-func (UnimplementedSchemaAPIServer) Lookup(context.Context, *SchemaLookupRequest) (*SchemaLookupResponse, error) {
+func (UnimplementedSchemaServer) Lookup(context.Context, *SchemaLookupRequest) (*SchemaLookupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Lookup not implemented")
 }
-func (UnimplementedSchemaAPIServer) mustEmbedUnimplementedSchemaAPIServer() {}
+func (UnimplementedSchemaServer) mustEmbedUnimplementedSchemaServer() {}
 
-// UnsafeSchemaAPIServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to SchemaAPIServer will
+// UnsafeSchemaServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SchemaServer will
 // result in compilation errors.
-type UnsafeSchemaAPIServer interface {
-	mustEmbedUnimplementedSchemaAPIServer()
+type UnsafeSchemaServer interface {
+	mustEmbedUnimplementedSchemaServer()
 }
 
-func RegisterSchemaAPIServer(s grpc.ServiceRegistrar, srv SchemaAPIServer) {
-	s.RegisterService(&SchemaAPI_ServiceDesc, srv)
+func RegisterSchemaServer(s grpc.ServiceRegistrar, srv SchemaServer) {
+	s.RegisterService(&Schema_ServiceDesc, srv)
 }
 
-func _SchemaAPI_Write_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Schema_Write_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SchemaWriteRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SchemaAPIServer).Write(ctx, in)
+		return srv.(SchemaServer).Write(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.SchemaAPI/Write",
+		FullMethod: "/base.v1.Schema/Write",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchemaAPIServer).Write(ctx, req.(*SchemaWriteRequest))
+		return srv.(SchemaServer).Write(ctx, req.(*SchemaWriteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SchemaAPI_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Schema_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SchemaReadRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SchemaAPIServer).Read(ctx, in)
+		return srv.(SchemaServer).Read(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.SchemaAPI/Read",
+		FullMethod: "/base.v1.Schema/Read",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchemaAPIServer).Read(ctx, req.(*SchemaReadRequest))
+		return srv.(SchemaServer).Read(ctx, req.(*SchemaReadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SchemaAPI_Lookup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Schema_Lookup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SchemaLookupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SchemaAPIServer).Lookup(ctx, in)
+		return srv.(SchemaServer).Lookup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.SchemaAPI/Lookup",
+		FullMethod: "/base.v1.Schema/Lookup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchemaAPIServer).Lookup(ctx, req.(*SchemaLookupRequest))
+		return srv.(SchemaServer).Lookup(ctx, req.(*SchemaLookupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// SchemaAPI_ServiceDesc is the grpc.ServiceDesc for SchemaAPI service.
+// Schema_ServiceDesc is the grpc.ServiceDesc for Schema service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var SchemaAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "base.v1.SchemaAPI",
-	HandlerType: (*SchemaAPIServer)(nil),
+var Schema_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "base.v1.Schema",
+	HandlerType: (*SchemaServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Write",
-			Handler:    _SchemaAPI_Write_Handler,
+			Handler:    _Schema_Write_Handler,
 		},
 		{
 			MethodName: "Read",
-			Handler:    _SchemaAPI_Read_Handler,
+			Handler:    _Schema_Read_Handler,
 		},
 		{
 			MethodName: "Lookup",
-			Handler:    _SchemaAPI_Lookup_Handler,
+			Handler:    _Schema_Lookup_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "base/v1/service.proto",
 }
 
-// RelationshipAPIClient is the client API for RelationshipAPI service.
+// RelationshipClient is the client API for Relationship service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type RelationshipAPIClient interface {
+type RelationshipClient interface {
 	Write(ctx context.Context, in *RelationshipWriteRequest, opts ...grpc.CallOption) (*RelationshipWriteResponse, error)
 	Read(ctx context.Context, in *RelationshipReadRequest, opts ...grpc.CallOption) (*RelationshipReadResponse, error)
 	Delete(ctx context.Context, in *RelationshipDeleteRequest, opts ...grpc.CallOption) (*RelationshipDeleteResponse, error)
 }
 
-type relationshipAPIClient struct {
+type relationshipClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewRelationshipAPIClient(cc grpc.ClientConnInterface) RelationshipAPIClient {
-	return &relationshipAPIClient{cc}
+func NewRelationshipClient(cc grpc.ClientConnInterface) RelationshipClient {
+	return &relationshipClient{cc}
 }
 
-func (c *relationshipAPIClient) Write(ctx context.Context, in *RelationshipWriteRequest, opts ...grpc.CallOption) (*RelationshipWriteResponse, error) {
+func (c *relationshipClient) Write(ctx context.Context, in *RelationshipWriteRequest, opts ...grpc.CallOption) (*RelationshipWriteResponse, error) {
 	out := new(RelationshipWriteResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.RelationshipAPI/Write", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.Relationship/Write", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *relationshipAPIClient) Read(ctx context.Context, in *RelationshipReadRequest, opts ...grpc.CallOption) (*RelationshipReadResponse, error) {
+func (c *relationshipClient) Read(ctx context.Context, in *RelationshipReadRequest, opts ...grpc.CallOption) (*RelationshipReadResponse, error) {
 	out := new(RelationshipReadResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.RelationshipAPI/Read", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.Relationship/Read", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *relationshipAPIClient) Delete(ctx context.Context, in *RelationshipDeleteRequest, opts ...grpc.CallOption) (*RelationshipDeleteResponse, error) {
+func (c *relationshipClient) Delete(ctx context.Context, in *RelationshipDeleteRequest, opts ...grpc.CallOption) (*RelationshipDeleteResponse, error) {
 	out := new(RelationshipDeleteResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.RelationshipAPI/Delete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/base.v1.Relationship/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// RelationshipAPIServer is the server API for RelationshipAPI service.
-// All implementations must embed UnimplementedRelationshipAPIServer
+// RelationshipServer is the server API for Relationship service.
+// All implementations must embed UnimplementedRelationshipServer
 // for forward compatibility
-type RelationshipAPIServer interface {
+type RelationshipServer interface {
 	Write(context.Context, *RelationshipWriteRequest) (*RelationshipWriteResponse, error)
 	Read(context.Context, *RelationshipReadRequest) (*RelationshipReadResponse, error)
 	Delete(context.Context, *RelationshipDeleteRequest) (*RelationshipDeleteResponse, error)
-	mustEmbedUnimplementedRelationshipAPIServer()
+	mustEmbedUnimplementedRelationshipServer()
 }
 
-// UnimplementedRelationshipAPIServer must be embedded to have forward compatible implementations.
-type UnimplementedRelationshipAPIServer struct {
+// UnimplementedRelationshipServer must be embedded to have forward compatible implementations.
+type UnimplementedRelationshipServer struct {
 }
 
-func (UnimplementedRelationshipAPIServer) Write(context.Context, *RelationshipWriteRequest) (*RelationshipWriteResponse, error) {
+func (UnimplementedRelationshipServer) Write(context.Context, *RelationshipWriteRequest) (*RelationshipWriteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
 }
-func (UnimplementedRelationshipAPIServer) Read(context.Context, *RelationshipReadRequest) (*RelationshipReadResponse, error) {
+func (UnimplementedRelationshipServer) Read(context.Context, *RelationshipReadRequest) (*RelationshipReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
 }
-func (UnimplementedRelationshipAPIServer) Delete(context.Context, *RelationshipDeleteRequest) (*RelationshipDeleteResponse, error) {
+func (UnimplementedRelationshipServer) Delete(context.Context, *RelationshipDeleteRequest) (*RelationshipDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
-func (UnimplementedRelationshipAPIServer) mustEmbedUnimplementedRelationshipAPIServer() {}
+func (UnimplementedRelationshipServer) mustEmbedUnimplementedRelationshipServer() {}
 
-// UnsafeRelationshipAPIServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to RelationshipAPIServer will
+// UnsafeRelationshipServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RelationshipServer will
 // result in compilation errors.
-type UnsafeRelationshipAPIServer interface {
-	mustEmbedUnimplementedRelationshipAPIServer()
+type UnsafeRelationshipServer interface {
+	mustEmbedUnimplementedRelationshipServer()
 }
 
-func RegisterRelationshipAPIServer(s grpc.ServiceRegistrar, srv RelationshipAPIServer) {
-	s.RegisterService(&RelationshipAPI_ServiceDesc, srv)
+func RegisterRelationshipServer(s grpc.ServiceRegistrar, srv RelationshipServer) {
+	s.RegisterService(&Relationship_ServiceDesc, srv)
 }
 
-func _RelationshipAPI_Write_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Relationship_Write_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RelationshipWriteRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RelationshipAPIServer).Write(ctx, in)
+		return srv.(RelationshipServer).Write(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.RelationshipAPI/Write",
+		FullMethod: "/base.v1.Relationship/Write",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RelationshipAPIServer).Write(ctx, req.(*RelationshipWriteRequest))
+		return srv.(RelationshipServer).Write(ctx, req.(*RelationshipWriteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RelationshipAPI_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Relationship_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RelationshipReadRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RelationshipAPIServer).Read(ctx, in)
+		return srv.(RelationshipServer).Read(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.RelationshipAPI/Read",
+		FullMethod: "/base.v1.Relationship/Read",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RelationshipAPIServer).Read(ctx, req.(*RelationshipReadRequest))
+		return srv.(RelationshipServer).Read(ctx, req.(*RelationshipReadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RelationshipAPI_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Relationship_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RelationshipDeleteRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RelationshipAPIServer).Delete(ctx, in)
+		return srv.(RelationshipServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.RelationshipAPI/Delete",
+		FullMethod: "/base.v1.Relationship/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RelationshipAPIServer).Delete(ctx, req.(*RelationshipDeleteRequest))
+		return srv.(RelationshipServer).Delete(ctx, req.(*RelationshipDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// RelationshipAPI_ServiceDesc is the grpc.ServiceDesc for RelationshipAPI service.
+// Relationship_ServiceDesc is the grpc.ServiceDesc for Relationship service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var RelationshipAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "base.v1.RelationshipAPI",
-	HandlerType: (*RelationshipAPIServer)(nil),
+var Relationship_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "base.v1.Relationship",
+	HandlerType: (*RelationshipServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Write",
-			Handler:    _RelationshipAPI_Write_Handler,
+			Handler:    _Relationship_Write_Handler,
 		},
 		{
 			MethodName: "Read",
-			Handler:    _RelationshipAPI_Read_Handler,
+			Handler:    _Relationship_Read_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _RelationshipAPI_Delete_Handler,
+			Handler:    _Relationship_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

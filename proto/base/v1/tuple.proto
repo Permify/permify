@@ -115,10 +115,10 @@ message SubjectFilter {
 message ExpandTreeNode {
   // Operation
   enum Operation {
-    INVALID = 0;
-    UNION = 1;
-    INTERSECTION = 2;
-    ROOT = 3;
+    OPERATION_UNSPECIFIED = 0;
+    OPERATION_UNION = 1;
+    OPERATION_INTERSECTION = 2;
+    OPERATION_ROOT = 3;
   }
 
   Operation operation = 1;

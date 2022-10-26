@@ -4,7 +4,7 @@ package base.v1;
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
 import "validate/validate.proto";
-import "google/protobuf/any.proto";
+//import "google/protobuf/any.proto";
 
 // Child
 message Child {
@@ -29,9 +29,9 @@ message Leaf {
 message Rewrite {
   // Operation
   enum Operation {
-    INVALID = 0;
-    UNION = 1;
-    INTERSECTION = 2;
+    OPERATION_UNSPECIFIED = 0;
+    OPERATION_UNION = 1;
+    OPERATION_INTERSECTION = 2;
   }
 
   Operation rewrite_operation = 1;
@@ -39,8 +39,8 @@ message Rewrite {
   repeated Child children = 2;
 }
 
-// Schema
-message Schema {
+// IndexedSchema
+message IndexedSchema {
   map<string, EntityDefinition> entity_definitions = 1;
 
   // ["entity_name#relation_name"] => RelationDefinition

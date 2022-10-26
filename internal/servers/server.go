@@ -67,9 +67,9 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	grpcV1.RegisterPermissionAPIServer(grpcServer, NewPermissionServer(s.PermissionService, l))
-	grpcV1.RegisterSchemaAPIServer(grpcServer, NewSchemaServer(s.SchemaManager, s.SchemaService, l))
-	grpcV1.RegisterRelationshipAPIServer(grpcServer, NewRelationshipServer(s.RelationshipService, l))
+	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.PermissionService, l))
+	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SchemaManager, s.SchemaService, l))
+	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RelationshipService, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	reflection.Register(grpcServer)
 
@@ -130,13 +130,13 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 
 		mux := runtime.NewServeMux(muxOpts...)
 
-		if err = grpcV1.RegisterPermissionAPIHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterPermissionHandler(ctx, mux, conn); err != nil {
 			return err
 		}
-		if err = grpcV1.RegisterSchemaAPIHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterSchemaHandler(ctx, mux, conn); err != nil {
 			return err
 		}
-		if err = grpcV1.RegisterRelationshipAPIHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterRelationshipHandler(ctx, mux, conn); err != nil {
 			return err
 		}
 

@@ -43,7 +43,7 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) ([]rep
 	var it memdb.ResultIterator
 	it, err = txn.Get("entity_config", "version", version)
 	if err != nil {
-		return configs, errors.New(base.ErrorCode_execution.String())
+		return configs, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	for obj := it.Next(); obj != nil; obj = it.Next() {
 		configs = append(configs, obj.(repositories.EntityConfig))
@@ -67,12 +67,12 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 	var raw interface{}
 	raw, err = txn.First("entity_config", "id", name, version)
 	if err != nil {
-		return config, errors.New(base.ErrorCode_execution.String())
+		return config, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	if _, ok := raw.(repositories.EntityConfig); ok {
 		return raw.(repositories.EntityConfig), nil
 	}
-	return repositories.EntityConfig{}, errors.New(base.ErrorCode_schema_not_found.String())
+	return repositories.EntityConfig{}, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 }
 
 // Write -
@@ -83,7 +83,7 @@ func (r *EntityConfigRepository) Write(ctx context.Context, configs []repositori
 	for _, config := range configs {
 		config.Version = version
 		if err = txn.Insert("entity_config", config); err != nil {
-			return errors.New(base.ErrorCode_execution.String())
+			return errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}
 	txn.Commit()
@@ -98,10 +98,10 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 	var raw interface{}
 	raw, err = txn.Last("entity_config", "version")
 	if err != nil {
-		return "", errors.New(base.ErrorCode_execution.String())
+		return "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	if _, ok := raw.(repositories.EntityConfig); ok {
 		return raw.(repositories.EntityConfig).Version, nil
 	}
-	return "", errors.New(base.ErrorCode_schema_not_found.String())
+	return "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 }

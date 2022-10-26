@@ -67,12 +67,12 @@ func (command *ExpandCommand) e(ctx context.Context, q *ExpandQuery, child *base
 // expandRewrite -
 func (command *ExpandCommand) expandRewrite(ctx context.Context, q *ExpandQuery, rewrite *base.Rewrite) ExpandFunction {
 	switch rewrite.GetRewriteOperation() {
-	case *base.Rewrite_UNION.Enum():
+	case *base.Rewrite_OPERATION_UNION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), expandUnion)
-	case *base.Rewrite_INTERSECTION.Enum():
+	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), expandIntersection)
 	default:
-		return expandFail(errors.New(base.ErrorCode_undefined_child_type.String()))
+		return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -90,7 +90,7 @@ func (command *ExpandCommand) expandLeaf(ctx context.Context, q *ExpandQuery, le
 			Relation: op.ComputedUserSet.GetRelation(),
 		}, q, leaf.GetExclusion())
 	default:
-		return expandFail(errors.New(base.ErrorCode_undefined_child_type.String()))
+		return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -104,7 +104,7 @@ func (command *ExpandCommand) set(ctx context.Context, q *ExpandQuery, children 
 		case *base.Child_Leaf:
 			functions = append(functions, command.expandLeaf(ctx, q, child.GetLeaf()))
 		default:
-			return expandFail(errors.New(base.ErrorCode_undefined_child_kind.String()))
+			return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 		}
 	}
 
@@ -215,12 +215,12 @@ func expandRoot(ctx context.Context, fn ExpandFunction) *base.Expand {
 
 // expandUnion -
 func expandUnion(ctx context.Context, functions []ExpandFunction, expand ...*base.Expand) *base.Expand {
-	return expandOperation(ctx, functions, base.ExpandTreeNode_UNION, expand...)
+	return expandOperation(ctx, functions, base.ExpandTreeNode_OPERATION_UNION, expand...)
 }
 
 // expandIntersection -
 func expandIntersection(ctx context.Context, functions []ExpandFunction, expand ...*base.Expand) *base.Expand {
-	return expandOperation(ctx, functions, base.ExpandTreeNode_INTERSECTION, expand...)
+	return expandOperation(ctx, functions, base.ExpandTreeNode_OPERATION_INTERSECTION, expand...)
 }
 
 // expandFail -

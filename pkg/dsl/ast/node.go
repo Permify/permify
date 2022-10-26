@@ -62,19 +62,19 @@ type Schema struct {
 // ValidateReferences -
 func (sch *Schema) ValidateReferences() error {
 	if !sch.IsEntityReferenceExist(tuple.USER) {
-		return errors.New(base.ErrorCode_schema_must_have_user_entity_definition.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_MUST_HAVE_USER_ENTITY_DEFINITION.String())
 	}
 	for _, st := range sch.relationReferences {
 		entityReferenceCount := 0
 		for _, s := range st {
 			if s.IsEntityReference() {
 				if !sch.IsEntityReferenceExist(s.Token.Literal) {
-					return errors.New(base.ErrorCode_relation_reference_not_found_in_entity_references.String())
+					return errors.New(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String())
 				}
 				entityReferenceCount++
 			}
 			if entityReferenceCount > 1 {
-				return errors.New(base.ErrorCode_relation_reference_must_have_one_entity_reference.String())
+				return errors.New(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_MUST_HAVE_ONE_ENTITY_REFERENCE.String())
 			}
 		}
 	}

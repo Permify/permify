@@ -16,7 +16,7 @@ import (
 
 // RelationshipServer -
 type RelationshipServer struct {
-	v1.UnimplementedRelationshipAPIServer
+	v1.UnimplementedRelationshipServer
 
 	relationshipService services.IRelationshipService
 	l                   logger.Interface

@@ -15,7 +15,7 @@ import (
 
 // PermissionServer -
 type PermissionServer struct {
-	v1.UnimplementedPermissionAPIServer
+	v1.UnimplementedPermissionServer
 
 	permissionService services.IPermissionService
 	l                 logger.Interface
@@ -30,7 +30,7 @@ func NewPermissionServer(p services.IPermissionService, l logger.Interface) *Per
 }
 
 // Check -
-func (r *PermissionServer) Check(ctx context.Context, request *v1.CheckRequest) (*v1.CheckResponse, error) {
+func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionCheckRequest) (*v1.PermissionCheckResponse, error) {
 	ctx, span := tracer.Start(ctx, "permissions.check")
 	defer span.End()
 
@@ -55,14 +55,14 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.CheckRequest) 
 	}
 
 	// Decisions: response.Visits.(map[string]*anypb.Any),
-	return &v1.CheckResponse{
+	return &v1.PermissionCheckResponse{
 		Can:            response.Can,
 		RemainingDepth: response.RemainingDepth,
 	}, nil
 }
 
 // Expand -
-func (r *PermissionServer) Expand(ctx context.Context, request *v1.ExpandRequest) (*v1.ExpandResponse, error) {
+func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
 	ctx, span := tracer.Start(ctx, "permissions.expand")
 	defer span.End()
 
@@ -81,11 +81,11 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.ExpandRequest
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	return &v1.ExpandResponse{Tree: response.Tree}, nil
+	return &v1.PermissionExpandResponse{Tree: response.Tree}, nil
 }
 
 // LookupQuery -
-func (r *PermissionServer) LookupQuery(ctx context.Context, request *v1.LookupQueryRequest) (*v1.LookupQueryResponse, error) {
+func (r *PermissionServer) LookupQuery(ctx context.Context, request *v1.PermissionLookupQueryRequest) (*v1.PermissionLookupQueryResponse, error) {
 	ctx, span := tracer.Start(ctx, "permissions.lookupQuery")
 	defer span.End()
 
@@ -104,8 +104,7 @@ func (r *PermissionServer) LookupQuery(ctx context.Context, request *v1.LookupQu
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	return &v1.LookupQueryResponse{
+	return &v1.PermissionLookupQueryResponse{
 		Query: response.Query,
-		Args:  response.Args,
 	}, nil
 }

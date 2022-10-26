@@ -14,7 +14,7 @@ import (
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/graph"
-	"github.com/Permify/permify/pkg/pb/base/v1"
+	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -43,14 +43,14 @@ func lookupQuery() js.Func {
 		params := &v1.LookupQueryRequest{}
 		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
 		if err != nil {
-			return js.ValueOf([]interface{}{"", []interface{}{}, err.Error()})
+			return js.ValueOf([]interface{}{"", err.Error()})
 		}
 		var result commands.LookupQueryResponse
 		result, err = development.LookupQuery(context.Background(), dev.P, params.EntityType, params.Action, params.Subject, string(args[1].String()))
 		if err != nil {
-			return js.ValueOf([]interface{}{"", []interface{}{}, err.Error()})
+			return js.ValueOf([]interface{}{"", err.Error()})
 		}
-		return js.ValueOf([]interface{}{result.Query, result.Args, nil})
+		return js.ValueOf([]interface{}{result.Query, nil})
 	})
 }
 

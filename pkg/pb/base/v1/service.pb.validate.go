@@ -35,22 +35,22 @@ var (
 	_ = sort.Sort
 )
 
-// Validate checks the field values on CheckRequest with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *CheckRequest) Validate() error {
+// Validate checks the field values on PermissionCheckRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionCheckRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CheckRequest with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in CheckRequestMultiError, or
-// nil if none found.
-func (m *CheckRequest) ValidateAll() error {
+// ValidateAll checks the field values on PermissionCheckRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PermissionCheckRequestMultiError, or nil if none found.
+func (m *PermissionCheckRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CheckRequest) validate(all bool) error {
+func (m *PermissionCheckRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -60,7 +60,7 @@ func (m *CheckRequest) validate(all bool) error {
 	// no validation rules for SchemaVersion
 
 	if m.GetEntity() == nil {
-		err := CheckRequestValidationError{
+		err := PermissionCheckRequestValidationError{
 			field:  "Entity",
 			reason: "value is required",
 		}
@@ -74,7 +74,7 @@ func (m *CheckRequest) validate(all bool) error {
 		switch v := interface{}(m.GetEntity()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CheckRequestValidationError{
+				errors = append(errors, PermissionCheckRequestValidationError{
 					field:  "Entity",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -82,7 +82,7 @@ func (m *CheckRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CheckRequestValidationError{
+				errors = append(errors, PermissionCheckRequestValidationError{
 					field:  "Entity",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -91,7 +91,7 @@ func (m *CheckRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetEntity()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CheckRequestValidationError{
+			return PermissionCheckRequestValidationError{
 				field:  "Entity",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -100,7 +100,7 @@ func (m *CheckRequest) validate(all bool) error {
 	}
 
 	if len(m.GetAction()) > 64 {
-		err := CheckRequestValidationError{
+		err := PermissionCheckRequestValidationError{
 			field:  "Action",
 			reason: "value length must be at most 64 bytes",
 		}
@@ -110,8 +110,8 @@ func (m *CheckRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_CheckRequest_Action_Pattern.MatchString(m.GetAction()) {
-		err := CheckRequestValidationError{
+	if !_PermissionCheckRequest_Action_Pattern.MatchString(m.GetAction()) {
+		err := PermissionCheckRequestValidationError{
 			field:  "Action",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
@@ -122,7 +122,7 @@ func (m *CheckRequest) validate(all bool) error {
 	}
 
 	if m.GetSubject() == nil {
-		err := CheckRequestValidationError{
+		err := PermissionCheckRequestValidationError{
 			field:  "Subject",
 			reason: "value is required",
 		}
@@ -136,7 +136,7 @@ func (m *CheckRequest) validate(all bool) error {
 		switch v := interface{}(m.GetSubject()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CheckRequestValidationError{
+				errors = append(errors, PermissionCheckRequestValidationError{
 					field:  "Subject",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -144,7 +144,7 @@ func (m *CheckRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CheckRequestValidationError{
+				errors = append(errors, PermissionCheckRequestValidationError{
 					field:  "Subject",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -153,7 +153,7 @@ func (m *CheckRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetSubject()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CheckRequestValidationError{
+			return PermissionCheckRequestValidationError{
 				field:  "Subject",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -164,7 +164,7 @@ func (m *CheckRequest) validate(all bool) error {
 	if wrapper := m.GetDepth(); wrapper != nil {
 
 		if wrapper.GetValue() < 3 {
-			err := CheckRequestValidationError{
+			err := PermissionCheckRequestValidationError{
 				field:  "Depth",
 				reason: "value must be greater than or equal to 3",
 			}
@@ -177,18 +177,19 @@ func (m *CheckRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return CheckRequestMultiError(errors)
+		return PermissionCheckRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// CheckRequestMultiError is an error wrapping multiple validation errors
-// returned by CheckRequest.ValidateAll() if the designated constraints aren't met.
-type CheckRequestMultiError []error
+// PermissionCheckRequestMultiError is an error wrapping multiple validation
+// errors returned by PermissionCheckRequest.ValidateAll() if the designated
+// constraints aren't met.
+type PermissionCheckRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CheckRequestMultiError) Error() string {
+func (m PermissionCheckRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -197,11 +198,11 @@ func (m CheckRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CheckRequestMultiError) AllErrors() []error { return m }
+func (m PermissionCheckRequestMultiError) AllErrors() []error { return m }
 
-// CheckRequestValidationError is the validation error returned by
-// CheckRequest.Validate if the designated constraints aren't met.
-type CheckRequestValidationError struct {
+// PermissionCheckRequestValidationError is the validation error returned by
+// PermissionCheckRequest.Validate if the designated constraints aren't met.
+type PermissionCheckRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -209,22 +210,24 @@ type CheckRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e CheckRequestValidationError) Field() string { return e.field }
+func (e PermissionCheckRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CheckRequestValidationError) Reason() string { return e.reason }
+func (e PermissionCheckRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CheckRequestValidationError) Cause() error { return e.cause }
+func (e PermissionCheckRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CheckRequestValidationError) Key() bool { return e.key }
+func (e PermissionCheckRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CheckRequestValidationError) ErrorName() string { return "CheckRequestValidationError" }
+func (e PermissionCheckRequestValidationError) ErrorName() string {
+	return "PermissionCheckRequestValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e CheckRequestValidationError) Error() string {
+func (e PermissionCheckRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -236,14 +239,14 @@ func (e CheckRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCheckRequest.%s: %s%s",
+		"invalid %sPermissionCheckRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CheckRequestValidationError{}
+var _ error = PermissionCheckRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -251,26 +254,26 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CheckRequestValidationError{}
+} = PermissionCheckRequestValidationError{}
 
-var _CheckRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionCheckRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-// Validate checks the field values on CheckResponse with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *CheckResponse) Validate() error {
+// Validate checks the field values on PermissionCheckResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionCheckResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CheckResponse with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in CheckResponseMultiError, or
-// nil if none found.
-func (m *CheckResponse) ValidateAll() error {
+// ValidateAll checks the field values on PermissionCheckResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PermissionCheckResponseMultiError, or nil if none found.
+func (m *PermissionCheckResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CheckResponse) validate(all bool) error {
+func (m *PermissionCheckResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -282,19 +285,19 @@ func (m *CheckResponse) validate(all bool) error {
 	// no validation rules for RemainingDepth
 
 	if len(errors) > 0 {
-		return CheckResponseMultiError(errors)
+		return PermissionCheckResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// CheckResponseMultiError is an error wrapping multiple validation errors
-// returned by CheckResponse.ValidateAll() if the designated constraints
-// aren't met.
-type CheckResponseMultiError []error
+// PermissionCheckResponseMultiError is an error wrapping multiple validation
+// errors returned by PermissionCheckResponse.ValidateAll() if the designated
+// constraints aren't met.
+type PermissionCheckResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CheckResponseMultiError) Error() string {
+func (m PermissionCheckResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -303,11 +306,11 @@ func (m CheckResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CheckResponseMultiError) AllErrors() []error { return m }
+func (m PermissionCheckResponseMultiError) AllErrors() []error { return m }
 
-// CheckResponseValidationError is the validation error returned by
-// CheckResponse.Validate if the designated constraints aren't met.
-type CheckResponseValidationError struct {
+// PermissionCheckResponseValidationError is the validation error returned by
+// PermissionCheckResponse.Validate if the designated constraints aren't met.
+type PermissionCheckResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -315,22 +318,24 @@ type CheckResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e CheckResponseValidationError) Field() string { return e.field }
+func (e PermissionCheckResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CheckResponseValidationError) Reason() string { return e.reason }
+func (e PermissionCheckResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CheckResponseValidationError) Cause() error { return e.cause }
+func (e PermissionCheckResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CheckResponseValidationError) Key() bool { return e.key }
+func (e PermissionCheckResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CheckResponseValidationError) ErrorName() string { return "CheckResponseValidationError" }
+func (e PermissionCheckResponseValidationError) ErrorName() string {
+	return "PermissionCheckResponseValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e CheckResponseValidationError) Error() string {
+func (e PermissionCheckResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -342,14 +347,14 @@ func (e CheckResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCheckResponse.%s: %s%s",
+		"invalid %sPermissionCheckResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CheckResponseValidationError{}
+var _ error = PermissionCheckResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -357,24 +362,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CheckResponseValidationError{}
+} = PermissionCheckResponseValidationError{}
 
-// Validate checks the field values on ExpandRequest with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *ExpandRequest) Validate() error {
+// Validate checks the field values on PermissionExpandRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionExpandRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ExpandRequest with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in ExpandRequestMultiError, or
-// nil if none found.
-func (m *ExpandRequest) ValidateAll() error {
+// ValidateAll checks the field values on PermissionExpandRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PermissionExpandRequestMultiError, or nil if none found.
+func (m *PermissionExpandRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ExpandRequest) validate(all bool) error {
+func (m *PermissionExpandRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -384,7 +389,7 @@ func (m *ExpandRequest) validate(all bool) error {
 	// no validation rules for SchemaVersion
 
 	if m.GetEntity() == nil {
-		err := ExpandRequestValidationError{
+		err := PermissionExpandRequestValidationError{
 			field:  "Entity",
 			reason: "value is required",
 		}
@@ -398,7 +403,7 @@ func (m *ExpandRequest) validate(all bool) error {
 		switch v := interface{}(m.GetEntity()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ExpandRequestValidationError{
+				errors = append(errors, PermissionExpandRequestValidationError{
 					field:  "Entity",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -406,7 +411,7 @@ func (m *ExpandRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ExpandRequestValidationError{
+				errors = append(errors, PermissionExpandRequestValidationError{
 					field:  "Entity",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -415,7 +420,7 @@ func (m *ExpandRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetEntity()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ExpandRequestValidationError{
+			return PermissionExpandRequestValidationError{
 				field:  "Entity",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -426,7 +431,7 @@ func (m *ExpandRequest) validate(all bool) error {
 	if m.GetAction() != "" {
 
 		if len(m.GetAction()) > 64 {
-			err := ExpandRequestValidationError{
+			err := PermissionExpandRequestValidationError{
 				field:  "Action",
 				reason: "value length must be at most 64 bytes",
 			}
@@ -436,8 +441,8 @@ func (m *ExpandRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 
-		if !_ExpandRequest_Action_Pattern.MatchString(m.GetAction()) {
-			err := ExpandRequestValidationError{
+		if !_PermissionExpandRequest_Action_Pattern.MatchString(m.GetAction()) {
+			err := PermissionExpandRequestValidationError{
 				field:  "Action",
 				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 			}
@@ -450,19 +455,19 @@ func (m *ExpandRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ExpandRequestMultiError(errors)
+		return PermissionExpandRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// ExpandRequestMultiError is an error wrapping multiple validation errors
-// returned by ExpandRequest.ValidateAll() if the designated constraints
-// aren't met.
-type ExpandRequestMultiError []error
+// PermissionExpandRequestMultiError is an error wrapping multiple validation
+// errors returned by PermissionExpandRequest.ValidateAll() if the designated
+// constraints aren't met.
+type PermissionExpandRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ExpandRequestMultiError) Error() string {
+func (m PermissionExpandRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -471,11 +476,11 @@ func (m ExpandRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ExpandRequestMultiError) AllErrors() []error { return m }
+func (m PermissionExpandRequestMultiError) AllErrors() []error { return m }
 
-// ExpandRequestValidationError is the validation error returned by
-// ExpandRequest.Validate if the designated constraints aren't met.
-type ExpandRequestValidationError struct {
+// PermissionExpandRequestValidationError is the validation error returned by
+// PermissionExpandRequest.Validate if the designated constraints aren't met.
+type PermissionExpandRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -483,22 +488,24 @@ type ExpandRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e ExpandRequestValidationError) Field() string { return e.field }
+func (e PermissionExpandRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ExpandRequestValidationError) Reason() string { return e.reason }
+func (e PermissionExpandRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ExpandRequestValidationError) Cause() error { return e.cause }
+func (e PermissionExpandRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ExpandRequestValidationError) Key() bool { return e.key }
+func (e PermissionExpandRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ExpandRequestValidationError) ErrorName() string { return "ExpandRequestValidationError" }
+func (e PermissionExpandRequestValidationError) ErrorName() string {
+	return "PermissionExpandRequestValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e ExpandRequestValidationError) Error() string {
+func (e PermissionExpandRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -510,14 +517,14 @@ func (e ExpandRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sExpandRequest.%s: %s%s",
+		"invalid %sPermissionExpandRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ExpandRequestValidationError{}
+var _ error = PermissionExpandRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -525,26 +532,26 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ExpandRequestValidationError{}
+} = PermissionExpandRequestValidationError{}
 
-var _ExpandRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionExpandRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-// Validate checks the field values on ExpandResponse with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *ExpandResponse) Validate() error {
+// Validate checks the field values on PermissionExpandResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionExpandResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ExpandResponse with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in ExpandResponseMultiError,
-// or nil if none found.
-func (m *ExpandResponse) ValidateAll() error {
+// ValidateAll checks the field values on PermissionExpandResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PermissionExpandResponseMultiError, or nil if none found.
+func (m *PermissionExpandResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ExpandResponse) validate(all bool) error {
+func (m *PermissionExpandResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -555,7 +562,7 @@ func (m *ExpandResponse) validate(all bool) error {
 		switch v := interface{}(m.GetTree()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ExpandResponseValidationError{
+				errors = append(errors, PermissionExpandResponseValidationError{
 					field:  "Tree",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -563,7 +570,7 @@ func (m *ExpandResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ExpandResponseValidationError{
+				errors = append(errors, PermissionExpandResponseValidationError{
 					field:  "Tree",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -572,7 +579,7 @@ func (m *ExpandResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetTree()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ExpandResponseValidationError{
+			return PermissionExpandResponseValidationError{
 				field:  "Tree",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -581,19 +588,19 @@ func (m *ExpandResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ExpandResponseMultiError(errors)
+		return PermissionExpandResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// ExpandResponseMultiError is an error wrapping multiple validation errors
-// returned by ExpandResponse.ValidateAll() if the designated constraints
-// aren't met.
-type ExpandResponseMultiError []error
+// PermissionExpandResponseMultiError is an error wrapping multiple validation
+// errors returned by PermissionExpandResponse.ValidateAll() if the designated
+// constraints aren't met.
+type PermissionExpandResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ExpandResponseMultiError) Error() string {
+func (m PermissionExpandResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -602,11 +609,11 @@ func (m ExpandResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ExpandResponseMultiError) AllErrors() []error { return m }
+func (m PermissionExpandResponseMultiError) AllErrors() []error { return m }
 
-// ExpandResponseValidationError is the validation error returned by
-// ExpandResponse.Validate if the designated constraints aren't met.
-type ExpandResponseValidationError struct {
+// PermissionExpandResponseValidationError is the validation error returned by
+// PermissionExpandResponse.Validate if the designated constraints aren't met.
+type PermissionExpandResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -614,22 +621,24 @@ type ExpandResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e ExpandResponseValidationError) Field() string { return e.field }
+func (e PermissionExpandResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ExpandResponseValidationError) Reason() string { return e.reason }
+func (e PermissionExpandResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ExpandResponseValidationError) Cause() error { return e.cause }
+func (e PermissionExpandResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ExpandResponseValidationError) Key() bool { return e.key }
+func (e PermissionExpandResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ExpandResponseValidationError) ErrorName() string { return "ExpandResponseValidationError" }
+func (e PermissionExpandResponseValidationError) ErrorName() string {
+	return "PermissionExpandResponseValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e ExpandResponseValidationError) Error() string {
+func (e PermissionExpandResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -641,14 +650,14 @@ func (e ExpandResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sExpandResponse.%s: %s%s",
+		"invalid %sPermissionExpandResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ExpandResponseValidationError{}
+var _ error = PermissionExpandResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -656,24 +665,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ExpandResponseValidationError{}
+} = PermissionExpandResponseValidationError{}
 
-// Validate checks the field values on LookupQueryRequest with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on PermissionLookupQueryRequest with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *LookupQueryRequest) Validate() error {
+func (m *PermissionLookupQueryRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on LookupQueryRequest with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on PermissionLookupQueryRequest with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// LookupQueryRequestMultiError, or nil if none found.
-func (m *LookupQueryRequest) ValidateAll() error {
+// PermissionLookupQueryRequestMultiError, or nil if none found.
+func (m *PermissionLookupQueryRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *LookupQueryRequest) validate(all bool) error {
+func (m *PermissionLookupQueryRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -683,7 +692,7 @@ func (m *LookupQueryRequest) validate(all bool) error {
 	// no validation rules for SchemaVersion
 
 	if len(m.GetEntityType()) > 64 {
-		err := LookupQueryRequestValidationError{
+		err := PermissionLookupQueryRequestValidationError{
 			field:  "EntityType",
 			reason: "value length must be at most 64 bytes",
 		}
@@ -693,8 +702,8 @@ func (m *LookupQueryRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_LookupQueryRequest_EntityType_Pattern.MatchString(m.GetEntityType()) {
-		err := LookupQueryRequestValidationError{
+	if !_PermissionLookupQueryRequest_EntityType_Pattern.MatchString(m.GetEntityType()) {
+		err := PermissionLookupQueryRequestValidationError{
 			field:  "EntityType",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
@@ -705,7 +714,7 @@ func (m *LookupQueryRequest) validate(all bool) error {
 	}
 
 	if len(m.GetAction()) > 64 {
-		err := LookupQueryRequestValidationError{
+		err := PermissionLookupQueryRequestValidationError{
 			field:  "Action",
 			reason: "value length must be at most 64 bytes",
 		}
@@ -715,8 +724,8 @@ func (m *LookupQueryRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_LookupQueryRequest_Action_Pattern.MatchString(m.GetAction()) {
-		err := LookupQueryRequestValidationError{
+	if !_PermissionLookupQueryRequest_Action_Pattern.MatchString(m.GetAction()) {
+		err := PermissionLookupQueryRequestValidationError{
 			field:  "Action",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
@@ -727,7 +736,7 @@ func (m *LookupQueryRequest) validate(all bool) error {
 	}
 
 	if m.GetSubject() == nil {
-		err := LookupQueryRequestValidationError{
+		err := PermissionLookupQueryRequestValidationError{
 			field:  "Subject",
 			reason: "value is required",
 		}
@@ -741,7 +750,7 @@ func (m *LookupQueryRequest) validate(all bool) error {
 		switch v := interface{}(m.GetSubject()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, LookupQueryRequestValidationError{
+				errors = append(errors, PermissionLookupQueryRequestValidationError{
 					field:  "Subject",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -749,7 +758,7 @@ func (m *LookupQueryRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, LookupQueryRequestValidationError{
+				errors = append(errors, PermissionLookupQueryRequestValidationError{
 					field:  "Subject",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -758,7 +767,7 @@ func (m *LookupQueryRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetSubject()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return LookupQueryRequestValidationError{
+			return PermissionLookupQueryRequestValidationError{
 				field:  "Subject",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -767,19 +776,19 @@ func (m *LookupQueryRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return LookupQueryRequestMultiError(errors)
+		return PermissionLookupQueryRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// LookupQueryRequestMultiError is an error wrapping multiple validation errors
-// returned by LookupQueryRequest.ValidateAll() if the designated constraints
-// aren't met.
-type LookupQueryRequestMultiError []error
+// PermissionLookupQueryRequestMultiError is an error wrapping multiple
+// validation errors returned by PermissionLookupQueryRequest.ValidateAll() if
+// the designated constraints aren't met.
+type PermissionLookupQueryRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m LookupQueryRequestMultiError) Error() string {
+func (m PermissionLookupQueryRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -788,11 +797,12 @@ func (m LookupQueryRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m LookupQueryRequestMultiError) AllErrors() []error { return m }
+func (m PermissionLookupQueryRequestMultiError) AllErrors() []error { return m }
 
-// LookupQueryRequestValidationError is the validation error returned by
-// LookupQueryRequest.Validate if the designated constraints aren't met.
-type LookupQueryRequestValidationError struct {
+// PermissionLookupQueryRequestValidationError is the validation error returned
+// by PermissionLookupQueryRequest.Validate if the designated constraints
+// aren't met.
+type PermissionLookupQueryRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -800,24 +810,24 @@ type LookupQueryRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e LookupQueryRequestValidationError) Field() string { return e.field }
+func (e PermissionLookupQueryRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e LookupQueryRequestValidationError) Reason() string { return e.reason }
+func (e PermissionLookupQueryRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e LookupQueryRequestValidationError) Cause() error { return e.cause }
+func (e PermissionLookupQueryRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e LookupQueryRequestValidationError) Key() bool { return e.key }
+func (e PermissionLookupQueryRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e LookupQueryRequestValidationError) ErrorName() string {
-	return "LookupQueryRequestValidationError"
+func (e PermissionLookupQueryRequestValidationError) ErrorName() string {
+	return "PermissionLookupQueryRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e LookupQueryRequestValidationError) Error() string {
+func (e PermissionLookupQueryRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -829,14 +839,14 @@ func (e LookupQueryRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sLookupQueryRequest.%s: %s%s",
+		"invalid %sPermissionLookupQueryRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = LookupQueryRequestValidationError{}
+var _ error = PermissionLookupQueryRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -844,28 +854,28 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = LookupQueryRequestValidationError{}
+} = PermissionLookupQueryRequestValidationError{}
 
-var _LookupQueryRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionLookupQueryRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-var _LookupQueryRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionLookupQueryRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-// Validate checks the field values on LookupQueryResponse with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on PermissionLookupQueryResponse with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *LookupQueryResponse) Validate() error {
+func (m *PermissionLookupQueryResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on LookupQueryResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// LookupQueryResponseMultiError, or nil if none found.
-func (m *LookupQueryResponse) ValidateAll() error {
+// ValidateAll checks the field values on PermissionLookupQueryResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// PermissionLookupQueryResponseMultiError, or nil if none found.
+func (m *PermissionLookupQueryResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *LookupQueryResponse) validate(all bool) error {
+func (m *PermissionLookupQueryResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -875,19 +885,19 @@ func (m *LookupQueryResponse) validate(all bool) error {
 	// no validation rules for Query
 
 	if len(errors) > 0 {
-		return LookupQueryResponseMultiError(errors)
+		return PermissionLookupQueryResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// LookupQueryResponseMultiError is an error wrapping multiple validation
-// errors returned by LookupQueryResponse.ValidateAll() if the designated
-// constraints aren't met.
-type LookupQueryResponseMultiError []error
+// PermissionLookupQueryResponseMultiError is an error wrapping multiple
+// validation errors returned by PermissionLookupQueryResponse.ValidateAll()
+// if the designated constraints aren't met.
+type PermissionLookupQueryResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m LookupQueryResponseMultiError) Error() string {
+func (m PermissionLookupQueryResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -896,11 +906,12 @@ func (m LookupQueryResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m LookupQueryResponseMultiError) AllErrors() []error { return m }
+func (m PermissionLookupQueryResponseMultiError) AllErrors() []error { return m }
 
-// LookupQueryResponseValidationError is the validation error returned by
-// LookupQueryResponse.Validate if the designated constraints aren't met.
-type LookupQueryResponseValidationError struct {
+// PermissionLookupQueryResponseValidationError is the validation error
+// returned by PermissionLookupQueryResponse.Validate if the designated
+// constraints aren't met.
+type PermissionLookupQueryResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -908,24 +919,24 @@ type LookupQueryResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e LookupQueryResponseValidationError) Field() string { return e.field }
+func (e PermissionLookupQueryResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e LookupQueryResponseValidationError) Reason() string { return e.reason }
+func (e PermissionLookupQueryResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e LookupQueryResponseValidationError) Cause() error { return e.cause }
+func (e PermissionLookupQueryResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e LookupQueryResponseValidationError) Key() bool { return e.key }
+func (e PermissionLookupQueryResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e LookupQueryResponseValidationError) ErrorName() string {
-	return "LookupQueryResponseValidationError"
+func (e PermissionLookupQueryResponseValidationError) ErrorName() string {
+	return "PermissionLookupQueryResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e LookupQueryResponseValidationError) Error() string {
+func (e PermissionLookupQueryResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -937,14 +948,14 @@ func (e LookupQueryResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sLookupQueryResponse.%s: %s%s",
+		"invalid %sPermissionLookupQueryResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = LookupQueryResponseValidationError{}
+var _ error = PermissionLookupQueryResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -952,7 +963,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = LookupQueryResponseValidationError{}
+} = PermissionLookupQueryResponseValidationError{}
 
 // Validate checks the field values on SchemaWriteRequest with the rules
 // defined in the proto definition for this message. If any rules are

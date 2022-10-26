@@ -36,32 +36,32 @@ func (r *RelationTupleRepository) Migrate() error {
 	var tx pgx.Tx
 	tx, err = r.Database.Pool.Begin(ctx)
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleMigration())
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.DropRelationTupleTypeColumnIfExistMigration())
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleUserSetIndexIfNotExistMigration())
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateRelationTupleUserSetRelationIndexIfNotExistMigration())
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	return nil
@@ -76,13 +76,13 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From("relation_tuple").Where(squirrel.Eq{"entity": entity, "relation": relation, "userset_entity": subjectEntity, "userset_object_id": subjectIDs, "userset_relation": subjectRelation}).
 		ToSql()
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_sql_builder_error.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	var rows pgx.Rows
 	rows, err = r.Database.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_execution.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	defer rows.Close()
 
@@ -109,13 +109,13 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation").From("relation_tuple").Where(squirrel.Eq{"entity": entity, "object_id": entityID, "relation": relation}).OrderBy("userset_entity, userset_relation ASC").
 		ToSql()
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_sql_builder_error.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	var rows pgx.Rows
 	rows, err = r.Database.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_execution.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	defer rows.Close()
 
@@ -166,13 +166,13 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFi
 		Select("entity, object_id, relation, userset_entity, userset_object_id, userset_relation, commit_time").From("relation_tuple").Where(eq).OrderBy("userset_entity, userset_relation ASC").
 		ToSql()
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_sql_builder_error.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	var rows pgx.Rows
 	rows, err = r.Database.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_execution.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	defer rows.Close()
 
@@ -211,7 +211,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples tuple.ITuple
 	var args []interface{}
 	query, args, err = sql.ToSql()
 	if err != nil {
-		return errors.New(base.ErrorCode_sql_builder_error.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	_, err = r.Database.Pool.Exec(ctx, query, args...)
@@ -220,7 +220,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, tuples tuple.ITuple
 		if e.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-				return errors.New(base.ErrorCode_unique_constraint.String())
+				return errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
 			default:
 				return err
 			}
@@ -244,7 +244,7 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, tuples tuple.ITupl
 			Delete("relation_tuple").Where(squirrel.Eq{"entity": t.GetEntity().GetType(), "object_id": t.GetEntity().GetId(), "relation": t.GetRelation(), "userset_entity": t.GetSubject().GetType(), "userset_object_id": t.GetSubject().GetId(), "userset_relation": t.GetSubject().GetRelation()}).
 			ToSql()
 		if err != nil {
-			return errors.New(base.ErrorCode_sql_builder_error.String())
+			return errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 		}
 		batch.Queue(sql, args...)
 	}
@@ -253,7 +253,7 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, tuples tuple.ITupl
 		return err
 	}
 	if err = tx.Commit(ctx); err != nil {
-		return errors.New(base.ErrorCode_execution.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	return nil
 }

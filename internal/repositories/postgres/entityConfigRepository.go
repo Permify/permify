@@ -35,27 +35,27 @@ func (r *EntityConfigRepository) Migrate() error {
 	var tx pgx.Tx
 	tx, err = r.Database.Pool.Begin(ctx)
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigMigration())
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigVersionField())
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	_, err = tx.Exec(context.Background(), migrations.CreateEntityConfigChangePrimaryKey())
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return errors.New(base.ErrorCode_migration.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	return nil
@@ -77,13 +77,13 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) ([]rep
 		Select("entity, serialized_config, version").From("entity_config").Where(squirrel.Eq{"version": version}).
 		ToSql()
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_sql_builder_error.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	var rows pgx.Rows
 	rows, err = r.Database.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_execution.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	defer rows.Close()
 
@@ -93,7 +93,7 @@ func (r *EntityConfigRepository) All(ctx context.Context, version string) ([]rep
 		c := repositories.EntityConfig{}
 		err = rows.Scan(&c.Entity, &c.SerializedConfig, &c.Version)
 		if err != nil {
-			return nil, errors.New(base.ErrorCode_scan.String())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
 		}
 		ent = append(ent, c)
 	}
@@ -117,14 +117,14 @@ func (r *EntityConfigRepository) Read(ctx context.Context, name string, version 
 		Select("entity, serialized_config, version").From("entity_config").Where(squirrel.Eq{"entity": name, "version": version}).Limit(1).
 		ToSql()
 	if err != nil {
-		return config, errors.New(base.ErrorCode_sql_builder_error.String())
+		return config, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 	var row pgx.Row
 	row = r.Database.Pool.QueryRow(ctx, sql, args...)
 	err = row.Scan(&config.Entity, &config.SerializedConfig, &config.Version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return config, errors.New(base.ErrorCode_schema_not_found.String())
+			return config, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 		}
 		return config, err
 	}
@@ -151,7 +151,7 @@ func (r *EntityConfigRepository) Write(ctx context.Context, configs []repositori
 	var args []interface{}
 	query, args, err = sql.ToSql()
 	if err != nil {
-		return errors.New(base.ErrorCode_sql_builder_error.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	_, err = r.Database.Pool.Exec(ctx, query, args...)
@@ -160,7 +160,7 @@ func (r *EntityConfigRepository) Write(ctx context.Context, configs []repositori
 		if e.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-				return errors.New(base.ErrorCode_unique_constraint.String())
+				return errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
 			default:
 				return err
 			}
@@ -181,14 +181,14 @@ func (r *EntityConfigRepository) findLastVersion(ctx context.Context) (string, e
 		Select("version").From("entity_config").OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
-		return "", errors.New(base.ErrorCode_sql_builder_error.String())
+		return "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 	var row pgx.Row
 	row = r.Database.Pool.QueryRow(ctx, sql, args...)
 	err = row.Scan(&version)
 	if err != nil {
 		if e.Is(err, pgx.ErrNoRows) {
-			return version, errors.New(base.ErrorCode_schema_not_found.String())
+			return version, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 		}
 		return version, err
 	}

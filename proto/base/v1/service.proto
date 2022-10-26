@@ -14,8 +14,8 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 // ** PERMISSION SERVICE **
 
 // Permission
-service PermissionAPI {
-  rpc Check(CheckRequest) returns (CheckResponse) {
+service Permission {
+  rpc Check(PermissionCheckRequest) returns (PermissionCheckResponse) {
     option (google.api.http) = {
       post: "/v1/permissions/check"
       body: "*"
@@ -30,7 +30,7 @@ service PermissionAPI {
     };
   }
 
-  rpc Expand(ExpandRequest) returns (ExpandResponse) {
+  rpc Expand(PermissionExpandRequest) returns (PermissionExpandResponse) {
     option (google.api.http) = {
       post: "/v1/permissions/expand"
       body: "*"
@@ -45,7 +45,7 @@ service PermissionAPI {
     };
   }
 
-  rpc LookupQuery(LookupQueryRequest) returns (LookupQueryResponse) {
+  rpc LookupQuery(PermissionLookupQueryRequest) returns (PermissionLookupQueryResponse) {
     option (google.api.http) = {
       post: "/v1/permissions/lookup-query"
       body: "*"
@@ -64,7 +64,7 @@ service PermissionAPI {
 // CHECK
 
 // CheckRequest
-message CheckRequest {
+message PermissionCheckRequest {
   string schema_version = 1 [json_name = "schema_version"];
 
   Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
@@ -80,8 +80,8 @@ message CheckRequest {
   google.protobuf.Int32Value depth = 5 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
-// CheckResponse
-message CheckResponse {
+// PermissionCheckResponse
+message PermissionCheckResponse {
   bool can = 1 [json_name = "can", (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     example: "true"
   }];
@@ -90,8 +90,8 @@ message CheckResponse {
 
 // EXPAND
 
-// ExpandRequest
-message ExpandRequest {
+// PermissionExpandRequest
+message PermissionExpandRequest {
   string schema_version = 1 [json_name = "schema_version"];
 
   Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
@@ -103,15 +103,15 @@ message ExpandRequest {
   }];
 }
 
-// ExpandResponse
-message ExpandResponse {
+// PermissionExpandResponse
+message PermissionExpandResponse {
   Expand tree = 1 [json_name = "tree"];
 }
 
 // LOOKUP QUERY
 
 // LookupQueryRequest
-message LookupQueryRequest {
+message PermissionLookupQueryRequest {
   string schema_version = 1 [json_name = "schema_version"];
 
   string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
@@ -130,15 +130,15 @@ message LookupQueryRequest {
 }
 
 // LookupQueryResponse
-message LookupQueryResponse {
+message PermissionLookupQueryResponse {
   string query = 1 [json_name = "query"];
-  repeated string args = 2 [json_name = "args"];
+  //  repeated string args = 2 [json_name = "args"];
 }
 
 // ** SCHEMA SERVICE **
 
 // Schema
-service SchemaAPI {
+service Schema {
   rpc Write(SchemaWriteRequest) returns (SchemaWriteResponse) {
     option (google.api.http) = {
       post: "/v1/schemas/write"
@@ -206,7 +206,7 @@ message SchemaReadRequest {
 
 // SchemaReadRequest
 message SchemaReadResponse {
-  Schema schema = 1 [json_name = "schema"];
+  IndexedSchema schema = 1 [json_name = "schema"];
 }
 
 //LOOKUP
@@ -232,7 +232,7 @@ message SchemaLookupResponse {
 // ** RELATIONSHIP SERVICE **
 
 // Schema
-service RelationshipAPI {
+service Relationship {
   rpc Write(RelationshipWriteRequest) returns (RelationshipWriteResponse) {
     option (google.api.http) = {
       post: "/v1/relationships/write"

@@ -122,7 +122,7 @@ func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child *base.C
 	}
 
 	if fn == nil {
-		return false, errors.New(base.ErrorCode_undefined_child_kind.String())
+		return false, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String())
 	}
 
 	result := checkUnion(ctx, []CheckFunction{fn})
@@ -132,12 +132,12 @@ func (command *CheckCommand) c(ctx context.Context, q *CheckQuery, child *base.C
 // checkRewrite -
 func (command *CheckCommand) checkRewrite(ctx context.Context, q *CheckQuery, rewrite *base.Rewrite) CheckFunction {
 	switch rewrite.GetRewriteOperation() {
-	case *base.Rewrite_UNION.Enum():
+	case *base.Rewrite_OPERATION_UNION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), checkUnion)
-	case *base.Rewrite_INTERSECTION.Enum():
+	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), checkIntersection)
 	default:
-		return checkFail(errors.New(base.ErrorCode_undefined_child_type.String()))
+		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -149,7 +149,7 @@ func (command *CheckCommand) checkLeaf(ctx context.Context, q *CheckQuery, leaf 
 	case *base.Leaf_ComputedUserSet:
 		return command.check(ctx, &base.EntityAndRelation{Entity: q.Entity, Relation: op.ComputedUserSet.GetRelation()}, q, leaf.GetExclusion())
 	default:
-		return checkFail(errors.New(base.ErrorCode_undefined_child_type.String()))
+		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -163,7 +163,7 @@ func (command *CheckCommand) set(ctx context.Context, q *CheckQuery, children []
 		case *base.Child_Leaf:
 			functions = append(functions, command.checkLeaf(ctx, q, child.GetLeaf()))
 		default:
-			return checkFail(errors.New(base.ErrorCode_undefined_child_kind.String()))
+			return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 		}
 	}
 
@@ -180,7 +180,7 @@ func (command *CheckCommand) check(ctx context.Context, ear *base.EntityAndRelat
 		q.decrease()
 
 		if q.isDepthFinish() {
-			decisionChan <- newCheckDecision(false, exclusion, errors.New(base.ErrorCode_depth_not_enough.String()))
+			decisionChan <- newCheckDecision(false, exclusion, errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String()))
 			return
 		}
 
@@ -254,7 +254,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction) CheckDecision {
 				return newCheckDecision(false, result.Exclusion, result.Err)
 			}
 		case <-ctx.Done():
-			return newCheckDecision(false, false, errors.New(base.ErrorCode_cancelled.String()))
+			return newCheckDecision(false, false, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String()))
 		}
 	}
 
@@ -285,7 +285,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction) CheckDeci
 				return newCheckDecision(false, result.Exclusion, result.Err)
 			}
 		case <-ctx.Done():
-			return newCheckDecision(false, false, errors.New(base.ErrorCode_cancelled.String()))
+			return newCheckDecision(false, false, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String()))
 		}
 	}
 

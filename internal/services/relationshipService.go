@@ -39,7 +39,7 @@ func (service *RelationshipService) WriteRelationship(ctx context.Context, tup *
 	}
 
 	if tuple.IsEntityAndSubjectEquals(tup) {
-		return errors.New(base.ErrorCode_entity_and_subject_cannot_be_equal.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_AND_SUBJECT_CANNOT_BE_EQUAL.String())
 	}
 
 	var rel *base.RelationDefinition

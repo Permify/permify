@@ -80,7 +80,7 @@ func (service *PermissionService) Expand(ctx context.Context, entity *base.Entit
 
 // LookupQuery -
 func (service *PermissionService) LookupQuery(ctx context.Context, entityType string, subject *base.Subject, action string, version string) (response commands.LookupQueryResponse, err error) {
-	var sch *base.Schema
+	var sch *base.IndexedSchema
 	sch, err = service.manager.All(ctx, version)
 	if err != nil {
 		return response, err

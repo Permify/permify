@@ -6,52 +6,52 @@ option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 //import "protoc-gen-openapiv2/options/annotations.proto";
 
 enum ErrorCode {
-  no_error = 0;
+  ERROR_CODE_UNSPECIFIED = 0;
 
   // authn
-  missing_bearer_token = 1001;
-  unauthenticated = 1002;
+  ERROR_CODE_MISSING_BEARER_TOKEN = 1001;
+  ERROR_CODE_UNAUTHENTICATED = 1002;
 
   // validation
-  validation_error = 2000;
-  undefined_child_type = 2002;
-  undefined_child_kind = 2003;
-  undefined_relation_reference = 2006;
-  not_supported_relation_walk = 2007;
-  entity_and_subject_cannot_be_equal = 2008;
-  depth_not_enough = 2009;
-  relation_reference_not_found_in_entity_references = 2010;
-  relation_reference_must_have_one_entity_reference = 2011;
-  duplicated_entity_reference = 2012;
-  duplicated_relation_reference = 2013;
-  duplicated_action_reference = 2014;
-  schema_parse = 2015;
-  schema_compile = 2016;
-  subject_relation_must_be_empty = 2017;
-  subject_relation_cannot_be_empty = 2018;
-  schema_must_have_user_entity_definition = 2019;
+  ERROR_CODE_VALIDATION = 2000;
+  ERROR_CODE_UNDEFINED_CHILD_TYPE = 2002;
+  ERROR_CODE_UNDEFINED_CHILD_KIND = 2003;
+  ERROR_CODE_UNDEFINED_RELATION_REFERENCE = 2006;
+  ERROR_CODE_NOT_SUPPORTED_RELATION_WALK = 2007;
+  ERROR_CODE_ENTITY_AND_SUBJECT_CANNOT_BE_EQUAL = 2008;
+  ERROR_CODE_DEPTH_NOT_ENOUGH = 2009;
+  ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES = 2010;
+  ERROR_CODE_RELATION_REFERENCE_MUST_HAVE_ONE_ENTITY_REFERENCE = 2011;
+  ERROR_CODE_DUPLICATED_ENTITY_REFERENCE = 2012;
+  ERROR_CODE_DUPLICATED_RELATION_REFERENCE = 2013;
+  ERROR_CODE_DUPLICATED_ACTION_REFERENCE = 2014;
+  ERROR_CODE_SCHEMA_PARSE = 2015;
+  ERROR_CODE_SCHEMA_COMPILE = 2016;
+  ERROR_CODE_SUBJECT_RELATION_MUST_BE_EMPTY = 2017;
+  ERROR_CODE_SUBJECT_RELATION_CANNOT_BE_EMPTY = 2018;
+  ERROR_CODE_SCHEMA_MUST_HAVE_USER_ENTITY_DEFINITION = 2019;
 
   // not found
-  not_found_error = 4000;
-  entity_type_can_not_found = 4001;
-  action_can_not_found = 4002;
-  schema_not_found = 4003;
-  subject_type_not_found = 4004;
-  entity_definition_not_found = 4005;
-  action_definition_not_found = 4006;
-  relation_definition_not_found = 4007;
-  record_not_found = 4008;
+  ERROR_CODE_NOT_FOUND = 4000;
+  ERROR_CODE_ENTITY_TYPE_NOT_FOUND = 4001;
+  ERROR_CODE_ACTION_NOT_FOUND = 4002;
+  ERROR_CODE_SCHEMA_NOT_FOUND = 4003;
+  ERROR_CODE_SUBJECT_TYPE_NOT_FOUND = 4004;
+  ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND = 4005;
+  ERROR_CODE_ACTION_DEFINITION_NOT_FOUND = 4006;
+  ERROR_CODE_RELATION_DEFINITION_NOT_FOUND = 4007;
+  ERROR_CODE_RECORD_NOT_FOUND = 4008;
 
   // internal
-  internal_error = 5000;
-  cancelled = 5001;
-  sql_builder_error = 5002;
-  circuit_breaker_error = 5003;
-  unique_constraint = 5004;
-  execution = 5005;
-  scan = 5006;
-  migration = 5007;
-  type_conversation_error = 5008;
+  ERROR_CODE_INTERNAL = 5000;
+  ERROR_CODE_CANCELLED = 5001;
+  ERROR_CODE_SQL_BUILDER = 5002;
+  ERROR_CODE_CIRCUIT_BREAKER = 5003;
+  ERROR_CODE_UNIQUE_CONSTRAINT = 5004;
+  ERROR_CODE_EXECUTION = 5005;
+  ERROR_CODE_SCAN = 5006;
+  ERROR_CODE_MIGRATION = 5007;
+  ERROR_CODE_TYPE_CONVERSATION = 5008;
 }
 
 // ErrorResponse

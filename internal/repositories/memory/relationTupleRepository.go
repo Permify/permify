@@ -56,7 +56,7 @@ func (r *RelationTupleRepository) ReverseQueryTuples(ctx context.Context, entity
 	var it memdb.ResultIterator
 	it, err = txn.Get("relation_tuple", "subject-index", entity, relation, subjectEntity)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_execution.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	collection := tuple.NewTupleCollection()
@@ -79,7 +79,7 @@ func (r *RelationTupleRepository) QueryTuples(ctx context.Context, entity string
 	var it memdb.ResultIterator
 	it, err = txn.Get("relation_tuple", "entity-index", entity, objectID, relation)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_execution.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	collection := tuple.NewTupleCollection()
@@ -134,7 +134,7 @@ func (r *RelationTupleRepository) Read(ctx context.Context, filter *base.TupleFi
 	var it memdb.ResultIterator
 	it, err = txn.Get("relation_tuple", "entity", filter.Entity.Type)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_execution.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	collection := tuple.NewTupleCollection()
@@ -170,7 +170,7 @@ func (r *RelationTupleRepository) Write(ctx context.Context, iterator tuple.ITup
 			SubjectRelation: bt.GetSubject().GetRelation(),
 		}
 		if err = txn.Insert("relation_tuple", t); err != nil {
-			return errors.New(base.ErrorCode_execution.String())
+			return errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}
 
@@ -203,7 +203,7 @@ func (r *RelationTupleRepository) Delete(ctx context.Context, iterator tuple.ITu
 				// errors.DatabaseError.SetSubKind(database.ErrRecordNotFound)
 				return nil
 			}
-			return errors.New(base.ErrorCode_unique_constraint.String())
+			return errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
 		}
 	}
 

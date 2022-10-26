@@ -38,11 +38,11 @@ func IsSubjectUser(subject *base.Subject) bool {
 func ValidateSubject(subject *base.Subject) error {
 	if subject.Type == USER {
 		if subject.GetRelation() != "" {
-			return errors.New(base.ErrorCode_subject_relation_must_be_empty.String())
+			return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_RELATION_MUST_BE_EMPTY.String())
 		}
 	} else {
 		if subject.GetRelation() == "" {
-			return errors.New(base.ErrorCode_subject_relation_cannot_be_empty.String())
+			return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_RELATION_CANNOT_BE_EMPTY.String())
 		}
 	}
 	return nil
@@ -79,7 +79,7 @@ func IsEntityAndSubjectEquals(t *base.Tuple) bool {
 // ValidateSubjectType -
 func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err error) {
 	if len(relationTypes) == 0 {
-		return errors.New(base.ErrorCode_subject_type_not_found.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_TYPE_NOT_FOUND.String())
 	}
 
 	key := subject.GetType()
@@ -92,7 +92,7 @@ func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err err
 	}
 
 	if !helper.InArray(key, relationTypes) {
-		return errors.New(base.ErrorCode_subject_type_not_found.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_TYPE_NOT_FOUND.String())
 	}
 	return nil
 }

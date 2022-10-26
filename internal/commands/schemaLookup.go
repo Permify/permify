@@ -80,7 +80,7 @@ func (command *SchemaLookupCommand) l(ctx context.Context, q *SchemaLookupQuery,
 	}
 
 	if fn == nil {
-		return false, errors.New(base.ErrorCode_undefined_child_kind.String())
+		return false, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String())
 	}
 
 	result := schemaLookupUnion(ctx, []SchemaLookupFunction{fn})
@@ -90,12 +90,12 @@ func (command *SchemaLookupCommand) l(ctx context.Context, q *SchemaLookupQuery,
 // lookupRewrite -
 func (command *SchemaLookupCommand) lookupRewrite(ctx context.Context, q *SchemaLookupQuery, rewrite *base.Rewrite) SchemaLookupFunction {
 	switch rewrite.GetRewriteOperation() {
-	case *base.Rewrite_UNION.Enum():
+	case *base.Rewrite_OPERATION_UNION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), schemaLookupUnion)
-	case *base.Rewrite_INTERSECTION.Enum():
+	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
 		return command.set(ctx, q, rewrite.GetChildren(), schemaLookupIntersection)
 	default:
-		return schemaLookupFail(errors.New(base.ErrorCode_undefined_child_type.String()))
+		return schemaLookupFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -107,7 +107,7 @@ func (command *SchemaLookupCommand) lookupLeaf(ctx context.Context, q *SchemaLoo
 	case *base.Leaf_ComputedUserSet:
 		return command.lookup(ctx, leaf.GetComputedUserSet().GetRelation(), q, leaf.GetExclusion())
 	default:
-		return schemaLookupFail(errors.New(base.ErrorCode_undefined_child_type.String()))
+		return schemaLookupFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -121,7 +121,7 @@ func (command *SchemaLookupCommand) set(ctx context.Context, q *SchemaLookupQuer
 		case *base.Child_Leaf:
 			functions = append(functions, command.lookupLeaf(ctx, q, child.GetLeaf()))
 		default:
-			return schemaLookupFail(errors.New(base.ErrorCode_undefined_child_kind.String()))
+			return schemaLookupFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 		}
 	}
 
@@ -167,7 +167,7 @@ func schemaLookupUnion(ctx context.Context, functions []SchemaLookupFunction) Sc
 				return sendSchemaLookupDecision(false, result.Exclusion, result.Err)
 			}
 		case <-ctx.Done():
-			return sendSchemaLookupDecision(false, false, errors.New(base.ErrorCode_cancelled.String()))
+			return sendSchemaLookupDecision(false, false, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String()))
 		}
 	}
 
@@ -198,7 +198,7 @@ func schemaLookupIntersection(ctx context.Context, functions []SchemaLookupFunct
 				return sendSchemaLookupDecision(false, result.Exclusion, result.Err)
 			}
 		case <-ctx.Done():
-			return sendSchemaLookupDecision(false, false, errors.New(base.ErrorCode_cancelled.String()))
+			return sendSchemaLookupDecision(false, false, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String()))
 		}
 	}
 

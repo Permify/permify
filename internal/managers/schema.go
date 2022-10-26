@@ -31,8 +31,8 @@ func NewEntityConfigManager(repository repositories.IEntityConfigRepository, cac
 }
 
 // All -
-func (manager *EntityConfigManager) All(ctx context.Context, version string) (*base.Schema, error) {
-	var sch *base.Schema
+func (manager *EntityConfigManager) All(ctx context.Context, version string) (*base.IndexedSchema, error) {
+	var sch *base.IndexedSchema
 	var err error
 	var cn []repositories.EntityConfig
 	cn, err = manager.repository.All(ctx, version)
@@ -59,7 +59,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 			return nil, err
 		}
 
-		var sch *base.Schema
+		var sch *base.IndexedSchema
 		sch, err = compiler.NewSchemaWithoutReferenceValidation(config.Serialized())
 		if err != nil {
 			return nil, err
@@ -84,7 +84,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 			return nil, err
 		}
 		key = fmt.Sprintf("%s|%s", name, config.Version)
-		var sch *base.Schema
+		var sch *base.IndexedSchema
 		sch, err = compiler.NewSchemaWithoutReferenceValidation(config.Serialized())
 		if err != nil {
 			return nil, err
@@ -100,7 +100,7 @@ func (manager *EntityConfigManager) Read(ctx context.Context, name string, versi
 
 	def, ok := s.(*base.EntityDefinition)
 	if !ok {
-		return nil, errors.New(base.ErrorCode_type_conversation_error.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 	}
 
 	return def, err
