@@ -55,6 +55,10 @@ Permify stores access control relations on a database you choose and performs au
 
 ![Value Chain Schema](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
 
+<p align="center">
+    <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
+</p>
+
 ## Getting Started
 
 - [Set Up & Run Permify Service] in your enviroment.
