@@ -51,45 +51,6 @@ After issue creation, If you are looking to make your contribution follow the st
 You can create an issue and contribute about anything you want but following above steps
 will definitely ease your work and other maintainers too.
 
-## Installation
-
-### Container (Docker)
-
-#### With terminal
-
-1. Open your terminal.
-2. Run following line.
-
-```shell
-docker run -d -p 3476:3476 --name permify-container -v {YOUR-CONFIG-PATH}:/config permify/permify:0.0.1
-```
-
-3. Test your connection.
-    - Create an HTTP GET request ~ localhost:3476/v1/status/ping
-
-#### With docker desktop
-
-Setup docker desktop, and run service with the following steps;
-
-1. Open your docker account.
-2. Open terminal and run following line
-
-```shell
-docker pull permify/permify:0.0.1
-```
-
-3. Open images, and find Permify.
-4. Run Permify with the following credentials (optional setting)
-    - Container Name: authorization-container
-      Ports
-    - **Local Host:** 3476
-      Volumes
-    - **Host Path:** choose the config file and folder
-    - **Container Path:** /config
-5. Test your connection.
-    - Create an HTTP GET request ~ localhost:3476/v1/status/ping
-
-
 
 
 
