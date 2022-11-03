@@ -23,7 +23,27 @@ With Permify you can easily structure your authorization model, store authorizat
 
 Permify's data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
-## Permify works best:
+## Key Features
+
+⚙️ **Production ready** authorization API that serve as **gRPC** and **REST**
+
+🔮 Domain Specific Authorization Language - Permify Schema - to **easily model** your authorization
+
+🔐 Database Configuration to store your permissions **in house** with **high availability**
+
+✅ Ask authorization questions and get answers **down to 10ms** with **parallel graph engine**
+
+💪 Battle tested, robust **authorization architecture and data model** based on [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
+
+📝 **Audit & Reason** your access control hassle-free with various functionalities via API
+
+⚡ Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin]
+
+[jaeger]: https://www.jaegertracing.io/
+[signoz]: https://signoz.io/
+[zipkin]: https://zipkin.io/
+
+### Permify works best:
 
 - If you already have an identity/auth solution and want to plug in fine-grained authorization on top of that.
 - If you want to create a unified access control mechanism to use across your individual applications.
@@ -32,22 +52,6 @@ Permify's data model is inspired by Google’s consistent, global authorization 
 - If your authorization logic is cluttering your code base.
 - If your data model is getting too complicated to handle your authorization within the service.
 - If your authorization is growing too complex to handle within code or API gateway.
-
-### Features
-
-🔐 Centralize & store authorization data **in house** with high availability.
-
-🔮 Easily model and refactor your authorization with **Permify's DSL, Permify Schema**.
-
-📝 **Audit & Reason** your access control hassle-free with user interface.
-
-🩺 Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin].
-
-✅ Low latency with **parallel graph engine** on authorization checks.
-
-[jaeger]: https://www.jaegertracing.io/
-[signoz]: https://signoz.io/
-[zipkin]: https://zipkin.io/
 
 ## How it works
 
@@ -83,6 +87,8 @@ You can get immidiate help on our [Discord](https://discord.gg/MJbUjwskdH) chann
 
 For feature requests, bugs or any improvements you can always open an issue. If you like Permify, please consider giving us a :star:
 
+Want to contribute ? See [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
+
 <p align="left">
 <a href="https://discord.gg/MJbUjwskdH">
  <img height="70px" width="70px" alt="permify | Discord" src="https://user-images.githubusercontent.com/39353278/187209316-3d01a799-c51b-4eaa-8f52-168047078a14.png" />
@@ -94,11 +100,6 @@ For feature requests, bugs or any improvements you can always open an issue. If 
   <img height="70px" width="70px" alt="permify | Linkedin" src="https://user-images.githubusercontent.com/39353278/187209321-03293a24-6f63-4321-b362-b0fc89fdd879.png" />
 </a>
 </p>
-
-## Contributing 
-Want to contribute ? 
-
-See: [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
 
 ## Stargazers
 
