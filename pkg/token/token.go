@@ -1,7 +1,8 @@
 package token
 
 import (
-	"encoding/binary"
+	`crypto/rand`
+	`fmt`
 	"time"
 	"unsafe"
 )
@@ -9,15 +10,22 @@ import (
 type SnapToken [rawLen]byte
 
 const (
-	encodedLen = 13
-	rawLen     = 8
+	encodedLen = 20
+	rawLen     = 15
 	encoding   = "0123456789abcdefghijklmnopqrstuv" // 32
 )
 
-// NewSnapToken - creates a new SnapToken with a decimal
-func NewSnapToken(t time.Time, i uint64) (token SnapToken) {
-	binary.BigEndian.PutUint64(token[:], uint64(t.UnixMicro()))
-	binary.BigEndian.PutUint64(token[:], i)
+//var (
+//	objectIDCounter = randInt()
+//)
+
+func New(value uint64) (token SnapToken) {
+	return NewWithTime(time.Now(), value)
+}
+
+// NewWithTime - creates a new SnapToken with a decimal
+func NewWithTime(t time.Time, value uint64) (token SnapToken) {
+	// TODO
 	return token
 }
 
@@ -27,26 +35,13 @@ func (id SnapToken) Encode(dst []byte) []byte {
 }
 
 func encode(dst, token []byte) {
-	_ = dst[12]
-	_ = token[7]
-	dst[12] = encoding[(1000>>4)&0x1F|(token[6]<<4)&0x1F]
-	dst[11] = encoding[(token[7]>>4)&0x1F|(token[6]<<4)&0x1F]
-	dst[10] = encoding[(token[6]>>1)&0x1F]
-	dst[9] = encoding[(token[6]>>6)&0x1F|(token[5]<<2)&0x1F]
-	dst[8] = encoding[token[5]>>3]
-	dst[7] = encoding[token[4]&0x1F]
-	dst[6] = encoding[token[4]>>5|(token[3]<<3)&0x1F]
-	dst[5] = encoding[(token[3]>>2)&0x1F]
-	dst[4] = encoding[token[3]>>7|(token[2]<<1)&0x1F]
-	dst[3] = encoding[(token[2]>>4)&0x1F|(token[1]<<4)&0x1F]
-	dst[2] = encoding[(token[1]>>1)&0x1F]
-	dst[1] = encoding[(token[1]>>6)&0x1F|(token[0]<<2)&0x1F]
-	dst[0] = encoding[token[0]>>3]
+	// TODO
 }
 
 // Value - returns the value of the token.
 func (id SnapToken) Value() uint64 {
-	return binary.BigEndian.Uint64(id[:])
+	// TODO
+	return 0
 }
 
 // String - returns the string representation of the token.
@@ -59,4 +54,13 @@ func (id SnapToken) String() string {
 // StringToSnapToken -
 func StringToSnapToken(token string) SnapToken {
 	return SnapToken{}
+}
+
+// randInt generates a random uint32
+func randInt() uint32 {
+	b := make([]byte, 3)
+	if _, err := rand.Reader.Read(b); err != nil {
+		panic(fmt.Errorf("snaphot: cannot generate random number: %v", err))
+	}
+	return uint32(b[0])<<16 | uint32(b[1])<<8 | uint32(b[2])
 }
