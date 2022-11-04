@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/jackc/pgio"
@@ -23,9 +22,13 @@ func (dst *pguint64) Set(src interface{}) error {
 		if value < 0 {
 			return fmt.Errorf("%d is less than minimum value for pguint64", value)
 		}
-		if value > math.MaxUint64 {
-			return fmt.Errorf("%d is greater than maximum value for pguint64", value)
+		*dst = pguint64{Uint: uint64(value), Status: pgtype.Present}
+	case int32:
+		if value < 0 {
+			return fmt.Errorf("%d is less than minimum value for pguint64", value)
 		}
+		*dst = pguint64{Uint: uint64(value), Status: pgtype.Present}
+	case uint32:
 		*dst = pguint64{Uint: uint64(value), Status: pgtype.Present}
 	case uint64:
 		*dst = pguint64{Uint: value, Status: pgtype.Present}
