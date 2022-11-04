@@ -46,7 +46,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 
 	var err error
 	var response commands.CheckResponse
-	response, err = r.permissionService.Check(ctx, request.GetSubject(), request.GetAction(), request.GetEntity(), request.GetSchemaVersion(), depth)
+	response, err = r.permissionService.CheckPermissions(ctx, request.GetSubject(), request.GetAction(), request.GetEntity(), request.GetSchemaVersion(), depth)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -73,7 +73,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 
 	var err error
 	var response commands.ExpandResponse
-	response, err = r.permissionService.Expand(ctx, request.GetEntity(), request.GetAction(), request.GetSchemaVersion())
+	response, err = r.permissionService.ExpandPermissions(ctx, request.GetEntity(), request.GetAction(), request.GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -96,7 +96,7 @@ func (r *PermissionServer) LookupQuery(ctx context.Context, request *v1.Permissi
 
 	var err error
 	var response commands.LookupQueryResponse
-	response, err = r.permissionService.LookupQuery(ctx, request.GetEntityType(), request.GetSubject(), request.GetAction(), request.GetSchemaVersion())
+	response, err = r.permissionService.LookupQueryPermissions(ctx, request.GetEntityType(), request.GetSubject(), request.GetAction(), request.GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

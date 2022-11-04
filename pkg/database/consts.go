@@ -5,7 +5,6 @@ type Engine string
 
 const (
 	POSTGRES Engine = "postgres"
-	MONGO    Engine = "mongo"
 	MEMORY   Engine = "memory"
 )
 

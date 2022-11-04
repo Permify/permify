@@ -1,47 +1,43 @@
 package repositories
 
 import (
-	"time"
-
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // RelationTuple -
 type RelationTuple struct {
-	Entity          string
+	EntityType      string
 	EntityID        string
 	Relation        string
-	SubjectEntity   string
+	SubjectType     string
 	SubjectID       string
 	SubjectRelation string
-	CommitTime      time.Time
 }
 
 // ToTuple -
 func (r RelationTuple) ToTuple() *base.Tuple {
 	return &base.Tuple{
 		Entity: &base.Entity{
-			Type: r.Entity,
+			Type: r.EntityType,
 			Id:   r.EntityID,
 		},
 		Relation: r.Relation,
 		Subject: &base.Subject{
-			Type:     r.SubjectEntity,
+			Type:     r.SubjectType,
 			Id:       r.SubjectID,
 			Relation: r.SubjectRelation,
 		},
 	}
 }
 
-// EntityConfig -
-type EntityConfig struct {
-	Entity           string
-	SerializedConfig []byte
-	Version          string
-	CommitTime       time.Time
+// SchemaDefinition -
+type SchemaDefinition struct {
+	EntityType           string
+	SerializedDefinition []byte
+	Version              string
 }
 
 // Serialized -
-func (e EntityConfig) Serialized() string {
-	return string(e.SerializedConfig)
+func (e SchemaDefinition) Serialized() string {
+	return string(e.SerializedDefinition)
 }

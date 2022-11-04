@@ -8,8 +8,10 @@ import (
 	"sync/atomic"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -37,27 +39,28 @@ type CheckCombiner func(ctx context.Context, functions []CheckFunction) CheckDec
 
 // CheckCommand -
 type CheckCommand struct {
-	relationTupleRepository repositories.IRelationTupleRepository
-	logger                  logger.Interface
+	relationshipReader repositories.RelationshipReader
+	logger             logger.Interface
 }
 
 // NewCheckCommand -
-func NewCheckCommand(rr repositories.IRelationTupleRepository, l logger.Interface) *CheckCommand {
+func NewCheckCommand(rr repositories.RelationshipReader, l logger.Interface) *CheckCommand {
 	return &CheckCommand{
-		relationTupleRepository: rr,
-		logger:                  l,
+		relationshipReader: rr,
+		logger:             l,
 	}
 }
 
-// GetRelationTupleRepository -
-func (command *CheckCommand) GetRelationTupleRepository() repositories.IRelationTupleRepository {
-	return command.relationTupleRepository
+// RelationshipReader -
+func (command *CheckCommand) RelationshipReader() repositories.RelationshipReader {
+	return command.relationshipReader
 }
 
 // CheckQuery -
 type CheckQuery struct {
 	Entity  *base.Entity
 	Subject *base.Subject
+	Token   token.SnapToken
 	depth   int32
 	visits  sync.Map
 }
@@ -184,8 +187,8 @@ func (command *CheckCommand) check(ctx context.Context, ear *base.EntityAndRelat
 			return
 		}
 
-		var iterator tuple.ISubjectIterator
-		iterator, err = getSubjects(ctx, command, ear)
+		var iterator database.ISubjectIterator
+		iterator, err = getSubjects(ctx, command, ear, q.Token)
 		if err != nil {
 			checkFail(err)
 			return

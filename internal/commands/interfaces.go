@@ -8,7 +8,7 @@ import (
 )
 
 type ICommand interface {
-	GetRelationTupleRepository() repositories.IRelationTupleRepository
+	RelationshipReader() repositories.RelationshipReader
 }
 
 // ICheckCommand -

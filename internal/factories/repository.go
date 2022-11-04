@@ -2,33 +2,59 @@ package factories
 
 import (
 	"github.com/Permify/permify/internal/repositories"
-	MMRepository "github.com/Permify/permify/internal/repositories/memory"
 	PQRepository "github.com/Permify/permify/internal/repositories/postgres"
 	"github.com/Permify/permify/pkg/database"
-	MMDatabase "github.com/Permify/permify/pkg/database/memory"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
-// RelationTupleFactory -
-func RelationTupleFactory(db database.Database) (repo repositories.IRelationTupleRepository) {
+// RelationshipReaderFactory -
+func RelationshipReaderFactory(db database.Database) (repo repositories.RelationshipReader) {
 	switch db.GetEngineType() {
 	case "postgres":
-		return PQRepository.NewRelationTupleRepository(db.(*PQDatabase.Postgres))
-	case "memory":
-		return MMRepository.NewRelationTupleRepository(db.(*MMDatabase.Memory))
+		return PQRepository.NewRelationshipReader(db.(*PQDatabase.Postgres))
+	// case "memory":
+	//	return MMRepository.NewRelationTupleRepository(db.(*MMDatabase.Memory))
 	default:
-		return MMRepository.NewRelationTupleRepository(db.(*MMDatabase.Memory))
+		return PQRepository.NewRelationshipReader(db.(*PQDatabase.Postgres))
+		// return MMRepository.NewRelationTupleRepository(db.(*MMDatabase.Memory))
 	}
 }
 
-// EntityConfigFactory -
-func EntityConfigFactory(db database.Database) (repo repositories.IEntityConfigRepository) {
+// RelationshipWriterFactory -
+func RelationshipWriterFactory(db database.Database) (repo repositories.RelationshipWriter) {
 	switch db.GetEngineType() {
 	case "postgres":
-		return PQRepository.NewEntityConfigRepository(db.(*PQDatabase.Postgres))
-	case "memory":
-		return MMRepository.NewEntityConfigRepository(db.(*MMDatabase.Memory))
+		return PQRepository.NewRelationshipWriter(db.(*PQDatabase.Postgres))
+	// case "memory":
+	//	return MMRepository.NewRelationTupleRepository(db.(*MMDatabase.Memory))
 	default:
-		return PQRepository.NewEntityConfigRepository(db.(*PQDatabase.Postgres))
+		return PQRepository.NewRelationshipWriter(db.(*PQDatabase.Postgres))
+		// return MMRepository.NewRelationTupleRepository(db.(*MMDatabase.Memory))
+	}
+}
+
+// SchemaReaderFactory -
+func SchemaReaderFactory(db database.Database) (repo repositories.SchemaReader) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewSchemaReader(db.(*PQDatabase.Postgres))
+	// case "memory":
+	//	return MMRepository.NewEntityConfigRepository(db.(*MMDatabase.Memory))
+	default:
+		return PQRepository.NewSchemaReader(db.(*PQDatabase.Postgres))
+		// return PQRepository.NewEntityConfigRepository(db.(*PQDatabase.Postgres))
+	}
+}
+
+// SchemaWriterFactory -
+func SchemaWriterFactory(db database.Database) (repo repositories.SchemaWriter) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewSchemaWriter(db.(*PQDatabase.Postgres))
+	// case "memory":
+	//	return MMRepository.NewEntityConfigRepository(db.(*MMDatabase.Memory))
+	default:
+		return PQRepository.NewSchemaWriter(db.(*PQDatabase.Postgres))
+		// return PQRepository.NewEntityConfigRepository(db.(*PQDatabase.Postgres))
 	}
 }

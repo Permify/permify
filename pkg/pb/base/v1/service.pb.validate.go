@@ -59,6 +59,8 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 
 	// no validation rules for SchemaVersion
 
+	// no validation rules for SnapToken
+
 	if m.GetEntity() == nil {
 		err := PermissionCheckRequestValidationError{
 			field:  "Entity",
@@ -388,6 +390,8 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 
 	// no validation rules for SchemaVersion
 
+	// no validation rules for SnapToken
+
 	if m.GetEntity() == nil {
 		err := PermissionExpandRequestValidationError{
 			field:  "Entity",
@@ -690,6 +694,8 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for SchemaVersion
+
+	// no validation rules for SnapToken
 
 	if len(m.GetEntityType()) > 64 {
 		err := PermissionLookupQueryRequestValidationError{
@@ -1662,10 +1668,10 @@ func (m *RelationshipWriteRequest) validate(all bool) error {
 
 	// no validation rules for SchemaVersion
 
-	if m.GetEntity() == nil {
+	if l := len(m.GetTuples()); l < 1 || l > 100 {
 		err := RelationshipWriteRequestValidationError{
-			field:  "Entity",
-			reason: "value is required",
+			field:  "Tuples",
+			reason: "value must contain between 1 and 100 items, inclusive",
 		}
 		if !all {
 			return err
@@ -1673,41 +1679,13 @@ func (m *RelationshipWriteRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if all {
-		switch v := interface{}(m.GetEntity()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RelationshipWriteRequestValidationError{
-					field:  "Entity",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, RelationshipWriteRequestValidationError{
-					field:  "Entity",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetEntity()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RelationshipWriteRequestValidationError{
-				field:  "Entity",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	for idx, item := range m.GetTuples() {
+		_, _ = idx, item
 
-	if m.GetRelation() != "" {
-
-		if len(m.GetRelation()) > 64 {
+		if item == nil {
 			err := RelationshipWriteRequestValidationError{
-				field:  "Relation",
-				reason: "value length must be at most 64 bytes",
+				field:  fmt.Sprintf("Tuples[%v]", idx),
+				reason: "value is required",
 			}
 			if !all {
 				return err
@@ -1715,57 +1693,35 @@ func (m *RelationshipWriteRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 
-		if !_RelationshipWriteRequest_Relation_Pattern.MatchString(m.GetRelation()) {
-			err := RelationshipWriteRequestValidationError{
-				field:  "Relation",
-				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RelationshipWriteRequestValidationError{
+						field:  fmt.Sprintf("Tuples[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RelationshipWriteRequestValidationError{
+						field:  fmt.Sprintf("Tuples[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
-
-	if m.GetSubject() == nil {
-		err := RelationshipWriteRequestValidationError{
-			field:  "Subject",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetSubject()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RelationshipWriteRequestValidationError{
-					field:  "Subject",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				errors = append(errors, RelationshipWriteRequestValidationError{
-					field:  "Subject",
+				return RelationshipWriteRequestValidationError{
+					field:  fmt.Sprintf("Tuples[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
-				})
+				}
 			}
 		}
-	} else if v, ok := interface{}(m.GetSubject()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RelationshipWriteRequestValidationError{
-				field:  "Subject",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
+
 	}
 
 	if len(errors) > 0 {
@@ -1848,8 +1804,6 @@ var _ interface {
 	ErrorName() string
 } = RelationshipWriteRequestValidationError{}
 
-var _RelationshipWriteRequest_Relation_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
-
 // Validate checks the field values on RelationshipWriteResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1872,34 +1826,7 @@ func (m *RelationshipWriteResponse) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetTuple()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RelationshipWriteResponseValidationError{
-					field:  "Tuple",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, RelationshipWriteResponseValidationError{
-					field:  "Tuple",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetTuple()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RelationshipWriteResponseValidationError{
-				field:  "Tuple",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for SnapToken
 
 	if len(errors) > 0 {
 		return RelationshipWriteResponseMultiError(errors)
@@ -2002,6 +1929,8 @@ func (m *RelationshipReadRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for SnapToken
 
 	if all {
 		switch v := interface{}(m.GetFilter()).(type) {
@@ -2270,23 +2199,12 @@ func (m *RelationshipDeleteRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetEntity() == nil {
-		err := RelationshipDeleteRequestValidationError{
-			field:  "Entity",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if all {
-		switch v := interface{}(m.GetEntity()).(type) {
+		switch v := interface{}(m.GetFilter()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, RelationshipDeleteRequestValidationError{
-					field:  "Entity",
+					field:  "Filter",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -2294,82 +2212,16 @@ func (m *RelationshipDeleteRequest) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, RelationshipDeleteRequestValidationError{
-					field:  "Entity",
+					field:  "Filter",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetEntity()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetFilter()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return RelationshipDeleteRequestValidationError{
-				field:  "Entity",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if m.GetRelation() != "" {
-
-		if len(m.GetRelation()) > 64 {
-			err := RelationshipDeleteRequestValidationError{
-				field:  "Relation",
-				reason: "value length must be at most 64 bytes",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if !_RelationshipDeleteRequest_Relation_Pattern.MatchString(m.GetRelation()) {
-			err := RelationshipDeleteRequestValidationError{
-				field:  "Relation",
-				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
-
-	if m.GetSubject() == nil {
-		err := RelationshipDeleteRequestValidationError{
-			field:  "Subject",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetSubject()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RelationshipDeleteRequestValidationError{
-					field:  "Subject",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, RelationshipDeleteRequestValidationError{
-					field:  "Subject",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetSubject()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RelationshipDeleteRequestValidationError{
-				field:  "Subject",
+				field:  "Filter",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -2456,8 +2308,6 @@ var _ interface {
 	ErrorName() string
 } = RelationshipDeleteRequestValidationError{}
 
-var _RelationshipDeleteRequest_Relation_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
-
 // Validate checks the field values on RelationshipDeleteResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -2480,34 +2330,7 @@ func (m *RelationshipDeleteResponse) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetTuple()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RelationshipDeleteResponseValidationError{
-					field:  "Tuple",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, RelationshipDeleteResponseValidationError{
-					field:  "Tuple",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetTuple()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RelationshipDeleteResponseValidationError{
-				field:  "Tuple",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for SnapToken
 
 	if len(errors) > 0 {
 		return RelationshipDeleteResponseMultiError(errors)

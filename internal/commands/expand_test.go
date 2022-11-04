@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
@@ -138,11 +139,11 @@ entity doc {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(tuple.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(tuple.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(tuple.NewTupleCollection(getParentCollaborators...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "org").Return(tuple.NewTupleCollection(getDocOrg...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "1", "admin").Return(tuple.NewTupleCollection(getOrgAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(database.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(database.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(database.NewTupleCollection(getParentCollaborators...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "org").Return(database.NewTupleCollection(getDocOrg...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "1", "admin").Return(database.NewTupleCollection(getOrgAdmins...).CreateTupleIterator(), nil).Times(1)
 
 			expandCommand = NewExpandCommand(relationTupleRepository, l)
 

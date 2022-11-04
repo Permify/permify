@@ -1073,53 +1073,7 @@ func (m *EntityFilter) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetType()) > 64 {
-		err := EntityFilterValidationError{
-			field:  "Type",
-			reason: "value length must be at most 64 bytes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if !_EntityFilter_Type_Pattern.MatchString(m.GetType()) {
-		err := EntityFilterValidationError{
-			field:  "Type",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if m.GetId() != "" {
-
-		if len(m.GetId()) > 128 {
-			err := EntityFilterValidationError{
-				field:  "Id",
-				reason: "value length must be at most 128 bytes",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if !_EntityFilter_Id_Pattern.MatchString(m.GetId()) {
-			err := EntityFilterValidationError{
-				field:  "Id",
-				reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\\\*)$\"",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
+	// no validation rules for Type
 
 	if len(errors) > 0 {
 		return EntityFilterMultiError(errors)
@@ -1198,10 +1152,6 @@ var _ interface {
 	ErrorName() string
 } = EntityFilterValidationError{}
 
-var _EntityFilter_Type_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
-
-var _EntityFilter_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$")
-
 // Validate checks the field values on SubjectFilter with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -1224,57 +1174,7 @@ func (m *SubjectFilter) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetType() != "" {
-
-		if len(m.GetType()) > 64 {
-			err := SubjectFilterValidationError{
-				field:  "Type",
-				reason: "value length must be at most 64 bytes",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if !_SubjectFilter_Type_Pattern.MatchString(m.GetType()) {
-			err := SubjectFilterValidationError{
-				field:  "Type",
-				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
-
-	if m.GetId() != "" {
-
-		if len(m.GetId()) > 128 {
-			err := SubjectFilterValidationError{
-				field:  "Id",
-				reason: "value length must be at most 128 bytes",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if !_SubjectFilter_Id_Pattern.MatchString(m.GetId()) {
-			err := SubjectFilterValidationError{
-				field:  "Id",
-				reason: "value does not match regex pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\\\*)$\"",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
+	// no validation rules for Type
 
 	if m.GetRelation() != "" {
 
@@ -1292,7 +1192,7 @@ func (m *SubjectFilter) validate(all bool) error {
 		if !_SubjectFilter_Relation_Pattern.MatchString(m.GetRelation()) {
 			err := SubjectFilterValidationError{
 				field:  "Relation",
-				reason: "value does not match regex pattern \"^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$\"",
+				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 			}
 			if !all {
 				return err
@@ -1380,11 +1280,7 @@ var _ interface {
 	ErrorName() string
 } = SubjectFilterValidationError{}
 
-var _SubjectFilter_Type_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
-
-var _SubjectFilter_Id_Pattern = regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$")
-
-var _SubjectFilter_Relation_Pattern = regexp.MustCompile("^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$")
+var _SubjectFilter_Relation_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on ExpandTreeNode with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

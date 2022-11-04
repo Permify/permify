@@ -9,6 +9,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
@@ -73,21 +74,21 @@ func (e QueryNode) Error() error {
 
 // LookupQueryCommand -
 type LookupQueryCommand struct {
-	relationTupleRepository repositories.IRelationTupleRepository
-	logger                  logger.Interface
+	relationshipReader repositories.RelationshipReader
+	logger             logger.Interface
 }
 
 // NewLookupQueryCommand -
-func NewLookupQueryCommand(rr repositories.IRelationTupleRepository, l logger.Interface) *LookupQueryCommand {
+func NewLookupQueryCommand(rr repositories.RelationshipReader, l logger.Interface) *LookupQueryCommand {
 	return &LookupQueryCommand{
-		logger:                  l,
-		relationTupleRepository: rr,
+		logger:             l,
+		relationshipReader: rr,
 	}
 }
 
-// GetRelationTupleRepository -
-func (command *LookupQueryCommand) GetRelationTupleRepository() repositories.IRelationTupleRepository {
-	return command.relationTupleRepository
+// RelationshipReader -
+func (command *LookupQueryCommand) RelationshipReader() repositories.RelationshipReader {
+	return command.relationshipReader
 }
 
 // BuildFunction -
@@ -380,14 +381,14 @@ func (command *LookupQueryCommand) getUserIDs(ctx context.Context, s *base.Subje
 	if tuple.IsSubjectUser(s) {
 		r = append(r, s.GetId())
 	} else {
-		var iterator tuple.ISubjectIterator
-		iterator, err = getSubjects(ctx, command, &base.EntityAndRelation{
-			Entity: &base.Entity{
-				Type: s.GetType(),
-				Id:   s.GetId(),
-			},
-			Relation: s.Relation,
-		})
+		var iterator database.ISubjectIterator
+		//iterator, err = getSubjects(ctx, command, &base.EntityAndRelation{
+		//	Entity: &base.Entity{
+		//		Type: s.GetType(),
+		//		Id:   s.GetId(),
+		//	},
+		//	Relation: s.Relation,
+		//})
 		if err != nil {
 			return nil, err
 		}
@@ -404,7 +405,7 @@ func (command *LookupQueryCommand) getUserIDs(ctx context.Context, s *base.Subje
 
 // getEntityIDs -
 func (command *LookupQueryCommand) getEntityIDs(ctx context.Context, entityType string, relation string, subjectType string, subjectIDs []string, subjectRelation string) (r []string, err error) {
-	var iterator tuple.IEntityIterator
+	var iterator database.IEntityIterator
 	iterator, err = command.getEntities(ctx, entityType, relation, subjectType, subjectIDs, subjectRelation)
 	if err != nil {
 		return nil, err
@@ -416,17 +417,28 @@ func (command *LookupQueryCommand) getEntityIDs(ctx context.Context, entityType 
 }
 
 // getEntities -
-func (command *LookupQueryCommand) getEntities(ctx context.Context, entityType string, relation string, subjectType string, subjectIDs []string, subjectRelation string) (iterator tuple.IEntityIterator, err error) {
-	var tupleIterator tuple.ITupleIterator
-	tupleIterator, err = command.relationTupleRepository.ReverseQueryTuples(ctx, entityType, relation, subjectType, subjectIDs, subjectRelation)
+func (command *LookupQueryCommand) getEntities(ctx context.Context, entityType string, relation string, subjectType string, subjectIDs []string, subjectRelation string) (iterator database.IEntityIterator, err error) {
+	var tupleCollection database.ITupleCollection
+	//tupleCollection, err = command.relationshipReader.QueryRelationships(ctx, &base.TupleFilter{
+	//	Entity: &base.EntityFilter{
+	//		Type: entityType,
+	//	},
+	//	Relation: relation,
+	//	Subject: &base.SubjectFilter{
+	//		Type:     subjectType,
+	//		Ids:      subjectIDs,
+	//		Relation: subjectRelation,
+	//	},
+	//})
 	if err != nil {
 		return nil, err
 	}
 
-	collection := tuple.NewEntityCollection()
+	collection := database.NewEntityCollection()
 
-	for tupleIterator.HasNext() {
-		collection.Add(tupleIterator.GetNext().GetEntity())
+	iter := tupleCollection.CreateTupleIterator()
+	for iter.HasNext() {
+		collection.Add(iter.GetNext().GetEntity())
 	}
 
 	return collection.CreateEntityIterator(), err

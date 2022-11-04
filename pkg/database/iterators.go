@@ -1,16 +1,10 @@
-package tuple
+package database
 
 import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // TUPLE
-
-// ITupleIterator abstract tuple iterator.
-type ITupleIterator interface {
-	HasNext() bool
-	GetNext() *base.Tuple
-}
 
 // TupleIterator tuple iterator -
 type TupleIterator struct {
@@ -29,20 +23,14 @@ func (i *TupleIterator) HasNext() bool {
 // GetNext -
 func (i *TupleIterator) GetNext() *base.Tuple {
 	if i.HasNext() {
-		user := i.tuples[i.index]
+		tuple := i.tuples[i.index]
 		i.index++
-		return user
+		return tuple
 	}
 	return nil
 }
 
 // SUBJECT
-
-// ISubjectIterator abstract subject iterator.
-type ISubjectIterator interface {
-	HasNext() bool
-	GetNext() *base.Subject
-}
 
 // SubjectIterator -
 type SubjectIterator struct {
@@ -61,20 +49,14 @@ func (u *SubjectIterator) HasNext() bool {
 // GetNext -
 func (u *SubjectIterator) GetNext() *base.Subject {
 	if u.HasNext() {
-		t := u.subjects[u.index]
+		subject := u.subjects[u.index]
 		u.index++
-		return t
+		return subject
 	}
 	return nil
 }
 
 // ENTITY
-
-// IEntityIterator abstract subject iterator.
-type IEntityIterator interface {
-	HasNext() bool
-	GetNext() *base.Entity
-}
 
 // EntityIterator -
 type EntityIterator struct {
@@ -93,9 +75,9 @@ func (u *EntityIterator) HasNext() bool {
 // GetNext -
 func (u *EntityIterator) GetNext() *base.Entity {
 	if u.HasNext() {
-		t := u.entities[u.index]
+		entity := u.entities[u.index]
 		u.index++
-		return t
+		return entity
 	}
 	return nil
 }

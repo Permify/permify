@@ -11,6 +11,7 @@ import (
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -40,9 +41,7 @@ func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipR
 		return nil, v
 	}
 
-	var err error
-	var collection tuple.ITupleCollection
-	collection, err = r.relationshipService.ReadRelationships(ctx, request.GetFilter())
+	collection, err := r.relationshipService.ReadRelationships(ctx, request.GetFilter(), token.StringToSnapToken(request.SnapToken))
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -65,14 +64,14 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 		return nil, v
 	}
 
-	v = tuple.ValidateSubject(request.GetSubject())
-	if v != nil {
-		return nil, v
+	for _, tup := range request.GetTuples() {
+		v = tuple.ValidateSubject(tup.GetSubject())
+		if v != nil {
+			return nil, v
+		}
 	}
 
-	var err error
-	t := &v1.Tuple{Entity: request.GetEntity(), Relation: request.GetRelation(), Subject: request.GetSubject()}
-	err = r.relationshipService.WriteRelationship(ctx, t, request.SchemaVersion)
+	snap, err := r.relationshipService.WriteRelationships(ctx, request.GetTuples(), request.SchemaVersion)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -81,7 +80,7 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 	}
 
 	return &v1.RelationshipWriteResponse{
-		Tuple: t,
+		SnapToken: snap.String(),
 	}, nil
 }
 
@@ -95,14 +94,7 @@ func (r *RelationshipServer) Delete(ctx context.Context, request *v1.Relationshi
 		return nil, v
 	}
 
-	v = tuple.ValidateSubject(request.GetSubject())
-	if v != nil {
-		return nil, v
-	}
-
-	var err error
-	t := &v1.Tuple{Entity: request.Entity, Relation: request.Relation, Subject: request.Subject}
-	err = r.relationshipService.DeleteRelationship(ctx, t)
+	snap, err := r.relationshipService.DeleteRelationships(ctx, request.GetFilter())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -111,6 +103,6 @@ func (r *RelationshipServer) Delete(ctx context.Context, request *v1.Relationshi
 	}
 
 	return &v1.RelationshipDeleteResponse{
-		Tuple: t,
+		SnapToken: snap.String(),
 	}, nil
 }

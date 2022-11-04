@@ -12,7 +12,6 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
-	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/servers"
 	"github.com/Permify/permify/internal/services"
@@ -72,6 +71,12 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		}
 		defer db.Close()
 
+		// Migration
+		err = db.Migrate(factories.MigrationFactory(database.Engine(cfg.Database.Engine)))
+		if err != nil {
+			l.Fatal(err)
+		}
+
 		// Tracing
 		if cfg.Tracer.Enabled {
 			exporter, err := exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
@@ -99,41 +104,38 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Repositories
-		relationTupleRepository := factories.RelationTupleFactory(db)
-		err = relationTupleRepository.Migrate()
-		if err != nil {
-			l.Fatal(err)
-		}
-
-		entityConfigRepository := factories.EntityConfigFactory(db)
-		err = entityConfigRepository.Migrate()
-		if err != nil {
-			l.Fatal(err)
-		}
+		relationshipReader := factories.RelationshipReaderFactory(db)
+		relationshipWriter := factories.RelationshipWriterFactory(db)
+		schemaReader := factories.SchemaReaderFactory(db)
+		schemaWriter := factories.SchemaWriterFactory(db)
 
 		// decorators
-		relationTupleWithCircuitBreaker := decorators.NewRelationTupleWithCircuitBreaker(relationTupleRepository)
-		entityConfigWithCircuitBreaker := decorators.NewEntityConfigWithCircuitBreaker(entityConfigRepository)
 
-		// manager
-		schemaManager := managers.NewEntityConfigManager(entityConfigWithCircuitBreaker, ch)
+		// cache
+		schemaReaderWithCache := decorators.NewSchemaReaderWithCache(schemaReader, ch)
+
+		// circuitBreaker
+		relationshipWriterWithCircuitBreaker := decorators.NewRelationshipWriterWithCircuitBreaker(relationshipWriter)
+		relationshipReaderWithCircuitBreaker := decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
+
+		schemaWriterWithCircuitBreaker := decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
+		schemaReaderWithCircuitBreaker := decorators.NewSchemaReaderWithCircuitBreaker(schemaReaderWithCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(relationTupleWithCircuitBreaker, l)
-		expandCommand := commands.NewExpandCommand(relationTupleWithCircuitBreaker, l)
-		lookupQueryCommand := commands.NewLookupQueryCommand(relationTupleWithCircuitBreaker, l)
+		checkCommand := commands.NewCheckCommand(relationshipReaderWithCircuitBreaker, l)
+		expandCommand := commands.NewExpandCommand(relationshipReaderWithCircuitBreaker, l)
+		lookupQueryCommand := commands.NewLookupQueryCommand(relationshipReaderWithCircuitBreaker, l)
 		schemaLookupCommand := commands.NewSchemaLookupCommand(l)
 
 		// Services
-		relationshipService := services.NewRelationshipService(relationTupleWithCircuitBreaker, schemaManager)
-		permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaManager)
-		schemaService := services.NewSchemaService(schemaLookupCommand, schemaManager)
+		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreaker)
+		permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaReaderWithCircuitBreaker)
+		schemaService := services.NewSchemaService(schemaLookupCommand, schemaWriterWithCircuitBreaker, schemaReaderWithCircuitBreaker)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,
 			PermissionService:   permissionService,
 			SchemaService:       schemaService,
-			SchemaManager:       schemaManager,
 		}
 
 		var g *errgroup.Group

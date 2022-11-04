@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
@@ -139,11 +140,11 @@ entity doc {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(tuple.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(tuple.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(tuple.NewTupleCollection(getParentCollaborators...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "org").Return(tuple.NewTupleCollection(getDocOrg...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "1", "admin").Return(tuple.NewTupleCollection(getOrgAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(database.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(database.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(database.NewTupleCollection(getParentCollaborators...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "org").Return(database.NewTupleCollection(getDocOrg...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "1", "admin").Return(database.NewTupleCollection(getOrgAdmins...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
@@ -217,9 +218,9 @@ entity doc {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(tuple.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "org").Return(tuple.NewTupleCollection(getDocOrg...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "1", "admin").Return(tuple.NewTupleCollection(getOrgAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(database.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "org").Return(database.NewTupleCollection(getDocOrg...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "1", "admin").Return(database.NewTupleCollection(getOrgAdmins...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
@@ -335,11 +336,11 @@ entity doc {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(tuple.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(tuple.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(tuple.NewTupleCollection(getParentCollaborators...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "doc", "1", "org").Return(tuple.NewTupleCollection(getDocOrg...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "1", "admin").Return(tuple.NewTupleCollection(getOrgAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "owner").Return(database.NewTupleCollection(getDocOwners...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "parent").Return(database.NewTupleCollection(getDocParent...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "folder", "1", "collaborator").Return(database.NewTupleCollection(getParentCollaborators...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "doc", "1", "org").Return(database.NewTupleCollection(getDocOrg...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "1", "admin").Return(database.NewTupleCollection(getOrgAdmins...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
@@ -408,7 +409,7 @@ entity doc {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(tuple.NewTupleCollection(getRepositoryOwner...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(database.NewTupleCollection(getRepositoryOwner...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
@@ -506,9 +507,9 @@ entity doc {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(tuple.NewTupleCollection(getRepositoryOwners...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "2", "admin").Return(tuple.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(tuple.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(database.NewTupleCollection(getRepositoryOwners...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "2", "admin").Return(database.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(database.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 
@@ -597,10 +598,10 @@ entity doc {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "parent").Return(tuple.NewTupleCollection(getRepositoryParent...).CreateTupleIterator(), nil).Times(2)
-			relationTupleRepository.On("QueryTuples", "organization", "8", "member").Return(tuple.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "8", "admin").Return(tuple.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(tuple.NewTupleCollection(getRepositoryOwners...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "parent").Return(database.NewTupleCollection(getRepositoryParent...).CreateTupleIterator(), nil).Times(2)
+			relationTupleRepository.On("QueryTuples", "organization", "8", "member").Return(database.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "8", "admin").Return(database.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "owner").Return(database.NewTupleCollection(getRepositoryOwners...).CreateTupleIterator(), nil).Times(1)
 
 			checkCommand = NewCheckCommand(relationTupleRepository, l)
 

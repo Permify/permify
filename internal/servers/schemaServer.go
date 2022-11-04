@@ -8,7 +8,6 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 
-	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -18,15 +17,13 @@ import (
 type SchemaServer struct {
 	v1.UnimplementedSchemaServer
 
-	schemaManager managers.IEntityConfigManager
 	schemaService services.ISchemaService
 	l             logger.Interface
 }
 
 // NewSchemaServer -
-func NewSchemaServer(m managers.IEntityConfigManager, s services.ISchemaService, l logger.Interface) *SchemaServer {
+func NewSchemaServer(s services.ISchemaService, l logger.Interface) *SchemaServer {
 	return &SchemaServer{
-		schemaManager: m,
 		schemaService: s,
 		l:             l,
 	}
@@ -37,9 +34,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()
 
-	var err error
-	var version string
-	version, err = r.schemaManager.Write(ctx, request.Schema)
+	version, err := r.schemaService.WriteSchema(ctx, request.Schema)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -59,7 +54,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 
 	var err error
 	var response *v1.IndexedSchema
-	response, err = r.schemaManager.All(ctx, request.SchemaVersion)
+	response, err = r.schemaService.ReadSchema(ctx, request.SchemaVersion)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

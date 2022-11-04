@@ -433,10 +433,14 @@
         "type": {
           "type": "string"
         },
-        "id": {
-          "type": "string"
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
-      }
+      },
+      "title": "SubjectFilter is used to filter subjects"
     },
     "Expand": {
       "type": "object",
@@ -526,6 +530,9 @@
         "schema_version": {
           "type": "string"
         },
+        "snap_token": {
+          "type": "string"
+        },
         "entity": {
           "$ref": "#/definitions/Entity"
         },
@@ -562,6 +569,9 @@
         "schema_version": {
           "type": "string"
         },
+        "snap_token": {
+          "type": "string"
+        },
         "entity": {
           "$ref": "#/definitions/Entity"
         },
@@ -584,6 +594,9 @@
       "type": "object",
       "properties": {
         "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
           "type": "string"
         },
         "entity_type": {
@@ -644,14 +657,8 @@
     "RelationshipDeleteRequest": {
       "type": "object",
       "properties": {
-        "entity": {
-          "$ref": "#/definitions/Entity"
-        },
-        "relation": {
-          "type": "string"
-        },
-        "subject": {
-          "$ref": "#/definitions/Subject"
+        "filter": {
+          "$ref": "#/definitions/TupleFilter"
         }
       },
       "title": "RelationshipDeleteRequest"
@@ -659,8 +666,8 @@
     "RelationshipDeleteResponse": {
       "type": "object",
       "properties": {
-        "tuple": {
-          "$ref": "#/definitions/Tuple"
+        "snap_token": {
+          "type": "string"
         }
       },
       "title": "RelationshipDeleteResponse"
@@ -668,6 +675,9 @@
     "RelationshipReadRequest": {
       "type": "object",
       "properties": {
+        "snap_token": {
+          "type": "string"
+        },
         "filter": {
           "$ref": "#/definitions/TupleFilter"
         }
@@ -692,14 +702,11 @@
         "schema_version": {
           "type": "string"
         },
-        "entity": {
-          "$ref": "#/definitions/Entity"
-        },
-        "relation": {
-          "type": "string"
-        },
-        "subject": {
-          "$ref": "#/definitions/Subject"
+        "tuples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Tuple"
+          }
         }
       },
       "title": "RelationshipWriteRequest"
@@ -707,8 +714,8 @@
     "RelationshipWriteResponse": {
       "type": "object",
       "properties": {
-        "tuple": {
-          "$ref": "#/definitions/Tuple"
+        "snap_token": {
+          "type": "string"
         }
       },
       "title": "RelationshipWriteResponse"
@@ -843,14 +850,17 @@
         "type": {
           "type": "string"
         },
-        "id": {
-          "type": "string"
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "relation": {
           "type": "string"
         }
       },
-      "title": "Subject"
+      "title": "SubjectFilter is used to filter subjects"
     },
     "Subjects": {
       "type": "object",
@@ -894,7 +904,8 @@
         "subject": {
           "$ref": "#/definitions/SubjectFilter"
         }
-      }
+      },
+      "title": "TupleFilter is used to filter tuples"
     },
     "TupleToUserSet": {
       "type": "object",

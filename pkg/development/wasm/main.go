@@ -11,11 +11,11 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/Permify/permify/internal/commands"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/graph"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 var dev *development.Container
@@ -120,7 +120,7 @@ func readTuple() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		var collection tuple.ITupleCollection
+		var collection database.ITupleCollection
 		collection, err = development.ReadTuple(context.Background(), dev.R, params)
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})

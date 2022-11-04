@@ -11,6 +11,7 @@ import (
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
@@ -88,9 +89,9 @@ var _ = Describe("lookup-query-command", func() {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "repository", "1", "parent").Return(tuple.NewTupleCollection(getRepositoryParent...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("ReverseQueryTuples", "organization", "member", "user", []string{"1"}, "").Return(tuple.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("ReverseQueryTuples", "organization", "admin", "user", []string{"1"}, "").Return(tuple.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "repository", "1", "parent").Return(database.NewTupleCollection(getRepositoryParent...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("ReverseQueryTuples", "organization", "member", "user", []string{"1"}, "").Return(database.NewTupleCollection(getOrganizationMembers...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("ReverseQueryTuples", "organization", "admin", "user", []string{"1"}, "").Return(database.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
 
 			lookupQueryCommand = NewLookupQueryCommand(relationTupleRepository, l)
 
@@ -221,10 +222,10 @@ var _ = Describe("lookup-query-command", func() {
 				},
 			}
 
-			relationTupleRepository.On("QueryTuples", "organization", "6", "admin").Return(tuple.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(tuple.NewTupleCollection(getOrganizationMembers2...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("ReverseQueryTuples", "organization", "member", "organization", []string{"6"}, "admin").Return(tuple.NewTupleCollection(getOrganizationMembers1...).CreateTupleIterator(), nil).Times(1)
-			relationTupleRepository.On("ReverseQueryTuples", "organization", "admin", "organization", []string{"6"}, "admin").Return(tuple.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "6", "admin").Return(database.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("QueryTuples", "organization", "3", "member").Return(database.NewTupleCollection(getOrganizationMembers2...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("ReverseQueryTuples", "organization", "member", "organization", []string{"6"}, "admin").Return(database.NewTupleCollection(getOrganizationMembers1...).CreateTupleIterator(), nil).Times(1)
+			relationTupleRepository.On("ReverseQueryTuples", "organization", "admin", "organization", []string{"6"}, "admin").Return(database.NewTupleCollection(getOrganizationAdmins...).CreateTupleIterator(), nil).Times(1)
 
 			lookupQueryCommand = NewLookupQueryCommand(relationTupleRepository, l)
 

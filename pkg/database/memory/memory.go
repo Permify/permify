@@ -32,9 +32,15 @@ func (m *Memory) GetEngineType() string {
 	return "memory"
 }
 
+// Migrate -
+func (m *Memory) Migrate(statements []string) (err error) {
+	return nil
+}
+
 // Close -
-func (m *Memory) Close() {
+func (m *Memory) Close() error {
 	m.Lock()
 	defer m.Unlock()
 	m.DB = nil
+	return nil
 }

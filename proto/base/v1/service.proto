@@ -66,18 +66,19 @@ service Permission {
 // CheckRequest
 message PermissionCheckRequest {
   string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
 
-  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
-  string action = 3 [json_name = "action", (validate.rules).string = {
+  string action = 4 [json_name = "action", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
+  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
 
-  google.protobuf.Int32Value depth = 5 [json_name = "depth", (validate.rules).int32.gte = 3];
+  google.protobuf.Int32Value depth = 6 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionCheckResponse
@@ -93,10 +94,11 @@ message PermissionCheckResponse {
 // PermissionExpandRequest
 message PermissionExpandRequest {
   string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
 
-  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
-  string action = 3 [json_name = "action", (validate.rules).string = {
+  string action = 4 [json_name = "action", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
@@ -113,26 +115,26 @@ message PermissionExpandResponse {
 // LookupQueryRequest
 message PermissionLookupQueryRequest {
   string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
 
-  string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
+  string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  string action = 3 [json_name = "action", (validate.rules).string = {
+  string action = 4 [json_name = "action", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
+  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
 }
 
 // LookupQueryResponse
 message PermissionLookupQueryResponse {
   string query = 1 [json_name = "query"];
-  //  repeated string args = 2 [json_name = "args"];
 }
 
 // ** SCHEMA SERVICE **
@@ -283,25 +285,27 @@ service Relationship {
 message RelationshipWriteRequest {
   string schema_version = 1 [json_name = "schema_version"];
 
-  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
-
-  string relation = 3 [json_name = "relation", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: true,
+  repeated Tuple tuples = 2 [json_name = "tuples", (validate.rules).repeated = {
+    min_items : 1,
+    max_items : 100,
+    items : {
+      message : {
+        required : true,
+      },
+    },
   }];
-
-  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
 }
 
 // RelationshipWriteResponse
 message RelationshipWriteResponse {
-  Tuple tuple = 1 [json_name = "tuple"];
+  string snap_token = 1 [json_name = "snap_token"];
 }
 
 // RelationshipReadRequest
 message RelationshipReadRequest {
-  TupleFilter filter = 1 [json_name = "filter"];
+  string snap_token = 1 [json_name = "snap_token"];
+
+  TupleFilter filter = 2 [json_name = "filter"];
 }
 
 // RelationshipReadResponse
@@ -311,18 +315,10 @@ message RelationshipReadResponse {
 
 // RelationshipDeleteRequest
 message RelationshipDeleteRequest {
-  Entity entity = 1 [json_name = "entity", (validate.rules).message.required = true];
-
-  string relation = 2 [json_name = "relation", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: true,
-  }];
-
-  Subject subject = 3 [json_name = "subject", (validate.rules).message.required = true];
+  TupleFilter filter = 1 [json_name = "filter"];
 }
 
 // RelationshipDeleteResponse
 message RelationshipDeleteResponse {
-  Tuple tuple = 1 [json_name = "tuple"];
+  string snap_token = 1 [json_name = "snap_token"];
 }

@@ -6,15 +6,15 @@ import (
 
 var Schema = &memdb.DBSchema{
 	Tables: map[string]*memdb.TableSchema{
-		"entity_config": {
-			Name: "entity_config",
+		schemaDefinitionTable: {
+			Name: schemaDefinitionTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
 					Unique: true,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
-							&memdb.StringFieldIndex{Field: "Entity"},
+							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "Version"},
 						},
 					},
@@ -26,18 +26,18 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		"relation_tuple": {
-			Name: "relation_tuple",
+		relationTuplesTable: {
+			Name: relationTuplesTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
 					Unique: true,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
-							&memdb.StringFieldIndex{Field: "Entity"},
+							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "EntityID"},
 							&memdb.StringFieldIndex{Field: "Relation"},
-							&memdb.StringFieldIndex{Field: "SubjectEntity"},
+							&memdb.StringFieldIndex{Field: "SubjectType"},
 							&memdb.StringFieldIndex{Field: "SubjectID"},
 							&memdb.StringFieldIndex{Field: "SubjectRelation"},
 						},
@@ -49,29 +49,29 @@ var Schema = &memdb.DBSchema{
 					Unique: false,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
-							&memdb.StringFieldIndex{Field: "Entity"},
+							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "EntityID"},
 							&memdb.StringFieldIndex{Field: "Relation"},
 						},
 					},
 				},
-				"subject-index": {
-					Name:   "subject-index",
+				"relation-index": {
+					Name:   "relation-index",
 					Unique: false,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
-							&memdb.StringFieldIndex{Field: "Entity"},
+							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "Relation"},
-							&memdb.StringFieldIndex{Field: "SubjectEntity"},
+							&memdb.StringFieldIndex{Field: "SubjectType"},
 						},
 					},
 				},
-				"entity": {
-					Name:   "entity",
+				"entity-type-index": {
+					Name:   "entity-type-index",
 					Unique: false,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
-							&memdb.StringFieldIndex{Field: "Entity"},
+							&memdb.StringFieldIndex{Field: "EntityType"},
 						},
 					},
 				},

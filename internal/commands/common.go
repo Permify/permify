@@ -3,20 +3,29 @@ package commands
 import (
 	"golang.org/x/net/context"
 
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-func getSubjects(ctx context.Context, command ICommand, ear *base.EntityAndRelation) (iterator tuple.ISubjectIterator, err error) {
+func getSubjects(ctx context.Context, command ICommand, ear *base.EntityAndRelation, token token.SnapToken) (iterator database.ISubjectIterator, err error) {
 	r := tuple.SplitRelation(ear.GetRelation())
-
-	var tupleIterator tuple.ITupleIterator
-	tupleIterator, err = command.GetRelationTupleRepository().QueryTuples(ctx, ear.GetEntity().GetType(), ear.GetEntity().GetId(), r[0])
+	var tupleCollection database.ITupleCollection
+	tupleCollection, err = command.RelationshipReader().QueryRelationships(ctx, &base.TupleFilter{
+		Entity: &base.EntityFilter{
+			Type: ear.GetEntity().GetType(),
+			Ids:  []string{ear.GetEntity().GetId()},
+		},
+		Relation: r[0],
+	}, token)
 	if err != nil {
 		return nil, err
 	}
 
-	collection := tuple.NewSubjectCollection()
+	tupleIterator := tupleCollection.CreateTupleIterator()
+
+	collection := database.NewSubjectCollection()
 	for tupleIterator.HasNext() {
 		tup := tupleIterator.GetNext()
 		if !tuple.IsSubjectUser(tup.Subject) {

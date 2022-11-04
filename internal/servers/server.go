@@ -23,7 +23,6 @@ import (
 
 	"github.com/Permify/permify/internal/authn"
 	"github.com/Permify/permify/internal/config"
-	"github.com/Permify/permify/internal/managers"
 	"github.com/Permify/permify/internal/servers/middleware"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
@@ -37,7 +36,6 @@ type ServiceContainer struct {
 	RelationshipService services.IRelationshipService
 	PermissionService   services.IPermissionService
 	SchemaService       services.ISchemaService
-	SchemaManager       managers.IEntityConfigManager
 }
 
 // Run -
@@ -68,7 +66,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 
 	grpcServer := grpc.NewServer(opts...)
 	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.PermissionService, l))
-	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SchemaManager, s.SchemaService, l))
+	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SchemaService, l))
 	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RelationshipService, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	reflection.Register(grpcServer)

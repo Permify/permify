@@ -11,6 +11,7 @@ import (
 
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/development/validation"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -48,7 +49,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		// Write schema -
 		var version string
-		version, err = devContainer.M.Write(ctx, s.Schema)
+		version, err = devContainer.S.WriteSchema(ctx, s.Schema)
 		if err != nil {
 			return err
 		}
@@ -61,7 +62,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			err = devContainer.R.WriteRelationship(ctx, tup, version)
+			_, err = devContainer.R.WriteRelationships(ctx, []*base.Tuple{tup}, version)
 			if err != nil {
 				return err
 			}
@@ -78,7 +79,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					return err
 				}
 
-				res, err := devContainer.P.Check(ctx, q.Subject, q.Action, q.Entity, version, 20)
+				res, err := devContainer.P.CheckPermissions(ctx, q.Subject, q.Action, q.Entity, version, 20)
 				if err != nil {
 					return err
 				}

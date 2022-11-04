@@ -2,11 +2,16 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"time"
+
+	"github.com/jackc/pgx/v4"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/Masterminds/squirrel"
+
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // Postgres -.
@@ -67,14 +72,40 @@ func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+// Migrate -
+func (p *Postgres) Migrate(statements []string) (err error) {
+	ctx := context.Background()
+
+	var tx pgx.Tx
+	tx, err = p.Pool.Begin(ctx)
+	if err != nil {
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
+	}
+
+	for _, statement := range statements {
+		_, err = tx.Exec(ctx, statement)
+		if err != nil {
+			return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
+		}
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
+	}
+
+	return nil
+}
+
 // GetEngineType -
 func (p *Postgres) GetEngineType() string {
 	return "postgres"
 }
 
 // Close -.
-func (p *Postgres) Close() {
+func (p *Postgres) Close() error {
 	if p.Pool != nil {
 		p.Pool.Close()
 	}
+	return nil
 }

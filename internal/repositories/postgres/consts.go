@@ -1,3 +1,7 @@
 package postgres
 
-const _defaultEntityCap = 64
+const (
+	relationTuplesTable   = "relation_tuples"
+	schemaDefinitionTable = "schema_definitions"
+	transactionsTable     = "transactions"
+)

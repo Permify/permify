@@ -3,29 +3,35 @@ package repositories
 import (
 	"context"
 
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
+	"github.com/Permify/permify/pkg/token"
 )
 
-// Migratable -
-type Migratable interface {
-	Migrate() error
+// RelationshipReader -
+type RelationshipReader interface {
+	// QueryRelationships reads relation tuples from the repository.
+	QueryRelationships(ctx context.Context, filter *base.TupleFilter, token token.SnapToken) (collection database.ITupleCollection, err error)
 }
 
-// IRelationTupleRepository -
-type IRelationTupleRepository interface {
-	Migratable
-	QueryTuples(ctx context.Context, entityType string, entityID string, relation string) (tuple.ITupleIterator, error)
-	ReverseQueryTuples(ctx context.Context, entity string, relation string, subjectEntity string, subjectIDs []string, subjectRelation string) (tuple.ITupleIterator, error)
-	Read(ctx context.Context, filter *base.TupleFilter) (tuple.ITupleCollection, error)
-	Write(context.Context, tuple.ITupleIterator) error
-	Delete(context.Context, tuple.ITupleIterator) error
+// RelationshipWriter -
+type RelationshipWriter interface {
+	// WriteRelationships writes relation tuples to the repository.
+	WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token token.SnapToken, err error)
+	// DeleteRelationships deletes relation tuples from the repository.
+	DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token token.SnapToken, err error)
 }
 
-// IEntityConfigRepository -
-type IEntityConfigRepository interface {
-	Migratable
-	All(ctx context.Context, version string) (configs []EntityConfig, err error)
-	Read(ctx context.Context, name string, version string) (config EntityConfig, err error)
-	Write(ctx context.Context, configs []EntityConfig, version string) (err error)
+// SchemaReader -
+type SchemaReader interface {
+	// ReadSchema reads entity config from the repository.
+	ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error)
+	// ReadSchemaDefinition reads entity config from the repository.
+	ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, err error)
+}
+
+// SchemaWriter -
+type SchemaWriter interface {
+	// WriteSchema writes schema to the repository.
+	WriteSchema(ctx context.Context, definitions []SchemaDefinition) (version string, err error)
 }

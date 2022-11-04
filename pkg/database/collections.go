@@ -1,15 +1,8 @@
-package tuple
+package database
 
 import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
-
-// ITupleCollection abstract subject collection.
-type ITupleCollection interface {
-	Add(tuple *base.Tuple)
-	CreateTupleIterator() ITupleIterator
-	GetTuples() []*base.Tuple
-}
 
 // TupleCollection tuple collection.
 type TupleCollection struct {
@@ -46,13 +39,6 @@ func (t *TupleCollection) Add(tuple *base.Tuple) {
 
 // SUBJECT
 
-// ISubjectCollection abstract subject collection.
-type ISubjectCollection interface {
-	Add(subject *base.Subject)
-	CreateSubjectIterator() ISubjectIterator
-	GetSubjects() []*base.Subject
-}
-
 // SubjectCollection subject collection.
 type SubjectCollection struct {
 	subjects []*base.Subject
@@ -87,13 +73,6 @@ func (s *SubjectCollection) Add(subject *base.Subject) {
 }
 
 // ENTITY
-
-// IEntityCollection abstract entity collection.
-type IEntityCollection interface {
-	Add(entity *base.Entity)
-	CreateEntityIterator() IEntityIterator
-	GetEntities() []*base.Entity
-}
 
 // EntityCollection entity collection.
 type EntityCollection struct {

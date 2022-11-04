@@ -1,16 +1,15 @@
 package servers
 
 import (
-	"strconv"
-
 	"google.golang.org/grpc/codes"
+
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // GetStatus -
 func GetStatus(err error) codes.Code {
-	var code int
-	code, err = strconv.Atoi(err.Error())
-	if err != nil {
+	code, ok := base.ErrorCode_value[err.Error()]
+	if !ok {
 		return codes.Internal
 	}
 	switch {

@@ -3,8 +3,6 @@ package base.v1;
 
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
-//import "protoc-gen-openapiv2/options/annotations.proto";
-
 enum ErrorCode {
   ERROR_CODE_UNSPECIFIED = 0;
 
@@ -30,6 +28,7 @@ enum ErrorCode {
   ERROR_CODE_SUBJECT_RELATION_MUST_BE_EMPTY = 2017;
   ERROR_CODE_SUBJECT_RELATION_CANNOT_BE_EMPTY = 2018;
   ERROR_CODE_SCHEMA_MUST_HAVE_USER_ENTITY_DEFINITION = 2019;
+  ERROR_CODE_UNIQUE_CONSTRAINT = 2020;
 
   // not found
   ERROR_CODE_NOT_FOUND = 4000;
@@ -47,7 +46,6 @@ enum ErrorCode {
   ERROR_CODE_CANCELLED = 5001;
   ERROR_CODE_SQL_BUILDER = 5002;
   ERROR_CODE_CIRCUIT_BREAKER = 5003;
-  ERROR_CODE_UNIQUE_CONSTRAINT = 5004;
   ERROR_CODE_EXECUTION = 5005;
   ERROR_CODE_SCAN = 5006;
   ERROR_CODE_MIGRATION = 5007;

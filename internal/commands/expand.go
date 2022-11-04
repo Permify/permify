@@ -5,8 +5,10 @@ import (
 	"errors"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -18,26 +20,27 @@ type ExpandCombiner func(ctx context.Context, functions []ExpandFunction, expand
 
 // ExpandCommand -
 type ExpandCommand struct {
-	relationTupleRepository repositories.IRelationTupleRepository
-	logger                  logger.Interface
+	relationshipReader repositories.RelationshipReader
+	logger             logger.Interface
 }
 
 // NewExpandCommand -
-func NewExpandCommand(rr repositories.IRelationTupleRepository, l logger.Interface) *ExpandCommand {
+func NewExpandCommand(rr repositories.RelationshipReader, l logger.Interface) *ExpandCommand {
 	return &ExpandCommand{
-		relationTupleRepository: rr,
-		logger:                  l,
+		relationshipReader: rr,
+		logger:             l,
 	}
 }
 
-// GetRelationTupleRepository -
-func (command *ExpandCommand) GetRelationTupleRepository() repositories.IRelationTupleRepository {
-	return command.relationTupleRepository
+// RelationshipReader -
+func (command *ExpandCommand) RelationshipReader() repositories.RelationshipReader {
+	return command.relationshipReader
 }
 
 // ExpandQuery -
 type ExpandQuery struct {
 	Entity *base.Entity
+	Token  token.SnapToken
 }
 
 // ExpandResponse -
@@ -118,8 +121,8 @@ func (command *ExpandCommand) expand(ctx context.Context, ear *base.EntityAndRel
 	return func(ctx context.Context, expandChan chan<- *base.Expand) {
 		var err error
 
-		var iterator tuple.ISubjectIterator
-		iterator, err = getSubjects(ctx, command, ear)
+		var iterator database.ISubjectIterator
+		iterator, err = getSubjects(ctx, command, ear, q.Token)
 		if err != nil {
 			expandFail(err)
 			return

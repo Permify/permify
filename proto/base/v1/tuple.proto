@@ -7,14 +7,14 @@ import "validate/validate.proto";
 
 // Tuple
 message Tuple {
-  Entity entity = 1 [(validate.rules).message.required = true];
+  Entity entity = 1 [json_name = "entity", (validate.rules).message.required = true];
 
-  string relation = 2 [(validate.rules).string = {
+  string relation = 2 [json_name = "relation", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
   }];
 
-  Subject subject = 3 [(validate.rules).message.required = true];
+  Subject subject = 3 [json_name = "subject", (validate.rules).message.required = true];
 }
 
 // Tuples
@@ -24,12 +24,12 @@ message Tuples {
 
 // Entity
 message Entity {
-  string type = 1 [(validate.rules).string = {
+  string type = 1 [json_name = "type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
   }];
 
-  string id = 2 [(validate.rules).string = {
+  string id = 2 [json_name = "id", (validate.rules).string = {
     pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
     max_bytes : 128,
   }];
@@ -46,17 +46,17 @@ message EntityAndRelation {
 
 // Subject
 message Subject {
-  string type = 1 [(validate.rules).string = {
+  string type = 1 [json_name = "type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
   }];
 
-  string id = 2 [(validate.rules).string = {
+  string id = 2 [json_name = "id", (validate.rules).string = {
     pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
     max_bytes : 128,
   }];
 
-  string relation = 3 [(validate.rules).string = {
+  string relation = 3 [json_name = "relation", (validate.rules).string = {
     pattern : "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
@@ -65,6 +65,7 @@ message Subject {
 
 // Filters
 
+// TupleFilter is used to filter tuples
 message TupleFilter {
   EntityFilter entity = 1 [(validate.rules).message.required = true];
 
@@ -74,38 +75,24 @@ message TupleFilter {
     ignore_empty: true,
   }];
 
-  SubjectFilter subject = 3;
+  SubjectFilter subject = 3 [json_name = "subject"];
 }
 
+// SubjectFilter is used to filter subjects
 message EntityFilter {
-  string type = 1 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-  }];
+  string type = 1 [json_name = "type"];
 
-  string id = 2 [(validate.rules).string = {
-    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
-    max_bytes : 128,
-    ignore_empty: true,
-  }];
+  repeated string ids = 2 [json_name = "ids"];
 }
 
-// Subject
+// SubjectFilter is used to filter subjects
 message SubjectFilter {
-  string type = 1 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: true,
-  }];
+  string type = 1 [json_name = "type"];
 
-  string id = 2 [(validate.rules).string = {
-    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
-    max_bytes : 128,
-    ignore_empty: true,
-  }];
+  repeated string ids = 2 [json_name = "ids"];
 
   string relation = 3 [(validate.rules).string = {
-    pattern : "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
