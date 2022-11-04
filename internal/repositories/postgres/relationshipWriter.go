@@ -69,7 +69,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 		return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	return token.NewSnapTokenWithInt(xid.Uint), nil
+	return token.New(xid.Uint), nil
 }
 
 // DeleteRelationships deletes a collection of relationships to the database
@@ -98,5 +98,5 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 		return token.SnapToken{}, err
 	}
 
-	return token.NewSnapTokenWithInt(xid.Uint), nil
+	return token.New(xid.Uint), nil
 }
