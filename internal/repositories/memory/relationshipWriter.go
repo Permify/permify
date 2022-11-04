@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
@@ -44,7 +43,7 @@ func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 	}
 
 	txn.Commit()
-	return token.NewSnapToken(time.Now(), 0), nil
+	return token.New(0), nil
 }
 
 // DeleteRelationships -
@@ -74,5 +73,5 @@ func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 	//}
 
 	// txn.Commit()
-	return token.NewSnapToken(time.Now(), 0), nil
+	return token.New(0), nil
 }
