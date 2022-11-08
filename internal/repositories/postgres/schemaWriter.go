@@ -45,6 +45,7 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.S
 
 	results := tx.SendBatch(ctx, batch)
 	if err = results.Close(); err != nil {
+		_ = tx.Rollback(ctx)
 		return "", err
 	}
 

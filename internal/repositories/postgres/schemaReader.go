@@ -41,11 +41,18 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 		return nil, err
 	}
 
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
 	var sql string
 	var args []interface{}
 
 	query := r.database.Builder.Select("entity_type, serialized_definition").From(schemaDefinitionTable).Where(squirrel.Eq{"version": version})
 	sql, args, err = query.ToSql()
+	if err != nil {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+	}
 
 	var rows pgx.Rows
 	rows, err = tx.Query(ctx, sql, args...)
@@ -88,11 +95,18 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 		return nil, err
 	}
 
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
 	var sql string
 	var args []interface{}
 
 	query := r.database.Builder.Select("entity_type, serialized_definition").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(schemaDefinitionTable).Limit(1)
 	sql, args, err = query.ToSql()
+	if err != nil {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+	}
 
 	var def repositories.SchemaDefinition
 	var row pgx.Row

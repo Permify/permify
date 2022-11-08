@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
@@ -26,78 +25,109 @@ type RelationshipWriter struct {
 func NewRelationshipWriter(database *db.Postgres) *RelationshipWriter {
 	return &RelationshipWriter{
 		database:  database,
-		txOptions: pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadWrite},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadWrite},
 	}
 }
 
 // WriteRelationships writes a collection of relationships to the database
 func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
-	tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	batch := &pgx.Batch{}
-	iter := collection.CreateTupleIterator()
-	for iter.HasNext() {
-		t := iter.GetNext()
-		query, args, err := w.database.Builder.
-			Insert(relationTuplesTable).
-			Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation()).ToSql()
+	for i := 0; i <= 10; i++ {
+		tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
 		if err != nil {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+			return nil, err
 		}
-		batch.Queue(query, args...)
-	}
 
-	var xid types.XID8
-	err = tx.QueryRow(ctx, builders.NewTransactionQuery()).Scan(&xid)
+		batch := &pgx.Batch{}
+		iter := collection.CreateTupleIterator()
+		for iter.HasNext() {
+			t := iter.GetNext()
+			query, args, err := w.database.Builder.
+				Insert(relationTuplesTable).
+				Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation()).ToSql()
+			if err != nil {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+			}
+			batch.Queue(query, args...)
+		}
 
-	results := tx.SendBatch(ctx, batch)
-	if err = results.Close(); err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "23505":
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
-			default:
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		var xid types.XID8
+		err = tx.QueryRow(ctx, builders.NewTransactionQuery()).Scan(&xid)
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		}
+
+		results := tx.SendBatch(ctx, batch)
+		if err = results.Close(); err != nil {
+			_ = tx.Rollback(ctx)
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) {
+				switch pgErr.Code {
+				case "40001":
+					continue
+				case "23505":
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
+				default:
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				}
 			}
 		}
+
+		if err = tx.Commit(ctx); err != nil {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		}
+
+		return snapshot.NewToken(xid).Encode(), nil
 	}
 
-	if err = tx.Commit(ctx); err != nil {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-	}
-
-	return snapshot.NewToken(xid).Encode(), nil
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
 }
 
 // DeleteRelationships deletes a collection of relationships to the database
 func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
-	tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
-	if err != nil {
-		return nil, err
+	for i := 0; i <= 10; i++ {
+		tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
+		if err != nil {
+			return nil, err
+		}
+
+		batch := &pgx.Batch{}
+		builder := w.database.Builder.Update(relationTuplesTable).Set("expired_tx_id", squirrel.Expr("pg_current_xact_id()")).Where(squirrel.Eq{"expired_tx_id": "0"})
+		builder = builders.FilterQueryForUpdateBuilder(builder, filter)
+
+		query, args, err := builder.ToSql()
+		if err != nil {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		}
+		batch.Queue(query, args...)
+
+		var xid types.XID8
+		err = tx.QueryRow(ctx, builders.NewTransactionQuery()).Scan(&xid)
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		}
+
+		results := tx.SendBatch(ctx, batch)
+		if err = results.Close(); err != nil {
+			_ = tx.Rollback(ctx)
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) {
+				switch pgErr.Code {
+				case "40001":
+					continue
+				default:
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				}
+			}
+		}
+
+		if err = tx.Commit(ctx); err != nil {
+			return nil, err
+		}
+
+		return snapshot.NewToken(xid).Encode(), nil
 	}
 
-	batch := &pgx.Batch{}
-	builder := w.database.Builder.Update(relationTuplesTable).Set("expired_tx_id", squirrel.Expr("pg_current_xact_id()")).Where(squirrel.Eq{"expired_tx_id": "0"})
-	builder = builders.FilterQueryForUpdateBuilder(builder, filter)
-
-	query, args, err := builder.ToSql()
-	batch.Queue(query, args...)
-
-	var xid types.XID8
-	err = tx.QueryRow(ctx, builders.NewTransactionQuery()).Scan(&xid)
-
-	results := tx.SendBatch(ctx, batch)
-	if err = results.Close(); err != nil {
-		return nil, err
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
-	return snapshot.NewToken(xid).Encode(), nil
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
 }

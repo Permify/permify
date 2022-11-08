@@ -31,22 +31,29 @@ func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
 
 // QueryRelationships gets all relationships for a given filter
 func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (database.ITupleCollection, error) {
-	tx, err := r.database.Pool.BeginTx(ctx, r.txOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	var sql string
-	var args []interface{}
-
-	query := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(relationTuplesTable)
-	query = builders.FilterQueryForSelectBuilder(query, filter)
+	var err error
 
 	var st token.SnapToken
 	st, err = r.snapToken(ctx, t)
 	if err != nil {
 		return nil, err
 	}
+
+	var tx pgx.Tx
+	tx, err = r.database.Pool.BeginTx(ctx, r.txOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	var sql string
+	var args []interface{}
+
+	query := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(relationTuplesTable)
+	query = builders.FilterQueryForSelectBuilder(query, filter)
 
 	query = builders.SnapshotQuery(query, st.(snapshot.Token).Value.Uint)
 	query = query.OrderBy("subject_type, subject_relation ASC")
