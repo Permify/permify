@@ -79,7 +79,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					return err
 				}
 
-				res, err := devContainer.P.CheckPermissions(ctx, q.Subject, q.Action, q.Entity, version, 20)
+				res, err := devContainer.P.CheckPermissions(ctx, q.Subject, q.Action, q.Entity, version, "", 20)
 				if err != nil {
 					return err
 				}

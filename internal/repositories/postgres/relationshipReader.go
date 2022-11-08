@@ -8,6 +8,8 @@ import (
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/postgres/builders"
+	"github.com/Permify/permify/internal/repositories/postgres/snapshot"
+	"github.com/Permify/permify/internal/repositories/postgres/types"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -28,7 +30,7 @@ func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
 }
 
 // QueryRelationships gets all relationships for a given filter
-func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, token token.SnapToken) (database.ITupleCollection, error) {
+func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (database.ITupleCollection, error) {
 	tx, err := r.database.Pool.BeginTx(ctx, r.txOptions)
 	if err != nil {
 		return nil, err
@@ -39,7 +41,14 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 
 	query := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(relationTuplesTable)
 	query = builders.FilterQueryForSelectBuilder(query, filter)
-	query = builders.SnapshotQuery(query, token.Value())
+
+	var st token.SnapToken
+	st, err = r.snapToken(ctx, t)
+	if err != nil {
+		return nil, err
+	}
+
+	query = builders.SnapshotQuery(query, st.(snapshot.Token).Value.Uint)
 	query = query.OrderBy("subject_type, subject_relation ASC")
 
 	sql, args, err = query.ToSql()
@@ -65,4 +74,30 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	}
 
 	return collection, nil
+}
+
+// snapToken gets the token for a given snapshot
+func (r *RelationshipReader) snapToken(ctx context.Context, token string) (token.SnapToken, error) {
+	if token == "" {
+		return r.headToken(ctx)
+	}
+	encoded := snapshot.EncodedToken{Value: token}
+	return encoded.Decode()
+}
+
+// headToken gets the latest token
+func (r *RelationshipReader) headToken(ctx context.Context) (token.SnapToken, error) {
+	var xid types.XID8
+	query := r.database.Builder.Select("id").From(transactionsTable).OrderBy("id DESC").Limit(1)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+	}
+	var row pgx.Row
+	row = r.database.Pool.QueryRow(ctx, sql, args...)
+	err = row.Scan(&xid)
+	if err != nil {
+		return nil, err
+	}
+	return snapshot.Token{Value: xid}, nil
 }

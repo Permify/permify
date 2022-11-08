@@ -10,15 +10,21 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 )
 
 type RelationshipReader struct {
 	database *db.Memory
 }
 
+// NewRelationshipReader creates a new RelationshipReader
+func NewRelationshipReader(database *db.Memory) *RelationshipReader {
+	return &RelationshipReader{
+		database: database,
+	}
+}
+
 // QueryRelationships -
-func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, _ token.SnapToken) (collection database.ITupleCollection, err error) {
+func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, _ string) (collection database.ITupleCollection, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 

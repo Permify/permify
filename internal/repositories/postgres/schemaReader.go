@@ -30,7 +30,7 @@ func NewSchemaReader(database *db.Postgres) *SchemaReader {
 // ReadSchema reads entity config from the repository.
 func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
 	if version == "" {
-		version, err = r.findLatestVersion(ctx)
+		version, err = r.headVersion(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, error) {
 	var err error
 	if version == "" {
-		version, err = r.findLatestVersion(ctx)
+		version, err = r.headVersion(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -110,8 +110,8 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	return schema.GetEntityByName(sch, entityType)
 }
 
-// findLatestVersion finds the latest version of the schema.
-func (r *SchemaReader) findLatestVersion(ctx context.Context) (version string, err error) {
+// headVersion finds the latest version of the schema.
+func (r *SchemaReader) headVersion(ctx context.Context) (version string, err error) {
 	var sql string
 	var args []interface{}
 	sql, args, err = r.database.Builder.

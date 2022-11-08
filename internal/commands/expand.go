@@ -8,7 +8,6 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -39,8 +38,8 @@ func (command *ExpandCommand) RelationshipReader() repositories.RelationshipRead
 
 // ExpandQuery -
 type ExpandQuery struct {
-	Entity *base.Entity
-	Token  token.SnapToken
+	Entity    *base.Entity
+	SnapToken string
 }
 
 // ExpandResponse -
@@ -122,7 +121,7 @@ func (command *ExpandCommand) expand(ctx context.Context, ear *base.EntityAndRel
 		var err error
 
 		var iterator database.ISubjectIterator
-		iterator, err = getSubjects(ctx, command, ear, q.Token)
+		iterator, err = getSubjects(ctx, command, ear, q.SnapToken)
 		if err != nil {
 			expandFail(err)
 			return

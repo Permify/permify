@@ -11,15 +11,15 @@ import (
 // RelationshipReader -
 type RelationshipReader interface {
 	// QueryRelationships reads relation tuples from the repository.
-	QueryRelationships(ctx context.Context, filter *base.TupleFilter, token token.SnapToken) (collection database.ITupleCollection, err error)
+	QueryRelationships(ctx context.Context, filter *base.TupleFilter, token string) (collection database.ITupleCollection, err error)
 }
 
 // RelationshipWriter -
 type RelationshipWriter interface {
 	// WriteRelationships writes relation tuples to the repository.
-	WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token token.SnapToken, err error)
+	WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token token.EncodedSnapToken, err error)
 	// DeleteRelationships deletes relation tuples from the repository.
-	DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token token.SnapToken, err error)
+	DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token token.EncodedSnapToken, err error)
 }
 
 // SchemaReader -

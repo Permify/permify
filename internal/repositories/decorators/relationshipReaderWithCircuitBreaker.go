@@ -9,7 +9,6 @@ import (
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 )
 
 // RelationshipReaderWithCircuitBreaker -
@@ -23,7 +22,7 @@ func NewRelationshipReaderWithCircuitBreaker(delegate repositories.RelationshipR
 }
 
 // QueryRelationships -
-func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Context, filter *base.TupleFilter, token token.SnapToken) (database.ITupleCollection, error) {
+func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Context, filter *base.TupleFilter, token string) (database.ITupleCollection, error) {
 	type circuitBreakerResponse struct {
 		Collection database.ITupleCollection
 		Error      error

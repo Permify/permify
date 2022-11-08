@@ -15,6 +15,13 @@ type SchemaWriter struct {
 	database *db.Memory
 }
 
+// NewSchemaWriter creates a new SchemaWriter
+func NewSchemaWriter(database *db.Memory) *SchemaWriter {
+	return &SchemaWriter{
+		database: database,
+	}
+}
+
 // WriteSchema -
 func (r *SchemaWriter) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) (string, error) {
 	id := xid.New()

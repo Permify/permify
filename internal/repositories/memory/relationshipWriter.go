@@ -15,13 +15,20 @@ type RelationshipWriter struct {
 	database *db.Memory
 }
 
+// NewRelationshipWriter creates a new RelationshipReader
+func NewRelationshipWriter(database *db.Memory) *RelationshipWriter {
+	return &RelationshipWriter{
+		database: database,
+	}
+}
+
 // WriteRelationships -
-func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.SnapToken, error) {
+func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	var err error
 
 	iterator := collection.CreateTupleIterator()
 	if !iterator.HasNext() {
-		return token.SnapToken{}, nil
+		return nil, nil
 	}
 
 	txn := r.database.DB.Txn(true)
@@ -38,16 +45,16 @@ func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 			SubjectRelation: bt.GetSubject().GetRelation(),
 		}
 		if err = txn.Insert(relationTuplesTable, t); err != nil {
-			return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}
 
 	txn.Commit()
-	return token.New(0), nil
+	return nil, nil
 }
 
 // DeleteRelationships -
-func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.SnapToken, error) {
+func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	//iterator := collection.CreateTupleIterator()
 	//if !iterator.HasNext() {
 	//	return nil
@@ -68,10 +75,10 @@ func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 	//		SubjectRelation: bt.GetSubject().GetRelation(),
 	//	}
 	//	if err = txn.Delete(relationTuplesTable, t); err != nil {
-	//		return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
+	//		return snapshot.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
 	//	}
 	//}
 
 	// txn.Commit()
-	return token.New(0), nil
+	return nil, nil
 }

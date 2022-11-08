@@ -11,16 +11,16 @@ import (
 
 // IPermissionService -
 type IPermissionService interface {
-	CheckPermissions(ctx context.Context, subject *base.Subject, action string, entity *base.Entity, version string, d int32) (response commands.CheckResponse, err error)
-	ExpandPermissions(ctx context.Context, entity *base.Entity, action string, version string) (response commands.ExpandResponse, err error)
+	CheckPermissions(ctx context.Context, subject *base.Subject, action string, entity *base.Entity, version string, snapToken string, d int32) (response commands.CheckResponse, err error)
+	ExpandPermissions(ctx context.Context, entity *base.Entity, action string, version string, snapToken string) (response commands.ExpandResponse, err error)
 	LookupQueryPermissions(ctx context.Context, entityType string, subject *base.Subject, action string, version string) (response commands.LookupQueryResponse, err error)
 }
 
 // IRelationshipService -
 type IRelationshipService interface {
-	ReadRelationships(ctx context.Context, filter *base.TupleFilter, token token.SnapToken) (database.ITupleCollection, error)
-	WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token.SnapToken, error)
-	DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.SnapToken, error)
+	ReadRelationships(ctx context.Context, filter *base.TupleFilter, token string) (database.ITupleCollection, error)
+	WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token.EncodedSnapToken, error)
+	DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error)
 }
 
 // ISchemaService -

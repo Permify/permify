@@ -11,8 +11,8 @@ import (
 )
 
 // Check -
-func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version string) (res commands.CheckResponse, err error) {
-	return service.CheckPermissions(ctx, subject, action, entity, version, 20)
+func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version string, snapToken string) (res commands.CheckResponse, err error) {
+	return service.CheckPermissions(ctx, subject, action, entity, version, snapToken, 20)
 }
 
 // LookupQuery -
@@ -21,17 +21,17 @@ func LookupQuery(ctx context.Context, service services.IPermissionService, entit
 }
 
 // ReadTuple -
-func ReadTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter, token token.SnapToken) (tuples database.ITupleCollection, err error) {
+func ReadTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
 	return service.ReadRelationships(ctx, filter, token)
 }
 
 // WriteTuple -
-func WriteTuple(ctx context.Context, service services.IRelationshipService, tuples []*v1.Tuple, version string) (token token.SnapToken, err error) {
+func WriteTuple(ctx context.Context, service services.IRelationshipService, tuples []*v1.Tuple, version string) (token token.EncodedSnapToken, err error) {
 	return service.WriteRelationships(ctx, tuples, version)
 }
 
 // DeleteTuple -
-func DeleteTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter) (token token.SnapToken, err error) {
+func DeleteTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter) (token token.EncodedSnapToken, err error) {
 	return service.DeleteRelationships(ctx, filter)
 }
 

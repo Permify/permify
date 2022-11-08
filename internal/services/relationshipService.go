@@ -29,12 +29,12 @@ func NewRelationshipService(rr repositories.RelationshipReader, rw repositories.
 }
 
 // ReadRelationships -
-func (service *RelationshipService) ReadRelationships(ctx context.Context, filter *base.TupleFilter, token token.SnapToken) (tuples database.ITupleCollection, err error) {
+func (service *RelationshipService) ReadRelationships(ctx context.Context, filter *base.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
 	return service.rr.QueryRelationships(ctx, filter, token)
 }
 
 // WriteRelationships -
-func (service *RelationshipService) WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token token.SnapToken, err error) {
+func (service *RelationshipService) WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
 	for _, tup := range tuples {
 		var entity *base.EntityDefinition
 		entity, err = service.sr.ReadSchemaDefinition(ctx, tup.GetEntity().GetType(), version)
@@ -63,6 +63,6 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tupl
 }
 
 // DeleteRelationships -
-func (service *RelationshipService) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.SnapToken, error) {
+func (service *RelationshipService) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	return service.rw.DeleteRelationships(ctx, filter)
 }

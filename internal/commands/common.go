@@ -5,11 +5,10 @@ import (
 
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-func getSubjects(ctx context.Context, command ICommand, ear *base.EntityAndRelation, token token.SnapToken) (iterator database.ISubjectIterator, err error) {
+func getSubjects(ctx context.Context, command ICommand, ear *base.EntityAndRelation, token string) (iterator database.ISubjectIterator, err error) {
 	r := tuple.SplitRelation(ear.GetRelation())
 	var tupleCollection database.ITupleCollection
 	tupleCollection, err = command.RelationshipReader().QueryRelationships(ctx, &base.TupleFilter{

@@ -150,7 +150,7 @@ func (p *Parser) Parse() (*ast.Schema, error) {
 	return schema, nil
 }
 
-// parseStatement method based on defined token types
+// parseStatement method based on defined snapshot types
 func (p *Parser) parseStatement() (ast.Statement, error) {
 	switch p.currentToken.Type {
 	case token.ENTITY:
@@ -473,18 +473,18 @@ func (p *Parser) noInfixParseFnError(t token.Type) {
 
 // illegal -
 func (p *Parser) illegal() {
-	msg := fmt.Sprintf("%v:%v:illegal token found", p.l.GetLinePosition(), p.l.GetColumnPosition())
+	msg := fmt.Sprintf("%v:%v:illegal snapshot found", p.l.GetLinePosition(), p.l.GetColumnPosition())
 	p.errors = append(p.errors, msg)
 }
 
 // peekError -
 func (p *Parser) peekError(t ...token.Type) {
-	msg := fmt.Sprintf("%v:%v:expected next token to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), t, p.peekToken.Type)
+	msg := fmt.Sprintf("%v:%v:expected next snapshot to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), t, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
 }
 
 // currentError -
 func (p *Parser) currentError(t ...token.Type) {
-	msg := fmt.Sprintf("%v:%v:expected token to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), t, p.currentToken.Type)
+	msg := fmt.Sprintf("%v:%v:expected snapshot to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), t, p.currentToken.Type)
 	p.errors = append(p.errors, msg)
 }

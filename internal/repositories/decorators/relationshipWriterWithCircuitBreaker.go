@@ -23,9 +23,9 @@ func NewRelationshipWriterWithCircuitBreaker(delegate repositories.RelationshipW
 }
 
 // WriteRelationships -
-func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.SnapToken, error) {
+func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
-		Token token.SnapToken
+		Token token.EncodedSnapToken
 		Error error
 	}
 
@@ -44,14 +44,14 @@ func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Co
 	case out := <-output:
 		return out.Token, out.Error
 	case <-bErrors:
-		return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
 
 // DeleteRelationships -
-func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.SnapToken, error) {
+func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
-		Token token.SnapToken
+		Token token.EncodedSnapToken
 		Error error
 	}
 
@@ -70,6 +70,6 @@ func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.C
 	case out := <-output:
 		return out.Token, out.Error
 	case <-bErrors:
-		return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -58,11 +57,11 @@ func (command *CheckCommand) RelationshipReader() repositories.RelationshipReade
 
 // CheckQuery -
 type CheckQuery struct {
-	Entity  *base.Entity
-	Subject *base.Subject
-	Token   token.SnapToken
-	depth   int32
-	visits  sync.Map
+	Entity    *base.Entity
+	Subject   *base.Subject
+	SnapToken string
+	depth     int32
+	visits    sync.Map
 }
 
 func (r *CheckQuery) SetVisit(key string, decision CheckDecision) {
@@ -188,7 +187,7 @@ func (command *CheckCommand) check(ctx context.Context, ear *base.EntityAndRelat
 		}
 
 		var iterator database.ISubjectIterator
-		iterator, err = getSubjects(ctx, command, ear, q.Token)
+		iterator, err = getSubjects(ctx, command, ear, q.SnapToken)
 		if err != nil {
 			checkFail(err)
 			return

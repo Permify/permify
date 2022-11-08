@@ -46,7 +46,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 
 	var err error
 	var response commands.CheckResponse
-	response, err = r.permissionService.CheckPermissions(ctx, request.GetSubject(), request.GetAction(), request.GetEntity(), request.GetSchemaVersion(), depth)
+	response, err = r.permissionService.CheckPermissions(ctx, request.GetSubject(), request.GetAction(), request.GetEntity(), request.GetSchemaVersion(), request.GetSnapToken(), depth)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -54,7 +54,6 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	// Decisions: response.Visits.(map[string]*anypb.Any),
 	return &v1.PermissionCheckResponse{
 		Can:            response.Can,
 		RemainingDepth: response.RemainingDepth,
@@ -73,7 +72,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 
 	var err error
 	var response commands.ExpandResponse
-	response, err = r.permissionService.ExpandPermissions(ctx, request.GetEntity(), request.GetAction(), request.GetSchemaVersion())
+	response, err = r.permissionService.ExpandPermissions(ctx, request.GetEntity(), request.GetAction(), request.GetSchemaVersion(), request.GetSnapToken())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

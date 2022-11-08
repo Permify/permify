@@ -30,7 +30,7 @@ func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand,
 }
 
 // CheckPermissions -
-func (service *PermissionService) CheckPermissions(ctx context.Context, subject *base.Subject, action string, entity *base.Entity, version string, d int32) (response commands.CheckResponse, err error) {
+func (service *PermissionService) CheckPermissions(ctx context.Context, subject *base.Subject, action string, entity *base.Entity, version string, snapToken string, d int32) (response commands.CheckResponse, err error) {
 	var en *base.EntityDefinition
 	en, err = service.sr.ReadSchemaDefinition(ctx, entity.GetType(), version)
 	if err != nil {
@@ -46,8 +46,9 @@ func (service *PermissionService) CheckPermissions(ctx context.Context, subject 
 	child := a.Child
 
 	q := &commands.CheckQuery{
-		Entity:  entity,
-		Subject: subject,
+		Entity:    entity,
+		Subject:   subject,
+		SnapToken: snapToken,
 	}
 
 	q.SetDepth(d)
@@ -56,7 +57,7 @@ func (service *PermissionService) CheckPermissions(ctx context.Context, subject 
 }
 
 // ExpandPermissions -
-func (service *PermissionService) ExpandPermissions(ctx context.Context, entity *base.Entity, action string, version string) (response commands.ExpandResponse, err error) {
+func (service *PermissionService) ExpandPermissions(ctx context.Context, entity *base.Entity, action string, version string, snapToken string) (response commands.ExpandResponse, err error) {
 	var en *base.EntityDefinition
 	en, err = service.sr.ReadSchemaDefinition(ctx, entity.GetType(), version)
 	if err != nil {
@@ -72,7 +73,8 @@ func (service *PermissionService) ExpandPermissions(ctx context.Context, entity 
 	child := a.Child
 
 	q := &commands.ExpandQuery{
-		Entity: entity,
+		Entity:    entity,
+		SnapToken: snapToken,
 	}
 
 	return service.expand.Execute(ctx, q, child)

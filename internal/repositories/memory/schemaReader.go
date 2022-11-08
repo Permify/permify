@@ -27,7 +27,7 @@ func NewSchemaReader(database *db.Memory) *SchemaReader {
 // ReadSchema -
 func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
 	if version == "" {
-		version, err = r.findLastVersion(ctx)
+		version, err = r.headVersion(ctx)
 		if err != nil {
 			return schema, err
 		}
@@ -57,7 +57,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 // ReadSchemaDefinition -
 func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, err error) {
 	if version == "" {
-		version, err = r.findLastVersion(ctx)
+		version, err = r.headVersion(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -84,8 +84,8 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 }
 
-// findLastVersion -
-func (r *SchemaReader) findLastVersion(ctx context.Context) (string, error) {
+// headVersion -
+func (r *SchemaReader) headVersion(ctx context.Context) (string, error) {
 	var err error
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()

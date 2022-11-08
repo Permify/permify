@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/repositories/postgres/builders"
+	"github.com/Permify/permify/internal/repositories/postgres/snapshot"
 	"github.com/Permify/permify/internal/repositories/postgres/types"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
@@ -30,10 +31,10 @@ func NewRelationshipWriter(database *db.Postgres) *RelationshipWriter {
 }
 
 // WriteRelationships writes a collection of relationships to the database
-func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.SnapToken, error) {
+func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
 	if err != nil {
-		return token.SnapToken{}, err
+		return nil, err
 	}
 
 	batch := &pgx.Batch{}
@@ -44,7 +45,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 			Insert(relationTuplesTable).
 			Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation()).ToSql()
 		if err != nil {
-			return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 		}
 		batch.Queue(query, args...)
 	}
@@ -58,25 +59,25 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-				return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
 			default:
-				return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
 		}
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		return token.SnapToken{}, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	return token.New(xid.Uint), nil
+	return snapshot.NewToken(xid).Encode(), nil
 }
 
 // DeleteRelationships deletes a collection of relationships to the database
-func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.SnapToken, error) {
+func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
 	if err != nil {
-		return token.SnapToken{}, err
+		return nil, err
 	}
 
 	batch := &pgx.Batch{}
@@ -91,12 +92,12 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 
 	results := tx.SendBatch(ctx, batch)
 	if err = results.Close(); err != nil {
-		return token.SnapToken{}, err
+		return nil, err
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		return token.SnapToken{}, err
+		return nil, err
 	}
 
-	return token.New(xid.Uint), nil
+	return snapshot.NewToken(xid).Encode(), nil
 }

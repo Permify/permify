@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -41,7 +40,7 @@ func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipR
 		return nil, v
 	}
 
-	collection, err := r.relationshipService.ReadRelationships(ctx, request.GetFilter(), token.StringToSnapToken(request.SnapToken))
+	collection, err := r.relationshipService.ReadRelationships(ctx, request.GetFilter(), request.SnapToken)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
