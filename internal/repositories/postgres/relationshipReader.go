@@ -7,9 +7,9 @@ import (
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/postgres/builders"
 	"github.com/Permify/permify/internal/repositories/postgres/snapshot"
 	"github.com/Permify/permify/internal/repositories/postgres/types"
+	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -52,10 +52,10 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	var sql string
 	var args []interface{}
 
-	query := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(relationTuplesTable)
-	query = builders.FilterQueryForSelectBuilder(query, filter)
+	query := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable)
+	query = utils.FilterQueryForSelectBuilder(query, filter)
 
-	query = builders.SnapshotQuery(query, st.(snapshot.Token).Value.Uint)
+	query = utils.SnapshotQuery(query, st.(snapshot.Token).Value.Uint)
 	query = query.OrderBy("subject_type, subject_relation ASC")
 
 	sql, args, err = query.ToSql()
@@ -95,7 +95,7 @@ func (r *RelationshipReader) snapToken(ctx context.Context, token string) (token
 // headToken gets the latest token
 func (r *RelationshipReader) headToken(ctx context.Context) (token.SnapToken, error) {
 	var xid types.XID8
-	query := r.database.Builder.Select("id").From(transactionsTable).OrderBy("id DESC").Limit(1)
+	query := r.database.Builder.Select("id").From(TransactionsTable).OrderBy("id DESC").Limit(1)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())

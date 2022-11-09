@@ -30,8 +30,7 @@ func (r *SchemaWriter) WriteSchema(ctx context.Context, definitions []repositori
 	defer txn.Abort()
 	for _, definition := range definitions {
 		definition.Version = id.String()
-		// config.Version = version
-		if err = txn.Insert(schemaDefinitionTable, definition); err != nil {
+		if err = txn.Insert(SchemaDefinitionTable, definition); err != nil {
 			return "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}

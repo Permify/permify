@@ -47,9 +47,10 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, version
 }
 
 // ReadSchemaDefinition -
-func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, error) {
+func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, string, error) {
 	type circuitBreakerResponse struct {
 		Definition *base.EntityDefinition
+		Version    string
 		Error      error
 	}
 
@@ -57,8 +58,8 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Contex
 
 	hystrix.ConfigureCommand("schemaReader.readSchemaDefinition", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("schemaReader.readSchemaDefinition", func() error {
-		conf, err := r.delegate.ReadSchemaDefinition(ctx, entityType, version)
-		output <- circuitBreakerResponse{Definition: conf, Error: err}
+		conf, v, err := r.delegate.ReadSchemaDefinition(ctx, entityType, version)
+		output <- circuitBreakerResponse{Definition: conf, Version: v, Error: err}
 		return nil
 	}, func(err error) error {
 		return nil
@@ -66,8 +67,8 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Contex
 
 	select {
 	case out := <-output:
-		return out.Definition, out.Error
+		return out.Definition, out.Version, out.Error
 	case <-bErrors:
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }

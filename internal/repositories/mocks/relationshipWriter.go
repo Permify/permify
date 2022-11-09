@@ -16,14 +16,14 @@ type RelationshipWriter struct {
 }
 
 // WriteRelationships -
-func (_m *SchemaReader) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.SnapToken, error) {
+func (_m *SchemaReader) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	ret := _m.Called(collection)
 
-	var r0 token.SnapToken
-	if rf, ok := ret.Get(0).(func(context.Context, database.ITupleCollection) token.SnapToken); ok {
+	var r0 token.EncodedSnapToken
+	if rf, ok := ret.Get(0).(func(context.Context, database.ITupleCollection) token.EncodedSnapToken); ok {
 		r0 = rf(ctx, collection)
 	} else {
-		r0 = ret.Get(0).(token.SnapToken)
+		r0 = ret.Get(0).(token.EncodedSnapToken)
 	}
 
 	var r1 error
@@ -41,14 +41,14 @@ func (_m *SchemaReader) WriteRelationships(ctx context.Context, collection datab
 }
 
 // DeleteRelationships -
-func (_m *SchemaReader) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.SnapToken, error) {
+func (_m *SchemaReader) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	ret := _m.Called(filter)
 
-	var r0 token.SnapToken
-	if rf, ok := ret.Get(0).(func(context.Context, *base.TupleFilter) token.SnapToken); ok {
+	var r0 token.EncodedSnapToken
+	if rf, ok := ret.Get(0).(func(context.Context, *base.TupleFilter) token.EncodedSnapToken); ok {
 		r0 = rf(ctx, filter)
 	} else {
-		r0 = ret.Get(0).(token.SnapToken)
+		r0 = ret.Get(0).(token.EncodedSnapToken)
 	}
 
 	var r1 error

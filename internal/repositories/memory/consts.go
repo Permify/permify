@@ -1,6 +1,6 @@
 package memory
 
 const (
-	relationTuplesTable   = "relation_tuples"
-	schemaDefinitionTable = "schema_definitions"
+	RelationTuplesTable   = "relation_tuples"
+	SchemaDefinitionTable = "schema_definitions"
 )

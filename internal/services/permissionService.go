@@ -11,28 +11,28 @@ import (
 
 // PermissionService -
 type PermissionService struct {
+	// repositories
 	sr repositories.SchemaReader
-
 	// commands
-	check       commands.ICheckCommand
-	expand      commands.IExpandCommand
-	lookupQuery commands.ILookupQueryCommand
+	cc  commands.ICheckCommand
+	ec  commands.IExpandCommand
+	lqc commands.ILookupQueryCommand
 }
 
 // NewPermissionService -
-func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand, lq commands.ILookupQueryCommand, sr repositories.SchemaReader) *PermissionService {
+func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand, lqc commands.ILookupQueryCommand, sr repositories.SchemaReader) *PermissionService {
 	return &PermissionService{
-		sr:          sr,
-		check:       cc,
-		expand:      ec,
-		lookupQuery: lq,
+		sr:  sr,
+		cc:  cc,
+		ec:  ec,
+		lqc: lqc,
 	}
 }
 
 // CheckPermissions -
 func (service *PermissionService) CheckPermissions(ctx context.Context, subject *base.Subject, action string, entity *base.Entity, version string, snapToken string, d int32) (response commands.CheckResponse, err error) {
 	var en *base.EntityDefinition
-	en, err = service.sr.ReadSchemaDefinition(ctx, entity.GetType(), version)
+	en, _, err = service.sr.ReadSchemaDefinition(ctx, entity.GetType(), version)
 	if err != nil {
 		return response, err
 	}
@@ -53,13 +53,13 @@ func (service *PermissionService) CheckPermissions(ctx context.Context, subject 
 
 	q.SetDepth(d)
 
-	return service.check.Execute(ctx, q, child)
+	return service.cc.Execute(ctx, q, child)
 }
 
 // ExpandPermissions -
 func (service *PermissionService) ExpandPermissions(ctx context.Context, entity *base.Entity, action string, version string, snapToken string) (response commands.ExpandResponse, err error) {
 	var en *base.EntityDefinition
-	en, err = service.sr.ReadSchemaDefinition(ctx, entity.GetType(), version)
+	en, _, err = service.sr.ReadSchemaDefinition(ctx, entity.GetType(), version)
 	if err != nil {
 		return response, err
 	}
@@ -77,7 +77,7 @@ func (service *PermissionService) ExpandPermissions(ctx context.Context, entity 
 		SnapToken: snapToken,
 	}
 
-	return service.expand.Execute(ctx, q, child)
+	return service.ec.Execute(ctx, q, child)
 }
 
 // LookupQueryPermissions -
@@ -111,5 +111,5 @@ func (service *PermissionService) LookupQueryPermissions(ctx context.Context, en
 
 	q.SetSchema(sch)
 
-	return service.lookupQuery.Execute(ctx, q, child)
+	return service.lqc.Execute(ctx, q, child)
 }

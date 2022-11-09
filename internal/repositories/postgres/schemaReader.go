@@ -48,7 +48,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 	var sql string
 	var args []interface{}
 
-	query := r.database.Builder.Select("entity_type, serialized_definition").From(schemaDefinitionTable).Where(squirrel.Eq{"version": version})
+	query := r.database.Builder.Select("entity_type, serialized_definition").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version})
 	sql, args, err = query.ToSql()
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -80,19 +80,19 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 }
 
 // ReadSchemaDefinition reads entity config from the repository.
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, string, error) {
 	var err error
 	if version == "" {
 		version, err = r.headVersion(ctx)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
 
 	var tx pgx.Tx
 	tx, err = r.database.Pool.BeginTx(ctx, r.txOptions)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	defer func() {
@@ -102,26 +102,28 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	var sql string
 	var args []interface{}
 
-	query := r.database.Builder.Select("entity_type, serialized_definition").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(schemaDefinitionTable).Limit(1)
+	query := r.database.Builder.Select("entity_type, serialized_definition").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(SchemaDefinitionTable).Limit(1)
 	sql, args, err = query.ToSql()
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	var def repositories.SchemaDefinition
 	var row pgx.Row
 	row = tx.QueryRow(ctx, sql, args...)
 	if err = row.Scan(&def.EntityType, &def.SerializedDefinition); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var sch *base.IndexedSchema
 	sch, err = compiler.NewSchemaWithoutReferenceValidation(def.Serialized())
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return schema.GetEntityByName(sch, entityType)
+	var definition *base.EntityDefinition
+	definition, err = schema.GetEntityByName(sch, entityType)
+	return definition, def.Version, err
 }
 
 // headVersion finds the latest version of the schema.
@@ -129,7 +131,7 @@ func (r *SchemaReader) headVersion(ctx context.Context) (version string, err err
 	var sql string
 	var args []interface{}
 	sql, args, err = r.database.Builder.
-		Select("version").From(schemaDefinitionTable).OrderBy("version DESC").Limit(1).
+		Select("version").From(SchemaDefinitionTable).OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
 		return "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())

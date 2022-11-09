@@ -29,25 +29,23 @@ func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, version string) 
 }
 
 // ReadSchemaDefinition -
-func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, err error) {
-	var key string
+func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
 	var s interface{}
 	found := false
 	if version != "" {
-		key = fmt.Sprintf("%s|%s", entityType, version)
-		s, found = r.cache.Get(key)
+		s, found = r.cache.Get(fmt.Sprintf("%s|%s", entityType, version))
 	}
 	if !found {
-		definition, err = r.delegate.ReadSchemaDefinition(ctx, entityType, version)
+		definition, version, err = r.delegate.ReadSchemaDefinition(ctx, entityType, version)
 		if err != nil {
-			return definition, err
+			return nil, "", err
 		}
-		r.cache.Set(key, definition, 1)
-		return definition, nil
+		r.cache.Set(fmt.Sprintf("%s|%s", entityType, version), definition, 1)
+		return definition, version, nil
 	}
 	def, ok := s.(*base.EntityDefinition)
 	if !ok {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
 	}
-	return def, err
+	return def, "", err
 }

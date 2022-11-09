@@ -27,7 +27,7 @@ type SchemaReader interface {
 	// ReadSchema reads entity config from the repository.
 	ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error)
 	// ReadSchemaDefinition reads entity config from the repository.
-	ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, err error)
+	ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error)
 }
 
 // SchemaWriter -

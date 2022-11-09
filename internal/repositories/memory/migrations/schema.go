@@ -1,13 +1,15 @@
-package memory
+package migrations
 
 import (
 	"github.com/hashicorp/go-memdb"
+
+	"github.com/Permify/permify/internal/repositories/memory"
 )
 
 var Schema = &memdb.DBSchema{
 	Tables: map[string]*memdb.TableSchema{
-		schemaDefinitionTable: {
-			Name: schemaDefinitionTable,
+		memory.SchemaDefinitionTable: {
+			Name: memory.SchemaDefinitionTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -26,8 +28,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		relationTuplesTable: {
-			Name: relationTuplesTable,
+		memory.RelationTuplesTable: {
+			Name: memory.RelationTuplesTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -72,6 +74,16 @@ var Schema = &memdb.DBSchema{
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "EntityType"},
+						},
+					},
+				},
+				"entity-type-and-relation-index": {
+					Name:   "entity-type-and-relation-index",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "EntityType"},
+							&memdb.StringFieldIndex{Field: "Relation"},
 						},
 					},
 				},

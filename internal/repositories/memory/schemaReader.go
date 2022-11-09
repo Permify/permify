@@ -55,20 +55,20 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 }
 
 // ReadSchemaDefinition -
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, err error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
 	if version == "" {
 		version, err = r.headVersion(ctx)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
 
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(schemaDefinitionTable, "id", entityType, version)
+	raw, err = txn.First(SchemaDefinitionTable, "id", entityType, version)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	def, ok := raw.(repositories.SchemaDefinition)
@@ -76,12 +76,13 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 		var sch *base.IndexedSchema
 		sch, err = compiler.NewSchemaWithoutReferenceValidation(def.Serialized())
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
-		return schema.GetEntityByName(sch, entityType)
+		definition, err = schema.GetEntityByName(sch, entityType)
+		return definition, def.Version, err
 	}
 
-	return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+	return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 }
 
 // headVersion -
@@ -90,12 +91,12 @@ func (r *SchemaReader) headVersion(ctx context.Context) (string, error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.Last(schemaDefinitionTable, "version")
+	raw, err = txn.Last(SchemaDefinitionTable, "version")
 	if err != nil {
 		return "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	if _, ok := raw.(repositories.SchemaDefinition); ok {
-		return "", nil
+		return raw.(repositories.SchemaDefinition).Version, nil
 	}
 	return "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 }

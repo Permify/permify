@@ -3,13 +3,14 @@ package postgres
 import (
 	"context"
 	"errors"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 
-	"github.com/Permify/permify/internal/repositories/postgres/builders"
 	"github.com/Permify/permify/internal/repositories/postgres/snapshot"
 	"github.com/Permify/permify/internal/repositories/postgres/types"
+	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -42,7 +43,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 		for iter.HasNext() {
 			t := iter.GetNext()
 			query, args, err := w.database.Builder.
-				Insert(relationTuplesTable).
+				Insert(RelationTuplesTable).
 				Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation()).ToSql()
 			if err != nil {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -51,7 +52,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 		}
 
 		var xid types.XID8
-		err = tx.QueryRow(ctx, builders.NewTransactionQuery()).Scan(&xid)
+		err = tx.QueryRow(ctx, utils.NewTransactionQuery()).Scan(&xid)
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
@@ -92,8 +93,8 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 		}
 
 		batch := &pgx.Batch{}
-		builder := w.database.Builder.Update(relationTuplesTable).Set("expired_tx_id", squirrel.Expr("pg_current_xact_id()")).Where(squirrel.Eq{"expired_tx_id": "0"})
-		builder = builders.FilterQueryForUpdateBuilder(builder, filter)
+		builder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", squirrel.Expr("pg_current_xact_id()")).Where(squirrel.Eq{"expired_tx_id": "0"})
+		builder = utils.FilterQueryForUpdateBuilder(builder, filter)
 
 		query, args, err := builder.ToSql()
 		if err != nil {
@@ -102,7 +103,7 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 		batch.Queue(query, args...)
 
 		var xid types.XID8
-		err = tx.QueryRow(ctx, builders.NewTransactionQuery()).Scan(&xid)
+		err = tx.QueryRow(ctx, utils.NewTransactionQuery()).Scan(&xid)
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())

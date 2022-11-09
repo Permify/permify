@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Permify/permify/internal/config"
-	"github.com/Permify/permify/internal/repositories/memory"
+	"github.com/Permify/permify/internal/repositories/memory/migrations"
 	"github.com/Permify/permify/pkg/database"
 	IMDatabase "github.com/Permify/permify/pkg/database/memory"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -21,7 +21,7 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 		}
 		return
 	case database.MEMORY.String():
-		db, err = IMDatabase.New(memory.Schema)
+		db, err = IMDatabase.New(migrations.Schema)
 		if err != nil {
 			return nil, err
 		}

@@ -60,7 +60,7 @@ func (service *SchemaService) WriteSchema(ctx context.Context, schema string) (r
 // LookupSchema -
 func (service *SchemaService) LookupSchema(ctx context.Context, entityType string, relations []string, version string) (response commands.SchemaLookupResponse, err error) {
 	var en *base.EntityDefinition
-	en, err = service.sr.ReadSchemaDefinition(ctx, entityType, version)
+	en, _, err = service.sr.ReadSchemaDefinition(ctx, entityType, version)
 	if err != nil {
 		return
 	}

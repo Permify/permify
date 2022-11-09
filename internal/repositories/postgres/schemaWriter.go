@@ -35,7 +35,7 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.S
 
 	for _, schema := range schemas {
 		query, args, err := w.database.Builder.
-			Insert(schemaDefinitionTable).
+			Insert(SchemaDefinitionTable).
 			Columns("entity_type, serialized_definition, version").Values(schema.EntityType, schema.SerializedDefinition, id.String()).ToSql()
 		if err != nil {
 			return "", err

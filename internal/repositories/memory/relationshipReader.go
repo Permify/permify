@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -28,13 +29,17 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
+	collection = database.NewTupleCollection()
+
+	index, args := utils.GetIndexNameAndArgsByFilters(filter)
 	var it memdb.ResultIterator
-	it, err = txn.Get(relationTuplesTable, "entity-index", filter.GetEntity().GetType(), filter.GetEntity().GetIds(), filter.GetRelation(), filter.GetSubject().GetType(), filter.GetSubject().GetIds())
+	it, err = txn.Get(RelationTuplesTable, index, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	for obj := it.Next(); obj != nil; obj = it.Next() {
+	fit := memdb.NewFilterIterator(it, utils.FilterQuery(filter))
+	for obj := fit.Next(); obj != nil; obj = it.Next() {
 		t := obj.(repositories.RelationTuple)
 		collection.Add(t.ToTuple())
 	}
