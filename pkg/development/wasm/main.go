@@ -13,8 +13,7 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
-	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/graph"
+	"github.com/Permify/permify/pkg/development/graph"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -23,13 +22,13 @@ var dev *development.Container
 // check -
 func check() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &v1.CheckRequest{}
+		params := &v1.PermissionCheckRequest{}
 		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
 		var result commands.CheckResponse
-		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Action, params.Entity, string(args[1].String()))
+		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Action, params.Entity, string(args[1].String()), "")
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
@@ -40,7 +39,7 @@ func check() js.Func {
 // lookupQuery -
 func lookupQuery() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &v1.LookupQueryRequest{}
+		params := &v1.PermissionLookupQueryRequest{}
 		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
 		if err != nil {
 			return js.ValueOf([]interface{}{"", err.Error()})
@@ -57,7 +56,7 @@ func lookupQuery() js.Func {
 // writeSchema -
 func writeSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		version, err := development.WriteSchema(context.Background(), dev.M, string(args[0].String()))
+		version, err := development.WriteSchema(context.Background(), dev.S, string(args[0].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{"", err.Error()})
 		}
@@ -73,7 +72,7 @@ func writeTuple() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
-		err = development.WriteTuple(context.Background(), dev.R, t, string(args[1].String()))
+		_, err = development.WriteTuple(context.Background(), dev.R, []*v1.Tuple{t}, string(args[1].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
@@ -89,7 +88,18 @@ func deleteTuple() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
-		err = development.DeleteTuple(context.Background(), dev.R, t)
+		_, err = development.DeleteTuple(context.Background(), dev.R, &v1.TupleFilter{
+			Entity: &v1.EntityFilter{
+				Type: t.GetEntity().GetType(),
+				Ids:  []string{t.GetEntity().GetId()},
+			},
+			Relation: t.GetRelation(),
+			Subject: &v1.SubjectFilter{
+				Type:     t.GetSubject().GetType(),
+				Ids:      []string{t.GetSubject().GetId()},
+				Relation: t.GetSubject().GetRelation(),
+			},
+		})
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
@@ -100,7 +110,7 @@ func deleteTuple() js.Func {
 // readSchema -
 func readSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		sch, err := development.ReadSchema(context.Background(), dev.M, string(args[0].String()))
+		sch, err := development.ReadSchema(context.Background(), dev.S, string(args[0].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
@@ -121,7 +131,7 @@ func readTuple() js.Func {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
 		var collection database.ITupleCollection
-		collection, err = development.ReadTuple(context.Background(), dev.R, params)
+		collection, err = development.ReadTuple(context.Background(), dev.R, params, "")
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
@@ -140,11 +150,11 @@ func readTuple() js.Func {
 // readSchemaGraph -
 func readSchemaGraph() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		sch, err := development.ReadSchema(context.Background(), dev.M, string(args[0].String()))
+		sch, err := development.ReadSchema(context.Background(), dev.S, string(args[0].String()))
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		r, err := schema.GraphSchema(sch)
+		r, err := graph.SchemaToGraph(sch)
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
