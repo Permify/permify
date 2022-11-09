@@ -38,7 +38,7 @@ func (_m *SchemaReader) ReadSchema(ctx context.Context, version string) (schema 
 }
 
 // ReadSchemaDefinition -
-func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, err error) {
+func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
 	ret := _m.Called(entityType, version)
 
 	var r0 *base.EntityDefinition
@@ -48,16 +48,23 @@ func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType str
 		r0 = ret.Get(0).(*base.EntityDefinition)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+	var r1 string
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) string); ok {
 		r1 = rf(ctx, entityType, version)
 	} else {
-		if e, ok := ret.Get(1).(error); ok {
-			r1 = e
+		r1 = ret.Get(0).(string)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, string, string) error); ok {
+		r2 = rf(ctx, entityType, version)
+	} else {
+		if e, ok := ret.Get(2).(error); ok {
+			r2 = e
 		} else {
-			r1 = nil
+			r2 = nil
 		}
 	}
 
-	return r0, r1
+	return r0, r1, r2
 }
