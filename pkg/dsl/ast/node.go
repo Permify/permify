@@ -12,8 +12,9 @@ import (
 )
 
 type (
-	ExpressionType string
-	Operator       string
+	ExpressionType          string
+	RelationalReferenceType string
+	Operator                string
 )
 
 // String -
@@ -28,6 +29,9 @@ const (
 
 	AND Operator = "and"
 	OR  Operator = "or"
+
+	ACTION   RelationalReferenceType = "action"
+	RELATION RelationalReferenceType = "relation"
 )
 
 // Node -
@@ -55,8 +59,14 @@ type Statement interface {
 type Schema struct {
 	Statements []Statement
 
-	entityReferences   map[string]struct{}
+	entityReferences map[string]struct{}
+
+	// relational references
+	actionReferences   map[string]struct{}
 	relationReferences map[string][]RelationTypeStatement
+
+	// all relational references
+	relationalReferences map[string]RelationalReferenceType
 }
 
 // ValidateReferences -
@@ -89,12 +99,28 @@ func (sch *Schema) SetEntityReferences(r map[string]struct{}) {
 	sch.entityReferences = r
 }
 
+// SetActionReferences -
+func (sch *Schema) SetActionReferences(r map[string]struct{}) {
+	if sch.actionReferences == nil {
+		sch.actionReferences = map[string]struct{}{}
+	}
+	sch.actionReferences = r
+}
+
 // SetRelationReferences -
 func (sch *Schema) SetRelationReferences(r map[string][]RelationTypeStatement) {
 	if sch.relationReferences == nil {
 		sch.relationReferences = map[string][]RelationTypeStatement{}
 	}
 	sch.relationReferences = r
+}
+
+// SetRelationalReferences -
+func (sch *Schema) SetRelationalReferences(r map[string]RelationalReferenceType) {
+	if sch.relationalReferences == nil {
+		sch.relationalReferences = map[string]RelationalReferenceType{}
+	}
+	sch.relationalReferences = r
 }
 
 // IsEntityReferenceExist -

@@ -33,9 +33,15 @@ type Parser struct {
 	infixParseFunc map[token.Type]infixParseFn
 
 	// references
-	entityReferences   map[string]struct{}
+	entityReferences map[string]struct{}
+
+	// relational references
 	relationReferences map[string][]ast.RelationTypeStatement
 	actionReferences   map[string]struct{}
+
+	// its contains all references
+	// sample keys: entity_type#member, entity_type#read
+	relationalReferences map[string]ast.RelationalReferenceType
 }
 
 type (
@@ -46,11 +52,12 @@ type (
 // NewParser -
 func NewParser(str string) (p *Parser) {
 	p = &Parser{
-		l:                  lexer.NewLexer(str),
-		errors:             []string{},
-		entityReferences:   map[string]struct{}{},
-		relationReferences: map[string][]ast.RelationTypeStatement{},
-		actionReferences:   map[string]struct{}{},
+		l:                    lexer.NewLexer(str),
+		errors:               []string{},
+		entityReferences:     map[string]struct{}{},
+		relationReferences:   map[string][]ast.RelationTypeStatement{},
+		actionReferences:     map[string]struct{}{},
+		relationalReferences: map[string]ast.RelationalReferenceType{},
 	}
 
 	p.prefixParseFns = make(map[token.Type]prefixParseFn)
@@ -88,7 +95,12 @@ func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatem
 		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
 		return errors.New(base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
 	}
+	if _, ok := p.relationalReferences[key]; ok {
+		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
+	}
 	p.relationReferences[key] = types
+	p.relationalReferences[key] = ast.RELATION
 	return nil
 }
 
@@ -101,7 +113,12 @@ func (p *Parser) setActionReference(key string) error {
 		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_ACTION_REFERENCE.String())
 		return errors.New(base.ErrorCode_ERROR_CODE_DUPLICATED_ACTION_REFERENCE.String())
 	}
+	if _, ok := p.relationalReferences[key]; ok {
+		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
+	}
 	p.actionReferences[key] = struct{}{}
+	p.relationalReferences[key] = ast.ACTION
 	return nil
 }
 
@@ -147,6 +164,9 @@ func (p *Parser) Parse() (*ast.Schema, error) {
 
 	schema.SetEntityReferences(p.entityReferences)
 	schema.SetRelationReferences(p.relationReferences)
+	schema.SetActionReferences(p.actionReferences)
+
+	schema.SetRelationalReferences(p.relationalReferences)
 	return schema, nil
 }
 
