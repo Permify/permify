@@ -13,7 +13,7 @@ type ICommand interface {
 
 // ICheckCommand -
 type ICheckCommand interface {
-	Execute(ctx context.Context, q *CheckQuery, child *base.Child) (response CheckResponse, err error)
+	Execute(ctx context.Context, q *base.PermissionCheckRequest, child *base.Child) (response *base.PermissionCheckResponse, err error)
 }
 
 // IExpandCommand -

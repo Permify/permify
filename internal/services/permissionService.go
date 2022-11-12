@@ -2,17 +2,21 @@ package services
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 )
 
 // PermissionService -
 type PermissionService struct {
 	// repositories
 	sr repositories.SchemaReader
+	rr repositories.RelationshipReader
 	// commands
 	cc  commands.ICheckCommand
 	ec  commands.IExpandCommand
@@ -20,8 +24,9 @@ type PermissionService struct {
 }
 
 // NewPermissionService -
-func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand, lqc commands.ILookupQueryCommand, sr repositories.SchemaReader) *PermissionService {
+func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand, lqc commands.ILookupQueryCommand, sr repositories.SchemaReader, rr repositories.RelationshipReader) *PermissionService {
 	return &PermissionService{
+		rr:  rr,
 		sr:  sr,
 		cc:  cc,
 		ec:  ec,
@@ -30,30 +35,72 @@ func NewPermissionService(cc commands.ICheckCommand, ec commands.IExpandCommand,
 }
 
 // CheckPermissions -
-func (service *PermissionService) CheckPermissions(ctx context.Context, subject *base.Subject, action string, entity *base.Entity, version string, snapToken string, d int32) (response commands.CheckResponse, err error) {
+func (service *PermissionService) CheckPermissions(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+	if request.GetSnapToken() == "" {
+		var hs token.SnapToken
+		hs, err = service.rr.HeadSnapshot(ctx)
+		if err != nil {
+			return response, err
+		}
+		request.SnapToken = hs.Encode().String()
+	}
+
+	if request.GetSchemaVersion() == "" {
+		var v string
+		v, err = service.sr.HeadVersion(ctx)
+		if err != nil {
+			return response, err
+		}
+		request.SchemaVersion = v
+	}
+
 	var en *base.EntityDefinition
-	en, _, err = service.sr.ReadSchemaDefinition(ctx, entity.GetType(), version)
+	en, _, err = service.sr.ReadSchemaDefinition(ctx, request.GetEntity().GetType(), request.GetSchemaVersion())
 	if err != nil {
 		return response, err
 	}
 
-	var a *base.ActionDefinition
-	a, err = schema.GetActionByNameInEntityDefinition(en, action)
+	var typeOfRelation base.EntityDefinition_RelationalReference
+	typeOfRelation, err = schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetAction())
 	if err != nil {
 		return response, err
 	}
 
-	child := a.Child
-
-	q := &commands.CheckQuery{
-		Entity:    entity,
-		Subject:   subject,
-		SnapToken: snapToken,
+	var child *base.Child
+	switch typeOfRelation {
+	case base.EntityDefinition_RELATIONAL_REFERENCE_ACTION:
+		var a *base.ActionDefinition
+		a, err = schema.GetActionByNameInEntityDefinition(en, request.GetAction())
+		if err != nil {
+			return response, err
+		}
+		child = a.Child
+		break
+	case base.EntityDefinition_RELATIONAL_REFERENCE_RELATION:
+		var leaf *base.Leaf
+		sp := strings.Split(request.GetAction(), ".")
+		if len(sp) == 1 {
+			computedUserSet := &base.ComputedUserSet{Relation: request.GetAction()}
+			leaf = &base.Leaf{
+				Type:      &base.Leaf_ComputedUserSet{ComputedUserSet: computedUserSet},
+				Exclusion: false,
+			}
+		} else if len(sp) == 2 {
+			tupleToUserSet := &base.TupleToUserSet{Relation: request.GetAction()}
+			leaf = &base.Leaf{
+				Type:      &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet},
+				Exclusion: false,
+			}
+		} else {
+			return response, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
+		}
+		child = &base.Child{Type: &base.Child_Leaf{Leaf: leaf}}
+		break
+	default:
+		return response, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
 	}
 
-	q.SetDepth(d)
-
-	return service.cc.Execute(ctx, q, child)
+	return service.cc.Execute(ctx, request, child)
 }
 
 // ExpandPermissions -

@@ -115,7 +115,7 @@ func (sch *Schema) SetRelationReferences(r map[string][]RelationTypeStatement) {
 	sch.relationReferences = r
 }
 
-// SetRelationalReferences -
+// SetRelationalReferences it contains action and relation references
 func (sch *Schema) SetRelationalReferences(r map[string]RelationalReferenceType) {
 	if sch.relationalReferences == nil {
 		sch.relationalReferences = map[string]RelationalReferenceType{}

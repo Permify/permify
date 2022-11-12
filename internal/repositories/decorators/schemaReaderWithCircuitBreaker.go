@@ -72,3 +72,29 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Contex
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
+
+// HeadVersion finds the latest version of the schema.
+func (r *SchemaReaderWithCircuitBreaker) HeadVersion(ctx context.Context) (version string, err error) {
+	type circuitBreakerResponse struct {
+		Version string
+		Error   error
+	}
+
+	output := make(chan circuitBreakerResponse, 1)
+
+	hystrix.ConfigureCommand("schemaReader.headVersion", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("schemaReader.headVersion", func() error {
+		v, err := r.delegate.HeadVersion(ctx)
+		output <- circuitBreakerResponse{Version: v, Error: err}
+		return nil
+	}, func(err error) error {
+		return nil
+	})
+
+	select {
+	case out := <-output:
+		return out.Version, out.Error
+	case <-bErrors:
+		return "", errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
+	}
+}

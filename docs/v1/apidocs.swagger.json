@@ -418,6 +418,13 @@
           },
           "title": "[\"action_name\"] =\u003e ActionDefinition"
         },
+        "references": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/RelationalReference"
+          },
+          "title": "[\"entity_name\"] =\u003e RelationalReference"
+        },
         "option": {
           "type": "object",
           "additionalProperties": {
@@ -440,7 +447,7 @@
           }
         }
       },
-      "title": "SubjectFilter is used to filter subjects"
+      "title": "EntityFilter is used to filter entities"
     },
     "Expand": {
       "type": "object",
@@ -653,6 +660,16 @@
         }
       },
       "title": "RelationReference"
+    },
+    "RelationalReference": {
+      "type": "string",
+      "enum": [
+        "RELATIONAL_REFERENCE_UNSPECIFIED",
+        "RELATIONAL_REFERENCE_RELATION",
+        "RELATIONAL_REFERENCE_ACTION"
+      ],
+      "default": "RELATIONAL_REFERENCE_UNSPECIFIED",
+      "title": "RelationalReference"
     },
     "RelationshipDeleteRequest": {
       "type": "object",

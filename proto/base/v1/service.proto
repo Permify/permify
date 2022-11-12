@@ -70,6 +70,7 @@ message PermissionCheckRequest {
 
   Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
+  // its can be action or relation
   string action = 4 [json_name = "action", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,

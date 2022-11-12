@@ -49,3 +49,8 @@ func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entity
 	}
 	return def, "", err
 }
+
+// HeadVersion finds the latest version of the schema.
+func (r *SchemaReaderWithCache) HeadVersion(ctx context.Context) (version string, err error) {
+	return r.delegate.HeadVersion(ctx)
+}

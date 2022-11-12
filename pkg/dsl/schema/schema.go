@@ -56,6 +56,14 @@ func GetActionWithKey(schema *base.IndexedSchema, key string) (actionDefinition 
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
 }
 
+// GetTypeOfRelationalReferenceByNameInEntityDefinition -
+func GetTypeOfRelationalReferenceByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (relationalDefinitionType base.EntityDefinition_RelationalReference, err error) {
+	if re, ok := entityDefinition.GetReferences()[name]; ok {
+		return re, nil
+	}
+	return base.EntityDefinition_RELATIONAL_REFERENCE_UNSPECIFIED, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
+}
+
 // GetActionByNameInEntityDefinition -
 func GetActionByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (actionDefinition *base.ActionDefinition, err error) {
 	if re, ok := entityDefinition.GetActions()[name]; ok {
@@ -69,7 +77,7 @@ func GetRelationByNameInEntityDefinition(entityDefinition *base.EntityDefinition
 	if re, ok := entityDefinition.GetRelations()[name]; ok {
 		return re, nil
 	}
-	return nil, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 }
 
 // GetEntityReference -

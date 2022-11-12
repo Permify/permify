@@ -34,7 +34,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	var err error
 
 	var st token.SnapToken
-	st, err = r.snapToken(ctx, t)
+	st, err = r.snapshotToken(ctx, t)
 	if err != nil {
 		return nil, err
 	}
@@ -83,17 +83,14 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	return collection, nil
 }
 
-// snapToken gets the token for a given snapshot
-func (r *RelationshipReader) snapToken(ctx context.Context, token string) (token.SnapToken, error) {
-	if token == "" {
-		return r.headToken(ctx)
-	}
+// SnapshotToken gets the token for a given snapshot
+func (r *RelationshipReader) snapshotToken(ctx context.Context, token string) (token.SnapToken, error) {
 	encoded := snapshot.EncodedToken{Value: token}
 	return encoded.Decode()
 }
 
-// headToken gets the latest token
-func (r *RelationshipReader) headToken(ctx context.Context) (token.SnapToken, error) {
+// HeadSnapshot gets the latest token
+func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
 	var xid types.XID8
 	query := r.database.Builder.Select("id").From(TransactionsTable).OrderBy("id DESC").Limit(1)
 	sql, args, err := query.ToSql()

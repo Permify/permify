@@ -35,6 +35,15 @@ func (service *RelationshipService) ReadRelationships(ctx context.Context, filte
 
 // WriteRelationships -
 func (service *RelationshipService) WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
+	if version == "" {
+		var v string
+		v, err = service.sr.HeadVersion(ctx)
+		if err != nil {
+			return token, err
+		}
+		version = v
+	}
+
 	for _, tup := range tuples {
 		var entity *base.EntityDefinition
 		entity, _, err = service.sr.ReadSchemaDefinition(ctx, tup.GetEntity().GetType(), version)

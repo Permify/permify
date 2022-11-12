@@ -25,24 +25,24 @@ var _ = Describe("lookup-query-command", func() {
 
 	// GITHUB SAMPLE
 
-	githubConfigs := []repositories.EntityConfig{
+	githubConfigs := []repositories.SchemaDefinition{
 		{
-			Entity:           "user",
-			SerializedConfig: []byte("entity user {}"),
+			EntityType:           "user",
+			SerializedDefinition: []byte("entity user {}"),
 		},
 		{
-			Entity:           "organization",
-			SerializedConfig: []byte("entity organization {\n\n    relation admin @user\n    relation member @user\n\n    action create_repository = (admin or member)\n    action delete = admin\n} `table:organizations`"),
+			EntityType:           "organization",
+			SerializedDefinition: []byte("entity organization {\n\n    relation admin @user\n    relation member @user\n\n    action create_repository = (admin or member)\n    action delete = admin\n} `table:organizations`"),
 		},
 		{
-			Entity:           "repository",
-			SerializedConfig: []byte("entity repository {\n\n    relation owner @user  `column:owner_id`\n    relation parent @organization `column:organization_id`\n\n    action push = owner\n    action read = (owner and (parent.admin and parent.member))\n    action delete = (parent.member and (parent.admin or owner))\n\n} `table:repositories`"),
+			EntityType:           "repository",
+			SerializedDefinition: []byte("entity repository {\n\n    relation owner @user  `column:owner_id`\n    relation parent @organization `column:organization_id`\n\n    action push = owner\n    action read = (owner and (parent.admin and parent.member))\n    action delete = (parent.member and (parent.admin or owner))\n\n} `table:repositories`"),
 		},
 	}
 
 	Context("Github Sample: Lookup Query", func() {
 		It("Github Sample: Case 1", func() {
-			relationTupleRepository := new(mocks.RelationTupleRepository)
+			relationTupleRepository := new(mocks.RelationshipReader)
 
 			getRepositoryParent := []*base.Tuple{
 				{
@@ -122,12 +122,11 @@ var _ = Describe("lookup-query-command", func() {
 
 			Expect(e).ShouldNot(HaveOccurred())
 			Expect(actualResult.Query).Should(Equal(strings.ReplaceAll(query, "\"", "")))
-			Expect(actualResult.Args).Should(Equal([]string{"1", "6", "6"}))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		It("Github Sample: Case 2", func() {
-			relationTupleRepository := new(mocks.RelationTupleRepository)
+			relationTupleRepository := new(mocks.RelationshipReader)
 
 			lookupQueryCommand = NewLookupQueryCommand(relationTupleRepository, l)
 
@@ -158,12 +157,11 @@ var _ = Describe("lookup-query-command", func() {
 
 			Expect(e).ShouldNot(HaveOccurred())
 			Expect(actualResult.Query).Should(Equal(strings.ReplaceAll(query, "\"", "")))
-			Expect(actualResult.Args).Should(Equal([]string{"1"}))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		It("Github Sample: Case 3", func() {
-			relationTupleRepository := new(mocks.RelationTupleRepository)
+			relationTupleRepository := new(mocks.RelationshipReader)
 
 			getOrganizationAdmins := []*base.Tuple{
 				{
@@ -256,7 +254,6 @@ var _ = Describe("lookup-query-command", func() {
 
 			Expect(e).ShouldNot(HaveOccurred())
 			Expect(actualResult.Query).Should(Equal(strings.ReplaceAll(query, "\"", "")))
-			Expect(actualResult.Args).Should(Equal([]string{"1", "9", "6", "6"}))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})

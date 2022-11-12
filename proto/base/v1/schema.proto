@@ -52,6 +52,13 @@ message IndexedSchema {
 
 // EntityDefinition
 message EntityDefinition {
+  // RelationalReference
+  enum RelationalReference {
+    RELATIONAL_REFERENCE_UNSPECIFIED = 0;
+    RELATIONAL_REFERENCE_RELATION = 1;
+    RELATIONAL_REFERENCE_ACTION = 2;
+  }
+
   string name = 1 [(validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
@@ -63,7 +70,10 @@ message EntityDefinition {
   // ["action_name"] => ActionDefinition
   map<string, ActionDefinition> actions = 3;
 
-  map<string, string> option = 4;
+  // ["relation_name or action_name"] => RelationalReference
+  map<string, RelationalReference> references = 4;
+
+  map<string, string> option = 5;
 }
 
 // RelationDefinition

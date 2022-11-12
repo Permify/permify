@@ -9,6 +9,7 @@ import (
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 )
 
 // RelationshipReaderWithCircuitBreaker -
@@ -41,6 +42,31 @@ func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Co
 	select {
 	case out := <-output:
 		return out.Collection, out.Error
+	case <-bErrors:
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
+	}
+}
+
+// HeadSnapshot -
+func (r *RelationshipReaderWithCircuitBreaker) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
+	type circuitBreakerResponse struct {
+		Token token.SnapToken
+		Error error
+	}
+
+	output := make(chan circuitBreakerResponse, 1)
+	hystrix.ConfigureCommand("relationshipReader.headSnapshot", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("relationshipReader.headSnapshot", func() error {
+		tok, err := r.delegate.HeadSnapshot(ctx)
+		output <- circuitBreakerResponse{Token: tok, Error: err}
+		return nil
+	}, func(err error) error {
+		return nil
+	})
+
+	select {
+	case out := <-output:
+		return out.Token, out.Error
 	case <-bErrors:
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}

@@ -11,8 +11,16 @@ import (
 )
 
 // Check -
-func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version string, snapToken string) (res commands.CheckResponse, err error) {
-	return service.CheckPermissions(ctx, subject, action, entity, version, snapToken, 20)
+func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version string, snapToken string) (res *v1.PermissionCheckResponse, err error) {
+	req := &v1.PermissionCheckRequest{
+		SchemaVersion: version,
+		SnapToken:     snapToken,
+		Entity:        entity,
+		Subject:       subject,
+		Action:        action,
+	}
+	req.Depth.Value = 20
+	return service.CheckPermissions(ctx, req)
 }
 
 // LookupQuery -

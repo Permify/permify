@@ -11,7 +11,7 @@ import (
 
 // IPermissionService -
 type IPermissionService interface {
-	CheckPermissions(ctx context.Context, subject *base.Subject, action string, entity *base.Entity, version string, snapToken string, d int32) (response commands.CheckResponse, err error)
+	CheckPermissions(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error)
 	ExpandPermissions(ctx context.Context, entity *base.Entity, action string, version string, snapToken string) (response commands.ExpandResponse, err error)
 	LookupQueryPermissions(ctx context.Context, entityType string, subject *base.Subject, action string, version string) (response commands.LookupQueryResponse, err error)
 }

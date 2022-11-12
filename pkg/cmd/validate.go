@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"net/url"
-	"os"
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
@@ -72,37 +70,37 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		color.Success.Println("checking assertions...")
 
 		// Check Assertions
-		for i, assertion := range s.Assertions {
-			for query, expected := range assertion {
-				q, err := tuple.NewQueryFromString(query)
-				if err != nil {
-					return err
-				}
-
-				res, err := devContainer.P.CheckPermissions(ctx, q.Subject, q.Action, q.Entity, version, "", 20)
-				if err != nil {
-					return err
-				}
-
-				if res.Can == expected {
-					fmt.Printf("%v. %s ? => ", i+1, query)
-					if res.Can {
-						color.Success.Println("expected: ✓ ✅ , actual: ✓ ✅ ")
-					} else {
-						color.Success.Println("expected: ✗ ❌ , actual: ✗ ❌ ")
-					}
-				} else {
-					color.Danger.Printf("%v. %s ? => ", i+1, query)
-					if res.Can {
-						color.Danger.Println("expected: ✗ ❌ , actual: ✗ ✅ ")
-					} else {
-						color.Danger.Println("expected: ✓ ✅ , actual: ✓ ❌ ")
-					}
-					color.Danger.Println("FAILED.")
-					os.Exit(1)
-				}
-			}
-		}
+		//for i, assertion := range s.Assertions {
+		//	for query, expected := range assertion {
+		//		q, err := tuple.NewQueryFromString(query)
+		//		if err != nil {
+		//			return err
+		//		}
+		//
+		//		res, err := devContainer.P.CheckPermissions(ctx, q.Subject, q.Action, q.Entity, version, "", 20)
+		//		if err != nil {
+		//			return err
+		//		}
+		//
+		//		if res.Can == expected {
+		//			fmt.Printf("%v. %s ? => ", i+1, query)
+		//			if res.Can {
+		//				color.Success.Println("expected: ✓ ✅ , actual: ✓ ✅ ")
+		//			} else {
+		//				color.Success.Println("expected: ✗ ❌ , actual: ✗ ❌ ")
+		//			}
+		//		} else {
+		//			color.Danger.Printf("%v. %s ? => ", i+1, query)
+		//			if res.Can {
+		//				color.Danger.Println("expected: ✗ ❌ , actual: ✗ ✅ ")
+		//			} else {
+		//				color.Danger.Println("expected: ✓ ✅ , actual: ✓ ❌ ")
+		//			}
+		//			color.Danger.Println("FAILED.")
+		//			os.Exit(1)
+		//		}
+		//	}
+		//}
 
 		return nil
 	}

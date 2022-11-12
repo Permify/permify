@@ -34,9 +34,8 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	ctx, span := tracer.Start(ctx, "permissions.check")
 	defer span.End()
 
-	var depth int32 = 20
-	if request.Depth != nil {
-		depth = request.Depth.Value
+	if request.Depth == nil {
+		request.Depth.Value = 20
 	}
 
 	v := request.Validate()
@@ -45,8 +44,8 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	}
 
 	var err error
-	var response commands.CheckResponse
-	response, err = r.permissionService.CheckPermissions(ctx, request.GetSubject(), request.GetAction(), request.GetEntity(), request.GetSchemaVersion(), request.GetSnapToken(), depth)
+	var response *v1.PermissionCheckResponse
+	response, err = r.permissionService.CheckPermissions(ctx, request)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -54,10 +53,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	return &v1.PermissionCheckResponse{
-		Can:            response.Can,
-		RemainingDepth: response.RemainingDepth,
-	}, nil
+	return response, nil
 }
 
 // Expand -

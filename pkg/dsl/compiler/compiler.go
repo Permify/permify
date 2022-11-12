@@ -56,10 +56,11 @@ func (t *Compiler) Compile() (sch *base.IndexedSchema, err error) {
 // translateToEntity -
 func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, error) {
 	entityDefinition := &base.EntityDefinition{
-		Name:      sc.Name.Literal,
-		Option:    map[string]string{},
-		Relations: map[string]*base.RelationDefinition{},
-		Actions:   map[string]*base.ActionDefinition{},
+		Name:       sc.Name.Literal,
+		Option:     map[string]string{},
+		Relations:  map[string]*base.RelationDefinition{},
+		Actions:    map[string]*base.ActionDefinition{},
+		References: map[string]base.EntityDefinition_RelationalReference{},
 	}
 
 	if sc.Option.Literal != "" {
@@ -100,6 +101,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		}
 
 		entityDefinition.Relations[relationDefinition.GetName()] = relationDefinition
+		entityDefinition.References[relationDefinition.GetName()] = base.EntityDefinition_RELATIONAL_REFERENCE_RELATION
 	}
 
 	// actions
@@ -114,6 +116,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			Child: ch,
 		}
 		entityDefinition.Actions[actionDefinition.GetName()] = actionDefinition
+		entityDefinition.References[actionDefinition.GetName()] = base.EntityDefinition_RELATIONAL_REFERENCE_ACTION
 	}
 
 	return entityDefinition, nil

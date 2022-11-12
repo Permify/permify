@@ -26,13 +26,6 @@ func NewSchemaReader(database *db.Memory) *SchemaReader {
 
 // ReadSchema -
 func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
-	if version == "" {
-		version, err = r.headVersion(ctx)
-		if err != nil {
-			return schema, err
-		}
-	}
-
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
@@ -56,13 +49,6 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 
 // ReadSchemaDefinition -
 func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
-	if version == "" {
-		version, err = r.headVersion(ctx)
-		if err != nil {
-			return nil, "", err
-		}
-	}
-
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
@@ -85,8 +71,8 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 }
 
-// headVersion -
-func (r *SchemaReader) headVersion(ctx context.Context) (string, error) {
+// HeadVersion -
+func (r *SchemaReader) HeadVersion(ctx context.Context) (string, error) {
 	var err error
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()

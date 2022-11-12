@@ -1051,6 +1051,176 @@ var _ interface {
 
 var _TupleFilter_Relation_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
+// Validate checks the field values on EntityAndRelationFilter with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EntityAndRelationFilter) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EntityAndRelationFilter with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EntityAndRelationFilterMultiError, or nil if none found.
+func (m *EntityAndRelationFilter) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EntityAndRelationFilter) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetEntity() == nil {
+		err := EntityAndRelationFilterValidationError{
+			field:  "Entity",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEntity()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EntityAndRelationFilterValidationError{
+					field:  "Entity",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EntityAndRelationFilterValidationError{
+					field:  "Entity",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEntity()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EntityAndRelationFilterValidationError{
+				field:  "Entity",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetRelation() != "" {
+
+		if len(m.GetRelation()) > 64 {
+			err := EntityAndRelationFilterValidationError{
+				field:  "Relation",
+				reason: "value length must be at most 64 bytes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_EntityAndRelationFilter_Relation_Pattern.MatchString(m.GetRelation()) {
+			err := EntityAndRelationFilterValidationError{
+				field:  "Relation",
+				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,64}[a-z0-9])$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return EntityAndRelationFilterMultiError(errors)
+	}
+
+	return nil
+}
+
+// EntityAndRelationFilterMultiError is an error wrapping multiple validation
+// errors returned by EntityAndRelationFilter.ValidateAll() if the designated
+// constraints aren't met.
+type EntityAndRelationFilterMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EntityAndRelationFilterMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EntityAndRelationFilterMultiError) AllErrors() []error { return m }
+
+// EntityAndRelationFilterValidationError is the validation error returned by
+// EntityAndRelationFilter.Validate if the designated constraints aren't met.
+type EntityAndRelationFilterValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EntityAndRelationFilterValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EntityAndRelationFilterValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EntityAndRelationFilterValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EntityAndRelationFilterValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EntityAndRelationFilterValidationError) ErrorName() string {
+	return "EntityAndRelationFilterValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EntityAndRelationFilterValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEntityAndRelationFilter.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EntityAndRelationFilterValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EntityAndRelationFilterValidationError{}
+
+var _EntityAndRelationFilter_Relation_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,64}[a-z0-9])$")
+
 // Validate checks the field values on EntityFilter with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.

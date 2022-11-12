@@ -78,7 +78,18 @@ message TupleFilter {
   SubjectFilter subject = 3 [json_name = "subject"];
 }
 
-// SubjectFilter is used to filter subjects
+// EntityAndRelationFilter is used to filter entities and relations
+message EntityAndRelationFilter {
+  EntityFilter entity = 1 [(validate.rules).message.required = true];
+
+  string relation = 2 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,64}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: true,
+  }];
+}
+
+// EntityFilter is used to filter entities
 message EntityFilter {
   string type = 1 [json_name = "type"];
 

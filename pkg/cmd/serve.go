@@ -12,6 +12,7 @@ import (
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
+	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/servers"
 	"github.com/Permify/permify/internal/services"
@@ -96,9 +97,16 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 			}()
 		}
 
-		// cache
-		var ch cache.Cache
-		ch, err = ristretto.New()
+		// schema cache
+		var schemaCache cache.Cache
+		schemaCache, err = ristretto.New()
+		if err != nil {
+			l.Fatal(err)
+		}
+
+		// commands cache keys
+		var commandsKeyCache cache.Cache
+		commandsKeyCache, err = ristretto.New()
 		if err != nil {
 			l.Fatal(err)
 		}
@@ -110,27 +118,28 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		schemaWriter := factories.SchemaWriterFactory(db)
 
 		// decorators
-
-		// cache
-		schemaReaderWithCache := decorators.NewSchemaReaderWithCache(schemaReader, ch)
+		schemaReaderWithCache := decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
 
 		// circuitBreaker
 		relationshipWriterWithCircuitBreaker := decorators.NewRelationshipWriterWithCircuitBreaker(relationshipWriter)
 		relationshipReaderWithCircuitBreaker := decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
 
 		schemaWriterWithCircuitBreaker := decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
-		schemaReaderWithCircuitBreaker := decorators.NewSchemaReaderWithCircuitBreaker(schemaReaderWithCache)
+		schemaReaderWithCircuitBreakerAndCache := decorators.NewSchemaReaderWithCircuitBreaker(schemaReaderWithCache)
+
+		// key managers
+		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(relationshipReaderWithCircuitBreaker, l)
+		checkCommand := commands.NewCheckCommand(checkKeyManager, relationshipReaderWithCircuitBreaker, l)
 		expandCommand := commands.NewExpandCommand(relationshipReaderWithCircuitBreaker, l)
 		lookupQueryCommand := commands.NewLookupQueryCommand(relationshipReaderWithCircuitBreaker, l)
 		schemaLookupCommand := commands.NewSchemaLookupCommand(l)
 
 		// Services
-		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreaker)
-		permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaReaderWithCircuitBreaker)
-		schemaService := services.NewSchemaService(schemaLookupCommand, schemaWriterWithCircuitBreaker, schemaReaderWithCircuitBreaker)
+		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreakerAndCache)
+		permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
+		schemaService := services.NewSchemaService(schemaLookupCommand, schemaWriterWithCircuitBreaker, schemaReaderWithCache)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,

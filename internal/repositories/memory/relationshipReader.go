@@ -7,10 +7,12 @@ import (
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/memory/snapshot"
 	"github.com/Permify/permify/internal/repositories/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 )
 
 type RelationshipReader struct {
@@ -45,4 +47,9 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	}
 
 	return collection, nil
+}
+
+// HeadSnapshot gets the latest token
+func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
+	return snapshot.Token{}, nil
 }

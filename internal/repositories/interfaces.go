@@ -12,6 +12,8 @@ import (
 type RelationshipReader interface {
 	// QueryRelationships reads relation tuples from the repository.
 	QueryRelationships(ctx context.Context, filter *base.TupleFilter, token string) (collection database.ITupleCollection, err error)
+	// HeadSnapshot reads the latest version of the snapshot from the repository.
+	HeadSnapshot(ctx context.Context) (token.SnapToken, error)
 }
 
 // RelationshipWriter -
@@ -28,6 +30,8 @@ type SchemaReader interface {
 	ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error)
 	// ReadSchemaDefinition reads entity config from the repository.
 	ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error)
+	// HeadVersion reads the latest version of the schema from the repository.
+	HeadVersion(ctx context.Context) (version string, err error)
 }
 
 // SchemaWriter -
