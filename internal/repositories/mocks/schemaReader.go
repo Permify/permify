@@ -52,7 +52,7 @@ func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType str
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) string); ok {
 		r1 = rf(ctx, entityType, version)
 	} else {
-		r1 = ret.Get(0).(string)
+		r1 = ret.Get(1).(string)
 	}
 
 	var r2 error
