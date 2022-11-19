@@ -1,7 +1,15 @@
 package development
 
 import (
+	`fmt`
+
+	`github.com/Permify/permify/internal/commands`
+	`github.com/Permify/permify/internal/config`
+	`github.com/Permify/permify/internal/factories`
+	`github.com/Permify/permify/internal/keys`
 	"github.com/Permify/permify/internal/services"
+	`github.com/Permify/permify/pkg/database`
+	`github.com/Permify/permify/pkg/logger`
 )
 
 // Container -
@@ -13,42 +21,37 @@ type Container struct {
 
 // NewContainer -
 func NewContainer() *Container {
-	//l := logger.New("debug")
-	//
-	//var err error
+	l := logger.New("debug")
 
-	//var db database.Database
-	//db, err = factories.DatabaseFactory(config.Database{Engine: database.MEMORY.String()})
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//
-	//err = db.Migrate(factories.MigrationFactory(database.Engine(db.GetEngineType())))
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//
-	//// defer db.Close()
-	//
-	//// Repositories
-	//relationTupleRepository := factories.RelationTupleFactory(db)
-	//entityConfigRepository := factories.EntityConfigFactory(db)
-	//
-	//// manager
-	//schemaManager := managers.NewEntityConfigManager(entityConfigRepository, nil)
-	//
-	//// commands
-	//checkCommand := commands.NewCheckCommand(relationTupleRepository, l)
-	//expandCommand := commands.NewExpandCommand(relationTupleRepository, l)
-	//lookupQueryCommand := commands.NewLookupQueryCommand(relationTupleRepository, l)
-	//
-	//// Services
-	//relationshipService := services.NewRelationshipService(relationTupleRepository, schemaManager)
-	//permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaManager)
+	var err error
+
+	var db database.Database
+	db, err = factories.DatabaseFactory(config.Database{Engine: database.MEMORY.String()})
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = db.Migrate(factories.MigrationFactory(database.Engine(db.GetEngineType())))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Repositories
+	relationshipReader := factories.RelationshipReaderFactory(db)
+	relationshipWriter := factories.RelationshipWriterFactory(db)
+
+	schemaReader := factories.SchemaReaderFactory(db)
+	schemaWriter := factories.SchemaWriterFactory(db)
+
+	// commands
+	checkCommand := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+	expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader, l)
+	lookupSchemaCommand := commands.NewLookupSchemaCommand(schemaReader, l)
+	lookupEntityCommand := commands.NewLookupEntityCommand(schemaReader, relationshipReader, l)
 
 	return &Container{
-		P: nil,
-		R: nil,
-		S: nil,
+		P: services.NewPermissionService(checkCommand, expandCommand, lookupSchemaCommand, lookupEntityCommand),
+		R: services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader),
+		S: services.NewSchemaService(schemaWriter, schemaReader),
 	}
 }

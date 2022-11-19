@@ -191,7 +191,8 @@ func (command *LookupQueryCommand) buildRewrite(ctx context.Context, q *LookupQu
 func (command *LookupQueryCommand) buildLeaf(ctx context.Context, q *LookupQueryQuery, leaf *base.Leaf) BuildFunction {
 	switch op := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
-		return command.build(ctx, leaf.GetExclusion(), command.buildTupleToUserSetQuery(ctx, q.Subject, q.EntityType, op.TupleToUserSet.GetRelation(), q.schema))
+		return nil
+		//return command.build(ctx, leaf.GetExclusion(), command.buildTupleToUserSetQuery(ctx, q.Subject, q.EntityType, op.TupleToUserSet.GetRelation(), q.schema))
 	case *base.Leaf_ComputedUserSet:
 		return command.build(ctx, leaf.GetExclusion(), command.buildComputedUserSetQuery(ctx, q.Subject, q.EntityType, op.ComputedUserSet.GetRelation(), q.schema))
 	default:

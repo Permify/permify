@@ -45,9 +45,24 @@ service Permission {
     };
   }
 
-  rpc LookupQuery(PermissionLookupQueryRequest) returns (PermissionLookupQueryResponse) {
+//  rpc LookupQuery(PermissionLookupQueryRequest) returns (PermissionLookupQueryResponse) {
+//    option (google.api.http) = {
+//      post: "/v1/permissions/lookup-query"
+//      body: "*"
+//    };
+//
+//    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+//      summary: ""
+//      tags: [
+//        "Permission"
+//      ]
+//      operation_id: "permissions.lookupQuery"
+//    };
+//  }
+
+  rpc LookupSchema(PermissionLookupSchemaRequest) returns (PermissionLookupSchemaResponse) {
     option (google.api.http) = {
-      post: "/v1/permissions/lookup-query"
+      post: "/v1/permissions/lookup-schema"
       body: "*"
     };
 
@@ -56,7 +71,22 @@ service Permission {
       tags: [
         "Permission"
       ]
-      operation_id: "permissions.lookupQuery"
+      operation_id: "permissions.lookupSchema"
+    };
+  }
+
+  rpc LookupEntity(PermissionLookupEntityRequest) returns (PermissionLookupEntityResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions/lookup-entity"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: ""
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.lookupEntity"
     };
   }
 }
@@ -71,7 +101,7 @@ message PermissionCheckRequest {
   Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
   // its can be action or relation
-  string action = 4 [json_name = "action", (validate.rules).string = {
+  string permission = 4 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
@@ -84,9 +114,14 @@ message PermissionCheckRequest {
 
 // PermissionCheckResponse
 message PermissionCheckResponse {
-  bool can = 1 [json_name = "can", (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    example: "true"
-  }];
+  // Result
+  enum Result {
+    RESULT_UNKNOWN = 0;
+    RESULT_ALLOWED = 1;
+    RESULT_DENIED = 2;
+  }
+
+  Result can = 1 [json_name = "can"];
   int32 remaining_depth = 3 [json_name = "remaining_depth"];
 }
 
@@ -99,7 +134,7 @@ message PermissionExpandRequest {
 
   Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
-  string action = 4 [json_name = "action", (validate.rules).string = {
+  string permission = 4 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
@@ -113,8 +148,53 @@ message PermissionExpandResponse {
 
 // LOOKUP QUERY
 
-// LookupQueryRequest
-message PermissionLookupQueryRequest {
+//// LookupQueryRequest
+//message PermissionLookupQueryRequest {
+//  string schema_version = 1 [json_name = "schema_version"];
+//  string snap_token = 2 [json_name = "snap_token"];
+//
+//  string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
+//    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+//    max_bytes : 64,
+//    ignore_empty: false,
+//  }];
+//
+//  string action = 4 [json_name = "action", (validate.rules).string = {
+//    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+//    max_bytes : 64,
+//    ignore_empty: false,
+//  }];
+//
+//  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+//}
+//
+//// LookupQueryResponse
+//message PermissionLookupQueryResponse {
+//  string query = 1 [json_name = "query"];
+//}
+
+//LOOKUP
+
+// PermissionLookupSchemaRequest
+message PermissionLookupSchemaRequest {
+  string schema_version = 1 [json_name = "schema_version"];
+
+  string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  repeated string relation_names = 3 [json_name = "relation_names"];
+}
+
+// PermissionLookupSchemaResponse
+message PermissionLookupSchemaResponse {
+  repeated string action_names = 1 [json_name = "action_names"];
+}
+
+// LookupEntityRequest
+message PermissionLookupEntityRequest {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
 
@@ -124,7 +204,7 @@ message PermissionLookupQueryRequest {
     ignore_empty: false,
   }];
 
-  string action = 4 [json_name = "action", (validate.rules).string = {
+  string permission = 4 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
@@ -133,10 +213,11 @@ message PermissionLookupQueryRequest {
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
 }
 
-// LookupQueryResponse
-message PermissionLookupQueryResponse {
-  string query = 1 [json_name = "query"];
+// LookupEntityResponse
+message PermissionLookupEntityResponse {
+  repeated string entity_ids = 1 [json_name = "entity_ids"];
 }
+
 
 // ** SCHEMA SERVICE **
 
@@ -171,21 +252,6 @@ service Schema {
       operation_id: "schemas.read"
     };
   }
-
-  rpc Lookup(SchemaLookupRequest) returns (SchemaLookupResponse) {
-    option (google.api.http) = {
-      post: "/v1/schemas/lookup"
-      body: "*"
-    };
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "lookup your authorization model"
-      tags: [
-        "Schema"
-      ]
-      operation_id: "schemas.lookup"
-    };
-  }
 }
 
 // WRITE
@@ -210,26 +276,6 @@ message SchemaReadRequest {
 // SchemaReadRequest
 message SchemaReadResponse {
   IndexedSchema schema = 1 [json_name = "schema"];
-}
-
-//LOOKUP
-
-// SchemaLookupRequest
-message SchemaLookupRequest {
-  string schema_version = 1 [json_name = "schema_version"];
-
-  string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  repeated string relation_names = 3 [json_name = "relation_names"];
-}
-
-// SchemaLookupResponse
-message SchemaLookupResponse {
-  repeated string action_names = 1 [json_name = "action_names"];
 }
 
 // ** RELATIONSHIP SERVICE **

@@ -131,15 +131,15 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(checkKeyManager, relationshipReaderWithCircuitBreaker, l)
-		expandCommand := commands.NewExpandCommand(relationshipReaderWithCircuitBreaker, l)
-		lookupQueryCommand := commands.NewLookupQueryCommand(relationshipReaderWithCircuitBreaker, l)
-		schemaLookupCommand := commands.NewSchemaLookupCommand(l)
+		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
+		expandCommand := commands.NewExpandCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
+		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReaderWithCircuitBreakerAndCache, l)
+		lookupEntityCommand := commands.NewLookupEntityCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
 
 		// Services
 		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreakerAndCache)
-		permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
-		schemaService := services.NewSchemaService(schemaLookupCommand, schemaWriterWithCircuitBreaker, schemaReaderWithCache)
+		permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaLookupCommand, lookupEntityCommand)
+		schemaService := services.NewSchemaService(schemaWriterWithCircuitBreaker, schemaReaderWithCache)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,

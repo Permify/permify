@@ -3,7 +3,6 @@ package development
 import (
 	"context"
 
-	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -17,15 +16,10 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 		SnapToken:     snapToken,
 		Entity:        entity,
 		Subject:       subject,
-		Action:        action,
+		Permission:    action,
 	}
 	req.Depth.Value = 20
 	return service.CheckPermissions(ctx, req)
-}
-
-// LookupQuery -
-func LookupQuery(ctx context.Context, service services.IPermissionService, entityType string, action string, subject *v1.Subject, version string) (res commands.LookupQueryResponse, err error) {
-	return service.LookupQueryPermissions(ctx, entityType, subject, action, version)
 }
 
 // ReadTuple -

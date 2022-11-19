@@ -183,11 +183,12 @@ func (t *Compiler) parseChildren(entityName string, expression ast.Expression) (
 			leaf.Exclusion = false
 		}
 
-		s := strings.Split(expression.GetValue(), tuple.SEPARATOR)
+		s := strings.Split(exp.GetValue(), tuple.SEPARATOR)
 
 		if len(s) == 1 {
-			computedUserSet := &base.ComputedUserSet{}
-			computedUserSet.Relation = exp.GetValue()
+			computedUserSet := &base.ComputedUserSet{
+				Relation: s[0],
+			}
 			if !t.withoutReferenceValidation {
 				exist := t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, s[0]))
 				if !exist {
@@ -196,8 +197,15 @@ func (t *Compiler) parseChildren(entityName string, expression ast.Expression) (
 			}
 			leaf.Type = &base.Leaf_ComputedUserSet{ComputedUserSet: computedUserSet}
 		} else if len(s) == 2 {
-			tupleToUserSet := &base.TupleToUserSet{}
-			tupleToUserSet.Relation = exp.GetValue()
+			computedUserSet := &base.ComputedUserSet{
+				Relation: s[1],
+			}
+			tupleToUserSet := &base.TupleToUserSet{
+				TupleSet: &base.TupleSet{
+					Relation: s[0],
+				},
+				Computed: computedUserSet,
+			}
 
 			if !t.withoutReferenceValidation {
 				value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))

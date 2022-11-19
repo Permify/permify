@@ -24,7 +24,8 @@ const _ = grpc.SupportPackageIsVersion7
 type PermissionClient interface {
 	Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResponse, error)
 	Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error)
-	LookupQuery(ctx context.Context, in *PermissionLookupQueryRequest, opts ...grpc.CallOption) (*PermissionLookupQueryResponse, error)
+	LookupSchema(ctx context.Context, in *PermissionLookupSchemaRequest, opts ...grpc.CallOption) (*PermissionLookupSchemaResponse, error)
+	LookupEntity(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (*PermissionLookupEntityResponse, error)
 }
 
 type permissionClient struct {
@@ -53,9 +54,18 @@ func (c *permissionClient) Expand(ctx context.Context, in *PermissionExpandReque
 	return out, nil
 }
 
-func (c *permissionClient) LookupQuery(ctx context.Context, in *PermissionLookupQueryRequest, opts ...grpc.CallOption) (*PermissionLookupQueryResponse, error) {
-	out := new(PermissionLookupQueryResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.Permission/LookupQuery", in, out, opts...)
+func (c *permissionClient) LookupSchema(ctx context.Context, in *PermissionLookupSchemaRequest, opts ...grpc.CallOption) (*PermissionLookupSchemaResponse, error) {
+	out := new(PermissionLookupSchemaResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Permission/LookupSchema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *permissionClient) LookupEntity(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (*PermissionLookupEntityResponse, error) {
+	out := new(PermissionLookupEntityResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Permission/LookupEntity", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +78,8 @@ func (c *permissionClient) LookupQuery(ctx context.Context, in *PermissionLookup
 type PermissionServer interface {
 	Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResponse, error)
 	Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error)
-	LookupQuery(context.Context, *PermissionLookupQueryRequest) (*PermissionLookupQueryResponse, error)
+	LookupSchema(context.Context, *PermissionLookupSchemaRequest) (*PermissionLookupSchemaResponse, error)
+	LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error)
 	mustEmbedUnimplementedPermissionServer()
 }
 
@@ -82,8 +93,11 @@ func (UnimplementedPermissionServer) Check(context.Context, *PermissionCheckRequ
 func (UnimplementedPermissionServer) Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Expand not implemented")
 }
-func (UnimplementedPermissionServer) LookupQuery(context.Context, *PermissionLookupQueryRequest) (*PermissionLookupQueryResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LookupQuery not implemented")
+func (UnimplementedPermissionServer) LookupSchema(context.Context, *PermissionLookupSchemaRequest) (*PermissionLookupSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LookupSchema not implemented")
+}
+func (UnimplementedPermissionServer) LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LookupEntity not implemented")
 }
 func (UnimplementedPermissionServer) mustEmbedUnimplementedPermissionServer() {}
 
@@ -134,20 +148,38 @@ func _Permission_Expand_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Permission_LookupQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PermissionLookupQueryRequest)
+func _Permission_LookupSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermissionLookupSchemaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PermissionServer).LookupQuery(ctx, in)
+		return srv.(PermissionServer).LookupSchema(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.Permission/LookupQuery",
+		FullMethod: "/base.v1.Permission/LookupSchema",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PermissionServer).LookupQuery(ctx, req.(*PermissionLookupQueryRequest))
+		return srv.(PermissionServer).LookupSchema(ctx, req.(*PermissionLookupSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Permission_LookupEntity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermissionLookupEntityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionServer).LookupEntity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/base.v1.Permission/LookupEntity",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionServer).LookupEntity(ctx, req.(*PermissionLookupEntityRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -168,8 +200,12 @@ var Permission_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Permission_Expand_Handler,
 		},
 		{
-			MethodName: "LookupQuery",
-			Handler:    _Permission_LookupQuery_Handler,
+			MethodName: "LookupSchema",
+			Handler:    _Permission_LookupSchema_Handler,
+		},
+		{
+			MethodName: "LookupEntity",
+			Handler:    _Permission_LookupEntity_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -182,7 +218,6 @@ var Permission_ServiceDesc = grpc.ServiceDesc{
 type SchemaClient interface {
 	Write(ctx context.Context, in *SchemaWriteRequest, opts ...grpc.CallOption) (*SchemaWriteResponse, error)
 	Read(ctx context.Context, in *SchemaReadRequest, opts ...grpc.CallOption) (*SchemaReadResponse, error)
-	Lookup(ctx context.Context, in *SchemaLookupRequest, opts ...grpc.CallOption) (*SchemaLookupResponse, error)
 }
 
 type schemaClient struct {
@@ -211,22 +246,12 @@ func (c *schemaClient) Read(ctx context.Context, in *SchemaReadRequest, opts ...
 	return out, nil
 }
 
-func (c *schemaClient) Lookup(ctx context.Context, in *SchemaLookupRequest, opts ...grpc.CallOption) (*SchemaLookupResponse, error) {
-	out := new(SchemaLookupResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.Schema/Lookup", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // SchemaServer is the server API for Schema service.
 // All implementations must embed UnimplementedSchemaServer
 // for forward compatibility
 type SchemaServer interface {
 	Write(context.Context, *SchemaWriteRequest) (*SchemaWriteResponse, error)
 	Read(context.Context, *SchemaReadRequest) (*SchemaReadResponse, error)
-	Lookup(context.Context, *SchemaLookupRequest) (*SchemaLookupResponse, error)
 	mustEmbedUnimplementedSchemaServer()
 }
 
@@ -239,9 +264,6 @@ func (UnimplementedSchemaServer) Write(context.Context, *SchemaWriteRequest) (*S
 }
 func (UnimplementedSchemaServer) Read(context.Context, *SchemaReadRequest) (*SchemaReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
-}
-func (UnimplementedSchemaServer) Lookup(context.Context, *SchemaLookupRequest) (*SchemaLookupResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Lookup not implemented")
 }
 func (UnimplementedSchemaServer) mustEmbedUnimplementedSchemaServer() {}
 
@@ -292,24 +314,6 @@ func _Schema_Read_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Schema_Lookup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SchemaLookupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SchemaServer).Lookup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/base.v1.Schema/Lookup",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchemaServer).Lookup(ctx, req.(*SchemaLookupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Schema_ServiceDesc is the grpc.ServiceDesc for Schema service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -324,10 +328,6 @@ var Schema_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Read",
 			Handler:    _Schema_Read_Handler,
-		},
-		{
-			MethodName: "Lookup",
-			Handler:    _Schema_Lookup_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -101,9 +101,9 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 		}
 	}
 
-	if len(m.GetAction()) > 64 {
+	if len(m.GetPermission()) > 64 {
 		err := PermissionCheckRequestValidationError{
-			field:  "Action",
+			field:  "Permission",
 			reason: "value length must be at most 64 bytes",
 		}
 		if !all {
@@ -112,9 +112,9 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_PermissionCheckRequest_Action_Pattern.MatchString(m.GetAction()) {
+	if !_PermissionCheckRequest_Permission_Pattern.MatchString(m.GetPermission()) {
 		err := PermissionCheckRequestValidationError{
-			field:  "Action",
+			field:  "Permission",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
 		if !all {
@@ -258,7 +258,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionCheckRequestValidationError{}
 
-var _PermissionCheckRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionCheckRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on PermissionCheckResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -432,11 +432,11 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 		}
 	}
 
-	if m.GetAction() != "" {
+	if m.GetPermission() != "" {
 
-		if len(m.GetAction()) > 64 {
+		if len(m.GetPermission()) > 64 {
 			err := PermissionExpandRequestValidationError{
-				field:  "Action",
+				field:  "Permission",
 				reason: "value length must be at most 64 bytes",
 			}
 			if !all {
@@ -445,9 +445,9 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 
-		if !_PermissionExpandRequest_Action_Pattern.MatchString(m.GetAction()) {
+		if !_PermissionExpandRequest_Permission_Pattern.MatchString(m.GetPermission()) {
 			err := PermissionExpandRequestValidationError{
-				field:  "Action",
+				field:  "Permission",
 				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 			}
 			if !all {
@@ -538,7 +538,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionExpandRequestValidationError{}
 
-var _PermissionExpandRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionExpandRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on PermissionExpandResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -671,22 +671,254 @@ var _ interface {
 	ErrorName() string
 } = PermissionExpandResponseValidationError{}
 
-// Validate checks the field values on PermissionLookupQueryRequest with the
+// Validate checks the field values on PermissionLookupSchemaRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *PermissionLookupQueryRequest) Validate() error {
+func (m *PermissionLookupSchemaRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on PermissionLookupQueryRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// PermissionLookupQueryRequestMultiError, or nil if none found.
-func (m *PermissionLookupQueryRequest) ValidateAll() error {
+// ValidateAll checks the field values on PermissionLookupSchemaRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// PermissionLookupSchemaRequestMultiError, or nil if none found.
+func (m *PermissionLookupSchemaRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *PermissionLookupQueryRequest) validate(all bool) error {
+func (m *PermissionLookupSchemaRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(m.GetEntityType()) > 64 {
+		err := PermissionLookupSchemaRequestValidationError{
+			field:  "EntityType",
+			reason: "value length must be at most 64 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_PermissionLookupSchemaRequest_EntityType_Pattern.MatchString(m.GetEntityType()) {
+		err := PermissionLookupSchemaRequestValidationError{
+			field:  "EntityType",
+			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PermissionLookupSchemaRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// PermissionLookupSchemaRequestMultiError is an error wrapping multiple
+// validation errors returned by PermissionLookupSchemaRequest.ValidateAll()
+// if the designated constraints aren't met.
+type PermissionLookupSchemaRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PermissionLookupSchemaRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PermissionLookupSchemaRequestMultiError) AllErrors() []error { return m }
+
+// PermissionLookupSchemaRequestValidationError is the validation error
+// returned by PermissionLookupSchemaRequest.Validate if the designated
+// constraints aren't met.
+type PermissionLookupSchemaRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PermissionLookupSchemaRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PermissionLookupSchemaRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PermissionLookupSchemaRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PermissionLookupSchemaRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PermissionLookupSchemaRequestValidationError) ErrorName() string {
+	return "PermissionLookupSchemaRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PermissionLookupSchemaRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPermissionLookupSchemaRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PermissionLookupSchemaRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PermissionLookupSchemaRequestValidationError{}
+
+var _PermissionLookupSchemaRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+
+// Validate checks the field values on PermissionLookupSchemaResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionLookupSchemaResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PermissionLookupSchemaResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// PermissionLookupSchemaResponseMultiError, or nil if none found.
+func (m *PermissionLookupSchemaResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PermissionLookupSchemaResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return PermissionLookupSchemaResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// PermissionLookupSchemaResponseMultiError is an error wrapping multiple
+// validation errors returned by PermissionLookupSchemaResponse.ValidateAll()
+// if the designated constraints aren't met.
+type PermissionLookupSchemaResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PermissionLookupSchemaResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PermissionLookupSchemaResponseMultiError) AllErrors() []error { return m }
+
+// PermissionLookupSchemaResponseValidationError is the validation error
+// returned by PermissionLookupSchemaResponse.Validate if the designated
+// constraints aren't met.
+type PermissionLookupSchemaResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PermissionLookupSchemaResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PermissionLookupSchemaResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PermissionLookupSchemaResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PermissionLookupSchemaResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PermissionLookupSchemaResponseValidationError) ErrorName() string {
+	return "PermissionLookupSchemaResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PermissionLookupSchemaResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPermissionLookupSchemaResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PermissionLookupSchemaResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PermissionLookupSchemaResponseValidationError{}
+
+// Validate checks the field values on PermissionLookupEntityRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionLookupEntityRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PermissionLookupEntityRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// PermissionLookupEntityRequestMultiError, or nil if none found.
+func (m *PermissionLookupEntityRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PermissionLookupEntityRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -698,7 +930,7 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 	// no validation rules for SnapToken
 
 	if len(m.GetEntityType()) > 64 {
-		err := PermissionLookupQueryRequestValidationError{
+		err := PermissionLookupEntityRequestValidationError{
 			field:  "EntityType",
 			reason: "value length must be at most 64 bytes",
 		}
@@ -708,8 +940,8 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_PermissionLookupQueryRequest_EntityType_Pattern.MatchString(m.GetEntityType()) {
-		err := PermissionLookupQueryRequestValidationError{
+	if !_PermissionLookupEntityRequest_EntityType_Pattern.MatchString(m.GetEntityType()) {
+		err := PermissionLookupEntityRequestValidationError{
 			field:  "EntityType",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
@@ -719,9 +951,9 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetAction()) > 64 {
-		err := PermissionLookupQueryRequestValidationError{
-			field:  "Action",
+	if len(m.GetPermission()) > 64 {
+		err := PermissionLookupEntityRequestValidationError{
+			field:  "Permission",
 			reason: "value length must be at most 64 bytes",
 		}
 		if !all {
@@ -730,9 +962,9 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_PermissionLookupQueryRequest_Action_Pattern.MatchString(m.GetAction()) {
-		err := PermissionLookupQueryRequestValidationError{
-			field:  "Action",
+	if !_PermissionLookupEntityRequest_Permission_Pattern.MatchString(m.GetPermission()) {
+		err := PermissionLookupEntityRequestValidationError{
+			field:  "Permission",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
 		if !all {
@@ -742,7 +974,7 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 	}
 
 	if m.GetSubject() == nil {
-		err := PermissionLookupQueryRequestValidationError{
+		err := PermissionLookupEntityRequestValidationError{
 			field:  "Subject",
 			reason: "value is required",
 		}
@@ -756,7 +988,7 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 		switch v := interface{}(m.GetSubject()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PermissionLookupQueryRequestValidationError{
+				errors = append(errors, PermissionLookupEntityRequestValidationError{
 					field:  "Subject",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -764,7 +996,7 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PermissionLookupQueryRequestValidationError{
+				errors = append(errors, PermissionLookupEntityRequestValidationError{
 					field:  "Subject",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -773,7 +1005,7 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetSubject()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return PermissionLookupQueryRequestValidationError{
+			return PermissionLookupEntityRequestValidationError{
 				field:  "Subject",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -782,19 +1014,19 @@ func (m *PermissionLookupQueryRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return PermissionLookupQueryRequestMultiError(errors)
+		return PermissionLookupEntityRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// PermissionLookupQueryRequestMultiError is an error wrapping multiple
-// validation errors returned by PermissionLookupQueryRequest.ValidateAll() if
-// the designated constraints aren't met.
-type PermissionLookupQueryRequestMultiError []error
+// PermissionLookupEntityRequestMultiError is an error wrapping multiple
+// validation errors returned by PermissionLookupEntityRequest.ValidateAll()
+// if the designated constraints aren't met.
+type PermissionLookupEntityRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m PermissionLookupQueryRequestMultiError) Error() string {
+func (m PermissionLookupEntityRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -803,12 +1035,12 @@ func (m PermissionLookupQueryRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m PermissionLookupQueryRequestMultiError) AllErrors() []error { return m }
+func (m PermissionLookupEntityRequestMultiError) AllErrors() []error { return m }
 
-// PermissionLookupQueryRequestValidationError is the validation error returned
-// by PermissionLookupQueryRequest.Validate if the designated constraints
-// aren't met.
-type PermissionLookupQueryRequestValidationError struct {
+// PermissionLookupEntityRequestValidationError is the validation error
+// returned by PermissionLookupEntityRequest.Validate if the designated
+// constraints aren't met.
+type PermissionLookupEntityRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -816,24 +1048,24 @@ type PermissionLookupQueryRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e PermissionLookupQueryRequestValidationError) Field() string { return e.field }
+func (e PermissionLookupEntityRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e PermissionLookupQueryRequestValidationError) Reason() string { return e.reason }
+func (e PermissionLookupEntityRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e PermissionLookupQueryRequestValidationError) Cause() error { return e.cause }
+func (e PermissionLookupEntityRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e PermissionLookupQueryRequestValidationError) Key() bool { return e.key }
+func (e PermissionLookupEntityRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e PermissionLookupQueryRequestValidationError) ErrorName() string {
-	return "PermissionLookupQueryRequestValidationError"
+func (e PermissionLookupEntityRequestValidationError) ErrorName() string {
+	return "PermissionLookupEntityRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e PermissionLookupQueryRequestValidationError) Error() string {
+func (e PermissionLookupEntityRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -845,14 +1077,14 @@ func (e PermissionLookupQueryRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sPermissionLookupQueryRequest.%s: %s%s",
+		"invalid %sPermissionLookupEntityRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = PermissionLookupQueryRequestValidationError{}
+var _ error = PermissionLookupEntityRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -860,50 +1092,48 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = PermissionLookupQueryRequestValidationError{}
+} = PermissionLookupEntityRequestValidationError{}
 
-var _PermissionLookupQueryRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionLookupEntityRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-var _PermissionLookupQueryRequest_Action_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionLookupEntityRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-// Validate checks the field values on PermissionLookupQueryResponse with the
+// Validate checks the field values on PermissionLookupEntityResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *PermissionLookupQueryResponse) Validate() error {
+func (m *PermissionLookupEntityResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on PermissionLookupQueryResponse with
+// ValidateAll checks the field values on PermissionLookupEntityResponse with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// PermissionLookupQueryResponseMultiError, or nil if none found.
-func (m *PermissionLookupQueryResponse) ValidateAll() error {
+// PermissionLookupEntityResponseMultiError, or nil if none found.
+func (m *PermissionLookupEntityResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *PermissionLookupQueryResponse) validate(all bool) error {
+func (m *PermissionLookupEntityResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Query
-
 	if len(errors) > 0 {
-		return PermissionLookupQueryResponseMultiError(errors)
+		return PermissionLookupEntityResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// PermissionLookupQueryResponseMultiError is an error wrapping multiple
-// validation errors returned by PermissionLookupQueryResponse.ValidateAll()
+// PermissionLookupEntityResponseMultiError is an error wrapping multiple
+// validation errors returned by PermissionLookupEntityResponse.ValidateAll()
 // if the designated constraints aren't met.
-type PermissionLookupQueryResponseMultiError []error
+type PermissionLookupEntityResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m PermissionLookupQueryResponseMultiError) Error() string {
+func (m PermissionLookupEntityResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -912,12 +1142,12 @@ func (m PermissionLookupQueryResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m PermissionLookupQueryResponseMultiError) AllErrors() []error { return m }
+func (m PermissionLookupEntityResponseMultiError) AllErrors() []error { return m }
 
-// PermissionLookupQueryResponseValidationError is the validation error
-// returned by PermissionLookupQueryResponse.Validate if the designated
+// PermissionLookupEntityResponseValidationError is the validation error
+// returned by PermissionLookupEntityResponse.Validate if the designated
 // constraints aren't met.
-type PermissionLookupQueryResponseValidationError struct {
+type PermissionLookupEntityResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -925,24 +1155,24 @@ type PermissionLookupQueryResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e PermissionLookupQueryResponseValidationError) Field() string { return e.field }
+func (e PermissionLookupEntityResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e PermissionLookupQueryResponseValidationError) Reason() string { return e.reason }
+func (e PermissionLookupEntityResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e PermissionLookupQueryResponseValidationError) Cause() error { return e.cause }
+func (e PermissionLookupEntityResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e PermissionLookupQueryResponseValidationError) Key() bool { return e.key }
+func (e PermissionLookupEntityResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e PermissionLookupQueryResponseValidationError) ErrorName() string {
-	return "PermissionLookupQueryResponseValidationError"
+func (e PermissionLookupEntityResponseValidationError) ErrorName() string {
+	return "PermissionLookupEntityResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e PermissionLookupQueryResponseValidationError) Error() string {
+func (e PermissionLookupEntityResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -954,14 +1184,14 @@ func (e PermissionLookupQueryResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sPermissionLookupQueryResponse.%s: %s%s",
+		"invalid %sPermissionLookupEntityResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = PermissionLookupQueryResponseValidationError{}
+var _ error = PermissionLookupEntityResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -969,7 +1199,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = PermissionLookupQueryResponseValidationError{}
+} = PermissionLookupEntityResponseValidationError{}
 
 // Validate checks the field values on SchemaWriteRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -1413,236 +1643,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SchemaReadResponseValidationError{}
-
-// Validate checks the field values on SchemaLookupRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *SchemaLookupRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on SchemaLookupRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// SchemaLookupRequestMultiError, or nil if none found.
-func (m *SchemaLookupRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *SchemaLookupRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for SchemaVersion
-
-	if len(m.GetEntityType()) > 64 {
-		err := SchemaLookupRequestValidationError{
-			field:  "EntityType",
-			reason: "value length must be at most 64 bytes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if !_SchemaLookupRequest_EntityType_Pattern.MatchString(m.GetEntityType()) {
-		err := SchemaLookupRequestValidationError{
-			field:  "EntityType",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if len(errors) > 0 {
-		return SchemaLookupRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// SchemaLookupRequestMultiError is an error wrapping multiple validation
-// errors returned by SchemaLookupRequest.ValidateAll() if the designated
-// constraints aren't met.
-type SchemaLookupRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m SchemaLookupRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m SchemaLookupRequestMultiError) AllErrors() []error { return m }
-
-// SchemaLookupRequestValidationError is the validation error returned by
-// SchemaLookupRequest.Validate if the designated constraints aren't met.
-type SchemaLookupRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e SchemaLookupRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e SchemaLookupRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e SchemaLookupRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e SchemaLookupRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e SchemaLookupRequestValidationError) ErrorName() string {
-	return "SchemaLookupRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e SchemaLookupRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sSchemaLookupRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = SchemaLookupRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = SchemaLookupRequestValidationError{}
-
-var _SchemaLookupRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
-
-// Validate checks the field values on SchemaLookupResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *SchemaLookupResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on SchemaLookupResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// SchemaLookupResponseMultiError, or nil if none found.
-func (m *SchemaLookupResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *SchemaLookupResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if len(errors) > 0 {
-		return SchemaLookupResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// SchemaLookupResponseMultiError is an error wrapping multiple validation
-// errors returned by SchemaLookupResponse.ValidateAll() if the designated
-// constraints aren't met.
-type SchemaLookupResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m SchemaLookupResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m SchemaLookupResponseMultiError) AllErrors() []error { return m }
-
-// SchemaLookupResponseValidationError is the validation error returned by
-// SchemaLookupResponse.Validate if the designated constraints aren't met.
-type SchemaLookupResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e SchemaLookupResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e SchemaLookupResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e SchemaLookupResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e SchemaLookupResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e SchemaLookupResponseValidationError) ErrorName() string {
-	return "SchemaLookupResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e SchemaLookupResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sSchemaLookupResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = SchemaLookupResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = SchemaLookupResponseValidationError{}
 
 // Validate checks the field values on RelationshipWriteRequest with the rules
 // defined in the proto definition for this message. If any rules are

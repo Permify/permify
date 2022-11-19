@@ -28,7 +28,7 @@ func check() js.Func {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
 		var result commands.CheckResponse
-		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Action, params.Entity, string(args[1].String()), "")
+		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Permission, params.Entity, string(args[1].String()), "")
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
