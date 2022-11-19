@@ -65,6 +65,9 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 			return nil, "", err
 		}
 		definition, err = schema.GetEntityByName(sch, entityType)
+		if err != nil {
+			return nil, "", err
+		}
 		return definition, def.Version, err
 	}
 
