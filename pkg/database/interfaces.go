@@ -48,6 +48,7 @@ type ITupleCollection interface {
 	Add(tuple *base.Tuple)
 	CreateTupleIterator() ITupleIterator
 	GetTuples() []*base.Tuple
+	ToSubjectCollection() ISubjectCollection
 }
 
 // ISubjectCollection abstract subject collection.

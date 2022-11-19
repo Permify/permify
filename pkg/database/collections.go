@@ -37,6 +37,15 @@ func (t *TupleCollection) Add(tuple *base.Tuple) {
 	return
 }
 
+// ToSubjectCollection -
+func (t *TupleCollection) ToSubjectCollection() ISubjectCollection {
+	subjects := make([]*base.Subject, len(t.tuples))
+	for index, tuple := range t.tuples {
+		subjects[index] = tuple.GetSubject()
+	}
+	return NewSubjectCollection(subjects...)
+}
+
 // SUBJECT
 
 // SubjectCollection subject collection.
