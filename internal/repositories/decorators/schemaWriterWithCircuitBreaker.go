@@ -10,17 +10,17 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// SchemaWriterWithCircuitBreaker -
+// SchemaWriterWithCircuitBreaker - Add circuit breaker behaviour to schema writer
 type SchemaWriterWithCircuitBreaker struct {
 	delegate repositories.SchemaWriter
 }
 
-// NewSchemaWriterWithCircuitBreaker -.
+// NewSchemaWriterWithCircuitBreaker - Add circuit breaker behaviour to new schema writer
 func NewSchemaWriterWithCircuitBreaker(delegate repositories.SchemaWriter) *SchemaWriterWithCircuitBreaker {
 	return &SchemaWriterWithCircuitBreaker{delegate: delegate}
 }
 
-// WriteSchema -
+// WriteSchema - Write schema to repository
 func (r *SchemaWriterWithCircuitBreaker) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) (string, error) {
 	type circuitBreakerResponse struct {
 		Version string

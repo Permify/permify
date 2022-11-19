@@ -17,12 +17,13 @@ import (
 	"github.com/Permify/permify/pkg/token"
 )
 
+// RelationshipWriter - Structure for Relationship Writer
 type RelationshipWriter struct {
 	database  *db.Postgres
 	txOptions pgx.TxOptions
 }
 
-// NewRelationshipWriter creates a new RelationTupleReader
+// NewRelationshipWriter - Creates a new RelationTupleReader
 func NewRelationshipWriter(database *db.Postgres) *RelationshipWriter {
 	return &RelationshipWriter{
 		database:  database,
@@ -30,7 +31,7 @@ func NewRelationshipWriter(database *db.Postgres) *RelationshipWriter {
 	}
 }
 
-// WriteRelationships writes a collection of relationships to the database
+// WriteRelationships - Writes a collection of relationships to the database
 func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	for i := 0; i <= 10; i++ {
 		tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
@@ -84,7 +85,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
 }
 
-// DeleteRelationships deletes a collection of relationships to the database
+// DeleteRelationships - Deletes a collection of relationships to the database
 func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	for i := 0; i <= 10; i++ {
 		tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)

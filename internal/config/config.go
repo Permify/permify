@@ -11,7 +11,7 @@ const (
 )
 
 type (
-	// Config -.
+	// Config -
 	Config struct {
 		Server   `yaml:"server"`
 		Log      `yaml:"logger"`
@@ -72,7 +72,7 @@ type (
 	}
 )
 
-// NewConfig returns new config.
+// NewConfig - Creates new config
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
@@ -88,7 +88,7 @@ func NewConfig() (*Config, error) {
 	return cfg, nil
 }
 
-// DefaultConfig returns default config.
+// DefaultConfig - Creates default config.
 func DefaultConfig() *Config {
 	return &Config{
 		Server: Server{

@@ -13,18 +13,19 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// SchemaReader - Structure for Schema Reader
 type SchemaReader struct {
 	database *db.Memory
 }
 
-// NewSchemaReader creates a new SchemaReader
+// NewSchemaReader - Creates a new SchemaReader
 func NewSchemaReader(database *db.Memory) *SchemaReader {
 	return &SchemaReader{
 		database: database,
 	}
 }
 
-// ReadSchema -
+// ReadSchema - Reads a new schema from repository
 func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
@@ -47,7 +48,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 	return schema, nil
 }
 
-// ReadSchemaDefinition -
+// ReadSchemaDefinition - Reads a Schema Definition from repository
 func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
@@ -71,7 +72,7 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 }
 
-// HeadVersion -
+// HeadVersion - Reads the latest version from the repository.
 func (r *SchemaReader) HeadVersion(ctx context.Context) (string, error) {
 	var err error
 	txn := r.database.DB.Txn(false)

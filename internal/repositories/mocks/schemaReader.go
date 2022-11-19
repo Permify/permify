@@ -12,7 +12,7 @@ type SchemaReader struct {
 	mock.Mock
 }
 
-// ReadSchema -
+// ReadSchema - Reads a new schema from repository
 func (_m *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
 	ret := _m.Called(version)
 
@@ -37,7 +37,7 @@ func (_m *SchemaReader) ReadSchema(ctx context.Context, version string) (schema 
 	return r0, r1
 }
 
-// ReadSchemaDefinition -
+// ReadSchemaDefinition - Reads a Schema Definition from repository
 func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
 	ret := _m.Called(entityType, version)
 
@@ -69,7 +69,7 @@ func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType str
 	return r0, r1, r2
 }
 
-// HeadVersion -
+// HeadVersion - Reads the latest version from the repository.
 func (_m *SchemaReader) HeadVersion(ctx context.Context) (version string, err error) {
 	ret := _m.Called()
 

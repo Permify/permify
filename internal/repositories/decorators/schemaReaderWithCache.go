@@ -10,6 +10,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// SchemaReaderWithCache - Add cache behaviour to schema reader
 type SchemaReaderWithCache struct {
 	delegate repositories.SchemaReader
 	cache    cache.Cache
@@ -23,12 +24,12 @@ func NewSchemaReaderWithCache(delegate repositories.SchemaReader, cache cache.Ca
 	}
 }
 
-// ReadSchema -
+// ReadSchema  - Read schema from the repository
 func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
 	return r.delegate.ReadSchema(ctx, version)
 }
 
-// ReadSchemaDefinition -
+// ReadSchemaDefinition - Read schema definition from the repository
 func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
 	var s interface{}
 	found := false
@@ -50,7 +51,7 @@ func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entity
 	return def, "", err
 }
 
-// HeadVersion finds the latest version of the schema.
+// HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReaderWithCache) HeadVersion(ctx context.Context) (version string, err error) {
 	return r.delegate.HeadVersion(ctx)
 }

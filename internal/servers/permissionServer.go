@@ -13,7 +13,7 @@ import (
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// PermissionServer -
+// PermissionServer - Structure for Permission Server
 type PermissionServer struct {
 	v1.UnimplementedPermissionServer
 
@@ -21,7 +21,7 @@ type PermissionServer struct {
 	l                 logger.Interface
 }
 
-// NewPermissionServer -
+// NewPermissionServer - Creates new Permission Server
 func NewPermissionServer(p services.IPermissionService, l logger.Interface) *PermissionServer {
 	return &PermissionServer{
 		permissionService: p,
@@ -29,7 +29,7 @@ func NewPermissionServer(p services.IPermissionService, l logger.Interface) *Per
 	}
 }
 
-// Check -
+// Check - Performs Authorization Check
 func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionCheckRequest) (*v1.PermissionCheckResponse, error) {
 	ctx, span := tracer.Start(ctx, "permissions.check")
 	defer span.End()
@@ -56,7 +56,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	return response, nil
 }
 
-// Expand -
+// Expand - Get schema actions in a tree structure
 func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
 	ctx, span := tracer.Start(ctx, "permissions.expand")
 	defer span.End()
@@ -79,7 +79,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 	return &v1.PermissionExpandResponse{Tree: response.Tree}, nil
 }
 
-// LookupQuery -
+// LookupQuery - Retrieve all permissions associated with a resource relation
 func (r *PermissionServer) LookupQuery(ctx context.Context, request *v1.PermissionLookupQueryRequest) (*v1.PermissionLookupQueryResponse, error) {
 	ctx, span := tracer.Start(ctx, "permissions.lookupQuery")
 	defer span.End()

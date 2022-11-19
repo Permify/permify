@@ -16,17 +16,17 @@ var (
 	MissingBearerTokenError = status.Error(codes.Code(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN), "missing bearer token")
 )
 
-// KeyAuthenticator -
+// KeyAuthenticator - Interface for key authenticator
 type KeyAuthenticator interface {
 	Authenticate(ctx context.Context) error
 }
 
-// KeyAuthn -
+// KeyAuthn - Authentication Keys Structure
 type KeyAuthn struct {
 	Keys map[string]struct{}
 }
 
-// NewKeyAuthn -
+// NewKeyAuthn - Create New Authenticated Keys
 func NewKeyAuthn(keys ...string) (*KeyAuthn, error) {
 	if len(keys) < 1 {
 		return nil, errors.New("pre shared key authn must have at least one key")
@@ -40,7 +40,7 @@ func NewKeyAuthn(keys ...string) (*KeyAuthn, error) {
 	}, nil
 }
 
-// Authenticate -
+// Authenticate - Checking whether any API request contain keys
 func (a *KeyAuthn) Authenticate(ctx context.Context) error {
 	key, err := grpcAuth.AuthFromMD(ctx, "Bearer")
 	if err != nil {

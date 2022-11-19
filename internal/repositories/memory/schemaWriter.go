@@ -11,6 +11,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// SchemaWriter - Structure for Schema Writer
 type SchemaWriter struct {
 	database *db.Memory
 }
@@ -22,7 +23,7 @@ func NewSchemaWriter(database *db.Memory) *SchemaWriter {
 	}
 }
 
-// WriteSchema -
+// WriteSchema - Write Schema to repository
 func (r *SchemaWriter) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) (string, error) {
 	id := xid.New()
 	var err error

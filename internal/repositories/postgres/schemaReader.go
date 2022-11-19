@@ -14,12 +14,13 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// SchemaReader - Structure for SchemaReader
 type SchemaReader struct {
 	database  *db.Postgres
 	txOptions pgx.TxOptions
 }
 
-// NewSchemaReader creates a new SchemaReader
+// NewSchemaReader - Creates a new SchemaReader
 func NewSchemaReader(database *db.Postgres) *SchemaReader {
 	return &SchemaReader{
 		database:  database,
@@ -27,7 +28,7 @@ func NewSchemaReader(database *db.Postgres) *SchemaReader {
 	}
 }
 
-// ReadSchema reads entity config from the repository.
+// ReadSchema - Reads entity config from the repository.
 func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
 	tx, err := r.database.Pool.BeginTx(ctx, r.txOptions)
 	if err != nil {
@@ -72,7 +73,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 	return nil, err
 }
 
-// ReadSchemaDefinition reads entity config from the repository.
+// ReadSchemaDefinition - Reads entity config from the repository.
 func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, string, error) {
 	var err error
 
@@ -113,7 +114,7 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	return definition, def.Version, err
 }
 
-// HeadVersion finds the latest version of the schema.
+// HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReader) HeadVersion(ctx context.Context) (version string, err error) {
 	var sql string
 	var args []interface{}

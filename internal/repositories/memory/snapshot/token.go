@@ -9,22 +9,24 @@ import (
 )
 
 type (
+	// Token - Structure for Token
 	Token struct {
 		Value uint64
 	}
+	// EncodedToken - Structure for EncodedToken
 	EncodedToken struct {
 		Value string
 	}
 )
 
-// NewToken creates a new snapshot token
+// NewToken - Creates a new snapshot token
 func NewToken(value time.Time) token.SnapToken {
 	return &Token{
 		Value: uint64(value.UnixNano()),
 	}
 }
 
-// Encode encodes the token to a string
+// Encode - Encodes the token to a string
 func (t Token) Encode() token.EncodedSnapToken {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(t.Value))

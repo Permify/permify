@@ -13,7 +13,7 @@ type SchemaWriter struct {
 	mock.Mock
 }
 
-// WriteSchema -
+// WriteSchema - Write Schema to repository
 func (_m *SchemaReader) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) (version string, err error) {
 	ret := _m.Called(definitions)
 

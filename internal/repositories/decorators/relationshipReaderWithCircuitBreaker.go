@@ -12,17 +12,17 @@ import (
 	"github.com/Permify/permify/pkg/token"
 )
 
-// RelationshipReaderWithCircuitBreaker -
+// RelationshipReaderWithCircuitBreaker - Add circuit breaker behaviour to relationship reader
 type RelationshipReaderWithCircuitBreaker struct {
 	delegate repositories.RelationshipReader
 }
 
-// NewRelationshipReaderWithCircuitBreaker -.
+// NewRelationshipReaderWithCircuitBreaker - Add circuit breaker behaviour to new relationship reader
 func NewRelationshipReaderWithCircuitBreaker(delegate repositories.RelationshipReader) *RelationshipReaderWithCircuitBreaker {
 	return &RelationshipReaderWithCircuitBreaker{delegate: delegate}
 }
 
-// QueryRelationships -
+// QueryRelationships - Reads relation tuples from the repository
 func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Context, filter *base.TupleFilter, token string) (database.ITupleCollection, error) {
 	type circuitBreakerResponse struct {
 		Collection database.ITupleCollection
@@ -47,7 +47,7 @@ func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Co
 	}
 }
 
-// HeadSnapshot -
+// HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (r *RelationshipReaderWithCircuitBreaker) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.SnapToken

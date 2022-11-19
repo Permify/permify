@@ -8,7 +8,7 @@ import (
 	"github.com/Permify/permify/internal/authn"
 )
 
-// AuthFunc -
+// AuthFunc - Middleware that responsible for key authentication
 func AuthFunc(authenticator authn.KeyAuthenticator) grpcAuth.AuthFunc {
 	return func(ctx context.Context) (context.Context, error) {
 		err := authenticator.Authenticate(ctx)

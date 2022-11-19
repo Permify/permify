@@ -8,7 +8,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// FilterQuery -
+// FilterQuery - Filter relation tuples according to given filter
 func FilterQuery(filter *base.TupleFilter) memdb.FilterFunc {
 	return func(tupleRaw interface{}) bool {
 		tuple := tupleRaw.(repositories.RelationTuple)

@@ -15,14 +15,14 @@ type CommandKeys struct {
 	cache cache.Cache
 }
 
-// NewCheckCommandKeys new instance of CheckCommandKeys
+// NewCheckCommandKeys - New instance of CheckCommandKeys
 func NewCheckCommandKeys(cache cache.Cache) *CommandKeys {
 	return &CommandKeys{
 		cache: cache,
 	}
 }
 
-// SetCheckKey sets the value for the given key.
+// SetCheckKey - Sets the value for the given key.
 func (c *CommandKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse) bool {
 	checkKey := fmt.Sprintf("cc_%s:%s:%s@%s", key.GetSchemaVersion(), key.GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
 		Entity:   key.GetEntity(),
@@ -37,7 +37,7 @@ func (c *CommandKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.
 	return c.cache.Set(k, value, int64(size))
 }
 
-// GetCheckKey gets the value for the given key.
+// GetCheckKey - Gets the value for the given key.
 func (c *CommandKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
 	checkKey := fmt.Sprintf("cc_%s:%s:%s@%s", key.GetSchemaVersion(), key.GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
 		Entity:   key.GetEntity(),

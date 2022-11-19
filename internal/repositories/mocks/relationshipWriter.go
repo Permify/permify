@@ -15,7 +15,7 @@ type RelationshipWriter struct {
 	mock.Mock
 }
 
-// WriteRelationships -
+// WriteRelationships - Write a Relation to repository
 func (_m *SchemaReader) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	ret := _m.Called(collection)
 
@@ -40,7 +40,7 @@ func (_m *SchemaReader) WriteRelationships(ctx context.Context, collection datab
 	return r0, r1
 }
 
-// DeleteRelationships -
+// DeleteRelationships - Delete relationship from repository
 func (_m *SchemaReader) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	ret := _m.Called(filter)
 

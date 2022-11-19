@@ -14,7 +14,7 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// RelationshipServer -
+// RelationshipServer - Structure for Relationship Server
 type RelationshipServer struct {
 	v1.UnimplementedRelationshipServer
 
@@ -22,7 +22,7 @@ type RelationshipServer struct {
 	l                   logger.Interface
 }
 
-// NewRelationshipServer -
+// NewRelationshipServer - Creates new Relationship Server
 func NewRelationshipServer(r services.IRelationshipService, l logger.Interface) *RelationshipServer {
 	return &RelationshipServer{
 		relationshipService: r,
@@ -30,7 +30,7 @@ func NewRelationshipServer(r services.IRelationshipService, l logger.Interface) 
 	}
 }
 
-// Read -
+// Read - Allows directly querying the stored graph data to display and filter stored relational tuples
 func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipReadRequest) (*v1.RelationshipReadResponse, error) {
 	ctx, span := tracer.Start(ctx, "relationships.read")
 	defer span.End()
@@ -53,7 +53,7 @@ func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipR
 	}, nil
 }
 
-// Write -
+// Write - Write relation tuples to writeDB
 func (r *RelationshipServer) Write(ctx context.Context, request *v1.RelationshipWriteRequest) (*v1.RelationshipWriteResponse, error) {
 	ctx, span := tracer.Start(ctx, "relationships.write")
 	defer span.End()
@@ -83,7 +83,7 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 	}, nil
 }
 
-// Delete -
+// Delete - Delete relation tuples to writeDB
 func (r *RelationshipServer) Delete(ctx context.Context, request *v1.RelationshipDeleteRequest) (*v1.RelationshipDeleteResponse, error) {
 	ctx, span := tracer.Start(ctx, "relationships.delete")
 	defer span.End()
