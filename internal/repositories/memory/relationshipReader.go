@@ -16,18 +16,19 @@ import (
 	"github.com/Permify/permify/pkg/token"
 )
 
+// RelationshipReader - Structure for Relationship Reader
 type RelationshipReader struct {
 	database *db.Memory
 }
 
-// NewRelationshipReader creates a new RelationshipReader
+// NewRelationshipReader - Creates a new RelationshipReader
 func NewRelationshipReader(database *db.Memory) *RelationshipReader {
 	return &RelationshipReader{
 		database: database,
 	}
 }
 
-// QueryRelationships -
+// QueryRelationships - Reads relation tuples from the repository.
 func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, _ string) (collection database.ITupleCollection, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
@@ -50,7 +51,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	return collection, nil
 }
 
-// HeadSnapshot gets the latest token
+// HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
 	return snapshot.NewToken(time.Now()), nil
 }

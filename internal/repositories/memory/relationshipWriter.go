@@ -19,14 +19,14 @@ type RelationshipWriter struct {
 	database *db.Memory
 }
 
-// NewRelationshipWriter creates a new RelationshipReader
+// NewRelationshipWriter - Creates a new RelationshipReader
 func NewRelationshipWriter(database *db.Memory) *RelationshipWriter {
 	return &RelationshipWriter{
 		database: database,
 	}
 }
 
-// WriteRelationships -
+// WriteRelationships - Write a Relation to repository
 func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	var err error
 
@@ -57,7 +57,7 @@ func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 	return snapshot.NewToken(time.Now()).Encode(), nil
 }
 
-// DeleteRelationships -
+// DeleteRelationships - Delete relationship from repository
 func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	var err error
 	txn := r.database.DB.Txn(true)

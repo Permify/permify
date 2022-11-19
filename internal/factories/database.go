@@ -11,7 +11,7 @@ import (
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
-// DatabaseFactory -
+// DatabaseFactory - Create database according to given configuration
 func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 	switch conf.Engine {
 	case database.POSTGRES.String():

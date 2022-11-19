@@ -12,17 +12,17 @@ import (
 	"github.com/Permify/permify/pkg/token"
 )
 
-// RelationshipWriterWithCircuitBreaker -
+// RelationshipWriterWithCircuitBreaker - Add circuit breaker behaviour to relationship writer
 type RelationshipWriterWithCircuitBreaker struct {
 	delegate repositories.RelationshipWriter
 }
 
-// NewRelationshipWriterWithCircuitBreaker -.
+// NewRelationshipWriterWithCircuitBreaker - Add circuit breaker behaviour to new relationship writer
 func NewRelationshipWriterWithCircuitBreaker(delegate repositories.RelationshipWriter) *RelationshipWriterWithCircuitBreaker {
 	return &RelationshipWriterWithCircuitBreaker{delegate: delegate}
 }
 
-// WriteRelationships -
+// WriteRelationships - Write relation tuples from the repository
 func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.EncodedSnapToken
@@ -48,7 +48,7 @@ func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Co
 	}
 }
 
-// DeleteRelationships -
+// DeleteRelationships - Delete relation tuples from the repository
 func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.EncodedSnapToken

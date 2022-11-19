@@ -10,17 +10,17 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// SchemaReaderWithCircuitBreaker -
+// SchemaReaderWithCircuitBreaker - Add circuit breaker behaviour to schema reader
 type SchemaReaderWithCircuitBreaker struct {
 	delegate repositories.SchemaReader
 }
 
-// NewSchemaReaderWithCircuitBreaker -.
+// NewSchemaReaderWithCircuitBreaker - Add circuit breaker behaviour to new schema reader
 func NewSchemaReaderWithCircuitBreaker(delegate repositories.SchemaReader) *SchemaReaderWithCircuitBreaker {
 	return &SchemaReaderWithCircuitBreaker{delegate: delegate}
 }
 
-// ReadSchema -
+// ReadSchema - Read schema from repository
 func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, version string) (*base.IndexedSchema, error) {
 	type circuitBreakerResponse struct {
 		Schema *base.IndexedSchema
@@ -46,7 +46,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, version
 	}
 }
 
-// ReadSchemaDefinition -
+// ReadSchemaDefinition - Read schema definition from repository
 func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, string, error) {
 	type circuitBreakerResponse struct {
 		Definition *base.EntityDefinition
@@ -73,7 +73,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Contex
 	}
 }
 
-// HeadVersion finds the latest version of the schema.
+// HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReaderWithCircuitBreaker) HeadVersion(ctx context.Context) (version string, err error) {
 	type circuitBreakerResponse struct {
 		Version string

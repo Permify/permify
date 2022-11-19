@@ -9,7 +9,7 @@ import (
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
-// RelationshipReaderFactory -
+// RelationshipReaderFactory - Return relationship read operations according to given database interface
 func RelationshipReaderFactory(db database.Database) (repo repositories.RelationshipReader) {
 	switch db.GetEngineType() {
 	case "postgres":
@@ -21,7 +21,7 @@ func RelationshipReaderFactory(db database.Database) (repo repositories.Relation
 	}
 }
 
-// RelationshipWriterFactory -
+// RelationshipWriterFactory - Return relationship write operations according to given database interface
 func RelationshipWriterFactory(db database.Database) (repo repositories.RelationshipWriter) {
 	switch db.GetEngineType() {
 	case "postgres":
@@ -33,7 +33,7 @@ func RelationshipWriterFactory(db database.Database) (repo repositories.Relation
 	}
 }
 
-// SchemaReaderFactory -
+// SchemaReaderFactory - Return schema read operations according to given database interface
 func SchemaReaderFactory(db database.Database) (repo repositories.SchemaReader) {
 	switch db.GetEngineType() {
 	case "postgres":
@@ -45,7 +45,7 @@ func SchemaReaderFactory(db database.Database) (repo repositories.SchemaReader) 
 	}
 }
 
-// SchemaWriterFactory -
+// SchemaWriterFactory - Return schema write operations according to given database interface
 func SchemaWriterFactory(db database.Database) (repo repositories.SchemaWriter) {
 	switch db.GetEngineType() {
 	case "postgres":

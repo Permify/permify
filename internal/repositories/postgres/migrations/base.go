@@ -1,6 +1,6 @@
 package migrations
 
-// GetMigrations -
+// GetMigrations - Get migrations for Postgresql database
 func GetMigrations() []string {
 	return []string{
 		InitialRelationTuplesMigration,

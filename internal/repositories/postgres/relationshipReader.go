@@ -21,7 +21,7 @@ type RelationshipReader struct {
 	txOptions pgx.TxOptions
 }
 
-// NewRelationshipReader creates a new RelationshipReader
+// NewRelationshipReader - Creates a new RelationshipReader
 func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
 	return &RelationshipReader{
 		database:  database,
@@ -29,7 +29,7 @@ func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
 	}
 }
 
-// QueryRelationships gets all relationships for a given filter
+// QueryRelationships - Gets all relationships for a given filter
 func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (database.ITupleCollection, error) {
 	var err error
 
@@ -83,13 +83,13 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	return collection, nil
 }
 
-// SnapshotToken gets the token for a given snapshot
+// snapshotToken - gets the token for a given snapshot
 func (r *RelationshipReader) snapshotToken(ctx context.Context, token string) (token.SnapToken, error) {
 	encoded := snapshot.EncodedToken{Value: token}
 	return encoded.Decode()
 }
 
-// HeadSnapshot gets the latest token
+// HeadSnapshot - Gets the latest token
 func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
 	var xid types.XID8
 	query := r.database.Builder.Select("id").From(TransactionsTable).OrderBy("id DESC").Limit(1)

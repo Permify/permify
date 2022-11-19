@@ -6,7 +6,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// GetStatus -
+// GetStatus - Get error status
 func GetStatus(err error) codes.Code {
 	code, ok := base.ErrorCode_value[err.Error()]
 	if !ok {

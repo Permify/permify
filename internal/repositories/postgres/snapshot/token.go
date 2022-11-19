@@ -11,22 +11,24 @@ import (
 )
 
 type (
+	// Token - Structure for Token
 	Token struct {
 		Value types.XID8
 	}
+	// EncodedToken - Structure for EncodedToken
 	EncodedToken struct {
 		Value string
 	}
 )
 
-// NewToken creates a new snapshot token
+// NewToken - Creates a new snapshot token
 func NewToken(value types.XID8) token.SnapToken {
 	return &Token{
 		Value: value,
 	}
 }
 
-// Encode encodes the token to a string
+// Encode - Encodes the token to a string
 func (t Token) Encode() token.EncodedSnapToken {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, t.Value.Uint)

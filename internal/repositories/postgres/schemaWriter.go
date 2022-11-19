@@ -10,6 +10,7 @@ import (
 	db "github.com/Permify/permify/pkg/database/postgres"
 )
 
+// SchemaWriter - Structure for SchemaWriter
 type SchemaWriter struct {
 	database  *db.Postgres
 	txOptions pgx.TxOptions

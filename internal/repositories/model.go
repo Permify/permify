@@ -4,7 +4,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// RelationTuple -
+// RelationTuple - Structure for Relational Tuple
 type RelationTuple struct {
 	EntityType      string
 	EntityID        string
@@ -14,7 +14,7 @@ type RelationTuple struct {
 	SubjectRelation string
 }
 
-// ToTuple -
+// ToTuple - Convert database relation tuple to base relation tuple
 func (r RelationTuple) ToTuple() *base.Tuple {
 	return &base.Tuple{
 		Entity: &base.Entity{
@@ -30,14 +30,14 @@ func (r RelationTuple) ToTuple() *base.Tuple {
 	}
 }
 
-// SchemaDefinition -
+// SchemaDefinition - Structure for Schema Definition
 type SchemaDefinition struct {
 	EntityType           string
 	SerializedDefinition []byte
 	Version              string
 }
 
-// Serialized -
+// Serialized - get schema serialized definition
 func (e SchemaDefinition) Serialized() string {
 	return string(e.SerializedDefinition)
 }

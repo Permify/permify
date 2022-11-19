@@ -15,7 +15,7 @@ type RelationshipReader struct {
 	mock.Mock
 }
 
-// QueryRelationships -
+// QueryRelationships - Reads relation tuples from the repository.
 func (_m *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, snap string) (database.ITupleCollection, error) {
 	ret := _m.Called(filter, snap)
 
@@ -40,7 +40,7 @@ func (_m *RelationshipReader) QueryRelationships(ctx context.Context, filter *ba
 	return r0, r1
 }
 
-// HeadSnapshot -
+// HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (_m *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
 	ret := _m.Called()
 

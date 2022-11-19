@@ -13,7 +13,7 @@ import (
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// SchemaServer -
+// SchemaServer - Structure for Schema Server
 type SchemaServer struct {
 	v1.UnimplementedSchemaServer
 
@@ -21,7 +21,7 @@ type SchemaServer struct {
 	l             logger.Interface
 }
 
-// NewSchemaServer -
+// NewSchemaServer - Creates new Schema Server
 func NewSchemaServer(s services.ISchemaService, l logger.Interface) *SchemaServer {
 	return &SchemaServer{
 		schemaService: s,
@@ -29,7 +29,7 @@ func NewSchemaServer(s services.ISchemaService, l logger.Interface) *SchemaServe
 	}
 }
 
-// Write -
+// Write - Configure new Permify Schema to Permify
 func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest) (*v1.SchemaWriteResponse, error) {
 	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()
@@ -47,7 +47,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	}, nil
 }
 
-// Write -
+// Read - Read created Schema
 func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) (*v1.SchemaReadResponse, error) {
 	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()

@@ -5,7 +5,7 @@ import (
 	"github.com/Permify/permify/pkg/database"
 )
 
-// MigrationFactory -
+// MigrationFactory - Get migrations according to given engine
 func MigrationFactory(engine database.Engine) []string {
 	switch engine {
 	case database.POSTGRES:

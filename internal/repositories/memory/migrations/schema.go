@@ -6,6 +6,7 @@ import (
 	"github.com/Permify/permify/internal/repositories/memory"
 )
 
+// Schema - Database schema for memory db
 var Schema = &memdb.DBSchema{
 	Tables: map[string]*memdb.TableSchema{
 		memory.SchemaDefinitionTable: {

@@ -1,6 +1,6 @@
 package migrations
 
-// InitialRelationTuplesMigration -
+// InitialRelationTuplesMigration - Create relation tuples table
 const InitialRelationTuplesMigration = `create table if not exists relation_tuples (
  	id SERIAL not null,
     entity_type varchar not null,
@@ -15,14 +15,14 @@ const InitialRelationTuplesMigration = `create table if not exists relation_tupl
     constraint uq_relation_tuple unique (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, expired_tx_id),
     constraint uq_relation_tuple_not_expired unique (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, expired_tx_id));`
 
-// InitialSchemaDefinitionsMigration -
+// InitialSchemaDefinitionsMigration - Create schema definition table
 const InitialSchemaDefinitionsMigration = `create table if not exists schema_definitions (
  	entity_type varchar not null,
     serialized_definition BYTEA not null,
 	version CHAR(20) NOT NULL,
     constraint pk_schema_definition primary key (entity_type, version));`
 
-// InitialTransactionsMigration -
+// InitialTransactionsMigration - Create transactions table
 const InitialTransactionsMigration = `create table if not exists transactions (
     id xid8 default (pg_current_xact_id()) not null,
     snapshot pg_snapshot default (pg_current_snapshot()) not null,
