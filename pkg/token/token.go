@@ -17,3 +17,54 @@ type SnapToken interface {
 	// Lt snapshot is less than given snapshot
 	Lt(token SnapToken) bool
 }
+
+type (
+	NoopToken struct {
+		Value string
+	}
+	NoopEncodedToken struct {
+		Value string
+	}
+)
+
+// NewNoopToken creates a new noop snapshot token
+func NewNoopToken() SnapToken {
+	return &NoopToken{
+		Value: "noop",
+	}
+}
+
+// Encode encodes the token to a string
+func (t NoopToken) Encode() EncodedSnapToken {
+	return NoopEncodedToken{
+		Value: "noop",
+	}
+}
+
+// Eg snapshot is equal to given snapshot
+func (t NoopToken) Eg(token SnapToken) bool {
+	_, ok := token.(NoopToken)
+	return ok
+}
+
+// Gt snapshot is greater than given snapshot
+func (t NoopToken) Gt(token SnapToken) bool {
+	return false
+}
+
+// Lt snapshot is less than given snapshot
+func (t NoopToken) Lt(token SnapToken) bool {
+	return false
+}
+
+// Decode decodes the token from a string
+func (t NoopEncodedToken) Decode() (SnapToken, error) {
+	return NoopToken{
+		Value: "noop",
+	}, nil
+}
+
+// Decode decodes the token from a string
+func (t NoopEncodedToken) String() string {
+	return t.Value
+}
