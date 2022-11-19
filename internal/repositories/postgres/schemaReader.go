@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
 
@@ -90,7 +89,7 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	var sql string
 	var args []interface{}
 
-	query := r.database.Builder.Select("entity_type, serialized_definition").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(SchemaDefinitionTable).Limit(1)
+	query := r.database.Builder.Select("entity_type, serialized_definition, version").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(SchemaDefinitionTable).Limit(1)
 	sql, args, err = query.ToSql()
 	if err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -99,8 +98,8 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	var def repositories.SchemaDefinition
 	var row pgx.Row
 	row = tx.QueryRow(ctx, sql, args...)
-	if err = row.Scan(&def.EntityType, &def.SerializedDefinition); err != nil {
-		return nil, "", err
+	if err = row.Scan(&def.EntityType, &def.SerializedDefinition, &def.Version); err != nil {
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 	}
 
 	var sch *base.IndexedSchema
