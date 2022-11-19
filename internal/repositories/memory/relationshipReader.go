@@ -3,11 +3,12 @@ package memory
 import (
 	"context"
 	"errors"
+	`time`
 
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/memory/snapshot"
+	`github.com/Permify/permify/internal/repositories/memory/snapshot`
 	"github.com/Permify/permify/internal/repositories/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
@@ -51,5 +52,5 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 
 // HeadSnapshot gets the latest token
 func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
-	return snapshot.Token{}, nil
+	return snapshot.NewToken(time.Now()), nil
 }
