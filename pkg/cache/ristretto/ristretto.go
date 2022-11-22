@@ -4,7 +4,7 @@ import (
 	"github.com/dgraph-io/ristretto"
 )
 
-// Ristretto -
+// Ristretto - Structure for Ristretto
 type Ristretto struct {
 	numCounters int64
 	maxCost     int64
@@ -13,7 +13,7 @@ type Ristretto struct {
 	*ristretto.Cache
 }
 
-// New -
+// New - Creates new ristretto cache
 func New(opts ...Option) (*Ristretto, error) {
 	rs := &Ristretto{
 		numCounters: _defaultNumCounters,

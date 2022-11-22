@@ -4,59 +4,59 @@ import (
 	"sync"
 )
 
-// Node -
+// Node - Structure
 type Node struct {
 	Type  string `json:"type"`
 	ID    string `json:"id"`
 	Label string `json:"label"`
 }
 
-// Edge -
+// Edge - Edge Structure
 type Edge struct {
 	Extra any   `json:"extra"`
 	From  *Node `json:"from"`
 	To    *Node `json:"to"`
 }
 
-// Graph -
+// Graph - Graph Structure
 type Graph struct {
 	nodes []*Node
 	edges []*Edge
 	lock  sync.RWMutex
 }
 
-// Nodes -
+// Nodes - Return Nodes Slice
 func (g *Graph) Nodes() []*Node {
 	return g.nodes
 }
 
-// Edges -
+// Edges - Return Edge Slice
 func (g *Graph) Edges() []*Edge {
 	return g.edges
 }
 
-// AddNodes -
+// AddNodes - Add nodes to graph
 func (g *Graph) AddNodes(n []*Node) {
 	g.lock.Lock()
 	g.nodes = append(g.nodes, n...)
 	g.lock.Unlock()
 }
 
-// AddNode -
+// AddNode - Add node to graph
 func (g *Graph) AddNode(n *Node) {
 	g.lock.Lock()
 	g.nodes = append(g.nodes, n)
 	g.lock.Unlock()
 }
 
-// AddEdges -
+// AddEdges - Add edges to graph
 func (g *Graph) AddEdges(e []*Edge) {
 	g.lock.Lock()
 	g.edges = append(g.edges, e...)
 	g.lock.Unlock()
 }
 
-// AddEdge -
+// AddEdge - Add edge to graph
 func (g *Graph) AddEdge(from, to *Node, extra any) {
 	g.lock.Lock()
 	g.edges = append(g.edges, &Edge{

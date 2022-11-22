@@ -14,7 +14,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// Postgres -.
+// Postgres - Structure for Postresql instance
 type Postgres struct {
 	maxPoolSize  int
 	connAttempts int
@@ -24,7 +24,7 @@ type Postgres struct {
 	Pool    *pgxpool.Pool
 }
 
-// New -.
+// New - Creates new postgresql db instance
 func New(uri string, database string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
 		maxPoolSize:  _defaultMaxPoolSize,
@@ -59,7 +59,7 @@ func New(uri string, database string, opts ...Option) (*Postgres, error) {
 	return pg, nil
 }
 
-// IsReady -
+// IsReady - Check whether postgresql instance is ready
 func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, p.connTimeout)
@@ -72,7 +72,7 @@ func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// Migrate -
+// Migrate - Migration operations for postgresql db
 func (p *Postgres) Migrate(statements []string) (err error) {
 	ctx := context.Background()
 
@@ -97,12 +97,12 @@ func (p *Postgres) Migrate(statements []string) (err error) {
 	return nil
 }
 
-// GetEngineType -
+// GetEngineType - Get the engine type which is postgresql in string
 func (p *Postgres) GetEngineType() string {
 	return "postgres"
 }
 
-// Close -.
+// Close - Close postgresql instance
 func (p *Postgres) Close() error {
 	if p.Pool != nil {
 		p.Pool.Close()

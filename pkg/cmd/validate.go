@@ -13,7 +13,7 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// NewValidateCommand -
+// NewValidateCommand - Creates new validate command
 func NewValidateCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "validate <file>",
@@ -23,7 +23,7 @@ func NewValidateCommand() *cobra.Command {
 	}
 }
 
-// validate -
+// validate - permify validate command
 func validate() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()

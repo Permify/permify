@@ -21,7 +21,7 @@ const (
 	DELETE = "DELETE"
 )
 
-// Notification -
+// Notification - Structure for Notification
 type Notification struct {
 	Entity  string                 `json:"entity"`
 	Action  string                 `json:"action"`
@@ -29,13 +29,13 @@ type Notification struct {
 	NewData map[string]interface{} `json:"new_data"`
 }
 
-// Event -
+// Event - Structure for Notification
 var Event = struct {
 	Entity  string
 	Columns []string
 }{}
 
-// Publisher -
+// Publisher - Structure for Publisher
 type Publisher struct {
 	conn         *pgconn.PgConn
 	slotName     string
@@ -45,7 +45,7 @@ type Publisher struct {
 	logger       logger.Interface
 }
 
-// NewPublisher -
+// NewPublisher - Creates new publisher
 func NewPublisher(ctx context.Context, url string, sl string, op string, tables []string, logger logger.Interface) (publisher *Publisher, err error) {
 	publisher = &Publisher{
 		slotName:     sl,
