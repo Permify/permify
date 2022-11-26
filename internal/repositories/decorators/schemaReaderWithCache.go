@@ -41,7 +41,7 @@ func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entity
 		if err != nil {
 			return nil, "", err
 		}
-		r.cache.Set(fmt.Sprintf("%s|%s", entityType, version), definition, 1)
+		r.cache.Set(fmt.Sprintf("%s|%s", entityType, version), definition, int64(len(s.(string))))
 		return definition, version, nil
 	}
 	def, ok := s.(*base.EntityDefinition)
