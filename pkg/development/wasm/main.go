@@ -10,7 +10,6 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/development/graph"
@@ -27,29 +26,12 @@ func check() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		var result commands.CheckResponse
+		var result *v1.PermissionCheckResponse
 		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Permission, params.Entity, string(args[1].String()), "")
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		return js.ValueOf([]interface{}{result.Can, nil})
-	})
-}
-
-// lookupQuery -
-func lookupQuery() js.Func {
-	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &v1.PermissionLookupQueryRequest{}
-		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
-		if err != nil {
-			return js.ValueOf([]interface{}{"", err.Error()})
-		}
-		var result commands.LookupQueryResponse
-		result, err = development.LookupQuery(context.Background(), dev.P, params.EntityType, params.Action, params.Subject, string(args[1].String()))
-		if err != nil {
-			return js.ValueOf([]interface{}{"", err.Error()})
-		}
-		return js.ValueOf([]interface{}{result.Query, nil})
+		return js.ValueOf([]interface{}{result.GetCan(), nil})
 	})
 }
 
@@ -179,6 +161,5 @@ func main() {
 	js.Global().Set("readTuple", readTuple())
 	js.Global().Set("deleteTuple", deleteTuple())
 	js.Global().Set("readSchemaGraph", readSchemaGraph())
-	js.Global().Set("lookupQuery", lookupQuery())
 	<-ch
 }

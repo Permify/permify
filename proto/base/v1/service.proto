@@ -45,21 +45,6 @@ service Permission {
     };
   }
 
-//  rpc LookupQuery(PermissionLookupQueryRequest) returns (PermissionLookupQueryResponse) {
-//    option (google.api.http) = {
-//      post: "/v1/permissions/lookup-query"
-//      body: "*"
-//    };
-//
-//    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-//      summary: ""
-//      tags: [
-//        "Permission"
-//      ]
-//      operation_id: "permissions.lookupQuery"
-//    };
-//  }
-
   rpc LookupSchema(PermissionLookupSchemaRequest) returns (PermissionLookupSchemaResponse) {
     option (google.api.http) = {
       post: "/v1/permissions/lookup-schema"
@@ -87,6 +72,21 @@ service Permission {
         "Permission"
       ]
       operation_id: "permissions.lookupEntity"
+    };
+  }
+
+  rpc LookupEntityStream(PermissionLookupEntityRequest) returns (stream PermissionLookupEntityStreamResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions/lookup-entity-stream"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: ""
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.lookupEntityStream"
     };
   }
 }
@@ -146,33 +146,6 @@ message PermissionExpandResponse {
   Expand tree = 1 [json_name = "tree"];
 }
 
-// LOOKUP QUERY
-
-//// LookupQueryRequest
-//message PermissionLookupQueryRequest {
-//  string schema_version = 1 [json_name = "schema_version"];
-//  string snap_token = 2 [json_name = "snap_token"];
-//
-//  string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
-//    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-//    max_bytes : 64,
-//    ignore_empty: false,
-//  }];
-//
-//  string action = 4 [json_name = "action", (validate.rules).string = {
-//    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-//    max_bytes : 64,
-//    ignore_empty: false,
-//  }];
-//
-//  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
-//}
-//
-//// LookupQueryResponse
-//message PermissionLookupQueryResponse {
-//  string query = 1 [json_name = "query"];
-//}
-
 //LOOKUP
 
 // PermissionLookupSchemaRequest
@@ -193,7 +166,7 @@ message PermissionLookupSchemaResponse {
   repeated string action_names = 1 [json_name = "action_names"];
 }
 
-// LookupEntityRequest
+// PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
@@ -213,11 +186,15 @@ message PermissionLookupEntityRequest {
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
 }
 
-// LookupEntityResponse
+// PermissionLookupEntityResponse
 message PermissionLookupEntityResponse {
   repeated string entity_ids = 1 [json_name = "entity_ids"];
 }
 
+// PermissionLookupEntityStreamResponse
+message PermissionLookupEntityStreamResponse {
+  string entity_id = 1 [json_name = "entity_id"];
+}
 
 // ** SCHEMA SERVICE **
 

@@ -24,4 +24,5 @@ type ILookupSchemaCommand interface {
 // ILookupEntityCommand -
 type ILookupEntityCommand interface {
 	Execute(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error)
+	Stream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error)
 }

@@ -27,6 +27,16 @@ func NewSchemaService(sw repositories.SchemaWriter, sr repositories.SchemaReader
 
 // ReadSchema -
 func (service *SchemaService) ReadSchema(ctx context.Context, version string) (response *base.IndexedSchema, err error) {
+
+	if version == "" {
+		var ver string
+		ver, err = service.sr.HeadVersion(ctx)
+		if err != nil {
+			return response, err
+		}
+		version = ver
+	}
+
 	return service.sr.ReadSchema(ctx, version)
 }
 

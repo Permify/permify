@@ -14,6 +14,7 @@ type IPermissionService interface {
 	ExpandPermissions(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error)
 	LookupSchema(ctx context.Context, request *base.PermissionLookupSchemaRequest) (response *base.PermissionLookupSchemaResponse, err error)
 	LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error)
+	LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error)
 }
 
 // IRelationshipService -

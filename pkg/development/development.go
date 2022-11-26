@@ -47,7 +47,7 @@ func NewContainer() *Container {
 	checkCommand := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
 	expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader, l)
 	lookupSchemaCommand := commands.NewLookupSchemaCommand(schemaReader, l)
-	lookupEntityCommand := commands.NewLookupEntityCommand(schemaReader, relationshipReader, l)
+	lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader, l)
 
 	return &Container{
 		P: services.NewPermissionService(checkCommand, expandCommand, lookupSchemaCommand, lookupEntityCommand),

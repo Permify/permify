@@ -167,6 +167,31 @@ func local_request_Permission_LookupEntity_0(ctx context.Context, marshaler runt
 
 }
 
+func request_Permission_LookupEntityStream_0(ctx context.Context, marshaler runtime.Marshaler, client PermissionClient, req *http.Request, pathParams map[string]string) (Permission_LookupEntityStreamClient, runtime.ServerMetadata, error) {
+	var protoReq PermissionLookupEntityRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	stream, err := client.LookupEntityStream(ctx, &protoReq)
+	if err != nil {
+		return nil, metadata, err
+	}
+	header, err := stream.Header()
+	if err != nil {
+		return nil, metadata, err
+	}
+	metadata.HeaderMD = header
+	return stream, metadata, nil
+
+}
+
 func request_Schema_Write_0(ctx context.Context, marshaler runtime.Marshaler, client SchemaClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq SchemaWriteRequest
 	var metadata runtime.ServerMetadata
@@ -439,6 +464,13 @@ func RegisterPermissionHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 
 	})
 
+	mux.Handle("POST", pattern_Permission_LookupEntityStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
+		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+		return
+	})
+
 	return nil
 }
 
@@ -702,6 +734,27 @@ func RegisterPermissionHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 
 	})
 
+	mux.Handle("POST", pattern_Permission_LookupEntityStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/base.v1.Permission/LookupEntityStream", runtime.WithHTTPPathPattern("/v1/permissions/lookup-entity-stream"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Permission_LookupEntityStream_0(ctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Permission_LookupEntityStream_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -713,6 +766,8 @@ var (
 	pattern_Permission_LookupSchema_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "permissions", "lookup-schema"}, ""))
 
 	pattern_Permission_LookupEntity_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "permissions", "lookup-entity"}, ""))
+
+	pattern_Permission_LookupEntityStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "permissions", "lookup-entity-stream"}, ""))
 )
 
 var (
@@ -723,6 +778,8 @@ var (
 	forward_Permission_LookupSchema_0 = runtime.ForwardResponseMessage
 
 	forward_Permission_LookupEntity_0 = runtime.ForwardResponseMessage
+
+	forward_Permission_LookupEntityStream_0 = runtime.ForwardResponseStream
 )
 
 // RegisterSchemaHandlerFromEndpoint is same as RegisterSchemaHandler but

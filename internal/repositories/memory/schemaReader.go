@@ -30,7 +30,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
-	it, err = txn.Get("entity_config", "version", version)
+	it, err = txn.Get(SchemaDefinitionTable, "version", version)
 	if err != nil {
 		return schema, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}

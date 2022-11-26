@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"errors"
-	`golang.org/x/sync/errgroup`
 	`google.golang.org/protobuf/types/known/wrapperspb`
 
 	"github.com/Permify/permify/internal/keys"
@@ -98,7 +97,7 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 	}
 
 	response, err = command.c(ctx, request, child)
-	response.RemainingDepth = request.GetDepth().Value
+	response.RemainingDepth = request.GetDepth().GetValue()
 	return
 }
 
@@ -107,16 +106,6 @@ type CheckFunction func(ctx context.Context) (*base.PermissionCheckResponse, err
 
 // CheckCombiner .
 type CheckCombiner func(ctx context.Context, functions []CheckFunction) (*base.PermissionCheckResponse, error)
-
-// RelationshipReader -
-func (command *CheckCommand) RelationshipReader() repositories.RelationshipReader {
-	return command.relationshipReader
-}
-
-// decreaseDepth -
-func decreaseDepth(request *base.PermissionCheckRequest) {
-	request.Depth.Value--
-}
 
 // c -
 func (command *CheckCommand) c(ctx context.Context, request *base.PermissionCheckRequest, child *base.Child) (*base.PermissionCheckResponse, error) {
@@ -198,7 +187,7 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 			}
 		}
 
-		if request.GetDepth().GetValue() <= 0 {
+		if request.Depth.Value <= 0 {
 			return &base.PermissionCheckResponse{
 				Can: base.PermissionCheckResponse_RESULT_DENIED,
 			}, errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String())
@@ -217,8 +206,6 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 				Can: base.PermissionCheckResponse_RESULT_DENIED,
 			}, err
 		}
-
-		decreaseDepth(request)
 
 		it := tupleCollection.CreateTupleIterator()
 		var checkFunctions []CheckFunction
@@ -248,7 +235,7 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 						Subject:       request.GetSubject(),
 						SnapToken:     request.GetSnapToken(),
 						SchemaVersion: request.GetSchemaVersion(),
-						Depth:         request.GetDepth(),
+						Depth:         &wrapperspb.Int32Value{Value: request.Depth.Value - 1},
 					}, exclusion))
 				}
 			}
@@ -276,7 +263,7 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *base.PermissionCheckRequest, ttu *base.TupleToUserSet, exclusion bool) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 
-		if request.GetDepth().GetValue() <= 0 {
+		if request.Depth.Value <= 0 {
 			return &base.PermissionCheckResponse{
 				Can: base.PermissionCheckResponse_RESULT_DENIED,
 			}, errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String())
@@ -297,8 +284,6 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 			}, err
 		}
 
-		decreaseDepth(request)
-
 		it := tupleCollection.ToSubjectCollection().CreateSubjectIterator()
 		var checkFunctions []CheckFunction
 		for it.HasNext() {
@@ -312,7 +297,7 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 				Subject:       request.GetSubject(),
 				SnapToken:     request.GetSnapToken(),
 				SchemaVersion: request.GetSchemaVersion(),
-				Depth:         request.GetDepth(),
+				Depth:         &wrapperspb.Int32Value{Value: request.Depth.Value - 1},
 			}, ttu.GetComputed(), exclusion))
 		}
 
@@ -335,6 +320,11 @@ func (command *CheckCommand) checkComputedUserSet(ctx context.Context, request *
 	}, exclusion)
 }
 
+type checkResult struct {
+	resp *base.PermissionCheckResponse
+	err  error
+}
+
 // checkUnion -
 func checkUnion(ctx context.Context, functions []CheckFunction) (*base.PermissionCheckResponse, error) {
 	if len(functions) == 0 {
@@ -343,50 +333,26 @@ func checkUnion(ctx context.Context, functions []CheckFunction) (*base.Permissio
 		}, nil
 	}
 
-	decisionChan := make(chan *base.PermissionCheckResponse, len(functions))
+	decisionChan := make(chan checkResult, len(functions))
 	cancelCtx, cancel := context.WithCancel(ctx)
 
-	var g *errgroup.Group
-	g, ctx = errgroup.WithContext(cancelCtx)
+	go handler(cancelCtx, functions, decisionChan)
 
 	defer func() {
 		cancel()
-		if err := g.Wait(); err != nil {
-			logger.New("error").Error(err.Error())
-		}
-		close(decisionChan)
-	}()
-
-	go func() {
-		for _, function := range functions {
-			f := function
-			if ctx.Err() != nil {
-				break
-			}
-			g.Go(func() error {
-				if ctx.Err() != nil {
-					return nil
-				}
-				resp, err := f(ctx)
-				if err != nil {
-					return err
-				}
-				decisionChan <- resp
-				return nil
-			})
-		}
 	}()
 
 	for i := 0; i < len(functions); i++ {
 		select {
-		case result := <-decisionChan:
-			if result.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
+		case d := <-decisionChan:
+			if d.err != nil {
+				return nil, d.err
+			}
+			if d.resp.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
 				return allowed()
 			}
 		case <-ctx.Done():
-			if err := g.Wait(); err != nil {
-				return nil, err
-			}
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
@@ -399,54 +365,45 @@ func checkIntersection(ctx context.Context, functions []CheckFunction) (*base.Pe
 		return denied()
 	}
 
-	decisionChan := make(chan *base.PermissionCheckResponse, len(functions))
+	decisionChan := make(chan checkResult, len(functions))
 	cancelCtx, cancel := context.WithCancel(ctx)
 
-	var g *errgroup.Group
-	g, ctx = errgroup.WithContext(cancelCtx)
+	go handler(cancelCtx, functions, decisionChan)
 
 	defer func() {
 		cancel()
-		if err := g.Wait(); err != nil {
-			logger.New("error").Error(err.Error())
-		}
-		close(decisionChan)
-	}()
-
-	go func() {
-		for _, function := range functions {
-			f := function
-			if ctx.Err() != nil {
-				break
-			}
-			g.Go(func() error {
-				if ctx.Err() != nil {
-					return nil
-				}
-				resp, err := f(ctx)
-				if err != nil {
-					return err
-				}
-				decisionChan <- resp
-				return nil
-			})
-		}
 	}()
 
 	for i := 0; i < len(functions); i++ {
 		select {
-		case result := <-decisionChan:
-			if result.GetCan() == base.PermissionCheckResponse_RESULT_DENIED {
+		case d := <-decisionChan:
+			if d.err != nil {
+				return nil, d.err
+			}
+			if d.resp.GetCan() == base.PermissionCheckResponse_RESULT_DENIED {
 				return denied()
 			}
 		case <-ctx.Done():
-			if err := g.Wait(); err != nil {
-				return nil, err
-			}
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
 	return allowed()
+}
+
+// handler -
+func handler(ctx context.Context, functions []CheckFunction, decisionChan chan<- checkResult) {
+	for _, f := range functions {
+		f := f
+		go func() {
+			decision, err := f(ctx)
+			decisionChan <- checkResult{
+				resp: decision,
+				err:  err,
+			}
+			return
+		}()
+	}
 }
 
 // checkFail -

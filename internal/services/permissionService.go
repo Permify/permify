@@ -45,3 +45,8 @@ func (service *PermissionService) LookupSchema(ctx context.Context, request *bas
 func (service *PermissionService) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
 	return service.le.Execute(ctx, request)
 }
+
+// LookupEntityStream -
+func (service *PermissionService) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
+	return service.le.Stream(ctx, request, server)
+}

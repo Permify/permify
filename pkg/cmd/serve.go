@@ -134,7 +134,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
 		expandCommand := commands.NewExpandCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
 		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReaderWithCircuitBreakerAndCache, l)
-		lookupEntityCommand := commands.NewLookupEntityCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
+		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
 
 		// Services
 		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreakerAndCache)

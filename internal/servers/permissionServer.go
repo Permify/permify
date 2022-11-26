@@ -119,3 +119,25 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 
 	return response, nil
 }
+
+// LookupEntityStream -
+func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntityRequest, server v1.Permission_LookupEntityStreamServer) error {
+	ctx, span := tracer.Start(context.Background(), "permissions.lookupEntityStream")
+	defer span.End()
+
+	v := request.Validate()
+	if v != nil {
+		return v
+	}
+
+	var err error
+	err = r.permissionService.LookupEntityStream(ctx, request, server)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		r.logger.Error(fmt.Sprintf(err.Error()))
+		return status.Error(GetStatus(err), err.Error())
+	}
+
+	return nil
+}

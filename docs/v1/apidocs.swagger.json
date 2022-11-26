@@ -133,6 +133,47 @@
         ]
       }
     },
+    "/v1/permissions/lookup-entity-stream": {
+      "post": {
+        "operationId": "permissions.lookupEntityStream",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/PermissionLookupEntityStreamResponse"
+                },
+                "error": {
+                  "$ref": "#/definitions/Status"
+                }
+              },
+              "title": "Stream result of PermissionLookupEntityStreamResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PermissionLookupEntityRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ]
+      }
+    },
     "/v1/permissions/lookup-schema": {
       "post": {
         "operationId": "permissions.lookupSchema",
@@ -611,7 +652,7 @@
           "$ref": "#/definitions/Subject"
         }
       },
-      "title": "LookupEntityRequest"
+      "title": "PermissionLookupEntityRequest"
     },
     "PermissionLookupEntityResponse": {
       "type": "object",
@@ -623,7 +664,16 @@
           }
         }
       },
-      "title": "LookupEntityResponse"
+      "title": "PermissionLookupEntityResponse"
+    },
+    "PermissionLookupEntityStreamResponse": {
+      "type": "object",
+      "properties": {
+        "entity_id": {
+          "type": "string"
+        }
+      },
+      "title": "PermissionLookupEntityStreamResponse"
     },
     "PermissionLookupSchemaRequest": {
       "type": "object",
