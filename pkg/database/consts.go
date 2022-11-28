@@ -1,6 +1,6 @@
 package database
 
-// Engine -
+// Engine - Type declaration of engine
 type Engine string
 
 const (
@@ -8,7 +8,7 @@ const (
 	MEMORY   Engine = "memory"
 )
 
-// String -
+// String - Convert to string
 func (c Engine) String() string {
 	return string(c)
 }

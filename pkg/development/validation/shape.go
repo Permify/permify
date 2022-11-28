@@ -1,11 +1,11 @@
 package validation
 
-// Shape is a file shape.
+// Shape - Is a file shape.
 type Shape struct {
-	// Schema string of authorization model.
+	// Schema - String of authorization model.
 	Schema string `yaml:"schema"`
 
-	// Tuples authorization data
+	// Tuples - Authorization data
 	Tuples []string `yaml:"relationships"`
 
 	// Assertions -

@@ -16,9 +16,11 @@ import (
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// Requests for Permify Playground
+
 var dev *development.Container
 
-// check -
+// check - Permission check request
 func check() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		params := &v1.PermissionCheckRequest{}
@@ -52,7 +54,7 @@ func lookupEntity() js.Func {
 	})
 }
 
-// writeSchema -
+// writeSchema - Writes schema
 func writeSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		version, err := development.WriteSchema(context.Background(), dev.S, string(args[0].String()))
@@ -63,7 +65,7 @@ func writeSchema() js.Func {
 	})
 }
 
-// writeTuple -
+// writeTuple - Writes relation tuples
 func writeTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		t := &v1.Tuple{}
@@ -79,7 +81,7 @@ func writeTuple() js.Func {
 	})
 }
 
-// deleteTuple -
+// deleteTuple - Delete relation tuple
 func deleteTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		t := &v1.Tuple{}
@@ -106,7 +108,7 @@ func deleteTuple() js.Func {
 	})
 }
 
-// readSchema -
+// readSchema - Read Permify Schema
 func readSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		sch, err := development.ReadSchema(context.Background(), dev.S, string(args[0].String()))
@@ -121,7 +123,7 @@ func readSchema() js.Func {
 	})
 }
 
-// readTuple -
+// readTuple - Read, filter relation tuples
 func readTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		params := &v1.TupleFilter{}
@@ -146,7 +148,7 @@ func readTuple() js.Func {
 	})
 }
 
-// readSchemaGraph -
+// readSchemaGraph - read schema graph
 func readSchemaGraph() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		sch, err := development.ReadSchema(context.Background(), dev.S, string(args[0].String()))

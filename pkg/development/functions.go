@@ -9,7 +9,7 @@ import (
 	"github.com/Permify/permify/pkg/token"
 )
 
-// Check -
+// Check - Creates new permission check request
 func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version string, snapToken string) (res *v1.PermissionCheckResponse, err error) {
 	req := &v1.PermissionCheckRequest{
 		SchemaVersion: version,
@@ -34,27 +34,27 @@ func LookupEntity(ctx context.Context, service services.IPermissionService, subj
 	return service.LookupEntity(ctx, req)
 }
 
-// ReadTuple -
+// ReadTuple - Creates new read API request
 func ReadTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
 	return service.ReadRelationships(ctx, filter, token)
 }
 
-// WriteTuple -
+// WriteTuple - Creates new write API request
 func WriteTuple(ctx context.Context, service services.IRelationshipService, tuples []*v1.Tuple, version string) (token token.EncodedSnapToken, err error) {
 	return service.WriteRelationships(ctx, tuples, version)
 }
 
-// DeleteTuple -
+// DeleteTuple - Creates new delete relation tuple request
 func DeleteTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter) (token token.EncodedSnapToken, err error) {
 	return service.DeleteRelationships(ctx, filter)
 }
 
-// WriteSchema -
+// WriteSchema - Creates new write schema request
 func WriteSchema(ctx context.Context, service services.ISchemaService, schema string) (version string, err error) {
 	return service.WriteSchema(ctx, schema)
 }
 
-// ReadSchema -
+// ReadSchema - Creates new read schema request
 func ReadSchema(ctx context.Context, service services.ISchemaService, version string) (sch *v1.IndexedSchema, err error) {
 	return service.ReadSchema(ctx, version)
 }

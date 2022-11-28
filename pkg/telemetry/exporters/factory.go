@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
-// ExporterFactory -
+// ExporterFactory - Create tracer according to given params
 func ExporterFactory(name string, url string) (trace.SpanExporter, error) {
 	switch name {
 	case "zipkin":

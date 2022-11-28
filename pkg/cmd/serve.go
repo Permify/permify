@@ -40,7 +40,7 @@ Fine-grained Authorization System %s
 `
 )
 
-// NewServeCommand -
+// NewServeCommand - Creates new server command
 func NewServeCommand(cfg *config.Config) *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
@@ -50,7 +50,7 @@ func NewServeCommand(cfg *config.Config) *cobra.Command {
 	}
 }
 
-// serve -
+// serve - permify serve command
 func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var err error
@@ -162,7 +162,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 	}
 }
 
-// RegisterServeFlags -
+// RegisterServeFlags - Define and registers permify CLI flags
 func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 	// GRPC Server
 	cmd.Flags().StringVar(&config.Server.GRPC.Port, "grpc-port", config.Server.GRPC.Port, "port that GRPC server run on")

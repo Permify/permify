@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-// InArray -
+// InArray - Checks whether given value exists in given array interface
 func InArray(val interface{}, array interface{}) (exists bool) {
 	exists = false
 	switch reflect.TypeOf(array).Kind() {
@@ -20,7 +20,7 @@ func InArray(val interface{}, array interface{}) (exists bool) {
 	return
 }
 
-// RemoveDuplicate -
+// RemoveDuplicate - Remove duplicated keys in given slice
 func RemoveDuplicate[T string | int](sliceList []T) []T {
 	allKeys := make(map[T]bool)
 	list := []T{}

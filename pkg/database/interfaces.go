@@ -6,7 +6,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// Database -
+// Database - Db interface
 type Database interface {
 	// Migrate -
 	Migrate(statements []string) error
@@ -23,19 +23,19 @@ type Database interface {
 
 // ITERATORS
 
-// ITupleIterator abstract tuple iterator.
+// ITupleIterator - Abstract tuple iterator.
 type ITupleIterator interface {
 	HasNext() bool
 	GetNext() *base.Tuple
 }
 
-// ISubjectIterator abstract subject iterator.
+// ISubjectIterator - Abstract subject iterator.
 type ISubjectIterator interface {
 	HasNext() bool
 	GetNext() *base.Subject
 }
 
-// IEntityIterator abstract subject iterator.
+// IEntityIterator - Abstract subject iterator.
 type IEntityIterator interface {
 	HasNext() bool
 	GetNext() *base.Entity
@@ -43,7 +43,7 @@ type IEntityIterator interface {
 
 // COLLECTIONS
 
-// ITupleCollection abstract subject collection.
+// ITupleCollection - Abstract subject collection.
 type ITupleCollection interface {
 	Add(tuple *base.Tuple)
 	CreateTupleIterator() ITupleIterator
@@ -51,14 +51,14 @@ type ITupleCollection interface {
 	ToSubjectCollection() ISubjectCollection
 }
 
-// ISubjectCollection abstract subject collection.
+// ISubjectCollection - Abstract subject collection.
 type ISubjectCollection interface {
 	Add(subject *base.Subject)
 	CreateSubjectIterator() ISubjectIterator
 	GetSubjects() []*base.Subject
 }
 
-// IEntityCollection abstract entity collection.
+// IEntityCollection - Abstract entity collection.
 type IEntityCollection interface {
 	Add(entity *base.Entity)
 	CreateEntityIterator() IEntityIterator

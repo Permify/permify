@@ -13,7 +13,7 @@ const (
 	_defaultShutdownTimeout = 3 * time.Second
 )
 
-// Server -.
+// Server - Structure for server instance
 type Server struct {
 	addr            string
 	listener        net.Listener
@@ -22,7 +22,7 @@ type Server struct {
 	shutdownTimeout time.Duration
 }
 
-// New -
+// New - Creates new Server
 func New(opts ...Option) *Server {
 	sr := grpc.NewServer()
 
@@ -57,7 +57,7 @@ func (s *Server) Run() {
 	}()
 }
 
-// Notify -.
+// Notify -
 func (s *Server) Notify() <-chan error {
 	return s.notify
 }

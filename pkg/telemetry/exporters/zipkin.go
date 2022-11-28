@@ -5,7 +5,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
-// NewZipkin -
+// NewZipkin - Creates new Zipkin exporter
 func NewZipkin(url string) (trace.SpanExporter, error) {
 	exporter, err := zipkin.New(url)
 	if err != nil {

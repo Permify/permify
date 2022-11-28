@@ -1,4 +1,4 @@
 package postgres
 
-// Option -.
+// Option - type
 type Option func(publisher *Publisher)

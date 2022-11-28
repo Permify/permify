@@ -12,14 +12,14 @@ import (
 	`github.com/Permify/permify/pkg/logger`
 )
 
-// Container -
+// Container - Structure for container instance
 type Container struct {
 	P services.IPermissionService
 	R services.IRelationshipService
 	S services.ISchemaService
 }
 
-// NewContainer -
+// NewContainer - Creates new container instance
 func NewContainer() *Container {
 	l := logger.New("debug")
 

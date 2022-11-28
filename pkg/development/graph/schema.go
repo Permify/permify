@@ -9,7 +9,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// SchemaToGraph -
+// SchemaToGraph - Convert schema to graph
 func SchemaToGraph(schema *base.IndexedSchema) (g Graph, error error) {
 	for _, en := range schema.GetEntityDefinitions() {
 		eg, err := EntityToGraph(en)
@@ -22,7 +22,7 @@ func SchemaToGraph(schema *base.IndexedSchema) (g Graph, error error) {
 	return
 }
 
-// EntityToGraph -
+// EntityToGraph - Convert entity to graph
 func EntityToGraph(entity *base.EntityDefinition) (g Graph, error error) {
 	enNode := &Node{
 		Type:  "entity",
@@ -59,7 +59,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, error error) {
 	return
 }
 
-// buildActionGraph -
+// buildActionGraph - creates action graph
 func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*base.Child) (g Graph, error error) {
 	for _, child := range children {
 		switch child.GetType().(type) {

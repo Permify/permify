@@ -6,13 +6,13 @@ import (
 
 // TUPLE
 
-// TupleIterator tuple iterator -
+// TupleIterator - Tuple iterator -
 type TupleIterator struct {
 	index  int
 	tuples []*base.Tuple
 }
 
-// HasNext -
+// HasNext - Checks whether next tuple exists
 func (i *TupleIterator) HasNext() bool {
 	if i.index < len(i.tuples) {
 		return true
@@ -20,7 +20,7 @@ func (i *TupleIterator) HasNext() bool {
 	return false
 }
 
-// GetNext -
+// GetNext - Get next tuple
 func (i *TupleIterator) GetNext() *base.Tuple {
 	if i.HasNext() {
 		tuple := i.tuples[i.index]
@@ -32,13 +32,13 @@ func (i *TupleIterator) GetNext() *base.Tuple {
 
 // SUBJECT
 
-// SubjectIterator -
+// SubjectIterator - Structure for subject iterator
 type SubjectIterator struct {
 	index    int
 	subjects []*base.Subject
 }
 
-// HasNext -
+// HasNext - Checks whether next subject exists
 func (u *SubjectIterator) HasNext() bool {
 	if u.index < len(u.subjects) {
 		return true
@@ -46,7 +46,7 @@ func (u *SubjectIterator) HasNext() bool {
 	return false
 }
 
-// GetNext -
+// GetNext - Get next tuple
 func (u *SubjectIterator) GetNext() *base.Subject {
 	if u.HasNext() {
 		subject := u.subjects[u.index]
@@ -58,13 +58,13 @@ func (u *SubjectIterator) GetNext() *base.Subject {
 
 // ENTITY
 
-// EntityIterator -
+// EntityIterator - Structure for entity iterator
 type EntityIterator struct {
 	index    int
 	entities []*base.Entity
 }
 
-// HasNext -
+// HasNext - Checks whether next entity exists
 func (u *EntityIterator) HasNext() bool {
 	if u.index < len(u.entities) {
 		return true
@@ -72,7 +72,7 @@ func (u *EntityIterator) HasNext() bool {
 	return false
 }
 
-// GetNext -
+// GetNext - Get next entity
 func (u *EntityIterator) GetNext() *base.Entity {
 	if u.HasNext() {
 		entity := u.entities[u.index]
