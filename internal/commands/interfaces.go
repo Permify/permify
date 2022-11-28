@@ -3,30 +3,26 @@ package commands
 import (
 	"context"
 
-	"github.com/Permify/permify/internal/repositories"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-type ICommand interface {
-	RelationshipReader() repositories.RelationshipReader
-}
-
 // ICheckCommand -
 type ICheckCommand interface {
-	Execute(ctx context.Context, q *base.PermissionCheckRequest, child *base.Child) (response *base.PermissionCheckResponse, err error)
+	Execute(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error)
 }
 
 // IExpandCommand -
 type IExpandCommand interface {
-	Execute(ctx context.Context, q *ExpandQuery, child *base.Child) (response ExpandResponse, err error)
+	Execute(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error)
 }
 
-// ISchemaLookupCommand -
-type ISchemaLookupCommand interface {
-	Execute(ctx context.Context, q *SchemaLookupQuery, actions map[string]*base.ActionDefinition) (response SchemaLookupResponse, err error)
+// ILookupSchemaCommand -
+type ILookupSchemaCommand interface {
+	Execute(ctx context.Context, request *base.PermissionLookupSchemaRequest) (response *base.PermissionLookupSchemaResponse, err error)
 }
 
-// ILookupQueryCommand -
-type ILookupQueryCommand interface {
-	Execute(ctx context.Context, q *LookupQueryQuery, child *base.Child) (response LookupQueryResponse, err error)
+// ILookupEntityCommand -
+type ILookupEntityCommand interface {
+	Execute(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error)
+	Stream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error)
 }

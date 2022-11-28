@@ -424,7 +424,7 @@ type EntityDefinition struct {
 	Relations map[string]*RelationDefinition `protobuf:"bytes,2,rep,name=relations,proto3" json:"relations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// ["action_name"] => ActionDefinition
 	Actions map[string]*ActionDefinition `protobuf:"bytes,3,rep,name=actions,proto3" json:"actions,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// ["entity_name"] => RelationalReference
+	// ["relation_name or action_name"] => RelationalReference
 	References map[string]EntityDefinition_RelationalReference `protobuf:"bytes,4,rep,name=references,proto3" json:"references,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=base.v1.EntityDefinition_RelationalReference"`
 	Option     map[string]string                               `protobuf:"bytes,5,rep,name=option,proto3" json:"option,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
@@ -721,8 +721,8 @@ func (x *ComputedUserSet) GetRelation() string {
 	return ""
 }
 
-// TupleToUserSet
-type TupleToUserSet struct {
+// TupleSet
+type TupleSet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -730,10 +730,59 @@ type TupleToUserSet struct {
 	Relation string `protobuf:"bytes,1,opt,name=relation,proto3" json:"relation,omitempty"`
 }
 
+func (x *TupleSet) Reset() {
+	*x = TupleSet{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_base_v1_schema_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TupleSet) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TupleSet) ProtoMessage() {}
+
+func (x *TupleSet) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_schema_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TupleSet.ProtoReflect.Descriptor instead.
+func (*TupleSet) Descriptor() ([]byte, []int) {
+	return file_base_v1_schema_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *TupleSet) GetRelation() string {
+	if x != nil {
+		return x.Relation
+	}
+	return ""
+}
+
+// TupleToUserSet
+type TupleToUserSet struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	TupleSet *TupleSet        `protobuf:"bytes,1,opt,name=tupleSet,proto3" json:"tupleSet,omitempty"`
+	Computed *ComputedUserSet `protobuf:"bytes,2,opt,name=computed,proto3" json:"computed,omitempty"`
+}
+
 func (x *TupleToUserSet) Reset() {
 	*x = TupleToUserSet{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_base_v1_schema_proto_msgTypes[9]
+		mi := &file_base_v1_schema_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -746,7 +795,7 @@ func (x *TupleToUserSet) String() string {
 func (*TupleToUserSet) ProtoMessage() {}
 
 func (x *TupleToUserSet) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_schema_proto_msgTypes[9]
+	mi := &file_base_v1_schema_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -759,14 +808,21 @@ func (x *TupleToUserSet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TupleToUserSet.ProtoReflect.Descriptor instead.
 func (*TupleToUserSet) Descriptor() ([]byte, []int) {
-	return file_base_v1_schema_proto_rawDescGZIP(), []int{9}
+	return file_base_v1_schema_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *TupleToUserSet) GetRelation() string {
+func (x *TupleToUserSet) GetTupleSet() *TupleSet {
 	if x != nil {
-		return x.Relation
+		return x.TupleSet
 	}
-	return ""
+	return nil
+}
+
+func (x *TupleToUserSet) GetComputed() *ComputedUserSet {
+	if x != nil {
+		return x.Computed
+	}
+	return nil
 }
 
 var File_base_v1_schema_proto protoreflect.FileDescriptor
@@ -940,22 +996,29 @@ var file_base_v1_schema_proto_rawDesc = []byte{
 	0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x27, 0xfa, 0x42, 0x24, 0x72,
 	0x22, 0x28, 0x40, 0x32, 0x1e, 0x5e, 0x5b, 0x61, 0x2d, 0x7a, 0x5d, 0x5b, 0x61, 0x2d, 0x7a, 0x30,
 	0x2d, 0x39, 0x5f, 0x5d, 0x7b, 0x31, 0x2c, 0x36, 0x32, 0x7d, 0x5b, 0x61, 0x2d, 0x7a, 0x30, 0x2d,
-	0x39, 0x5d, 0x24, 0x52, 0x08, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x55, 0x0a,
-	0x0e, 0x54, 0x75, 0x70, 0x6c, 0x65, 0x54, 0x6f, 0x55, 0x73, 0x65, 0x72, 0x53, 0x65, 0x74, 0x12,
-	0x43, 0x0a, 0x08, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x42, 0x27, 0xfa, 0x42, 0x24, 0x72, 0x22, 0x28, 0x40, 0x32, 0x1e, 0x5e, 0x5b, 0x61, 0x2d,
-	0x7a, 0x5d, 0x5b, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x5d, 0x7b, 0x31, 0x2c, 0x36, 0x32,
-	0x7d, 0x5b, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5d, 0x24, 0x52, 0x08, 0x72, 0x65, 0x6c, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x42, 0x89, 0x01, 0x0a, 0x0b, 0x63, 0x6f, 0x6d, 0x2e, 0x62, 0x61, 0x73,
-	0x65, 0x2e, 0x76, 0x31, 0x42, 0x0b, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x50, 0x72, 0x6f, 0x74,
-	0x6f, 0x50, 0x01, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x50, 0x65, 0x72, 0x6d, 0x69, 0x66, 0x79, 0x2f, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x66, 0x79, 0x2f,
-	0x70, 0x6b, 0x67, 0x2f, 0x70, 0x62, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x3b, 0x62,
-	0x61, 0x73, 0x65, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x42, 0x58, 0x58, 0xaa, 0x02, 0x07, 0x42, 0x61,
-	0x73, 0x65, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x07, 0x42, 0x61, 0x73, 0x65, 0x5c, 0x56, 0x31, 0xe2,
-	0x02, 0x13, 0x42, 0x61, 0x73, 0x65, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74,
-	0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x08, 0x42, 0x61, 0x73, 0x65, 0x3a, 0x3a, 0x56, 0x31,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x39, 0x5d, 0x24, 0x52, 0x08, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x4f, 0x0a,
+	0x08, 0x54, 0x75, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x12, 0x43, 0x0a, 0x08, 0x72, 0x65, 0x6c,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x27, 0xfa, 0x42, 0x24,
+	0x72, 0x22, 0x28, 0x40, 0x32, 0x1e, 0x5e, 0x5b, 0x61, 0x2d, 0x7a, 0x5d, 0x5b, 0x61, 0x2d, 0x7a,
+	0x30, 0x2d, 0x39, 0x5f, 0x5d, 0x7b, 0x31, 0x2c, 0x36, 0x32, 0x7d, 0x5b, 0x61, 0x2d, 0x7a, 0x30,
+	0x2d, 0x39, 0x5d, 0x24, 0x52, 0x08, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x75,
+	0x0a, 0x0e, 0x54, 0x75, 0x70, 0x6c, 0x65, 0x54, 0x6f, 0x55, 0x73, 0x65, 0x72, 0x53, 0x65, 0x74,
+	0x12, 0x2d, 0x0a, 0x08, 0x74, 0x75, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x11, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x54, 0x75, 0x70,
+	0x6c, 0x65, 0x53, 0x65, 0x74, 0x52, 0x08, 0x74, 0x75, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x12,
+	0x34, 0x0a, 0x08, 0x63, 0x6f, 0x6d, 0x70, 0x75, 0x74, 0x65, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x18, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6d, 0x70,
+	0x75, 0x74, 0x65, 0x64, 0x55, 0x73, 0x65, 0x72, 0x53, 0x65, 0x74, 0x52, 0x08, 0x63, 0x6f, 0x6d,
+	0x70, 0x75, 0x74, 0x65, 0x64, 0x42, 0x89, 0x01, 0x0a, 0x0b, 0x63, 0x6f, 0x6d, 0x2e, 0x62, 0x61,
+	0x73, 0x65, 0x2e, 0x76, 0x31, 0x42, 0x0b, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x50, 0x72, 0x6f,
+	0x74, 0x6f, 0x50, 0x01, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x66, 0x79, 0x2f, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x66, 0x79,
+	0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x62, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x3b,
+	0x62, 0x61, 0x73, 0x65, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x42, 0x58, 0x58, 0xaa, 0x02, 0x07, 0x42,
+	0x61, 0x73, 0x65, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x07, 0x42, 0x61, 0x73, 0x65, 0x5c, 0x56, 0x31,
+	0xe2, 0x02, 0x13, 0x42, 0x61, 0x73, 0x65, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65,
+	0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x08, 0x42, 0x61, 0x73, 0x65, 0x3a, 0x3a, 0x56,
+	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -971,7 +1034,7 @@ func file_base_v1_schema_proto_rawDescGZIP() []byte {
 }
 
 var file_base_v1_schema_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_base_v1_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_base_v1_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_base_v1_schema_proto_goTypes = []interface{}{
 	(Rewrite_Operation)(0),                    // 0: base.v1.Rewrite.Operation
 	(EntityDefinition_RelationalReference)(0), // 1: base.v1.EntityDefinition.RelationalReference
@@ -984,45 +1047,48 @@ var file_base_v1_schema_proto_goTypes = []interface{}{
 	(*ActionDefinition)(nil),                  // 8: base.v1.ActionDefinition
 	(*RelationReference)(nil),                 // 9: base.v1.RelationReference
 	(*ComputedUserSet)(nil),                   // 10: base.v1.ComputedUserSet
-	(*TupleToUserSet)(nil),                    // 11: base.v1.TupleToUserSet
-	nil,                                       // 12: base.v1.IndexedSchema.EntityDefinitionsEntry
-	nil,                                       // 13: base.v1.IndexedSchema.RelationDefinitionsEntry
-	nil,                                       // 14: base.v1.IndexedSchema.ActionDefinitionsEntry
-	nil,                                       // 15: base.v1.EntityDefinition.RelationsEntry
-	nil,                                       // 16: base.v1.EntityDefinition.ActionsEntry
-	nil,                                       // 17: base.v1.EntityDefinition.ReferencesEntry
-	nil,                                       // 18: base.v1.EntityDefinition.OptionEntry
-	nil,                                       // 19: base.v1.RelationDefinition.OptionEntry
+	(*TupleSet)(nil),                          // 11: base.v1.TupleSet
+	(*TupleToUserSet)(nil),                    // 12: base.v1.TupleToUserSet
+	nil,                                       // 13: base.v1.IndexedSchema.EntityDefinitionsEntry
+	nil,                                       // 14: base.v1.IndexedSchema.RelationDefinitionsEntry
+	nil,                                       // 15: base.v1.IndexedSchema.ActionDefinitionsEntry
+	nil,                                       // 16: base.v1.EntityDefinition.RelationsEntry
+	nil,                                       // 17: base.v1.EntityDefinition.ActionsEntry
+	nil,                                       // 18: base.v1.EntityDefinition.ReferencesEntry
+	nil,                                       // 19: base.v1.EntityDefinition.OptionEntry
+	nil,                                       // 20: base.v1.RelationDefinition.OptionEntry
 }
 var file_base_v1_schema_proto_depIdxs = []int32{
 	3,  // 0: base.v1.Child.leaf:type_name -> base.v1.Leaf
 	4,  // 1: base.v1.Child.rewrite:type_name -> base.v1.Rewrite
 	10, // 2: base.v1.Leaf.computed_user_set:type_name -> base.v1.ComputedUserSet
-	11, // 3: base.v1.Leaf.tuple_to_user_set:type_name -> base.v1.TupleToUserSet
+	12, // 3: base.v1.Leaf.tuple_to_user_set:type_name -> base.v1.TupleToUserSet
 	0,  // 4: base.v1.Rewrite.rewrite_operation:type_name -> base.v1.Rewrite.Operation
 	2,  // 5: base.v1.Rewrite.children:type_name -> base.v1.Child
-	12, // 6: base.v1.IndexedSchema.entity_definitions:type_name -> base.v1.IndexedSchema.EntityDefinitionsEntry
-	13, // 7: base.v1.IndexedSchema.relation_definitions:type_name -> base.v1.IndexedSchema.RelationDefinitionsEntry
-	14, // 8: base.v1.IndexedSchema.action_definitions:type_name -> base.v1.IndexedSchema.ActionDefinitionsEntry
-	15, // 9: base.v1.EntityDefinition.relations:type_name -> base.v1.EntityDefinition.RelationsEntry
-	16, // 10: base.v1.EntityDefinition.actions:type_name -> base.v1.EntityDefinition.ActionsEntry
-	17, // 11: base.v1.EntityDefinition.references:type_name -> base.v1.EntityDefinition.ReferencesEntry
-	18, // 12: base.v1.EntityDefinition.option:type_name -> base.v1.EntityDefinition.OptionEntry
+	13, // 6: base.v1.IndexedSchema.entity_definitions:type_name -> base.v1.IndexedSchema.EntityDefinitionsEntry
+	14, // 7: base.v1.IndexedSchema.relation_definitions:type_name -> base.v1.IndexedSchema.RelationDefinitionsEntry
+	15, // 8: base.v1.IndexedSchema.action_definitions:type_name -> base.v1.IndexedSchema.ActionDefinitionsEntry
+	16, // 9: base.v1.EntityDefinition.relations:type_name -> base.v1.EntityDefinition.RelationsEntry
+	17, // 10: base.v1.EntityDefinition.actions:type_name -> base.v1.EntityDefinition.ActionsEntry
+	18, // 11: base.v1.EntityDefinition.references:type_name -> base.v1.EntityDefinition.ReferencesEntry
+	19, // 12: base.v1.EntityDefinition.option:type_name -> base.v1.EntityDefinition.OptionEntry
 	9,  // 13: base.v1.RelationDefinition.entity_reference:type_name -> base.v1.RelationReference
 	9,  // 14: base.v1.RelationDefinition.relation_references:type_name -> base.v1.RelationReference
-	19, // 15: base.v1.RelationDefinition.option:type_name -> base.v1.RelationDefinition.OptionEntry
+	20, // 15: base.v1.RelationDefinition.option:type_name -> base.v1.RelationDefinition.OptionEntry
 	2,  // 16: base.v1.ActionDefinition.child:type_name -> base.v1.Child
-	6,  // 17: base.v1.IndexedSchema.EntityDefinitionsEntry.value:type_name -> base.v1.EntityDefinition
-	7,  // 18: base.v1.IndexedSchema.RelationDefinitionsEntry.value:type_name -> base.v1.RelationDefinition
-	8,  // 19: base.v1.IndexedSchema.ActionDefinitionsEntry.value:type_name -> base.v1.ActionDefinition
-	7,  // 20: base.v1.EntityDefinition.RelationsEntry.value:type_name -> base.v1.RelationDefinition
-	8,  // 21: base.v1.EntityDefinition.ActionsEntry.value:type_name -> base.v1.ActionDefinition
-	1,  // 22: base.v1.EntityDefinition.ReferencesEntry.value:type_name -> base.v1.EntityDefinition.RelationalReference
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	11, // 17: base.v1.TupleToUserSet.tupleSet:type_name -> base.v1.TupleSet
+	10, // 18: base.v1.TupleToUserSet.computed:type_name -> base.v1.ComputedUserSet
+	6,  // 19: base.v1.IndexedSchema.EntityDefinitionsEntry.value:type_name -> base.v1.EntityDefinition
+	7,  // 20: base.v1.IndexedSchema.RelationDefinitionsEntry.value:type_name -> base.v1.RelationDefinition
+	8,  // 21: base.v1.IndexedSchema.ActionDefinitionsEntry.value:type_name -> base.v1.ActionDefinition
+	7,  // 22: base.v1.EntityDefinition.RelationsEntry.value:type_name -> base.v1.RelationDefinition
+	8,  // 23: base.v1.EntityDefinition.ActionsEntry.value:type_name -> base.v1.ActionDefinition
+	1,  // 24: base.v1.EntityDefinition.ReferencesEntry.value:type_name -> base.v1.EntityDefinition.RelationalReference
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_base_v1_schema_proto_init() }
@@ -1140,6 +1206,18 @@ func file_base_v1_schema_proto_init() {
 			}
 		}
 		file_base_v1_schema_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TupleSet); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_base_v1_schema_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TupleToUserSet); i {
 			case 0:
 				return &v.state
@@ -1166,7 +1244,7 @@ func file_base_v1_schema_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_base_v1_schema_proto_rawDesc,
 			NumEnums:      2,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

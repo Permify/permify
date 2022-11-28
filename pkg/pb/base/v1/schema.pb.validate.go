@@ -1615,6 +1615,129 @@ var _ interface {
 
 var _ComputedUserSet_Relation_Pattern = regexp.MustCompile("^[a-z][a-z0-9_]{1,62}[a-z0-9]$")
 
+// Validate checks the field values on TupleSet with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *TupleSet) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TupleSet with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in TupleSetMultiError, or nil
+// if none found.
+func (m *TupleSet) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TupleSet) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetRelation()) > 64 {
+		err := TupleSetValidationError{
+			field:  "Relation",
+			reason: "value length must be at most 64 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_TupleSet_Relation_Pattern.MatchString(m.GetRelation()) {
+		err := TupleSetValidationError{
+			field:  "Relation",
+			reason: "value does not match regex pattern \"^[a-z][a-z0-9_]{1,62}[a-z0-9]$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return TupleSetMultiError(errors)
+	}
+
+	return nil
+}
+
+// TupleSetMultiError is an error wrapping multiple validation errors returned
+// by TupleSet.ValidateAll() if the designated constraints aren't met.
+type TupleSetMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TupleSetMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TupleSetMultiError) AllErrors() []error { return m }
+
+// TupleSetValidationError is the validation error returned by
+// TupleSet.Validate if the designated constraints aren't met.
+type TupleSetValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TupleSetValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TupleSetValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TupleSetValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TupleSetValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TupleSetValidationError) ErrorName() string { return "TupleSetValidationError" }
+
+// Error satisfies the builtin error interface
+func (e TupleSetValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTupleSet.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TupleSetValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TupleSetValidationError{}
+
+var _TupleSet_Relation_Pattern = regexp.MustCompile("^[a-z][a-z0-9_]{1,62}[a-z0-9]$")
+
 // Validate checks the field values on TupleToUserSet with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -1637,26 +1760,62 @@ func (m *TupleToUserSet) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetRelation()) > 64 {
-		err := TupleToUserSetValidationError{
-			field:  "Relation",
-			reason: "value length must be at most 64 bytes",
+	if all {
+		switch v := interface{}(m.GetTupleSet()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TupleToUserSetValidationError{
+					field:  "TupleSet",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TupleToUserSetValidationError{
+					field:  "TupleSet",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetTupleSet()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TupleToUserSetValidationError{
+				field:  "TupleSet",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
-	if !_TupleToUserSet_Relation_Pattern.MatchString(m.GetRelation()) {
-		err := TupleToUserSetValidationError{
-			field:  "Relation",
-			reason: "value does not match regex pattern \"^[a-z][a-z0-9_]{1,62}[a-z0-9]$\"",
+	if all {
+		switch v := interface{}(m.GetComputed()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TupleToUserSetValidationError{
+					field:  "Computed",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TupleToUserSetValidationError{
+					field:  "Computed",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetComputed()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TupleToUserSetValidationError{
+				field:  "Computed",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -1736,5 +1895,3 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = TupleToUserSetValidationError{}
-
-var _TupleToUserSet_Relation_Pattern = regexp.MustCompile("^[a-z][a-z0-9_]{1,62}[a-z0-9]$")
