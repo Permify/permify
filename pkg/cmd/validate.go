@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	`fmt`
-	`google.golang.org/protobuf/types/known/wrapperspb`
 	"net/url"
 	`os`
 
@@ -96,7 +95,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					Entity:        q.Entity,
 					Permission:    q.Action,
 					Subject:       q.Subject,
-					Depth:         &wrapperspb.Int32Value{Value: 20},
+					Depth:         20,
 				})
 				if err != nil {
 					return err

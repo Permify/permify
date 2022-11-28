@@ -163,19 +163,15 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 		}
 	}
 
-	if wrapper := m.GetDepth(); wrapper != nil {
-
-		if wrapper.GetValue() < 3 {
-			err := PermissionCheckRequestValidationError{
-				field:  "Depth",
-				reason: "value must be greater than or equal to 3",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+	if m.GetDepth() < 3 {
+		err := PermissionCheckRequestValidationError{
+			field:  "Depth",
+			reason: "value must be greater than or equal to 3",
 		}
-
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {

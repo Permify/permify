@@ -109,7 +109,7 @@ message PermissionCheckRequest {
 
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
 
-  google.protobuf.Int32Value depth = 6 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 6 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionCheckResponse

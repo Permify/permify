@@ -17,8 +17,8 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 		Entity:        entity,
 		Subject:       subject,
 		Permission:    action,
+		Depth:         20,
 	}
-	req.Depth.Value = 20
 	return service.CheckPermissions(ctx, req)
 }
 
