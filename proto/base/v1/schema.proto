@@ -117,14 +117,16 @@ message ComputedUserSet {
   }];
 }
 
-// TupleToUserSet
-message TupleToUserSet {
+// TupleSet
+message TupleSet {
   string relation = 1 [(validate.rules).string = {
     pattern : "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
     max_bytes : 64,
   }];
+}
 
-  //  TODO
-  //  string tupleSet = 1;
-  //  ComputedUserSet computed = 2;
+// TupleToUserSet
+message TupleToUserSet {
+  TupleSet tupleSet = 1;
+  ComputedUserSet computed = 2;
 }

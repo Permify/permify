@@ -3,7 +3,6 @@ package development
 import (
 	"context"
 
-	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -17,15 +16,22 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 		SnapToken:     snapToken,
 		Entity:        entity,
 		Subject:       subject,
-		Action:        action,
+		Permission:    action,
+		Depth:         20,
 	}
-	req.Depth.Value = 20
 	return service.CheckPermissions(ctx, req)
 }
 
-// LookupQuery - Creates new schema lookup request
-func LookupQuery(ctx context.Context, service services.IPermissionService, entityType string, action string, subject *v1.Subject, version string) (res commands.LookupQueryResponse, err error) {
-	return service.LookupQueryPermissions(ctx, entityType, subject, action, version)
+// LookupEntity -
+func LookupEntity(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entityType string, version string, snapToken string) (res *v1.PermissionLookupEntityResponse, err error) {
+	req := &v1.PermissionLookupEntityRequest{
+		SchemaVersion: version,
+		SnapToken:     snapToken,
+		EntityType:    entityType,
+		Subject:       subject,
+		Permission:    action,
+	}
+	return service.LookupEntity(ctx, req)
 }
 
 // ReadTuple - Creates new read API request

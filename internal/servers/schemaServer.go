@@ -34,7 +34,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()
 
-	version, err := r.schemaService.WriteSchema(ctx, request.Schema)
+	version, err := r.schemaService.WriteSchema(ctx, request.GetSchema())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -49,12 +49,12 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 
 // Read - Read created Schema
 func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) (*v1.SchemaReadResponse, error) {
-	ctx, span := tracer.Start(ctx, "schemas.write")
+	ctx, span := tracer.Start(ctx, "schemas.read")
 	defer span.End()
 
 	var err error
 	var response *v1.IndexedSchema
-	response, err = r.schemaService.ReadSchema(ctx, request.SchemaVersion)
+	response, err = r.schemaService.ReadSchema(ctx, request.GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

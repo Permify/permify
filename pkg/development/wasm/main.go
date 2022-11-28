@@ -10,7 +10,6 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/development/graph"
@@ -29,29 +28,29 @@ func check() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		var result commands.CheckResponse
-		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Action, params.Entity, string(args[1].String()), "")
+		var result *v1.PermissionCheckResponse
+		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Permission, params.Entity, string(args[1].String()), "")
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		return js.ValueOf([]interface{}{result.Can, nil})
+		return js.ValueOf([]interface{}{result.GetCan(), nil})
 	})
 }
 
-// lookupQuery - Schema lookup request
-func lookupQuery() js.Func {
+// lookupEntity -
+func lookupEntity() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &v1.PermissionLookupQueryRequest{}
+		params := &v1.PermissionLookupEntityRequest{}
 		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
 		if err != nil {
-			return js.ValueOf([]interface{}{"", err.Error()})
+			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		var result commands.LookupQueryResponse
-		result, err = development.LookupQuery(context.Background(), dev.P, params.EntityType, params.Action, params.Subject, string(args[1].String()))
+		var result *v1.PermissionLookupEntityResponse
+		result, err = development.LookupEntity(context.Background(), dev.P, params.Subject, params.Permission, params.EntityType, string(args[1].String()), "")
 		if err != nil {
-			return js.ValueOf([]interface{}{"", err.Error()})
+			return js.ValueOf([]interface{}{[]string{}, err.Error()})
 		}
-		return js.ValueOf([]interface{}{result.Query, nil})
+		return js.ValueOf([]interface{}{result.GetEntityIds(), nil})
 	})
 }
 
@@ -175,12 +174,12 @@ func main() {
 	ch := make(chan struct{}, 0)
 	dev = development.NewContainer()
 	js.Global().Set("check", check())
+	js.Global().Set("lookupEntity", lookupEntity())
 	js.Global().Set("writeSchema", writeSchema())
 	js.Global().Set("writeTuple", writeTuple())
 	js.Global().Set("readSchema", readSchema())
 	js.Global().Set("readTuple", readTuple())
 	js.Global().Set("deleteTuple", deleteTuple())
 	js.Global().Set("readSchemaGraph", readSchemaGraph())
-	js.Global().Set("lookupQuery", lookupQuery())
 	<-ch
 }

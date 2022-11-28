@@ -40,6 +40,31 @@ func (_m *RelationshipReader) QueryRelationships(ctx context.Context, filter *ba
 	return r0, r1
 }
 
+// GetUniqueEntityIDsByEntityType - Reads relation tuples from the repository.
+func (_m *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ string, token string) (ids []string, err error) {
+	ret := _m.Called(typ, token)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []string); ok {
+		r0 = rf(ctx, typ, token)
+	} else {
+		r0 = ret.Get(0).([]string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, typ, token)
+	} else {
+		if e, ok := ret.Get(1).(error); ok {
+			r1 = e
+		} else {
+			r1 = nil
+		}
+	}
+
+	return r0, r1
+}
+
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (_m *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
 	ret := _m.Called()

@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 
-	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
@@ -13,24 +12,31 @@ import (
 
 // SchemaService -
 type SchemaService struct {
+	// repositories
 	sw repositories.SchemaWriter
 	sr repositories.SchemaReader
-
-	// commands
-	schemaLookup commands.ISchemaLookupCommand
 }
 
 // NewSchemaService -
-func NewSchemaService(sc commands.ISchemaLookupCommand, sw repositories.SchemaWriter, sr repositories.SchemaReader) *SchemaService {
+func NewSchemaService(sw repositories.SchemaWriter, sr repositories.SchemaReader) *SchemaService {
 	return &SchemaService{
-		sw:           sw,
-		sr:           sr,
-		schemaLookup: sc,
+		sw: sw,
+		sr: sr,
 	}
 }
 
 // ReadSchema -
 func (service *SchemaService) ReadSchema(ctx context.Context, version string) (response *base.IndexedSchema, err error) {
+
+	if version == "" {
+		var ver string
+		ver, err = service.sr.HeadVersion(ctx)
+		if err != nil {
+			return response, err
+		}
+		version = ver
+	}
+
 	return service.sr.ReadSchema(ctx, version)
 }
 
@@ -55,19 +61,4 @@ func (service *SchemaService) WriteSchema(ctx context.Context, schema string) (r
 	}
 
 	return service.sw.WriteSchema(ctx, cnf)
-}
-
-// LookupSchema -
-func (service *SchemaService) LookupSchema(ctx context.Context, entityType string, relations []string, version string) (response commands.SchemaLookupResponse, err error) {
-	var en *base.EntityDefinition
-	en, _, err = service.sr.ReadSchemaDefinition(ctx, entityType, version)
-	if err != nil {
-		return
-	}
-
-	q := &commands.SchemaLookupQuery{
-		Relations: relations,
-	}
-
-	return service.schemaLookup.Execute(ctx, q, en.Actions)
 }

@@ -3,8 +3,6 @@ package graph
 import (
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/rs/xid"
 
 	"github.com/Permify/permify/pkg/dsl/schema"
@@ -83,15 +81,14 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 			leaf := child.GetLeaf()
 			switch leaf.GetType().(type) {
 			case *base.Leaf_TupleToUserSet:
-				v := strings.Split(leaf.GetTupleToUserSet().GetRelation(), ".")
-				re, err := schema.GetRelationByNameInEntityDefinition(entity, v[0])
+				re, err := schema.GetRelationByNameInEntityDefinition(entity, leaf.GetTupleToUserSet().GetTupleSet().GetRelation())
 				if err != nil {
 					return Graph{}, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 				}
 				g.AddEdge(from, &Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:relation:%s", schema.GetEntityReference(re), v[1]),
-					Label: v[1],
+					ID:    fmt.Sprintf("entity:%s:relation:%s", schema.GetEntityReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
+					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
 				}, leaf.GetExclusion())
 				break
 			case *base.Leaf_ComputedUserSet:

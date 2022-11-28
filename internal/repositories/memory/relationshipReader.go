@@ -51,6 +51,26 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	return collection, nil
 }
 
+// GetUniqueEntityIDsByEntityType - Gets all entity IDs for a given entity type (unique)
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ string, _ string) (array []string, err error) {
+	txn := r.database.DB.Txn(false)
+	defer txn.Abort()
+
+	var it memdb.ResultIterator
+	it, err = txn.Get(RelationTuplesTable, "entity-type-index", typ)
+	if err != nil {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	var result []string
+	for obj := it.Next(); obj != nil; obj = it.Next() {
+		t := obj.(repositories.RelationTuple)
+		result = append(result, t.EntityID)
+	}
+
+	return result, nil
+}
+
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
 	return snapshot.NewToken(time.Now()), nil
