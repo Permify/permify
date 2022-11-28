@@ -40,7 +40,9 @@ func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr
 // Execute -
 func (command *CheckCommand) Execute(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
 
-	request.Depth = 20
+	if request.Depth == 0 {
+		request.Depth = 20
+	}
 
 	if request.GetSnapToken() == "" {
 		var st token.SnapToken
