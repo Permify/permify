@@ -22,6 +22,18 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 	return service.CheckPermissions(ctx, req)
 }
 
+// LookupEntity -
+func LookupEntity(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entityType string, version string, snapToken string) (res *v1.PermissionLookupEntityResponse, err error) {
+	req := &v1.PermissionLookupEntityRequest{
+		SchemaVersion: version,
+		SnapToken:     snapToken,
+		EntityType:    entityType,
+		Subject:       subject,
+		Permission:    action,
+	}
+	return service.LookupEntity(ctx, req)
+}
+
 // ReadTuple -
 func ReadTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
 	return service.ReadRelationships(ctx, filter, token)

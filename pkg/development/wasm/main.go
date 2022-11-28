@@ -35,6 +35,23 @@ func check() js.Func {
 	})
 }
 
+// lookupEntity -
+func lookupEntity() js.Func {
+	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		params := &v1.PermissionLookupEntityRequest{}
+		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
+		if err != nil {
+			return js.ValueOf([]interface{}{false, err.Error()})
+		}
+		var result *v1.PermissionLookupEntityResponse
+		result, err = development.LookupEntity(context.Background(), dev.P, params.Subject, params.Permission, params.EntityType, string(args[1].String()), "")
+		if err != nil {
+			return js.ValueOf([]interface{}{[]string{}, err.Error()})
+		}
+		return js.ValueOf([]interface{}{result.GetEntityIds(), nil})
+	})
+}
+
 // writeSchema -
 func writeSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
@@ -155,6 +172,7 @@ func main() {
 	ch := make(chan struct{}, 0)
 	dev = development.NewContainer()
 	js.Global().Set("check", check())
+	js.Global().Set("lookupEntity", lookupEntity())
 	js.Global().Set("writeSchema", writeSchema())
 	js.Global().Set("writeTuple", writeTuple())
 	js.Global().Set("readSchema", readSchema())
