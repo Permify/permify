@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/repositories"
@@ -81,6 +80,56 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	}
 
 	return collection, nil
+}
+
+// GetUniqueEntityIDsByEntityType - Gets all unique entity ids for a given entity type
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ string, t string) (ids []string, err error) {
+
+	var st token.SnapToken
+	st, err = r.snapshotToken(ctx, t)
+	if err != nil {
+		return nil, err
+	}
+
+	var tx pgx.Tx
+	tx, err = r.database.Pool.BeginTx(ctx, r.txOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	var sql string
+	var args []interface{}
+
+	query := r.database.Builder.Select("DISTINCT entity_id").From(RelationTuplesTable).Where("entity_type = ?", typ)
+	query = utils.SnapshotQuery(query, st.(snapshot.Token).Value.Uint)
+
+	sql, args, err = query.ToSql()
+	if err != nil {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+	}
+
+	var rows pgx.Rows
+	rows, err = tx.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+	defer rows.Close()
+
+	var result []string
+	for rows.Next() {
+		var id string
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, id)
+	}
+
+	return result, nil
 }
 
 // snapshotToken - gets the token for a given snapshot

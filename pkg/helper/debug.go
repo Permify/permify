@@ -6,7 +6,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-// Pre exit running project.
+// Pre - Exit running project.
 func Pre(x interface{}, y ...interface{}) {
 	spew.Dump(x)
 	os.Exit(1)

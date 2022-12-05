@@ -11,12 +11,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Decoder -
+// Decoder - Decoder interface
 type Decoder interface {
 	Decode(out interface{}) error
 }
 
-// NewDecoderFromURL -
+// NewDecoderFromURL - Creates new decoder
 func NewDecoderFromURL(url *url.URL) (Decoder, error) {
 	switch url.Scheme {
 	case "file":
@@ -46,7 +46,7 @@ func NewFileDecoder(path string) *FileDecoder {
 	}
 }
 
-// Decode -
+// Decode - Decode a file
 func (d FileDecoder) Decode(out interface{}) (err error) {
 	file, err := os.Open(d.path)
 	if err != nil {
@@ -65,14 +65,14 @@ type HTTPDecoder struct {
 	url string
 }
 
-// NewHTTPDecoder -
+// NewHTTPDecoder - Creates new HTTP decoder
 func NewHTTPDecoder(url string) *HTTPDecoder {
 	return &HTTPDecoder{
 		url: url,
 	}
 }
 
-// Decode -
+// Decode - decode HTTP
 func (d HTTPDecoder) Decode(out interface{}) (err error) {
 	r, err := http.Get(d.url)
 	if err != nil {

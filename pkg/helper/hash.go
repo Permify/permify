@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 )
 
-// MD5Hash */
+// MD5Hash -  Creates MD5 hash
 func MD5Hash(text string) string {
 	hash := md5.New()
 	hash.Write([]byte(text))

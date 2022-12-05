@@ -41,7 +41,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 	var sql string
 	var args []interface{}
 
-	query := r.database.Builder.Select("entity_type, serialized_definition").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version})
+	query := r.database.Builder.Select("entity_type, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version})
 	sql, args, err = query.ToSql()
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -57,7 +57,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 	var definitions []string
 	for rows.Next() {
 		sd := repositories.SchemaDefinition{}
-		err = rows.Scan(&sd.EntityType, &sd.SerializedDefinition)
+		err = rows.Scan(&sd.EntityType, &sd.SerializedDefinition, &sd.Version)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +69,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 		return nil, err
 	}
 
-	return nil, err
+	return schema, err
 }
 
 // ReadSchemaDefinition - Reads entity config from the repository.

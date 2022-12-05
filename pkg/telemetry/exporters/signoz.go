@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-// NewSigNoz =
+// NewSigNoz = Creates new sigNoz tracer
 func NewSigNoz(url string, insecure bool) (trace.SpanExporter, error) {
 	secureOption := otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
 	if !insecure {

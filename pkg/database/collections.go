@@ -4,12 +4,12 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// TupleCollection tuple collection.
+// TupleCollection -Tuple collection.
 type TupleCollection struct {
 	tuples []*base.Tuple
 }
 
-// NewTupleCollection create new tuple collection.
+// NewTupleCollection - Create new tuple collection.
 func NewTupleCollection(tuples ...*base.Tuple) *TupleCollection {
 	if len(tuples) == 0 {
 		return &TupleCollection{}
@@ -19,25 +19,25 @@ func NewTupleCollection(tuples ...*base.Tuple) *TupleCollection {
 	}
 }
 
-// CreateTupleIterator create tuple iterator according to collection.
+// CreateTupleIterator- Create tuple iterator according to collection.
 func (t *TupleCollection) CreateTupleIterator() ITupleIterator {
 	return &TupleIterator{
 		tuples: t.tuples,
 	}
 }
 
-// GetTuples -
+// GetTuples - Get tuples
 func (t *TupleCollection) GetTuples() []*base.Tuple {
 	return t.tuples
 }
 
-// Add new subject to collection.
+// Add - New subject to collection.
 func (t *TupleCollection) Add(tuple *base.Tuple) {
 	t.tuples = append(t.tuples, tuple)
 	return
 }
 
-// ToSubjectCollection -
+// ToSubjectCollection - Converts new subject collection from given tuple collection
 func (t *TupleCollection) ToSubjectCollection() ISubjectCollection {
 	subjects := make([]*base.Subject, len(t.tuples))
 	for index, tuple := range t.tuples {
@@ -48,12 +48,12 @@ func (t *TupleCollection) ToSubjectCollection() ISubjectCollection {
 
 // SUBJECT
 
-// SubjectCollection subject collection.
+// SubjectCollection - Subject collection.
 type SubjectCollection struct {
 	subjects []*base.Subject
 }
 
-// NewSubjectCollection create new subject collection.
+// NewSubjectCollection - Create new subject collection.
 func NewSubjectCollection(subjects ...*base.Subject) ISubjectCollection {
 	if len(subjects) == 0 {
 		return &SubjectCollection{}
@@ -63,19 +63,19 @@ func NewSubjectCollection(subjects ...*base.Subject) ISubjectCollection {
 	}
 }
 
-// CreateSubjectIterator create subject iterator according to collection.
+// CreateSubjectIterator - Create subject iterator according to collection.
 func (s *SubjectCollection) CreateSubjectIterator() ISubjectIterator {
 	return &SubjectIterator{
 		subjects: s.subjects,
 	}
 }
 
-// GetSubjects -
+// GetSubjects - Get subject collection
 func (s *SubjectCollection) GetSubjects() []*base.Subject {
 	return s.subjects
 }
 
-// Add new subject to collection.
+// Add - New subject to collection.
 func (s *SubjectCollection) Add(subject *base.Subject) {
 	s.subjects = append(s.subjects, subject)
 	return
@@ -83,12 +83,12 @@ func (s *SubjectCollection) Add(subject *base.Subject) {
 
 // ENTITY
 
-// EntityCollection entity collection.
+// EntityCollection - Entity collection.
 type EntityCollection struct {
 	entities []*base.Entity
 }
 
-// NewEntityCollection create new subject collection.
+// NewEntityCollection - Create new subject collection.
 func NewEntityCollection(entities ...*base.Entity) IEntityCollection {
 	if len(entities) == 0 {
 		return &EntityCollection{}
@@ -98,19 +98,19 @@ func NewEntityCollection(entities ...*base.Entity) IEntityCollection {
 	}
 }
 
-// CreateEntityIterator create entity iterator according to collection.
+// CreateEntityIterator  - Create entity iterator according to collection.
 func (e *EntityCollection) CreateEntityIterator() IEntityIterator {
 	return &EntityIterator{
 		entities: e.entities,
 	}
 }
 
-// GetEntities -
+// GetEntities - Get entities
 func (e *EntityCollection) GetEntities() []*base.Entity {
 	return e.entities
 }
 
-// Add new subject to collection.
+// Add - New subject to collection.
 func (e *EntityCollection) Add(entity *base.Entity) {
 	e.entities = append(e.entities, entity)
 	return

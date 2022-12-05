@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
-    "version": "v0.0.0-alpha8",
+    "version": "v0.0.0-alpha9",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/base/issues",
@@ -101,14 +101,14 @@
         ]
       }
     },
-    "/v1/permissions/lookup-query": {
+    "/v1/permissions/lookup-entity": {
       "post": {
-        "operationId": "permissions.lookupQuery",
+        "operationId": "permissions.lookupEntity",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/PermissionLookupQueryResponse"
+              "$ref": "#/definitions/PermissionLookupEntityResponse"
             }
           },
           "default": {
@@ -124,7 +124,80 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/PermissionLookupQueryRequest"
+              "$ref": "#/definitions/PermissionLookupEntityRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ]
+      }
+    },
+    "/v1/permissions/lookup-entity-stream": {
+      "post": {
+        "operationId": "permissions.lookupEntityStream",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/PermissionLookupEntityStreamResponse"
+                },
+                "error": {
+                  "$ref": "#/definitions/Status"
+                }
+              },
+              "title": "Stream result of PermissionLookupEntityStreamResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PermissionLookupEntityRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ]
+      }
+    },
+    "/v1/permissions/lookup-schema": {
+      "post": {
+        "operationId": "permissions.lookupSchema",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PermissionLookupSchemaResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PermissionLookupSchemaRequest"
             }
           }
         ],
@@ -229,39 +302,6 @@
         ],
         "tags": [
           "Relationship"
-        ]
-      }
-    },
-    "/v1/schemas/lookup": {
-      "post": {
-        "summary": "lookup your authorization model",
-        "operationId": "schemas.lookup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/SchemaLookupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/SchemaLookupRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Schema"
         ]
       }
     },
@@ -423,7 +463,7 @@
           "additionalProperties": {
             "$ref": "#/definitions/RelationalReference"
           },
-          "title": "[\"entity_name\"] =\u003e RelationalReference"
+          "title": "[\"relation_name or action_name\"] =\u003e RelationalReference"
         },
         "option": {
           "type": "object",
@@ -452,9 +492,6 @@
     "Expand": {
       "type": "object",
       "properties": {
-        "target": {
-          "$ref": "#/definitions/EntityAndRelation"
-        },
         "expand": {
           "$ref": "#/definitions/ExpandTreeNode"
         },
@@ -484,8 +521,7 @@
       "enum": [
         "OPERATION_UNSPECIFIED",
         "OPERATION_UNION",
-        "OPERATION_INTERSECTION",
-        "OPERATION_ROOT"
+        "OPERATION_INTERSECTION"
       ],
       "default": "OPERATION_UNSPECIFIED",
       "title": "Operation"
@@ -543,8 +579,9 @@
         "entity": {
           "$ref": "#/definitions/Entity"
         },
-        "action": {
-          "type": "string"
+        "permission": {
+          "type": "string",
+          "title": "its can be action or relation"
         },
         "subject": {
           "$ref": "#/definitions/Subject"
@@ -560,8 +597,7 @@
       "type": "object",
       "properties": {
         "can": {
-          "type": "boolean",
-          "example": true
+          "$ref": "#/definitions/Result"
         },
         "remaining_depth": {
           "type": "integer",
@@ -582,7 +618,7 @@
         "entity": {
           "$ref": "#/definitions/Entity"
         },
-        "action": {
+        "permission": {
           "type": "string"
         }
       },
@@ -597,7 +633,7 @@
       },
       "title": "PermissionExpandResponse"
     },
-    "PermissionLookupQueryRequest": {
+    "PermissionLookupEntityRequest": {
       "type": "object",
       "properties": {
         "schema_version": {
@@ -609,23 +645,65 @@
         "entity_type": {
           "type": "string"
         },
-        "action": {
+        "permission": {
           "type": "string"
         },
         "subject": {
           "$ref": "#/definitions/Subject"
         }
       },
-      "title": "LookupQueryRequest"
+      "title": "PermissionLookupEntityRequest"
     },
-    "PermissionLookupQueryResponse": {
+    "PermissionLookupEntityResponse": {
       "type": "object",
       "properties": {
-        "query": {
+        "entity_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "PermissionLookupEntityResponse"
+    },
+    "PermissionLookupEntityStreamResponse": {
+      "type": "object",
+      "properties": {
+        "entity_id": {
           "type": "string"
         }
       },
-      "title": "LookupQueryResponse"
+      "title": "PermissionLookupEntityStreamResponse"
+    },
+    "PermissionLookupSchemaRequest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "entity_type": {
+          "type": "string"
+        },
+        "relation_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "PermissionLookupSchemaRequest"
+    },
+    "PermissionLookupSchemaResponse": {
+      "type": "object",
+      "properties": {
+        "action_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "PermissionLookupSchemaResponse"
     },
     "RelationDefinition": {
       "type": "object",
@@ -737,6 +815,16 @@
       },
       "title": "RelationshipWriteResponse"
     },
+    "Result": {
+      "type": "string",
+      "enum": [
+        "RESULT_UNKNOWN",
+        "RESULT_ALLOWED",
+        "RESULT_DENIED"
+      ],
+      "default": "RESULT_UNKNOWN",
+      "title": "Result"
+    },
     "Rewrite": {
       "type": "object",
       "properties": {
@@ -761,36 +849,6 @@
       ],
       "default": "OPERATION_UNSPECIFIED",
       "title": "Operation"
-    },
-    "SchemaLookupRequest": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        },
-        "entity_type": {
-          "type": "string"
-        },
-        "relation_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "title": "SchemaLookupRequest"
-    },
-    "SchemaLookupResponse": {
-      "type": "object",
-      "properties": {
-        "action_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "title": "SchemaLookupResponse"
     },
     "SchemaReadRequest": {
       "type": "object",
@@ -882,6 +940,9 @@
     "Subjects": {
       "type": "object",
       "properties": {
+        "target": {
+          "$ref": "#/definitions/EntityAndRelation"
+        },
         "exclusion": {
           "type": "boolean"
         },
@@ -924,11 +985,23 @@
       },
       "title": "TupleFilter is used to filter tuples"
     },
-    "TupleToUserSet": {
+    "TupleSet": {
       "type": "object",
       "properties": {
         "relation": {
           "type": "string"
+        }
+      },
+      "title": "TupleSet"
+    },
+    "TupleToUserSet": {
+      "type": "object",
+      "properties": {
+        "tupleSet": {
+          "$ref": "#/definitions/TupleSet"
+        },
+        "computed": {
+          "$ref": "#/definitions/ComputedUserSet"
         }
       },
       "title": "TupleToUserSet"

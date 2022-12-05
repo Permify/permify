@@ -3,15 +3,13 @@ package graph
 import (
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/rs/xid"
 
 	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// SchemaToGraph -
+// SchemaToGraph - Convert schema to graph
 func SchemaToGraph(schema *base.IndexedSchema) (g Graph, error error) {
 	for _, en := range schema.GetEntityDefinitions() {
 		eg, err := EntityToGraph(en)
@@ -24,7 +22,7 @@ func SchemaToGraph(schema *base.IndexedSchema) (g Graph, error error) {
 	return
 }
 
-// EntityToGraph -
+// EntityToGraph - Convert entity to graph
 func EntityToGraph(entity *base.EntityDefinition) (g Graph, error error) {
 	enNode := &Node{
 		Type:  "entity",
@@ -61,7 +59,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, error error) {
 	return
 }
 
-// buildActionGraph -
+// buildActionGraph - creates action graph
 func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*base.Child) (g Graph, error error) {
 	for _, child := range children {
 		switch child.GetType().(type) {
@@ -83,15 +81,14 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 			leaf := child.GetLeaf()
 			switch leaf.GetType().(type) {
 			case *base.Leaf_TupleToUserSet:
-				v := strings.Split(leaf.GetTupleToUserSet().GetRelation(), ".")
-				re, err := schema.GetRelationByNameInEntityDefinition(entity, v[0])
+				re, err := schema.GetRelationByNameInEntityDefinition(entity, leaf.GetTupleToUserSet().GetTupleSet().GetRelation())
 				if err != nil {
 					return Graph{}, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 				}
 				g.AddEdge(from, &Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:relation:%s", schema.GetEntityReference(re), v[1]),
-					Label: v[1],
+					ID:    fmt.Sprintf("entity:%s:relation:%s", schema.GetEntityReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
+					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
 				}, leaf.GetExclusion())
 				break
 			case *base.Leaf_ComputedUserSet:

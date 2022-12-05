@@ -14,14 +14,14 @@ const (
 	_defaultShutdownTimeout = 3 * time.Second
 )
 
-// Server -.
+// Server - Structure for server instance
 type Server struct {
 	server          *http.Server
 	notify          chan error
 	shutdownTimeout time.Duration
 }
 
-// New -.
+// New - Creates new server instance
 func New(handler http.Handler, opts ...Option) *Server {
 	httpServer := &http.Server{
 		Handler:      handler,
@@ -51,12 +51,12 @@ func (s *Server) Run() {
 	}()
 }
 
-// Notify -.
+// Notify - Server notify
 func (s *Server) Notify() <-chan error {
 	return s.notify
 }
 
-// Shutdown -.
+// Shutdown - shutdown the server
 func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 	defer cancel()

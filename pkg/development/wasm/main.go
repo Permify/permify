@@ -10,16 +10,17 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/development/graph"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// Requests for Permify Playground
+
 var dev *development.Container
 
-// check -
+// check - Permission check request
 func check() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		params := &v1.PermissionCheckRequest{}
@@ -27,33 +28,33 @@ func check() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		var result commands.CheckResponse
-		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Action, params.Entity, string(args[1].String()), "")
+		var result *v1.PermissionCheckResponse
+		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Permission, params.Entity, string(args[1].String()), "")
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		return js.ValueOf([]interface{}{result.Can, nil})
+		return js.ValueOf([]interface{}{result.GetCan(), nil})
 	})
 }
 
-// lookupQuery -
-func lookupQuery() js.Func {
+// lookupEntity -
+func lookupEntity() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &v1.PermissionLookupQueryRequest{}
+		params := &v1.PermissionLookupEntityRequest{}
 		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
 		if err != nil {
-			return js.ValueOf([]interface{}{"", err.Error()})
+			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		var result commands.LookupQueryResponse
-		result, err = development.LookupQuery(context.Background(), dev.P, params.EntityType, params.Action, params.Subject, string(args[1].String()))
+		var result *v1.PermissionLookupEntityResponse
+		result, err = development.LookupEntity(context.Background(), dev.P, params.Subject, params.Permission, params.EntityType, string(args[1].String()), "")
 		if err != nil {
-			return js.ValueOf([]interface{}{"", err.Error()})
+			return js.ValueOf([]interface{}{[]string{}, err.Error()})
 		}
-		return js.ValueOf([]interface{}{result.Query, nil})
+		return js.ValueOf([]interface{}{result.GetEntityIds(), nil})
 	})
 }
 
-// writeSchema -
+// writeSchema - Writes schema
 func writeSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		version, err := development.WriteSchema(context.Background(), dev.S, string(args[0].String()))
@@ -64,7 +65,7 @@ func writeSchema() js.Func {
 	})
 }
 
-// writeTuple -
+// writeTuple - Writes relation tuples
 func writeTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		t := &v1.Tuple{}
@@ -80,7 +81,7 @@ func writeTuple() js.Func {
 	})
 }
 
-// deleteTuple -
+// deleteTuple - Delete relation tuple
 func deleteTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		t := &v1.Tuple{}
@@ -107,7 +108,7 @@ func deleteTuple() js.Func {
 	})
 }
 
-// readSchema -
+// readSchema - Read Permify Schema
 func readSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		sch, err := development.ReadSchema(context.Background(), dev.S, string(args[0].String()))
@@ -122,7 +123,7 @@ func readSchema() js.Func {
 	})
 }
 
-// readTuple -
+// readTuple - Read, filter relation tuples
 func readTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		params := &v1.TupleFilter{}
@@ -147,7 +148,7 @@ func readTuple() js.Func {
 	})
 }
 
-// readSchemaGraph -
+// readSchemaGraph - read schema graph
 func readSchemaGraph() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		sch, err := development.ReadSchema(context.Background(), dev.S, string(args[0].String()))
@@ -173,12 +174,12 @@ func main() {
 	ch := make(chan struct{}, 0)
 	dev = development.NewContainer()
 	js.Global().Set("check", check())
+	js.Global().Set("lookupEntity", lookupEntity())
 	js.Global().Set("writeSchema", writeSchema())
 	js.Global().Set("writeTuple", writeTuple())
 	js.Global().Set("readSchema", readSchema())
 	js.Global().Set("readTuple", readTuple())
 	js.Global().Set("deleteTuple", deleteTuple())
 	js.Global().Set("readSchemaGraph", readSchemaGraph())
-	js.Global().Set("lookupQuery", lookupQuery())
 	<-ch
 }

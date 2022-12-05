@@ -65,7 +65,7 @@ Permify stores access control relations on a database you choose and performs au
 
 ## Getting Started
 
-- [Set Up & Run Permify Service] in your enviroment.
+- [Set Up & Run Permify Service] in your environment.
 - Follow a guide to model your authorization using [Permify Schema].
 - Learn how Permify [Store Authorization Data] as relations.
 - See our [playground], build your authorization logic and test it with sample data.

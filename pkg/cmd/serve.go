@@ -26,7 +26,7 @@ import (
 
 const (
 	// Version of Permify
-	Version = "v0.0.0-alpha8"
+	Version = "v0.0.0-alpha9"
 	banner  = `
 
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
@@ -40,7 +40,7 @@ Fine-grained Authorization System %s
 `
 )
 
-// NewServeCommand -
+// NewServeCommand - Creates new server command
 func NewServeCommand(cfg *config.Config) *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
@@ -50,7 +50,7 @@ func NewServeCommand(cfg *config.Config) *cobra.Command {
 	}
 }
 
-// serve -
+// serve - permify serve command
 func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var err error
@@ -131,15 +131,15 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(checkKeyManager, relationshipReaderWithCircuitBreaker, l)
-		expandCommand := commands.NewExpandCommand(relationshipReaderWithCircuitBreaker, l)
-		lookupQueryCommand := commands.NewLookupQueryCommand(relationshipReaderWithCircuitBreaker, l)
-		schemaLookupCommand := commands.NewSchemaLookupCommand(l)
+		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
+		expandCommand := commands.NewExpandCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
+		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReaderWithCircuitBreakerAndCache, l)
+		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
 
 		// Services
 		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreakerAndCache)
-		permissionService := services.NewPermissionService(checkCommand, expandCommand, lookupQueryCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
-		schemaService := services.NewSchemaService(schemaLookupCommand, schemaWriterWithCircuitBreaker, schemaReaderWithCache)
+		permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaLookupCommand, lookupEntityCommand)
+		schemaService := services.NewSchemaService(schemaWriterWithCircuitBreaker, schemaReaderWithCache)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,
@@ -162,7 +162,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 	}
 }
 
-// RegisterServeFlags -
+// RegisterServeFlags - Define and registers permify CLI flags
 func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 	// GRPC Server
 	cmd.Flags().StringVar(&config.Server.GRPC.Port, "grpc-port", config.Server.GRPC.Port, "port that GRPC server run on")

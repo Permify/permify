@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	`reflect`
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/cache"
@@ -41,7 +42,8 @@ func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entity
 		if err != nil {
 			return nil, "", err
 		}
-		r.cache.Set(fmt.Sprintf("%s|%s", entityType, version), definition, 1)
+		size := reflect.TypeOf(definition).Size()
+		r.cache.Set(fmt.Sprintf("%s|%s", entityType, version), definition, int64(size))
 		return definition, version, nil
 	}
 	def, ok := s.(*base.EntityDefinition)
