@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  permify:
+    image: "ghcr.io/permify/permify"
+    command: "serve --database-engine postgres --database-uri postgres://postgres:secret@database:5432 --database-name permify --database-pool-max 20"
+    restart: "always"
+    ports:
+      - "3476:3476"
+      - "3478:3478"
+    depends_on:
+      - "database"
+
+  database:
+    image: "postgres"
+    ports:
+      - "5432:5432"
+    environment:
+      - "POSTGRES_PASSWORD=secret"
+      - "POSTGRES_DB=permify"
