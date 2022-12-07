@@ -65,10 +65,16 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
 			rw := &Node{
-				Type:  "logic",
-				ID:    xid.New().String(),
-				Label: child.String(),
+				Type: "logic",
+				ID:   xid.New().String(),
 			}
+
+			if child.GetRewrite().GetRewriteOperation() == base.Rewrite_OPERATION_INTERSECTION {
+				rw.Label = "and"
+			} else {
+				rw.Label = "or"
+			}
+
 			g.AddNode(rw)
 			g.AddEdge(from, rw, nil)
 			ag, err := buildActionGraph(entity, rw, child.GetRewrite().GetChildren())
