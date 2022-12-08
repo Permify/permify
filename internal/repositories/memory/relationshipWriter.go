@@ -71,7 +71,7 @@ func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 	}
 
 	fit := memdb.NewFilterIterator(it, utils.FilterQuery(filter))
-	for obj := fit.Next(); obj != nil; obj = it.Next() {
+	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t := obj.(repositories.RelationTuple)
 		err = txn.Delete(RelationTuplesTable, t)
 		if err != nil {
