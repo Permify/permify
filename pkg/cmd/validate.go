@@ -95,7 +95,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					Entity:        q.Entity,
 					Permission:    q.Action,
 					Subject:       q.Subject,
-					Depth:         20,
+					Depth:         100,
 				})
 				if err != nil {
 					return err
@@ -111,9 +111,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				} else {
 					color.Danger.Printf("%v. %s ? => ", i+1, query)
 					if res.Can == base.PermissionCheckResponse_RESULT_ALLOWED {
-						color.Danger.Println("expected: ✗ ❌ , actual: ✗ ✅ ")
+						color.Danger.Println("expected: ✗ ❌ , actual: ✓ ✅ ")
 					} else {
-						color.Danger.Println("expected: ✓ ✅ , actual: ✓ ❌ ")
+						color.Danger.Println("expected: ✓ ✅ , actual: ✗ ❌ ")
 					}
 					color.Danger.Println("FAILED.")
 					os.Exit(1)

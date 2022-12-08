@@ -150,7 +150,7 @@ func (sch *Schema) GetRelationReferenceIfExist(name string) ([]RelationTypeState
 // EntityStatement -
 type EntityStatement struct {
 	Token              token.Token // token.ENTITY
-	Name               token.Token // snapshot.IDENT
+	Name               token.Token // token.IDENT
 	RelationStatements []Statement
 	ActionStatements   []Statement
 	Option             token.Token // token.OPTION
@@ -201,7 +201,7 @@ func (ls *EntityStatement) String() string {
 // RelationStatement -
 type RelationStatement struct {
 	Token         token.Token // token.RELATION
-	Name          token.Token // snapshot.IDENT
+	Name          token.Token // token.IDENT
 	RelationTypes []Statement
 	Option        token.Token // token.OPTION
 }
@@ -240,8 +240,8 @@ func (ls *RelationStatement) String() string {
 
 // RelationTypeStatement -
 type RelationTypeStatement struct {
-	Sign  token.Token // snapshot.sign
-	Token token.Token // snapshot.IDENT
+	Sign  token.Token // token.SIGN
+	Token token.Token // token.IDENT
 }
 
 // statementNode -
@@ -270,11 +270,11 @@ func (ls *RelationTypeStatement) IsEntityReference() bool {
 
 // Identifier -
 type Identifier struct {
-	Token token.Token // snapshot.IDENT
+	Token token.Token // token.IDENT
 	Value string
 }
 
-// statementNode -
+// expressionNode -
 func (ls *Identifier) expressionNode() {}
 
 // TokenLiteral -
@@ -305,7 +305,7 @@ func (ls *Identifier) GetValue() string {
 // ActionStatement -
 type ActionStatement struct {
 	Token               token.Token // token.ACTION
-	Name                token.Token // snapshot.IDENT
+	Name                token.Token // token.IDENT
 	ExpressionStatement Statement
 }
 
@@ -351,7 +351,7 @@ func (es *ExpressionStatement) String() string {
 
 // InfixExpression -
 type InfixExpression struct {
-	Token    token.Token // The operator snapshot, e.g. and, or
+	Token    token.Token // The operator token, e.g. and, or
 	Left     Expression
 	Operator Operator
 	Right    Expression

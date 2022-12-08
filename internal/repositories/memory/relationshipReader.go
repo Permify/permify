@@ -37,13 +37,14 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 
 	index, args := utils.GetIndexNameAndArgsByFilters(filter)
 	var it memdb.ResultIterator
+
 	it, err = txn.Get(RelationTuplesTable, index, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	fit := memdb.NewFilterIterator(it, utils.FilterQuery(filter))
-	for obj := fit.Next(); obj != nil; obj = it.Next() {
+	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t := obj.(repositories.RelationTuple)
 		collection.Add(t.ToTuple())
 	}

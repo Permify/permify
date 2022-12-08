@@ -12,12 +12,12 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     version: "v0.0.0-alpha9";
     contact: {
       name: "API Support";
-      url: "https://github.com/Permify/base/issues";
-      email: "hello@base.co";
+      url: "https://github.com/Permify/permify/issues";
+      email: "hello@permify.co";
     };
     license: {
       name: "GNU Affero General Public License v3.0";
-      url: "https://github.com/Permify/base/blob/master/LICENSE";
+      url: "https://github.com/Permify/permify/blob/master/LICENSE";
     }
   };
   consumes: "application/json";
