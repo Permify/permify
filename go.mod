@@ -9,13 +9,12 @@ require (
 	github.com/cespare/xxhash v1.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/ristretto v0.1.0
-	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/envoyproxy/protoc-gen-validate v0.6.13
 	github.com/fatih/color v1.13.0
 	github.com/gookit/color v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
-	github.com/hashicorp/go-memdb v1.3.3
+	github.com/hashicorp/go-memdb v1.3.4
 	github.com/ilyakaznacheev/cleanenv v1.2.6
 	github.com/jackc/pgconn v1.10.1
 	github.com/jackc/pgio v1.0.0
