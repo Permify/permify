@@ -22,8 +22,8 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.1
 	github.com/jackc/pgtype v1.12.0
 	github.com/jackc/pgx/v4 v4.17.2
-	github.com/onsi/ginkgo/v2 v2.1.4
-	github.com/onsi/gomega v1.19.0
+	github.com/onsi/ginkgo/v2 v2.5.0
+	github.com/onsi/gomega v1.24.1
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.8.2
 	github.com/rs/xid v1.4.0
@@ -96,6 +96,5 @@ require (
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )
