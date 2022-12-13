@@ -14,7 +14,7 @@ In this section we'll investigate proior check request of Permify: **resource ba
 | [ ]   | schema_version | string | 8 | Version of the schema |
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
-| [x]   | action | string | - | the action the user wants to perform on the resource |
+| [x]   | permission | string | - | the action the user wants to perform on the resource |
 | [x]   | subject | object | - | the user or user set who wants to take the action. It containes type and id of the subject.  |
 | [ ]   | depth | integer | 8 | Timeout limit when if recursive database queries got in loop|
 
