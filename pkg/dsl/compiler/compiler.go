@@ -194,10 +194,10 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (ch
 				}
 			}
 			leaf, err = t.compileComputedUserSetIdentifier(s[0])
-			leaf.Exclusion = false
 			if err != nil {
-				return nil, errors.New("relation identifier error")
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 			}
+			leaf.Exclusion = false
 		} else if len(s) == 2 {
 			if !t.withoutReferenceValidation {
 				value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
@@ -212,7 +212,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (ch
 			leaf.Exclusion = false
 			leaf, err = t.compileTupleToUserSetIdentifier(s[0], s[1])
 			if err != nil {
-				return nil, errors.New("relation identifier error")
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 			}
 		}
 	case ast.PREFIX:
@@ -225,12 +225,12 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (ch
 		if len(s) == 1 {
 			leaf, err = t.compileComputedUserSetIdentifier(s[0])
 			if err != nil {
-				return nil, errors.New("relation identifier error")
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 			}
 		} else if len(s) == 2 {
 			leaf, err = t.compileTupleToUserSetIdentifier(s[0], s[1])
 			if err != nil {
-				return nil, errors.New("relation identifier error")
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 			}
 		}
 		leaf.Exclusion = true
