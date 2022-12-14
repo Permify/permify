@@ -1,15 +1,15 @@
 package development
 
 import (
-	`fmt`
+	"fmt"
 
-	`github.com/Permify/permify/internal/commands`
-	`github.com/Permify/permify/internal/config`
-	`github.com/Permify/permify/internal/factories`
-	`github.com/Permify/permify/internal/keys`
+	"github.com/Permify/permify/internal/commands"
+	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/internal/factories"
+	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/services"
-	`github.com/Permify/permify/pkg/database`
-	`github.com/Permify/permify/pkg/logger`
+	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/logger"
 )
 
 // Container - Structure for container instance

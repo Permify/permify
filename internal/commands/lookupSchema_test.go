@@ -1,15 +1,16 @@
 package commands
 
 import (
-	`context`
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/repositories/mocks`
-	`github.com/Permify/permify/pkg/dsl/compiler`
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/logger`
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/dsl/compiler"
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/logger"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 var _ = Describe("lookup-schema-command", func() {
@@ -105,7 +106,6 @@ var _ = Describe("lookup-schema-command", func() {
 			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect([]string{"read", "update", "delete"}).Should(Equal(actualResult.ActionNames))
-
 		})
 	})
 

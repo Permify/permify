@@ -2,17 +2,18 @@ package commands
 
 import (
 	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/keys`
+	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/token`
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -485,7 +486,6 @@ entity doc {
 
 	Context("Github Sample: Check", func() {
 		It("Github Sample: Case 1", func() {
-
 			var err error
 
 			// SCHEMA
@@ -544,7 +544,6 @@ entity doc {
 		})
 
 		It("Github Sample: Case 2", func() {
-
 			var err error
 
 			// SCHEMA
@@ -669,7 +668,6 @@ entity doc {
 		})
 
 		It("Github Sample: Case 3", func() {
-
 			var err error
 
 			// SCHEMA

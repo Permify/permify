@@ -34,9 +34,9 @@ func NewRelationshipWriter(database *db.Postgres) *RelationshipWriter {
 // WriteRelationships - Writes a collection of relationships to the database
 func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	for i := 0; i <= 10; i++ {
-		tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
-		if err != nil {
-			return nil, err
+		tx, bErr := w.database.Pool.BeginTx(ctx, w.txOptions)
+		if bErr != nil {
+			return nil, bErr
 		}
 
 		batch := &pgx.Batch{}
@@ -53,7 +53,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 		}
 
 		var xid types.XID8
-		err = tx.QueryRow(ctx, utils.NewTransactionQuery()).Scan(&xid)
+		err := tx.QueryRow(ctx, utils.NewTransactionQuery()).Scan(&xid)
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())

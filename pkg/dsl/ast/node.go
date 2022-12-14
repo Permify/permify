@@ -123,6 +123,14 @@ func (sch *Schema) SetRelationalReferences(r map[string]RelationalReferenceType)
 	sch.relationalReferences = r
 }
 
+// GetRelationalReferenceTypeIfExist -
+func (sch *Schema) GetRelationalReferenceTypeIfExist(r string) (RelationalReferenceType, bool) {
+	if _, ok := sch.relationalReferences[r]; ok {
+		return sch.relationalReferences[r], true
+	}
+	return RELATION, false
+}
+
 // IsEntityReferenceExist -
 func (sch *Schema) IsEntityReferenceExist(name string) bool {
 	if _, ok := sch.entityReferences[name]; ok {
@@ -262,10 +270,7 @@ func (ls *RelationTypeStatement) String() string {
 
 // IsEntityReference -
 func (ls *RelationTypeStatement) IsEntityReference() bool {
-	if !strings.Contains(ls.Token.Literal, "#") {
-		return true
-	}
-	return false
+	return !strings.Contains(ls.Token.Literal, "#")
 }
 
 // Identifier -

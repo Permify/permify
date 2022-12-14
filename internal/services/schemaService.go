@@ -27,7 +27,6 @@ func NewSchemaService(sw repositories.SchemaWriter, sr repositories.SchemaReader
 
 // ReadSchema -
 func (service *SchemaService) ReadSchema(ctx context.Context, version string) (response *base.IndexedSchema, err error) {
-
 	if version == "" {
 		var ver string
 		ver, err = service.sr.HeadVersion(ctx)
@@ -52,7 +51,7 @@ func (service *SchemaService) WriteSchema(ctx context.Context, schema string) (r
 		return "", err
 	}
 
-	var cnf []repositories.SchemaDefinition
+	cnf := make([]repositories.SchemaDefinition, 0, len(sch.Statements))
 	for _, st := range sch.Statements {
 		cnf = append(cnf, repositories.SchemaDefinition{
 			EntityType:           st.(*ast.EntityStatement).Name.Literal,

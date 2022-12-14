@@ -6,11 +6,11 @@ import (
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
-	`github.com/Permify/permify/pkg/dsl/schema`
+	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/token`
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // ExpandCommand -
@@ -33,7 +33,6 @@ func NewExpandCommand(sr repositories.SchemaReader, rr repositories.Relationship
 
 // Execute -
 func (command *ExpandCommand) Execute(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error) {
-
 	if request.GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = command.relationshipReader.HeadSnapshot(ctx)
@@ -73,7 +72,6 @@ func (command *ExpandCommand) Execute(ctx context.Context, request *base.Permiss
 			return response, err
 		}
 		child = action.Child
-		break
 	case base.EntityDefinition_RELATIONAL_REFERENCE_RELATION:
 		var leaf *base.Leaf
 		computedUserSet := &base.ComputedUserSet{Relation: request.GetPermission()}
@@ -82,7 +80,6 @@ func (command *ExpandCommand) Execute(ctx context.Context, request *base.Permiss
 			Exclusion: false,
 		}
 		child = &base.Child{Type: &base.Child_Leaf{Leaf: leaf}}
-		break
 	default:
 		return response, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
 	}
@@ -143,7 +140,6 @@ func (command *ExpandCommand) expandLeaf(ctx context.Context, request *base.Perm
 
 // set -
 func (command *ExpandCommand) setChild(ctx context.Context, request *base.PermissionExpandRequest, children []*base.Child, combiner ExpandCombiner) ExpandFunction {
-
 	var functions []ExpandFunction
 	for _, child := range children {
 		switch child.GetType().(type) {
@@ -164,7 +160,6 @@ func (command *ExpandCommand) setChild(ctx context.Context, request *base.Permis
 // expandDirect -
 func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
-
 		target := &base.EntityAndRelation{
 			Entity:   request.GetEntity(),
 			Relation: request.GetPermission(),

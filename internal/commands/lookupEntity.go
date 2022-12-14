@@ -1,13 +1,14 @@
 package commands
 
 import (
-	`context`
-	`golang.org/x/sync/errgroup`
+	"context"
 
-	`github.com/Permify/permify/internal/repositories`
-	`github.com/Permify/permify/pkg/logger`
-	base `github.com/Permify/permify/pkg/pb/base/v1`
-	`github.com/Permify/permify/pkg/token`
+	"golang.org/x/sync/errgroup"
+
+	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/pkg/logger"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 )
 
 // LookupEntityCommand -
@@ -33,7 +34,6 @@ func NewLookupEntityCommand(ck ICheckCommand, sr repositories.SchemaReader, rr r
 
 // Execute -
 func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
-
 	if request.GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = command.relationshipReader.HeadSnapshot(ctx)
@@ -57,9 +57,9 @@ func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.P
 
 	go command.parallelChecker(ctx, request, resultsChan, errChan)
 
-	var entityIDs []string
-	for entityId := range resultsChan {
-		entityIDs = append(entityIDs, entityId)
+	entityIDs := make([]string, 0, len(resultsChan))
+	for entityID := range resultsChan {
+		entityIDs = append(entityIDs, entityID)
 	}
 
 	return &base.PermissionLookupEntityResponse{
@@ -69,7 +69,6 @@ func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.P
 
 // Stream -
 func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
-
 	if request.GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = command.relationshipReader.HeadSnapshot(ctx)
@@ -115,11 +114,15 @@ func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.Pe
 // parallelChecker -
 func (command *LookupEntityCommand) parallelChecker(ctx context.Context, request *base.PermissionLookupEntityRequest, resultChan chan<- string, errChan chan<- error) {
 	ids, err := command.relationshipReader.GetUniqueEntityIDsByEntityType(ctx, request.GetEntityType(), request.GetSnapToken())
+	if err != nil {
+		errChan <- err
+	}
 
 	g := new(errgroup.Group)
 	g.SetLimit(100)
 
 	for _, id := range ids {
+		id := id
 		g.Go(func() error {
 			return command.internalCheck(ctx, &base.Entity{
 				Type: request.GetEntityType(),

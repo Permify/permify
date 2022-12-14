@@ -3,6 +3,7 @@ package graph
 import (
 	"errors"
 	"fmt"
+
 	"github.com/rs/xid"
 
 	"github.com/Permify/permify/pkg/dsl/schema"
@@ -10,7 +11,7 @@ import (
 )
 
 // SchemaToGraph - Convert schema to graph
-func SchemaToGraph(schema *base.IndexedSchema) (g Graph, error error) {
+func SchemaToGraph(schema *base.IndexedSchema) (g Graph, err error) {
 	for _, en := range schema.GetEntityDefinitions() {
 		eg, err := EntityToGraph(en)
 		if err != nil {
@@ -23,7 +24,7 @@ func SchemaToGraph(schema *base.IndexedSchema) (g Graph, error error) {
 }
 
 // EntityToGraph - Convert entity to graph
-func EntityToGraph(entity *base.EntityDefinition) (g Graph, error error) {
+func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 	enNode := &Node{
 		Type:  "entity",
 		ID:    fmt.Sprintf("entity:%s", entity.GetName()),
@@ -60,7 +61,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, error error) {
 }
 
 // buildActionGraph - creates action graph
-func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*base.Child) (g Graph, error error) {
+func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*base.Child) (g Graph, err error) {
 	for _, child := range children {
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
@@ -96,14 +97,12 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 					ID:    fmt.Sprintf("entity:%s:relation:%s", schema.GetEntityReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
 					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
 				}, leaf.GetExclusion())
-				break
 			case *base.Leaf_ComputedUserSet:
 				g.AddEdge(from, &Node{
 					Type:  "relation",
 					ID:    fmt.Sprintf("entity:%s:relation:%s", entity.GetName(), leaf.GetComputedUserSet().GetRelation()),
 					Label: leaf.GetComputedUserSet().GetRelation(),
 				}, leaf.GetExclusion())
-				break
 			default:
 				break
 			}

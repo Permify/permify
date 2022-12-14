@@ -3,16 +3,16 @@ package commands
 import (
 	"context"
 	"errors"
-	`sync`
-	`sync/atomic`
+	"sync"
+	"sync/atomic"
 
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
-	`github.com/Permify/permify/pkg/dsl/schema`
+	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/token`
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -39,7 +39,6 @@ func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr
 
 // Execute -
 func (command *CheckCommand) Execute(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-
 	if request.Depth == 0 {
 		request.Depth = 20
 	}
@@ -83,7 +82,6 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 			return response, err
 		}
 		child = action.Child
-		break
 	case base.EntityDefinition_RELATIONAL_REFERENCE_RELATION:
 		var leaf *base.Leaf
 		computedUserSet := &base.ComputedUserSet{Relation: request.GetPermission()}
@@ -92,7 +90,6 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 			Exclusion: false,
 		}
 		child = &base.Child{Type: &base.Child_Leaf{Leaf: leaf}}
-		break
 	default:
 		return response, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
 	}
@@ -199,15 +196,13 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 			if exclusion {
 				if resp.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
 					return denied(loadDepth(request))
-				} else {
-					return allowed(loadDepth(request))
 				}
-			} else {
-				return &base.PermissionCheckResponse{
-					Can:            resp.GetCan(),
-					RemainingDepth: loadDepth(request),
-				}, nil
+				return allowed(loadDepth(request))
 			}
+			return &base.PermissionCheckResponse{
+				Can:            resp.GetCan(),
+				RemainingDepth: loadDepth(request),
+			}, nil
 		}
 
 		if isDepthFinish(request) {
@@ -252,22 +247,21 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 				}
 				command.commandKeyManager.SetCheckKey(request, result)
 				return result, nil
-			} else {
-				if !tuple.IsSubjectUser(t.GetSubject()) && t.GetSubject().GetRelation() != tuple.ELLIPSIS {
-					i++
-					decrease(request, int32(i))
-					checkFunctions = append(checkFunctions, command.checkDirect(ctx, &base.PermissionCheckRequest{
-						Entity: &base.Entity{
-							Type: t.GetSubject().GetType(),
-							Id:   t.GetSubject().GetId(),
-						},
-						Permission:    t.GetSubject().GetRelation(),
-						Subject:       request.GetSubject(),
-						SnapToken:     request.GetSnapToken(),
-						SchemaVersion: request.GetSchemaVersion(),
-						Depth:         loadDepth(request),
-					}, exclusion))
-				}
+			}
+			if !tuple.IsSubjectUser(t.GetSubject()) && t.GetSubject().GetRelation() != tuple.ELLIPSIS {
+				i++
+				decrease(request, int32(i))
+				checkFunctions = append(checkFunctions, command.checkDirect(ctx, &base.PermissionCheckRequest{
+					Entity: &base.Entity{
+						Type: t.GetSubject().GetType(),
+						Id:   t.GetSubject().GetId(),
+					},
+					Permission:    t.GetSubject().GetRelation(),
+					Subject:       request.GetSubject(),
+					SnapToken:     request.GetSnapToken(),
+					SchemaVersion: request.GetSchemaVersion(),
+					Depth:         loadDepth(request),
+				}, exclusion))
 			}
 		}
 
@@ -294,7 +288,6 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 // checkTupleToUserSet -
 func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *base.PermissionCheckRequest, ttu *base.TupleToUserSet, exclusion bool) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-
 		if isDepthFinish(request) {
 			return &base.PermissionCheckResponse{
 				Can:            base.PermissionCheckResponse_RESULT_DENIED,

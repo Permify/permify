@@ -17,7 +17,7 @@ const (
 	attempts   = 20
 
 	// HTTP REST
-	basePath = "http://" + host + "/v1"
+	// basePath = "http://" + host + "/v1"
 )
 
 func TestMain(m *testing.M) {

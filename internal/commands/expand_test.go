@@ -1,18 +1,19 @@
 package commands
 
 import (
-	`context`
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/repositories/mocks`
-	`github.com/Permify/permify/pkg/database`
-	`github.com/Permify/permify/pkg/dsl/compiler`
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/logger`
-	base `github.com/Permify/permify/pkg/pb/base/v1`
-	`github.com/Permify/permify/pkg/token`
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/dsl/compiler"
+	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/logger"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("expand-command", func() {
@@ -50,7 +51,6 @@ var _ = Describe("expand-command", func() {
 
 	Context("Drive Sample: Expand", func() {
 		It("Drive Sample: Case 1", func() {
-
 			var err error
 
 			// SCHEMA
@@ -201,7 +201,7 @@ var _ = Describe("expand-command", func() {
 			response, err = expandCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			//fmt.Println(response.GetTree())
+			// fmt.Println(response.GetTree())
 
 			Expect(&base.Expand{
 				Node: &base.Expand_Expand{

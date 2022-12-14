@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
 
@@ -73,7 +74,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 }
 
 // ReadSchemaDefinition - Reads entity config from the repository.
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, string, error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (*base.EntityDefinition, string, error) {
 	var err error
 
 	var tx pgx.Tx
@@ -96,8 +97,7 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType stri
 	}
 
 	var def repositories.SchemaDefinition
-	var row pgx.Row
-	row = tx.QueryRow(ctx, sql, args...)
+	row := tx.QueryRow(ctx, sql, args...)
 	if err = row.Scan(&def.EntityType, &def.SerializedDefinition, &def.Version); err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 	}
@@ -123,8 +123,7 @@ func (r *SchemaReader) HeadVersion(ctx context.Context) (version string, err err
 	if err != nil {
 		return "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
-	var row pgx.Row
-	row = r.database.Pool.QueryRow(ctx, sql, args...)
+	row := r.database.Pool.QueryRow(ctx, sql, args...)
 	err = row.Scan(&version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

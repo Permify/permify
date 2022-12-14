@@ -3,9 +3,9 @@ package commands
 import (
 	"context"
 	"errors"
-	`fmt`
+	"fmt"
 
-	`github.com/Permify/permify/internal/repositories`
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -29,7 +29,6 @@ func NewLookupSchemaCommand(schemaReader repositories.SchemaReader, l logger.Int
 
 // Execute -
 func (command *LookupSchemaCommand) Execute(ctx context.Context, request *base.PermissionLookupSchemaRequest) (*base.PermissionLookupSchemaResponse, error) {
-
 	var err error
 
 	if request.GetSchemaVersion() == "" {
@@ -153,7 +152,6 @@ func (command *LookupSchemaCommand) lookup(ctx context.Context, relation string,
 			return
 		}
 		lookupChan <- sendSchemaLookupDecision(helper.InArray(relation, request.GetRelationNames()), err)
-		return
 	}
 }
 

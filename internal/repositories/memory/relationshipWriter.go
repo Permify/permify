@@ -3,8 +3,9 @@ package memory
 import (
 	"context"
 	"errors"
-	`github.com/hashicorp/go-memdb`
 	"time"
+
+	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/memory/snapshot"
@@ -72,7 +73,10 @@ func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 
 	fit := memdb.NewFilterIterator(it, utils.FilterQuery(filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
-		t := obj.(repositories.RelationTuple)
+		t, ok := obj.(repositories.RelationTuple)
+		if !ok {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		}
 		err = txn.Delete(RelationTuplesTable, t)
 		if err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())

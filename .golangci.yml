@@ -1,6 +1,13 @@
 linters-settings:
   gci:
     local-prefixes: github.com/Permify/permify
+  gosec:
+    excludes:
+      - 'G404'
+  goimports:
+    local-prefixes: 'github.com/Permify/permify'
+  maligned:
+      suggest-new: true
   dupl:
     threshold: 100
   errorlint:
@@ -53,74 +60,32 @@ linters-settings:
     require-specific: true
 
 linters:
-  disable-all: true
   enable:
-    - asciicheck
+    - bidichk
     - bodyclose
-    - cyclop
-    - deadcode
-    - depguard
-    - dogsled
-    - dupl
-    - durationcheck
     - errcheck
+    - errname
     - errorlint
-    - exhaustive
-    - exportloopref
-    - forbidigo
-    - funlen
-    - gci
-    - gochecknoglobals
-    - gochecknoinits
-    - gocognit
-    - goconst
-    - gocritic
-    - gocyclo
-    - godot
-    - godox
-    - goerr113
-    - gofmt
     - gofumpt
     - goimports
-    - gomnd
-    - gomodguard
     - goprintffuncname
     - gosec
     - gosimple
     - govet
+    - importas
     - ineffassign
     - makezero
-    - misspell
-    - nakedret
-    - nestif
-    - nlreturn
-    - noctx
-    - nolintlint
-    - paralleltest
+    - prealloc
     - predeclared
+    - promlinter
     - revive
-    - rowserrcheck
-    - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
-    - tparallel
-    - thelper
+    - tenv
     - typecheck
     - unconvert
-    - unparam
     - unused
-    - varcheck
-    - wsl
     - whitespace
-
-# disable:
-#    - exhaustivestruct
-#    - ifshort
-#    - goheader
-#    - prealloc
-#    - testpackage
-#    - wrapcheck
 
 issues:
   exclude-rules:
@@ -128,10 +93,16 @@ issues:
       linters:
         - paralleltest
         - godot
-    - path: internal/servers/http
+    - text: 'tx.Rollback()'
       linters:
-        - godot
-
+        - 'errcheck'
+    - path: 'internal/repositories/mocks'
+      linters:
+        - 'errcheck'
 run:
+  tests: false
   skip-dirs:
     - docs
+
+output:
+  sort-results: true

@@ -14,10 +14,7 @@ type TupleIterator struct {
 
 // HasNext - Checks whether next tuple exists
 func (i *TupleIterator) HasNext() bool {
-	if i.index < len(i.tuples) {
-		return true
-	}
-	return false
+	return i.index < len(i.tuples)
 }
 
 // GetNext - Get next tuple
@@ -40,10 +37,7 @@ type SubjectIterator struct {
 
 // HasNext - Checks whether next subject exists
 func (u *SubjectIterator) HasNext() bool {
-	if u.index < len(u.subjects) {
-		return true
-	}
-	return false
+	return u.index < len(u.subjects)
 }
 
 // GetNext - Get next tuple
@@ -66,10 +60,7 @@ type EntityIterator struct {
 
 // HasNext - Checks whether next entity exists
 func (u *EntityIterator) HasNext() bool {
-	if u.index < len(u.entities) {
-		return true
-	}
-	return false
+	return u.index < len(u.entities)
 }
 
 // GetNext - Get next entity

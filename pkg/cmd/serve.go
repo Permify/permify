@@ -5,6 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"go.opentelemetry.io/otel/sdk/trace"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -80,12 +82,14 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 
 		// Tracing
 		if cfg.Tracer.Enabled {
-			exporter, err := exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
+			var exporter trace.SpanExporter
+			exporter, err = exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
 			if err != nil {
 				l.Fatal(err)
 			}
 
-			shutdown, err := telemetry.NewTracer(exporter)
+			var shutdown func(context.Context) error
+			shutdown, err = telemetry.NewTracer(exporter)
 			if err != nil {
 				l.Fatal(err)
 			}

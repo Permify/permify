@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Permify/permify/internal/repositories"
@@ -83,8 +84,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 }
 
 // GetUniqueEntityIDsByEntityType - Gets all unique entity ids for a given entity type
-func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ string, t string) (ids []string, err error) {
-
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, t string) (ids []string, err error) {
 	var st token.SnapToken
 	st, err = r.snapshotToken(ctx, t)
 	if err != nil {
@@ -146,8 +146,7 @@ func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken,
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
-	var row pgx.Row
-	row = r.database.Pool.QueryRow(ctx, sql, args...)
+	row := r.database.Pool.QueryRow(ctx, sql, args...)
 	err = row.Scan(&xid)
 	if err != nil {
 		return nil, err

@@ -16,22 +16,22 @@ type pguint64 struct {
 	Status pgtype.Status
 }
 
-func (dst *pguint64) Set(src interface{}) error {
+func (p *pguint64) Set(src interface{}) error {
 	switch value := src.(type) {
 	case int64:
 		if value < 0 {
 			return fmt.Errorf("%d is less than minimum value for pguint64", value)
 		}
-		*dst = pguint64{Uint: uint64(value), Status: pgtype.Present}
+		*p = pguint64{Uint: uint64(value), Status: pgtype.Present}
 	case int32:
 		if value < 0 {
 			return fmt.Errorf("%d is less than minimum value for pguint64", value)
 		}
-		*dst = pguint64{Uint: uint64(value), Status: pgtype.Present}
+		*p = pguint64{Uint: uint64(value), Status: pgtype.Present}
 	case uint32:
-		*dst = pguint64{Uint: uint64(value), Status: pgtype.Present}
+		*p = pguint64{Uint: uint64(value), Status: pgtype.Present}
 	case uint64:
-		*dst = pguint64{Uint: value, Status: pgtype.Present}
+		*p = pguint64{Uint: value, Status: pgtype.Present}
 	default:
 		return fmt.Errorf("cannot convert %v to pguint64", value)
 	}
@@ -39,28 +39,28 @@ func (dst *pguint64) Set(src interface{}) error {
 	return nil
 }
 
-func (dst pguint64) Get() interface{} {
-	switch dst.Status {
+func (p pguint64) Get() interface{} {
+	switch p.Status {
 	case pgtype.Present:
-		return dst.Uint
+		return p.Uint
 	case pgtype.Null:
 		return nil
 	default:
-		return dst.Status
+		return p.Status
 	}
 }
 
-func (src *pguint64) AssignTo(dst interface{}) error {
+func (p *pguint64) AssignTo(dst interface{}) error {
 	switch v := dst.(type) {
 	case *uint64:
-		if src.Status == pgtype.Present {
-			*v = src.Uint
+		if p.Status == pgtype.Present {
+			*v = p.Uint
 		} else {
-			return fmt.Errorf("cannot assign %v into %T", src, dst)
+			return fmt.Errorf("cannot assign %v into %T", p, dst)
 		}
 	case **uint64:
-		if src.Status == pgtype.Present {
-			n := src.Uint
+		if p.Status == pgtype.Present {
+			n := p.Uint
 			*v = &n
 		} else {
 			*v = nil
@@ -70,9 +70,9 @@ func (src *pguint64) AssignTo(dst interface{}) error {
 	return nil
 }
 
-func (dst *pguint64) DecodeText(ci *pgtype.ConnInfo, src []byte) error {
+func (p *pguint64) DecodeText(ci *pgtype.ConnInfo, src []byte) error {
 	if src == nil {
-		*dst = pguint64{Status: pgtype.Null}
+		*p = pguint64{Status: pgtype.Null}
 		return nil
 	}
 
@@ -81,13 +81,13 @@ func (dst *pguint64) DecodeText(ci *pgtype.ConnInfo, src []byte) error {
 		return err
 	}
 
-	*dst = pguint64{Uint: uint64(n), Status: pgtype.Present}
+	*p = pguint64{Uint: n, Status: pgtype.Present}
 	return nil
 }
 
-func (dst *pguint64) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
+func (p *pguint64) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
 	if src == nil {
-		*dst = pguint64{Status: pgtype.Null}
+		*p = pguint64{Status: pgtype.Null}
 		return nil
 	}
 
@@ -96,65 +96,65 @@ func (dst *pguint64) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
 	}
 
 	n := binary.BigEndian.Uint64(src)
-	*dst = pguint64{Uint: n, Status: pgtype.Present}
+	*p = pguint64{Uint: n, Status: pgtype.Present}
 	return nil
 }
 
-func (src pguint64) EncodeText(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
-	switch src.Status {
+func (p pguint64) EncodeText(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
+	switch p.Status {
 	case pgtype.Null:
 		return nil, nil
 	case pgtype.Undefined:
 		return nil, errors.New("encode text status undefined status")
 	}
 
-	return append(buf, strconv.FormatUint(uint64(src.Uint), 10)...), nil
+	return append(buf, strconv.FormatUint(p.Uint, 10)...), nil
 }
 
-func (src pguint64) EncodeBinary(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
-	switch src.Status {
+func (p pguint64) EncodeBinary(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
+	switch p.Status {
 	case pgtype.Null:
 		return nil, nil
 	case pgtype.Undefined:
 		return nil, errors.New("encode text status undefined status")
 	}
 
-	return pgio.AppendUint64(buf, src.Uint), nil
+	return pgio.AppendUint64(buf, p.Uint), nil
 }
 
 // Scan implements the database/sql Scanner interface.
-func (dst *pguint64) Scan(src interface{}) error {
+func (p *pguint64) Scan(src interface{}) error {
 	if src == nil {
-		*dst = pguint64{Status: pgtype.Null}
+		*p = pguint64{Status: pgtype.Null}
 		return nil
 	}
 
 	switch src := src.(type) {
 	case uint32:
-		*dst = pguint64{Uint: uint64(src), Status: pgtype.Present}
+		*p = pguint64{Uint: uint64(src), Status: pgtype.Present}
 		return nil
 	case int64:
-		*dst = pguint64{Uint: uint64(src), Status: pgtype.Present}
+		*p = pguint64{Uint: uint64(src), Status: pgtype.Present}
 		return nil
 	case uint64:
-		*dst = pguint64{Uint: src, Status: pgtype.Present}
+		*p = pguint64{Uint: src, Status: pgtype.Present}
 		return nil
 	case string:
-		return dst.DecodeText(nil, []byte(src))
+		return p.DecodeText(nil, []byte(src))
 	case []byte:
 		srcCopy := make([]byte, len(src))
 		copy(srcCopy, src)
-		return dst.DecodeText(nil, srcCopy)
+		return p.DecodeText(nil, srcCopy)
 	}
 
 	return fmt.Errorf("cannot scan %T", src)
 }
 
 // Value implements the database/sql/driver Valuer interface.
-func (src pguint64) Value() (driver.Value, error) {
-	switch src.Status {
+func (p pguint64) Value() (driver.Value, error) {
+	switch p.Status {
 	case pgtype.Present:
-		return int64(src.Uint), nil
+		return int64(p.Uint), nil
 	case pgtype.Null:
 		return nil, nil
 	default:
