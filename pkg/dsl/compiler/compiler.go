@@ -115,7 +115,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		if !okAs {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
-		ch, err := t.parseExpressionStatement(entityDefinition.GetName(), st.ExpressionStatement.(*ast.ExpressionStatement))
+		ch, err := t.compileExpressionStatement(entityDefinition.GetName(), st.ExpressionStatement.(*ast.ExpressionStatement))
 		if err != nil {
 			return nil, err
 		}
@@ -130,21 +130,21 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 	return entityDefinition, nil
 }
 
-// parseChild -
-func (t *Compiler) parseExpressionStatement(entityName string, expression *ast.ExpressionStatement) (*base.Child, error) {
-	return t.parseChildren(entityName, expression.Expression)
+// compileExpressionStatement -
+func (t *Compiler) compileExpressionStatement(entityName string, expression *ast.ExpressionStatement) (*base.Child, error) {
+	return t.compileChildren(entityName, expression.Expression)
 }
 
-// parseChildren -
-func (t *Compiler) parseChildren(entityName string, expression ast.Expression) (children *base.Child, err error) {
+// compileChildren -
+func (t *Compiler) compileChildren(entityName string, expression ast.Expression) (children *base.Child, err error) {
 	if expression.IsInfix() {
-		return t.parseRewrite(entityName, expression.(*ast.InfixExpression))
+		return t.compileRewrite(entityName, expression.(*ast.InfixExpression))
 	}
-	return t.parseLeaf(entityName, expression)
+	return t.compileLeaf(entityName, expression)
 }
 
-// parseRewrite -
-func (t *Compiler) parseRewrite(entityName string, exp *ast.InfixExpression) (children *base.Child, err error) {
+// compileRewrite -
+func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (children *base.Child, err error) {
 	child := &base.Child{}
 	rewrite := &base.Rewrite{}
 
@@ -160,13 +160,13 @@ func (t *Compiler) parseRewrite(entityName string, exp *ast.InfixExpression) (ch
 	var ch []*base.Child
 
 	var leftChild *base.Child
-	leftChild, err = t.parseChildren(entityName, exp.Left)
+	leftChild, err = t.compileChildren(entityName, exp.Left)
 	if err != nil {
 		return nil, err
 	}
 
 	var rightChild *base.Child
-	rightChild, err = t.parseChildren(entityName, exp.Right)
+	rightChild, err = t.compileChildren(entityName, exp.Right)
 	if err != nil {
 		return nil, err
 	}
@@ -179,50 +179,56 @@ func (t *Compiler) parseRewrite(entityName string, exp *ast.InfixExpression) (ch
 	return child, nil
 }
 
-// parseLeaf -
-func (t *Compiler) parseLeaf(entityName string, expression ast.Expression) (children *base.Child, err error) {
+// compileLeaf -
+func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (children *base.Child, err error) {
 	child := &base.Child{}
 	leaf := &base.Leaf{}
 	switch expression.GetType() {
 	case ast.IDENTIFIER:
 		s := strings.Split(expression.GetValue(), tuple.SEPARATOR)
 		if len(s) == 1 {
-			_, exist := t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
-			if !exist {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+			if !t.withoutReferenceValidation {
+				_, exist := t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
 			}
-			leaf, err = t.parseComputedUserSetIdentifier(s[0])
+			leaf, err = t.compileComputedUserSetIdentifier(s[0])
 			leaf.Exclusion = false
 			if err != nil {
 				return nil, errors.New("relation identifier error")
 			}
 		} else if len(s) == 2 {
-			value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
-			if !exist {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
-			}
-			_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
-			if !exist {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+			if !t.withoutReferenceValidation {
+				value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
+				_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
 			}
 			leaf.Exclusion = false
-			leaf, err = t.parseTupleToUserSetIdentifier(s[0], s[1])
+			leaf, err = t.compileTupleToUserSetIdentifier(s[0], s[1])
 			if err != nil {
 				return nil, errors.New("relation identifier error")
 			}
 		}
 	case ast.PREFIX:
-		if !t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, expression.GetValue())) {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+		if !t.withoutReferenceValidation {
+			if !t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, expression.GetValue())) {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+			}
 		}
 		s := strings.Split(expression.GetValue(), tuple.SEPARATOR)
 		if len(s) == 1 {
-			leaf, err = t.parseComputedUserSetIdentifier(s[0])
+			leaf, err = t.compileComputedUserSetIdentifier(s[0])
 			if err != nil {
 				return nil, errors.New("relation identifier error")
 			}
 		} else if len(s) == 2 {
-			leaf, err = t.parseTupleToUserSetIdentifier(s[0], s[1])
+			leaf, err = t.compileTupleToUserSetIdentifier(s[0], s[1])
 			if err != nil {
 				return nil, errors.New("relation identifier error")
 			}
@@ -235,8 +241,8 @@ func (t *Compiler) parseLeaf(entityName string, expression ast.Expression) (chil
 	return child, nil
 }
 
-// parseComputedUserSetIdentifier -
-func (t *Compiler) parseComputedUserSetIdentifier(r string) (l *base.Leaf, err error) {
+// compileComputedUserSetIdentifier -
+func (t *Compiler) compileComputedUserSetIdentifier(r string) (l *base.Leaf, err error) {
 	leaf := &base.Leaf{}
 	computedUserSet := &base.ComputedUserSet{
 		Relation: r,
@@ -245,8 +251,8 @@ func (t *Compiler) parseComputedUserSetIdentifier(r string) (l *base.Leaf, err e
 	return leaf, nil
 }
 
-// parseTupleToUserSetIdentifier -
-func (t *Compiler) parseTupleToUserSetIdentifier(p, r string) (l *base.Leaf, err error) {
+// compileTupleToUserSetIdentifier -
+func (t *Compiler) compileTupleToUserSetIdentifier(p, r string) (l *base.Leaf, err error) {
 	leaf := &base.Leaf{}
 	computedUserSet := &base.ComputedUserSet{
 		Relation: r,
