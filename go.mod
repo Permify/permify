@@ -13,7 +13,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/gookit/color v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.14.0
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/ilyakaznacheev/cleanenv v1.2.6
 	github.com/jackc/pgconn v1.13.0
@@ -39,7 +39,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.11.2
 	golang.org/x/net v0.2.0
 	golang.org/x/sync v0.1.0
-	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
+	google.golang.org/genproto v0.0.0-20221114212237-e4508ebdbee1
 	google.golang.org/grpc v1.51.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.1
@@ -47,7 +47,7 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.75.0 // indirect
+	cloud.google.com/go/compute v1.10.0 // indirect
 	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/Eun/go-convert v1.2.12 // indirect
 	github.com/Eun/go-doppelgangerreader v0.0.0-20190911075941-30f1527f16b2 // indirect
