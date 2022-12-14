@@ -576,6 +576,9 @@
         "snap_token": {
           "type": "string"
         },
+        "exclusion": {
+          "type": "boolean"
+        },
         "entity": {
           "$ref": "#/definitions/Entity"
         },

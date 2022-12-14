@@ -61,6 +61,8 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 
 	// no validation rules for SnapToken
 
+	// no validation rules for Exclusion
+
 	if m.GetEntity() == nil {
 		err := PermissionCheckRequestValidationError{
 			field:  "Entity",

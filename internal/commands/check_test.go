@@ -63,11 +63,21 @@ entity doc {
 			sch, err = compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "doc")
+			var doc *base.EntityDefinition
+			doc, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(1)
+			var folder *base.EntityDefinition
+			folder, err = schema.GetEntityByName(sch, "folder")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
@@ -217,11 +227,21 @@ entity doc {
 			sch, err = compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "doc")
+			var doc *base.EntityDefinition
+			doc, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(1)
+			var folder *base.EntityDefinition
+			folder, err = schema.GetEntityByName(sch, "folder")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
@@ -317,11 +337,21 @@ entity doc {
 			sch, err = compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "doc")
+			var doc *base.EntityDefinition
+			doc, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(1)
+			var folder *base.EntityDefinition
+			folder, err = schema.GetEntityByName(sch, "folder")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
@@ -479,8 +509,8 @@ entity doc {
 		relation owner @user
 	
 		action push   = owner
-	  action read   = owner and (parent.admin or parent.member)
-	  action delete = parent.member and (parent.admin or owner)
+	 action read   = owner and (parent.admin or parent.member)
+	 action delete = parent.member and (parent.admin or owner)
 	}
 	`
 
@@ -496,11 +526,16 @@ entity doc {
 			sch, err = compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "repository")
+			var repository *base.EntityDefinition
+			repository, err = schema.GetEntityByName(sch, "repository")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(en, "noop", nil).Times(1)
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
 			// RELATIONSHIPS
 
@@ -554,11 +589,16 @@ entity doc {
 			sch, err = compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "repository")
+			var repository *base.EntityDefinition
+			repository, err = schema.GetEntityByName(sch, "repository")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(en, "noop", nil).Times(1)
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
 			// RELATIONSHIPS
 
@@ -678,11 +718,16 @@ entity doc {
 			sch, err = compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "repository")
+			var repository *base.EntityDefinition
+			repository, err = schema.GetEntityByName(sch, "repository")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(en, "noop", nil).Times(1)
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
 			// RELATIONSHIPS
 

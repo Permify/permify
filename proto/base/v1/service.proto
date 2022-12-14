@@ -95,19 +95,20 @@ service Permission {
 message PermissionCheckRequest {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
+  bool exclusion = 3 [json_name = "exclusion"];
 
-  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 4 [json_name = "entity", (validate.rules).message.required = true];
 
   // its can be action or relation
-  string permission = 4 [json_name = "permission", (validate.rules).string = {
+  string permission = 5 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+  Subject subject = 6 [json_name = "subject", (validate.rules).message.required = true];
 
-  int32 depth = 6 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 7 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionCheckResponse
