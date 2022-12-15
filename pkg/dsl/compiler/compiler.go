@@ -28,7 +28,6 @@ func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 
 // Compile -
 func (t *Compiler) Compile() (sch *base.IndexedSchema, err error) {
-	//helper.Pre(t.schema)
 	if !t.withoutReferenceValidation {
 		err = t.schema.ValidateReferences()
 		if err != nil {
