@@ -139,6 +139,9 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		if err = grpcV1.RegisterRelationshipHandler(ctx, mux, conn); err != nil {
 			return err
 		}
+		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {
+			return err
+		}
 
 		httpServer = &http.Server{
 			Addr: ":" + cfg.HTTP.Port,
