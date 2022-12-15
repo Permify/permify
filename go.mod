@@ -15,7 +15,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.14.0
 	github.com/hashicorp/go-memdb v1.3.4
-	github.com/ilyakaznacheev/cleanenv v1.4.1
+	github.com/ilyakaznacheev/cleanenv v1.4.2
 	github.com/jackc/pgconn v1.13.0
 	github.com/jackc/pgio v1.0.0
 	github.com/jackc/pglogrepl v0.0.0-20220516121607-70a00e46998b
