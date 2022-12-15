@@ -290,7 +290,6 @@ func expandOperation(
 	functions []ExpandFunction,
 	op base.ExpandTreeNode_Operation,
 ) ExpandResponse {
-
 	children := make([]*base.Expand, 0, len(functions))
 
 	if len(functions) == 0 {
