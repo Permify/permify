@@ -61,7 +61,7 @@ type ExpandResponse struct {
 type ExpandFunction func(ctx context.Context, expandChain chan<- ExpandResponse)
 
 // ExpandCombiner .
-type ExpandCombiner func(ctx context.Context, target *base.EntityAndRelation, functions []ExpandFunction) ExpandResponse
+type ExpandCombiner func(ctx context.Context, functions []ExpandFunction) ExpandResponse
 
 // e -
 func (command *ExpandCommand) expand(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandResponse {
@@ -140,10 +140,7 @@ func (command *ExpandCommand) setChild(ctx context.Context, request *base.Permis
 	}
 
 	return func(ctx context.Context, resultChan chan<- ExpandResponse) {
-		resultChan <- combiner(ctx, &base.EntityAndRelation{
-			Entity:   request.GetEntity(),
-			Relation: request.GetPermission(),
-		}, functions)
+		resultChan <- combiner(ctx, functions)
 	}
 }
 
@@ -198,9 +195,9 @@ func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.Pe
 			expandChan <- ExpandResponse{
 				Response: &base.PermissionExpandResponse{
 					Tree: &base.Expand{
-						Target: target,
 						Node: &base.Expand_Leaf{
-							Leaf: &base.Subjects{
+							Leaf: &base.Result{
+								Target:    target,
 								Exclusion: exclusion,
 								Subjects:  directUserCollection.GetSubjects(),
 							},
@@ -211,7 +208,7 @@ func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.Pe
 			return
 		}
 
-		result := expandUnion(ctx, target, expandFunctions)
+		result := expandUnion(ctx, expandFunctions)
 		if result.Err != nil {
 			expandChan <- expandFailResponse(result.Err)
 			return
@@ -219,9 +216,9 @@ func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.Pe
 
 		var ex []*base.Expand
 		ex = append(ex, &base.Expand{
-			Target: target,
 			Node: &base.Expand_Leaf{
-				Leaf: &base.Subjects{
+				Leaf: &base.Result{
+					Target:    target,
 					Exclusion: exclusion,
 					Subjects:  directUserCollection.GetSubjects(),
 				},
@@ -267,10 +264,7 @@ func (command *ExpandCommand) expandTupleToUserSet(ctx context.Context, request 
 			}
 		}
 
-		expandChan <- expandUnion(ctx, &base.EntityAndRelation{
-			Entity:   request.GetEntity(),
-			Relation: ttu.GetTupleSet().GetRelation(),
-		}, expandFunctions)
+		expandChan <- expandUnion(ctx, expandFunctions)
 	}
 }
 
@@ -293,7 +287,6 @@ func (command *ExpandCommand) expandComputedUserSet(ctx context.Context, request
 // expandOperation -
 func expandOperation(
 	ctx context.Context,
-	target *base.EntityAndRelation,
 	functions []ExpandFunction,
 	op base.ExpandTreeNode_Operation,
 ) ExpandResponse {
@@ -304,7 +297,6 @@ func expandOperation(
 		return ExpandResponse{
 			Response: &base.PermissionExpandResponse{
 				Tree: &base.Expand{
-					Target: target,
 					Node: &base.Expand_Expand{
 						Expand: &base.ExpandTreeNode{
 							Operation: op,
@@ -343,7 +335,6 @@ func expandOperation(
 	return ExpandResponse{
 		Response: &base.PermissionExpandResponse{
 			Tree: &base.Expand{
-				Target: target,
 				Node: &base.Expand_Expand{
 					Expand: &base.ExpandTreeNode{
 						Operation: op,
@@ -371,13 +362,13 @@ func expandRoot(ctx context.Context, fn ExpandFunction) ExpandResponse {
 }
 
 // expandUnion -
-func expandUnion(ctx context.Context, target *base.EntityAndRelation, functions []ExpandFunction) ExpandResponse {
-	return expandOperation(ctx, target, functions, base.ExpandTreeNode_OPERATION_UNION)
+func expandUnion(ctx context.Context, functions []ExpandFunction) ExpandResponse {
+	return expandOperation(ctx, functions, base.ExpandTreeNode_OPERATION_UNION)
 }
 
 // expandIntersection -
-func expandIntersection(ctx context.Context, target *base.EntityAndRelation, functions []ExpandFunction) ExpandResponse {
-	return expandOperation(ctx, target, functions, base.ExpandTreeNode_OPERATION_INTERSECTION)
+func expandIntersection(ctx context.Context, functions []ExpandFunction) ExpandResponse {
+	return expandOperation(ctx, functions, base.ExpandTreeNode_OPERATION_INTERSECTION)
 }
 
 // expandFail -

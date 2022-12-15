@@ -518,14 +518,11 @@
     "Expand": {
       "type": "object",
       "properties": {
-        "target": {
-          "$ref": "#/definitions/EntityAndRelation"
-        },
         "expand": {
           "$ref": "#/definitions/ExpandTreeNode"
         },
         "leaf": {
-          "$ref": "#/definitions/Subjects"
+          "$ref": "#/definitions/v1.Result"
         }
       },
       "title": "Expand"
@@ -629,7 +626,7 @@
       "type": "object",
       "properties": {
         "can": {
-          "$ref": "#/definitions/Result"
+          "$ref": "#/definitions/PermissionCheckResponse.Result"
         },
         "remaining_depth": {
           "type": "integer",
@@ -637,6 +634,16 @@
         }
       },
       "title": "PermissionCheckResponse"
+    },
+    "PermissionCheckResponse.Result": {
+      "type": "string",
+      "enum": [
+        "RESULT_UNKNOWN",
+        "RESULT_ALLOWED",
+        "RESULT_DENIED"
+      ],
+      "default": "RESULT_UNKNOWN",
+      "title": "Result"
     },
     "PermissionExpandRequest": {
       "type": "object",
@@ -847,16 +854,6 @@
       },
       "title": "RelationshipWriteResponse"
     },
-    "Result": {
-      "type": "string",
-      "enum": [
-        "RESULT_UNKNOWN",
-        "RESULT_ALLOWED",
-        "RESULT_DENIED"
-      ],
-      "default": "RESULT_UNKNOWN",
-      "title": "Result"
-    },
     "Rewrite": {
       "type": "object",
       "properties": {
@@ -997,21 +994,6 @@
       },
       "title": "SubjectFilter is used to filter subjects"
     },
-    "Subjects": {
-      "type": "object",
-      "properties": {
-        "exclusion": {
-          "type": "boolean"
-        },
-        "subjects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Subject"
-          }
-        }
-      },
-      "title": "Subjects"
-    },
     "Tuple": {
       "type": "object",
       "properties": {
@@ -1062,6 +1044,24 @@
         }
       },
       "title": "TupleToUserSet"
+    },
+    "v1.Result": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "$ref": "#/definitions/EntityAndRelation"
+        },
+        "exclusion": {
+          "type": "boolean"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Subject"
+          }
+        }
+      },
+      "title": "Result"
     },
     "welcomeResponse": {
       "type": "object",
