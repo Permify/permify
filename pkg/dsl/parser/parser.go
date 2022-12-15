@@ -210,20 +210,17 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 				return nil, p.Error()
 			}
 			stmt.RelationStatements = append(stmt.RelationStatements, relation)
-			break
 		case token.ACTION:
 			action, err := p.parseActionStatement(entityName)
 			if err != nil {
 				return nil, p.Error()
 			}
 			stmt.ActionStatements = append(stmt.ActionStatements, action)
-			break
 		default:
 			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
 				p.currentError(token.RELATION, token.ACTION)
 				return nil, p.Error()
 			}
-			break
 		}
 		p.next()
 	}
@@ -485,17 +482,17 @@ func (p *Parser) noPrefixParseFnError(t token.Type) {
 	p.errors = append(p.errors, msg)
 }
 
-// noInfixParseFnError -
-func (p *Parser) noInfixParseFnError(t token.Type) {
-	msg := fmt.Sprintf("%v:%v:no infix parse function for %s found", p.l.GetLinePosition(), p.l.GetColumnPosition(), t)
-	p.errors = append(p.errors, msg)
-}
+//// noInfixParseFnError -
+//func (p *Parser) noInfixParseFnError(t token.Type) {
+//	msg := fmt.Sprintf("%v:%v:no infix parse function for %s found", p.l.GetLinePosition(), p.l.GetColumnPosition(), t)
+//	p.errors = append(p.errors, msg)
+//}
 
-// illegal -
-func (p *Parser) illegal() {
-	msg := fmt.Sprintf("%v:%v:illegal token found", p.l.GetLinePosition(), p.l.GetColumnPosition())
-	p.errors = append(p.errors, msg)
-}
+//// illegal -
+//func (p *Parser) illegal() {
+//	msg := fmt.Sprintf("%v:%v:illegal token found", p.l.GetLinePosition(), p.l.GetColumnPosition())
+//	p.errors = append(p.errors, msg)
+//}
 
 // peekError -
 func (p *Parser) peekError(t ...token.Type) {

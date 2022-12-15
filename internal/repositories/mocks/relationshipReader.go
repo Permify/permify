@@ -41,7 +41,7 @@ func (_m *RelationshipReader) QueryRelationships(ctx context.Context, filter *ba
 }
 
 // GetUniqueEntityIDsByEntityType - Reads relation tuples from the repository.
-func (_m *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ string, token string) (ids []string, err error) {
+func (_m *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, token string) (ids []string, err error) {
 	ret := _m.Called(typ, token)
 
 	var r0 []string

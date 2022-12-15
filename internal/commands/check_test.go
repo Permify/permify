@@ -2,23 +2,22 @@ package commands
 
 import (
 	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/keys`
+	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/token`
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("check-command", func() {
 	var checkCommand *CheckCommand
-	l := logger.New("debug")
 
 	// DRIVE SAMPLE
 
@@ -62,11 +61,21 @@ entity doc {
 			sch, err = compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "doc")
+			var doc *base.EntityDefinition
+			doc, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(1)
+			var folder *base.EntityDefinition
+			folder, err = schema.GetEntityByName(sch, "folder")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
@@ -189,7 +198,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "doc", Id: "1"},
@@ -216,11 +225,21 @@ entity doc {
 			sch, err = compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "doc")
+			var doc *base.EntityDefinition
+			doc, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(1)
+			var folder *base.EntityDefinition
+			folder, err = schema.GetEntityByName(sch, "folder")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
@@ -289,7 +308,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "doc", Id: "1"},
@@ -316,11 +335,21 @@ entity doc {
 			sch, err = compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "doc")
+			var doc *base.EntityDefinition
+			doc, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(1)
+			var folder *base.EntityDefinition
+			folder, err = schema.GetEntityByName(sch, "folder")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
@@ -443,7 +472,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "doc", Id: "1"},
@@ -478,14 +507,13 @@ entity doc {
 		relation owner @user
 	
 		action push   = owner
-	  action read   = owner and (parent.admin or parent.member)
-	  action delete = parent.member and (parent.admin or owner)
+	 action read   = owner and (parent.admin or parent.member)
+	 action delete = parent.member and (parent.admin or owner)
 	}
 	`
 
 	Context("Github Sample: Check", func() {
 		It("Github Sample: Case 1", func() {
-
 			var err error
 
 			// SCHEMA
@@ -496,11 +524,16 @@ entity doc {
 			sch, err = compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "repository")
+			var repository *base.EntityDefinition
+			repository, err = schema.GetEntityByName(sch, "repository")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(en, "noop", nil).Times(1)
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
 			// RELATIONSHIPS
 
@@ -527,7 +560,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "repository", Id: "1"},
@@ -544,7 +577,6 @@ entity doc {
 		})
 
 		It("Github Sample: Case 2", func() {
-
 			var err error
 
 			// SCHEMA
@@ -555,11 +587,16 @@ entity doc {
 			sch, err = compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "repository")
+			var repository *base.EntityDefinition
+			repository, err = schema.GetEntityByName(sch, "repository")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(en, "noop", nil).Times(1)
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
 			// RELATIONSHIPS
 
@@ -652,7 +689,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "repository", Id: "1"},
@@ -669,7 +706,6 @@ entity doc {
 		})
 
 		It("Github Sample: Case 3", func() {
-
 			var err error
 
 			// SCHEMA
@@ -680,11 +716,16 @@ entity doc {
 			sch, err = compiler.NewSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "repository")
+			var repository *base.EntityDefinition
+			repository, err = schema.GetEntityByName(sch, "repository")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(en, "noop", nil).Times(1)
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
 			// RELATIONSHIPS
 
@@ -774,7 +815,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "repository", Id: "1"},

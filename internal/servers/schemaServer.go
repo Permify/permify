@@ -1,8 +1,6 @@
 package servers
 
 import (
-	"fmt"
-
 	"google.golang.org/grpc/status"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
@@ -38,7 +36,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.l.Error(fmt.Sprintf(err.Error()))
+		r.l.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -58,7 +56,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.l.Error(fmt.Sprintf(err.Error()))
+		r.l.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 

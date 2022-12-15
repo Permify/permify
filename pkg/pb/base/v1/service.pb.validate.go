@@ -61,6 +61,8 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 
 	// no validation rules for SnapToken
 
+	// no validation rules for Exclusion
+
 	if m.GetEntity() == nil {
 		err := PermissionCheckRequestValidationError{
 			field:  "Entity",
@@ -2514,3 +2516,379 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RelationshipDeleteResponseValidationError{}
+
+// Validate checks the field values on WelcomeResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *WelcomeResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on WelcomeResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// WelcomeResponseMultiError, or nil if none found.
+func (m *WelcomeResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *WelcomeResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Permify
+
+	if all {
+		switch v := interface{}(m.GetSources()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, WelcomeResponseValidationError{
+					field:  "Sources",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, WelcomeResponseValidationError{
+					field:  "Sources",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSources()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return WelcomeResponseValidationError{
+				field:  "Sources",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSocials()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, WelcomeResponseValidationError{
+					field:  "Socials",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, WelcomeResponseValidationError{
+					field:  "Socials",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSocials()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return WelcomeResponseValidationError{
+				field:  "Socials",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return WelcomeResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// WelcomeResponseMultiError is an error wrapping multiple validation errors
+// returned by WelcomeResponse.ValidateAll() if the designated constraints
+// aren't met.
+type WelcomeResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m WelcomeResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m WelcomeResponseMultiError) AllErrors() []error { return m }
+
+// WelcomeResponseValidationError is the validation error returned by
+// WelcomeResponse.Validate if the designated constraints aren't met.
+type WelcomeResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WelcomeResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WelcomeResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WelcomeResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WelcomeResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WelcomeResponseValidationError) ErrorName() string { return "WelcomeResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e WelcomeResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWelcomeResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WelcomeResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WelcomeResponseValidationError{}
+
+// Validate checks the field values on WelcomeResponse_Sources with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *WelcomeResponse_Sources) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on WelcomeResponse_Sources with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// WelcomeResponse_SourcesMultiError, or nil if none found.
+func (m *WelcomeResponse_Sources) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *WelcomeResponse_Sources) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Docs
+
+	// no validation rules for GitHub
+
+	// no validation rules for Blog
+
+	if len(errors) > 0 {
+		return WelcomeResponse_SourcesMultiError(errors)
+	}
+
+	return nil
+}
+
+// WelcomeResponse_SourcesMultiError is an error wrapping multiple validation
+// errors returned by WelcomeResponse_Sources.ValidateAll() if the designated
+// constraints aren't met.
+type WelcomeResponse_SourcesMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m WelcomeResponse_SourcesMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m WelcomeResponse_SourcesMultiError) AllErrors() []error { return m }
+
+// WelcomeResponse_SourcesValidationError is the validation error returned by
+// WelcomeResponse_Sources.Validate if the designated constraints aren't met.
+type WelcomeResponse_SourcesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WelcomeResponse_SourcesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WelcomeResponse_SourcesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WelcomeResponse_SourcesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WelcomeResponse_SourcesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WelcomeResponse_SourcesValidationError) ErrorName() string {
+	return "WelcomeResponse_SourcesValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e WelcomeResponse_SourcesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWelcomeResponse_Sources.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WelcomeResponse_SourcesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WelcomeResponse_SourcesValidationError{}
+
+// Validate checks the field values on WelcomeResponse_Socials with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *WelcomeResponse_Socials) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on WelcomeResponse_Socials with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// WelcomeResponse_SocialsMultiError, or nil if none found.
+func (m *WelcomeResponse_Socials) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *WelcomeResponse_Socials) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Discord
+
+	// no validation rules for Twitter
+
+	// no validation rules for Linkedin
+
+	if len(errors) > 0 {
+		return WelcomeResponse_SocialsMultiError(errors)
+	}
+
+	return nil
+}
+
+// WelcomeResponse_SocialsMultiError is an error wrapping multiple validation
+// errors returned by WelcomeResponse_Socials.ValidateAll() if the designated
+// constraints aren't met.
+type WelcomeResponse_SocialsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m WelcomeResponse_SocialsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m WelcomeResponse_SocialsMultiError) AllErrors() []error { return m }
+
+// WelcomeResponse_SocialsValidationError is the validation error returned by
+// WelcomeResponse_Socials.Validate if the designated constraints aren't met.
+type WelcomeResponse_SocialsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WelcomeResponse_SocialsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WelcomeResponse_SocialsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WelcomeResponse_SocialsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WelcomeResponse_SocialsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WelcomeResponse_SocialsValidationError) ErrorName() string {
+	return "WelcomeResponse_SocialsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e WelcomeResponse_SocialsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWelcomeResponse_Socials.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WelcomeResponse_SocialsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WelcomeResponse_SocialsValidationError{}

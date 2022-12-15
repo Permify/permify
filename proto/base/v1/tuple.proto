@@ -125,6 +125,7 @@ message ExpandTreeNode {
 
 // Expand
 message Expand {
+  EntityAndRelation target = 1;
   oneof node {
     ExpandTreeNode expand = 2;
     Subjects leaf = 3;
@@ -133,8 +134,6 @@ message Expand {
 
 // Subjects
 message Subjects {
-  EntityAndRelation target = 1;
-
   bool exclusion = 2;
   repeated Subject subjects = 3;
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	`reflect`
+	"reflect"
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/cache"
@@ -31,7 +31,7 @@ func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, version string) 
 }
 
 // ReadSchemaDefinition - Read schema definition from the repository
-func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	var s interface{}
 	found := false
 	if version != "" {

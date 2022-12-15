@@ -38,7 +38,7 @@ func (_m *SchemaReader) ReadSchema(ctx context.Context, version string) (schema 
 }
 
 // ReadSchemaDefinition - Reads a Schema Definition from repository
-func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
+func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	ret := _m.Called(entityType, version)
 
 	var r0 *base.EntityDefinition

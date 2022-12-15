@@ -1,7 +1,6 @@
 package factories
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/Permify/permify/internal/config"
@@ -27,6 +26,6 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 		}
 		return
 	default:
-		return nil, errors.New(fmt.Sprintf("%s connection is unsupported", conf.Engine))
+		return nil, fmt.Errorf("%s connection is unsupported", conf.Engine)
 	}
 }

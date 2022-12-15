@@ -49,7 +49,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 }
 
 // ReadSchemaDefinition - Reads a Schema Definition from repository
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}

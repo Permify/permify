@@ -47,9 +47,8 @@ func (l *Lexer) readChar() {
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
 		return 0
-	} else {
-		return l.input[l.readPosition]
 	}
+	return l.input[l.readPosition]
 }
 
 // NextToken -
@@ -90,14 +89,13 @@ func (l *Lexer) NextToken() (tok token.Token) {
 			tok.Literal = l.lexIdent()
 			tok.Type = token.LookupKeywords(tok.Literal)
 			return
+		}
+		if l.ch == '/' && l.peekChar() == '/' {
+			l.skipUntilNewline()
+			l.newLine()
+			tok = token.New(token.NEWLINE, l.ch)
 		} else {
-			if l.ch == '/' && l.peekChar() == '/' {
-				l.skipUntilNewline()
-				l.newLine()
-				tok = token.New(token.NEWLINE, l.ch)
-			} else {
-				tok = token.New(token.ILLEGAL, l.ch)
-			}
+			tok = token.New(token.ILLEGAL, l.ch)
 		}
 	}
 	l.readChar()

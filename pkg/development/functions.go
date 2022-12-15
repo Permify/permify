@@ -10,7 +10,7 @@ import (
 )
 
 // Check - Creates new permission check request
-func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version string, snapToken string) (res *v1.PermissionCheckResponse, err error) {
+func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version, snapToken string) (res *v1.PermissionCheckResponse, err error) {
 	req := &v1.PermissionCheckRequest{
 		SchemaVersion: version,
 		SnapToken:     snapToken,
@@ -23,7 +23,7 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 }
 
 // LookupEntity -
-func LookupEntity(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entityType string, version string, snapToken string) (res *v1.PermissionLookupEntityResponse, err error) {
+func LookupEntity(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action, entityType, version, snapToken string) (res *v1.PermissionLookupEntityResponse, err error) {
 	req := &v1.PermissionLookupEntityRequest{
 		SchemaVersion: version,
 		SnapToken:     snapToken,

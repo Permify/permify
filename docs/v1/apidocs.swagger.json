@@ -23,6 +23,9 @@
     },
     {
       "name": "Relationship"
+    },
+    {
+      "name": "Welcome"
     }
   ],
   "schemes": [
@@ -35,6 +38,29 @@
     "application/json"
   ],
   "paths": {
+    "/": {
+      "get": {
+        "summary": "welcome to permify",
+        "operationId": "welcome.hello",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/welcomeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "tags": [
+          "Welcome"
+        ]
+      }
+    },
     "/v1/permissions/check": {
       "post": {
         "summary": "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?",
@@ -492,6 +518,9 @@
     "Expand": {
       "type": "object",
       "properties": {
+        "target": {
+          "$ref": "#/definitions/EntityAndRelation"
+        },
         "expand": {
           "$ref": "#/definitions/ExpandTreeNode"
         },
@@ -575,6 +604,9 @@
         },
         "snap_token": {
           "type": "string"
+        },
+        "exclusion": {
+          "type": "boolean"
         },
         "entity": {
           "$ref": "#/definitions/Entity"
@@ -886,6 +918,34 @@
       },
       "title": "SchemaWriteResponse"
     },
+    "Socials": {
+      "type": "object",
+      "properties": {
+        "discord": {
+          "type": "string"
+        },
+        "twitter": {
+          "type": "string"
+        },
+        "linkedin": {
+          "type": "string"
+        }
+      }
+    },
+    "Sources": {
+      "type": "object",
+      "properties": {
+        "docs": {
+          "type": "string"
+        },
+        "gitHub": {
+          "type": "string"
+        },
+        "blog": {
+          "type": "string"
+        }
+      }
+    },
     "Status": {
       "type": "object",
       "properties": {
@@ -940,9 +1000,6 @@
     "Subjects": {
       "type": "object",
       "properties": {
-        "target": {
-          "$ref": "#/definitions/EntityAndRelation"
-        },
         "exclusion": {
           "type": "boolean"
         },
@@ -1005,6 +1062,21 @@
         }
       },
       "title": "TupleToUserSet"
+    },
+    "welcomeResponse": {
+      "type": "object",
+      "properties": {
+        "permify": {
+          "type": "string"
+        },
+        "sources": {
+          "$ref": "#/definitions/Sources"
+        },
+        "socials": {
+          "$ref": "#/definitions/Socials"
+        }
+      },
+      "title": "WelcomeResponse"
     }
   },
   "securityDefinitions": {

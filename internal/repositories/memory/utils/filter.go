@@ -11,7 +11,10 @@ import (
 // FilterQuery - Filter relation tuples according to given filter
 func FilterQuery(filter *base.TupleFilter) memdb.FilterFunc {
 	return func(tupleRaw interface{}) bool {
-		tuple := tupleRaw.(repositories.RelationTuple)
+		tuple, ok := tupleRaw.(repositories.RelationTuple)
+		if !ok {
+			return true
+		}
 		switch {
 		case filter.GetEntity().GetType() != "" && tuple.EntityType != filter.GetEntity().GetType():
 			return true

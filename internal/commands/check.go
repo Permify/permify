@@ -3,16 +3,14 @@ package commands
 import (
 	"context"
 	"errors"
-	`sync`
-	`sync/atomic`
+	"sync"
 
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
-	`github.com/Permify/permify/pkg/dsl/schema`
-	"github.com/Permify/permify/pkg/logger"
+	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/token`
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -23,23 +21,29 @@ type CheckCommand struct {
 	relationshipReader repositories.RelationshipReader
 	// key manager
 	commandKeyManager keys.CommandKeyManager
-	// logger
-	logger logger.Interface
+	// options
+	concurrencyLimit int
 }
 
 // NewCheckCommand -
-func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr repositories.RelationshipReader, l logger.Interface) *CheckCommand {
-	return &CheckCommand{
+func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr repositories.RelationshipReader, opts ...CheckOption) *CheckCommand {
+	command := &CheckCommand{
 		schemaReader:       sr,
 		commandKeyManager:  km,
 		relationshipReader: rr,
-		logger:             l,
+		concurrencyLimit:   _defaultConcurrencyLimit,
 	}
+
+	// options
+	for _, opt := range opts {
+		opt(command)
+	}
+
+	return command
 }
 
 // Execute -
 func (command *CheckCommand) Execute(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-
 	if request.Depth == 0 {
 		request.Depth = 20
 	}
@@ -62,50 +66,20 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 		request.SchemaVersion = ver
 	}
 
-	var en *base.EntityDefinition
-	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntity().GetType(), request.GetSchemaVersion())
-	if err != nil {
-		return response, err
-	}
-
-	var typeOfRelation base.EntityDefinition_RelationalReference
-	typeOfRelation, err = schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
-	if err != nil {
-		return response, err
-	}
-
-	var child *base.Child
-	switch typeOfRelation {
-	case base.EntityDefinition_RELATIONAL_REFERENCE_ACTION:
-		var action *base.ActionDefinition
-		action, err = schema.GetActionByNameInEntityDefinition(en, request.GetPermission())
-		if err != nil {
-			return response, err
-		}
-		child = action.Child
-		break
-	case base.EntityDefinition_RELATIONAL_REFERENCE_RELATION:
-		var leaf *base.Leaf
-		computedUserSet := &base.ComputedUserSet{Relation: request.GetPermission()}
-		leaf = &base.Leaf{
-			Type:      &base.Leaf_ComputedUserSet{ComputedUserSet: computedUserSet},
-			Exclusion: false,
-		}
-		child = &base.Child{Type: &base.Child_Leaf{Leaf: leaf}}
-		break
-	default:
-		return response, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
-	}
-
-	response, err = command.c(ctx, request, child)
-	return
+	meta := NewCheckMetadata()
+	var res *base.PermissionCheckResponse
+	res, err = command.check(ctx, request, meta)(ctx)
+	return &base.PermissionCheckResponse{
+		Can:            res.GetCan(),
+		RemainingDepth: request.GetDepth() - meta.GetCallCount(),
+	}, err
 }
 
 // CheckFunction -
 type CheckFunction func(ctx context.Context) (*base.PermissionCheckResponse, error)
 
 // CheckCombiner .
-type CheckCombiner func(ctx context.Context, request *base.PermissionCheckRequest, functions []CheckFunction) (*base.PermissionCheckResponse, error)
+type CheckCombiner func(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error)
 
 // checkResult -
 type checkResult struct {
@@ -113,108 +87,114 @@ type checkResult struct {
 	err  error
 }
 
-// decrease -
-func decrease(request *base.PermissionCheckRequest, v int32) int32 {
-	return atomic.AddInt32(&request.Depth, -v)
+// checkDepth -
+func checkDepth(request *base.PermissionCheckRequest, meta *CheckMetadata) bool {
+	return meta.AddCall() >= request.GetDepth()
 }
 
-// loadDepth -
-func loadDepth(request *base.PermissionCheckRequest) int32 {
-	return atomic.LoadInt32(&request.Depth)
-}
+// check -
+func (command *CheckCommand) check(ctx context.Context, request *base.PermissionCheckRequest, meta *CheckMetadata) CheckFunction {
+	if checkDepth(request, meta) {
+		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String()))
+	}
 
-// isDepthFinish -
-func isDepthFinish(request *base.PermissionCheckRequest) bool {
-	return loadDepth(request) <= 0
-}
+	en, _, err := command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntity().GetType(), request.GetSchemaVersion())
+	if err != nil {
+		return checkFail(err)
+	}
 
-// c -
-func (command *CheckCommand) c(ctx context.Context, request *base.PermissionCheckRequest, child *base.Child) (*base.PermissionCheckResponse, error) {
+	var typeOfRelation base.EntityDefinition_RelationalReference
+	typeOfRelation, err = schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
+	if err != nil {
+		return checkFail(err)
+	}
+
 	var fn CheckFunction
-	switch ch := child.GetType().(type) {
-	case *base.Child_Rewrite:
-		fn = command.checkRewrite(ctx, request, ch.Rewrite)
-	case *base.Child_Leaf:
-		fn = command.checkLeaf(ctx, request, ch.Leaf)
+	if typeOfRelation == base.EntityDefinition_RELATIONAL_REFERENCE_ACTION {
+		var child *base.Child
+		var action *base.ActionDefinition
+		action, err = schema.GetActionByNameInEntityDefinition(en, request.GetPermission())
+		if err != nil {
+			return checkFail(err)
+		}
+		child = action.GetChild()
+		if child.GetRewrite() != nil {
+			fn = command.checkRewrite(ctx, request, child.GetRewrite(), meta)
+		} else {
+			fn = command.checkLeaf(ctx, request, child.GetLeaf(), meta)
+		}
+	} else {
+		fn = command.checkDirect(ctx, request, meta)
 	}
 
 	if fn == nil {
-		return &base.PermissionCheckResponse{
-			Can:            base.PermissionCheckResponse_RESULT_DENIED,
-			RemainingDepth: loadDepth(request),
-		}, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String())
+		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 	}
 
-	return checkUnion(ctx, request, []CheckFunction{fn})
+	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
+		return checkUnion(ctx, []CheckFunction{fn}, command.concurrencyLimit)
+	}
 }
 
 // checkRewrite -
-func (command *CheckCommand) checkRewrite(ctx context.Context, request *base.PermissionCheckRequest, rewrite *base.Rewrite) CheckFunction {
+func (command *CheckCommand) checkRewrite(ctx context.Context, request *base.PermissionCheckRequest, rewrite *base.Rewrite, meta *CheckMetadata) CheckFunction {
 	switch rewrite.GetRewriteOperation() {
 	case *base.Rewrite_OPERATION_UNION.Enum():
-		return command.setChild(ctx, request, rewrite.GetChildren(), checkUnion)
+		return command.setChild(ctx, request, rewrite.GetChildren(), checkUnion, meta)
 	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
-		return command.setChild(ctx, request, rewrite.GetChildren(), checkIntersection)
+		return command.setChild(ctx, request, rewrite.GetChildren(), checkIntersection, meta)
 	default:
-		return checkFail(loadDepth(request), errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
 // checkLeaf -
-func (command *CheckCommand) checkLeaf(ctx context.Context, request *base.PermissionCheckRequest, leaf *base.Leaf) CheckFunction {
+func (command *CheckCommand) checkLeaf(ctx context.Context, request *base.PermissionCheckRequest, leaf *base.Leaf, meta *CheckMetadata) CheckFunction {
+	request.Exclusion = leaf.GetExclusion()
 	switch op := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
-		return command.checkTupleToUserSet(ctx, request, op.TupleToUserSet, leaf.GetExclusion())
+		return command.checkTupleToUserSet(ctx, request, op.TupleToUserSet, meta)
 	case *base.Leaf_ComputedUserSet:
-		return command.checkComputedUserSet(ctx, request, op.ComputedUserSet, leaf.GetExclusion())
+		return command.checkComputedUserSet(ctx, request, op.ComputedUserSet, meta)
 	default:
-		return checkFail(loadDepth(request), errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
 // setChild -
-func (command *CheckCommand) setChild(ctx context.Context, request *base.PermissionCheckRequest, children []*base.Child, combiner CheckCombiner) CheckFunction {
+func (command *CheckCommand) setChild(ctx context.Context, request *base.PermissionCheckRequest, children []*base.Child, combiner CheckCombiner, meta *CheckMetadata) CheckFunction {
 	var functions []CheckFunction
 	for _, child := range children {
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
-			functions = append(functions, command.checkRewrite(ctx, request, child.GetRewrite()))
+			functions = append(functions, command.checkRewrite(ctx, request, child.GetRewrite(), meta))
 		case *base.Child_Leaf:
-			functions = append(functions, command.checkLeaf(ctx, request, child.GetLeaf()))
+			functions = append(functions, command.checkLeaf(ctx, request, child.GetLeaf(), meta))
 		default:
-			return checkFail(loadDepth(request), errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+			return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 		}
 	}
 
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		return combiner(ctx, request, functions)
+		return combiner(ctx, functions, command.concurrencyLimit)
 	}
 }
 
 // checkDirect -
-func (command *CheckCommand) checkDirect(ctx context.Context, request *base.PermissionCheckRequest, exclusion bool) CheckFunction {
+func (command *CheckCommand) checkDirect(ctx context.Context, request *base.PermissionCheckRequest, meta *CheckMetadata) CheckFunction {
 	return func(ctx context.Context) (result *base.PermissionCheckResponse, err error) {
 		resp, found := command.commandKeyManager.GetCheckKey(request)
 		if found {
-			if exclusion {
+			if request.GetExclusion() {
 				if resp.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-					return denied(loadDepth(request))
-				} else {
-					return allowed(loadDepth(request))
+					return denied()
 				}
-			} else {
-				return &base.PermissionCheckResponse{
-					Can:            resp.GetCan(),
-					RemainingDepth: loadDepth(request),
-				}, nil
+				return allowed()
 			}
-		}
-
-		if isDepthFinish(request) {
 			return &base.PermissionCheckResponse{
-				Can:            base.PermissionCheckResponse_RESULT_DENIED,
-				RemainingDepth: loadDepth(request),
-			}, errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String())
+				Can:            resp.GetCan(),
+				RemainingDepth: request.GetDepth(),
+			}, nil
 		}
 
 		var tupleCollection database.ITupleCollection
@@ -228,63 +208,60 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 		if err != nil {
 			return &base.PermissionCheckResponse{
 				Can:            base.PermissionCheckResponse_RESULT_DENIED,
-				RemainingDepth: loadDepth(request),
+				RemainingDepth: request.GetDepth(),
 			}, err
 		}
 
 		it := tupleCollection.CreateTupleIterator()
 		var checkFunctions []CheckFunction
-		i := 0
 		for it.HasNext() {
 			t := it.GetNext()
 			if tuple.AreSubjectsEqual(t.GetSubject(), request.GetSubject()) {
-				if exclusion {
+				if request.GetExclusion() {
 					command.commandKeyManager.SetCheckKey(request, &base.PermissionCheckResponse{
 						Can:            base.PermissionCheckResponse_RESULT_ALLOWED,
-						RemainingDepth: loadDepth(request),
+						RemainingDepth: request.GetDepth(),
 					})
-					return denied(loadDepth(request))
+					return denied()
 				}
 
 				result = &base.PermissionCheckResponse{
 					Can:            base.PermissionCheckResponse_RESULT_ALLOWED,
-					RemainingDepth: loadDepth(request),
+					RemainingDepth: request.GetDepth(),
 				}
 				command.commandKeyManager.SetCheckKey(request, result)
 				return result, nil
-			} else {
-				if !tuple.IsSubjectUser(t.GetSubject()) && t.GetSubject().GetRelation() != tuple.ELLIPSIS {
-					i++
-					decrease(request, int32(i))
-					checkFunctions = append(checkFunctions, command.checkDirect(ctx, &base.PermissionCheckRequest{
-						Entity: &base.Entity{
-							Type: t.GetSubject().GetType(),
-							Id:   t.GetSubject().GetId(),
-						},
-						Permission:    t.GetSubject().GetRelation(),
-						Subject:       request.GetSubject(),
-						SnapToken:     request.GetSnapToken(),
-						SchemaVersion: request.GetSchemaVersion(),
-						Depth:         loadDepth(request),
-					}, exclusion))
-				}
+			}
+			if !tuple.IsSubjectUser(t.GetSubject()) && t.GetSubject().GetRelation() != tuple.ELLIPSIS {
+				checkFunctions = append(checkFunctions, command.check(ctx, &base.PermissionCheckRequest{
+					Exclusion: request.GetExclusion(),
+					Entity: &base.Entity{
+						Type: t.GetSubject().GetType(),
+						Id:   t.GetSubject().GetId(),
+					},
+					Permission:    t.GetSubject().GetRelation(),
+					Subject:       request.GetSubject(),
+					SnapToken:     request.GetSnapToken(),
+					SchemaVersion: request.GetSchemaVersion(),
+					Depth:         request.GetDepth(),
+				}, meta))
 			}
 		}
 
 		if len(checkFunctions) > 0 {
-			return checkUnion(ctx, request, checkFunctions)
+			return checkUnion(ctx, checkFunctions, command.concurrencyLimit)
 		}
 
-		if exclusion {
+		if request.GetExclusion() {
 			command.commandKeyManager.SetCheckKey(request, &base.PermissionCheckResponse{
 				Can:            base.PermissionCheckResponse_RESULT_DENIED,
-				RemainingDepth: loadDepth(request),
+				RemainingDepth: request.GetDepth(),
 			})
-			return allowed(loadDepth(request))
+			return allowed()
 		}
 		result = &base.PermissionCheckResponse{
 			Can:            base.PermissionCheckResponse_RESULT_DENIED,
-			RemainingDepth: loadDepth(request),
+			RemainingDepth: request.GetDepth(),
 		}
 		command.commandKeyManager.SetCheckKey(request, result)
 		return
@@ -292,16 +269,8 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 }
 
 // checkTupleToUserSet -
-func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *base.PermissionCheckRequest, ttu *base.TupleToUserSet, exclusion bool) CheckFunction {
+func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *base.PermissionCheckRequest, ttu *base.TupleToUserSet, meta *CheckMetadata) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-
-		if isDepthFinish(request) {
-			return &base.PermissionCheckResponse{
-				Can:            base.PermissionCheckResponse_RESULT_DENIED,
-				RemainingDepth: loadDepth(request),
-			}, errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String())
-		}
-
 		var err error
 		var tupleCollection database.ITupleCollection
 		tupleCollection, err = command.relationshipReader.QueryRelationships(ctx, &base.TupleFilter{
@@ -314,7 +283,7 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 		if err != nil {
 			return &base.PermissionCheckResponse{
 				Can:            base.PermissionCheckResponse_RESULT_DENIED,
-				RemainingDepth: loadDepth(request),
+				RemainingDepth: request.GetDepth(),
 			}, err
 		}
 
@@ -323,6 +292,7 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 		for it.HasNext() {
 			subject := it.GetNext()
 			checkFunctions = append(checkFunctions, command.checkComputedUserSet(ctx, &base.PermissionCheckRequest{
+				Exclusion: request.GetExclusion(),
 				Entity: &base.Entity{
 					Type: subject.GetType(),
 					Id:   subject.GetId(),
@@ -331,17 +301,18 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 				Subject:       request.GetSubject(),
 				SnapToken:     request.GetSnapToken(),
 				SchemaVersion: request.GetSchemaVersion(),
-				Depth:         loadDepth(request),
-			}, ttu.GetComputed(), exclusion))
+				Depth:         request.GetDepth(),
+			}, ttu.GetComputed(), meta))
 		}
 
-		return checkUnion(ctx, request, checkFunctions)
+		return checkUnion(ctx, checkFunctions, command.concurrencyLimit)
 	}
 }
 
 // checkComputedUserSet -
-func (command *CheckCommand) checkComputedUserSet(ctx context.Context, request *base.PermissionCheckRequest, cu *base.ComputedUserSet, exclusion bool) CheckFunction {
-	return command.checkDirect(ctx, &base.PermissionCheckRequest{
+func (command *CheckCommand) checkComputedUserSet(ctx context.Context, request *base.PermissionCheckRequest, cu *base.ComputedUserSet, meta *CheckMetadata) CheckFunction {
+	return command.check(ctx, &base.PermissionCheckRequest{
+		Exclusion: request.GetExclusion(),
 		Entity: &base.Entity{
 			Type: request.GetEntity().GetType(),
 			Id:   request.GetEntity().GetId(),
@@ -350,20 +321,20 @@ func (command *CheckCommand) checkComputedUserSet(ctx context.Context, request *
 		Subject:       request.GetSubject(),
 		SnapToken:     request.GetSnapToken(),
 		SchemaVersion: request.GetSchemaVersion(),
-		Depth:         decrease(request, 1),
-	}, exclusion)
+		Depth:         request.GetDepth(),
+	}, meta)
 }
 
 // checkUnion -
-func checkUnion(ctx context.Context, request *base.PermissionCheckRequest, functions []CheckFunction) (*base.PermissionCheckResponse, error) {
+func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error) {
 	if len(functions) == 0 {
-		return denied(loadDepth(request))
+		return denied()
 	}
 
 	decisionChan := make(chan checkResult, len(functions))
 	cancelCtx, cancel := context.WithCancel(ctx)
 
-	clean := handler(cancelCtx, functions, decisionChan)
+	clean := run(cancelCtx, functions, decisionChan, limit)
 
 	defer func() {
 		cancel()
@@ -376,31 +347,30 @@ func checkUnion(ctx context.Context, request *base.PermissionCheckRequest, funct
 		case d := <-decisionChan:
 			if d.err != nil {
 				return &base.PermissionCheckResponse{
-					Can:            base.PermissionCheckResponse_RESULT_DENIED,
-					RemainingDepth: loadDepth(request),
+					Can: base.PermissionCheckResponse_RESULT_DENIED,
 				}, d.err
 			}
 			if d.resp.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-				return allowed(loadDepth(request))
+				return allowed()
 			}
 		case <-ctx.Done():
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
-	return denied(loadDepth(request))
+	return denied()
 }
 
 // checkIntersection -
-func checkIntersection(ctx context.Context, request *base.PermissionCheckRequest, functions []CheckFunction) (*base.PermissionCheckResponse, error) {
+func checkIntersection(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error) {
 	if len(functions) == 0 {
-		return denied(loadDepth(request))
+		return denied()
 	}
 
 	decisionChan := make(chan checkResult, len(functions))
 	cancelCtx, cancel := context.WithCancel(ctx)
 
-	clean := handler(cancelCtx, functions, decisionChan)
+	clean := run(cancelCtx, functions, decisionChan, limit)
 
 	defer func() {
 		cancel()
@@ -413,24 +383,23 @@ func checkIntersection(ctx context.Context, request *base.PermissionCheckRequest
 		case d := <-decisionChan:
 			if d.err != nil {
 				return &base.PermissionCheckResponse{
-					Can:            base.PermissionCheckResponse_RESULT_DENIED,
-					RemainingDepth: loadDepth(request),
+					Can: base.PermissionCheckResponse_RESULT_DENIED,
 				}, d.err
 			}
 			if d.resp.GetCan() == base.PermissionCheckResponse_RESULT_DENIED {
-				return denied(loadDepth(request))
+				return denied()
 			}
 		case <-ctx.Done():
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
-	return allowed(loadDepth(request))
+	return allowed()
 }
 
-// handler -
-func handler(ctx context.Context, functions []CheckFunction, decisionChan chan<- checkResult) func() {
-	cl := make(chan struct{}, 100)
+// run -
+func run(ctx context.Context, functions []CheckFunction, decisionChan chan<- checkResult, limit int) func() {
+	cl := make(chan struct{}, limit)
 	var wg sync.WaitGroup
 
 	check := func(child CheckFunction) {
@@ -445,7 +414,7 @@ func handler(ctx context.Context, functions []CheckFunction, decisionChan chan<-
 
 	wg.Add(1)
 	go func() {
-	handler:
+	run:
 		for _, fun := range functions {
 			child := fun
 			select {
@@ -453,7 +422,7 @@ func handler(ctx context.Context, functions []CheckFunction, decisionChan chan<-
 				wg.Add(1)
 				go check(child)
 			case <-ctx.Done():
-				break handler
+				break run
 			}
 		}
 		wg.Done()
@@ -466,27 +435,24 @@ func handler(ctx context.Context, functions []CheckFunction, decisionChan chan<-
 }
 
 // checkFail -
-func checkFail(depth int32, err error) CheckFunction {
+func checkFail(err error) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 		return &base.PermissionCheckResponse{
-			Can:            base.PermissionCheckResponse_RESULT_DENIED,
-			RemainingDepth: depth,
+			Can: base.PermissionCheckResponse_RESULT_DENIED,
 		}, err
 	}
 }
 
 // denied -
-func denied(depth int32) (*base.PermissionCheckResponse, error) {
+func denied() (*base.PermissionCheckResponse, error) {
 	return &base.PermissionCheckResponse{
-		Can:            base.PermissionCheckResponse_RESULT_DENIED,
-		RemainingDepth: depth,
+		Can: base.PermissionCheckResponse_RESULT_DENIED,
 	}, nil
 }
 
 // allowed
-func allowed(depth int32) (*base.PermissionCheckResponse, error) {
+func allowed() (*base.PermissionCheckResponse, error) {
 	return &base.PermissionCheckResponse{
-		Can:            base.PermissionCheckResponse_RESULT_ALLOWED,
-		RemainingDepth: depth,
+		Can: base.PermissionCheckResponse_RESULT_ALLOWED,
 	}, nil
 }

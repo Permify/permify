@@ -1,6 +1,8 @@
 syntax = "proto3";
 package base.v1;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
 import "base/v1/tuple.proto";
@@ -95,19 +97,20 @@ service Permission {
 message PermissionCheckRequest {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
+  bool exclusion = 3 [json_name = "exclusion"];
 
-  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 4 [json_name = "entity", (validate.rules).message.required = true];
 
   // its can be action or relation
-  string permission = 4 [json_name = "permission", (validate.rules).string = {
+  string permission = 5 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+  Subject subject = 6 [json_name = "subject", (validate.rules).message.required = true];
 
-  int32 depth = 6 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 7 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionCheckResponse
@@ -343,4 +346,38 @@ message RelationshipDeleteRequest {
 // RelationshipDeleteResponse
 message RelationshipDeleteResponse {
   string snap_token = 1 [json_name = "snap_token"];
+}
+
+// ** WELCOME SERVICE **
+service Welcome {
+  rpc Hello(google.protobuf.Empty) returns (welcomeResponse) {
+    option (google.api.http) = {
+      get: "/"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "welcome to permify"
+      tags: [
+        "Welcome"
+      ]
+      operation_id: "welcome.hello"
+    };
+  }
+}
+
+// WelcomeResponse
+message welcomeResponse {
+  message Sources {
+      string docs = 1;
+      string gitHub = 2;
+      string blog = 3;
+  }
+  message Socials {
+      string discord = 1;
+      string twitter = 2;
+      string linkedin = 3;
+  }
+
+  string permify = 1;
+  Sources sources = 2;
+  Socials socials = 3;
 }

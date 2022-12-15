@@ -25,7 +25,7 @@ type Postgres struct {
 }
 
 // New - Creates new postgresql db instance
-func New(uri string, database string, opts ...Option) (*Postgres, error) {
+func New(uri, database string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
 		maxPoolSize:  _defaultMaxPoolSize,
 		connAttempts: _defaultConnAttempts,

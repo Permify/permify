@@ -27,9 +27,9 @@ func NewSchemaWriter(database *db.Postgres) *SchemaWriter {
 // WriteSchema writes a schema to the database
 func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.SchemaDefinition) (string, error) {
 	id := xid.New()
-	tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
-	if err != nil {
-		return "", err
+	tx, bErr := w.database.Pool.BeginTx(ctx, w.txOptions)
+	if bErr != nil {
+		return "", bErr
 	}
 
 	batch := &pgx.Batch{}
@@ -45,12 +45,12 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.S
 	}
 
 	results := tx.SendBatch(ctx, batch)
-	if err = results.Close(); err != nil {
+	if err := results.Close(); err != nil {
 		_ = tx.Rollback(ctx)
 		return "", err
 	}
 
-	if err = tx.Commit(ctx); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return "", err
 	}
 

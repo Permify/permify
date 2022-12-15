@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"context"
-	`fmt`
+	"fmt"
 	"net/url"
-	`os`
+	"os"
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
@@ -12,7 +12,7 @@ import (
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/development/validation"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/token`
+	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -61,7 +61,8 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		// Write tuples -
 		for _, t := range s.Tuples {
-			tup, err := tuple.Tuple(t)
+			var tup *base.Tuple
+			tup, err = tuple.Tuple(t)
 			if err != nil {
 				return err
 			}
