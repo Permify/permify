@@ -6,7 +6,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 )
@@ -18,17 +17,14 @@ type LookupEntityCommand struct {
 	// repositories
 	schemaReader       repositories.SchemaReader
 	relationshipReader repositories.RelationshipReader
-	// logger
-	logger logger.Interface
 }
 
 // NewLookupEntityCommand -
-func NewLookupEntityCommand(ck ICheckCommand, sr repositories.SchemaReader, rr repositories.RelationshipReader, l logger.Interface) *LookupEntityCommand {
+func NewLookupEntityCommand(ck ICheckCommand, sr repositories.SchemaReader, rr repositories.RelationshipReader) *LookupEntityCommand {
 	return &LookupEntityCommand{
 		checkCommand:       ck,
 		schemaReader:       sr,
 		relationshipReader: rr,
-		logger:             l,
 	}
 }
 

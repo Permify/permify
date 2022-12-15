@@ -518,6 +518,9 @@
     "Expand": {
       "type": "object",
       "properties": {
+        "target": {
+          "$ref": "#/definitions/EntityAndRelation"
+        },
         "expand": {
           "$ref": "#/definitions/ExpandTreeNode"
         },
@@ -997,9 +1000,6 @@
     "Subjects": {
       "type": "object",
       "properties": {
-        "target": {
-          "$ref": "#/definitions/EntityAndRelation"
-        },
         "exclusion": {
           "type": "boolean"
         },

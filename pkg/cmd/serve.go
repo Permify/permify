@@ -28,7 +28,7 @@ import (
 
 const (
 	// Version of Permify
-	Version = "v0.0.0-alpha9"
+	Version = "v0.1.0"
 	banner  = `
 
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
@@ -136,9 +136,9 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 
 		// commands
 		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
-		expandCommand := commands.NewExpandCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
-		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReaderWithCircuitBreakerAndCache, l)
-		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
+		expandCommand := commands.NewExpandCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
+		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReaderWithCircuitBreakerAndCache)
+		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
 
 		// Services
 		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreakerAndCache)

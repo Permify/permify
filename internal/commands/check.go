@@ -87,10 +87,14 @@ type checkResult struct {
 	err  error
 }
 
+// checkDepth -
+func checkDepth(request *base.PermissionCheckRequest, meta *CheckMetadata) bool {
+	return meta.AddCall() >= request.GetDepth()
+}
+
 // check -
 func (command *CheckCommand) check(ctx context.Context, request *base.PermissionCheckRequest, meta *CheckMetadata) CheckFunction {
-
-	if meta.AddCall() >= request.GetDepth() {
+	if checkDepth(request, meta) {
 		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String()))
 	}
 
@@ -114,7 +118,7 @@ func (command *CheckCommand) check(ctx context.Context, request *base.Permission
 			return checkFail(err)
 		}
 		child = action.GetChild()
-		if action.Child.GetRewrite() != nil {
+		if child.GetRewrite() != nil {
 			fn = command.checkRewrite(ctx, request, child.GetRewrite(), meta)
 		} else {
 			fn = command.checkLeaf(ctx, request, child.GetLeaf(), meta)

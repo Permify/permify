@@ -1,7 +1,7 @@
 package commands
 
 import (
-	`sync`
+	"sync"
 )
 
 const (

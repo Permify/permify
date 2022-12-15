@@ -28,6 +28,7 @@ func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 
 // Compile -
 func (t *Compiler) Compile() (sch *base.IndexedSchema, err error) {
+	//helper.Pre(t.schema)
 	if !t.withoutReferenceValidation {
 		err = t.schema.ValidateReferences()
 		if err != nil {
@@ -216,18 +217,28 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (ch
 			}
 		}
 	case ast.PREFIX:
-		if !t.withoutReferenceValidation {
-			if !t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, expression.GetValue())) {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
-			}
-		}
 		s := strings.Split(expression.GetValue(), tuple.SEPARATOR)
 		if len(s) == 1 {
+			if !t.withoutReferenceValidation {
+				if !t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, s[0])) {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
+			}
 			leaf, err = t.compileComputedUserSetIdentifier(s[0])
 			if err != nil {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 			}
 		} else if len(s) == 2 {
+			if !t.withoutReferenceValidation {
+				value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
+				_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
+			}
 			leaf, err = t.compileTupleToUserSetIdentifier(s[0], s[1])
 			if err != nil {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())

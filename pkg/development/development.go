@@ -9,7 +9,6 @@ import (
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/logger"
 )
 
 // Container - Structure for container instance
@@ -21,8 +20,6 @@ type Container struct {
 
 // NewContainer - Creates new container instance
 func NewContainer() *Container {
-	l := logger.New("debug")
-
 	var err error
 
 	var db database.Database
@@ -45,9 +42,9 @@ func NewContainer() *Container {
 
 	// commands
 	checkCommand := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
-	expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader, l)
-	lookupSchemaCommand := commands.NewLookupSchemaCommand(schemaReader, l)
-	lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader, l)
+	expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader)
+	lookupSchemaCommand := commands.NewLookupSchemaCommand(schemaReader)
+	lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader)
 
 	return &Container{
 		P: services.NewPermissionService(checkCommand, expandCommand, lookupSchemaCommand, lookupEntityCommand),

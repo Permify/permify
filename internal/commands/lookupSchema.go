@@ -7,7 +7,6 @@ import (
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/helper"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -15,15 +14,12 @@ import (
 type LookupSchemaCommand struct {
 	// repositories
 	schemaReader repositories.SchemaReader
-	// logger
-	logger logger.Interface
 }
 
 // NewLookupSchemaCommand -
-func NewLookupSchemaCommand(schemaReader repositories.SchemaReader, l logger.Interface) *LookupSchemaCommand {
+func NewLookupSchemaCommand(schemaReader repositories.SchemaReader) *LookupSchemaCommand {
 	return &LookupSchemaCommand{
 		schemaReader: schemaReader,
-		logger:       l,
 	}
 }
 
