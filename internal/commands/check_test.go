@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
@@ -19,7 +18,6 @@ import (
 
 var _ = Describe("check-command", func() {
 	var checkCommand *CheckCommand
-	l := logger.New("debug")
 
 	// DRIVE SAMPLE
 
@@ -200,7 +198,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "doc", Id: "1"},
@@ -310,7 +308,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "doc", Id: "1"},
@@ -474,7 +472,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "doc", Id: "1"},
@@ -562,7 +560,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "repository", Id: "1"},
@@ -691,7 +689,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "repository", Id: "1"},
@@ -817,7 +815,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				Entity:        &base.Entity{Type: "repository", Id: "1"},

@@ -44,7 +44,7 @@ func NewContainer() *Container {
 	schemaWriter := factories.SchemaWriterFactory(db)
 
 	// commands
-	checkCommand := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, l)
+	checkCommand := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 	expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader, l)
 	lookupSchemaCommand := commands.NewLookupSchemaCommand(schemaReader, l)
 	lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader, l)

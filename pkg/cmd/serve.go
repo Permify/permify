@@ -135,7 +135,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
+		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
 		expandCommand := commands.NewExpandCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
 		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReaderWithCircuitBreakerAndCache, l)
 		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
