@@ -9,13 +9,12 @@ import (
 	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	"github.com/Permify/permify/pkg/logger"
+	`github.com/Permify/permify/pkg/helper`
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 var _ = Describe("lookup-schema-command", func() {
 	var schemaLookupCommand *LookupSchemaCommand
-	l := logger.New("debug")
 
 	// DRIVE SAMPLE
 
@@ -65,7 +64,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "folder", "noop").Return(en, "noop", nil).Times(1)
 
-			schemaLookupCommand = NewLookupSchemaCommand(schemaReader, l)
+			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				EntityType:    "folder",
@@ -75,7 +74,9 @@ var _ = Describe("lookup-schema-command", func() {
 
 			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect([]string{"delete"}).Should(Equal(actualResult.ActionNames))
+			for _, actionName := range actualResult.ActionNames {
+				Expect(helper.InArray(actionName, []string{"delete"})).Should(Equal(helper.InArray(actionName, []string{"delete"})))
+			}
 		})
 
 		It("Drive Sample: Case 2", func() {
@@ -93,9 +94,9 @@ var _ = Describe("lookup-schema-command", func() {
 			en, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(2)
 
-			schemaLookupCommand = NewLookupSchemaCommand(schemaReader, l)
+			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				EntityType:    "doc",
@@ -105,7 +106,9 @@ var _ = Describe("lookup-schema-command", func() {
 
 			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect([]string{"read", "update", "delete"}).Should(Equal(actualResult.ActionNames))
+			for _, actionName := range actualResult.ActionNames {
+				Expect(helper.InArray(actionName, []string{"read", "update", "delete"})).Should(Equal(helper.InArray(actionName, []string{"read", "update", "delete"})))
+			}
 		})
 	})
 
@@ -148,9 +151,9 @@ var _ = Describe("lookup-schema-command", func() {
 			en, err = schema.GetEntityByName(sch, "organization")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(en, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(en, "noop", nil).Times(2)
 
-			schemaLookupCommand = NewLookupSchemaCommand(schemaReader, l)
+			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				EntityType:    "organization",
@@ -160,7 +163,9 @@ var _ = Describe("lookup-schema-command", func() {
 
 			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect([]string{"create_repository", "delete"}).Should(Equal(actualResult.ActionNames))
+			for _, actionName := range actualResult.ActionNames {
+				Expect(helper.InArray(actionName, []string{"create_repository", "delete"})).Should(Equal(helper.InArray(actionName, []string{"create_repository", "delete"})))
+			}
 		})
 
 		It("Github Sample: Case 2", func() {
@@ -178,9 +183,9 @@ var _ = Describe("lookup-schema-command", func() {
 			en, err = schema.GetEntityByName(sch, "repository")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(en, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(en, "noop", nil).Times(2)
 
-			schemaLookupCommand = NewLookupSchemaCommand(schemaReader, l)
+			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				EntityType:    "repository",
@@ -190,7 +195,9 @@ var _ = Describe("lookup-schema-command", func() {
 
 			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect([]string{"delete"}).Should(Equal(actualResult.ActionNames))
+			for _, actionName := range actualResult.ActionNames {
+				Expect(helper.InArray(actionName, []string{"delete"})).Should(Equal(helper.InArray(actionName, []string{"delete"})))
+			}
 		})
 	})
 })
