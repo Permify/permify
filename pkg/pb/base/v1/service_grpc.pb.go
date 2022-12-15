@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -550,6 +551,92 @@ var Relationship_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _Relationship_Delete_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "base/v1/service.proto",
+}
+
+// WelcomeClient is the client API for Welcome service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type WelcomeClient interface {
+	Hello(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*WelcomeResponse, error)
+}
+
+type welcomeClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewWelcomeClient(cc grpc.ClientConnInterface) WelcomeClient {
+	return &welcomeClient{cc}
+}
+
+func (c *welcomeClient) Hello(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*WelcomeResponse, error) {
+	out := new(WelcomeResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Welcome/Hello", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// WelcomeServer is the server API for Welcome service.
+// All implementations must embed UnimplementedWelcomeServer
+// for forward compatibility
+type WelcomeServer interface {
+	Hello(context.Context, *emptypb.Empty) (*WelcomeResponse, error)
+	mustEmbedUnimplementedWelcomeServer()
+}
+
+// UnimplementedWelcomeServer must be embedded to have forward compatible implementations.
+type UnimplementedWelcomeServer struct {
+}
+
+func (UnimplementedWelcomeServer) Hello(context.Context, *emptypb.Empty) (*WelcomeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
+}
+func (UnimplementedWelcomeServer) mustEmbedUnimplementedWelcomeServer() {}
+
+// UnsafeWelcomeServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WelcomeServer will
+// result in compilation errors.
+type UnsafeWelcomeServer interface {
+	mustEmbedUnimplementedWelcomeServer()
+}
+
+func RegisterWelcomeServer(s grpc.ServiceRegistrar, srv WelcomeServer) {
+	s.RegisterService(&Welcome_ServiceDesc, srv)
+}
+
+func _Welcome_Hello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WelcomeServer).Hello(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/base.v1.Welcome/Hello",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WelcomeServer).Hello(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Welcome_ServiceDesc is the grpc.ServiceDesc for Welcome service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Welcome_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "base.v1.Welcome",
+	HandlerType: (*WelcomeServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Hello",
+			Handler:    _Welcome_Hello_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

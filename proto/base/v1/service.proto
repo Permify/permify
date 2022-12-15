@@ -1,6 +1,8 @@
 syntax = "proto3";
 package base.v1;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
 import "base/v1/tuple.proto";
@@ -344,4 +346,38 @@ message RelationshipDeleteRequest {
 // RelationshipDeleteResponse
 message RelationshipDeleteResponse {
   string snap_token = 1 [json_name = "snap_token"];
+}
+
+// ** WELCOME SERVICE **
+service Welcome {
+  rpc Hello(google.protobuf.Empty) returns (welcomeResponse) {
+    option (google.api.http) = {
+      get: "/"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "welcome to permify"
+      tags: [
+        "Welcome"
+      ]
+      operation_id: "welcome.hello"
+    };
+  }
+}
+
+// WelcomeResponse
+message welcomeResponse {
+  message Sources {
+      string docs = 1;
+      string gitHub = 2;
+      string blog = 3;
+  }
+  message Socials {
+      string discord = 1;
+      string twitter = 2;
+      string linkedin = 3;
+  }
+
+  string permify = 1;
+  Sources sources = 2;
+  Socials socials = 3;
 }

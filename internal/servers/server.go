@@ -70,6 +70,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SchemaService, l))
 	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RelationshipService, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
+	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
 	reflection.Register(grpcServer)
 
 	var lis net.Listener
