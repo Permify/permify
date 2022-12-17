@@ -124,26 +124,28 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		// decorators
 		schemaReaderWithCache := decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
 
-		// circuitBreaker
-		relationshipWriterWithCircuitBreaker := decorators.NewRelationshipWriterWithCircuitBreaker(relationshipWriter)
-		relationshipReaderWithCircuitBreaker := decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
+		// Service
+		if cfg.Service.CircuitBreaker {
+			relationshipWriter = decorators.NewRelationshipWriterWithCircuitBreaker(relationshipWriter)
+			relationshipReader = decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
 
-		schemaWriterWithCircuitBreaker := decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
-		schemaReaderWithCircuitBreakerAndCache := decorators.NewSchemaReaderWithCircuitBreaker(schemaReaderWithCache)
+			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
+			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReaderWithCache)
+		}
 
 		// key managers
 		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
-		expandCommand := commands.NewExpandCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
-		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReaderWithCircuitBreakerAndCache)
-		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker)
+		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader)
+		expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader)
+		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReader)
+		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader)
 
 		// Services
-		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreakerAndCache)
+		relationshipService := services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader)
 		permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaLookupCommand, lookupEntityCommand)
-		schemaService := services.NewSchemaService(schemaWriterWithCircuitBreaker, schemaReaderWithCache)
+		schemaService := services.NewSchemaService(schemaWriter, schemaReaderWithCache)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,
@@ -192,6 +194,9 @@ func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 	cmd.Flags().BoolVar(&config.Tracer.Enabled, "tracer-enabled", config.Tracer.Enabled, "switch option for tracing")
 	cmd.Flags().StringVar(&config.Tracer.Exporter, "tracer-exporter", config.Tracer.Exporter, "export uri for tracing data")
 	cmd.Flags().StringVar(&config.Tracer.Endpoint, "tracer-endpoint", config.Tracer.Endpoint, "can be; jaeger, signoz or zipkin. (integrated tracing tools)")
+
+	// SERVICE
+	cmd.Flags().BoolVar(&config.Service.CircuitBreaker, "service-circuit-breaker", config.Service.CircuitBreaker, "switch option for service circuit breaker")
 
 	// DATABASE
 	cmd.Flags().StringVar(&config.Database.Engine, "database-engine", config.Database.Engine, "data source. e.g. postgres, memory")

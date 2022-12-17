@@ -420,6 +420,35 @@
       },
       "additionalProperties": {}
     },
+    "CheckRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        },
+        "exclusion": {
+          "type": "boolean"
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "CheckRequestMetadata"
+    },
+    "CheckResponseMetadata": {
+      "type": "object",
+      "properties": {
+        "check_count": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "CheckResponseMetadata"
+    },
     "Child": {
       "type": "object",
       "properties": {
@@ -527,6 +556,18 @@
       },
       "title": "Expand"
     },
+    "ExpandRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        }
+      },
+      "title": "ExpandRequestMetadata"
+    },
     "ExpandTreeNode": {
       "type": "object",
       "properties": {
@@ -593,7 +634,7 @@
       },
       "title": "Leaf"
     },
-    "PermissionCheckRequest": {
+    "LookupEntityRequestMetadata": {
       "type": "object",
       "properties": {
         "schema_version": {
@@ -602,8 +643,27 @@
         "snap_token": {
           "type": "string"
         },
-        "exclusion": {
-          "type": "boolean"
+        "depth": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "LookupEntityRequestMetadata"
+    },
+    "LookupSchemaRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "title": "LookupSchemaRequestMetadata"
+    },
+    "PermissionCheckRequest": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/CheckRequestMetadata"
         },
         "entity": {
           "$ref": "#/definitions/Entity"
@@ -614,10 +674,6 @@
         },
         "subject": {
           "$ref": "#/definitions/Subject"
-        },
-        "depth": {
-          "type": "integer",
-          "format": "int32"
         }
       },
       "title": "CheckRequest"
@@ -628,9 +684,8 @@
         "can": {
           "$ref": "#/definitions/PermissionCheckResponse.Result"
         },
-        "remaining_depth": {
-          "type": "integer",
-          "format": "int32"
+        "metadata": {
+          "$ref": "#/definitions/CheckResponseMetadata"
         }
       },
       "title": "PermissionCheckResponse"
@@ -648,11 +703,8 @@
     "PermissionExpandRequest": {
       "type": "object",
       "properties": {
-        "schema_version": {
-          "type": "string"
-        },
-        "snap_token": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/ExpandRequestMetadata"
         },
         "entity": {
           "$ref": "#/definitions/Entity"
@@ -675,11 +727,8 @@
     "PermissionLookupEntityRequest": {
       "type": "object",
       "properties": {
-        "schema_version": {
-          "type": "string"
-        },
-        "snap_token": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/LookupEntityRequestMetadata"
         },
         "entity_type": {
           "type": "string"
@@ -717,8 +766,8 @@
     "PermissionLookupSchemaRequest": {
       "type": "object",
       "properties": {
-        "schema_version": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/LookupSchemaRequestMetadata"
         },
         "entity_type": {
           "type": "string"

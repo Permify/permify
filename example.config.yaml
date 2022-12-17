@@ -25,6 +25,9 @@ tracer:
   endpoint: 'http://localhost:9411/api/v2/spans'
   enabled: true
 
+service:
+  circuit_breaker: false
+
 database:
   engine: 'postgres'
   database: 'db_name'

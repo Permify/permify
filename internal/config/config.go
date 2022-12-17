@@ -17,6 +17,7 @@ type (
 		Log      `yaml:"logger"`
 		Authn    `yaml:"authn"`
 		Tracer   `yaml:"tracer"`
+		Service  `yaml:"service"`
 		Database `yaml:"database"`
 	}
 
@@ -61,6 +62,11 @@ type (
 		Exporter string `yaml:"exporter"`
 		Endpoint string `yaml:"endpoint"`
 		Enabled  bool   `yaml:"enabled"`
+	}
+
+	// Service -.
+	Service struct {
+		CircuitBreaker bool `yaml:"circuit_breaker"`
 	}
 
 	// Database -.
@@ -113,6 +119,9 @@ func DefaultConfig() *Config {
 		},
 		Tracer: Tracer{
 			Enabled: false,
+		},
+		Service: Service{
+			CircuitBreaker: false,
 		},
 		Authn: Authn{
 			Enabled: false,

@@ -95,22 +95,26 @@ service Permission {
 
 // CheckRequest
 message PermissionCheckRequest {
-  string schema_version = 1 [json_name = "schema_version"];
-  string snap_token = 2 [json_name = "snap_token"];
-  bool exclusion = 3 [json_name = "exclusion"];
+  CheckRequestMetadata metadata = 1;
 
-  Entity entity = 4 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
   // its can be action or relation
-  string permission = 5 [json_name = "permission", (validate.rules).string = {
+  string permission = 3 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  Subject subject = 6 [json_name = "subject", (validate.rules).message.required = true];
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
+}
 
-  int32 depth = 7 [json_name = "depth", (validate.rules).int32.gte = 3];
+// CheckRequestMetadata
+message CheckRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
+  bool exclusion = 3 [json_name = "exclusion"];
+  int32 depth = 4 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionCheckResponse
@@ -123,23 +127,33 @@ message PermissionCheckResponse {
   }
 
   Result can = 1 [json_name = "can"];
-  int32 remaining_depth = 3 [json_name = "remaining_depth"];
+  CheckResponseMetadata metadata = 2;
+}
+
+// CheckResponseMetadata
+message CheckResponseMetadata {
+  int32 check_count = 1 [json_name = "check_count"];
 }
 
 // EXPAND
 
 // PermissionExpandRequest
 message PermissionExpandRequest {
-  string schema_version = 1 [json_name = "schema_version"];
-  string snap_token = 2 [json_name = "snap_token"];
+  ExpandRequestMetadata metadata = 1;
 
-  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
-  string permission = 4 [json_name = "permission", (validate.rules).string = {
+  string permission = 3 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
+}
+
+// ExpandRequestMetadata
+message ExpandRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
 }
 
 // PermissionExpandResponse
@@ -151,7 +165,7 @@ message PermissionExpandResponse {
 
 // PermissionLookupSchemaRequest
 message PermissionLookupSchemaRequest {
-  string schema_version = 1 [json_name = "schema_version"];
+  LookupSchemaRequestMetadata metadata = 1;
 
   string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
@@ -162,6 +176,11 @@ message PermissionLookupSchemaRequest {
   repeated string relation_names = 3 [json_name = "relation_names"];
 }
 
+// LookupSchemaRequestMetadata
+message LookupSchemaRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
 // PermissionLookupSchemaResponse
 message PermissionLookupSchemaResponse {
   repeated string action_names = 1 [json_name = "action_names"];
@@ -169,22 +188,28 @@ message PermissionLookupSchemaResponse {
 
 // PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
+  LookupEntityRequestMetadata metadata = 1;
+
+  string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  string permission = 3 [json_name = "permission", (validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
+}
+
+// LookupEntityRequestMetadata
+message LookupEntityRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
-
-  string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  string permission = 4 [json_name = "permission", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionLookupEntityResponse
@@ -367,14 +392,14 @@ service Welcome {
 // WelcomeResponse
 message welcomeResponse {
   message Sources {
-      string docs = 1;
-      string gitHub = 2;
-      string blog = 3;
+    string docs = 1;
+    string gitHub = 2;
+    string blog = 3;
   }
   message Socials {
-      string discord = 1;
-      string twitter = 2;
-      string linkedin = 3;
+    string discord = 1;
+    string twitter = 2;
+    string linkedin = 3;
   }
 
   string permify = 1;
