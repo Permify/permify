@@ -27,24 +27,23 @@ func NewLookupSchemaCommand(schemaReader repositories.SchemaReader) *LookupSchem
 func (command *LookupSchemaCommand) Execute(ctx context.Context, request *base.PermissionLookupSchemaRequest) (*base.PermissionLookupSchemaResponse, error) {
 	var err error
 
-	if request.GetSchemaVersion() == "" {
-		var ver string
-		ver, err = command.schemaReader.HeadVersion(ctx)
+	response := &base.PermissionLookupSchemaResponse{
+		ActionNames: []string{},
+	}
+
+	if request.GetMetadata().GetSchemaVersion() == "" {
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
 		if err != nil {
-			return nil, err
+			return response, err
 		}
-		request.SchemaVersion = ver
 	}
 
 	var en *base.EntityDefinition
-	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntityType(), request.GetSchemaVersion())
+	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntityType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return nil, err
 	}
 
-	response := &base.PermissionLookupSchemaResponse{
-		ActionNames: []string{},
-	}
 	for _, action := range en.GetActions() {
 		var can bool
 		can, err = command.l(ctx, request, action.Child)

@@ -12,12 +12,15 @@ import (
 // Check - Creates new permission check request
 func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version, snapToken string) (res *v1.PermissionCheckResponse, err error) {
 	req := &v1.PermissionCheckRequest{
-		SchemaVersion: version,
-		SnapToken:     snapToken,
-		Entity:        entity,
-		Subject:       subject,
-		Permission:    action,
-		Depth:         20,
+		Entity:     entity,
+		Subject:    subject,
+		Permission: action,
+		Metadata: &v1.CheckRequestMetadata{
+			SchemaVersion: version,
+			SnapToken:     snapToken,
+			Depth:         20,
+			Exclusion:     false,
+		},
 	}
 	return service.CheckPermissions(ctx, req)
 }
@@ -25,11 +28,14 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 // LookupEntity -
 func LookupEntity(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action, entityType, version, snapToken string) (res *v1.PermissionLookupEntityResponse, err error) {
 	req := &v1.PermissionLookupEntityRequest{
-		SchemaVersion: version,
-		SnapToken:     snapToken,
-		EntityType:    entityType,
-		Subject:       subject,
-		Permission:    action,
+		Metadata: &v1.LookupEntityRequestMetadata{
+			SchemaVersion: version,
+			SnapToken:     snapToken,
+			Depth:         20,
+		},
+		EntityType: entityType,
+		Subject:    subject,
+		Permission: action,
 	}
 	return service.LookupEntity(ctx, req)
 }

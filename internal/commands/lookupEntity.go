@@ -30,22 +30,20 @@ func NewLookupEntityCommand(ck ICheckCommand, sr repositories.SchemaReader, rr r
 
 // Execute -
 func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
-	if request.GetSnapToken() == "" {
+	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = command.relationshipReader.HeadSnapshot(ctx)
 		if err != nil {
 			return response, err
 		}
-		request.SnapToken = st.Encode().String()
+		request.Metadata.SnapToken = st.Encode().String()
 	}
 
-	if request.GetSchemaVersion() == "" {
-		var ver string
-		ver, err = command.schemaReader.HeadVersion(ctx)
+	if request.GetMetadata().GetSchemaVersion() == "" {
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
 		if err != nil {
 			return response, err
 		}
-		request.SchemaVersion = ver
 	}
 
 	resultsChan := make(chan string, 100)
@@ -65,22 +63,20 @@ func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.P
 
 // Stream -
 func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
-	if request.GetSnapToken() == "" {
+	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = command.relationshipReader.HeadSnapshot(ctx)
 		if err != nil {
 			return err
 		}
-		request.SnapToken = st.Encode().String()
+		request.Metadata.SnapToken = st.Encode().String()
 	}
 
-	if request.GetSchemaVersion() == "" {
-		var ver string
-		ver, err = command.schemaReader.HeadVersion(ctx)
+	if request.GetMetadata().GetSchemaVersion() == "" {
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
 		if err != nil {
 			return err
 		}
-		request.SchemaVersion = ver
 	}
 
 	resultChan := make(chan string, 100)
@@ -109,7 +105,7 @@ func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.Pe
 
 // parallelChecker -
 func (command *LookupEntityCommand) parallelChecker(ctx context.Context, request *base.PermissionLookupEntityRequest, resultChan chan<- string, errChan chan<- error) {
-	ids, err := command.relationshipReader.GetUniqueEntityIDsByEntityType(ctx, request.GetEntityType(), request.GetSnapToken())
+	ids, err := command.relationshipReader.GetUniqueEntityIDsByEntityType(ctx, request.GetEntityType(), request.GetMetadata().GetSnapToken())
 	if err != nil {
 		errChan <- err
 	}
@@ -138,11 +134,15 @@ func (command *LookupEntityCommand) parallelChecker(ctx context.Context, request
 // internalCheck -
 func (command *LookupEntityCommand) internalCheck(ctx context.Context, en *base.Entity, request *base.PermissionLookupEntityRequest, resultChan chan<- string) error {
 	result, err := command.checkCommand.Execute(ctx, &base.PermissionCheckRequest{
-		SnapToken:     request.GetSnapToken(),
-		SchemaVersion: request.GetSchemaVersion(),
-		Entity:        en,
-		Permission:    request.GetPermission(),
-		Subject:       request.GetSubject(),
+		Metadata: &base.CheckRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+			Exclusion:     false,
+		},
+		Entity:     en,
+		Permission: request.GetPermission(),
+		Subject:    request.GetSubject(),
 	})
 	if err != nil {
 		return err

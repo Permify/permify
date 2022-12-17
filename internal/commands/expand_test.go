@@ -199,10 +199,12 @@ var _ = Describe("expand-command", func() {
 			expandCommand = NewExpandCommand(schemaReader, relationshipReader)
 
 			req := &base.PermissionExpandRequest{
-				Entity:        &base.Entity{Type: "doc", Id: "1"},
-				Permission:    "read",
-				SnapToken:     token.NewNoopToken().Encode().String(),
-				SchemaVersion: "noop",
+				Entity:     &base.Entity{Type: "doc", Id: "1"},
+				Permission: "read",
+				Metadata: &base.ExpandRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+				},
 			}
 
 			var response *base.PermissionExpandResponse

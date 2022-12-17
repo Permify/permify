@@ -91,12 +91,14 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 
 				res, err := devContainer.P.CheckPermissions(ctx, &base.PermissionCheckRequest{
-					SchemaVersion: version,
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					Entity:        q.Entity,
-					Permission:    q.Action,
-					Subject:       q.Subject,
-					Depth:         100,
+					Metadata: &base.CheckRequestMetadata{
+						SchemaVersion: version,
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						Depth:         100,
+					},
+					Entity:     q.Entity,
+					Permission: q.Action,
+					Subject:    q.Subject,
 				})
 				if err != nil {
 					return err

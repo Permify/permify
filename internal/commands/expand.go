@@ -29,22 +29,20 @@ func NewExpandCommand(sr repositories.SchemaReader, rr repositories.Relationship
 
 // Execute -
 func (command *ExpandCommand) Execute(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error) {
-	if request.GetSnapToken() == "" {
+	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = command.relationshipReader.HeadSnapshot(ctx)
 		if err != nil {
 			return response, err
 		}
-		request.SnapToken = st.Encode().String()
+		request.Metadata.SnapToken = st.Encode().String()
 	}
 
-	if request.GetSchemaVersion() == "" {
-		var version string
-		version, err = command.schemaReader.HeadVersion(ctx)
+	if request.GetMetadata().GetSchemaVersion() == "" {
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
 		if err != nil {
 			return response, err
 		}
-		request.SchemaVersion = version
 	}
 
 	resp := command.expand(ctx, request, false)
@@ -65,7 +63,7 @@ type ExpandCombiner func(ctx context.Context, functions []ExpandFunction) Expand
 
 // e -
 func (command *ExpandCommand) expand(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandResponse {
-	en, _, err := command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntity().GetType(), request.GetSchemaVersion())
+	en, _, err := command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return ExpandResponse{Err: err}
 	}
@@ -155,7 +153,7 @@ func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.Pe
 				Ids:  []string{request.GetEntity().GetId()},
 			},
 			Relation: request.GetPermission(),
-		}, request.GetSnapToken())
+		}, request.GetMetadata().GetSnapToken())
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 			return
@@ -175,9 +173,8 @@ func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.Pe
 							Type: subject.GetType(),
 							Id:   subject.GetId(),
 						},
-						Permission:    subject.GetRelation(),
-						SchemaVersion: request.GetSchemaVersion(),
-						SnapToken:     request.GetSnapToken(),
+						Permission: subject.GetRelation(),
+						Metadata:   request.GetMetadata(),
 					}, exclusion)
 					resultChan <- result
 				})
@@ -242,7 +239,7 @@ func (command *ExpandCommand) expandTupleToUserSet(ctx context.Context, request 
 				Ids:  []string{request.GetEntity().GetId()},
 			},
 			Relation: ttu.GetTupleSet().GetRelation(),
-		}, request.GetSnapToken())
+		}, request.GetMetadata().GetSnapToken())
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 		}
@@ -257,9 +254,8 @@ func (command *ExpandCommand) expandTupleToUserSet(ctx context.Context, request 
 						Type: subject.GetType(),
 						Id:   subject.GetId(),
 					},
-					Permission:    subject.GetRelation(),
-					SnapToken:     request.GetSnapToken(),
-					SchemaVersion: request.GetSchemaVersion(),
+					Permission: subject.GetRelation(),
+					Metadata:   request.GetMetadata(),
 				}, ttu.GetComputed(), exclusion))
 			}
 		}
@@ -276,9 +272,8 @@ func (command *ExpandCommand) expandComputedUserSet(ctx context.Context, request
 				Type: request.GetEntity().GetType(),
 				Id:   request.GetEntity().GetId(),
 			},
-			Permission:    cu.GetRelation(),
-			SnapToken:     request.GetSnapToken(),
-			SchemaVersion: request.GetSchemaVersion(),
+			Permission: cu.GetRelation(),
+			Metadata:   request.GetMetadata(),
 		}, exclusion)
 		resultChan <- result
 	}

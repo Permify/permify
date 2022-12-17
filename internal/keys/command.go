@@ -24,7 +24,7 @@ func NewCheckCommandKeys(cache cache.Cache) CommandKeyManager {
 
 // SetCheckKey - Sets the value for the given key.
 func (c *CommandKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse) bool {
-	checkKey := fmt.Sprintf("check_%s:%s:%s@%s", key.GetSchemaVersion(), key.GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
+	checkKey := fmt.Sprintf("check_%s:%s:%s@%s", key.GetMetadata().GetSchemaVersion(), key.GetMetadata().GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
 		Entity:   key.GetEntity(),
 		Relation: key.GetPermission(),
 	}), tuple.SubjectToString(key.GetSubject()))
@@ -39,7 +39,7 @@ func (c *CommandKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.
 
 // GetCheckKey - Gets the value for the given key.
 func (c *CommandKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
-	checkKey := fmt.Sprintf("check_%s:%s:%s@%s", key.GetSchemaVersion(), key.GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
+	checkKey := fmt.Sprintf("check_%s:%s:%s@%s", key.GetMetadata().GetSchemaVersion(), key.GetMetadata().GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
 		Entity:   key.GetEntity(),
 		Relation: key.GetPermission(),
 	}), tuple.SubjectToString(key.GetSubject()))
@@ -65,11 +65,11 @@ func NewNoopCheckCommandKeys() CommandKeyManager {
 }
 
 // SetCheckKey sets the value for the given key.
-func (c *NoopCommandKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse) bool {
+func (c *NoopCommandKeys) SetCheckKey(*base.PermissionCheckRequest, *base.PermissionCheckResponse) bool {
 	return true
 }
 
 // GetCheckKey gets the value for the given key.
-func (c *NoopCommandKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
+func (c *NoopCommandKeys) GetCheckKey(*base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
 	return nil, false
 }

@@ -201,11 +201,15 @@ entity doc {
 			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
-				Entity:        &base.Entity{Type: "doc", Id: "1"},
-				Subject:       &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission:    "read",
-				SnapToken:     token.NewNoopToken().Encode().String(),
-				SchemaVersion: "noop",
+				Entity:     &base.Entity{Type: "doc", Id: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Permission: "read",
+				Metadata: &base.CheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+					Exclusion:     false,
+					Depth:         20,
+				},
 			}
 
 			var response *base.PermissionCheckResponse
@@ -311,11 +315,15 @@ entity doc {
 			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
-				Entity:        &base.Entity{Type: "doc", Id: "1"},
-				Subject:       &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission:    "update",
-				SnapToken:     token.NewNoopToken().Encode().String(),
-				SchemaVersion: "noop",
+				Entity:     &base.Entity{Type: "doc", Id: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Permission: "update",
+				Metadata: &base.CheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+					Exclusion:     false,
+					Depth:         20,
+				},
 			}
 
 			var response *base.PermissionCheckResponse
@@ -475,11 +483,15 @@ entity doc {
 			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
-				Entity:        &base.Entity{Type: "doc", Id: "1"},
-				Subject:       &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission:    "read",
-				SnapToken:     token.NewNoopToken().Encode().String(),
-				SchemaVersion: "noop",
+				Entity:     &base.Entity{Type: "doc", Id: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Permission: "read",
+				Metadata: &base.CheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+					Exclusion:     false,
+					Depth:         20,
+				},
 			}
 
 			var response *base.PermissionCheckResponse
@@ -563,11 +575,15 @@ entity doc {
 			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
-				Entity:        &base.Entity{Type: "repository", Id: "1"},
-				Subject:       &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission:    "push",
-				SnapToken:     token.NewNoopToken().Encode().String(),
-				SchemaVersion: "noop",
+				Entity:     &base.Entity{Type: "repository", Id: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Permission: "push",
+				Metadata: &base.CheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+					Exclusion:     false,
+					Depth:         20,
+				},
 			}
 
 			var response *base.PermissionCheckResponse
@@ -692,11 +708,15 @@ entity doc {
 			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
-				Entity:        &base.Entity{Type: "repository", Id: "1"},
-				Subject:       &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission:    "push",
-				SnapToken:     token.NewNoopToken().Encode().String(),
-				SchemaVersion: "noop",
+				Entity:     &base.Entity{Type: "repository", Id: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Permission: "push",
+				Metadata: &base.CheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+					Exclusion:     false,
+					Depth:         20,
+				},
 			}
 
 			var response *base.PermissionCheckResponse
@@ -818,11 +838,15 @@ entity doc {
 			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
-				Entity:        &base.Entity{Type: "repository", Id: "1"},
-				Subject:       &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission:    "delete",
-				SnapToken:     token.NewNoopToken().Encode().String(),
-				SchemaVersion: "noop",
+				Entity:     &base.Entity{Type: "repository", Id: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Permission: "delete",
+				Metadata: &base.CheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+					Exclusion:     false,
+					Depth:         20,
+				},
 			}
 
 			var response *base.PermissionCheckResponse

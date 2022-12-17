@@ -1,11 +1,14 @@
 package commands
 
 import (
-	"sync"
+	"errors"
+
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 const (
 	_defaultConcurrencyLimit = 100
+	_defaultDepth            = 20
 )
 
 // CheckOption - Option type
@@ -18,30 +21,42 @@ func ConcurrencyLimit(limit int) CheckOption {
 	}
 }
 
-// CheckMetadata - Metadata for check command
-type CheckMetadata struct {
-	mu        sync.Mutex
-	callCount int32
+// joinResponseMetas -
+func joinResponseMetas(meta ...*base.CheckResponseMetadata) *base.CheckResponseMetadata {
+	response := &base.CheckResponseMetadata{}
+	for _, m := range meta {
+		response.CheckCount += m.CheckCount
+	}
+	return response
 }
 
-// NewCheckMetadata it creates a new instance of CheckMetadata
-func NewCheckMetadata() *CheckMetadata {
-	return &CheckMetadata{
-		callCount: 0,
+// increaseCheckCount -
+func increaseCheckCount(metadata *base.CheckResponseMetadata) *base.CheckResponseMetadata {
+	return &base.CheckResponseMetadata{
+		CheckCount: metadata.CheckCount + 1,
 	}
 }
 
-// AddCall -
-func (r *CheckMetadata) AddCall() int32 {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.callCount++
-	return r.callCount
+// CheckResponse -
+type CheckResponse struct {
+	resp *base.PermissionCheckResponse
+	err  error
 }
 
-// GetCallCount -
-func (r *CheckMetadata) GetCallCount() int32 {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.callCount
+// decreaseDepth -
+func decreaseDepth(md *base.CheckRequestMetadata) *base.CheckRequestMetadata {
+	return &base.CheckRequestMetadata{
+		SchemaVersion: md.GetSchemaVersion(),
+		Exclusion:     md.GetExclusion(),
+		SnapToken:     md.GetSnapToken(),
+		Depth:         md.Depth - 1,
+	}
+}
+
+// checkDepth -
+func checkDepth(request *base.PermissionCheckRequest) error {
+	if request.GetMetadata().Depth == 0 {
+		return errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String())
+	}
+	return nil
 }
