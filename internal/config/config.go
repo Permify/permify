@@ -66,15 +66,20 @@ type (
 
 	// Service -.
 	Service struct {
-		CircuitBreaker bool `yaml:"circuit_breaker"`
+		CircuitBreaker   bool `yaml:"circuit_breaker"`
+		ConcurrencyLimit int  `yaml:"concurrency_limit"`
 	}
 
 	// Database -.
 	Database struct {
-		Engine   string `env-required:"true" yaml:"engine"`
-		PoolMax  int    `yaml:"pool_max"`
-		Database string `yaml:"database"`
-		URI      string `yaml:"uri"`
+		Engine             string `env-required:"true" yaml:"engine"`
+		Database           string `yaml:"database"`
+		URI                string `yaml:"uri"`
+		MaxOpenConnections int    `yaml:"max_open_connections"`
+		MinOpenConnections int    `yaml:"min_open_connections"`
+		// MaxConnectionLifetime int    `yaml:"max_connection_lifetime"`
+		// MaxConnectionIdleTime int    `yaml:"max_idle_connections"`
+		// HealthCheckPeriod     int    `yaml:"health_check_period"`
 	}
 )
 
@@ -121,7 +126,8 @@ func DefaultConfig() *Config {
 			Enabled: false,
 		},
 		Service: Service{
-			CircuitBreaker: false,
+			CircuitBreaker:   false,
+			ConcurrencyLimit: 100,
 		},
 		Authn: Authn{
 			Enabled: false,

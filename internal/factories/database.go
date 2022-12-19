@@ -14,7 +14,7 @@ import (
 func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 	switch conf.Engine {
 	case database.POSTGRES.String():
-		db, err = PQDatabase.New(conf.URI, conf.Database, PQDatabase.MaxPoolSize(conf.PoolMax))
+		db, err = PQDatabase.New(conf.URI, conf.Database, PQDatabase.MaxOpenConnections(conf.MaxOpenConnections))
 		if err != nil {
 			return nil, err
 		}

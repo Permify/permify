@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"context"
 	"sync"
 
 	"github.com/hashicorp/go-memdb"
@@ -20,11 +19,6 @@ func New(schema *memdb.DBSchema) (*Memory, error) {
 	return &Memory{
 		DB: db,
 	}, err
-}
-
-// IsReady - Check in memory db is ready
-func (m *Memory) IsReady(ctx context.Context) (bool, error) {
-	return true, nil
 }
 
 // GetEngineType - Gets engine type, returns as string

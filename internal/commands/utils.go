@@ -8,7 +8,6 @@ import (
 
 const (
 	_defaultConcurrencyLimit = 100
-	_defaultDepth            = 20
 )
 
 // CheckOption - Option type

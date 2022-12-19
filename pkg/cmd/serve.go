@@ -137,7 +137,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader)
+		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader, commands.ConcurrencyLimit(cfg.Service.ConcurrencyLimit))
 		expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader)
 		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReader)
 		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader)
@@ -200,7 +200,7 @@ func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 
 	// DATABASE
 	cmd.Flags().StringVar(&config.Database.Engine, "database-engine", config.Database.Engine, "data source. e.g. postgres, memory")
-	cmd.Flags().IntVar(&config.Database.PoolMax, "database-pool-max", config.Database.PoolMax, "max connection pool size")
+	cmd.Flags().IntVar(&config.Database.MaxOpenConnections, "database-max-open-connections", config.Database.MaxOpenConnections, "max connection pool size")
 	cmd.Flags().StringVar(&config.Database.Database, "database-name", config.Database.Database, "custom database name")
 	cmd.Flags().StringVar(&config.Database.URI, "database-uri", config.Database.URI, "uri of your data source to store relation tuples and schema")
 }

@@ -32,4 +32,4 @@ database:
   engine: 'postgres'
   database: 'db_name'
   uri: 'postgres://user:password@host:5432'
-  pool_max: 20
+  max_open_connections: 20

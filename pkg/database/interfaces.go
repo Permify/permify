@@ -1,8 +1,6 @@
 package database
 
 import (
-	"context"
-
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -10,9 +8,6 @@ import (
 type Database interface {
 	// Migrate -
 	Migrate(statements []string) error
-
-	// IsReady returns true if the database is ready to be used.
-	IsReady(ctx context.Context) (bool, error)
 
 	// GetEngineType get the database type (e.g. postgres, memory, etc.).
 	GetEngineType() string

@@ -6,7 +6,7 @@ COPY . .
 RUN go build -v ./cmd/permify/
 
 # Step 2: Final
-FROM alpine:3.17.0
+FROM alpine:latest as final
 EXPOSE 3476
 EXPOSE 3478
 COPY --from=permify-builder /go/src/app/permify /usr/local/bin/permify
