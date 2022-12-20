@@ -34,7 +34,6 @@ func (t *TupleCollection) GetTuples() []*base.Tuple {
 // Add - New subject to collection.
 func (t *TupleCollection) Add(tuple *base.Tuple) {
 	t.tuples = append(t.tuples, tuple)
-	return
 }
 
 // ToSubjectCollection - Converts new subject collection from given tuple collection
@@ -78,7 +77,6 @@ func (s *SubjectCollection) GetSubjects() []*base.Subject {
 // Add - New subject to collection.
 func (s *SubjectCollection) Add(subject *base.Subject) {
 	s.subjects = append(s.subjects, subject)
-	return
 }
 
 // ENTITY
@@ -113,5 +111,4 @@ func (e *EntityCollection) GetEntities() []*base.Entity {
 // Add - New subject to collection.
 func (e *EntityCollection) Add(entity *base.Entity) {
 	e.entities = append(e.entities, entity)
-	return
 }

@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
-    "version": "v0.0.0-alpha9",
+    "version": "v0.1.0",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
@@ -23,6 +23,9 @@
     },
     {
       "name": "Relationship"
+    },
+    {
+      "name": "Welcome"
     }
   ],
   "schemes": [
@@ -35,6 +38,29 @@
     "application/json"
   ],
   "paths": {
+    "/": {
+      "get": {
+        "summary": "welcome to permify",
+        "operationId": "welcome.hello",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/welcomeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "tags": [
+          "Welcome"
+        ]
+      }
+    },
     "/v1/permissions/check": {
       "post": {
         "summary": "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?",
@@ -496,7 +522,7 @@
           "$ref": "#/definitions/ExpandTreeNode"
         },
         "leaf": {
-          "$ref": "#/definitions/Subjects"
+          "$ref": "#/definitions/v1.Result"
         }
       },
       "title": "Expand"
@@ -570,11 +596,8 @@
     "PermissionCheckRequest": {
       "type": "object",
       "properties": {
-        "schema_version": {
-          "type": "string"
-        },
-        "snap_token": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckRequestMetadata"
         },
         "entity": {
           "$ref": "#/definitions/Entity"
@@ -585,28 +608,11 @@
         },
         "subject": {
           "$ref": "#/definitions/Subject"
-        },
-        "depth": {
-          "type": "integer",
-          "format": "int32"
         }
       },
       "title": "CheckRequest"
     },
-    "PermissionCheckResponse": {
-      "type": "object",
-      "properties": {
-        "can": {
-          "$ref": "#/definitions/Result"
-        },
-        "remaining_depth": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "title": "PermissionCheckResponse"
-    },
-    "PermissionExpandRequest": {
+    "PermissionCheckRequestMetadata": {
       "type": "object",
       "properties": {
         "schema_version": {
@@ -614,6 +620,54 @@
         },
         "snap_token": {
           "type": "string"
+        },
+        "exclusion": {
+          "type": "boolean"
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "PermissionCheckRequestMetadata"
+    },
+    "PermissionCheckResponse": {
+      "type": "object",
+      "properties": {
+        "can": {
+          "$ref": "#/definitions/PermissionCheckResponse.Result"
+        },
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckResponseMetadata"
+        }
+      },
+      "title": "PermissionCheckResponse"
+    },
+    "PermissionCheckResponse.Result": {
+      "type": "string",
+      "enum": [
+        "RESULT_UNKNOWN",
+        "RESULT_ALLOWED",
+        "RESULT_DENIED"
+      ],
+      "default": "RESULT_UNKNOWN",
+      "title": "Result"
+    },
+    "PermissionCheckResponseMetadata": {
+      "type": "object",
+      "properties": {
+        "check_count": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "CheckResponseMetadata"
+    },
+    "PermissionExpandRequest": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionExpandRequestMetadata"
         },
         "entity": {
           "$ref": "#/definitions/Entity"
@@ -623,6 +677,18 @@
         }
       },
       "title": "PermissionExpandRequest"
+    },
+    "PermissionExpandRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        }
+      },
+      "title": "ExpandRequestMetadata"
     },
     "PermissionExpandResponse": {
       "type": "object",
@@ -636,11 +702,8 @@
     "PermissionLookupEntityRequest": {
       "type": "object",
       "properties": {
-        "schema_version": {
-          "type": "string"
-        },
-        "snap_token": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/PermissionLookupEntityRequestMetadata"
         },
         "entity_type": {
           "type": "string"
@@ -653,6 +716,22 @@
         }
       },
       "title": "PermissionLookupEntityRequest"
+    },
+    "PermissionLookupEntityRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "LookupEntityRequestMetadata"
     },
     "PermissionLookupEntityResponse": {
       "type": "object",
@@ -678,8 +757,8 @@
     "PermissionLookupSchemaRequest": {
       "type": "object",
       "properties": {
-        "schema_version": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/PermissionLookupSchemaRequestMetadata"
         },
         "entity_type": {
           "type": "string"
@@ -692,6 +771,15 @@
         }
       },
       "title": "PermissionLookupSchemaRequest"
+    },
+    "PermissionLookupSchemaRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "title": "LookupSchemaRequestMetadata"
     },
     "PermissionLookupSchemaResponse": {
       "type": "object",
@@ -770,14 +858,23 @@
     "RelationshipReadRequest": {
       "type": "object",
       "properties": {
-        "snap_token": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/RelationshipReadRequestMetadata"
         },
         "filter": {
           "$ref": "#/definitions/TupleFilter"
         }
       },
       "title": "RelationshipReadRequest"
+    },
+    "RelationshipReadRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string"
+        }
+      },
+      "title": "RelationshipWriteRequestMetadata"
     },
     "RelationshipReadResponse": {
       "type": "object",
@@ -794,8 +891,8 @@
     "RelationshipWriteRequest": {
       "type": "object",
       "properties": {
-        "schema_version": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/RelationshipWriteRequestMetadata"
         },
         "tuples": {
           "type": "array",
@@ -806,6 +903,15 @@
       },
       "title": "RelationshipWriteRequest"
     },
+    "RelationshipWriteRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "title": "RelationshipWriteRequestMetadata"
+    },
     "RelationshipWriteResponse": {
       "type": "object",
       "properties": {
@@ -814,16 +920,6 @@
         }
       },
       "title": "RelationshipWriteResponse"
-    },
-    "Result": {
-      "type": "string",
-      "enum": [
-        "RESULT_UNKNOWN",
-        "RESULT_ALLOWED",
-        "RESULT_DENIED"
-      ],
-      "default": "RESULT_UNKNOWN",
-      "title": "Result"
     },
     "Rewrite": {
       "type": "object",
@@ -853,11 +949,20 @@
     "SchemaReadRequest": {
       "type": "object",
       "properties": {
+        "metadata": {
+          "$ref": "#/definitions/SchemaReadRequestMetadata"
+        }
+      },
+      "title": "SchemaReadRequest"
+    },
+    "SchemaReadRequestMetadata": {
+      "type": "object",
+      "properties": {
         "schema_version": {
           "type": "string"
         }
       },
-      "title": "SchemaReadRequest"
+      "title": "LookupSchemaRequestMetadata"
     },
     "SchemaReadResponse": {
       "type": "object",
@@ -885,6 +990,34 @@
         }
       },
       "title": "SchemaWriteResponse"
+    },
+    "Socials": {
+      "type": "object",
+      "properties": {
+        "discord": {
+          "type": "string"
+        },
+        "twitter": {
+          "type": "string"
+        },
+        "linkedin": {
+          "type": "string"
+        }
+      }
+    },
+    "Sources": {
+      "type": "object",
+      "properties": {
+        "docs": {
+          "type": "string"
+        },
+        "gitHub": {
+          "type": "string"
+        },
+        "blog": {
+          "type": "string"
+        }
+      }
     },
     "Status": {
       "type": "object",
@@ -937,24 +1070,6 @@
       },
       "title": "SubjectFilter is used to filter subjects"
     },
-    "Subjects": {
-      "type": "object",
-      "properties": {
-        "target": {
-          "$ref": "#/definitions/EntityAndRelation"
-        },
-        "exclusion": {
-          "type": "boolean"
-        },
-        "subjects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Subject"
-          }
-        }
-      },
-      "title": "Subjects"
-    },
     "Tuple": {
       "type": "object",
       "properties": {
@@ -1005,6 +1120,39 @@
         }
       },
       "title": "TupleToUserSet"
+    },
+    "v1.Result": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "$ref": "#/definitions/EntityAndRelation"
+        },
+        "exclusion": {
+          "type": "boolean"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Subject"
+          }
+        }
+      },
+      "title": "Result"
+    },
+    "welcomeResponse": {
+      "type": "object",
+      "properties": {
+        "permify": {
+          "type": "string"
+        },
+        "sources": {
+          "$ref": "#/definitions/Sources"
+        },
+        "socials": {
+          "$ref": "#/definitions/Socials"
+        }
+      },
+      "title": "WelcomeResponse"
     }
   },
   "securityDefinitions": {

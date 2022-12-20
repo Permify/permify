@@ -28,8 +28,6 @@ func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 
 // Compile -
 func (t *Compiler) Compile() (sch *base.IndexedSchema, err error) {
-	var entities []*base.EntityDefinition
-
 	if !t.withoutReferenceValidation {
 		err = t.schema.ValidateReferences()
 		if err != nil {
@@ -37,6 +35,7 @@ func (t *Compiler) Compile() (sch *base.IndexedSchema, err error) {
 		}
 	}
 
+	entities := make([]*base.EntityDefinition, 0, len(t.schema.Statements))
 	for _, sc := range t.schema.Statements {
 		var en *base.EntityDefinition
 		es, ok := sc.(*ast.EntityStatement)
@@ -75,7 +74,10 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 
 	// relations
 	for _, rs := range sc.RelationStatements {
-		relationSt := rs.(*ast.RelationStatement)
+		relationSt, okRs := rs.(*ast.RelationStatement)
+		if !okRs {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+		}
 		relationDefinition := &base.RelationDefinition{
 			Name:               relationSt.Name.Literal,
 			Option:             map[string]string{},
@@ -83,7 +85,10 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		}
 
 		for _, rts := range relationSt.RelationTypes {
-			relationTypeSt := rts.(*ast.RelationTypeStatement)
+			relationTypeSt, okRt := rts.(*ast.RelationTypeStatement)
+			if !okRt {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			}
 			if relationTypeSt.IsEntityReference() {
 				relationDefinition.EntityReference = &base.RelationReference{Name: relationTypeSt.Token.Literal}
 			}
@@ -106,8 +111,11 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 
 	// actions
 	for _, as := range sc.ActionStatements {
-		st := as.(*ast.ActionStatement)
-		ch, err := t.parseChild(entityDefinition.GetName(), st.ExpressionStatement.(*ast.ExpressionStatement))
+		st, okAs := as.(*ast.ActionStatement)
+		if !okAs {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+		}
+		ch, err := t.compileExpressionStatement(entityDefinition.GetName(), st.ExpressionStatement.(*ast.ExpressionStatement))
 		if err != nil {
 			return nil, err
 		}
@@ -122,111 +130,151 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 	return entityDefinition, nil
 }
 
-// parseChild -
-func (t *Compiler) parseChild(entityName string, expression *ast.ExpressionStatement) (*base.Child, error) {
-	return t.parseChildren(entityName, expression.Expression.(ast.Expression))
+// compileExpressionStatement -
+func (t *Compiler) compileExpressionStatement(entityName string, expression *ast.ExpressionStatement) (*base.Child, error) {
+	return t.compileChildren(entityName, expression.Expression)
 }
 
-// parseChildren -
-func (t *Compiler) parseChildren(entityName string, expression ast.Expression) (children *base.Child, err error) {
+// compileChildren -
+func (t *Compiler) compileChildren(entityName string, expression ast.Expression) (children *base.Child, err error) {
 	if expression.IsInfix() {
-		exp := expression.(*ast.InfixExpression)
-		child := &base.Child{}
-		rewrite := &base.Rewrite{}
+		return t.compileRewrite(entityName, expression.(*ast.InfixExpression))
+	}
+	return t.compileLeaf(entityName, expression)
+}
 
-		switch exp.Operator {
-		case ast.OR:
-			rewrite.RewriteOperation = base.Rewrite_OPERATION_UNION
-			break
-		case ast.AND:
-			rewrite.RewriteOperation = base.Rewrite_OPERATION_INTERSECTION
-			break
-		default:
-			rewrite.RewriteOperation = base.Rewrite_OPERATION_UNSPECIFIED
-			break
-		}
+// compileRewrite -
+func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (children *base.Child, err error) {
+	child := &base.Child{}
+	rewrite := &base.Rewrite{}
 
-		var ch []*base.Child
+	switch exp.Operator {
+	case ast.OR:
+		rewrite.RewriteOperation = base.Rewrite_OPERATION_UNION
+	case ast.AND:
+		rewrite.RewriteOperation = base.Rewrite_OPERATION_INTERSECTION
+	default:
+		rewrite.RewriteOperation = base.Rewrite_OPERATION_UNSPECIFIED
+	}
 
-		var leftChild *base.Child
-		leftChild, err = t.parseChildren(entityName, exp.Left)
-		if err != nil {
-			return nil, err
-		}
+	var ch []*base.Child
 
-		var rightChild *base.Child
-		rightChild, err = t.parseChildren(entityName, exp.Right)
-		if err != nil {
-			return nil, err
-		}
+	var leftChild *base.Child
+	leftChild, err = t.compileChildren(entityName, exp.Left)
+	if err != nil {
+		return nil, err
+	}
 
-		ch = append(ch, []*base.Child{leftChild, rightChild}...)
+	var rightChild *base.Child
+	rightChild, err = t.compileChildren(entityName, exp.Right)
+	if err != nil {
+		return nil, err
+	}
 
-		rewrite.Children = ch
-		child.Type = &base.Child_Rewrite{Rewrite: rewrite}
-		child.GetRewrite().Children = ch
-		return child, nil
-	} else {
-		child := &base.Child{}
+	ch = append(ch, []*base.Child{leftChild, rightChild}...)
 
-		leaf := &base.Leaf{}
-		var exp ast.Expression
-		switch expression.GetType() {
-		case ast.IDENTIFIER:
-			exp = expression.(*ast.Identifier)
-			leaf.Exclusion = false
-		case ast.PREFIX:
-			exp = expression.(*ast.PrefixExpression)
-			leaf.Exclusion = true
-		default:
-			exp = expression.(*ast.Identifier)
-			leaf.Exclusion = false
-		}
+	rewrite.Children = ch
+	child.Type = &base.Child_Rewrite{Rewrite: rewrite}
+	child.GetRewrite().Children = ch
+	return child, nil
+}
 
-		s := strings.Split(exp.GetValue(), tuple.SEPARATOR)
-
+// compileLeaf -
+func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (children *base.Child, err error) {
+	child := &base.Child{}
+	leaf := &base.Leaf{}
+	switch expression.GetType() {
+	case ast.IDENTIFIER:
+		s := strings.Split(expression.GetValue(), tuple.SEPARATOR)
 		if len(s) == 1 {
-			computedUserSet := &base.ComputedUserSet{
-				Relation: s[0],
-			}
 			if !t.withoutReferenceValidation {
-				exist := t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, s[0]))
+				_, exist := t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
 				if !exist {
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 				}
 			}
-			leaf.Type = &base.Leaf_ComputedUserSet{ComputedUserSet: computedUserSet}
+			leaf, err = t.compileComputedUserSetIdentifier(s[0])
+			if err != nil {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			}
+			leaf.Exclusion = false
 		} else if len(s) == 2 {
-			computedUserSet := &base.ComputedUserSet{
-				Relation: s[1],
-			}
-			tupleToUserSet := &base.TupleToUserSet{
-				TupleSet: &base.TupleSet{
-					Relation: s[0],
-				},
-				Computed: computedUserSet,
-			}
-
 			if !t.withoutReferenceValidation {
 				value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
 				if !exist {
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 				}
-
-				exist = t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
+				_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
 				if !exist {
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 				}
 			}
-
-			leaf.Type = &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet}
-		} else {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())
+			leaf.Exclusion = false
+			leaf, err = t.compileTupleToUserSetIdentifier(s[0], s[1])
+			if err != nil {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			}
 		}
-
-		child.Type = &base.Child_Leaf{Leaf: leaf}
-		return child, nil
+	case ast.PREFIX:
+		s := strings.Split(expression.GetValue(), tuple.SEPARATOR)
+		if len(s) == 1 {
+			if !t.withoutReferenceValidation {
+				if !t.schema.IsRelationReferenceExist(fmt.Sprintf("%v#%v", entityName, s[0])) {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
+			}
+			leaf, err = t.compileComputedUserSetIdentifier(s[0])
+			if err != nil {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			}
+		} else if len(s) == 2 {
+			if !t.withoutReferenceValidation {
+				value, exist := t.schema.GetRelationReferenceIfExist(fmt.Sprintf("%v#%v", entityName, s[0]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
+				_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
+				if !exist {
+					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				}
+			}
+			leaf, err = t.compileTupleToUserSetIdentifier(s[0], s[1])
+			if err != nil {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			}
+		}
+		leaf.Exclusion = true
+	default:
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 	}
+	child.Type = &base.Child_Leaf{Leaf: leaf}
+	return child, nil
+}
+
+// compileComputedUserSetIdentifier -
+func (t *Compiler) compileComputedUserSetIdentifier(r string) (l *base.Leaf, err error) {
+	leaf := &base.Leaf{}
+	computedUserSet := &base.ComputedUserSet{
+		Relation: r,
+	}
+	leaf.Type = &base.Leaf_ComputedUserSet{ComputedUserSet: computedUserSet}
+	return leaf, nil
+}
+
+// compileTupleToUserSetIdentifier -
+func (t *Compiler) compileTupleToUserSetIdentifier(p, r string) (l *base.Leaf, err error) {
+	leaf := &base.Leaf{}
+	computedUserSet := &base.ComputedUserSet{
+		Relation: r,
+	}
+	tupleToUserSet := &base.TupleToUserSet{
+		TupleSet: &base.TupleSet{
+			Relation: p,
+		},
+		Computed: computedUserSet,
+	}
+	leaf.Type = &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet}
+	return leaf, nil
 }
 
 // NewSchema -

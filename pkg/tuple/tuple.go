@@ -28,10 +28,7 @@ const (
 
 // IsSubjectUser -
 func IsSubjectUser(subject *base.Subject) bool {
-	if subject.Type == USER {
-		return true
-	}
-	return false
+	return subject.Type == USER
 }
 
 // ValidateSubject -
@@ -49,7 +46,7 @@ func ValidateSubject(subject *base.Subject) error {
 }
 
 // AreSubjectsEqual -
-func AreSubjectsEqual(s1 *base.Subject, s2 *base.Subject) bool {
+func AreSubjectsEqual(s1, s2 *base.Subject) bool {
 	return s1.GetRelation() == s2.GetRelation() && s1.GetId() == s2.GetId() && s1.GetType() == s2.GetType()
 }
 
@@ -73,7 +70,7 @@ func SubjectToString(subject *base.Subject) string {
 
 // IsEntityAndSubjectEquals -
 func IsEntityAndSubjectEquals(t *base.Tuple) bool {
-	return t.GetEntity().GetType() == t.GetSubject().GetType() && t.GetEntity().GetType() == t.GetSubject().GetType() && t.GetRelation() == t.GetSubject().GetRelation()
+	return t.GetEntity().GetType() == t.GetSubject().GetType() && t.GetEntity().GetId() == t.GetSubject().GetId() && t.GetRelation() == t.GetSubject().GetRelation()
 }
 
 // ValidateSubjectType -
@@ -100,9 +97,7 @@ func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err err
 // SplitRelation -
 func SplitRelation(relation string) (a []string) {
 	s := strings.Split(relation, SEPARATOR)
-	for _, b := range s {
-		a = append(a, b)
-	}
+	a = append(a, s...)
 	if len(a) == 1 {
 		a = append(a, "")
 	}
@@ -112,10 +107,7 @@ func SplitRelation(relation string) (a []string) {
 // IsRelationComputed -
 func IsRelationComputed(relation string) bool {
 	sp := strings.Split(relation, SEPARATOR)
-	if len(sp) == 1 {
-		return true
-	}
-	return false
+	return len(sp) == 1
 }
 
 // IsSubjectValid -
@@ -130,9 +122,8 @@ func IsSubjectValid(subject *base.Subject) bool {
 
 	if IsSubjectUser(subject) {
 		return subject.GetRelation() == ""
-	} else {
-		return subject.GetRelation() != ""
 	}
+	return subject.GetRelation() != ""
 }
 
 // Tuple -

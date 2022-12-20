@@ -47,7 +47,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, version
 }
 
 // ReadSchemaDefinition - Read schema definition from repository
-func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, entityType string, version string) (*base.EntityDefinition, string, error) {
+func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, entityType, version string) (*base.EntityDefinition, string, error) {
 	type circuitBreakerResponse struct {
 		Definition *base.EntityDefinition
 		Version    string

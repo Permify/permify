@@ -17,6 +17,7 @@ type (
 		Log      `yaml:"logger"`
 		Authn    `yaml:"authn"`
 		Tracer   `yaml:"tracer"`
+		Service  `yaml:"service"`
 		Database `yaml:"database"`
 	}
 
@@ -63,12 +64,22 @@ type (
 		Enabled  bool   `yaml:"enabled"`
 	}
 
+	// Service -.
+	Service struct {
+		CircuitBreaker   bool `yaml:"circuit_breaker"`
+		ConcurrencyLimit int  `yaml:"concurrency_limit"`
+	}
+
 	// Database -.
 	Database struct {
-		Engine   string `env-required:"true" yaml:"engine"`
-		PoolMax  int    `yaml:"pool_max"`
-		Database string `yaml:"database"`
-		URI      string `yaml:"uri"`
+		Engine             string `env-required:"true" yaml:"engine"`
+		Database           string `yaml:"database"`
+		URI                string `yaml:"uri"`
+		MaxOpenConnections int    `yaml:"max_open_connections"`
+		// MinOpenConnections    int           `yaml:"min_open_connections"`
+		// MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
+		// MaxConnectionIdleTime time.Duration `yaml:"max_idle_connections"`
+		// HealthCheckPeriod     time.Duration `yaml:"health_check_period"`
 	}
 )
 
@@ -113,6 +124,10 @@ func DefaultConfig() *Config {
 		},
 		Tracer: Tracer{
 			Enabled: false,
+		},
+		Service: Service{
+			CircuitBreaker:   false,
+			ConcurrencyLimit: 100,
 		},
 		Authn: Authn{
 			Enabled: false,

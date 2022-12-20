@@ -93,6 +93,8 @@ If we use the above example schema validation file, after running `./permify val
 
 ![schema-validation](https://user-images.githubusercontent.com/34595361/207110538-9837b09d-26b4-409a-a309-a21f66e6677a.png)
 
+[permify-validate-action]: https://github.com/Permify/permify-validate-action
+
 ## Need any help ?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about it, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).

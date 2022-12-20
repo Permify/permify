@@ -3,12 +3,11 @@ package commands
 import (
 	"context"
 	"errors"
-	`fmt`
+	"fmt"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
-	`github.com/Permify/permify/internal/repositories`
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/helper"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -16,44 +15,39 @@ import (
 type LookupSchemaCommand struct {
 	// repositories
 	schemaReader repositories.SchemaReader
-	// logger
-	logger logger.Interface
 }
 
 // NewLookupSchemaCommand -
-func NewLookupSchemaCommand(schemaReader repositories.SchemaReader, l logger.Interface) *LookupSchemaCommand {
+func NewLookupSchemaCommand(schemaReader repositories.SchemaReader) *LookupSchemaCommand {
 	return &LookupSchemaCommand{
 		schemaReader: schemaReader,
-		logger:       l,
 	}
 }
 
 // Execute -
 func (command *LookupSchemaCommand) Execute(ctx context.Context, request *base.PermissionLookupSchemaRequest) (*base.PermissionLookupSchemaResponse, error) {
-
 	ctx, span := tracer.Start(ctx, "permissions.LookupSchema.execute")
 	defer span.End()
 
 	var err error
 
-	if request.GetSchemaVersion() == "" {
-		var ver string
-		ver, err = command.schemaReader.HeadVersion(ctx)
+	response := &base.PermissionLookupSchemaResponse{
+		ActionNames: []string{},
+	}
+
+	if request.GetMetadata().GetSchemaVersion() == "" {
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
 		if err != nil {
-			return nil, err
+			return response, err
 		}
-		request.SchemaVersion = ver
 	}
 
 	var en *base.EntityDefinition
-	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntityType(), request.GetSchemaVersion())
+	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntityType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return nil, err
 	}
 
-	response := &base.PermissionLookupSchemaResponse{
-		ActionNames: []string{},
-	}
 	for _, action := range en.GetActions() {
 		var can bool
 		can, err = command.l(ctx, request, action.Child)
@@ -159,7 +153,6 @@ func (command *LookupSchemaCommand) lookup(ctx context.Context, relation string,
 			return
 		}
 		lookupChan <- sendSchemaLookupDecision(helper.InArray(relation, request.GetRelationNames()), err)
-		return
 	}
 }
 

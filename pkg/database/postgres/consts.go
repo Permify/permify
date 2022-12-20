@@ -5,7 +5,10 @@ import (
 )
 
 const (
-	_defaultMaxPoolSize  = 20
-	_defaultConnAttempts = 10
-	_defaultConnTimeout  = time.Second
+	_defaultMaxOpenConnections    = 20
+	_defaultMinOpenConnections    = 1
+	_defaultMaxConnectionLifetime = time.Hour
+	_defaultMaxConnectionIdleTime = time.Minute * 30
+	_defaultConnectionTimeout     = time.Second
+	_defaultHealthCheckPeriod     = time.Minute
 )

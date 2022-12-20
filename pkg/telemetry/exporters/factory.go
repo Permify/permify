@@ -1,14 +1,13 @@
 package exporters
 
 import (
-	"errors"
 	"fmt"
 
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 // ExporterFactory - Create tracer according to given params
-func ExporterFactory(name string, url string) (trace.SpanExporter, error) {
+func ExporterFactory(name, url string) (trace.SpanExporter, error) {
 	switch name {
 	case "zipkin":
 		return NewZipkin(url)
@@ -17,6 +16,6 @@ func ExporterFactory(name string, url string) (trace.SpanExporter, error) {
 	case "signoz":
 		return NewSigNoz(url, false)
 	default:
-		return nil, errors.New(fmt.Sprintf("%s exporter is unsupported", name))
+		return nil, fmt.Errorf("%s exporter is unsupported", name)
 	}
 }

@@ -57,9 +57,34 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SchemaVersion
-
-	// no validation rules for SnapToken
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionCheckRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionCheckRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionCheckRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if m.GetEntity() == nil {
 		err := PermissionCheckRequestValidationError{
@@ -163,17 +188,6 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 		}
 	}
 
-	if m.GetDepth() < 3 {
-		err := PermissionCheckRequestValidationError{
-			field:  "Depth",
-			reason: "value must be greater than or equal to 3",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if len(errors) > 0 {
 		return PermissionCheckRequestMultiError(errors)
 	}
@@ -256,6 +270,126 @@ var _ interface {
 
 var _PermissionCheckRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
+// Validate checks the field values on PermissionCheckRequestMetadata with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionCheckRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PermissionCheckRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// PermissionCheckRequestMetadataMultiError, or nil if none found.
+func (m *PermissionCheckRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PermissionCheckRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	// no validation rules for SnapToken
+
+	// no validation rules for Exclusion
+
+	if m.GetDepth() < 3 {
+		err := PermissionCheckRequestMetadataValidationError{
+			field:  "Depth",
+			reason: "value must be greater than or equal to 3",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PermissionCheckRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// PermissionCheckRequestMetadataMultiError is an error wrapping multiple
+// validation errors returned by PermissionCheckRequestMetadata.ValidateAll()
+// if the designated constraints aren't met.
+type PermissionCheckRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PermissionCheckRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PermissionCheckRequestMetadataMultiError) AllErrors() []error { return m }
+
+// PermissionCheckRequestMetadataValidationError is the validation error
+// returned by PermissionCheckRequestMetadata.Validate if the designated
+// constraints aren't met.
+type PermissionCheckRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PermissionCheckRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PermissionCheckRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PermissionCheckRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PermissionCheckRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PermissionCheckRequestMetadataValidationError) ErrorName() string {
+	return "PermissionCheckRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PermissionCheckRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPermissionCheckRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PermissionCheckRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PermissionCheckRequestMetadataValidationError{}
+
 // Validate checks the field values on PermissionCheckResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -280,7 +414,34 @@ func (m *PermissionCheckResponse) validate(all bool) error {
 
 	// no validation rules for Can
 
-	// no validation rules for RemainingDepth
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionCheckResponseValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionCheckResponseValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionCheckResponseValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return PermissionCheckResponseMultiError(errors)
@@ -362,6 +523,111 @@ var _ interface {
 	ErrorName() string
 } = PermissionCheckResponseValidationError{}
 
+// Validate checks the field values on PermissionCheckResponseMetadata with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionCheckResponseMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PermissionCheckResponseMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// PermissionCheckResponseMetadataMultiError, or nil if none found.
+func (m *PermissionCheckResponseMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PermissionCheckResponseMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CheckCount
+
+	if len(errors) > 0 {
+		return PermissionCheckResponseMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// PermissionCheckResponseMetadataMultiError is an error wrapping multiple
+// validation errors returned by PermissionCheckResponseMetadata.ValidateAll()
+// if the designated constraints aren't met.
+type PermissionCheckResponseMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PermissionCheckResponseMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PermissionCheckResponseMetadataMultiError) AllErrors() []error { return m }
+
+// PermissionCheckResponseMetadataValidationError is the validation error
+// returned by PermissionCheckResponseMetadata.Validate if the designated
+// constraints aren't met.
+type PermissionCheckResponseMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PermissionCheckResponseMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PermissionCheckResponseMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PermissionCheckResponseMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PermissionCheckResponseMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PermissionCheckResponseMetadataValidationError) ErrorName() string {
+	return "PermissionCheckResponseMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PermissionCheckResponseMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPermissionCheckResponseMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PermissionCheckResponseMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PermissionCheckResponseMetadataValidationError{}
+
 // Validate checks the field values on PermissionExpandRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -384,9 +650,34 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SchemaVersion
-
-	// no validation rules for SnapToken
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionExpandRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionExpandRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionExpandRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if m.GetEntity() == nil {
 		err := PermissionExpandRequestValidationError{
@@ -535,6 +826,113 @@ var _ interface {
 } = PermissionExpandRequestValidationError{}
 
 var _PermissionExpandRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+
+// Validate checks the field values on PermissionExpandRequestMetadata with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionExpandRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PermissionExpandRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// PermissionExpandRequestMetadataMultiError, or nil if none found.
+func (m *PermissionExpandRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PermissionExpandRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	// no validation rules for SnapToken
+
+	if len(errors) > 0 {
+		return PermissionExpandRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// PermissionExpandRequestMetadataMultiError is an error wrapping multiple
+// validation errors returned by PermissionExpandRequestMetadata.ValidateAll()
+// if the designated constraints aren't met.
+type PermissionExpandRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PermissionExpandRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PermissionExpandRequestMetadataMultiError) AllErrors() []error { return m }
+
+// PermissionExpandRequestMetadataValidationError is the validation error
+// returned by PermissionExpandRequestMetadata.Validate if the designated
+// constraints aren't met.
+type PermissionExpandRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PermissionExpandRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PermissionExpandRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PermissionExpandRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PermissionExpandRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PermissionExpandRequestMetadataValidationError) ErrorName() string {
+	return "PermissionExpandRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PermissionExpandRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPermissionExpandRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PermissionExpandRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PermissionExpandRequestMetadataValidationError{}
 
 // Validate checks the field values on PermissionExpandResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -689,7 +1087,34 @@ func (m *PermissionLookupSchemaRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SchemaVersion
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionLookupSchemaRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionLookupSchemaRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionLookupSchemaRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(m.GetEntityType()) > 64 {
 		err := PermissionLookupSchemaRequestValidationError{
@@ -795,6 +1220,113 @@ var _ interface {
 } = PermissionLookupSchemaRequestValidationError{}
 
 var _PermissionLookupSchemaRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+
+// Validate checks the field values on PermissionLookupSchemaRequestMetadata
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *PermissionLookupSchemaRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PermissionLookupSchemaRequestMetadata
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// PermissionLookupSchemaRequestMetadataMultiError, or nil if none found.
+func (m *PermissionLookupSchemaRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PermissionLookupSchemaRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(errors) > 0 {
+		return PermissionLookupSchemaRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// PermissionLookupSchemaRequestMetadataMultiError is an error wrapping
+// multiple validation errors returned by
+// PermissionLookupSchemaRequestMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type PermissionLookupSchemaRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PermissionLookupSchemaRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PermissionLookupSchemaRequestMetadataMultiError) AllErrors() []error { return m }
+
+// PermissionLookupSchemaRequestMetadataValidationError is the validation error
+// returned by PermissionLookupSchemaRequestMetadata.Validate if the
+// designated constraints aren't met.
+type PermissionLookupSchemaRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PermissionLookupSchemaRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PermissionLookupSchemaRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PermissionLookupSchemaRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PermissionLookupSchemaRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PermissionLookupSchemaRequestMetadataValidationError) ErrorName() string {
+	return "PermissionLookupSchemaRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PermissionLookupSchemaRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPermissionLookupSchemaRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PermissionLookupSchemaRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PermissionLookupSchemaRequestMetadataValidationError{}
 
 // Validate checks the field values on PermissionLookupSchemaResponse with the
 // rules defined in the proto definition for this message. If any rules are
@@ -921,9 +1453,34 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SchemaVersion
-
-	// no validation rules for SnapToken
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionLookupEntityRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionLookupEntityRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionLookupEntityRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(m.GetEntityType()) > 64 {
 		err := PermissionLookupEntityRequestValidationError{
@@ -1093,6 +1650,126 @@ var _ interface {
 var _PermissionLookupEntityRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 var _PermissionLookupEntityRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+
+// Validate checks the field values on PermissionLookupEntityRequestMetadata
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *PermissionLookupEntityRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PermissionLookupEntityRequestMetadata
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// PermissionLookupEntityRequestMetadataMultiError, or nil if none found.
+func (m *PermissionLookupEntityRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PermissionLookupEntityRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	// no validation rules for SnapToken
+
+	if m.GetDepth() < 3 {
+		err := PermissionLookupEntityRequestMetadataValidationError{
+			field:  "Depth",
+			reason: "value must be greater than or equal to 3",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PermissionLookupEntityRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// PermissionLookupEntityRequestMetadataMultiError is an error wrapping
+// multiple validation errors returned by
+// PermissionLookupEntityRequestMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type PermissionLookupEntityRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PermissionLookupEntityRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PermissionLookupEntityRequestMetadataMultiError) AllErrors() []error { return m }
+
+// PermissionLookupEntityRequestMetadataValidationError is the validation error
+// returned by PermissionLookupEntityRequestMetadata.Validate if the
+// designated constraints aren't met.
+type PermissionLookupEntityRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PermissionLookupEntityRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PermissionLookupEntityRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PermissionLookupEntityRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PermissionLookupEntityRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PermissionLookupEntityRequestMetadataValidationError) ErrorName() string {
+	return "PermissionLookupEntityRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PermissionLookupEntityRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPermissionLookupEntityRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PermissionLookupEntityRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PermissionLookupEntityRequestMetadataValidationError{}
 
 // Validate checks the field values on PermissionLookupEntityResponse with the
 // rules defined in the proto definition for this message. If any rules are
@@ -1534,7 +2211,34 @@ func (m *SchemaReadRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SchemaVersion
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SchemaReadRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SchemaReadRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SchemaReadRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return SchemaReadRequestMultiError(errors)
@@ -1615,6 +2319,110 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SchemaReadRequestValidationError{}
+
+// Validate checks the field values on SchemaReadRequestMetadata with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SchemaReadRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SchemaReadRequestMetadata with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SchemaReadRequestMetadataMultiError, or nil if none found.
+func (m *SchemaReadRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SchemaReadRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(errors) > 0 {
+		return SchemaReadRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// SchemaReadRequestMetadataMultiError is an error wrapping multiple validation
+// errors returned by SchemaReadRequestMetadata.ValidateAll() if the
+// designated constraints aren't met.
+type SchemaReadRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SchemaReadRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SchemaReadRequestMetadataMultiError) AllErrors() []error { return m }
+
+// SchemaReadRequestMetadataValidationError is the validation error returned by
+// SchemaReadRequestMetadata.Validate if the designated constraints aren't met.
+type SchemaReadRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SchemaReadRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SchemaReadRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SchemaReadRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SchemaReadRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SchemaReadRequestMetadataValidationError) ErrorName() string {
+	return "SchemaReadRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SchemaReadRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSchemaReadRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SchemaReadRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SchemaReadRequestMetadataValidationError{}
 
 // Validate checks the field values on SchemaReadResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -1769,7 +2577,34 @@ func (m *RelationshipWriteRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SchemaVersion
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RelationshipWriteRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RelationshipWriteRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RelationshipWriteRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if l := len(m.GetTuples()); l < 1 || l > 100 {
 		err := RelationshipWriteRequestValidationError{
@@ -1907,6 +2742,113 @@ var _ interface {
 	ErrorName() string
 } = RelationshipWriteRequestValidationError{}
 
+// Validate checks the field values on RelationshipWriteRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *RelationshipWriteRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RelationshipWriteRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// RelationshipWriteRequestMetadataMultiError, or nil if none found.
+func (m *RelationshipWriteRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RelationshipWriteRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(errors) > 0 {
+		return RelationshipWriteRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// RelationshipWriteRequestMetadataMultiError is an error wrapping multiple
+// validation errors returned by
+// RelationshipWriteRequestMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type RelationshipWriteRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RelationshipWriteRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RelationshipWriteRequestMetadataMultiError) AllErrors() []error { return m }
+
+// RelationshipWriteRequestMetadataValidationError is the validation error
+// returned by RelationshipWriteRequestMetadata.Validate if the designated
+// constraints aren't met.
+type RelationshipWriteRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RelationshipWriteRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RelationshipWriteRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RelationshipWriteRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RelationshipWriteRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RelationshipWriteRequestMetadataValidationError) ErrorName() string {
+	return "RelationshipWriteRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RelationshipWriteRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRelationshipWriteRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RelationshipWriteRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RelationshipWriteRequestMetadataValidationError{}
+
 // Validate checks the field values on RelationshipWriteResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -2033,7 +2975,34 @@ func (m *RelationshipReadRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SnapToken
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RelationshipReadRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RelationshipReadRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RelationshipReadRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if all {
 		switch v := interface{}(m.GetFilter()).(type) {
@@ -2143,6 +3112,111 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RelationshipReadRequestValidationError{}
+
+// Validate checks the field values on RelationshipReadRequestMetadata with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RelationshipReadRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RelationshipReadRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// RelationshipReadRequestMetadataMultiError, or nil if none found.
+func (m *RelationshipReadRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RelationshipReadRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SnapToken
+
+	if len(errors) > 0 {
+		return RelationshipReadRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// RelationshipReadRequestMetadataMultiError is an error wrapping multiple
+// validation errors returned by RelationshipReadRequestMetadata.ValidateAll()
+// if the designated constraints aren't met.
+type RelationshipReadRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RelationshipReadRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RelationshipReadRequestMetadataMultiError) AllErrors() []error { return m }
+
+// RelationshipReadRequestMetadataValidationError is the validation error
+// returned by RelationshipReadRequestMetadata.Validate if the designated
+// constraints aren't met.
+type RelationshipReadRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RelationshipReadRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RelationshipReadRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RelationshipReadRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RelationshipReadRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RelationshipReadRequestMetadataValidationError) ErrorName() string {
+	return "RelationshipReadRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RelationshipReadRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRelationshipReadRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RelationshipReadRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RelationshipReadRequestMetadataValidationError{}
 
 // Validate checks the field values on RelationshipReadResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -2514,3 +3588,379 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RelationshipDeleteResponseValidationError{}
+
+// Validate checks the field values on WelcomeResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *WelcomeResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on WelcomeResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// WelcomeResponseMultiError, or nil if none found.
+func (m *WelcomeResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *WelcomeResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Permify
+
+	if all {
+		switch v := interface{}(m.GetSources()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, WelcomeResponseValidationError{
+					field:  "Sources",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, WelcomeResponseValidationError{
+					field:  "Sources",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSources()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return WelcomeResponseValidationError{
+				field:  "Sources",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSocials()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, WelcomeResponseValidationError{
+					field:  "Socials",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, WelcomeResponseValidationError{
+					field:  "Socials",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSocials()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return WelcomeResponseValidationError{
+				field:  "Socials",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return WelcomeResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// WelcomeResponseMultiError is an error wrapping multiple validation errors
+// returned by WelcomeResponse.ValidateAll() if the designated constraints
+// aren't met.
+type WelcomeResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m WelcomeResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m WelcomeResponseMultiError) AllErrors() []error { return m }
+
+// WelcomeResponseValidationError is the validation error returned by
+// WelcomeResponse.Validate if the designated constraints aren't met.
+type WelcomeResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WelcomeResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WelcomeResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WelcomeResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WelcomeResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WelcomeResponseValidationError) ErrorName() string { return "WelcomeResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e WelcomeResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWelcomeResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WelcomeResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WelcomeResponseValidationError{}
+
+// Validate checks the field values on WelcomeResponse_Sources with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *WelcomeResponse_Sources) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on WelcomeResponse_Sources with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// WelcomeResponse_SourcesMultiError, or nil if none found.
+func (m *WelcomeResponse_Sources) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *WelcomeResponse_Sources) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Docs
+
+	// no validation rules for GitHub
+
+	// no validation rules for Blog
+
+	if len(errors) > 0 {
+		return WelcomeResponse_SourcesMultiError(errors)
+	}
+
+	return nil
+}
+
+// WelcomeResponse_SourcesMultiError is an error wrapping multiple validation
+// errors returned by WelcomeResponse_Sources.ValidateAll() if the designated
+// constraints aren't met.
+type WelcomeResponse_SourcesMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m WelcomeResponse_SourcesMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m WelcomeResponse_SourcesMultiError) AllErrors() []error { return m }
+
+// WelcomeResponse_SourcesValidationError is the validation error returned by
+// WelcomeResponse_Sources.Validate if the designated constraints aren't met.
+type WelcomeResponse_SourcesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WelcomeResponse_SourcesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WelcomeResponse_SourcesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WelcomeResponse_SourcesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WelcomeResponse_SourcesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WelcomeResponse_SourcesValidationError) ErrorName() string {
+	return "WelcomeResponse_SourcesValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e WelcomeResponse_SourcesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWelcomeResponse_Sources.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WelcomeResponse_SourcesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WelcomeResponse_SourcesValidationError{}
+
+// Validate checks the field values on WelcomeResponse_Socials with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *WelcomeResponse_Socials) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on WelcomeResponse_Socials with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// WelcomeResponse_SocialsMultiError, or nil if none found.
+func (m *WelcomeResponse_Socials) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *WelcomeResponse_Socials) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Discord
+
+	// no validation rules for Twitter
+
+	// no validation rules for Linkedin
+
+	if len(errors) > 0 {
+		return WelcomeResponse_SocialsMultiError(errors)
+	}
+
+	return nil
+}
+
+// WelcomeResponse_SocialsMultiError is an error wrapping multiple validation
+// errors returned by WelcomeResponse_Socials.ValidateAll() if the designated
+// constraints aren't met.
+type WelcomeResponse_SocialsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m WelcomeResponse_SocialsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m WelcomeResponse_SocialsMultiError) AllErrors() []error { return m }
+
+// WelcomeResponse_SocialsValidationError is the validation error returned by
+// WelcomeResponse_Socials.Validate if the designated constraints aren't met.
+type WelcomeResponse_SocialsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WelcomeResponse_SocialsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WelcomeResponse_SocialsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WelcomeResponse_SocialsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WelcomeResponse_SocialsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WelcomeResponse_SocialsValidationError) ErrorName() string {
+	return "WelcomeResponse_SocialsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e WelcomeResponse_SocialsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWelcomeResponse_Socials.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WelcomeResponse_SocialsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WelcomeResponse_SocialsValidationError{}

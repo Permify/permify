@@ -1,8 +1,6 @@
 package servers
 
 import (
-	"fmt"
-
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/status"
@@ -44,7 +42,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(fmt.Sprintf(err.Error()))
+		r.logger.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -67,7 +65,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(fmt.Sprintf(err.Error()))
+		r.logger.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -90,7 +88,7 @@ func (r *PermissionServer) LookupSchema(ctx context.Context, request *v1.Permiss
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(fmt.Sprintf(err.Error()))
+		r.logger.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -113,7 +111,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(fmt.Sprintf(err.Error()))
+		r.logger.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -130,12 +128,11 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 		return v
 	}
 
-	var err error
-	err = r.permissionService.LookupEntityStream(ctx, request, server)
+	err := r.permissionService.LookupEntityStream(ctx, request, server)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(fmt.Sprintf(err.Error()))
+		r.logger.Error(err.Error())
 		return status.Error(GetStatus(err), err.Error())
 	}
 

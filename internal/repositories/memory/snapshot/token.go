@@ -29,7 +29,7 @@ func NewToken(value time.Time) token.SnapToken {
 // Encode - Encodes the token to a string
 func (t Token) Encode() token.EncodedSnapToken {
 	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, uint64(t.Value))
+	binary.LittleEndian.PutUint64(b, t.Value)
 	return EncodedToken{
 		Value: base64.StdEncoding.EncodeToString(b),
 	}

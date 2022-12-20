@@ -70,6 +70,12 @@ const config = {
               ],
             },
             {
+              label: 'Playground',
+              href: 'https://play.permify.co',
+              position: 'left',
+              className: 'header-playground-link'
+            },
+            {
               href: 'https://github.com/Permify/permify',
               position: 'right',
               className: 'header-github-link'

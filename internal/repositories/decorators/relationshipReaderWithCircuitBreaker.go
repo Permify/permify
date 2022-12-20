@@ -48,7 +48,7 @@ func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Co
 }
 
 // GetUniqueEntityIDsByEntityType - Reads relation tuples from the repository
-func (r *RelationshipReaderWithCircuitBreaker) GetUniqueEntityIDsByEntityType(ctx context.Context, typ string, token string) (array []string, err error) {
+func (r *RelationshipReaderWithCircuitBreaker) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, token string) (array []string, err error) {
 	type circuitBreakerResponse struct {
 		IDs   []string
 		Error error

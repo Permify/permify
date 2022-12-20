@@ -1,6 +1,8 @@
 syntax = "proto3";
 package base.v1;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
 import "base/v1/tuple.proto";
@@ -93,21 +95,26 @@ service Permission {
 
 // CheckRequest
 message PermissionCheckRequest {
-  string schema_version = 1 [json_name = "schema_version"];
-  string snap_token = 2 [json_name = "snap_token"];
+  PermissionCheckRequestMetadata metadata = 1 [json_name = "metadata"];
 
-  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
   // its can be action or relation
-  string permission = 4 [json_name = "permission", (validate.rules).string = {
+  string permission = 3 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
+}
 
-  int32 depth = 6 [json_name = "depth", (validate.rules).int32.gte = 3];
+// PermissionCheckRequestMetadata
+message PermissionCheckRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
+  bool exclusion = 3 [json_name = "exclusion"];
+  int32 depth = 4 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionCheckResponse
@@ -120,23 +127,33 @@ message PermissionCheckResponse {
   }
 
   Result can = 1 [json_name = "can"];
-  int32 remaining_depth = 3 [json_name = "remaining_depth"];
+  PermissionCheckResponseMetadata metadata = 2 [json_name = "metadata"];
+}
+
+// CheckResponseMetadata
+message PermissionCheckResponseMetadata {
+  int32 check_count = 1 [json_name = "check_count"];
 }
 
 // EXPAND
 
 // PermissionExpandRequest
 message PermissionExpandRequest {
-  string schema_version = 1 [json_name = "schema_version"];
-  string snap_token = 2 [json_name = "snap_token"];
+  PermissionExpandRequestMetadata metadata = 1 [json_name = "metadata"];
 
-  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
-  string permission = 4 [json_name = "permission", (validate.rules).string = {
+  string permission = 3 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
+}
+
+// ExpandRequestMetadata
+message PermissionExpandRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
 }
 
 // PermissionExpandResponse
@@ -148,7 +165,7 @@ message PermissionExpandResponse {
 
 // PermissionLookupSchemaRequest
 message PermissionLookupSchemaRequest {
-  string schema_version = 1 [json_name = "schema_version"];
+  PermissionLookupSchemaRequestMetadata metadata = 1 [json_name = "metadata"];
 
   string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
@@ -159,6 +176,11 @@ message PermissionLookupSchemaRequest {
   repeated string relation_names = 3 [json_name = "relation_names"];
 }
 
+// LookupSchemaRequestMetadata
+message PermissionLookupSchemaRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
 // PermissionLookupSchemaResponse
 message PermissionLookupSchemaResponse {
   repeated string action_names = 1 [json_name = "action_names"];
@@ -166,22 +188,28 @@ message PermissionLookupSchemaResponse {
 
 // PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
+  PermissionLookupEntityRequestMetadata metadata = 1 [json_name = "metadata"];
+
+  string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  string permission = 3 [json_name = "permission", (validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
+}
+
+// LookupEntityRequestMetadata
+message PermissionLookupEntityRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
-
-  string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  string permission = 4 [json_name = "permission", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionLookupEntityResponse
@@ -245,6 +273,11 @@ message SchemaWriteResponse {
 
 // SchemaReadRequest
 message SchemaReadRequest {
+  SchemaReadRequestMetadata metadata = 1 [json_name = "metadata"];
+}
+
+// LookupSchemaRequestMetadata
+message SchemaReadRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
 }
 
@@ -305,7 +338,7 @@ service Relationship {
 
 // RelationshipWriteRequest
 message RelationshipWriteRequest {
-  string schema_version = 1 [json_name = "schema_version"];
+  RelationshipWriteRequestMetadata metadata = 1 [json_name = "metadata"];
 
   repeated Tuple tuples = 2 [json_name = "tuples", (validate.rules).repeated = {
     min_items : 1,
@@ -318,6 +351,11 @@ message RelationshipWriteRequest {
   }];
 }
 
+// RelationshipWriteRequestMetadata
+message RelationshipWriteRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
 // RelationshipWriteResponse
 message RelationshipWriteResponse {
   string snap_token = 1 [json_name = "snap_token"];
@@ -325,9 +363,14 @@ message RelationshipWriteResponse {
 
 // RelationshipReadRequest
 message RelationshipReadRequest {
-  string snap_token = 1 [json_name = "snap_token"];
+  RelationshipReadRequestMetadata metadata = 1 [json_name = "metadata"];
 
   TupleFilter filter = 2 [json_name = "filter"];
+}
+
+// RelationshipWriteRequestMetadata
+message RelationshipReadRequestMetadata {
+  string snap_token = 1 [json_name = "snap_token"];
 }
 
 // RelationshipReadResponse
@@ -343,4 +386,38 @@ message RelationshipDeleteRequest {
 // RelationshipDeleteResponse
 message RelationshipDeleteResponse {
   string snap_token = 1 [json_name = "snap_token"];
+}
+
+// ** WELCOME SERVICE **
+service Welcome {
+  rpc Hello(google.protobuf.Empty) returns (welcomeResponse) {
+    option (google.api.http) = {
+      get: "/"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "welcome to permify"
+      tags: [
+        "Welcome"
+      ]
+      operation_id: "welcome.hello"
+    };
+  }
+}
+
+// WelcomeResponse
+message welcomeResponse {
+  message Sources {
+    string docs = 1;
+    string gitHub = 2;
+    string blog = 3;
+  }
+  message Socials {
+    string discord = 1;
+    string twitter = 2;
+    string linkedin = 3;
+  }
+
+  string permify = 1;
+  Sources sources = 2;
+  Socials socials = 3;
 }

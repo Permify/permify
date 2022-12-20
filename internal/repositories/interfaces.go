@@ -13,7 +13,7 @@ type RelationshipReader interface {
 	// QueryRelationships reads relation tuples from the repository.
 	QueryRelationships(ctx context.Context, filter *base.TupleFilter, token string) (collection database.ITupleCollection, err error)
 	// GetUniqueEntityIDsByEntityType reads unique entity IDs from the repository.
-	GetUniqueEntityIDsByEntityType(ctx context.Context, typ string, token string) (ids []string, err error)
+	GetUniqueEntityIDsByEntityType(ctx context.Context, typ, token string) (ids []string, err error)
 	// HeadSnapshot reads the latest version of the snapshot from the repository.
 	HeadSnapshot(ctx context.Context) (token.SnapToken, error)
 }
@@ -31,7 +31,7 @@ type SchemaReader interface {
 	// ReadSchema reads entity config from the repository.
 	ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error)
 	// ReadSchemaDefinition reads entity config from the repository.
-	ReadSchemaDefinition(ctx context.Context, entityType string, version string) (definition *base.EntityDefinition, v string, err error)
+	ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error)
 	// HeadVersion reads the latest version of the schema from the repository.
 	HeadVersion(ctx context.Context) (version string, err error)
 }

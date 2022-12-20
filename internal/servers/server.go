@@ -57,7 +57,8 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	}
 
 	if cfg.GRPC.TLSConfig.Enabled {
-		c, err := credentials.NewServerTLSFromFile(cfg.GRPC.TLSConfig.CertPath, cfg.GRPC.TLSConfig.KeyPath)
+		var c credentials.TransportCredentials
+		c, err = credentials.NewServerTLSFromFile(cfg.GRPC.TLSConfig.CertPath, cfg.GRPC.TLSConfig.KeyPath)
 		if err != nil {
 			return err
 		}
@@ -69,6 +70,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SchemaService, l))
 	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RelationshipService, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
+	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
 	reflection.Register(grpcServer)
 
 	var lis net.Listener
@@ -137,6 +139,9 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		if err = grpcV1.RegisterRelationshipHandler(ctx, mux, conn); err != nil {
 			return err
 		}
+		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {
+			return err
+		}
 
 		httpServer = &http.Server{
 			Addr: ":" + cfg.HTTP.Port,
@@ -149,6 +154,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 					http.MethodHead, http.MethodPatch, http.MethodDelete, http.MethodPut,
 				},
 			}).Handler(mux),
+			ReadHeaderTimeout: 5 * time.Second,
 		}
 
 		go func() {

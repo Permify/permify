@@ -1,8 +1,6 @@
 package servers
 
 import (
-	"fmt"
-
 	"google.golang.org/grpc/status"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
@@ -40,11 +38,11 @@ func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipR
 		return nil, v
 	}
 
-	collection, err := r.relationshipService.ReadRelationships(ctx, request.GetFilter(), request.SnapToken)
+	collection, err := r.relationshipService.ReadRelationships(ctx, request.GetFilter(), request.GetMetadata().GetSnapToken())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.l.Error(fmt.Sprintf(err.Error()))
+		r.l.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -70,11 +68,11 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 		}
 	}
 
-	snap, err := r.relationshipService.WriteRelationships(ctx, request.GetTuples(), request.SchemaVersion)
+	snap, err := r.relationshipService.WriteRelationships(ctx, request.GetTuples(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.l.Error(fmt.Sprintf(err.Error()))
+		r.l.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -97,7 +95,7 @@ func (r *RelationshipServer) Delete(ctx context.Context, request *v1.Relationshi
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.l.Error(fmt.Sprintf(err.Error()))
+		r.l.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 

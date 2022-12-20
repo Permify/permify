@@ -3,12 +3,12 @@ package memory
 import (
 	"context"
 	"errors"
-	`time`
+	"time"
 
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories"
-	`github.com/Permify/permify/internal/repositories/memory/snapshot`
+	"github.com/Permify/permify/internal/repositories/memory/snapshot"
 	"github.com/Permify/permify/internal/repositories/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
@@ -45,7 +45,10 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 
 	fit := memdb.NewFilterIterator(it, utils.FilterQuery(filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
-		t := obj.(repositories.RelationTuple)
+		t, ok := obj.(repositories.RelationTuple)
+		if !ok {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		}
 		collection.Add(t.ToTuple())
 	}
 
@@ -53,7 +56,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 }
 
 // GetUniqueEntityIDsByEntityType - Gets all entity IDs for a given entity type (unique)
-func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ string, _ string) (array []string, err error) {
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, _ string) (array []string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -65,7 +68,10 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 
 	var result []string
 	for obj := it.Next(); obj != nil; obj = it.Next() {
-		t := obj.(repositories.RelationTuple)
+		t, ok := obj.(repositories.RelationTuple)
+		if !ok {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		}
 		result = append(result, t.EntityID)
 	}
 

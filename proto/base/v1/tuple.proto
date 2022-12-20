@@ -126,15 +126,14 @@ message ExpandTreeNode {
 // Expand
 message Expand {
   oneof node {
-    ExpandTreeNode expand = 2;
-    Subjects leaf = 3;
+    ExpandTreeNode expand = 1;
+    Result leaf = 2;
   }
 }
 
-// Subjects
-message Subjects {
+// Result
+message Result {
   EntityAndRelation target = 1;
-
   bool exclusion = 2;
   repeated Subject subjects = 3;
 }

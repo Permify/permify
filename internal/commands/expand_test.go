@@ -1,23 +1,22 @@
 package commands
 
 import (
-	`context`
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/repositories/mocks`
-	`github.com/Permify/permify/pkg/database`
-	`github.com/Permify/permify/pkg/dsl/compiler`
-	`github.com/Permify/permify/pkg/dsl/schema`
-	`github.com/Permify/permify/pkg/logger`
-	base `github.com/Permify/permify/pkg/pb/base/v1`
-	`github.com/Permify/permify/pkg/token`
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/dsl/compiler"
+	"github.com/Permify/permify/pkg/dsl/schema"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("expand-command", func() {
 	var expandCommand *ExpandCommand
-	l := logger.New("debug")
 
 	// DRIVE SAMPLE
 	driveSchema := `
@@ -50,7 +49,6 @@ var _ = Describe("expand-command", func() {
 
 	Context("Drive Sample: Expand", func() {
 		It("Drive Sample: Case 1", func() {
-
 			var err error
 
 			// SCHEMA
@@ -61,11 +59,21 @@ var _ = Describe("expand-command", func() {
 			sch, err = compiler.NewSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var en *base.EntityDefinition
-			en, err = schema.GetEntityByName(sch, "doc")
+			var doc *base.EntityDefinition
+			doc, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(en, "noop", nil).Times(1)
+			var folder *base.EntityDefinition
+			folder, err = schema.GetEntityByName(sch, "folder")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			var organization *base.EntityDefinition
+			organization, err = schema.GetEntityByName(sch, "organization")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader.On("ReadSchemaDefinition", "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
@@ -188,20 +196,22 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			expandCommand = NewExpandCommand(schemaReader, relationshipReader, l)
+			expandCommand = NewExpandCommand(schemaReader, relationshipReader)
 
 			req := &base.PermissionExpandRequest{
-				Entity:        &base.Entity{Type: "doc", Id: "1"},
-				Permission:    "read",
-				SnapToken:     token.NewNoopToken().Encode().String(),
-				SchemaVersion: "noop",
+				Entity:     &base.Entity{Type: "doc", Id: "1"},
+				Permission: "read",
+				Metadata: &base.PermissionExpandRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+				},
 			}
 
 			var response *base.PermissionExpandResponse
 			response, err = expandCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			//fmt.Println(response.GetTree())
+			// fmt.Println(response.GetTree())
 
 			Expect(&base.Expand{
 				Node: &base.Expand_Expand{
@@ -215,7 +225,7 @@ var _ = Describe("expand-command", func() {
 										Children: []*base.Expand{
 											{
 												Node: &base.Expand_Leaf{
-													Leaf: &base.Subjects{
+													Leaf: &base.Result{
 														Target: &base.EntityAndRelation{
 															Entity: &base.Entity{
 																Type: "doc",
@@ -239,7 +249,7 @@ var _ = Describe("expand-command", func() {
 														Children: []*base.Expand{
 															{
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Subjects{
+																	Leaf: &base.Result{
 																		Target: &base.EntityAndRelation{
 																			Entity: &base.Entity{
 																				Type: "folder",
@@ -275,7 +285,7 @@ var _ = Describe("expand-command", func() {
 										Children: []*base.Expand{
 											{
 												Node: &base.Expand_Leaf{
-													Leaf: &base.Subjects{
+													Leaf: &base.Result{
 														Target: &base.EntityAndRelation{
 															Entity: &base.Entity{
 																Type: "organization",

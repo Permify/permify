@@ -5,6 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"go.opentelemetry.io/otel/sdk/trace"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -26,7 +28,7 @@ import (
 
 const (
 	// Version of Permify
-	Version = "v0.0.0-alpha9"
+	Version = "v0.1.0"
 	banner  = `
 
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
@@ -80,12 +82,14 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 
 		// Tracing
 		if cfg.Tracer.Enabled {
-			exporter, err := exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
+			var exporter trace.SpanExporter
+			exporter, err = exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
 			if err != nil {
 				l.Fatal(err)
 			}
 
-			shutdown, err := telemetry.NewTracer(exporter)
+			var shutdown func(context.Context) error
+			shutdown, err = telemetry.NewTracer(exporter)
 			if err != nil {
 				l.Fatal(err)
 			}
@@ -120,26 +124,28 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		// decorators
 		schemaReaderWithCache := decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
 
-		// circuitBreaker
-		relationshipWriterWithCircuitBreaker := decorators.NewRelationshipWriterWithCircuitBreaker(relationshipWriter)
-		relationshipReaderWithCircuitBreaker := decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
+		// Service
+		if cfg.Service.CircuitBreaker {
+			relationshipWriter = decorators.NewRelationshipWriterWithCircuitBreaker(relationshipWriter)
+			relationshipReader = decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
 
-		schemaWriterWithCircuitBreaker := decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
-		schemaReaderWithCircuitBreakerAndCache := decorators.NewSchemaReaderWithCircuitBreaker(schemaReaderWithCache)
+			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
+			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReaderWithCache)
+		}
 
 		// key managers
 		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
-		expandCommand := commands.NewExpandCommand(schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
-		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReaderWithCircuitBreakerAndCache, l)
-		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReaderWithCircuitBreakerAndCache, relationshipReaderWithCircuitBreaker, l)
+		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader, commands.ConcurrencyLimit(cfg.Service.ConcurrencyLimit))
+		expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader)
+		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReader)
+		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader)
 
 		// Services
-		relationshipService := services.NewRelationshipService(relationshipReaderWithCircuitBreaker, relationshipWriterWithCircuitBreaker, schemaReaderWithCircuitBreakerAndCache)
+		relationshipService := services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader)
 		permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaLookupCommand, lookupEntityCommand)
-		schemaService := services.NewSchemaService(schemaWriterWithCircuitBreaker, schemaReaderWithCache)
+		schemaService := services.NewSchemaService(schemaWriter, schemaReaderWithCache)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,
@@ -189,9 +195,12 @@ func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 	cmd.Flags().StringVar(&config.Tracer.Exporter, "tracer-exporter", config.Tracer.Exporter, "export uri for tracing data")
 	cmd.Flags().StringVar(&config.Tracer.Endpoint, "tracer-endpoint", config.Tracer.Endpoint, "can be; jaeger, signoz or zipkin. (integrated tracing tools)")
 
+	// SERVICE
+	cmd.Flags().BoolVar(&config.Service.CircuitBreaker, "service-circuit-breaker", config.Service.CircuitBreaker, "switch option for service circuit breaker")
+
 	// DATABASE
 	cmd.Flags().StringVar(&config.Database.Engine, "database-engine", config.Database.Engine, "data source. e.g. postgres, memory")
-	cmd.Flags().IntVar(&config.Database.PoolMax, "database-pool-max", config.Database.PoolMax, "max connection pool size")
+	cmd.Flags().IntVar(&config.Database.MaxOpenConnections, "database-max-open-connections", config.Database.MaxOpenConnections, "max connection pool size")
 	cmd.Flags().StringVar(&config.Database.Database, "database-name", config.Database.Database, "custom database name")
 	cmd.Flags().StringVar(&config.Database.URI, "database-uri", config.Database.URI, "uri of your data source to store relation tuples and schema")
 }
