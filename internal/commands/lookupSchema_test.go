@@ -69,7 +69,7 @@ var _ = Describe("lookup-schema-command", func() {
 			req := &base.PermissionLookupSchemaRequest{
 				EntityType:    "folder",
 				RelationNames: []string{"creator"},
-				Metadata: &base.LookupSchemaRequestMetadata{
+				Metadata: &base.PermissionLookupSchemaRequestMetadata{
 					SchemaVersion: "noop",
 				},
 			}
@@ -103,7 +103,7 @@ var _ = Describe("lookup-schema-command", func() {
 			req := &base.PermissionLookupSchemaRequest{
 				EntityType:    "doc",
 				RelationNames: []string{"owner", "org.admin"},
-				Metadata: &base.LookupSchemaRequestMetadata{
+				Metadata: &base.PermissionLookupSchemaRequestMetadata{
 					SchemaVersion: "noop",
 				},
 			}
@@ -162,7 +162,7 @@ var _ = Describe("lookup-schema-command", func() {
 			req := &base.PermissionLookupSchemaRequest{
 				EntityType:    "organization",
 				RelationNames: []string{"admin"},
-				Metadata: &base.LookupSchemaRequestMetadata{
+				Metadata: &base.PermissionLookupSchemaRequestMetadata{
 					SchemaVersion: "noop",
 				},
 			}
@@ -196,7 +196,7 @@ var _ = Describe("lookup-schema-command", func() {
 			req := &base.PermissionLookupSchemaRequest{
 				EntityType:    "repository",
 				RelationNames: []string{"parent.admin", "parent.member"},
-				Metadata: &base.LookupSchemaRequestMetadata{
+				Metadata: &base.PermissionLookupSchemaRequestMetadata{
 					SchemaVersion: "noop",
 				},
 			}

@@ -76,10 +76,10 @@ type (
 		Database           string `yaml:"database"`
 		URI                string `yaml:"uri"`
 		MaxOpenConnections int    `yaml:"max_open_connections"`
-		MinOpenConnections int    `yaml:"min_open_connections"`
-		// MaxConnectionLifetime int    `yaml:"max_connection_lifetime"`
-		// MaxConnectionIdleTime int    `yaml:"max_idle_connections"`
-		// HealthCheckPeriod     int    `yaml:"health_check_period"`
+		// MinOpenConnections    int           `yaml:"min_open_connections"`
+		// MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
+		// MaxConnectionIdleTime time.Duration `yaml:"max_idle_connections"`
+		// HealthCheckPeriod     time.Duration `yaml:"health_check_period"`
 	}
 )
 

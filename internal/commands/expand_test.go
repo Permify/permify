@@ -201,7 +201,7 @@ var _ = Describe("expand-command", func() {
 			req := &base.PermissionExpandRequest{
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
 				Permission: "read",
-				Metadata: &base.ExpandRequestMetadata{
+				Metadata: &base.PermissionExpandRequestMetadata{
 					SnapToken:     token.NewNoopToken().Encode().String(),
 					SchemaVersion: "noop",
 				},

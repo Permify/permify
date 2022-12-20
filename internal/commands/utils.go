@@ -21,8 +21,8 @@ func ConcurrencyLimit(limit int) CheckOption {
 }
 
 // joinResponseMetas -
-func joinResponseMetas(meta ...*base.CheckResponseMetadata) *base.CheckResponseMetadata {
-	response := &base.CheckResponseMetadata{}
+func joinResponseMetas(meta ...*base.PermissionCheckResponseMetadata) *base.PermissionCheckResponseMetadata {
+	response := &base.PermissionCheckResponseMetadata{}
 	for _, m := range meta {
 		response.CheckCount += m.CheckCount
 	}
@@ -30,8 +30,8 @@ func joinResponseMetas(meta ...*base.CheckResponseMetadata) *base.CheckResponseM
 }
 
 // increaseCheckCount -
-func increaseCheckCount(metadata *base.CheckResponseMetadata) *base.CheckResponseMetadata {
-	return &base.CheckResponseMetadata{
+func increaseCheckCount(metadata *base.PermissionCheckResponseMetadata) *base.PermissionCheckResponseMetadata {
+	return &base.PermissionCheckResponseMetadata{
 		CheckCount: metadata.CheckCount + 1,
 	}
 }
@@ -43,8 +43,8 @@ type CheckResponse struct {
 }
 
 // decreaseDepth -
-func decreaseDepth(md *base.CheckRequestMetadata) *base.CheckRequestMetadata {
-	return &base.CheckRequestMetadata{
+func decreaseDepth(md *base.PermissionCheckRequestMetadata) *base.PermissionCheckRequestMetadata {
+	return &base.PermissionCheckRequestMetadata{
 		SchemaVersion: md.GetSchemaVersion(),
 		Exclusion:     md.GetExclusion(),
 		SnapToken:     md.GetSnapToken(),

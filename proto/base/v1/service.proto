@@ -95,7 +95,7 @@ service Permission {
 
 // CheckRequest
 message PermissionCheckRequest {
-  CheckRequestMetadata metadata = 1;
+  PermissionCheckRequestMetadata metadata = 1 [json_name = "metadata"];
 
   Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
@@ -109,8 +109,8 @@ message PermissionCheckRequest {
   Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
 }
 
-// CheckRequestMetadata
-message CheckRequestMetadata {
+// PermissionCheckRequestMetadata
+message PermissionCheckRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
   bool exclusion = 3 [json_name = "exclusion"];
@@ -127,11 +127,11 @@ message PermissionCheckResponse {
   }
 
   Result can = 1 [json_name = "can"];
-  CheckResponseMetadata metadata = 2;
+  PermissionCheckResponseMetadata metadata = 2 [json_name = "metadata"];
 }
 
 // CheckResponseMetadata
-message CheckResponseMetadata {
+message PermissionCheckResponseMetadata {
   int32 check_count = 1 [json_name = "check_count"];
 }
 
@@ -139,7 +139,7 @@ message CheckResponseMetadata {
 
 // PermissionExpandRequest
 message PermissionExpandRequest {
-  ExpandRequestMetadata metadata = 1;
+  PermissionExpandRequestMetadata metadata = 1 [json_name = "metadata"];
 
   Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
@@ -151,7 +151,7 @@ message PermissionExpandRequest {
 }
 
 // ExpandRequestMetadata
-message ExpandRequestMetadata {
+message PermissionExpandRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
 }
@@ -165,7 +165,7 @@ message PermissionExpandResponse {
 
 // PermissionLookupSchemaRequest
 message PermissionLookupSchemaRequest {
-  LookupSchemaRequestMetadata metadata = 1;
+  PermissionLookupSchemaRequestMetadata metadata = 1 [json_name = "metadata"];
 
   string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
@@ -177,7 +177,7 @@ message PermissionLookupSchemaRequest {
 }
 
 // LookupSchemaRequestMetadata
-message LookupSchemaRequestMetadata {
+message PermissionLookupSchemaRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
 }
 
@@ -188,7 +188,7 @@ message PermissionLookupSchemaResponse {
 
 // PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
-  LookupEntityRequestMetadata metadata = 1;
+  PermissionLookupEntityRequestMetadata metadata = 1 [json_name = "metadata"];
 
   string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
@@ -206,7 +206,7 @@ message PermissionLookupEntityRequest {
 }
 
 // LookupEntityRequestMetadata
-message LookupEntityRequestMetadata {
+message PermissionLookupEntityRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
   int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
@@ -273,6 +273,11 @@ message SchemaWriteResponse {
 
 // SchemaReadRequest
 message SchemaReadRequest {
+  SchemaReadRequestMetadata metadata = 1 [json_name = "metadata"];
+}
+
+// LookupSchemaRequestMetadata
+message SchemaReadRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
 }
 
@@ -333,7 +338,7 @@ service Relationship {
 
 // RelationshipWriteRequest
 message RelationshipWriteRequest {
-  string schema_version = 1 [json_name = "schema_version"];
+  RelationshipWriteRequestMetadata metadata = 1 [json_name = "metadata"];
 
   repeated Tuple tuples = 2 [json_name = "tuples", (validate.rules).repeated = {
     min_items : 1,
@@ -346,6 +351,11 @@ message RelationshipWriteRequest {
   }];
 }
 
+// RelationshipWriteRequestMetadata
+message RelationshipWriteRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
 // RelationshipWriteResponse
 message RelationshipWriteResponse {
   string snap_token = 1 [json_name = "snap_token"];
@@ -353,9 +363,14 @@ message RelationshipWriteResponse {
 
 // RelationshipReadRequest
 message RelationshipReadRequest {
-  string snap_token = 1 [json_name = "snap_token"];
+  RelationshipReadRequestMetadata metadata = 1 [json_name = "metadata"];
 
   TupleFilter filter = 2 [json_name = "filter"];
+}
+
+// RelationshipWriteRequestMetadata
+message RelationshipReadRequestMetadata {
+  string snap_token = 1 [json_name = "snap_token"];
 }
 
 // RelationshipReadResponse

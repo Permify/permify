@@ -420,35 +420,6 @@
       },
       "additionalProperties": {}
     },
-    "CheckRequestMetadata": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        },
-        "snap_token": {
-          "type": "string"
-        },
-        "exclusion": {
-          "type": "boolean"
-        },
-        "depth": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "title": "CheckRequestMetadata"
-    },
-    "CheckResponseMetadata": {
-      "type": "object",
-      "properties": {
-        "check_count": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "title": "CheckResponseMetadata"
-    },
     "Child": {
       "type": "object",
       "properties": {
@@ -556,18 +527,6 @@
       },
       "title": "Expand"
     },
-    "ExpandRequestMetadata": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        },
-        "snap_token": {
-          "type": "string"
-        }
-      },
-      "title": "ExpandRequestMetadata"
-    },
     "ExpandTreeNode": {
       "type": "object",
       "properties": {
@@ -634,36 +593,11 @@
       },
       "title": "Leaf"
     },
-    "LookupEntityRequestMetadata": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        },
-        "snap_token": {
-          "type": "string"
-        },
-        "depth": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "title": "LookupEntityRequestMetadata"
-    },
-    "LookupSchemaRequestMetadata": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        }
-      },
-      "title": "LookupSchemaRequestMetadata"
-    },
     "PermissionCheckRequest": {
       "type": "object",
       "properties": {
         "metadata": {
-          "$ref": "#/definitions/CheckRequestMetadata"
+          "$ref": "#/definitions/PermissionCheckRequestMetadata"
         },
         "entity": {
           "$ref": "#/definitions/Entity"
@@ -678,6 +612,25 @@
       },
       "title": "CheckRequest"
     },
+    "PermissionCheckRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        },
+        "exclusion": {
+          "type": "boolean"
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "PermissionCheckRequestMetadata"
+    },
     "PermissionCheckResponse": {
       "type": "object",
       "properties": {
@@ -685,7 +638,7 @@
           "$ref": "#/definitions/PermissionCheckResponse.Result"
         },
         "metadata": {
-          "$ref": "#/definitions/CheckResponseMetadata"
+          "$ref": "#/definitions/PermissionCheckResponseMetadata"
         }
       },
       "title": "PermissionCheckResponse"
@@ -700,11 +653,21 @@
       "default": "RESULT_UNKNOWN",
       "title": "Result"
     },
+    "PermissionCheckResponseMetadata": {
+      "type": "object",
+      "properties": {
+        "check_count": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "CheckResponseMetadata"
+    },
     "PermissionExpandRequest": {
       "type": "object",
       "properties": {
         "metadata": {
-          "$ref": "#/definitions/ExpandRequestMetadata"
+          "$ref": "#/definitions/PermissionExpandRequestMetadata"
         },
         "entity": {
           "$ref": "#/definitions/Entity"
@@ -714,6 +677,18 @@
         }
       },
       "title": "PermissionExpandRequest"
+    },
+    "PermissionExpandRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        }
+      },
+      "title": "ExpandRequestMetadata"
     },
     "PermissionExpandResponse": {
       "type": "object",
@@ -728,7 +703,7 @@
       "type": "object",
       "properties": {
         "metadata": {
-          "$ref": "#/definitions/LookupEntityRequestMetadata"
+          "$ref": "#/definitions/PermissionLookupEntityRequestMetadata"
         },
         "entity_type": {
           "type": "string"
@@ -741,6 +716,22 @@
         }
       },
       "title": "PermissionLookupEntityRequest"
+    },
+    "PermissionLookupEntityRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "LookupEntityRequestMetadata"
     },
     "PermissionLookupEntityResponse": {
       "type": "object",
@@ -767,7 +758,7 @@
       "type": "object",
       "properties": {
         "metadata": {
-          "$ref": "#/definitions/LookupSchemaRequestMetadata"
+          "$ref": "#/definitions/PermissionLookupSchemaRequestMetadata"
         },
         "entity_type": {
           "type": "string"
@@ -780,6 +771,15 @@
         }
       },
       "title": "PermissionLookupSchemaRequest"
+    },
+    "PermissionLookupSchemaRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "title": "LookupSchemaRequestMetadata"
     },
     "PermissionLookupSchemaResponse": {
       "type": "object",
@@ -858,14 +858,23 @@
     "RelationshipReadRequest": {
       "type": "object",
       "properties": {
-        "snap_token": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/RelationshipReadRequestMetadata"
         },
         "filter": {
           "$ref": "#/definitions/TupleFilter"
         }
       },
       "title": "RelationshipReadRequest"
+    },
+    "RelationshipReadRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string"
+        }
+      },
+      "title": "RelationshipWriteRequestMetadata"
     },
     "RelationshipReadResponse": {
       "type": "object",
@@ -882,8 +891,8 @@
     "RelationshipWriteRequest": {
       "type": "object",
       "properties": {
-        "schema_version": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/RelationshipWriteRequestMetadata"
         },
         "tuples": {
           "type": "array",
@@ -893,6 +902,15 @@
         }
       },
       "title": "RelationshipWriteRequest"
+    },
+    "RelationshipWriteRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "title": "RelationshipWriteRequestMetadata"
     },
     "RelationshipWriteResponse": {
       "type": "object",
@@ -931,11 +949,20 @@
     "SchemaReadRequest": {
       "type": "object",
       "properties": {
+        "metadata": {
+          "$ref": "#/definitions/SchemaReadRequestMetadata"
+        }
+      },
+      "title": "SchemaReadRequest"
+    },
+    "SchemaReadRequestMetadata": {
+      "type": "object",
+      "properties": {
         "schema_version": {
           "type": "string"
         }
       },
-      "title": "SchemaReadRequest"
+      "title": "LookupSchemaRequestMetadata"
     },
     "SchemaReadResponse": {
       "type": "object",

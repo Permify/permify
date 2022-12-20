@@ -134,7 +134,7 @@ func (command *LookupEntityCommand) parallelChecker(ctx context.Context, request
 // internalCheck -
 func (command *LookupEntityCommand) internalCheck(ctx context.Context, en *base.Entity, request *base.PermissionLookupEntityRequest, resultChan chan<- string) error {
 	result, err := command.checkCommand.Execute(ctx, &base.PermissionCheckRequest{
-		Metadata: &base.CheckRequestMetadata{
+		Metadata: &base.PermissionCheckRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),

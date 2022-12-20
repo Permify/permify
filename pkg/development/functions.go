@@ -15,7 +15,7 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 		Entity:     entity,
 		Subject:    subject,
 		Permission: action,
-		Metadata: &v1.CheckRequestMetadata{
+		Metadata: &v1.PermissionCheckRequestMetadata{
 			SchemaVersion: version,
 			SnapToken:     snapToken,
 			Depth:         20,
@@ -28,7 +28,7 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 // LookupEntity -
 func LookupEntity(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action, entityType, version, snapToken string) (res *v1.PermissionLookupEntityResponse, err error) {
 	req := &v1.PermissionLookupEntityRequest{
-		Metadata: &v1.LookupEntityRequestMetadata{
+		Metadata: &v1.PermissionLookupEntityRequestMetadata{
 			SchemaVersion: version,
 			SnapToken:     snapToken,
 			Depth:         20,

@@ -47,7 +47,7 @@ func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr
 // - relation
 // - action
 func (command *CheckCommand) Execute(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-	emptyResp := denied(&base.CheckResponseMetadata{
+	emptyResp := denied(&base.PermissionCheckResponseMetadata{
 		CheckCount: 0,
 	})
 
@@ -89,13 +89,13 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 		if found {
 			if request.GetMetadata().GetExclusion() {
 				if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-					return denied(&base.CheckResponseMetadata{}), nil
+					return denied(&base.PermissionCheckResponseMetadata{}), nil
 				}
-				return allowed(&base.CheckResponseMetadata{}), nil
+				return allowed(&base.PermissionCheckResponseMetadata{}), nil
 			}
 			return &base.PermissionCheckResponse{
 				Can:      res.GetCan(),
-				Metadata: &base.CheckResponseMetadata{},
+				Metadata: &base.PermissionCheckResponseMetadata{},
 			}, nil
 		}
 	}
@@ -110,7 +110,7 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 		res.Metadata = increaseCheckCount(res.Metadata)
 		command.commandKeyManager.SetCheckKey(request, &base.PermissionCheckResponse{
 			Can:      res.GetCan(),
-			Metadata: &base.CheckResponseMetadata{},
+			Metadata: &base.PermissionCheckResponseMetadata{},
 		})
 		if request.GetMetadata().GetExclusion() {
 			if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
@@ -225,7 +225,7 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 			Relation: request.GetPermission(),
 		}, request.GetMetadata().GetSnapToken())
 		if err != nil {
-			return denied(&base.CheckResponseMetadata{}), err
+			return denied(&base.PermissionCheckResponseMetadata{}), err
 		}
 
 		it := tupleCollection.CreateTupleIterator()
@@ -233,7 +233,7 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 		for it.HasNext() {
 			t := it.GetNext()
 			if tuple.AreSubjectsEqual(t.GetSubject(), request.GetSubject()) {
-				result = allowed(&base.CheckResponseMetadata{})
+				result = allowed(&base.PermissionCheckResponseMetadata{})
 				command.commandKeyManager.SetCheckKey(request, result)
 				return result, nil
 			}
@@ -254,7 +254,7 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 			return checkUnion(ctx, checkFunctions, command.concurrencyLimit)
 		}
 
-		result = denied(&base.CheckResponseMetadata{})
+		result = denied(&base.PermissionCheckResponseMetadata{})
 		command.commandKeyManager.SetCheckKey(request, result)
 		return
 	}
@@ -273,7 +273,7 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 			Relation: ttu.GetTupleSet().GetRelation(),
 		}, request.GetMetadata().GetSnapToken())
 		if err != nil {
-			return denied(&base.CheckResponseMetadata{}), err
+			return denied(&base.PermissionCheckResponseMetadata{}), err
 		}
 
 		it := tupleCollection.ToSubjectCollection().CreateSubjectIterator()
@@ -310,7 +310,7 @@ func (command *CheckCommand) checkComputedUserSet(ctx context.Context, request *
 
 // checkUnion -
 func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error) {
-	responseMetadata := &base.CheckResponseMetadata{}
+	responseMetadata := &base.PermissionCheckResponseMetadata{}
 
 	if len(functions) == 0 {
 		return &base.PermissionCheckResponse{
@@ -350,7 +350,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 
 // checkIntersection -
 func checkIntersection(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error) {
-	responseMetadata := &base.CheckResponseMetadata{}
+	responseMetadata := &base.PermissionCheckResponseMetadata{}
 
 	if len(functions) == 0 {
 		return denied(responseMetadata), nil
@@ -425,12 +425,12 @@ func run(ctx context.Context, functions []CheckFunction, decisionChan chan<- Che
 // checkFail -
 func checkFail(err error) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		return denied(&base.CheckResponseMetadata{}), err
+		return denied(&base.PermissionCheckResponseMetadata{}), err
 	}
 }
 
 // denied -
-func denied(meta *base.CheckResponseMetadata) *base.PermissionCheckResponse {
+func denied(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckResponse {
 	return &base.PermissionCheckResponse{
 		Can:      base.PermissionCheckResponse_RESULT_DENIED,
 		Metadata: meta,
@@ -438,7 +438,7 @@ func denied(meta *base.CheckResponseMetadata) *base.PermissionCheckResponse {
 }
 
 // allowed
-func allowed(meta *base.CheckResponseMetadata) *base.PermissionCheckResponse {
+func allowed(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckResponse {
 	return &base.PermissionCheckResponse{
 		Can:      base.PermissionCheckResponse_RESULT_ALLOWED,
 		Metadata: meta,

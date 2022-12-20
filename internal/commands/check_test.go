@@ -46,6 +46,7 @@ entity doc {
 	action read = (owner or parent.collaborator) or org.admin
 	action update = owner and org.admin
 	action delete = owner or org.admin
+	action share = update and (owner or parent.update)
 }
 `
 
@@ -204,7 +205,7 @@ entity doc {
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
 				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
 				Permission: "read",
-				Metadata: &base.CheckRequestMetadata{
+				Metadata: &base.PermissionCheckRequestMetadata{
 					SnapToken:     token.NewNoopToken().Encode().String(),
 					SchemaVersion: "noop",
 					Exclusion:     false,
@@ -318,7 +319,7 @@ entity doc {
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
 				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
 				Permission: "update",
-				Metadata: &base.CheckRequestMetadata{
+				Metadata: &base.PermissionCheckRequestMetadata{
 					SnapToken:     token.NewNoopToken().Encode().String(),
 					SchemaVersion: "noop",
 					Exclusion:     false,
@@ -486,7 +487,7 @@ entity doc {
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
 				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
 				Permission: "read",
-				Metadata: &base.CheckRequestMetadata{
+				Metadata: &base.PermissionCheckRequestMetadata{
 					SnapToken:     token.NewNoopToken().Encode().String(),
 					SchemaVersion: "noop",
 					Exclusion:     false,
@@ -499,11 +500,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
-	})
 
-	// GITHUB SAMPLE
+		// GITHUB SAMPLE
 
-	githubSchema := `
+		githubSchema := `
 	entity user {}
 	
 	entity organization {
@@ -524,335 +524,336 @@ entity doc {
 	}
 	`
 
-	Context("Github Sample: Check", func() {
-		It("Github Sample: Case 1", func() {
-			var err error
+		Context("Github Sample: Check", func() {
+			It("Github Sample: Case 1", func() {
+				var err error
 
-			// SCHEMA
+				// SCHEMA
 
-			schemaReader := new(mocks.SchemaReader)
+				schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(githubSchema)
-			Expect(err).ShouldNot(HaveOccurred())
+				var sch *base.IndexedSchema
+				sch, err = compiler.NewSchema(githubSchema)
+				Expect(err).ShouldNot(HaveOccurred())
 
-			var repository *base.EntityDefinition
-			repository, err = schema.GetEntityByName(sch, "repository")
-			Expect(err).ShouldNot(HaveOccurred())
+				var repository *base.EntityDefinition
+				repository, err = schema.GetEntityByName(sch, "repository")
+				Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
+				var organization *base.EntityDefinition
+				organization, err = schema.GetEntityByName(sch, "organization")
+				Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
+				schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+				schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
-			// RELATIONSHIPS
+				// RELATIONSHIPS
 
-			relationshipReader := new(mocks.RelationshipReader)
+				relationshipReader := new(mocks.RelationshipReader)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repository",
-					Ids:  []string{"1"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
-				{
-					Entity: &base.Entity{
+				relationshipReader.On("QueryRelationships", &base.TupleFilter{
+					Entity: &base.EntityFilter{
 						Type: "repository",
-						Id:   "1",
+						Ids:  []string{"1"},
 					},
 					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
+				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+					{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "1",
+						},
+						Relation: "owner",
+						Subject: &base.Subject{
+							Type:     tuple.USER,
+							Id:       "2",
+							Relation: "",
+						},
 					},
-				},
-			}...), nil).Times(1)
+				}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+				checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
-			req := &base.PermissionCheckRequest{
-				Entity:     &base.Entity{Type: "repository", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "push",
-				Metadata: &base.CheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
-			}
+				req := &base.PermissionCheckRequest{
+					Entity:     &base.Entity{Type: "repository", Id: "1"},
+					Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+					Permission: "push",
+					Metadata: &base.PermissionCheckRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "noop",
+						Exclusion:     false,
+						Depth:         20,
+					},
+				}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
-		})
+				var response *base.PermissionCheckResponse
+				response, err = checkCommand.Execute(context.Background(), req)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
+			})
 
-		It("Github Sample: Case 2", func() {
-			var err error
+			It("Github Sample: Case 2", func() {
+				var err error
 
-			// SCHEMA
+				// SCHEMA
 
-			schemaReader := new(mocks.SchemaReader)
+				schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(githubSchema)
-			Expect(err).ShouldNot(HaveOccurred())
+				var sch *base.IndexedSchema
+				sch, err = compiler.NewSchema(githubSchema)
+				Expect(err).ShouldNot(HaveOccurred())
 
-			var repository *base.EntityDefinition
-			repository, err = schema.GetEntityByName(sch, "repository")
-			Expect(err).ShouldNot(HaveOccurred())
+				var repository *base.EntityDefinition
+				repository, err = schema.GetEntityByName(sch, "repository")
+				Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
+				var organization *base.EntityDefinition
+				organization, err = schema.GetEntityByName(sch, "organization")
+				Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
+				schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+				schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
-			// RELATIONSHIPS
+				// RELATIONSHIPS
 
-			relationshipReader := new(mocks.RelationshipReader)
+				relationshipReader := new(mocks.RelationshipReader)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repository",
-					Ids:  []string{"1"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
-				{
-					Entity: &base.Entity{
+				relationshipReader.On("QueryRelationships", &base.TupleFilter{
+					Entity: &base.EntityFilter{
 						Type: "repository",
-						Id:   "1",
+						Ids:  []string{"1"},
 					},
 					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "2",
+				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+					{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "1",
+						},
+						Relation: "owner",
+						Subject: &base.Subject{
+							Type:     "organization",
+							Id:       "2",
+							Relation: "admin",
+						},
+					},
+				}...), nil).Times(1)
+
+				relationshipReader.On("QueryRelationships", &base.TupleFilter{
+					Entity: &base.EntityFilter{
+						Type: "organization",
+						Ids:  []string{"2"},
+					},
+					Relation: "admin",
+				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+					{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "2",
+						},
 						Relation: "admin",
+						Subject: &base.Subject{
+							Type:     "organization",
+							Id:       "3",
+							Relation: "member",
+						},
 					},
-				},
-			}...), nil).Times(1)
+					{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "2",
+						},
+						Relation: "admin",
+						Subject: &base.Subject{
+							Type:     tuple.USER,
+							Id:       "3",
+							Relation: "",
+						},
+					},
+					{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "2",
+						},
+						Relation: "admin",
+						Subject: &base.Subject{
+							Type:     tuple.USER,
+							Id:       "8",
+							Relation: "",
+						},
+					},
+				}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"2"},
-				},
-				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
-				{
-					Entity: &base.Entity{
+				relationshipReader.On("QueryRelationships", &base.TupleFilter{
+					Entity: &base.EntityFilter{
 						Type: "organization",
-						Id:   "2",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "3",
-						Relation: "member",
-					},
-				},
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "2",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "3",
-						Relation: "",
-					},
-				},
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "2",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "8",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"3"},
-				},
-				Relation: "member",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "3",
+						Ids:  []string{"3"},
 					},
 					Relation: "member",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
+				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+					{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "3",
+						},
+						Relation: "member",
+						Subject: &base.Subject{
+							Type:     tuple.USER,
+							Id:       "1",
+							Relation: "",
+						},
 					},
-				},
-			}...), nil).Times(1)
+				}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+				checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
-			req := &base.PermissionCheckRequest{
-				Entity:     &base.Entity{Type: "repository", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "push",
-				Metadata: &base.CheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
-			}
+				req := &base.PermissionCheckRequest{
+					Entity:     &base.Entity{Type: "repository", Id: "1"},
+					Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+					Permission: "push",
+					Metadata: &base.PermissionCheckRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "noop",
+						Exclusion:     false,
+						Depth:         20,
+					},
+				}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
-		})
+				var response *base.PermissionCheckResponse
+				response, err = checkCommand.Execute(context.Background(), req)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
+			})
 
-		It("Github Sample: Case 3", func() {
-			var err error
+			It("Github Sample: Case 3", func() {
+				var err error
 
-			// SCHEMA
+				// SCHEMA
 
-			schemaReader := new(mocks.SchemaReader)
+				schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(githubSchema)
-			Expect(err).ShouldNot(HaveOccurred())
+				var sch *base.IndexedSchema
+				sch, err = compiler.NewSchema(githubSchema)
+				Expect(err).ShouldNot(HaveOccurred())
 
-			var repository *base.EntityDefinition
-			repository, err = schema.GetEntityByName(sch, "repository")
-			Expect(err).ShouldNot(HaveOccurred())
+				var repository *base.EntityDefinition
+				repository, err = schema.GetEntityByName(sch, "repository")
+				Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
+				var organization *base.EntityDefinition
+				organization, err = schema.GetEntityByName(sch, "organization")
+				Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
+				schemaReader.On("ReadSchemaDefinition", "repository", "noop").Return(repository, "noop", nil).Times(2)
+				schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(2)
 
-			// RELATIONSHIPS
+				// RELATIONSHIPS
 
-			relationshipReader := new(mocks.RelationshipReader)
+				relationshipReader := new(mocks.RelationshipReader)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repository",
-					Ids:  []string{"1"},
-				},
-				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
-				{
-					Entity: &base.Entity{
+				relationshipReader.On("QueryRelationships", &base.TupleFilter{
+					Entity: &base.EntityFilter{
 						Type: "repository",
-						Id:   "1",
+						Ids:  []string{"1"},
 					},
 					Relation: "parent",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "8",
-						Relation: tuple.ELLIPSIS,
+				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+					{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "1",
+						},
+						Relation: "parent",
+						Subject: &base.Subject{
+							Type:     "organization",
+							Id:       "8",
+							Relation: tuple.ELLIPSIS,
+						},
 					},
-				},
-			}...), nil).Times(2)
+				}...), nil).Times(2)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"8"},
-				},
-				Relation: "member",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
-				{
-					Entity: &base.Entity{
+				relationshipReader.On("QueryRelationships", &base.TupleFilter{
+					Entity: &base.EntityFilter{
 						Type: "organization",
-						Id:   "8",
+						Ids:  []string{"8"},
 					},
 					Relation: "member",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
+				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+					{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "8",
+						},
+						Relation: "member",
+						Subject: &base.Subject{
+							Type:     tuple.USER,
+							Id:       "1",
+							Relation: "",
+						},
 					},
-				},
-			}...), nil).Times(1)
+				}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"8"},
-				},
-				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
-				{
-					Entity: &base.Entity{
+				relationshipReader.On("QueryRelationships", &base.TupleFilter{
+					Entity: &base.EntityFilter{
 						Type: "organization",
-						Id:   "8",
+						Ids:  []string{"8"},
 					},
 					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
+				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+					{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "8",
+						},
+						Relation: "admin",
+						Subject: &base.Subject{
+							Type:     tuple.USER,
+							Id:       "2",
+							Relation: "",
+						},
 					},
-				},
-			}...), nil).Times(1)
+				}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repository",
-					Ids:  []string{"1"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
-				{
-					Entity: &base.Entity{
+				relationshipReader.On("QueryRelationships", &base.TupleFilter{
+					Entity: &base.EntityFilter{
 						Type: "repository",
-						Id:   "1",
+						Ids:  []string{"1"},
 					},
 					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "7",
-						Relation: "",
+				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+					{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "1",
+						},
+						Relation: "owner",
+						Subject: &base.Subject{
+							Type:     tuple.USER,
+							Id:       "7",
+							Relation: "",
+						},
 					},
-				},
-			}...), nil).Times(1)
+				}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+				checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
 
-			req := &base.PermissionCheckRequest{
-				Entity:     &base.Entity{Type: "repository", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "delete",
-				Metadata: &base.CheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
-			}
+				req := &base.PermissionCheckRequest{
+					Entity:     &base.Entity{Type: "repository", Id: "1"},
+					Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+					Permission: "delete",
+					Metadata: &base.PermissionCheckRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "noop",
+						Exclusion:     false,
+						Depth:         20,
+					},
+				}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
+				var response *base.PermissionCheckResponse
+				response, err = checkCommand.Execute(context.Background(), req)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
+			})
 		})
 	})
 })

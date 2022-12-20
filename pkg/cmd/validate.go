@@ -91,7 +91,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 
 				res, err := devContainer.P.CheckPermissions(ctx, &base.PermissionCheckRequest{
-					Metadata: &base.CheckRequestMetadata{
+					Metadata: &base.PermissionCheckRequestMetadata{
 						SchemaVersion: version,
 						SnapToken:     token.NewNoopToken().Encode().String(),
 						Depth:         100,

@@ -27,6 +27,7 @@ tracer:
 
 service:
   circuit_breaker: false
+  concurrency_limit: 100
 
 database:
   engine: 'postgres'

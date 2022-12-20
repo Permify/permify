@@ -52,7 +52,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 
 	var err error
 	var response *v1.IndexedSchema
-	response, err = r.schemaService.ReadSchema(ctx, request.GetSchemaVersion())
+	response, err = r.schemaService.ReadSchema(ctx, request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
