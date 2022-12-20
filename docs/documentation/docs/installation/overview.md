@@ -257,7 +257,7 @@ POST /v1/permissions/check
 
 See [Access Control Check] section for learn how access checks works and access decisions evaluated in Permify
 
-[Access Control Check]: ./getting-started/enforcement.md
+[Access Control Check]: ../getting-started/enforcement.md
 
 ## Need any help ?
 
