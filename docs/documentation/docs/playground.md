@@ -2,7 +2,7 @@
 sidebar_position: 6
 ---
 
-# Permify Playground
+# Using Permify Playground
 
 You can use our [Playground] to create and test your authorization in a browser. Our playground consists 4 sections; Authorization Model, Visualizer, Authorization Data and Enforcement. Let's examine these sections by following a simple example.
 
