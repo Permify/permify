@@ -7,7 +7,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
-
+	otelCodes "go.opentelemetry.io/otel/codes"	
 	"github.com/Permify/permify/internal/repositories/postgres/snapshot"
 	"github.com/Permify/permify/internal/repositories/postgres/types"
 	"github.com/Permify/permify/internal/repositories/postgres/utils"
@@ -87,9 +87,15 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 
 // DeleteRelationships - Deletes a collection of relationships to the database
 func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+	
+	ctx, span := tracer.Start(ctx, "relationships.delete")
+	defer span.End()
+
 	for i := 0; i <= 10; i++ {
 		tx, err := w.database.Pool.BeginTx(ctx, w.txOptions)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, err
 		}
 
@@ -99,6 +105,8 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 
 		query, args, err := builder.ToSql()
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 		}
 		batch.Queue(query, args...)
@@ -106,12 +114,18 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 		var xid types.XID8
 		err = tx.QueryRow(ctx, utils.NewTransactionQuery()).Scan(&xid)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			_ = tx.Rollback(ctx)
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 
 		results := tx.SendBatch(ctx, batch)
 		if err = results.Close(); err != nil {
+			
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+
 			_ = tx.Rollback(ctx)
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) {

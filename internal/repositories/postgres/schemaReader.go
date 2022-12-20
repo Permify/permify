@@ -6,7 +6,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
-
+	otelCodes "go.opentelemetry.io/otel/codes"	
 	"github.com/Permify/permify/internal/repositories"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/dsl/compiler"
@@ -75,11 +75,17 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 
 // ReadSchemaDefinition - Reads entity config from the repository.
 func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (*base.EntityDefinition, string, error) {
+	
+	ctx, span := tracer.Start(ctx, "schemaReader.read.definition")
+	defer span.End()
+
 	var err error
 
 	var tx pgx.Tx
 	tx, err = r.database.Pool.BeginTx(ctx, r.txOptions)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return nil, "", err
 	}
 
@@ -93,18 +99,24 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, ver
 	query := r.database.Builder.Select("entity_type, serialized_definition, version").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(SchemaDefinitionTable).Limit(1)
 	sql, args, err = query.ToSql()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	var def repositories.SchemaDefinition
 	row := tx.QueryRow(ctx, sql, args...)
 	if err = row.Scan(&def.EntityType, &def.SerializedDefinition, &def.Version); err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 	}
 
 	var sch *base.IndexedSchema
 	sch, err = compiler.NewSchemaWithoutReferenceValidation(def.Serialized())
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return nil, "", err
 	}
 
@@ -115,17 +127,25 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, ver
 
 // HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReader) HeadVersion(ctx context.Context) (version string, err error) {
+	
+	ctx, span := tracer.Start(ctx, "schemaReader.read.head")
+	defer span.End()
+
 	var sql string
 	var args []interface{}
 	sql, args, err = r.database.Builder.
 		Select("version").From(SchemaDefinitionTable).OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 	row := r.database.Pool.QueryRow(ctx, sql, args...)
 	err = row.Scan(&version)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 		}
