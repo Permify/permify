@@ -5,6 +5,8 @@ import (
 	"errors"
 	"sync"
 
+	"go.opentelemetry.io/otel"
+	otelCodes "go.opentelemetry.io/otel/codes"
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
@@ -13,6 +15,8 @@ import (
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
+
+var tracer = otel.Tracer("commands")
 
 // CheckCommand -
 type CheckCommand struct {
@@ -47,6 +51,9 @@ func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr
 // - relation
 // - action
 func (command *CheckCommand) Execute(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+	ctx, span := tracer.Start(ctx, "permissions.check.execute")
+	defer span.End()
+
 	emptyResp := denied(&base.PermissionCheckResponseMetadata{
 		CheckCount: 0,
 	})
@@ -63,7 +70,9 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 	if request.GetMetadata().GetSchemaVersion() == "" {
 		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
 		if err != nil {
-			return emptyResp, err
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+      return emptyResp, err
 		}
 	}
 
@@ -75,12 +84,16 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 	var en *base.EntityDefinition
 	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return emptyResp, err
 	}
 
 	var tor base.EntityDefinition_RelationalReference
 	tor, err = schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return emptyResp, err
 	}
 

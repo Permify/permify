@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	otelCodes "go.opentelemetry.io/otel/codes"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/helper"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -25,6 +26,9 @@ func NewLookupSchemaCommand(schemaReader repositories.SchemaReader) *LookupSchem
 
 // Execute -
 func (command *LookupSchemaCommand) Execute(ctx context.Context, request *base.PermissionLookupSchemaRequest) (*base.PermissionLookupSchemaResponse, error) {
+	ctx, span := tracer.Start(ctx, "permissions.LookupSchema.execute")
+	defer span.End()
+
 	var err error
 
 	response := &base.PermissionLookupSchemaResponse{
@@ -48,6 +52,8 @@ func (command *LookupSchemaCommand) Execute(ctx context.Context, request *base.P
 		var can bool
 		can, err = command.l(ctx, request, action.Child)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, err
 		}
 		if can {
