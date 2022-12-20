@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	otelCodes "go.opentelemetry.io/otel/codes"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
 	`github.com/Permify/permify/pkg/dsl/schema`
@@ -33,6 +34,9 @@ func NewExpandCommand(sr repositories.SchemaReader, rr repositories.Relationship
 
 // Execute -
 func (command *ExpandCommand) Execute(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error) {
+
+	ctx, span := tracer.Start(ctx, "permissions.expand.execute")
+	defer span.End()
 
 	if request.GetSnapToken() == "" {
 		var st token.SnapToken
@@ -88,7 +92,11 @@ func (command *ExpandCommand) Execute(ctx context.Context, request *base.Permiss
 	}
 
 	var res ExpandResponse
-	res, err = command.e(ctx, request, child)
+	res, err = command.e(ctx, request, child) 
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+	}
 	return res.Response, err
 }
 

@@ -6,6 +6,8 @@ import (
 	`sync`
 	`sync/atomic`
 
+	"go.opentelemetry.io/otel"
+	otelCodes "go.opentelemetry.io/otel/codes"
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
@@ -15,6 +17,8 @@ import (
 	`github.com/Permify/permify/pkg/token`
 	"github.com/Permify/permify/pkg/tuple"
 )
+
+var tracer = otel.Tracer("commands")
 
 // CheckCommand -
 type CheckCommand struct {
@@ -39,6 +43,9 @@ func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr
 
 // Execute -
 func (command *CheckCommand) Execute(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+	
+	ctx, span := tracer.Start(ctx, "permissions.check.execute")
+	defer span.End()
 
 	if request.Depth == 0 {
 		request.Depth = 20
@@ -57,6 +64,8 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 		var ver string
 		ver, err = command.schemaReader.HeadVersion(ctx)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return response, err
 		}
 		request.SchemaVersion = ver
@@ -65,12 +74,16 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 	var en *base.EntityDefinition
 	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntity().GetType(), request.GetSchemaVersion())
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return response, err
 	}
 
 	var typeOfRelation base.EntityDefinition_RelationalReference
 	typeOfRelation, err = schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return response, err
 	}
 

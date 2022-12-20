@@ -34,6 +34,9 @@ func NewLookupEntityCommand(ck ICheckCommand, sr repositories.SchemaReader, rr r
 // Execute -
 func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
 
+	ctx, span := tracer.Start(ctx, "permissions.LookUpSchema.execute")
+	defer span.End()
+
 	if request.GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = command.relationshipReader.HeadSnapshot(ctx)
@@ -69,6 +72,9 @@ func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.P
 
 // Stream -
 func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
+	
+	ctx, span := tracer.Start(ctx, "permissions.LookupEntity.stream")
+	defer span.End()
 
 	if request.GetSnapToken() == "" {
 		var st token.SnapToken
