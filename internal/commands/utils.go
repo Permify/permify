@@ -2,9 +2,12 @@ package commands
 
 import (
 	"errors"
+	`go.opentelemetry.io/otel`
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
+
+var tracer = otel.Tracer("commands")
 
 const (
 	_defaultConcurrencyLimit = 100

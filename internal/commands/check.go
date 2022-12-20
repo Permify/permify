@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sync"
 
-	"go.opentelemetry.io/otel"
 	otelCodes "go.opentelemetry.io/otel/codes"
+
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
@@ -15,8 +15,6 @@ import (
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
-
-var tracer = otel.Tracer("commands")
 
 // CheckCommand -
 type CheckCommand struct {
@@ -72,7 +70,7 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-      return emptyResp, err
+			return emptyResp, err
 		}
 	}
 
