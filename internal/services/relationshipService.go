@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"go.opentelemetry.io/otel"
+	otelCodes "go.opentelemetry.io/otel/codes"	
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/schema"
@@ -18,6 +20,8 @@ type RelationshipService struct {
 	rr repositories.RelationshipReader
 	rw repositories.RelationshipWriter
 }
+
+var tracer = otel.Tracer("services")
 
 // NewRelationshipService -
 func NewRelationshipService(rr repositories.RelationshipReader, rw repositories.RelationshipWriter, sr repositories.SchemaReader) *RelationshipService {
@@ -35,10 +39,16 @@ func (service *RelationshipService) ReadRelationships(ctx context.Context, filte
 
 // WriteRelationships -
 func (service *RelationshipService) WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
+	
+	ctx, span := tracer.Start(ctx, "relationships.write")
+	defer span.End()
+
 	if version == "" {
 		var v string
 		v, err = service.sr.HeadVersion(ctx)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return token, err
 		}
 		version = v
@@ -48,6 +58,8 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tupl
 		var entity *base.EntityDefinition
 		entity, _, err = service.sr.ReadSchemaDefinition(ctx, tup.GetEntity().GetType(), version)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return token, err
 		}
 
@@ -59,6 +71,8 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tupl
 		var vt []string
 		rel, err = schema.GetRelationByNameInEntityDefinition(entity, tup.GetRelation())
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return token, err
 		}
 		for _, t := range rel.GetRelationReferences() {
@@ -67,6 +81,8 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tupl
 
 		err = tuple.ValidateSubjectType(tup.Subject, vt)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return token, err
 		}
 	}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/xid"
+	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
 	db "github.com/Permify/permify/pkg/database/postgres"
@@ -26,9 +27,16 @@ func NewSchemaWriter(database *db.Postgres) *SchemaWriter {
 
 // WriteSchema writes a schema to the database
 func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.SchemaDefinition) (string, error) {
+	
+	ctx, span := tracer.Start(ctx, "schemas.write.save")
+	defer span.End()
+
 	id := xid.New()
 	tx, bErr := w.database.Pool.BeginTx(ctx, w.txOptions)
 	if bErr != nil {
+		span.RecordError(bErr)
+		span.SetStatus(otelCodes.Error, bErr.Error())
+
 		return "", bErr
 	}
 
@@ -46,11 +54,17 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.S
 
 	results := tx.SendBatch(ctx, batch)
 	if err := results.Close(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+
 		_ = tx.Rollback(ctx)
 		return "", err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+
 		return "", err
 	}
 

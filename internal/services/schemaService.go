@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	otelCodes "go.opentelemetry.io/otel/codes"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
@@ -41,13 +42,21 @@ func (service *SchemaService) ReadSchema(ctx context.Context, version string) (r
 
 // WriteSchema -
 func (service *SchemaService) WriteSchema(ctx context.Context, schema string) (response string, err error) {
+	
+	ctx, span := tracer.Start(ctx, "schemas.write.parse")
+	defer span.End()
+
 	sch, err := parser.NewParser(schema).Parse()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return "", err
 	}
 
 	_, err = compiler.NewCompiler(false, sch).Compile()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
 		return "", err
 	}
 
