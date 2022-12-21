@@ -19,10 +19,11 @@ entity document {
 
 Let's say you have a user X with a manager role. If you want to check what user X can do on a documents ? You can use the schema lookup endpoint as follows,
 
-**Path:** POST /v1/schemas/lookup
+**Path:** POST /v1/permissions/lookup-schema
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
+| [ ]   | schema_version | string | 8 | Version of the schema |
 | [x]   | entity_type | string | - | type of the entity. 
 | [x]   | relation_names | string[] | - | string array that holds entity relations |
 
@@ -30,6 +31,9 @@ Let's say you have a user X with a manager role. If you want to check what user 
 
 ```json
 {
+  "metadata": {
+    "schema_version": ""
+  },
   "entity_type": "document",
   "relation_names": [ "manager" ]
 }

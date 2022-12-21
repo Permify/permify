@@ -162,8 +162,11 @@ POST /v1/permissions/lookup-entity
 
 ```json
 {
-  "schema_version": "",
-  "snap_token": "",
+  "metadata": {
+    "schema_version": "",
+    "snap_token": "",
+    "depth": 20
+  },
   "entity_type": "document",
   "permission": "edit",
   "subject": {
@@ -204,8 +207,11 @@ POST /v1/permissions/lookup-entity-stream
 
 ```json
 {
-  "schema_version": "",
-  "snap_token": "",
+  "metadata": {
+    "schema_version": "",
+    "snap_token": "",
+    "depth": 20
+  },
   "entity_type": "document",
   "permission": "edit",
   "subject": {

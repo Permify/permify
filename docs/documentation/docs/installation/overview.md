@@ -228,30 +228,32 @@ POST /v1/permissions/check
 
 ```json
 {
-    "entity": {
-        "type": "organization",
-        "id": "1"
-    },
-    "action": "view_files",
-    "subject": {
-        "type":"user",
-        "id": "45"
-    }
+  "metadata": {
+    "schema_version": "",
+    "snap_token": "",
+    "depth": 20
+  },
+  "entity": {
+    "type": "organization",
+    "id": "1"
+  },
+  "permission": "view_files",
+  "subject": {
+    "type": "user",
+    "id": "45",
+    "relation": ""
+  },
 }
 ```
 
 ### Response
 
 ```json
-{
-    "can": true,
-    "remaining_depth": 5,
-    "decisions": {
-        "organization:1#admin": {
-            "can": true,
-            "err": null
-        }
-    }
+{{
+  "can": "RESULT_ALLOW",
+  "metadata": {
+    "check_count": 0
+  }
 }
 ```
 

@@ -1,9 +1,9 @@
 # Expand API
 We developed a expand API to see Permify Schema actions in a tree structure to improve observability and reasonability of access permissions.
 
-Expand API is represented by a userset tree whose leaf nodes are user IDs or usersets pointing to other ⟨object#relation⟩ pairs, and intermediate nodes represent union, intersection, or exclusion operators.
+Expand API is represented by a user set tree whose leaf nodes are user IDs or user sets pointing to other ⟨object#relation⟩ pairs, and intermediate nodes represent union, intersection, or exclusion operators.
 
-Expand is crucial for our users to reason about the complete set of users and groups that have access to their objects, which allows them to build efficient search indices for access-controlled content. Unlike the Read API, Expand follows indirect references expressed through userset rewrite rules.
+Expand is crucial for our users to reason about the complete set of users and groups that have access to their objects, which allows them to build efficient search indices for access-controlled content. Unlike the Read API, Expand follows indirect references expressed through user set rewrite rules.
 
 ## Usage
 
@@ -48,7 +48,7 @@ According to above authorization model, let's create 3 example relation tuples f
 
 We can use expand API to reason the access actions. If we want to reason access structure for actions of repository entity, we can use expand API with ***POST "/v1/permissions/expand"***. 
 
-**Path:** POST /v1/permissions/check
+**Path:** POST /v1/permissions/expand
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
@@ -64,8 +64,10 @@ We can use expand API to reason the access actions. If we want to reason access 
 
 ```json
 {
-  "schema_version": "",
-  "snap_token": "",
+  "metadata": {
+    "schema_version": "",
+    "snap_token": ""
+  },
   "entity": {
     "type": "repository",
     "id": "1"
