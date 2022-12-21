@@ -22,8 +22,11 @@ In this section we'll investigate proior check request of Permify: **resource ba
 
 ```json
 {
-  "schema_version": "",
-  "snap_token": "",
+  "metadata": {
+    "schema_version": "",
+    "snap_token": "",
+    "depth": 20
+  },
   "entity": {
     "type": "repository",
     "id": "1"
@@ -34,7 +37,6 @@ In this section we'll investigate proior check request of Permify: **resource ba
     "id": "1",
     "relation": ""
   },
-  "depth": 0
 }
 ```
 
