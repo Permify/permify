@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
+
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/helper"
 	base "github.com/Permify/permify/pkg/pb/base/v1"

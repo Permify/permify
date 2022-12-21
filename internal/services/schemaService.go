@@ -41,6 +41,9 @@ func (service *SchemaService) ReadSchema(ctx context.Context, version string) (r
 
 // WriteSchema -
 func (service *SchemaService) WriteSchema(ctx context.Context, schema string) (response string, err error) {
+	ctx, span := tracer.Start(ctx, "schemas.write.parse")
+	defer span.End()
+
 	sch, err := parser.NewParser(schema).Parse()
 	if err != nil {
 		return "", err

@@ -35,6 +35,9 @@ func (service *RelationshipService) ReadRelationships(ctx context.Context, filte
 
 // WriteRelationships -
 func (service *RelationshipService) WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
+	ctx, span := tracer.Start(ctx, "relationships.write")
+	defer span.End()
+
 	if version == "" {
 		var v string
 		v, err = service.sr.HeadVersion(ctx)

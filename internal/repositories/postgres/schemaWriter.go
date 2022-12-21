@@ -26,6 +26,9 @@ func NewSchemaWriter(database *db.Postgres) *SchemaWriter {
 
 // WriteSchema writes a schema to the database
 func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.SchemaDefinition) (string, error) {
+	ctx, span := tracer.Start(ctx, "schemas.write.save")
+	defer span.End()
+
 	id := xid.New()
 	tx, bErr := w.database.Pool.BeginTx(ctx, w.txOptions)
 	if bErr != nil {

@@ -31,10 +31,12 @@ func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
 
 // QueryRelationships - Gets all relationships for a given filter
 func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (database.ITupleCollection, error) {
-	var err error
+	ctx, span := tracer.Start(ctx, "relationships.read")
+	defer span.End()
 
+	var err error
 	var st token.SnapToken
-	st, err = r.snapshotToken(ctx, t)
+	st, err = snapshot.EncodedToken{Value: t}.Decode()
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +88,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 // GetUniqueEntityIDsByEntityType - Gets all unique entity ids for a given entity type
 func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, t string) (ids []string, err error) {
 	var st token.SnapToken
-	st, err = r.snapshotToken(ctx, t)
+	st, err = snapshot.EncodedToken{Value: t}.Decode()
 	if err != nil {
 		return nil, err
 	}
@@ -130,12 +132,6 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 	}
 
 	return result, nil
-}
-
-// snapshotToken - gets the token for a given snapshot
-func (r *RelationshipReader) snapshotToken(ctx context.Context, token string) (token.SnapToken, error) {
-	encoded := snapshot.EncodedToken{Value: token}
-	return encoded.Decode()
 }
 
 // HeadSnapshot - Gets the latest token

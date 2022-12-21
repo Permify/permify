@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
+
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/schema"
