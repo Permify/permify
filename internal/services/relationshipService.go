@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"go.opentelemetry.io/otel"
-	otelCodes "go.opentelemetry.io/otel/codes"	
+	otelCodes "go.opentelemetry.io/otel/codes"
+
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/schema"
@@ -20,8 +20,6 @@ type RelationshipService struct {
 	rr repositories.RelationshipReader
 	rw repositories.RelationshipWriter
 }
-
-var tracer = otel.Tracer("services")
 
 // NewRelationshipService -
 func NewRelationshipService(rr repositories.RelationshipReader, rw repositories.RelationshipWriter, sr repositories.SchemaReader) *RelationshipService {
@@ -39,7 +37,6 @@ func (service *RelationshipService) ReadRelationships(ctx context.Context, filte
 
 // WriteRelationships -
 func (service *RelationshipService) WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
-	
 	ctx, span := tracer.Start(ctx, "relationships.write")
 	defer span.End()
 

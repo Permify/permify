@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	
+
 	"github.com/Permify/permify/internal/commands"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )

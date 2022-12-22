@@ -6,8 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v4"
 
-	"go.opentelemetry.io/otel"
 	otelCodes "go.opentelemetry.io/otel/codes"
+
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/postgres/snapshot"
 	"github.com/Permify/permify/internal/repositories/postgres/types"
@@ -23,8 +23,6 @@ type RelationshipReader struct {
 	txOptions pgx.TxOptions
 }
 
-var tracer = otel.Tracer("postgres")
-
 // NewRelationshipReader - Creates a new RelationshipReader
 func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
 	return &RelationshipReader{
@@ -35,14 +33,12 @@ func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
 
 // QueryRelationships - Gets all relationships for a given filter
 func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (database.ITupleCollection, error) {
-	
 	ctx, span := tracer.Start(ctx, "relationships.read")
 	defer span.End()
 
 	var err error
-
 	var st token.SnapToken
-	st, err = r.snapshotToken(ctx, t)
+	st, err = snapshot.EncodedToken{Value: t}.Decode()
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -102,7 +98,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 // GetUniqueEntityIDsByEntityType - Gets all unique entity ids for a given entity type
 func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, t string) (ids []string, err error) {
 	var st token.SnapToken
-	st, err = r.snapshotToken(ctx, t)
+	st, err = snapshot.EncodedToken{Value: t}.Decode()
 	if err != nil {
 		return nil, err
 	}
@@ -146,12 +142,6 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 	}
 
 	return result, nil
-}
-
-// snapshotToken - gets the token for a given snapshot
-func (r *RelationshipReader) snapshotToken(ctx context.Context, token string) (token.SnapToken, error) {
-	encoded := snapshot.EncodedToken{Value: token}
-	return encoded.Decode()
 }
 
 // HeadSnapshot - Gets the latest token

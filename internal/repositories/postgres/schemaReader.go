@@ -6,7 +6,8 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
-	otelCodes "go.opentelemetry.io/otel/codes"	
+	otelCodes "go.opentelemetry.io/otel/codes"
+
 	"github.com/Permify/permify/internal/repositories"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/dsl/compiler"
@@ -75,7 +76,6 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 
 // ReadSchemaDefinition - Reads entity config from the repository.
 func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (*base.EntityDefinition, string, error) {
-	
 	ctx, span := tracer.Start(ctx, "schemaReader.read.definition")
 	defer span.End()
 
@@ -127,7 +127,6 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, ver
 
 // HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReader) HeadVersion(ctx context.Context) (version string, err error) {
-	
 	ctx, span := tracer.Start(ctx, "schemaReader.read.head")
 	defer span.End()
 

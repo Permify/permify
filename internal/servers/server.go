@@ -42,18 +42,24 @@ type ServiceContainer struct {
 func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authentication *config.Authn, l *logger.Logger) error {
 	var err error
 
-	interceptors := []grpc.UnaryServerInterceptor{
+	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpcValidator.UnaryServerInterceptor(),
+	}
+
+	streamingInterceptors := []grpc.StreamServerInterceptor{
+		grpcValidator.StreamServerInterceptor(),
 	}
 
 	var authenticator authn.KeyAuthenticator
 	if authentication != nil && authentication.Enabled {
 		authenticator, err = authn.NewKeyAuthn(authentication.Keys...)
-		interceptors = append(interceptors, grpcAuth.UnaryServerInterceptor(middleware.AuthFunc(authenticator)))
+		unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.AuthFunc(authenticator)))
+		streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.AuthFunc(authenticator)))
 	}
 
 	opts := []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(interceptors...),
+		grpc.ChainUnaryInterceptor(unaryInterceptors...),
+		grpc.ChainStreamInterceptor(streamingInterceptors...),
 	}
 
 	if cfg.GRPC.TLSConfig.Enabled {
