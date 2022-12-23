@@ -53,15 +53,74 @@ Permify's data model is inspired by Google’s consistent, global authorization 
 - If your data model is getting too complicated to handle your authorization within the service.
 - If your authorization is growing too complex to handle within code or API gateway.
 
+<p align="center">
+    <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
+</p>
+
 ## How it works
 
 Permify stores access control relations on a database you choose and performs authorization checks based on the stored relations. We called that database Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model your authorization with Permify's DSL - Permify Schema and perform access checks with a single API call anywhere on your stack.
 
 ![Value Chain Schema](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
 
-<p align="center">
-    <a href="https://play.permify.co" target="_blank"><img src="https://raw.githubusercontent.com/Permify/permify/f548b4d5ae0d19c7d2f5bf61cc60ee04a58fa281/assets/Github%20Button.svg" alt="Try Permify" /></a>&nbsp;
-</p>
+## QuickStart
+
+You can run Permify Service with two options: 
+
+- [Run From Container](#run-from-container)  
+- [Install With Brew](#install-with-brew). 
+
+### Run From Container
+
+Installation needs some configuration such as defining running options, selecting datastore to store authorization data and more. 
+
+However, If you want to play around with Permify without doing any configurations, you can quickly start Permify on your local with running the command below:
+
+```shell
+docker run -p 3476:3476 -p 3478:3478  ghcr.io/permify/permify serve
+```
+
+This will start Permify with the default configuration options: 
+* Port 3476 is used to serve the REST API.
+* Port 3478 is used to serve the GRPC Service.
+* Authorization data stored in memory.
+
+See [Container With Configurations] section to get more details about the configuration options and learn the full integration to run Permify Service from container.
+
+[Container With Configurations]: https://docs.permify.co/docs/installation/container
+
+### Install With Brew
+
+Firstly, open terminal and run following line,
+
+```shell
+brew install permify/tap/permify
+```
+
+After the brew installation, the `serve` command should be used to run Permify. 
+
+```shell
+permify serve
+```
+
+This will start Permify with the default configuration options: 
+* Port 3476 is used to serve the REST API.
+* Port 3478 is used to serve the GRPC Service.
+* Authorization data stored in memory.
+
+You can override these configurations with running the command with configuration flags. See all configuration options with running `permify serve --help` on terminal. 
+
+Check out the [Brew With Configurations] section to learn full implementation with configurations.
+
+[Brew With Configurations]: https://docs.permify.co/docs/installation/brew
+
+### Test your connection
+
+You can test your connection with creating an GET request,
+
+```shell
+localhost:3476/healthz
+```
 
 ## Getting Started
 
