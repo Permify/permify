@@ -57,6 +57,17 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetMetadata() == nil {
+		err := PermissionCheckRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -650,6 +661,17 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetMetadata() == nil {
+		err := PermissionExpandRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -1087,6 +1109,17 @@ func (m *PermissionLookupSchemaRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetMetadata() == nil {
+		err := PermissionLookupSchemaRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -1452,6 +1485,17 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetMetadata() == nil {
+		err := PermissionLookupEntityRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -2211,6 +2255,17 @@ func (m *SchemaReadRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetMetadata() == nil {
+		err := SchemaReadRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -2576,6 +2631,17 @@ func (m *RelationshipWriteRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetMetadata() == nil {
+		err := RelationshipWriteRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -2974,6 +3040,17 @@ func (m *RelationshipReadRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetMetadata() == nil {
+		err := RelationshipReadRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {

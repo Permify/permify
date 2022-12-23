@@ -95,7 +95,7 @@ service Permission {
 
 // CheckRequest
 message PermissionCheckRequest {
-  PermissionCheckRequestMetadata metadata = 1 [json_name = "metadata"];
+  PermissionCheckRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 
   Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
@@ -139,7 +139,7 @@ message PermissionCheckResponseMetadata {
 
 // PermissionExpandRequest
 message PermissionExpandRequest {
-  PermissionExpandRequestMetadata metadata = 1 [json_name = "metadata"];
+  PermissionExpandRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 
   Entity entity = 2 [json_name = "entity", (validate.rules).message.required = true];
 
@@ -165,7 +165,7 @@ message PermissionExpandResponse {
 
 // PermissionLookupSchemaRequest
 message PermissionLookupSchemaRequest {
-  PermissionLookupSchemaRequestMetadata metadata = 1 [json_name = "metadata"];
+  PermissionLookupSchemaRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 
   string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
@@ -188,7 +188,7 @@ message PermissionLookupSchemaResponse {
 
 // PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
-  PermissionLookupEntityRequestMetadata metadata = 1 [json_name = "metadata"];
+  PermissionLookupEntityRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 
   string entity_type = 2 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
@@ -273,7 +273,7 @@ message SchemaWriteResponse {
 
 // SchemaReadRequest
 message SchemaReadRequest {
-  SchemaReadRequestMetadata metadata = 1 [json_name = "metadata"];
+  SchemaReadRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 }
 
 // LookupSchemaRequestMetadata
@@ -338,7 +338,7 @@ service Relationship {
 
 // RelationshipWriteRequest
 message RelationshipWriteRequest {
-  RelationshipWriteRequestMetadata metadata = 1 [json_name = "metadata"];
+  RelationshipWriteRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 
   repeated Tuple tuples = 2 [json_name = "tuples", (validate.rules).repeated = {
     min_items : 1,
@@ -363,7 +363,7 @@ message RelationshipWriteResponse {
 
 // RelationshipReadRequest
 message RelationshipReadRequest {
-  RelationshipReadRequestMetadata metadata = 1 [json_name = "metadata"];
+  RelationshipReadRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 
   TupleFilter filter = 2 [json_name = "filter"];
 }
