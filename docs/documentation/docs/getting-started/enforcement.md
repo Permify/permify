@@ -54,8 +54,10 @@ POST /v1/permissions/check
 
 ```json
 {
-  "schema_version": "",
-  "snap_token": "",
+  "metadata": {
+    "schema_version": "",
+    "snap_token": "",
+  },
   "entity": {
     "type": "document",
     "id": "12"
