@@ -4,4 +4,4 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-var tracer = otel.Tracer("postgres")
+var tracer = otel.Tracer("repositories.postgres")

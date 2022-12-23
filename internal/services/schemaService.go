@@ -29,6 +29,9 @@ func NewSchemaService(sw repositories.SchemaWriter, sr repositories.SchemaReader
 
 // ReadSchema -
 func (service *SchemaService) ReadSchema(ctx context.Context, version string) (response *base.IndexedSchema, err error) {
+	ctx, span := tracer.Start(ctx, "schemas.read")
+	defer span.End()
+
 	if version == "" {
 		var ver string
 		ver, err = service.sr.HeadVersion(ctx)
@@ -43,7 +46,7 @@ func (service *SchemaService) ReadSchema(ctx context.Context, version string) (r
 
 // WriteSchema -
 func (service *SchemaService) WriteSchema(ctx context.Context, schema string) (response string, err error) {
-	ctx, span := tracer.Start(ctx, "schemas.write.parse")
+	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()
 
 	sch, err := parser.NewParser(schema).Parse()

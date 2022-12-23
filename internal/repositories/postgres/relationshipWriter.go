@@ -34,6 +34,9 @@ func NewRelationshipWriter(database *db.Postgres) *RelationshipWriter {
 
 // WriteRelationships - Writes a collection of relationships to the database
 func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
+	ctx, span := tracer.Start(ctx, "relationship-writer.write-relationships")
+	defer span.End()
+
 	for i := 0; i <= 10; i++ {
 		tx, bErr := w.database.Pool.BeginTx(ctx, w.txOptions)
 		if bErr != nil {
@@ -88,7 +91,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 
 // DeleteRelationships - Deletes a collection of relationships to the database
 func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
-	ctx, span := tracer.Start(ctx, "relationships.delete")
+	ctx, span := tracer.Start(ctx, "relationship-writer.delete-relationships")
 	defer span.End()
 
 	for i := 0; i <= 10; i++ {

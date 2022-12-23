@@ -33,7 +33,7 @@ func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
 
 // QueryRelationships - Gets all relationships for a given filter
 func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (database.ITupleCollection, error) {
-	ctx, span := tracer.Start(ctx, "relationships.read")
+	ctx, span := tracer.Start(ctx, "relationship-reader.query-relationships")
 	defer span.End()
 
 	var err error
@@ -97,6 +97,9 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 
 // GetUniqueEntityIDsByEntityType - Gets all unique entity ids for a given entity type
 func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, t string) (ids []string, err error) {
+	ctx, span := tracer.Start(ctx, "relationship-reader.get-unique-entity-ids-by-entity_type")
+	defer span.End()
+
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: t}.Decode()
 	if err != nil {
@@ -146,6 +149,9 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 
 // HeadSnapshot - Gets the latest token
 func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
+	ctx, span := tracer.Start(ctx, "relationship-reader.head-snapshot")
+	defer span.End()
+
 	var xid types.XID8
 	query := r.database.Builder.Select("id").From(TransactionsTable).OrderBy("id DESC").Limit(1)
 	sql, args, err := query.ToSql()

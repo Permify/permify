@@ -27,7 +27,7 @@ func NewLookupSchemaCommand(schemaReader repositories.SchemaReader) *LookupSchem
 
 // Execute -
 func (command *LookupSchemaCommand) Execute(ctx context.Context, request *base.PermissionLookupSchemaRequest) (*base.PermissionLookupSchemaResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.LookupSchema.execute")
+	ctx, span := tracer.Start(ctx, "permissions.lookup-schema.execute")
 	defer span.End()
 
 	var err error

@@ -32,6 +32,9 @@ func NewRelationshipService(rr repositories.RelationshipReader, rw repositories.
 
 // ReadRelationships -
 func (service *RelationshipService) ReadRelationships(ctx context.Context, filter *base.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
+	ctx, span := tracer.Start(ctx, "relationships.read")
+	defer span.End()
+
 	return service.rr.QueryRelationships(ctx, filter, token)
 }
 
@@ -89,5 +92,8 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tupl
 
 // DeleteRelationships -
 func (service *RelationshipService) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+	ctx, span := tracer.Start(ctx, "relationships.delete")
+	defer span.End()
+
 	return service.rw.DeleteRelationships(ctx, filter)
 }

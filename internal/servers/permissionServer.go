@@ -51,7 +51,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 
 // Expand - Get schema actions in a tree structure
 func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.expand")
+	ctx, span := tracer.Start(ctx, "expand")
 	defer span.End()
 
 	v := request.Validate()
@@ -74,7 +74,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 
 // LookupSchema -
 func (r *PermissionServer) LookupSchema(ctx context.Context, request *v1.PermissionLookupSchemaRequest) (*v1.PermissionLookupSchemaResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookupSchema")
+	ctx, span := tracer.Start(ctx, "lookup-schema")
 	defer span.End()
 
 	v := request.Validate()
@@ -97,7 +97,7 @@ func (r *PermissionServer) LookupSchema(ctx context.Context, request *v1.Permiss
 
 // LookupEntity -
 func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.PermissionLookupEntityRequest) (*v1.PermissionLookupEntityResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookupEntity")
+	ctx, span := tracer.Start(ctx, "lookup-entity")
 	defer span.End()
 
 	v := request.Validate()
@@ -120,7 +120,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 
 // LookupEntityStream -
 func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntityRequest, server v1.Permission_LookupEntityStreamServer) error {
-	ctx, span := tracer.Start(context.Background(), "permissions.lookupEntityStream")
+	ctx, span := tracer.Start(context.Background(), "lookup-entity-stream")
 	defer span.End()
 
 	v := request.Validate()
