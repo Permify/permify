@@ -54,6 +54,16 @@ docker_manifests:
       - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
       - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
     name_template: "ghcr.io/permify/permify:latest"
+  -
+    image_templates:
+      - "permify/permify:v{{ .Version }}-amd64"
+      - "permify/permify:v{{ .Version }}-arm64"
+    name_template: "permify/permify:v{{ .Version }}"
+  -
+    image_templates:
+      - "permify/permify:v{{ .Version }}-amd64"
+      - "permify/permify:v{{ .Version }}-arm64"
+    name_template: "permify/permify:latest"
 dockers:
   -
     build_flag_templates:
@@ -62,6 +72,7 @@ dockers:
     goarch: arm64
     image_templates:
       - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
+      - "permify/permify:v{{ .Version }}-arm64"
     use: buildx
   -
     build_flag_templates:
@@ -70,6 +81,7 @@ dockers:
     goarch: amd64
     image_templates:
       - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
+      - "permify/permify:v{{ .Version }}-amd64"
     use: buildx
 nfpms:
   -
