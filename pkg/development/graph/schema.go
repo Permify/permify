@@ -35,7 +35,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 	for _, re := range entity.GetRelations() {
 		reNode := &Node{
 			Type:  "relation",
-			ID:    fmt.Sprintf("entity:%s:relation:%s", entity.GetName(), re.GetName()),
+			ID:    fmt.Sprintf("entity:%s:permission:%s", entity.GetName(), re.GetName()),
 			Label: re.Name,
 		}
 		g.AddNode(reNode)
@@ -45,7 +45,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 	for _, action := range entity.GetActions() {
 		acNode := &Node{
 			Type:  "action",
-			ID:    fmt.Sprintf("entity:%s:action:%s", entity.GetName(), action.GetName()),
+			ID:    fmt.Sprintf("entity:%s:permission:%s", entity.GetName(), action.GetName()),
 			Label: action.GetName(),
 		}
 		g.AddNode(acNode)
@@ -66,14 +66,9 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
 			rw := &Node{
-				Type: "logic",
-				ID:   xid.New().String(),
-			}
-
-			if child.GetRewrite().GetRewriteOperation() == base.Rewrite_OPERATION_INTERSECTION {
-				rw.Label = "and"
-			} else {
-				rw.Label = "or"
+				Type:  "logic",
+				ID:    xid.New().String(),
+				Label: child.GetRewrite().GetRewriteOperation().String(),
 			}
 
 			g.AddNode(rw)
@@ -94,13 +89,13 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 				}
 				g.AddEdge(from, &Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:relation:%s", schema.GetEntityReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
+					ID:    fmt.Sprintf("entity:%s:permission:%s", schema.GetEntityReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
 					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
 				}, leaf.GetExclusion())
 			case *base.Leaf_ComputedUserSet:
 				g.AddEdge(from, &Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:relation:%s", entity.GetName(), leaf.GetComputedUserSet().GetRelation()),
+					ID:    fmt.Sprintf("entity:%s:permission:%s", entity.GetName(), leaf.GetComputedUserSet().GetRelation()),
 					Label: leaf.GetComputedUserSet().GetRelation(),
 				}, leaf.GetExclusion())
 			default:

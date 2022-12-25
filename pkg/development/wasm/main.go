@@ -33,7 +33,10 @@ func check() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
-		return js.ValueOf([]interface{}{result.GetCan(), nil})
+		if result.GetCan() == v1.PermissionCheckResponse_RESULT_ALLOWED {
+			return js.ValueOf([]interface{}{true, nil})
+		}
+		return js.ValueOf([]interface{}{false, nil})
 	})
 }
 
