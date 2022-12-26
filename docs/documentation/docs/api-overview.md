@@ -2,7 +2,7 @@
 id: api-overview
 title: API Overview
 sidebar_label: Using the API
-slug: /
+slug: /api-overview
 ---
 
 # Overview
