@@ -46,14 +46,18 @@ func lookupEntity() js.Func {
 		params := &v1.PermissionLookupEntityRequest{}
 		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
 		if err != nil {
-			return js.ValueOf([]interface{}{false, err.Error()})
+			return js.ValueOf([]interface{}{[]string{}, err.Error()})
 		}
 		var result *v1.PermissionLookupEntityResponse
 		result, err = development.LookupEntity(context.Background(), dev.P, params.Subject, params.Permission, params.EntityType, string(args[1].String()), "")
 		if err != nil {
 			return js.ValueOf([]interface{}{[]string{}, err.Error()})
 		}
-		return js.ValueOf([]interface{}{result.GetEntityIds(), nil})
+		ids := make([]interface{}, len(result.GetEntityIds()))
+		for i, v := range result.GetEntityIds() {
+			ids[i] = v
+		}
+		return js.ValueOf([]interface{}{ids, nil})
 	})
 }
 
