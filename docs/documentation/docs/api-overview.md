@@ -1,5 +1,8 @@
 ---
-sidebar_position: 1
+id: api-overview
+title: API Overview
+sidebar_label: Using the API
+slug: /
 ---
 
 # Overview
@@ -19,14 +22,15 @@ Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/
 
 ## Core Paths
 
-- Check access with [Check API](./check-api.md)
-- Write relational tuples with [Write API](./write-relationships.md)
-- Delete relation tuples with [Delete Tuple](./delete-relationships.md)
-- Configure your authorization model with [Schema Write](./write-schema)
-- Expand schema actions with [Expand API](./expand-api.md)
-- Get permissions of your resources with [Schema Lookup](./schema-lookup.md)
-- Read relation tuples and filter them with [Read API](./read-api.md)
+- Check access with [Check API](./api-overview/check-api.md)
+- Configure your authorization model with [Schema Write](./api-overview/write-schema.md)
+- Write relational tuples with [Write API](./api-overview/write-relationships.md)
+- Read relation tuples and filter them with [Read API](./api-overview/read-api.md)
+- Delete relation tuples with [Delete Tuple](./api-overview/delete-relationships.md)
+- Expand schema actions with [Expand API](./api-overview/expand-api.md)
+- Get permissions of your resources with [Schema Lookup](./api-overview/schema-lookup.md)
 
 ## Need any help ?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+
