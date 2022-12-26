@@ -32,7 +32,7 @@ Check out the [Centralize Authorization Data] section to learn how to organize t
 |  --authn-preshared-keys   | Preshared key/keys for server authentication. | - | 
 |  --database-engine     | Data source. Permify supports PostgreSQL('postgres') for now. |  memory | 
 |  --database-name    | Custom database name |  - |
-|  --database-pool-max   | Max connection pool size | 20 | 
+|  --max_open_connections   | Max connection pool size | 20 | 
 |  --database-uri   | Uri of your data source to store relation tuples | - | 
 |  --grpc-port  | Port that server run on | 3478 | 
 |  --grpc-tls-config-cert-path   | GRPC tls certificate path | - | 
@@ -48,7 +48,6 @@ Check out the [Centralize Authorization Data] section to learn how to organize t
 |  --tracer-enabled | Switch option for tracing | false | 
 |  --tracer-endpoint | Export uri for tracing data | - | 
 |  --tracer-exporter | Can be; jaeger, signoz or zipkin. (integrated tracing tools) | - | 
-
 
 ### Test your connection.
 
