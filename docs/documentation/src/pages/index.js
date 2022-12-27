@@ -26,21 +26,21 @@ function HomepageHeader() {
     );
 }
 
-// export default function Home() {
-//   const {siteConfig} = useDocusaurusContext();
-//   return (
-//     <Layout
-//       title={`Hello from ${siteConfig.title}`}
-//       description="Description will go into a meta tag in <head />">
-//       <HomepageHeader />
-//       <main>
-//         <HomepageFeatures />
-//       </main>
-//     </Layout>
-//   );
-// }
+/* export default function Home() {
+    const {siteConfig} = useDocusaurusContext();
+    return (
+     <Layout
+         title={`Hello from ${siteConfig.title}`}
+         description="Description will go into a meta tag in <head />">
+         <HomepageHeader />
+         <main>
+           <HomepageFeatures />
+        </main>
+       </Layout>
+     );
+} */
 
 export default function Home() {
     // const {siteConfig} = useDocusaurusContext();
-    return <Redirect to="/docs/permify-overview/intro" />;
+    return <Redirect to="/docs/" />;
 }
