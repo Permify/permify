@@ -100,7 +100,7 @@ const config = {
               items: [
                 {
                   label: 'Docs',
-                  to: '/docs/permify-overview/intro',
+                  to: '/docs/',
                 },
               ],
             },
