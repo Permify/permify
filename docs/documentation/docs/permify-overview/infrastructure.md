@@ -1,7 +1,7 @@
 
 # Where does Permify fit into your environment?
 
-Permify is a simply GRPC service that responsible for managing and authorization in your environment. This section shows where and how does Permify fit into your enviroment with examining Permify's architecture, deployment patterns and the usage with the authentication and identity providers.
+Permify is a simply GRPC service that responsible for managing and authorization in your environment. This section shows where and how does Permify fit into your environment with examining Permify's architecture, deployment patterns and the usage with the authentication and identity providers.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ You can model your authorization with Permify's DSL - Permify Schema and your ap
 
 Authentication involves verifying that the person actually is who they purport to be, while authorization refers to what a person or service is allowed to do once inside the system.
 
-To clear out, Permify doesn't handle authentication or user management. Permify behave as you have a different place to handle authentication and store relevant data. Authentication or user management solutions (AWS Cognito, Auth0, etc) only can feed Permify with user informations (attributes, identities, etc) to provide more consistent authorization acrros your stack. 
+To clear out, Permify doesn't handle authentication or user management. Permify behave as you have a different place to handle authentication and store relevant data. Authentication or user management solutions (AWS Cognito, Auth0, etc) only can feed Permify with user information (attributes, identities, etc) to provide more consistent authorization across your stack. 
 
 ### Permify with Identity Providers
 
@@ -27,7 +27,7 @@ What we do is, help you build these permissions and eventually map anywhere you 
 
 ## Deployment Patterns
 
-There are two main deployment patterns that you can follow, integrate Permify into your applications as a sidecar or using Permify as a service across your applications. Despite for both of these deployment patterns implementation is same - running Permify API in a enviroment you choose - the architectural aspects and usages differs. So let's examine them both.
+There are two main deployment patterns that you can follow, integrate Permify into your applications as a sidecar or using Permify as a service across your applications. Despite for both of these deployment patterns implementation is same - running Permify API in a environment you choose - the architectural aspects and usages differs. So let's examine them both.
 
 ### Permify As A Service
 
