@@ -1,11 +1,14 @@
 ---
 sidebar_position: 1
 ---
-# Modeling Authorization 
+
+# Modeling Authorization
+
+![modeling-authorization](https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif)
 
 ## Permify Schema
 
-Permify has its own language that you can model your authorization logic with it, we called it Permify Schema. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like user types such as admin, manager, member, etc. 
+Permify has its own language that you can model your authorization logic with it, we called it Permify Schema. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like user types such as admin, manager, member, etc.
 
 You can define your entities, relations between them and access control decisions with using Permify Schema. It includes set-algebraic operators such as inter- section and union for specifying potentially complex access control policies in terms of those user-object relations.
 
@@ -13,18 +16,19 @@ Here’s a simple breakdown of our schema.
 
 ![permify-schema](https://user-images.githubusercontent.com/34595361/183866396-9d2850fc-043f-4254-aa4c-ee2c4172afb8.png)
 
-Permify Schema can be created on our [playground](https://play.permify.co/) as well as in any IDE or text editor. We also have a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=Permify.perm) to ease modeling Permify Schema with code snippets and syntax highlights. Note that on VS code the file with extension is ***".perm"***.
+Permify Schema can be created on our [playground](https://play.permify.co/) as well as in any IDE or text editor. We also have a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=Permify.perm) to ease modeling Permify Schema with code snippets and syntax highlights. Note that on VS code the file with extension is **_".perm"_**.
 
 ## Developing a Schema
 
 This guide will show how to develop a Permify Schema from scratch with a simple example, yet it will show almost every aspect of our modeling language.
 
-We'll follow a simplified version of github access control system. To see completed model you can jump directly to [Github Example](#github-example). 
+We'll follow a simplified version of github access control system. To see completed model you can jump directly to [Github Example](#github-example).
 
 :::info
 You can start developing Permify Schema on [VSCode]. You can install the extension by searching for **Perm** in the extensions marketplace.
 
-[VSCode]: https://marketplace.visualstudio.com/items?itemName=Permify.perm
+[vscode]: https://marketplace.visualstudio.com/items?itemName=Permify.perm
+
 :::
 
 ### Entities
@@ -42,7 +46,7 @@ entity organization {}
 
 entity team {}
 
-entity repository {} 
+entity repository {}
 ```
 
 Entities has 2 different attributes. These are;
@@ -52,7 +56,7 @@ Entities has 2 different attributes. These are;
 
 ### Relations
 
-Relations represent relationships between entities. It's probably the most critical part of the schema because Permify mostly based on relations between resources and their permissions. Keyword ***relation*** need to used to create a entity relation with name and type attributes.
+Relations represent relationships between entities. It's probably the most critical part of the schema because Permify mostly based on relations between resources and their permissions. Keyword **_relation_** need to used to create a entity relation with name and type attributes.
 
 **Relation Attributes:**
 
@@ -62,7 +66,7 @@ Relations represent relationships between entities. It's probably the most criti
 An example relation takes form of,
 
 ```perm
-relation [name] @[type] 
+relation [name] @[type]
 ```
 
 Lets turn back to our example and define our relations inside our entities:
@@ -82,22 +86,22 @@ entity user {}
 ```perm
 entity organization {
 
-    relation admin  @user 
-    relation member @user   
+    relation admin  @user
+    relation member @user
 
-} 
+}
 ```
 
 #### Team Entity
 
-→  Let's say teams can belong organizations and can have a member inside of it as follows,
+→ Let's say teams can belong organizations and can have a member inside of it as follows,
 
 ```perm
 entity team {
 
     relation parent  @organization
-    relation member  @user     
-   
+    relation member  @user
+
 }
 ```
 
@@ -110,11 +114,11 @@ The parent relation is indicating the organization the team belongs to. This way
 ```perm
 entity repository {
 
-    relation  parent @organization 
+    relation  parent @organization
 
-    relation  owner  @user   
-    relation  maintainer @user @team#member     
-   
+    relation  owner  @user
+    relation  maintainer @user @team#member
+
 }
 ```
 
@@ -128,28 +132,28 @@ As you can see we have new syntax above,
     relation maintainer @user @team#member
 ```
 
-When we look at the maintainer relation, it indicates that the maintainer can be an `user` as well as this user can be a `team member`. 
+When we look at the maintainer relation, it indicates that the maintainer can be an `user` as well as this user can be a `team member`.
 
-***Quick note here:*** with using # you can reach entities relation. When we look at the `@team#member` it specifies that if the user has a relation with the team, this relation can only be the `member`. We called that feature locking, because it basically locks the relation type according to the prefixed entity.
+**_Quick note here:_** with using # you can reach entities relation. When we look at the `@team#member` it specifies that if the user has a relation with the team, this relation can only be the `member`. We called that feature locking, because it basically locks the relation type according to the prefixed entity.
 
 Defining multiple relation types totally optional. The goal behind it to improve validation and reasonability. And for complex models, it allows you to model your entities in a more structured way.
 
 ### Actions
 
-Actions describe what relations, or relation’s relation can do. Think of actions as permissions of the entity it belongs. So actions defines who can perform a specific action on a resource in which circumstances. So, the basic form of authorization check in Permify is ***Can the user U perform action X on a resource Y ?***.
+Actions describe what relations, or relation’s relation can do. Think of actions as permissions of the entity it belongs. So actions defines who can perform a specific action on a resource in which circumstances. So, the basic form of authorization check in Permify is **_Can the user U perform action X on a resource Y ?_**.
 
-Permify Schema supports ``and``, ``or``, ``and not`` and ``or not`` operators to define actions. Keyword ***action*** need to used with these operators to form an action.
+Permify Schema supports `and`, `or`, `and not` and `or not` operators to define actions. Keyword **_action_** need to used with these operators to form an action.
 
 Lets get back to our github example and create some actions on repository entity,
 
 ```perm
 entity repository {
 
-    relation  parent   @organization  
+    relation  parent   @organization
 
-    relation  owner @user         
-    relation  maintainer @user @team#member     
-    
+    relation  owner @user
+    relation  maintainer @user @team#member
+
     ..
     ..
 
@@ -158,17 +162,17 @@ entity repository {
 }
 ```
 
-→ ``action push = owner or maintainer`` indicates only the repository owner or maintainers can push to
+→ `action push = owner or maintainer` indicates only the repository owner or maintainers can push to
 repository.
 
 ```perm
 entity repository {
 
-    relation  parent   @organization  
-        
-    relation  owner @user         
-    relation  maintainer @user @team#member     
-    
+    relation  parent   @organization
+
+    relation  owner @user
+    relation  maintainer @user @team#member
+
 
     ..
     ..
@@ -178,47 +182,47 @@ entity repository {
 }
 ```
 
-→ For more fine grained permission let's examine the ``read`` action rules; user that is ``organization admin`` and following users can read the repository: ``owner`` of the repository, or ``maintainer``, or ``member`` of the organization which repository belongs to.
+→ For more fine grained permission let's examine the `read` action rules; user that is `organization admin` and following users can read the repository: `owner` of the repository, or `maintainer`, or `member` of the organization which repository belongs to.
 
-## Github Example 
+## Github Example
 
 Here is full implementation of simple Github access control example with using Permify Schema.
 
 ```perm
-entity user {} 
+entity user {}
 
 entity organization {
 
-    relation admin @user 
-    relation member @user   
+    relation admin @user
+    relation member @user
 
     action create_repository = admin or member
     action delete = admin
 
-} 
+}
 
 entity team {
 
     relation parent  @organization
-    relation member  @user   
+    relation member  @user
 
     action edit_team = member or parent.admin
-   
+
 }
 
 entity repository {
 
-    relation parent @organization  
-        
-    relation owner @user         
-    relation maintainer @user @team#member     
-    
+    relation parent @organization
+
+    relation owner @user
+    relation maintainer @user @team#member
+
 
     action push   = owner or maintainer
     action read   = (owner or maintainer or parent.member) and parent.admin
     action delete = parent.admin or owner
 
-} 
+}
 ```
 
 See more schema examples from the [Example Use Cases](/docs/example-use-cases/simple-rbac) section with their detailed examination.
