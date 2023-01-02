@@ -170,7 +170,7 @@ Each row represents object-user or object-object relations, which we call relati
 → Considering table above, semantics of second row (id:8) is **user 1 is owner of repository 1**
 
 Alternatively user U can behave as "set of users".
-More spesifically, “set of users S has relation R to object O”, where S is itself specified in terms of another object-relation pair. 
+More specifically, “set of users S has relation R to object O”, where S is itself specified in terms of another object-relation pair. 
 
  → First row in our table (id:7), we can see that **organization 1 (set of users in organization) is parent of repository 1**
 

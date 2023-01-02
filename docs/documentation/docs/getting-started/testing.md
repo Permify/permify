@@ -8,7 +8,7 @@ Testing is critical process when building and maintaining an authorization syste
 
 Assuming that you're familiar with creating an authorization model and forming relation tuples in Permify. If not, we're strongly advising you to examine them before testing.
 
-We provide a GitHub action repository called [permify-validate-action] for testing and validation. This repository runs the permify validate command on the created schema validation yaml file that consists of schema (authorization model) and relationships (sample authorization data) and assertions (sample check queries and results).
+We provide a GitHub action repository called [permify-validate-action] for testing and validation. This repository runs the Permify validate command on the created schema validation yaml file that consists of schema (authorization model) and relationships (sample authorization data) and assertions (sample check queries and results).
 
 :::info 
 If you don't know how to create Github action workflow and add a action to it, you can examine [related page](https://docs.github.com/en/actions/quickstart) on Github docs.

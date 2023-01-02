@@ -35,7 +35,7 @@ You can start developing Permify Schema on [VSCode]. You can install the extensi
 
 The very first step to build Permify Schema is creating your Entities. Entity is an object that defines your resources that held role in your permission system.
 
-Think of entities as tables in your relationship database. We are strongly advice to name entities same as your database table name that its corresponds. In that way you can easily model and reason your authorization as well as eliminating the error posibility.
+Think of entities as tables in your relationship database. We are strongly advice to name entities same as your database table name that its corresponds. In that way you can easily model and reason your authorization as well as eliminating the error possibility.
 
 You can create entities using `entity` keyword. Since we're following example of simplified github access control, lets create some of our entities as follows.
 

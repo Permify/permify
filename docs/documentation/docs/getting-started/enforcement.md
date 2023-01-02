@@ -47,7 +47,7 @@ POST /v1/permissions/check
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It containes type and id of the subject.  |
+| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
 | [ ]   | depth | integer | 8 | Timeout limit when if recursive database queries got in loop|
 
 #### Request
@@ -95,7 +95,7 @@ Let's turn back to above authorization question ( ***"Can the user 3 edit docume
 [relational tuples]: /docs/getting-started/sync-data
 [Permify Schema]:  /docs/getting-started/modeling
 
-When Permify Engine recieves this question it ireclty looks up to authorization model to find document `‍edit` action. Let's say we have a model as follows
+When Permify Engine receives this question it directly looks up to authorization model to find document `‍edit` action. Let's say we have a model as follows
 
 ```perm
 entity user {}
@@ -125,7 +125,7 @@ Which has a directed graph as follows:
 
 ![relational-tuples](https://user-images.githubusercontent.com/34595361/193418063-af33fe81-95ed-4615-9d86-b50d4094ad8e.png)
 
-As we can see above: only users with an admin role in an organization, which `document:12` belongs, and owners of the `document:12` can edit. Permify runs two concurent queries for **parent.admin** and **owner**:
+As we can see above: only users with an admin role in an organization, which `document:12` belongs, and owners of the `document:12` can edit. Permify runs two concurrent queries for **parent.admin** and **owner**:
 
 **Q1:** Get the owners of the `document:12`.
 
@@ -146,7 +146,7 @@ So we have a 2 seperate endpoints for data filtering check request,
 
 ### Lookup Entity 
 
-In this endpoint you'll get directly the IDs' of the entites that are authorized in an array
+In this endpoint you'll get directly the IDs' of the entities that are authorized in an array
 
 #### Path: 
 
@@ -158,7 +158,7 @@ POST /v1/permissions/lookup-entity
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity_type | object | - | type of the  entity. Example: repository”.
 | [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It containes type and id of the subject.  |
+| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
 
 #### Request
 
@@ -203,7 +203,7 @@ POST /v1/permissions/lookup-entity-stream
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity_type | object | - | type of the  entity. Example: repository”.
 | [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It containes type and id of the subject.  |
+| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
 
 #### Request
 
