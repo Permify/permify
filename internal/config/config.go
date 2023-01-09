@@ -17,6 +17,7 @@ type (
 		Log      `yaml:"logger"`
 		Authn    `yaml:"authn"`
 		Tracer   `yaml:"tracer"`
+		Meter    `yaml:"meter"`
 		Service  `yaml:"service"`
 		Database `yaml:"database"`
 	}
@@ -64,10 +65,19 @@ type (
 		Enabled  bool   `yaml:"enabled"`
 	}
 
+	// Meter -.
+	Meter struct {
+		Exporter string `yaml:"exporter"`
+		Endpoint string `yaml:"endpoint"`
+		Enabled  bool   `yaml:"enabled"`
+	}
+
 	// Service -.
 	Service struct {
 		CircuitBreaker   bool `yaml:"circuit_breaker"`
 		ConcurrencyLimit int  `yaml:"concurrency_limit"`
+		// MaxTuplesPerWrite       int  `yaml:"max_tuples_per_write"`
+		// LookupEntitiesMaxResult int  `yaml:"lookup_entities_max_result"`
 	}
 
 	// Database -.
@@ -125,9 +135,16 @@ func DefaultConfig() *Config {
 		Tracer: Tracer{
 			Enabled: false,
 		},
+		Meter: Meter{
+			Exporter: "otlp",
+			Endpoint: "a61c09933e16b4b279537145dc62a108-1530038700.us-east-1.elb.amazonaws.com:4317",
+			Enabled:  true,
+		},
 		Service: Service{
 			CircuitBreaker:   false,
 			ConcurrencyLimit: 100,
+			// MaxTuplesPerWrite:       100,
+			// LookupEntitiesMaxResult: 100,
 		},
 		Authn: Authn{
 			Enabled: false,

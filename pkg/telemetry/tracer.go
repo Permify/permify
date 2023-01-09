@@ -9,23 +9,23 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/semconv/v1.10.0"
 )
 
 // NewTracer - Creates new tracer
-func NewTracer(exporter sdktrace.SpanExporter) (func(context.Context) error, error) {
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
-		sdktrace.WithResource(resource.NewWithAttributes(
+func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
+	tp := trace.NewTracerProvider(
+		trace.WithSpanProcessor(trace.NewBatchSpanProcessor(exporter)),
+		trace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
 			attribute.String("id", xid.New().String()),
-			attribute.String("version", "0.0.1"),
+			attribute.String("version", "0.2.1"),
 			attribute.String("os", runtime.GOOS),
 			attribute.String("arch", runtime.GOARCH),
 		)),
 	)
 	otel.SetTracerProvider(tp)
-	return tp.Shutdown, nil
+	return tp.Shutdown
 }
