@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"context"
-	`fmt`
-	`go.opentelemetry.io/otel/metric/instrument`
-	`go.opentelemetry.io/otel/metric/instrument/syncint64`
 	"os/signal"
 	"syscall"
+
+	"go.opentelemetry.io/otel/metric/instrument"
+	"go.opentelemetry.io/otel/metric/instrument/syncint64"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -104,7 +104,6 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		// Meter
 		meter := telemetry.NewNoopMeter()
 		if cfg.Meter.Enabled {
-			fmt.Println("asdasd")
 			var exporter metric.Exporter
 			exporter, err = meterexporters.ExporterFactory(cfg.Meter.Exporter, cfg.Meter.Endpoint)
 			if err != nil {
