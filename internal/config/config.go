@@ -137,7 +137,7 @@ func DefaultConfig() *Config {
 		},
 		Meter: Meter{
 			Exporter: "otlp",
-			Endpoint: "a61c09933e16b4b279537145dc62a108-1530038700.us-east-1.elb.amazonaws.com:4317",
+			Endpoint: "aecb9a2746e6f4b72a471ad5e6781f86-1972838735.us-east-1.elb.amazonaws.com:4317",
 			Enabled:  true,
 		},
 		Service: Service{
