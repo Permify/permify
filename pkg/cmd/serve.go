@@ -2,13 +2,16 @@ package cmd
 
 import (
 	"context"
+	`fmt`
+	`go.opentelemetry.io/otel/metric/instrument`
+	`go.opentelemetry.io/otel/metric/instrument/syncint64`
 	"os/signal"
 	"syscall"
 
-	"go.opentelemetry.io/otel/sdk/trace"
-
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/commands"
@@ -23,12 +26,13 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/telemetry"
-	"github.com/Permify/permify/pkg/telemetry/exporters"
+	"github.com/Permify/permify/pkg/telemetry/meterexporters"
+	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
 )
 
 const (
 	// Version of Permify
-	Version = "v0.2.0"
+	Version = "v0.2.1"
 	banner  = `
 
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
@@ -83,22 +87,44 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		// Tracing
 		if cfg.Tracer.Enabled {
 			var exporter trace.SpanExporter
-			exporter, err = exporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
+			exporter, err = tracerexporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
 			if err != nil {
 				l.Fatal(err)
 			}
 
-			var shutdown func(context.Context) error
-			shutdown, err = telemetry.NewTracer(exporter)
-			if err != nil {
-				l.Fatal(err)
-			}
+			shutdown := telemetry.NewTracer(exporter)
 
 			defer func() {
 				if err = shutdown(context.Background()); err != nil {
 					l.Fatal(err)
 				}
 			}()
+		}
+
+		// Meter
+		meter := telemetry.NewNoopMeter()
+		if cfg.Meter.Enabled {
+			fmt.Println("asdasd")
+			var exporter metric.Exporter
+			exporter, err = meterexporters.ExporterFactory(cfg.Meter.Exporter, cfg.Meter.Endpoint)
+			if err != nil {
+				l.Fatal(err)
+			}
+
+			meter, err = telemetry.NewMeter(exporter)
+			if err != nil {
+				l.Fatal(err)
+			}
+
+			var serveCount syncint64.Counter
+			serveCount, err = meter.SyncInt64().Counter(
+				"serve_count",
+				instrument.WithDescription("serve count"),
+			)
+			serveCount.Add(ctx, 1)
+			if err != nil {
+				l.Fatal(err)
+			}
 		}
 
 		// schema cache
@@ -137,7 +163,12 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
 
 		// commands
-		checkCommand := commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader, commands.ConcurrencyLimit(cfg.Service.ConcurrencyLimit))
+		var checkCommand *commands.CheckCommand
+		checkCommand, err = commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader, meter, commands.ConcurrencyLimit(cfg.Service.ConcurrencyLimit))
+		if err != nil {
+			l.Fatal(err)
+		}
+
 		expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader)
 		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReader)
 		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader)
@@ -193,7 +224,12 @@ func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 	// TRACER
 	cmd.Flags().BoolVar(&config.Tracer.Enabled, "tracer-enabled", config.Tracer.Enabled, "switch option for tracing")
 	cmd.Flags().StringVar(&config.Tracer.Exporter, "tracer-exporter", config.Tracer.Exporter, "export uri for tracing data")
-	cmd.Flags().StringVar(&config.Tracer.Endpoint, "tracer-endpoint", config.Tracer.Endpoint, "can be; jaeger, signoz or zipkin. (integrated tracing tools)")
+	cmd.Flags().StringVar(&config.Tracer.Endpoint, "tracer-endpoint", config.Tracer.Endpoint, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
+
+	// METER
+	cmd.Flags().BoolVar(&config.Meter.Enabled, "meter-enabled", config.Meter.Enabled, "switch option for metric")
+	cmd.Flags().StringVar(&config.Meter.Exporter, "meter-exporter", config.Meter.Exporter, "export uri for metric data")
+	cmd.Flags().StringVar(&config.Meter.Endpoint, "meter-endpoint", config.Meter.Endpoint, "can be; otlp. (integrated metric tools)")
 
 	// SERVICE
 	cmd.Flags().BoolVar(&config.Service.CircuitBreaker, "service-circuit-breaker", config.Service.CircuitBreaker, "switch option for service circuit breaker")

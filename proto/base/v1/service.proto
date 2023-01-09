@@ -93,7 +93,7 @@ service Permission {
 
 // CHECK
 
-// CheckRequest
+// PermissionCheckRequest
 message PermissionCheckRequest {
   PermissionCheckRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 
@@ -150,7 +150,7 @@ message PermissionExpandRequest {
   }];
 }
 
-// ExpandRequestMetadata
+// PermissionExpandRequestMetadata
 message PermissionExpandRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
@@ -176,7 +176,7 @@ message PermissionLookupSchemaRequest {
   repeated string relation_names = 3 [json_name = "relation_names"];
 }
 
-// LookupSchemaRequestMetadata
+// PermissionLookupSchemaRequestMetadata
 message PermissionLookupSchemaRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
 }
@@ -205,7 +205,7 @@ message PermissionLookupEntityRequest {
   Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
 }
 
-// LookupEntityRequestMetadata
+// PermissionLookupEntityRequestMetadata
 message PermissionLookupEntityRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
@@ -276,7 +276,7 @@ message SchemaReadRequest {
   SchemaReadRequestMetadata metadata = 1 [json_name = "metadata", (validate.rules).message.required = true];
 }
 
-// LookupSchemaRequestMetadata
+// SchemaReadRequestMetadata
 message SchemaReadRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
 }

@@ -1,4 +1,4 @@
-package exporters
+package tracerexporters
 
 import (
 	"go.opentelemetry.io/otel/exporters/zipkin"

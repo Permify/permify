@@ -9,6 +9,7 @@ import (
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/telemetry"
 )
 
 // Container - Structure for container instance
@@ -41,7 +42,7 @@ func NewContainer() *Container {
 	schemaWriter := factories.SchemaWriterFactory(db)
 
 	// commands
-	checkCommand := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+	checkCommand, _ := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 	expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader)
 	lookupSchemaCommand := commands.NewLookupSchemaCommand(schemaReader)
 	lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader)

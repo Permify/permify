@@ -5,6 +5,10 @@ import (
 	"errors"
 	"sync"
 
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/instrument"
+	"go.opentelemetry.io/otel/metric/instrument/syncint64"
+
 	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/keys"
@@ -23,12 +27,15 @@ type CheckCommand struct {
 	relationshipReader repositories.RelationshipReader
 	// key manager
 	commandKeyManager keys.CommandKeyManager
+	// counters
+	executionCounter       syncint64.Counter
+	cachedExecutionCounter syncint64.Counter
 	// options
 	concurrencyLimit int
 }
 
 // NewCheckCommand -
-func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr repositories.RelationshipReader, opts ...CheckOption) *CheckCommand {
+func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr repositories.RelationshipReader, m metric.Meter, opts ...CheckOption) (*CheckCommand, error) {
 	command := &CheckCommand{
 		schemaReader:       sr,
 		commandKeyManager:  km,
@@ -41,7 +48,25 @@ func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr
 		opt(command)
 	}
 
-	return command
+	checkExecutionCounter, err := m.SyncInt64().Counter(
+		"check_execution_count",
+		instrument.WithDescription("check execution count"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	cachedCheckExecutionCounter, err := m.SyncInt64().Counter(
+		"cached_check_execution_count",
+		instrument.WithDescription("cached check execution count"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	command.executionCounter = checkExecutionCounter
+	command.cachedExecutionCounter = cachedCheckExecutionCounter
+	return command, nil
 }
 
 // Execute -
@@ -51,6 +76,8 @@ func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr
 func (command *CheckCommand) Execute(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
 	ctx, span := tracer.Start(ctx, "permissions.check.execute")
 	defer span.End()
+
+	command.executionCounter.Add(ctx, 1)
 
 	emptyResp := denied(&base.PermissionCheckResponseMetadata{
 		CheckCount: 0,
@@ -98,6 +125,7 @@ func (command *CheckCommand) Execute(ctx context.Context, request *base.Permissi
 	if tor != base.EntityDefinition_RELATIONAL_REFERENCE_ACTION {
 		res, found := command.commandKeyManager.GetCheckKey(request)
 		if found {
+			command.cachedExecutionCounter.Add(ctx, 1)
 			if request.GetMetadata().GetExclusion() {
 				if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
 					return denied(&base.PermissionCheckResponseMetadata{}), nil

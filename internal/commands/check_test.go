@@ -12,6 +12,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -199,7 +200,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
 			req := &base.PermissionCheckRequest{
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
@@ -313,7 +314,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
 			req := &base.PermissionCheckRequest{
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
@@ -481,7 +482,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
 			req := &base.PermissionCheckRequest{
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
@@ -572,7 +573,7 @@ entity doc {
 					},
 				}...), nil).Times(1)
 
-				checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+				checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
 				req := &base.PermissionCheckRequest{
 					Entity:     &base.Entity{Type: "repository", Id: "1"},
@@ -705,7 +706,7 @@ entity doc {
 					},
 				}...), nil).Times(1)
 
-				checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+				checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
 				req := &base.PermissionCheckRequest{
 					Entity:     &base.Entity{Type: "repository", Id: "1"},
@@ -835,7 +836,7 @@ entity doc {
 					},
 				}...), nil).Times(1)
 
-				checkCommand = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader)
+				checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
 				req := &base.PermissionCheckRequest{
 					Entity:     &base.Entity{Type: "repository", Id: "1"},

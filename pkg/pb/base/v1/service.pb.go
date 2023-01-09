@@ -74,7 +74,7 @@ func (PermissionCheckResponse_Result) EnumDescriptor() ([]byte, []int) {
 	return file_base_v1_service_proto_rawDescGZIP(), []int{2, 0}
 }
 
-// CheckRequest
+// PermissionCheckRequest
 type PermissionCheckRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -387,7 +387,7 @@ func (x *PermissionExpandRequest) GetPermission() string {
 	return ""
 }
 
-// ExpandRequestMetadata
+// PermissionExpandRequestMetadata
 type PermissionExpandRequestMetadata struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -555,7 +555,7 @@ func (x *PermissionLookupSchemaRequest) GetRelationNames() []string {
 	return nil
 }
 
-// LookupSchemaRequestMetadata
+// PermissionLookupSchemaRequestMetadata
 type PermissionLookupSchemaRequestMetadata struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -723,7 +723,7 @@ func (x *PermissionLookupEntityRequest) GetSubject() *Subject {
 	return nil
 }
 
-// LookupEntityRequestMetadata
+// PermissionLookupEntityRequestMetadata
 type PermissionLookupEntityRequestMetadata struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1027,7 +1027,7 @@ func (x *SchemaReadRequest) GetMetadata() *SchemaReadRequestMetadata {
 	return nil
 }
 
-// LookupSchemaRequestMetadata
+// SchemaReadRequestMetadata
 type SchemaReadRequestMetadata struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
