@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Delete Relational Tuples
 
 You can delete any stored relation tuples with following path
@@ -32,6 +35,63 @@ You can delete any stored relation tuples with following path
   }
 }
 ```
+
+### Using Clients
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+rr, err: = client.Relationship.Delete(context.Background(), & v1.RelationshipDeleteRequest {
+    Metadata: &v1.RelationshipDeleteRequestMetadata {
+        SnapToken: ""
+    },
+    Filter: &v1.TupleFilter {
+        Entity: &v1.EntityFilter {
+        Type: "organization",
+        Ids: []string {"1"} ,
+    },
+    Relation: "admin",
+    Subject: &v1.SubjectFilter {
+        Type: "user",
+        Id: []string {"1"},
+        Relation: ""
+    }}
+})
+```
+
+</TabItem>
+
+<TabItem value="node" label="Node">
+
+```javascript
+client.relationship.delete({
+  metadata: {
+     snap_token: "",
+  },
+  filter: {
+    entity: {
+      type: "organization",
+      ids: [
+        "1"
+      ]
+    },
+    relation: "admin",
+    subject: {
+      type: "user",
+      ids: [
+        "1"
+      ],
+      relation: ""
+    }
+  }
+}).then((response) => {
+    // handle response
+})
+```
+
+</TabItem>
+</Tabs>
 
 ## Need any help ?
 

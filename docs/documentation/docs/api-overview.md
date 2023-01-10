@@ -9,7 +9,7 @@ slug: /api-overview
 
 Permify API provides various functionalities around authorization such as performing access checks, reading and writing relation tuples, expanding your permissions (schema actions), and more.
 
-We structured Permify API in 3 core parts; *modeling authorization*, *storing authorization data* and *enforcement*. Therefore, Permify API has sections that represent the functionalities of these core parts.
+We structured Permify API in 3 core parts; ***modeling authorization***, ***storing authorization data*** and ***enforcement***. Therefore, Permify API has sections that represent the functionalities of these core parts.
 
 - **Permission Section**: Consist enforcement requests and options.
 - **Relationship Section**: Authorization data operations such as creating, deleting and reading relational tuples.

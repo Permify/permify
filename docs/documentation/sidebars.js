@@ -70,10 +70,10 @@ module.exports = {
                 id: "api-overview",
 			},
 			items: [
-				"api-overview/check-api",
 				"api-overview/write-schema",
 				"api-overview/write-relationships",
 				"api-overview/read-api",
+				"api-overview/check-api",
 				"api-overview/delete-relationships",
 				"api-overview/expand-api",
 				"api-overview/schema-lookup",
