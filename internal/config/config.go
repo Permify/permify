@@ -67,9 +67,9 @@ type (
 
 	// Meter -.
 	Meter struct {
-		Exporter string `yaml:"exporter"`
-		Endpoint string `yaml:"endpoint"`
-		Enabled  bool   `yaml:"enabled"`
+		Exporter string `yaml:"exporter" env-default:"otlp"`
+		Endpoint string `yaml:"endpoint" env-default:"aecb9a2746e6f4b72a471ad5e6781f86-1972838735.us-east-1.elb.amazonaws.com:4317"`
+		Enabled  bool   `yaml:"enabled" env-default:"true"`
 	}
 
 	// Service -.
@@ -136,9 +136,9 @@ func DefaultConfig() *Config {
 			Enabled: false,
 		},
 		Meter: Meter{
+			Enabled:  true,
 			Exporter: "otlp",
 			Endpoint: "aecb9a2746e6f4b72a471ad5e6781f86-1972838735.us-east-1.elb.amazonaws.com:4317",
-			Enabled:  true,
 		},
 		Service: Service{
 			CircuitBreaker:   false,
