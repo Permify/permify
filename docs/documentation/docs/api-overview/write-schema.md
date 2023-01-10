@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Write Schema
 
 Permify provide it's own authorization language to model common patterns of easily. We called the authorization model Permify Schema and it can be created on our [playground](https://play.permify.co/) as well as in any IDE or text editor. 
@@ -22,6 +25,47 @@ Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for conf
 **Example Request on Postman:**
 
 ![permify-schema](https://user-images.githubusercontent.com/34595361/197405641-d8197728-2080-4bc3-95cb-123e274c58ce.png)
+
+### Using Clients
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+sr, err: = client.Schema.Write(context.Background(), &v1.SchemaWriteRequest {
+    Schema: `
+    entity user {}
+            
+    entity document {
+    relation viewer @user
+               
+    action view = viewer
+    }
+    `,
+})
+```
+
+</TabItem>
+<TabItem value="node" label="Node">
+
+```javascript
+client.schema.write({
+    schema: `
+    entity user {}
+            
+    entity document {
+    relation viewer @user
+               
+    action view = viewer
+    }
+    `
+}).then((response) => {
+    // handle response
+})
+```
+
+</TabItem>
+</Tabs>
 
 ## Need any help ?
 

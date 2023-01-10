@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Check Access Control
 
 In Permify, you can perform two different types access checks,
@@ -48,6 +51,67 @@ In this section we'll investigate proior check request of Permify: **resource ba
   "remaining_depth": 0
 }
 ```
+
+### Using Clients
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+cr, err: = client.Permission.Check(context.Background(), & v1.PermissionCheckRequest {
+    Metadata: & v1.PermissionCheckRequestMetadata {
+        SnapToken: ""
+        SchemaVersion: ""
+        Depth: 20,
+    },
+    Entity: & v1.Entity {
+        Type: "repository",
+        Id: "1",
+    },
+    Permission: "edit",
+    Subject: & v1.Subject {
+        Type: "user",
+        Id: "1",
+    },
+
+    if (cr.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {
+        // RESULT_ALLOWED
+    } else {
+        // RESULT_DENIED
+    }
+})
+```
+
+</TabItem>
+<TabItem value="node" label="Node">
+
+```javascript
+client.permission.check({
+    metadata: {
+        snapToken: "",
+        schemaVersion: "",
+        depth: 20
+    },
+    entity: {
+        type: "repository",
+        id: "1"
+    },
+    permission: "edit",
+    subject: {
+        type: "user",
+        id: "1"
+    }
+}).then((response) => {
+    if (response.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {
+        console.log("RESULT_ALLOWED")
+    } else {
+        console.log("RESULT_DENIED")
+    }
+})
+```
+
+</TabItem>
+</Tabs>
 
 Answering access checks is accomplished within Permify using a basic graph walking mechanism. See how [access decisions evaluated] in Permify. 
 
