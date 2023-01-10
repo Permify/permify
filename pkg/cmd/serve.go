@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"context"
+	`go.opentelemetry.io/otel/metric/instrument`
+	`go.opentelemetry.io/otel/metric/instrument/syncint64`
 	"os/signal"
 	"syscall"
-
-	"go.opentelemetry.io/otel/metric/instrument"
-	"go.opentelemetry.io/otel/metric/instrument/syncint64"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -114,16 +113,16 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				l.Fatal(err)
 			}
+		}
 
-			var serveCount syncint64.Counter
-			serveCount, err = meter.SyncInt64().Counter(
-				"serve_count",
-				instrument.WithDescription("serve count"),
-			)
-			serveCount.Add(ctx, 1)
-			if err != nil {
-				l.Fatal(err)
-			}
+		var serveCount syncint64.Counter
+		serveCount, err = meter.SyncInt64().Counter(
+			"serve_count",
+			instrument.WithDescription("serve count"),
+		)
+		serveCount.Add(ctx, 1)
+		if err != nil {
+			l.Fatal(err)
 		}
 
 		// schema cache
