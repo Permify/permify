@@ -74,6 +74,7 @@ For the first step, we need to install [eksctl](https://eksctl.io/) — which is
 
 Let’s download eksctl using brew. 
 
+
 ```jsx
 brew tap weaveworks/tap
 ```
