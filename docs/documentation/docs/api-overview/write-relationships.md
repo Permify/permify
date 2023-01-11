@@ -1,8 +1,11 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Write Relationships
 
 In Permify, relations between your entities, objects and users stored as [relational tuples] in [writeDB]. Since relations and authorization data's are live instances these relational tuples can be created with an simple API call in runtime. 
 
-When using Permify, the application client should update writeDB about the changes happening in entities or resources that are related to the authorization structure. If we consinder a document system; when some user joins a group that has edit access on some documents, the application side needs to write relational tuples to keep [writeDB] up-to-date. Besides, each relational tuple should be created according to its authorization model, Permify Schema.
+When using Permify, the application client should update writeDB about the changes happening in entities or resources that are related to the authorization structure. If we consider a document system; when some user joins a group that has edit access on some documents, the application side needs to write relational tuples to keep [writeDB] up-to-date. Besides, each relational tuple should be created according to its authorization model, Permify Schema.
 
 Another example: when one a company executive grant admin role to user (lets say with id = 3) on their organization, application side needs to tell that update to Permify in order to reform that as relation tuples and store in [writeDB].
 
@@ -59,14 +62,68 @@ You can store that snap token alongside with the resource in your relational dat
 
 See more details on what is [Snap Tokens](/docs/reference/snap-tokens) and how its avoiding stale cache.
 
+### Using Clients
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+    Metadata: &v1.RelationshipWriteRequestMetadata {
+        SchemaVersion: ""
+    },
+    Tuples: [] * v1.Tuple {
+        {
+            Entity: & v1.Entity {
+                Type: "organization",
+                Id: "1",
+            },
+            Relation: "admin",
+            Subject: & v1.Subject {
+                Type: "admin",
+                Id: "3",
+            },
+        }
+    },
+})
+```
+
+</TabItem>
+
+<TabItem value="node" label="Node">
+
+```javascript
+client.relationship.write({
+    metadata: {
+        schemaVersion: ""
+    },
+    tuples: [{
+        entity: {
+            type: "organization",
+            id: "1"
+        },
+        relation: "admin",
+        subject: {
+            type: "user",
+            id: "3"
+        }
+    }]
+}).then((response) => {
+    // handle response
+})
+```
+
+</TabItem>
+</Tabs>
+
 ## Suggested Workflow 
 
 The most of the data that should written in Permify also needs to be write or engage with applications database as well. So where and how to write relationships into both applications database and Permify ?
 
 ### Two Phase Commit Approach
-In a standart relational based databases, the suggested place to write relationships to Permify is sending the write request in database transaction of the client action: such as storing the owner of the document when an user creates a document.
+In a standard relational based databases, the suggested place to write relationships to Permify is sending the write request in database transaction of the client action: such as storing the owner of the document when an user creates a document.
 
-To give more concurent example of this action, let's take a look at below createDocument funcion 
+To give more concurrent example of this action, let's take a look at below createDocument function 
 
 ```go
 func CreateDocuments(db *gorm.DB) error {
@@ -75,7 +132,7 @@ func CreateDocuments(db *gorm.DB) error {
   defer func() {
     if r := recover(); r != nil {
       tx.Rollback()
-      // if transaction fails, then delete malforemed relation tuple 
+      // if transaction fails, then delete malformed relation tuple 
       permify.DeleteRelationships(...)
     }
   }()
@@ -86,7 +143,7 @@ func CreateDocuments(db *gorm.DB) error {
 
   if err := tx.Create(docs).Error; err != nil {
      tx.Rollback()
-     // if transaction fails, then delete malforemed relation tuple 
+     // if transaction fails, then delete malformed relation tuple 
      permify.DeleteRelationships(...)
      return err
   }
@@ -101,11 +158,11 @@ The key point to take way from above approach is if the transaction fails for an
 
 ### Relationships that not stored in application database
 
-Althought ownership generally stored in application databases, there are some relations that not needed to be stored in your actual database. Such as defining organizational roles, group members, project editors etc.
+Although ownership generally stored in application databases, there are some relations that not needed to be stored in your actual database. Such as defining organizational roles, group members, project editors etc.
 
 For example, you can model a simple project management authorization in Permify as follows, 
 
-```
+```perm
 entity user {}
 
 entity team {

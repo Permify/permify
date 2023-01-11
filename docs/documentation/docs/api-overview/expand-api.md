@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Expand API
 We developed a expand API to see Permify Schema actions in a tree structure to improve observability and reasonability of access permissions.
 
@@ -257,6 +260,48 @@ We can use expand API to reason the access actions. If we want to reason access 
 ```
 </p>
 </details>
+
+### Using Clients
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+cr, err: = client.Permission.Expand(context.Background(), & v1.PermissionExpandRequest {
+    Metadata: & v1.PermissionExpandRequestMetadata {
+        SnapToken: ""
+        SchemaVersion: ""
+        Depth: 20,
+    },
+    Entity: & v1.Entity {
+        Type: "repository",
+        Id: "1",
+    },
+    Permission: "push",
+})
+```
+
+</TabItem>
+
+<TabItem value="node" label="Node">
+
+```javascript
+client.permission.expand({
+  metadata: {
+        snapToken: "",
+        schemaVersion: "",
+        depth: 20
+    },
+    entity: {
+        type: "repository",
+        id: "1"
+    },
+    permission: "push",
+})
+```
+
+</TabItem>
+</Tabs>
 
 #### **Graph Representation of Expanding Read Action**
 
