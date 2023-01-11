@@ -54,6 +54,15 @@ tracer:
   endpoint: 'http://localhost:9411/api/v2/spans'
   enabled: false
 
+meter:
+  exporter: 'otlp'
+  endpoint: 'localhost:4318'
+  enabled: true
+
+service:
+  circuit_breaker: false
+  concurrency_limit: 100
+
 database:
   engine: 'postgres'
   database: 'db_name'
@@ -81,6 +90,11 @@ database:
   * **exporter:** Permify integrated with [jaeger] , [signoz] and [zipkin] tacing tools. See our [change log] about tracing performance of your authorization.
   * **endpoint:** export uri for tracing data.
   * **enabled:** switch option for tracing. *(default: false)*
+
+* **meter** (optional)
+  * **exporter:** [otpl](https://opentelemetry.io/docs/collector/) is default.
+  * **endpoint:** export uri to observe metrics; check count, cache check count and session information; Permify version, hostname, os, arch. 
+  * **enabled:** switch option for meter tracing. *(default: true)*
 
 * **database** : Points out where your want to store your authorization data (relation tuples, audits, decision logs, authorization model )
   * **engine:** Data source. Permify supports **PostgreSQL**(`'postgres'`) for now. Contact with us for your preferred database. *(default: memory)*
