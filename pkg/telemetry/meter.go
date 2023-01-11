@@ -1,6 +1,7 @@
 package telemetry
 
 import (
+	`os`
 	"runtime"
 	"time"
 
@@ -22,13 +23,18 @@ func NewNoopMeter() omt.Meter {
 
 // NewMeter - Creates new meter
 func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
+	hostName, err := os.Hostname()
+	if err != nil {
+		return nil, err
+	}
+
 	mp := metric.NewMeterProvider(
 		metric.WithReader(metric.NewPeriodicReader(exporter)),
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("permify"),
-			attribute.String("id", xid.New().String()),
-			attribute.String("version", "0.2.1"),
+			semconv.ServiceNameKey.String(xid.New().String()),
+			attribute.String("version", "0.2.2"),
+			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),
 			attribute.String("arch", runtime.GOARCH),
 		)),
@@ -36,14 +42,14 @@ func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 
 	global.SetMeterProvider(mp)
 
-	if err := orn.Start(
+	if err = orn.Start(
 		orn.WithMinimumReadMemStatsInterval(time.Second),
 		orn.WithMeterProvider(mp),
 	); err != nil {
 		return nil, err
 	}
 
-	if err := host.Start(host.WithMeterProvider(mp)); err != nil {
+	if err = host.Start(host.WithMeterProvider(mp)); err != nil {
 		return nil, err
 	}
 
