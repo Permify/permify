@@ -59,6 +59,7 @@ module.exports = {
 				"deployment/aws",
 				"deployment/azure",
 				"deployment/google",
+				"deployment/kubernetes",
 			],
 			collapsed: true,
 		},
