@@ -184,6 +184,19 @@ entity repository {
 
 → For more fine grained permission let's examine the `read` action rules; user that is `organization admin` and following users can read the repository: `owner` of the repository, or `maintainer`, or `member` of the organization which repository belongs to.
 
+
+:::info
+You can add actions to another action like relations, see below.
+
+```perm
+   action edit =  member or manager 
+   action delete =  edit or org.admin
+``` 
+
+delete action can inherit the edit action rules like above. To sum up, only organization administrators and any relation that can perform edit action (member or manager) can perform delete action.
+
+:::
+
 ## Github Example
 
 Here is full implementation of simple Github access control example with using Permify Schema.
