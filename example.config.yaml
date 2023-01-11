@@ -27,7 +27,7 @@ tracer:
 
 meter:
   exporter: 'otlp'
-  endpoint: 'localhost:4317'
+  endpoint: 'localhost:4318'
   enabled: true
 
 service:
