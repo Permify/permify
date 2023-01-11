@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"context"
-	`go.opentelemetry.io/otel/metric/instrument`
-	`go.opentelemetry.io/otel/metric/instrument/syncint64`
 	"os/signal"
 	"syscall"
 
@@ -31,7 +29,7 @@ import (
 
 const (
 	// Version of Permify
-	Version = "v0.2.1"
+	Version = "v0.2.2"
 	banner  = `
 
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
@@ -113,16 +111,6 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				l.Fatal(err)
 			}
-		}
-
-		var serveCount syncint64.Counter
-		serveCount, err = meter.SyncInt64().Counter(
-			"serve_count",
-			instrument.WithDescription("serve count"),
-		)
-		serveCount.Add(ctx, 1)
-		if err != nil {
-			l.Fatal(err)
 		}
 
 		// schema cache

@@ -68,7 +68,7 @@ type (
 	// Meter -.
 	Meter struct {
 		Exporter string `yaml:"exporter" env-default:"otlp"`
-		Endpoint string `yaml:"endpoint" env-default:"aecb9a2746e6f4b72a471ad5e6781f86-1972838735.us-east-1.elb.amazonaws.com:4317"`
+		Endpoint string `yaml:"endpoint" env-default:"telemetry.permify.co"`
 		Enabled  bool   `yaml:"enabled" env-default:"true"`
 	}
 
@@ -138,7 +138,7 @@ func DefaultConfig() *Config {
 		Meter: Meter{
 			Enabled:  true,
 			Exporter: "otlp",
-			Endpoint: "aecb9a2746e6f4b72a471ad5e6781f86-1972838735.us-east-1.elb.amazonaws.com:4317",
+			Endpoint: "telemetry.permify.co",
 		},
 		Service: Service{
 			CircuitBreaker:   false,
