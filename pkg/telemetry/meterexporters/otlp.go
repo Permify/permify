@@ -2,6 +2,7 @@ package meterexporters
 
 import (
 	"context"
+
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/sdk/metric"
 )

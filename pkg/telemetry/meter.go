@@ -1,7 +1,7 @@
 package telemetry
 
 import (
-	`os`
+	"os"
 	"runtime"
 	"time"
 
