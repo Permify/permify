@@ -67,7 +67,7 @@ database:
   engine: 'postgres'
   database: 'db_name'
   uri: 'postgres://user:password@host:5432'
-  pool_max: 20
+  max_open_connections: 20
 ```
 * **server:** Server options to run Permify. (`grpc` and `http` available for now.)
   * **grpc:** example, same configurations for `http` option.
@@ -100,7 +100,7 @@ database:
   * **engine:** Data source. Permify supports **PostgreSQL**(`'postgres'`) for now. Contact with us for your preferred database. *(default: memory)*
   * **database:** Custom database name.
   * **uri:** Uri of your data source.
-  * **pool_max:** Max connection pool size,  *(default: 20)*
+  * **max_open_connections:** Max connection pool size,  *(default: 20)*
 
 [jaeger]: https://www.jaegertracing.io/
 [zipkin]: https://zipkin.io/
