@@ -74,8 +74,8 @@ type (
 
 	// Service -.
 	Service struct {
-		CircuitBreaker   bool `yaml:"circuit_breaker"`
-		ConcurrencyLimit int  `yaml:"concurrency_limit"`
+		CircuitBreaker   bool `yaml:"circuit_breaker" env-default:"false"`
+		ConcurrencyLimit int  `yaml:"concurrency_limit" env-default:"100"`
 		// MaxTuplesPerWrite       int  `yaml:"max_tuples_per_write"`
 		// LookupEntitiesMaxResult int  `yaml:"lookup_entities_max_result"`
 	}
