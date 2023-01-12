@@ -22,16 +22,18 @@ const config = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: '0.2.x',
+            },
+          },
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
-        googleAnalytics: {
-          trackingID: 'G-BSRXWHBYR1',
-          anonymizeIP: true,
-        },
         gtag: {
-          trackingID: 'G-BSRXWHBYR1',
+          trackingID: 'GTM-5RNMNVR',
           anonymizeIP: true,
         },
       },
@@ -75,6 +77,10 @@ const config = {
               position: 'left',
               className: 'header-playground-link'
             },
+            /* {
+              type: 'docsVersionDropdown',
+              position: 'right',
+            }, */
             {
               href: 'https://github.com/Permify/permify',
               position: 'right',
