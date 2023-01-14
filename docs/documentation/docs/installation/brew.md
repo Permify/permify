@@ -1,5 +1,5 @@
 ---
-title: "Brew (With Conf)"
+title: "Brew"
 ---
 
 # Brew With Configurations

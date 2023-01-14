@@ -45,29 +45,29 @@ In Permify, authorization divided into 3 core aspects; **modeling**, **storing a
 
 This document explains how Permify handles these aspects to provide a robust and scalable authorization system for your applications. For the ones that want trying out and examine it instantly, 
 
-<div class="getting-started-grid">
+<div className="getting-started-grid">
     <a href="https://play.permify.co/">
-        <div class="btn-thumb">
-            <div class="thumbnail">
+        <div className="btn-thumb">
+            <div className="thumbnail">
                 <img src="https://uploads-ssl.webflow.com/61bb34defcff34f786b458ce/6332bb38106ffd85102bb3bc_Screen%20Shot%202022-09-27%20at%2011.58.27.png"/>
             </div>
-           <div class="thumb-txt">Use our Playground to test your authorization in a browser. </div>
+           <div className="thumb-txt">Use our Playground to test your authorization in a browser. </div>
         </div>
     </a>
     <a href="https://docs.permify.co/docs/installation/overview">
-        <div class="btn-thumb">
-            <div class="thumbnail">
+        <div className="btn-thumb">
+            <div className="thumbnail">
                  <img src="https://user-images.githubusercontent.com/34595361/199695094-872d50fc-c33b-4d15-ad1d-a3899911a16a.png"/>
             </div>
-            <div class="thumb-txt">Set up Permify Service in your environment</div>
+            <div className="thumb-txt">Set up Permify Service in your environment</div>
         </div>
     </a>
     <a href="https://www.permify.co/post/google-zanzibar-in-a-nutshell">
-        <div class="btn-thumb">
-            <div class="thumbnail">
+        <div className="btn-thumb">
+            <div className="thumbnail">
                 <img src="https://uploads-ssl.webflow.com/61bb34defcff34f786b458ce/634520d7859cd419ec89f9ef_Google%20Zanzibar%20in%20a%20Nutshell-1.png"/>
             </div>
-            <div class="thumb-txt">Examine Google Zanzibar In A Nutshell</div>
+            <div className="thumb-txt">Examine Google Zanzibar In A Nutshell</div>
         </div>
     </a>
 </div>
