@@ -16,9 +16,9 @@ func RelationshipReaderFactory(db database.Database, logger logger.Interface) (r
 	case "postgres":
 		return PQRepository.NewRelationshipReader(db.(*PQDatabase.Postgres), logger)
 	case "memory":
-		return MMRepository.NewRelationshipReader(db.(*MMDatabase.Memory))
+		return MMRepository.NewRelationshipReader(db.(*MMDatabase.Memory), logger)
 	default:
-		return MMRepository.NewRelationshipReader(db.(*MMDatabase.Memory))
+		return MMRepository.NewRelationshipReader(db.(*MMDatabase.Memory), logger)
 	}
 }
 
@@ -28,9 +28,9 @@ func RelationshipWriterFactory(db database.Database, logger logger.Interface) (r
 	case "postgres":
 		return PQRepository.NewRelationshipWriter(db.(*PQDatabase.Postgres), logger)
 	case "memory":
-		return MMRepository.NewRelationshipWriter(db.(*MMDatabase.Memory))
+		return MMRepository.NewRelationshipWriter(db.(*MMDatabase.Memory), logger)
 	default:
-		return MMRepository.NewRelationshipWriter(db.(*MMDatabase.Memory))
+		return MMRepository.NewRelationshipWriter(db.(*MMDatabase.Memory), logger)
 	}
 }
 
@@ -40,9 +40,9 @@ func SchemaReaderFactory(db database.Database, logger logger.Interface) (repo re
 	case "postgres":
 		return PQRepository.NewSchemaReader(db.(*PQDatabase.Postgres), logger)
 	case "memory":
-		return MMRepository.NewSchemaReader(db.(*MMDatabase.Memory))
+		return MMRepository.NewSchemaReader(db.(*MMDatabase.Memory), logger)
 	default:
-		return MMRepository.NewSchemaReader(db.(*MMDatabase.Memory))
+		return MMRepository.NewSchemaReader(db.(*MMDatabase.Memory), logger)
 	}
 }
 
@@ -52,8 +52,8 @@ func SchemaWriterFactory(db database.Database, logger logger.Interface) (repo re
 	case "postgres":
 		return PQRepository.NewSchemaWriter(db.(*PQDatabase.Postgres), logger)
 	case "memory":
-		return MMRepository.NewSchemaWriter(db.(*MMDatabase.Memory))
+		return MMRepository.NewSchemaWriter(db.(*MMDatabase.Memory), logger)
 	default:
-		return MMRepository.NewSchemaWriter(db.(*MMDatabase.Memory))
+		return MMRepository.NewSchemaWriter(db.(*MMDatabase.Memory), logger)
 	}
 }
