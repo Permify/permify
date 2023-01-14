@@ -19,7 +19,7 @@ func NewTupleCollection(tuples ...*base.Tuple) *TupleCollection {
 	}
 }
 
-// CreateTupleIterator- Create tuple iterator according to collection.
+// CreateTupleIterator - Create tuple iterator according to collection.
 func (t *TupleCollection) CreateTupleIterator() ITupleIterator {
 	return &TupleIterator{
 		tuples: t.tuples,

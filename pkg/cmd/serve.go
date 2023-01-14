@@ -128,10 +128,10 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Repositories
-		relationshipReader := factories.RelationshipReaderFactory(db)
-		relationshipWriter := factories.RelationshipWriterFactory(db)
-		schemaReader := factories.SchemaReaderFactory(db)
-		schemaWriter := factories.SchemaWriterFactory(db)
+		relationshipReader := factories.RelationshipReaderFactory(db, l)
+		relationshipWriter := factories.RelationshipWriterFactory(db, l)
+		schemaReader := factories.SchemaReaderFactory(db, l)
+		schemaWriter := factories.SchemaWriterFactory(db, l)
 
 		// decorators
 		schemaReaderWithCache := decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
@@ -219,10 +219,11 @@ func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 
 	// SERVICE
 	cmd.Flags().BoolVar(&config.Service.CircuitBreaker, "service-circuit-breaker", config.Service.CircuitBreaker, "switch option for service circuit breaker")
+	cmd.Flags().IntVar(&config.Service.ConcurrencyLimit, "service-concurrency-limit", config.Service.ConcurrencyLimit, "concurrency limit")
 
 	// DATABASE
 	cmd.Flags().StringVar(&config.Database.Engine, "database-engine", config.Database.Engine, "data source. e.g. postgres, memory")
-	cmd.Flags().IntVar(&config.Database.MaxOpenConnections, "database-max-open-connections", config.Database.MaxOpenConnections, "max connection pool size")
+	cmd.Flags().IntVar(&config.Database.MaxOpenConnections, "database-max-open-connections", config.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
 	cmd.Flags().StringVar(&config.Database.Database, "database-name", config.Database.Database, "custom database name")
 	cmd.Flags().StringVar(&config.Database.URI, "database-uri", config.Database.URI, "uri of your data source to store relation tuples and schema")
 }

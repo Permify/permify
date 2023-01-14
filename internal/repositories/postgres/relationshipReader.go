@@ -2,11 +2,10 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
-	"github.com/jackc/pgx/v4"
-
-	otelCodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/postgres/snapshot"
@@ -14,68 +13,72 @@ import (
 	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 )
 
 type RelationshipReader struct {
-	database  *db.Postgres
-	txOptions pgx.TxOptions
+	database *db.Postgres
+	// options
+	txOptions sql.TxOptions
+	// logger
+	logger logger.Interface
 }
 
 // NewRelationshipReader - Creates a new RelationshipReader
-func NewRelationshipReader(database *db.Postgres) *RelationshipReader {
+func NewRelationshipReader(database *db.Postgres, logger logger.Interface) *RelationshipReader {
 	return &RelationshipReader{
 		database:  database,
-		txOptions: pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly},
+		txOptions: sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true},
+		logger:    logger,
 	}
 }
 
 // QueryRelationships - Gets all relationships for a given filter
-func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (database.ITupleCollection, error) {
+func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (tuples database.ITupleCollection, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-reader.query-relationships")
 	defer span.End()
 
-	var err error
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: t}.Decode()
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
-	var tx pgx.Tx
-	tx, err = r.database.Pool.BeginTx(ctx, r.txOptions)
+	var tx *sql.Tx
+	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
-	defer func() {
-		_ = tx.Rollback(ctx)
-	}()
+	defer utils.Rollback(tx, r.logger)
 
-	var sql string
 	var args []interface{}
 
-	query := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable)
-	query = utils.FilterQueryForSelectBuilder(query, filter)
+	builder := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable)
+	builder = utils.FilterQueryForSelectBuilder(builder, filter)
 
-	query = utils.SnapshotQuery(query, st.(snapshot.Token).Value.Uint)
-	query = query.OrderBy("subject_type, subject_relation ASC")
+	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+	builder = builder.OrderBy("subject_type, subject_relation ASC")
 
-	sql, args, err = query.ToSql()
+	var query string
+	query, args, err = builder.ToSql()
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
-	var rows pgx.Rows
-	rows, err = tx.Query(ctx, sql, args...)
+	var rows *sql.Rows
+	rows, err = tx.QueryContext(ctx, query, args...)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	defer rows.Close()
@@ -86,10 +89,22 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 		err = rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation)
 		if err != nil {
 			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
+			span.SetStatus(codes.Error, err.Error())
 			return nil, err
 		}
 		collection.Add(rt.ToTuple())
+	}
+	if err = rows.Err(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
 	}
 
 	return collection, nil
@@ -97,7 +112,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 
 // GetUniqueEntityIDsByEntityType - Gets all unique entity ids for a given entity type
 func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, t string) (ids []string, err error) {
-	ctx, span := tracer.Start(ctx, "relationship-reader.get-unique-entity-ids-by-entity_type")
+	ctx, span := tracer.Start(ctx, "relationship-reader.get-unique-entity-ids-by-entity-type")
 	defer span.End()
 
 	var st token.SnapToken
@@ -106,29 +121,31 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 		return nil, err
 	}
 
-	var tx pgx.Tx
-	tx, err = r.database.Pool.BeginTx(ctx, r.txOptions)
+	var tx *sql.Tx
+	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
-	defer func() {
-		_ = tx.Rollback(ctx)
-	}()
+	defer utils.Rollback(tx, r.logger)
 
-	var sql string
 	var args []interface{}
 
-	query := r.database.Builder.Select("DISTINCT entity_id").From(RelationTuplesTable).Where("entity_type = ?", typ)
-	query = utils.SnapshotQuery(query, st.(snapshot.Token).Value.Uint)
+	builder := r.database.Builder.Select("entity_id").Distinct().From(RelationTuplesTable).Where("entity_type = ?", typ)
+	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 
-	sql, args, err = query.ToSql()
+	var query string
+	query, args, err = builder.ToSql()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
-	var rows pgx.Rows
-	rows, err = tx.Query(ctx, sql, args...)
+	var rows *sql.Rows
+	rows, err = tx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -139,9 +156,23 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 		var id string
 		err = rows.Scan(&id)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return nil, err
 		}
 		result = append(result, id)
+	}
+	if err = rows.Err(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
 	}
 
 	return result, nil
@@ -153,15 +184,21 @@ func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken,
 	defer span.End()
 
 	var xid types.XID8
-	query := r.database.Builder.Select("id").From(TransactionsTable).OrderBy("id DESC").Limit(1)
-	sql, args, err := query.ToSql()
+	builder := r.database.Builder.Select("id").From(TransactionsTable).OrderBy("id DESC").Limit(1)
+	query, args, err := builder.ToSql()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
-	row := r.database.Pool.QueryRow(ctx, sql, args...)
+
+	row := r.database.DB.QueryRowContext(ctx, query, args...)
 	err = row.Scan(&xid)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
+
 	return snapshot.Token{Value: xid}, nil
 }

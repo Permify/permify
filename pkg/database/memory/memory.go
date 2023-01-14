@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"sync"
 
 	"github.com/hashicorp/go-memdb"
@@ -37,4 +38,9 @@ func (m *Memory) Close() error {
 	defer m.Unlock()
 	m.DB = nil
 	return nil
+}
+
+// IsReady - Check if database is ready
+func (m *Memory) IsReady(ctx context.Context) (bool, error) {
+	return true, nil
 }

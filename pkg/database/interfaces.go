@@ -1,6 +1,8 @@
 package database
 
 import (
+	"context"
+
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -14,6 +16,9 @@ type Database interface {
 
 	// Close the database connection.
 	Close() error
+
+	// IsReady - Check if database is ready
+	IsReady(ctx context.Context) (bool, error)
 }
 
 // ITERATORS
