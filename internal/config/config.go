@@ -29,15 +29,15 @@ type (
 
 	// HTTP -.
 	HTTP struct {
-		Enabled            bool      `yaml:"enabled"`
-		Port               string    `env-required:"true" yaml:"port"`
+		Enabled            bool      `yaml:"enabled" env-default:"true"`
+		Port               string    `yaml:"port" env-default:"3476"`
 		TLSConfig          TLSConfig `yaml:"tls"`
 		CORSAllowedOrigins []string  `yaml:"cors_allowed_origins"`
 		CORSAllowedHeaders []string  `yaml:"cors_allowed_headers"`
 	}
 
 	GRPC struct {
-		Port      string    `env-required:"true" yaml:"port"`
+		Port      string    `yaml:"port" env-default:"3478"`
 		TLSConfig TLSConfig `yaml:"tls"`
 	}
 
@@ -49,27 +49,27 @@ type (
 
 	// Authn -.
 	Authn struct {
-		Enabled bool     `yaml:"enabled"`
+		Enabled bool     `yaml:"enabled" env-default:"false"`
 		Keys    []string `yaml:"keys"`
 	}
 
 	// Log -.
 	Log struct {
-		Level string `env-required:"true" yaml:"level"`
+		Level string `yaml:"level" env-default:"debug"`
 	}
 
 	// Tracer -.
 	Tracer struct {
+		Enabled  bool   `yaml:"enabled" env-default:"false"`
 		Exporter string `yaml:"exporter"`
 		Endpoint string `yaml:"endpoint"`
-		Enabled  bool   `yaml:"enabled"`
 	}
 
 	// Meter -.
 	Meter struct {
+		Enabled  bool   `yaml:"enabled" env-default:"true"`
 		Exporter string `yaml:"exporter" env-default:"otlp"`
 		Endpoint string `yaml:"endpoint" env-default:"telemetry.permify.co"`
-		Enabled  bool   `yaml:"enabled" env-default:"true"`
 	}
 
 	// Service -.
@@ -82,7 +82,7 @@ type (
 
 	// Database -.
 	Database struct {
-		Engine             string `env-required:"true" yaml:"engine"`
+		Engine             string `yaml:"engine" env-default:"memory"`
 		Database           string `yaml:"database"`
 		URI                string `yaml:"uri"`
 		MaxOpenConnections int    `yaml:"max_open_connections"`
