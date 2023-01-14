@@ -44,3 +44,15 @@ export default function Home() {
     // const {siteConfig} = useDocusaurusContext();
     return <Redirect to="/docs/" />;
 }
+
+/* function Home() {
+    const context = useDocusaurusContext();
+    const { siteConfig = {} } = context;
+    return (
+      <Layout>
+        <Head>
+          <script src="..."></script>
+        </Head>
+      </Layout>
+    );
+  } */

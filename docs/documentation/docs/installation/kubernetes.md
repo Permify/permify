@@ -1,5 +1,5 @@
 ---
-title: Deploy on Kubernetes Cluster
+title: Kubernetes Cluster
 ---
 
 #  Deploy on Kubernetes Cluster
