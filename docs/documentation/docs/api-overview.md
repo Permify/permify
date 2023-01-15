@@ -24,7 +24,7 @@ Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/
 
 - Check access with [Check API](./api-overview/check-api.md)
 - Configure your authorization model with [Schema Write](./api-overview/write-schema.md)
-- Write relational tuples with [Write API](./api-overview/write-relationships.md)
+- Write relational tuples with [Write Relationships](./api-overview/write-relationships.md)
 - Read relation tuples and filter them with [Read API](./api-overview/read-api.md)
 - Delete relation tuples with [Delete Tuple](./api-overview/delete-relationships.md)
 - Expand schema actions with [Expand API](./api-overview/expand-api.md)
