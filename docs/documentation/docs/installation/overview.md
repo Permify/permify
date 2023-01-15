@@ -4,11 +4,11 @@ sidebar_position: 1
 
 # Guide
 
-Permify is an open-source authorization service that you can run in your environment and works as an API. This guide shows how to set up Permify in your servers and use it accross your applications. Set up and implementation consists of 4 steps,
+This guide shows how to set up Permify in your servers and use it across your applications. Set up and implementation consists of 4 steps,
 
 1. [Set Up & Run Permify Service](#run-permify-api)
 2. [Model your Authorization with Permify's DSL, Permify Schema](#model-your-authorization-with-permify-schema)
-3. [Migrate and Store Authorization Data as Relational Tuples](#store-authorization-data-as-relational-tuples)
+3. [Manage and Store Authorization Data as Relational Tuples](#store-authorization-data-as-relational-tuples)
 4. [Perform Access Check](#perform-access-check)
 
 :::info Talk to an Permify Engineer
@@ -17,16 +17,13 @@ Want to walk through this guide 1x1 rather than docs ? [schedule a call with an 
 
 ## Set Up Permify Service
 
-You can run Permify Service with two options: 
+You can run Permify Service with various options but in that tutorial we'll run it via docker container. 
 
-- [Run From Container](#run-from-container)  
-- [Install With Brew](#install-with-brew). 
+### Run From Docker Container
 
-### Run From Container
+Production usage of Permify needs some configurations such as defining running options, selecting datastore to store authorization data and more. 
 
-Installation needs some configuration such as defining running options, selecting datastore to store authorization data and more. 
-
-However, If you want to play around with Permify without doing any configurations, you can quickly start Permify on your local with running the command below:
+However, for the sake of this tutorial we'll not do any configurations and quickly start Permify on your local with running the docker command below:
 
 ```shell
 docker run -p 3476:3476 -p 3478:3478  ghcr.io/permify/permify serve
@@ -37,34 +34,11 @@ This will start Permify with the default configuration options:
 * Port 3478 is used to serve the GRPC Service.
 * Authorization data stored in memory.
 
-See [Container With Configurations] section to get more details about the configuration options and learn the full integration to run Permify Service from container.
+:::info
+You can examine [Deploy using Docker] section to get more about the configuration options and learn the full integration to run Permify Service from docker container.
 
-[Container With Configurations]: /docs/installation/container
-
-### Install With Brew
-
-Firstly, open terminal and run following line,
-
-```shell
-brew install permify/tap/permify
-```
-
-After the brew installation, the `serve` command should be used to run Permify. However, if you want to start Permify without doing any configurations, you can run the command without config flags as follows:
-
-```shell
-permify serve
-```
-
-This will start Permify with the default configuration options: 
-* Port 3476 is used to serve the REST API.
-* Port 3478 is used to serve the GRPC Service.
-* Authorization data stored in memory.
-
-You can override these configurations with running the command with configuration flags. See all configuration options with running `permify serve --help` on terminal. 
-
-Check out the [Brew With Configurations] section to learn full implementation with configurations.
-
-[Brew With Configurations]: /docs/installation/brew
+[Deploy using Docker]: /docs/installation/container
+:::
 
 ### Test your connection
 
@@ -74,7 +48,7 @@ You can test your connection with creating an HTTP GET request,
 localhost:3476/healthz
 ```
 
-You can use our Postman Collection to work with the API. Also see the [Using the API] section for details of core functions.
+You can use our Postman Collection to work with the API. Also see the [Using the API] section for details of core endpoints.
 
 [Using the API]: /docs/api-overview
 
@@ -84,7 +58,7 @@ You can use our Postman Collection to work with the API. Also see the [Using the
 
 ## Model your Authorization with Permify Schema
 
-After installation completed and Permify server is running, next step is modeling authorization with Permify's authorization language - [Permify Schema]-  and condigure it to Permify API. 
+After installation completed and Permify server is running, next step is modeling authorization with Permify authorization language - [Permify Schema]-  and configure it to Permify API. 
 
 You can define your entities, relations between them and access control decisions of each actions with using [Permify Schema].
 
@@ -134,7 +108,7 @@ For implementation sake we'll not dive more deep about modeling but you can find
 [example use cases]: /docs/example-use-cases/simple-rbac
 :::
 
-### Configuring Permify Schema to API 
+### Configuring Schema via API 
 
 After modeling completed, you need to send Permify Schema - authorization model - to API endpoint **/v1/schemas/write"** for configuration of your authorization model on Permify API.
 
@@ -149,13 +123,7 @@ After modeling completed, you need to send Permify Schema - authorization model 
 
 ## Store Authorization Data as Relational Tuples
 
-After you completed configuration of your authorization model via Permify Schema. Its time to add authorizations data to see Permify in action. Permify stores your authorization data in a database you prefer. We called that database as WriteDB, and you can configure it when running Permify Service. 
-
-:::info
-If your Permify Service running default configurations, authorization data will be stored in memory. 
-:::
-
-If you set up Permify Service from container you can both configure WriteDB with using [configuration yaml file](https://github.com/Permify/permify/blob/master/example.config.yaml) and configuration flags. On the other hand, If you're using brew to install and run Permify you can only use the configuration flags.
+After you completed configuration of your authorization model via Permify Schema. Its time to add authorizations data to see Permify in action. 
 
 ### Create Relational Tuples
 
@@ -189,32 +157,26 @@ For our guide let's grant one of the team members (Ashley) an admin role.
 
 **Semantics:** User 1 (Ashley) has admin role on organization 1.
 
-:::info
-You can find more detailed explanation from [Move & Synchronize Authorization Data] section.
+:::tip
+In ideal production usage Permify stores your authorization data in a database you prefer. We called that database as WriteDB, and you can configure it with using [configuration yaml file](https://github.com/Permify/permify/blob/master/example.config.yaml) or CLI flag options. 
 
-[Move & Synchronize Authorization Data]: /docs/getting-started/sync-data
+But in this tutorial Permify Service running default configurations, so authorization data will be stored in memory.You can find more detailed explanation how Permify stores authorization data in [Managing Authorization Data] section.
+
+[Managing Authorization Data]: /docs/getting-started/sync-data
 :::
-
-### Performing Access Control Check
-
-You can check authorization with
-single API call. This check request returns a decision about whether user can perform an action on a certain resource.
-
-Access decisions generated according to relational tuples, which stored in your database (writeDB) and [Permify Schema] action conditions.
-
-[Permify Schema]: /docs/getting-started/modeling
 
 ## Perform Access Check
 
-Finally we're ready to control authorization. Lets perform an example access check via [check] API. 
+Finally we're ready to control authorization. Access decision results computed according to relational tuples and the stored model, [Permify Schema] action conditions.
+
+Lets get back to our example and perform an example access check via [check] API. We want to check whether an specific user has an access to view files in a organization.
 
 [check]: /docs/api-overview/check-api
+[Permify Schema]: /docs/getting-started/modeling
 
 ***Can the user 45 view files on organization 1 ?***
 
-### Path: 
-
-POST /v1/permissions/check
+**POST** /v1/permissions/check
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
@@ -249,7 +211,7 @@ POST /v1/permissions/check
 ### Response
 
 ```json
-{{
+{
   "can": "RESULT_ALLOW",
   "metadata": {
     "check_count": 0
