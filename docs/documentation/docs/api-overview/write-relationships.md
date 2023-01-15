@@ -32,7 +32,9 @@ So if user:3 has been granted an admin role in organization:1, relational tuple 
 
 ```json
 {
-    "schema_version": "",
+    "metadata": {
+        "schema_version": "string"
+    },
     "tuples": [
         {
         "entity": {
