@@ -1,5 +1,5 @@
 ---
-title: "Brew"
+title: "Install with Brew"
 ---
 
 # Brew With Configurations

@@ -7,13 +7,15 @@ export const Card = ({
   imgSrc,
   link,
 }) => {
+  console.log('link:', link)
 
   return (
-    <a
-      href={link}
-      className={styles["card"]}
-      style={{ textDecoration: "none", color: "inherit" }}
-    >
+    <div>
+      <a
+        href={link}
+        className={styles["card"]}
+        style={{ textDecoration: "none", color: "inherit" }}
+      >
       <div className={styles["card-body"]}>
         <div className={styles["card-icon"]}>
           <img className="img" src={imgSrc} width="100%" />
@@ -24,5 +26,6 @@ export const Card = ({
         </div>
       </div>
     </a>
+  </div>
   );
 };

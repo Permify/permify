@@ -2,9 +2,9 @@
 title: "Docker Container"
 ---
 
-# Container With Configurations
+# Deploy using Docker
 
-This section shows how to run Permify Service from a container with configurations. You can run Permify service from a container with following steps.
+This section shows how to run Permify Service from a docker container. You can run Permify service from a container with following steps.
 
 ### Run following line on Terminal
 
@@ -14,9 +14,11 @@ docker run -p 3476:3476 -p 3478:3478 -v {YOUR-CONFIG-PATH}:/config ghcr.io/permi
 
 This will start an API server with the configuration options that pointed out on the **{YOUR-CONFIG-PATH}**.
 
-This config path - `{YOUR-CONFIG-PATH}:/config` - addresses **config.yaml** file, where you can configure running options of the server as well as define the ***database to store your authorization data***. 
+This config path - `{YOUR-CONFIG-PATH}:/config` - addresses [config yaml file](#configuration-file), where you can configure running options of the Permify Server as well as define the ***database to store your authorization data***. 
 
-By default, the container is configured to listen on ports 3476 (HTTP) and 3478 (gRPC) and store the authorization data in memory rather than an actual database. You can override these by creating and and point out a new configuration file when running the command. 
+:::info Talk to an Permify Engineer
+By default, the container is configured to listen on ports 3476 (HTTP) and 3478 (gRPC) and store the authorization data in memory rather than an actual database.
+:::
 
 Permify designed to be store authorization data in a database you prefer as relation tuples. We called that database **‘writeDB’**. Additional to other configuration options, you can also define (point out) your **‘writeDB’** on the configuration YAML file as well.
 

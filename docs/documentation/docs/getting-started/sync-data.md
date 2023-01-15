@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Centralizing Authorization Data
+# Managing Authorization Data
 
 Permify unifies your authorization data in a database you prefer. We named that database as Write Database, shortly **WriteDB**.
 
