@@ -115,7 +115,7 @@ client.permission.check({
 
 Answering access checks is accomplished within Permify using a basic graph walking mechanism. See how [access decisions evaluated] in Permify. 
 
-[access decisions evaluated]: ../../docs/getting-started/enforcement#how-access-decisions-are-evaluated
+[access decisions evaluated]: ../../../docs/getting-started/enforcement#how-access-decisions-are-evaluated
 
 ## Need any help ?
 
