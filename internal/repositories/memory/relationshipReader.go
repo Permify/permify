@@ -13,6 +13,7 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/helper"
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 )
@@ -20,12 +21,15 @@ import (
 // RelationshipReader - Structure for Relationship Reader
 type RelationshipReader struct {
 	database *db.Memory
+	// logger
+	logger logger.Interface
 }
 
 // NewRelationshipReader - Creates a new RelationshipReader
-func NewRelationshipReader(database *db.Memory) *RelationshipReader {
+func NewRelationshipReader(database *db.Memory, logger logger.Interface) *RelationshipReader {
 	return &RelationshipReader{
 		database: database,
+		logger:   logger,
 	}
 }
 

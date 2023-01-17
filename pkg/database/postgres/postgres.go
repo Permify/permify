@@ -2,34 +2,35 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
 
-	"github.com/jackc/pgx/v4"
-
-	"github.com/jackc/pgx/v4/pgxpool"
-
 	"github.com/Masterminds/squirrel"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // Postgres - Structure for Postresql instance
 type Postgres struct {
-	maxOpenConnections int
-	connectionTimeout  time.Duration
-
+	DB      *sql.DB
 	Builder squirrel.StatementBuilderType
-	Pool    *pgxpool.Pool
+	// options
+	maxConnectionLifeTime time.Duration
+	maxConnectionIdleTime time.Duration
+	maxOpenConnections    int
+	maxIdleConnections    int
 }
 
 // New - Creates new postgresql db instance
-func New(uri, database string, opts ...Option) (*Postgres, error) {
+func New(uri string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
 		maxOpenConnections: _defaultMaxOpenConnections,
-		connectionTimeout:  _defaultConnectionTimeout,
+		maxIdleConnections: _defaultMaxIdleConnections,
 	}
 
 	// Custom options
@@ -39,22 +40,31 @@ func New(uri, database string, opts ...Option) (*Postgres, error) {
 
 	pg.Builder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
-	poolConfig, err := pgxpool.ParseConfig(uri + "/" + database)
+	db, err := sql.Open("pgx", uri)
 	if err != nil {
 		return nil, err
 	}
 
-	poolConfig.MaxConns = int32(pg.maxOpenConnections)
+	if pg.maxOpenConnections != 0 {
+		db.SetMaxOpenConns(pg.maxOpenConnections)
+	}
 
-	pg.Pool, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
-	if err != nil {
-		return nil, err
+	if pg.maxIdleConnections != 0 {
+		db.SetMaxIdleConns(pg.maxIdleConnections)
+	}
+
+	if pg.maxConnectionLifeTime != 0 {
+		db.SetConnMaxLifetime(pg.maxConnectionLifeTime)
+	}
+
+	if pg.maxConnectionIdleTime != 0 {
+		db.SetConnMaxIdleTime(pg.maxConnectionIdleTime)
 	}
 
 	policy := backoff.NewExponentialBackOff()
 	policy.MaxElapsedTime = 1 * time.Minute
 	err = backoff.Retry(func() error {
-		err = pg.Pool.Ping(context.Background())
+		err = db.PingContext(context.Background())
 		if err != nil {
 			return err
 		}
@@ -64,6 +74,7 @@ func New(uri, database string, opts ...Option) (*Postgres, error) {
 		return nil, err
 	}
 
+	pg.DB = db
 	return pg, nil
 }
 
@@ -71,20 +82,20 @@ func New(uri, database string, opts ...Option) (*Postgres, error) {
 func (p *Postgres) Migrate(statements []string) (err error) {
 	ctx := context.Background()
 
-	var tx pgx.Tx
-	tx, err = p.Pool.Begin(ctx)
+	var tx *sql.Tx
+	tx, err = p.DB.Begin()
 	if err != nil {
 		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
 
 	for _, statement := range statements {
-		_, err = tx.Exec(ctx, statement)
+		_, err = tx.ExecContext(ctx, statement)
 		if err != nil {
 			return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 		}
 	}
 
-	err = tx.Commit(ctx)
+	err = tx.Commit()
 	if err != nil {
 		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
 	}
@@ -99,8 +110,18 @@ func (p *Postgres) GetEngineType() string {
 
 // Close - Close postgresql instance
 func (p *Postgres) Close() error {
-	if p.Pool != nil {
-		p.Pool.Close()
+	if p.DB != nil {
+		return p.DB.Close()
 	}
 	return nil
+}
+
+// IsReady - Check if database is ready
+func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	if err := p.DB.PingContext(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
 }

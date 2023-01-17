@@ -9,6 +9,7 @@ import (
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/telemetry"
 )
 
@@ -34,12 +35,14 @@ func NewContainer() *Container {
 		fmt.Println(err)
 	}
 
-	// Repositories
-	relationshipReader := factories.RelationshipReaderFactory(db)
-	relationshipWriter := factories.RelationshipWriterFactory(db)
+	l := logger.New("debug")
 
-	schemaReader := factories.SchemaReaderFactory(db)
-	schemaWriter := factories.SchemaWriterFactory(db)
+	// Repositories
+	relationshipReader := factories.RelationshipReaderFactory(db, l)
+	relationshipWriter := factories.RelationshipWriterFactory(db, l)
+
+	schemaReader := factories.SchemaReaderFactory(db, l)
+	schemaWriter := factories.SchemaWriterFactory(db, l)
 
 	// commands
 	checkCommand, _ := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())

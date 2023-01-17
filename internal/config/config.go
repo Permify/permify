@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 )
@@ -29,15 +30,15 @@ type (
 
 	// HTTP -.
 	HTTP struct {
-		Enabled            bool      `yaml:"enabled"`
-		Port               string    `env-required:"true" yaml:"port"`
+		Enabled            bool      `yaml:"enabled" env-default:"true"`
+		Port               string    `yaml:"port" env-default:"3476"`
 		TLSConfig          TLSConfig `yaml:"tls"`
 		CORSAllowedOrigins []string  `yaml:"cors_allowed_origins"`
 		CORSAllowedHeaders []string  `yaml:"cors_allowed_headers"`
 	}
 
 	GRPC struct {
-		Port      string    `env-required:"true" yaml:"port"`
+		Port      string    `yaml:"port" env-default:"3478"`
 		TLSConfig TLSConfig `yaml:"tls"`
 	}
 
@@ -49,47 +50,43 @@ type (
 
 	// Authn -.
 	Authn struct {
-		Enabled bool     `yaml:"enabled"`
+		Enabled bool     `yaml:"enabled" env-default:"false"`
 		Keys    []string `yaml:"keys"`
 	}
 
 	// Log -.
 	Log struct {
-		Level string `env-required:"true" yaml:"level"`
+		Level string `yaml:"level" env-default:"debug"`
 	}
 
 	// Tracer -.
 	Tracer struct {
+		Enabled  bool   `yaml:"enabled" env-default:"false"`
 		Exporter string `yaml:"exporter"`
 		Endpoint string `yaml:"endpoint"`
-		Enabled  bool   `yaml:"enabled"`
 	}
 
 	// Meter -.
 	Meter struct {
+		Enabled  bool   `yaml:"enabled" env-default:"true"`
 		Exporter string `yaml:"exporter" env-default:"otlp"`
 		Endpoint string `yaml:"endpoint" env-default:"telemetry.permify.co"`
-		Enabled  bool   `yaml:"enabled" env-default:"true"`
 	}
 
 	// Service -.
 	Service struct {
-		CircuitBreaker   bool `yaml:"circuit_breaker"`
-		ConcurrencyLimit int  `yaml:"concurrency_limit"`
-		// MaxTuplesPerWrite       int  `yaml:"max_tuples_per_write"`
-		// LookupEntitiesMaxResult int  `yaml:"lookup_entities_max_result"`
+		CircuitBreaker   bool `yaml:"circuit_breaker" env-default:"false"`
+		ConcurrencyLimit int  `yaml:"concurrency_limit" env-default:"100"`
 	}
 
 	// Database -.
 	Database struct {
-		Engine             string `env-required:"true" yaml:"engine"`
-		Database           string `yaml:"database"`
-		URI                string `yaml:"uri"`
-		MaxOpenConnections int    `yaml:"max_open_connections"`
-		// MinOpenConnections    int           `yaml:"min_open_connections"`
-		// MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
-		// MaxConnectionIdleTime time.Duration `yaml:"max_idle_connections"`
-		// HealthCheckPeriod     time.Duration `yaml:"health_check_period"`
+		Engine                string        `yaml:"engine" env-default:"memory"`
+		URI                   string        `yaml:"uri"`
+		MaxOpenConnections    int           `yaml:"max_open_connections"`
+		MaxIdleConnections    int           `yaml:"max_idle_connections"`
+		MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
+		MaxConnectionIdleTime time.Duration `yaml:"max_connection_idle_time"`
 	}
 )
 
@@ -143,8 +140,6 @@ func DefaultConfig() *Config {
 		Service: Service{
 			CircuitBreaker:   false,
 			ConcurrencyLimit: 100,
-			// MaxTuplesPerWrite:       100,
-			// LookupEntitiesMaxResult: 100,
 		},
 		Authn: Authn{
 			Enabled: false,

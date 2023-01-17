@@ -12,18 +12,22 @@ import (
 	"github.com/Permify/permify/internal/repositories/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 )
 
 type RelationshipWriter struct {
 	database *db.Memory
+	// logger
+	logger logger.Interface
 }
 
 // NewRelationshipWriter - Creates a new RelationshipReader
-func NewRelationshipWriter(database *db.Memory) *RelationshipWriter {
+func NewRelationshipWriter(database *db.Memory, logger logger.Interface) *RelationshipWriter {
 	return &RelationshipWriter{
 		database: database,
+		logger:   logger,
 	}
 }
 

@@ -1,6 +1,8 @@
 package postgres
 
-import "time"
+import (
+	"time"
+)
 
 // Option - Option type
 type Option func(*Postgres)
@@ -12,9 +14,23 @@ func MaxOpenConnections(size int) Option {
 	}
 }
 
-// ConnectionTimeout - Returns connection timeout
-func ConnectionTimeout(timeout time.Duration) Option {
-	return func(c *Postgres) {
-		c.connectionTimeout = timeout
+// MaxIdleConnections - Defines maximum idle connections for postgresql db
+func MaxIdleConnections(c int) Option {
+	return func(p *Postgres) {
+		p.maxIdleConnections = c
+	}
+}
+
+// MaxConnectionIdleTime - Defines maximum connection idle for postgresql db
+func MaxConnectionIdleTime(d time.Duration) Option {
+	return func(p *Postgres) {
+		p.maxConnectionIdleTime = d
+	}
+}
+
+// MaxConnectionLifeTime - Defines maximum connection lifetime for postgresql db
+func MaxConnectionLifeTime(d time.Duration) Option {
+	return func(p *Postgres) {
+		p.maxConnectionLifeTime = d
 	}
 }

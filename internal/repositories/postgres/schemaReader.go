@@ -2,30 +2,36 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v4"
-	otelCodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // SchemaReader - Structure for SchemaReader
 type SchemaReader struct {
-	database  *db.Postgres
-	txOptions pgx.TxOptions
+	database *db.Postgres
+	// options
+	txOptions sql.TxOptions
+	// logger
+	logger logger.Interface
 }
 
 // NewSchemaReader - Creates a new SchemaReader
-func NewSchemaReader(database *db.Postgres) *SchemaReader {
+func NewSchemaReader(database *db.Postgres, logger logger.Interface) *SchemaReader {
 	return &SchemaReader{
 		database:  database,
-		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadOnly},
+		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: true},
+		logger:    logger,
 	}
 }
 
@@ -34,27 +40,32 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
 
-	tx, err := r.database.Pool.BeginTx(ctx, r.txOptions)
+	var tx *sql.Tx
+	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
-	defer func() {
-		_ = tx.Rollback(ctx)
-	}()
+	defer utils.Rollback(tx, r.logger)
 
-	var sql string
 	var args []interface{}
+	builder := r.database.Builder.Select("entity_type, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version})
 
-	query := r.database.Builder.Select("entity_type, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version})
-	sql, args, err = query.ToSql()
+	var query string
+	query, args, err = builder.ToSql()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
-	var rows pgx.Rows
-	rows, err = tx.Query(ctx, sql, args...)
+	var rows *sql.Rows
+	rows, err = tx.QueryContext(ctx, query, args...)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	defer rows.Close()
@@ -64,13 +75,29 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 		sd := repositories.SchemaDefinition{}
 		err = rows.Scan(&sd.EntityType, &sd.SerializedDefinition, &sd.Version)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return nil, err
 		}
 		definitions = append(definitions, sd.Serialized())
 	}
+	if err = rows.Err(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
 
 	schema, err = compiler.NewSchema(definitions...)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
@@ -78,52 +105,61 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 }
 
 // ReadSchemaDefinition - Reads entity config from the repository.
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (*base.EntityDefinition, string, error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema-definition")
 	defer span.End()
 
-	var err error
-
-	var tx pgx.Tx
-	tx, err = r.database.Pool.BeginTx(ctx, r.txOptions)
+	var tx *sql.Tx
+	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		return nil, "", err
 	}
 
-	defer func() {
-		_ = tx.Rollback(ctx)
-	}()
+	defer utils.Rollback(tx, r.logger)
 
-	var sql string
+	builder := r.database.Builder.Select("entity_type, serialized_definition, version").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(SchemaDefinitionTable).Limit(1)
+
+	var query string
 	var args []interface{}
 
-	query := r.database.Builder.Select("entity_type, serialized_definition, version").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(SchemaDefinitionTable).Limit(1)
-	sql, args, err = query.ToSql()
+	query, args, err = builder.ToSql()
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	var def repositories.SchemaDefinition
-	row := tx.QueryRow(ctx, sql, args...)
+	row := tx.QueryRowContext(ctx, query, args...)
+	if err = row.Err(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
 	if err = row.Scan(&def.EntityType, &def.SerializedDefinition, &def.Version); err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+		span.SetStatus(codes.Error, err.Error())
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, "", err
 	}
 
 	var sch *base.IndexedSchema
 	sch, err = compiler.NewSchemaWithoutReferenceValidation(def.Serialized())
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		return nil, "", err
 	}
 
-	var definition *base.EntityDefinition
 	definition, err = schema.GetEntityByName(sch, entityType)
 	return definition, def.Version, err
 }
@@ -133,25 +169,26 @@ func (r *SchemaReader) HeadVersion(ctx context.Context) (version string, err err
 	ctx, span := tracer.Start(ctx, "schema-reader.head-version")
 	defer span.End()
 
-	var sql string
+	var query string
 	var args []interface{}
-	sql, args, err = r.database.Builder.
+	query, args, err = r.database.Builder.
 		Select("version").From(SchemaDefinitionTable).OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetStatus(codes.Error, err.Error())
 		return "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
-	row := r.database.Pool.QueryRow(ctx, sql, args...)
+	row := r.database.DB.QueryRowContext(ctx, query, args...)
 	err = row.Scan(&version)
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		if errors.Is(err, pgx.ErrNoRows) {
+		span.SetStatus(codes.Error, err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
 			return "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 		}
 		return "", err
 	}
+
 	return version, nil
 }

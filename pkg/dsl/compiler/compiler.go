@@ -214,6 +214,8 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (ch
 			if err != nil {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 			}
+		} else {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())
 		}
 	case ast.PREFIX:
 		s := strings.Split(expression.GetValue(), tuple.SEPARATOR)
@@ -242,6 +244,8 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (ch
 			if err != nil {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 			}
+		} else {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())
 		}
 		leaf.Exclusion = true
 	default:

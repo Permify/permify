@@ -2,7 +2,7 @@ version: "3.8"
 services:
   permify:
     image: "ghcr.io/permify/permify:latest"
-    command: "serve --database-engine postgres --database-uri postgres://postgres:secret@database:5432 --database-name permify --database-pool-max 20"
+    command: "serve --database-engine postgres --database-uri postgres://postgres:secret@database:5432 --database-name permify --database-max-open-connections 20"
     restart: "always"
     ports:
       - "3476:3476"
