@@ -11,3 +11,8 @@ updates:
     schedule:
       interval: "monthly"  
     open-pull-requests-limit: 10
+  - package-ecosystem: "npm"
+    directory: "/playground"
+    schedule:
+      interval: "monthly"  
+    open-pull-requests-limit: 10
