@@ -12441,10 +12441,10 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==
 
-sql-highlight@^4.2.1:
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/sql-highlight/-/sql-highlight-4.2.1.tgz#633f21682781f7cc403726c32b202df374c1a0b5"
-  integrity sha512-t6HyleY64lk3qAncCLxPx0XJ1oYcroN96C4tH2ttrT3DLsOQznthobU+T4iI7896qBrbACqtvK/Z8pSyLtcoDQ==
+sql-highlight@^4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/sql-highlight/-/sql-highlight-4.3.0.tgz#772ab2d60629d60f16cb79160260ef6107766825"
+  integrity sha512-JyMhS/EaDbOEMzTamf8p/FBc48FiQRM8CZ/mO2SeupRIY7NXa/zhGsjvENRh3/5aF2L8Q+zc0ESAaN+kQNYTFQ==
 
 ssri@^6.0.1:
   version "6.0.2"
