@@ -224,6 +224,5 @@ func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 	// DATABASE
 	cmd.Flags().StringVar(&config.Database.Engine, "database-engine", config.Database.Engine, "data source. e.g. postgres, memory")
 	cmd.Flags().IntVar(&config.Database.MaxOpenConnections, "database-max-open-connections", config.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
-	cmd.Flags().StringVar(&config.Database.Database, "database-name", config.Database.Database, "custom database name")
 	cmd.Flags().StringVar(&config.Database.URI, "database-uri", config.Database.URI, "uri of your data source to store relation tuples and schema")
 }

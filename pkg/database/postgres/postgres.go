@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -18,16 +17,20 @@ import (
 
 // Postgres - Structure for Postresql instance
 type Postgres struct {
-	maxOpenConnections int
-
-	Builder squirrel.StatementBuilderType
 	DB      *sql.DB
+	Builder squirrel.StatementBuilderType
+	// options
+	maxConnectionLifeTime time.Duration
+	maxConnectionIdleTime time.Duration
+	maxOpenConnections    int
+	maxIdleConnections    int
 }
 
 // New - Creates new postgresql db instance
-func New(uri, database string, opts ...Option) (*Postgres, error) {
+func New(uri string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
 		maxOpenConnections: _defaultMaxOpenConnections,
+		maxIdleConnections: _defaultMaxIdleConnections,
 	}
 
 	// Custom options
@@ -37,13 +40,25 @@ func New(uri, database string, opts ...Option) (*Postgres, error) {
 
 	pg.Builder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
-	db, err := sql.Open("pgx", fmt.Sprintf("%s/%s", uri, database))
+	db, err := sql.Open("pgx", uri)
 	if err != nil {
 		return nil, err
 	}
 
 	if pg.maxOpenConnections != 0 {
 		db.SetMaxOpenConns(pg.maxOpenConnections)
+	}
+
+	if pg.maxIdleConnections != 0 {
+		db.SetMaxIdleConns(pg.maxIdleConnections)
+	}
+
+	if pg.maxConnectionLifeTime != 0 {
+		db.SetConnMaxLifetime(pg.maxConnectionLifeTime)
+	}
+
+	if pg.maxConnectionIdleTime != 0 {
+		db.SetConnMaxIdleTime(pg.maxConnectionIdleTime)
 	}
 
 	policy := backoff.NewExponentialBackOff()

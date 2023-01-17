@@ -10,7 +10,7 @@ import (
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/schema"
-	`github.com/Permify/permify/pkg/logger`
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/Permify/permify/internal/repositories"
 	db "github.com/Permify/permify/pkg/database/memory"
-	`github.com/Permify/permify/pkg/logger`
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 

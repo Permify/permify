@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 )
@@ -76,20 +77,16 @@ type (
 	Service struct {
 		CircuitBreaker   bool `yaml:"circuit_breaker" env-default:"false"`
 		ConcurrencyLimit int  `yaml:"concurrency_limit" env-default:"100"`
-		// MaxTuplesPerWrite       int  `yaml:"max_tuples_per_write"`
-		// LookupEntitiesMaxResult int  `yaml:"lookup_entities_max_result"`
 	}
 
 	// Database -.
 	Database struct {
-		Engine             string `yaml:"engine" env-default:"memory"`
-		Database           string `yaml:"database"`
-		URI                string `yaml:"uri"`
-		MaxOpenConnections int    `yaml:"max_open_connections"`
-		// MinOpenConnections    int           `yaml:"min_open_connections"`
-		// MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
-		// MaxConnectionIdleTime time.Duration `yaml:"max_idle_connections"`
-		// HealthCheckPeriod     time.Duration `yaml:"health_check_period"`
+		Engine                string        `yaml:"engine" env-default:"memory"`
+		URI                   string        `yaml:"uri"`
+		MaxOpenConnections    int           `yaml:"max_open_connections"`
+		MaxIdleConnections    int           `yaml:"max_idle_connections"`
+		MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
+		MaxConnectionIdleTime time.Duration `yaml:"max_connection_idle_time"`
 	}
 )
 
@@ -143,8 +140,6 @@ func DefaultConfig() *Config {
 		Service: Service{
 			CircuitBreaker:   false,
 			ConcurrencyLimit: 100,
-			// MaxTuplesPerWrite:       100,
-			// LookupEntitiesMaxResult: 100,
 		},
 		Authn: Authn{
 			Enabled: false,
