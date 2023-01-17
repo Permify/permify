@@ -39,7 +39,7 @@
     "react-infinite-scroll-component": "^6.1.0",
     "react-inlinesvg": "^2.3.0",
     "react-moment": "^1.1.1",
-    "react-redux": "^7.2.4",
+    "react-redux": "^8.0.5",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
     "react-scripts": "4.0.3",
