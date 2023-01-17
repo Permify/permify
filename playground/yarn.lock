@@ -2905,10 +2905,10 @@ ajv@^8.0.1:
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
 
-allotment@^1.17.0:
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/allotment/-/allotment-1.17.0.tgz#a664b349c48a16602f27022d6dd6599e4ed53757"
-  integrity sha512-Iab4GCVLb9/2R5D2PFlbhR2OWZrGLpYqF6YgmonLmwc9BrA+PEMt2BkltdYaySh7vfG73tuMdBB5R7AdTuMJEA==
+allotment@^1.17.1:
+  version "1.17.1"
+  resolved "https://registry.yarnpkg.com/allotment/-/allotment-1.17.1.tgz#1a87fe911e520e6028df3740d9ba397c48f8e8d7"
+  integrity sha512-3/blHxKZfP441IZRwoOJaaNfDOx9XtvQQaeRYYrn7xjQWF7ZhYZCfR7oNxudwx2ga21tIskvfytbZF2P/ydE3A==
   dependencies:
     classnames "^2.3.0"
     eventemitter3 "^4.0.0"
