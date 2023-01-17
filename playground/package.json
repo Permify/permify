@@ -21,7 +21,7 @@
     "allotment": "^1.17.1",
     "antd": "4.16.8",
     "as-bind": "^0.8.2",
-    "assemblyscript": "^0.21.3",
+    "assemblyscript": "^0.26.3",
     "axios": "^1.2.2",
     "craco-less": "^1.18.0",
     "dynamic-antd-theme": "^0.8.5",
