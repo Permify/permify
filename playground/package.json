@@ -22,7 +22,7 @@
     "antd": "4.16.8",
     "as-bind": "^0.8.2",
     "assemblyscript": "^0.21.3",
-    "axios": "^0.21.1",
+    "axios": "^1.2.2",
     "craco-less": "^1.18.0",
     "dynamic-antd-theme": "^0.8.5",
     "formik": "^2.2.9",
