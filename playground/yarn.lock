@@ -11443,10 +11443,10 @@ react-transition-group@^4.4.0:
     loose-envify "^1.4.0"
     prop-types "^15.6.2"
 
-react-vis@^1.11.7:
-  version "1.11.7"
-  resolved "https://registry.yarnpkg.com/react-vis/-/react-vis-1.11.7.tgz#909902af00158895d14da1adfe1d0dc0045228ff"
-  integrity sha512-vJqS12l/6RHeSq8DVl4PzX0j8iPgbT8H8PtgTRsimKsBNcPjPseO4RICw1FUPrwj8MPrrna34LBtzyC4ATd5Ow==
+react-vis@^1.11.12:
+  version "1.11.12"
+  resolved "https://registry.yarnpkg.com/react-vis/-/react-vis-1.11.12.tgz#d15c2987cec36b736a4330d105b79dd8ecefab6f"
+  integrity sha512-WuYZrwrH/cXgxKcynciuwZ6+6V9a5N43qa4Wwfgll/tyLq+ACcJ5m8fHFXQk7fQBK80RAp61Oc+a+T64woorvw==
   dependencies:
     d3-array "^1.2.0"
     d3-collection "^1.0.3"
