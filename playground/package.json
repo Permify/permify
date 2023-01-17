@@ -17,7 +17,7 @@
     "@reduxjs/toolkit": "^1.6.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
-    "@testing-library/user-event": "^12.1.10",
+    "@testing-library/user-event": "^14.4.3",
     "allotment": "^1.17.1",
     "antd": "4.16.8",
     "as-bind": "^0.8.2",
