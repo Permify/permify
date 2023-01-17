@@ -62,7 +62,7 @@ You can store that snap token alongside with the resource in your relational dat
 
 See more details on what is [Snap Tokens](/docs/reference/snap-tokens) and how its avoiding stale cache.
 
-### Using Clients
+### Using gRPC Clients
 
 <Tabs>
 <TabItem value="go" label="Go">

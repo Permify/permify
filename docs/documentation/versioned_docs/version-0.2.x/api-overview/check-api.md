@@ -52,7 +52,7 @@ In this section we'll investigate proior check request of Permify: **resource ba
 }
 ```
 
-### Using Clients
+### Using gRPC Clients
 
 <Tabs>
 <TabItem value="go" label="Go">

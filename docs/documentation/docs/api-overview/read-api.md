@@ -5,6 +5,8 @@ import TabItem from '@theme/TabItem';
 
 Read API allows for directly querying the stored graph data to display and filter stored relational tuples.
 
+## Request
+
 **Path:** POST /v1/relationship/read
 
 | Required | Argument | Type | Default | Description |
@@ -13,63 +15,6 @@ Read API allows for directly querying the stored graph data to display and filte
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | relation | string | - | relation of the given entity |
 | [ ]   | subject | object | - | the user or user set. It containes type and id of the subject.  ||
-
-#### Request
-
-```json
-{
-  "metadata": {
-     "snap_token": "",
-  },
-  "filter": {
-    "entity": {
-      "type": "organization",
-      "ids": [
-        "1"
-      ]
-    },
-    "relation": "member",
-    "subject": {
-      "type": "",
-      "ids": [
-        ""
-      ],
-      "relation": ""
-    }
-  }
-}
-```
-
-#### Response
-
-```json
-[
-    {
-        "entity": {
-            "type": "organization",
-            "id": "1"
-        },
-        "relation": "member",
-        "subject": {
-            "type": "user",
-            "id": "1"
-        }
-    },
-    {
-        "entity": {
-            "type": "organization",
-            "id": "1"
-        },
-        "relation": "member",
-        "subject": {
-            "type": "user",
-            "id": "2"
-        }
-    }
-]
-```
-
-### Using Clients
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -123,6 +68,34 @@ client.relationship.read({
 })
 ```
 
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/relationships/read' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  metadata: {
+     snap_token: "",
+  },
+  filter: {
+    entity: {
+      type: "organization",
+      ids: [
+        "1"
+      ]
+    },
+    relation: "member",
+    subject: {
+      type: "",
+      ids: [
+        ""
+      ],
+      relation: ""
+    }
+  }
+}'
+```
 </TabItem>
 </Tabs>
 

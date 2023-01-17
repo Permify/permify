@@ -14,7 +14,7 @@ Another example: when one a company executive grant admin role to user (lets say
 [relational tuples]: ../getting-started/sync-data
 [writeDB]: ../getting-started/sync-data#where-relational-tuples-used-
 
-## Example Request
+## Request
 
 So if user:3 has been granted an admin role in organization:1, relational tuple `organization:1#admin@user:3` must be created by using **/v1/relationships/write** endpoint.
 
@@ -28,43 +28,6 @@ So if user:3 has been granted an admin role in organization:1, relational tuple 
 | [x]   | subject | string | - | User or user set who wants to take the action. |
 | [ ]   | schema_version | string | 8 | Version of the schema |
 
-### Request
-
-```json
-{
-    "metadata": {
-        "schema_version": "string"
-    },
-    "tuples": [
-        {
-        "entity": {
-            "type": "organization",
-            "id": "1"
-        },
-        "relation": "admin",
-        "subject":{
-            "type": "user",
-            "id": "3",
-            "relation": ""
-        }
-    }
-    ]
-}
-```
-
-### Response
-
-```json
-{
-    "snap_token": "FxHhb4CrLBc="
-}
-```
-
-You can store that snap token alongside with the resource in your relational database, then use it used in endpoints to get fresh results from the API's. For example it can be used in access control check with sending via `snap_token` field to ensure getting check result as fresh as previous request.
-
-See more details on what is [Snap Tokens](/docs/reference/snap-tokens) and how its avoiding stale cache.
-
-### Using Clients
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -116,7 +79,45 @@ client.relationship.write({
 ```
 
 </TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/relationships/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "metadata": {
+        "schema_version": ""
+    },
+    "tuples": [
+        {
+        "entity": {
+            "type": "organization",
+            "id": "1"
+        },
+        "relation": "admin",
+        "subject":{
+            "type": "user",
+            "id": "3",
+            "relation": ""
+        }
+    }
+    ]
+}'
+```
+</TabItem>
 </Tabs>
+
+## Response
+
+```json
+{
+    "snap_token": "FxHhb4CrLBc="
+}
+```
+
+You can store that snap token alongside with the resource in your relational database, then use it used in endpoints to get fresh results from the API's. For example it can be used in access control check with sending via `snap_token` field to ensure getting check result as fresh as previous request.
+
+See more details on what is [Snap Tokens](/docs/reference/snap-tokens) and how its avoiding stale cache.
 
 ## Suggested Workflow 
 

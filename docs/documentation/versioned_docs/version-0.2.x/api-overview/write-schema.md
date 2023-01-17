@@ -26,7 +26,7 @@ Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for conf
 
 ![permify-schema](https://user-images.githubusercontent.com/34595361/197405641-d8197728-2080-4bc3-95cb-123e274c58ce.png)
 
-### Using Clients
+### Using gRPC Clients
 
 <Tabs>
 <TabItem value="go" label="Go">

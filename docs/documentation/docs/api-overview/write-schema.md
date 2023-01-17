@@ -17,16 +17,13 @@ Although, it could easily be done programmatically, it could be little challengi
 
 Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for configuration of your authorization model on Permify API.
 
-### Path : ** POST "/v1/schemas/write"**
+## Request
+
+**POST** "/v1/schemas/write"**
+
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
 | [x]   | schema | string | - | Permify Schema as string|
-
-**Example Request on Postman:**
-
-![permify-schema](https://user-images.githubusercontent.com/34595361/197405641-d8197728-2080-4bc3-95cb-123e274c58ce.png)
-
-### Using Clients
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -34,13 +31,7 @@ Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for conf
 ```go
 sr, err: = client.Schema.Write(context.Background(), &v1.SchemaWriteRequest {
     Schema: `
-    entity user {}
-            
-    entity document {
-    relation viewer @user
-               
-    action view = viewer
-    }
+    "entity user {}\n\n    entity organization {\n\n        relation admin @user\n        relation member @user\n\n        action create_repository = (admin or member)\n        action delete = admin\n    }\n\n    entity repository {\n\n        relation owner @user\n        relation parent @organization\n\n        action push = owner\n        action read = (owner and (parent.admin and parent.member))\n        action delete = (parent.member and (parent.admin or owner))\n    }"
     `,
 })
 ```
@@ -51,13 +42,7 @@ sr, err: = client.Schema.Write(context.Background(), &v1.SchemaWriteRequest {
 ```javascript
 client.schema.write({
     schema: `
-    entity user {}
-            
-    entity document {
-    relation viewer @user
-               
-    action view = viewer
-    }
+    "entity user {}\n\n    entity organization {\n\n        relation admin @user\n        relation member @user\n\n        action create_repository = (admin or member)\n        action delete = admin\n    }\n\n    entity repository {\n\n        relation owner @user\n        relation parent @organization\n\n        action push = owner\n        action read = (owner and (parent.admin and parent.member))\n        action delete = (parent.member and (parent.admin or owner))\n    }"
     `
 }).then((response) => {
     // handle response
@@ -65,7 +50,24 @@ client.schema.write({
 ```
 
 </TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/schemas/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "schema": "entity user {}\n\n    entity organization {\n\n        relation admin @user\n        relation member @user\n\n        action create_repository = (admin or member)\n        action delete = admin\n    }\n\n    entity repository {\n\n        relation owner @user\n        relation parent @organization\n\n        action push = owner\n        action read = (owner and (parent.admin and parent.member))\n        action delete = (parent.member and (parent.admin or owner))\n }"
+}'
+```
+</TabItem>
 </Tabs>
+
+## Example Request on Postman
+**POST** "/v1/schemas/write"**
+
+**Example Request on Postman:**
+
+![permify-schema](https://user-images.githubusercontent.com/34595361/197405641-d8197728-2080-4bc3-95cb-123e274c58ce.png)
 
 ## Need any help ?
 

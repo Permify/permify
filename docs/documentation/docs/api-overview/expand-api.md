@@ -261,7 +261,7 @@ We can use expand API to reason the access actions. If we want to reason access 
 </p>
 </details>
 
-### Using Clients
+### Using gRPC Clients
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -300,6 +300,24 @@ client.permission.expand({
 })
 ```
 
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/permissions/expand' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "metadata": {
+    "schema_version": "",
+    "snap_token": ""
+  },
+  "entity": {
+    "type": "repository",
+    "id": "1"
+  },
+  "permission": "push"
+}'
+```
 </TabItem>
 </Tabs>
 

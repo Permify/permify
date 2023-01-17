@@ -6,9 +6,11 @@ import TabItem from '@theme/TabItem';
 In Permify, you can perform two different types access checks,
 
 - **resource based** authorization checks, in form of `Can user U perform action Y in resource Z ?`
-- **data filtering (coming soon)** authorization checks , in form of `Which records can user U edit ?`
+- **data filtering** authorization checks , in form of `Which records can user U edit ?`
 
-In this section we'll investigate proior check request of Permify: **resource based** authorization checks. You can find subject based access checks in [data filtering] section.
+In this section we'll investigate prior check request of Permify: **resource based** authorization checks. <!-- You can find subject based access checks in [data filtering] section. -->
+
+## Request
 
 **Path:** POST /v1/permissions/check
 
@@ -18,41 +20,9 @@ In this section we'll investigate proior check request of Permify: **resource ba
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It containes type and id of the subject.  |
+| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
 | [ ]   | depth | integer | 8 | Timeout limit when if recursive database queries got in loop|
 
-#### Request
-
-```json
-{
-  "metadata": {
-    "schema_version": "",
-    "snap_token": "",
-    "depth": 20
-  },
-  "entity": {
-    "type": "repository",
-    "id": "1"
-  },
-  "permission": "edit",
-  "subject": {
-    "type": "user",
-    "id": "1",
-    "relation": ""
-  },
-}
-```
-
-#### Response
-
-```json
-{
-  "can": "RESULT_ALLOW",
-  "remaining_depth": 0
-}
-```
-
-### Using Clients
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -111,7 +81,40 @@ client.permission.check({
 ```
 
 </TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/permissions/check' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "metadata":{
+    "snap_token": "",
+    "schema_version": "",
+    "depth": 20
+  },
+  "entity": {
+    "type": "repository",
+    "id": "1"
+  },
+  "permission": "edit",
+  "subject": {
+    "type": "user",
+    "id": "1",
+    "relation": ""
+  },
+}'
+```
+</TabItem>
 </Tabs>
+
+## Response
+
+```json
+{
+  "can": "RESULT_ALLOW",
+  "remaining_depth": 0
+}
+```
 
 Answering access checks is accomplished within Permify using a basic graph walking mechanism. See how [access decisions evaluated] in Permify. 
 
