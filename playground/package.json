@@ -44,7 +44,7 @@
     "react-router-dom": "5.2.0",
     "react-scripts": "4.0.3",
     "react-simple-code-editor": "^0.13.0",
-    "react-vis": "^1.11.7",
+    "react-vis": "^1.11.12",
     "react-wasm": "^1.0.1",
     "redux-batch": "^0.0.0",
     "redux-persist": "^6.0.0",
