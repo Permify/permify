@@ -29,7 +29,7 @@
     "formik-antd": "^2.0.4",
     "moment": "^2.29.1",
     "monaco-editor": "^0.34.0",
-    "query-string": "^7.1.1",
+    "query-string": "^8.1.0",
     "react": "^17.0.2",
     "react-color": "^2.19.3",
     "react-copy-to-clipboard": "^5.1.0",
