@@ -261,7 +261,7 @@ We can use expand API to reason the access actions. If we want to reason access 
 </p>
 </details>
 
-### Using Clients
+### Using gRPC Clients
 
 <Tabs>
 <TabItem value="go" label="Go">

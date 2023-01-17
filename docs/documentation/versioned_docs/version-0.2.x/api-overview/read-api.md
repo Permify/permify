@@ -69,7 +69,7 @@ Read API allows for directly querying the stored graph data to display and filte
 ]
 ```
 
-### Using Clients
+### Using gRPC Clients
 
 <Tabs>
 <TabItem value="go" label="Go">

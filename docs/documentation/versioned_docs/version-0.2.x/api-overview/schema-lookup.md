@@ -56,7 +56,7 @@ Let's say you have a user X with a manager role. If you want to check what user 
 ```
 
 
-### Using Clients
+### Using gRPC Clients
 
 <Tabs>
 <TabItem value="go" label="Go">

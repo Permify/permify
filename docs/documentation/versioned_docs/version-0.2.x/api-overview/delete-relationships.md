@@ -36,7 +36,7 @@ You can delete any stored relation tuples with following path
 }
 ```
 
-### Using Clients
+### Using gRPC Clients
 
 <Tabs>
 <TabItem value="go" label="Go">
