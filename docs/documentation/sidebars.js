@@ -62,6 +62,7 @@ module.exports = {
 				"api-overview/write-relationships",
 				"api-overview/read-api",
 				"api-overview/check-api",
+				"api-overview/lookup-entity",
 				"api-overview/delete-relationships",
 				"api-overview/expand-api",
 				"api-overview/schema-lookup",
