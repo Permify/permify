@@ -6,9 +6,11 @@ import TabItem from '@theme/TabItem';
 In Permify, you can perform two different types access checks,
 
 - **resource based** authorization checks, in form of `Can user U perform action Y in resource Z ?`
-- **data filtering** authorization checks , in form of `Which records can user U edit ?`
+- **subject based** authorization checks, in form of `Which resources can user U edit ?`
 
-In this section we'll investigate prior check request of Permify: **resource based** authorization checks. <!-- You can find subject based access checks in [data filtering] section. -->
+In this section we'll look at the resource based check request of Permify. You can find subject based access checks in [Check Entities' Permissions] section.
+
+[Check Entities' Permissions]: ./lookup-entity
 
 ## Request
 
