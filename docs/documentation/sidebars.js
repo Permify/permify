@@ -74,11 +74,11 @@ module.exports = {
 			id: "playground",
 			label: "Permify Playground",
 		},
-		{
+		/* {
 			type: "doc",
 			id: "comparison",
 			label: "Comparision",
-		},
+		}, */
 		{
 			type: "category",
 			label: "Common Use Cases",
