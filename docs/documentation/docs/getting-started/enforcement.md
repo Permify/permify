@@ -6,12 +6,12 @@ sidebar_position: 4
 
 In Permify, you can perform access control checks as both [resource specific] and [subject specific] (data filtering) with single API calls.
 
-A simple [resource specific] access check takes form of ***Can the subject U perform action X on a resource Y ?***. A real world example would be: can user:1 edit document:2 where the right side of the ":" represents identifier of the entity.
+A simple [resource based] access check takes form of ***Can the subject U perform action X on a resource Y ?***. A real world example would be: *can user:1 edit document:2* where the right side of the ":" represents identifier of the entity.
 
-On the other hand [subject specific] access check takes form of  ***Which resources does subject U perform an action X ?*** This option is best for filtering data or bulk permission checks. 
+On the other hand [subject based] access check takes form of  ***Which resources does subject U perform an action X ?*** This option is best for filtering data or bulk permission checks. 
 
-[resource specific]: #resource-specific-check-request
-[subject specific]: #subject-specific-data-filtering-check-request
+[resource based]: ../api-overview/check-api.md
+[subject based]: ../api-overview/lookup-entity.md
 
 ## Performance & Availability
 
@@ -29,58 +29,7 @@ We would love to create a test environment for you in order to test Permify API 
 
 [writeDB]: ../getting-started/sync-data.md
 
-## Resource Specific Check Request
-
-Let's follow an simplified access control decision for examining the resource specific [check] request.
-
-[check]:  https://app.swaggerhub.com/apis-docs/permify/permify/latest
-
-***Can the user 3 edit document 12 ?***
-
-#### Path: 
-
-POST /v1/permissions/check
-
-| Required | Argument | Type | Default | Description |
-|----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [ ]   | schema_version | string | 8 | Version of the schema |
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
-| [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
-| [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
-| [ ]   | depth | integer | 8 | Timeout limit when if recursive database queries got in loop|
-
-#### Request
-
-```json
-{
-  "metadata": {
-    "schema_version": "",
-    "snap_token": "",
-  },
-  "entity": {
-    "type": "document",
-    "id": "12"
-  },
-  "permission": "edit",
-  "subject": {
-    "type": "user",
-    "id": "1",
-    "relation": ""
-  },
-}
-```
-
-#### Response
-
-```json
-{
-  "can": "RESULT_ALLOW",
-  "remaining_depth": 0
-}
-```
-
-### How Access Decisions Evaluated?
+## How Access Decisions Evaluated?
 
 Access decisions are evaluated by stored [relational tuples] and your authorization model, [Permify Schema]. 
 
@@ -134,103 +83,6 @@ As we can see above: only users with an admin role in an organization, which `do
 Since edit action consist **or** between owner and parent.admin, if Permify Engine found user:3 in results of one of these queries then it terminates the other ongoing queries and returns authorized true to the client.
 
 Rather than **or**, if we had an **and** relation then Permify Engine waits the results of these queries to returning a decision. 
-
-## Subject Specific (Data Filtering) Check Request
-
-For this access check you can ask questions in form of “Which resources can user:X do action Y?” And you’ll get a entity results in a format of string array or as a streaming response depending on the endpoint you're using.
-
-So we have a 2 seperate endpoints for data filtering check request,
-
-- [/v1/permissions/lookup-entity](#lookup-entity)
-- [/v1/permissions/lookup-entity-stream](#lookup-entity-streaming)
-
-### Lookup Entity 
-
-In this endpoint you'll get directly the IDs' of the entities that are authorized in an array
-
-#### Path: 
-
-POST /v1/permissions/lookup-entity
-
-| Required | Argument | Type | Default | Description |
-|----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [ ]   | schema_version | string | 8 | Version of the schema |
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
-| [x]   | entity_type | object | - | type of the  entity. Example: repository”.
-| [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
-
-#### Request
-
-```json
-{
-  "metadata": {
-    "schema_version": "",
-    "snap_token": "",
-    "depth": 20
-  },
-  "entity_type": "document",
-  "permission": "edit",
-  "subject": {
-    "type": "user",
-    "id": "1",
-   "relation": ""
-  }
-}
-```
-
-#### Response
-
-```json
-{
-  "entity_ids": [
-    "15","142","93214","312","612"
-  ]
-}
-```
-
-### Lookup Entity (Streaming)
-
-The difference between this endpoint from direct Lookup Entity is response of this entity gives the IDs' as stream. This could be useful if you have large data set that getting all of the authorized data can take long with direct lookup entity endpoint.
-
-#### Path: 
-
-POST /v1/permissions/lookup-entity-stream
-
-| Required | Argument | Type | Default | Description |
-|----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [ ]   | schema_version | string | 8 | Version of the schema |
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
-| [x]   | entity_type | object | - | type of the  entity. Example: repository”.
-| [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
-
-#### Request
-
-```json
-{
-  "metadata": {
-    "schema_version": "",
-    "snap_token": "",
-    "depth": 20
-  },
-  "entity_type": "document",
-  "permission": "edit",
-  "subject": {
-    "type": "user",
-    "id": "1",
-   "relation": ""
-  }
-}
-```
-
-#### Response
-
-```json
-{
-  	"(streaming entity IDs')"
-}
-```
 
 ## Need any help ?
 

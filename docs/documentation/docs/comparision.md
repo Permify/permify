@@ -13,7 +13,7 @@ This comparison table shows the differentiation between authorization solutions 
 |---|---|---|---|---|
 | **Zanzibar Paper Faithfulness** |  Medium | High | High | High 
 | **Scalability** |  Medium |  Medium  | High | High 
-| **Consistency & Cache** | Supported | No Zookies  |  Supported |  Supported |
+| **Consistency & Cache** | No Zookies | No Zookies  | Supported |  Supported |
 | **Dev UX** | Average |  Average  |  High |  High |
 
 ## Feature Set
@@ -34,6 +34,5 @@ This comparison table shows the differentiation between authorization solutions 
 | **ABAC** | ⛔ | 🟡 | ✅  | ⛔  |
 | **Data Filtering** |  ⛔ | ✅  | ✅  | ✅ |
 | **Multi Tenancy** | ⛔ | ✅ | ⛔ | ✅ |
-| **Custom Roles** | ⛔ | ⛔ |  ⛔ | ✅ |
-| **Testing & Validation** | 🟡 | 🟡  | ✅ | ✅ |
-| **Logging & Tracing** | 🟡 | 🟡  | ✅ | ✅ |
+| **Testing & Validation** |  ⛔ | 🟡  | ✅ | ✅ |
+| **Logging & Tracing** | 🟡 | ✅  | ✅ | ✅ |
