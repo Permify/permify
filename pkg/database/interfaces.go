@@ -8,9 +8,6 @@ import (
 
 // Database - Db interface
 type Database interface {
-	// Migrate -
-	Migrate(statements []string) error
-
 	// GetEngineType get the database type (e.g. postgres, memory, etc.).
 	GetEngineType() string
 
