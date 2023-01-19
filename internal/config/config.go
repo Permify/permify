@@ -1,10 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -30,15 +32,15 @@ type (
 
 	// HTTP -.
 	HTTP struct {
-		Enabled            bool      `yaml:"enabled" env-default:"true"`
-		Port               string    `yaml:"port" env-default:"3476"`
+		Enabled            bool      `yaml:"enabled"`
+		Port               string    `yaml:"port"`
 		TLSConfig          TLSConfig `yaml:"tls"`
 		CORSAllowedOrigins []string  `yaml:"cors_allowed_origins"`
 		CORSAllowedHeaders []string  `yaml:"cors_allowed_headers"`
 	}
 
 	GRPC struct {
-		Port      string    `yaml:"port" env-default:"3478"`
+		Port      string    `yaml:"port"`
 		TLSConfig TLSConfig `yaml:"tls"`
 	}
 
@@ -50,39 +52,40 @@ type (
 
 	// Authn -.
 	Authn struct {
-		Enabled bool     `yaml:"enabled" env-default:"false"`
+		Enabled bool     `yaml:"enabled"`
 		Keys    []string `yaml:"keys"`
 	}
 
 	// Log -.
 	Log struct {
-		Level string `yaml:"level" env-default:"debug"`
+		Level string `yaml:"level"`
 	}
 
 	// Tracer -.
 	Tracer struct {
-		Enabled  bool   `yaml:"enabled" env-default:"false"`
+		Enabled  bool   `yaml:"enabled"`
 		Exporter string `yaml:"exporter"`
 		Endpoint string `yaml:"endpoint"`
 	}
 
 	// Meter -.
 	Meter struct {
-		Enabled  bool   `yaml:"enabled" env-default:"true"`
-		Exporter string `yaml:"exporter" env-default:"otlp"`
-		Endpoint string `yaml:"endpoint" env-default:"telemetry.permify.co"`
+		Enabled  bool   `yaml:"enabled"`
+		Exporter string `yaml:"exporter"`
+		Endpoint string `yaml:"endpoint"`
 	}
 
 	// Service -.
 	Service struct {
-		CircuitBreaker   bool `yaml:"circuit_breaker" env-default:"false"`
-		ConcurrencyLimit int  `yaml:"concurrency_limit" env-default:"100"`
+		CircuitBreaker   bool `yaml:"circuit_breaker"`
+		ConcurrencyLimit int  `yaml:"concurrency_limit"`
 	}
 
 	// Database -.
 	Database struct {
-		Engine                string        `yaml:"engine" env-default:"memory"`
+		Engine                string        `yaml:"engine"`
 		URI                   string        `yaml:"uri"`
+		AutoMigrate           bool          `yaml:"auto_migrate"`
 		MaxOpenConnections    int           `yaml:"max_open_connections"`
 		MaxIdleConnections    int           `yaml:"max_idle_connections"`
 		MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
@@ -92,15 +95,27 @@ type (
 
 // NewConfig - Creates new config
 func NewConfig() (*Config, error) {
-	cfg := &Config{}
+	cfg := DefaultConfig()
 
 	if _, err := os.Stat("./" + Path); !os.IsNotExist(err) {
-		err = cleanenv.ReadConfig("./"+Path, cfg)
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath("./config")
+
+		viper.SetEnvPrefix("PERMIFY")
+		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+		viper.AutomaticEnv()
+
+		err = viper.ReadInConfig()
 		if err != nil {
-			return nil, err
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				return nil, fmt.Errorf("failed to load server config: %w", err)
+			}
 		}
-	} else {
-		cfg = DefaultConfig()
+
+		if err = viper.Unmarshal(cfg); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal server config: %w", err)
+		}
 	}
 
 	return cfg, nil
@@ -127,7 +142,7 @@ func DefaultConfig() *Config {
 			},
 		},
 		Log: Log{
-			Level: "debug",
+			Level: "info",
 		},
 		Tracer: Tracer{
 			Enabled: false,
@@ -146,7 +161,8 @@ func DefaultConfig() *Config {
 			Keys:    []string{},
 		},
 		Database: Database{
-			Engine: "memory",
+			Engine:      "memory",
+			AutoMigrate: true,
 		},
 	}
 }
