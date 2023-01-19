@@ -142,6 +142,9 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, ver
 	if err = row.Scan(&def.EntityType, &def.SerializedDefinition, &def.Version); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+		}
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
 	}
 
