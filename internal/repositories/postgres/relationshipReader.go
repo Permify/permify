@@ -64,7 +64,6 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 	builder = utils.FilterQueryForSelectBuilder(builder, filter)
 
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
-	builder = builder.OrderBy("subject_type, subject_relation ASC")
 
 	var query string
 	query, args, err = builder.ToSql()
