@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -16,80 +15,80 @@ const (
 type (
 	// Config -
 	Config struct {
-		Server   `yaml:"server"`
-		Log      `yaml:"logger"`
-		Authn    `yaml:"authn"`
-		Tracer   `yaml:"tracer"`
-		Meter    `yaml:"meter"`
-		Service  `yaml:"service"`
-		Database `yaml:"database"`
+		Server   `mapstructure:"server"`
+		Log      `mapstructure:"logger"`
+		Authn    `mapstructure:"authn"`
+		Tracer   `mapstructure:"tracer"`
+		Meter    `mapstructure:"meter"`
+		Service  `mapstructure:"service"`
+		Database `mapstructure:"database"`
 	}
 
 	Server struct {
-		HTTP `yaml:"http"`
-		GRPC `yaml:"grpc"`
+		HTTP `mapstructure:"http"`
+		GRPC `mapstructure:"grpc"`
 	}
 
 	// HTTP -.
 	HTTP struct {
-		Enabled            bool      `yaml:"enabled"`
-		Port               string    `yaml:"port"`
-		TLSConfig          TLSConfig `yaml:"tls"`
-		CORSAllowedOrigins []string  `yaml:"cors_allowed_origins"`
-		CORSAllowedHeaders []string  `yaml:"cors_allowed_headers"`
+		Enabled            bool      `mapstructure:"enabled"`
+		Port               string    `mapstructure:"port"`
+		TLSConfig          TLSConfig `mapstructure:"tls"`
+		CORSAllowedOrigins []string  `mapstructure:"cors_allowed_origins"`
+		CORSAllowedHeaders []string  `mapstructure:"cors_allowed_headers"`
 	}
 
 	GRPC struct {
-		Port      string    `yaml:"port"`
-		TLSConfig TLSConfig `yaml:"tls"`
+		Port      string    `mapstructure:"port"`
+		TLSConfig TLSConfig `mapstructure:"tls"`
 	}
 
 	TLSConfig struct {
-		Enabled  bool   `yaml:"enabled"`
-		CertPath string `yaml:"cert_path"`
-		KeyPath  string `yaml:"key_path"`
+		Enabled  bool   `mapstructure:"enabled"`
+		CertPath string `mapstructure:"cert_path"`
+		KeyPath  string `mapstructure:"key_path"`
 	}
 
 	// Authn -.
 	Authn struct {
-		Enabled bool     `yaml:"enabled"`
-		Keys    []string `yaml:"keys"`
+		Enabled bool     `mapstructure:"enabled"`
+		Keys    []string `mapstructure:"keys"`
 	}
 
 	// Log -.
 	Log struct {
-		Level string `yaml:"level"`
+		Level string `mapstructure:"level"`
 	}
 
 	// Tracer -.
 	Tracer struct {
-		Enabled  bool   `yaml:"enabled"`
-		Exporter string `yaml:"exporter"`
-		Endpoint string `yaml:"endpoint"`
+		Enabled  bool   `mapstructure:"enabled"`
+		Exporter string `mapstructure:"exporter"`
+		Endpoint string `mapstructure:"endpoint"`
 	}
 
 	// Meter -.
 	Meter struct {
-		Enabled  bool   `yaml:"enabled"`
-		Exporter string `yaml:"exporter"`
-		Endpoint string `yaml:"endpoint"`
+		Enabled  bool   `mapstructure:"enabled"`
+		Exporter string `mapstructure:"exporter"`
+		Endpoint string `mapstructure:"endpoint"`
 	}
 
 	// Service -.
 	Service struct {
-		CircuitBreaker   bool `yaml:"circuit_breaker"`
-		ConcurrencyLimit int  `yaml:"concurrency_limit"`
+		CircuitBreaker   bool `mapstructure:"circuit_breaker"`
+		ConcurrencyLimit int  `mapstructure:"concurrency_limit"`
 	}
 
 	// Database -.
 	Database struct {
-		Engine                string        `yaml:"engine"`
-		URI                   string        `yaml:"uri"`
-		AutoMigrate           bool          `yaml:"auto_migrate"`
-		MaxOpenConnections    int           `yaml:"max_open_connections"`
-		MaxIdleConnections    int           `yaml:"max_idle_connections"`
-		MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
-		MaxConnectionIdleTime time.Duration `yaml:"max_connection_idle_time"`
+		Engine                string        `mapstructure:"engine"`
+		URI                   string        `mapstructure:"uri"`
+		AutoMigrate           bool          `mapstructure:"auto_migrate"`
+		MaxOpenConnections    int           `mapstructure:"max_open_connections"`
+		MaxIdleConnections    int           `mapstructure:"max_idle_connections"`
+		MaxConnectionLifetime time.Duration `mapstructure:"max_connection_lifetime"`
+		MaxConnectionIdleTime time.Duration `mapstructure:"max_connection_idle_time"`
 	}
 )
 
@@ -101,10 +100,6 @@ func NewConfig() (*Config, error) {
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath("./config")
-
-		viper.SetEnvPrefix("PERMIFY")
-		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-		viper.AutomaticEnv()
 
 		err = viper.ReadInConfig()
 		if err != nil {
