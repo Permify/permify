@@ -92,15 +92,13 @@ type (
 
 // NewConfig - Creates new config
 func NewConfig() (*Config, error) {
-	cfg := &Config{}
+	cfg := DefaultConfig()
 
 	if _, err := os.Stat("./" + Path); !os.IsNotExist(err) {
 		err = cleanenv.ReadConfig("./"+Path, cfg)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		cfg = DefaultConfig()
 	}
 
 	return cfg, nil

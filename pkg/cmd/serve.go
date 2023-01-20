@@ -29,7 +29,7 @@ import (
 
 const (
 	// Version of Permify
-	Version = "v0.2.2"
+	Version = "v0.2.3"
 	banner  = `
 
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
@@ -134,7 +134,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		schemaWriter := factories.SchemaWriterFactory(db, l)
 
 		// decorators
-		schemaReaderWithCache := decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
+		schemaReader = decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
 
 		// Service
 		if cfg.Service.CircuitBreaker {
@@ -142,7 +142,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 			relationshipReader = decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
 
 			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
-			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReaderWithCache)
+			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
 		}
 
 		// key managers
@@ -162,7 +162,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		// Services
 		relationshipService := services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader)
 		permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaLookupCommand, lookupEntityCommand)
-		schemaService := services.NewSchemaService(schemaWriter, schemaReaderWithCache)
+		schemaService := services.NewSchemaService(schemaWriter, schemaReader)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,
