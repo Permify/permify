@@ -19,6 +19,10 @@ ALTER TABLE schema_definitions
     ADD COLUMN IF NOT EXISTS tenant_id VARCHAR NOT NULL DEFAULT '1',
     ADD CONSTRAINT pk_schema_definition PRIMARY KEY (tenant_id, entity_type, version);
 
+ALTER TABLE transactions
+    ADD COLUMN IF NOT EXISTS tenant_id VARCHAR NOT NULL DEFAULT '1',
+
+
 -- +goose Down
 DROP TABLE tenants;
 
@@ -33,3 +37,6 @@ ALTER TABLE schema_definitions
     DROP CONSTRAINT IF EXISTS pk_schema_definition,
     DROP COLUMN IF EXISTS tenant_id,
     ADD CONSTRAINT pk_schema_definition PRIMARY KEY (entity_type, version);
+
+ALTER TABLE transactions
+    DROP COLUMN IF EXISTS tenant_id;
