@@ -36,6 +36,9 @@ service:
 
 database:
   engine: 'postgres'
-  database: 'db_name'
-  uri: 'postgres://user:password@host:5432'
-  max_open_connections: 20
+  uri: 'postgres://user:password@host:5432/db_name'
+  auto_migrate: false
+  max_open_connections: 100
+  max_idle_connections: 1
+  max_connection_lifetime: 300s
+  max_connection_idle_time: 60s
