@@ -42,7 +42,7 @@ func (_m *RelationshipReader) QueryRelationships(ctx context.Context, tenantID s
 
 // GetUniqueEntityIDsByEntityType - Reads relation tuples from the repository.
 func (_m *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID, typ, token string) (ids []string, err error) {
-	ret := _m.Called(typ, token)
+	ret := _m.Called(tenantID, typ, token)
 
 	var r0 []string
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []string); ok {

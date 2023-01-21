@@ -20,11 +20,11 @@ ALTER TABLE schema_definitions
     ADD CONSTRAINT pk_schema_definition PRIMARY KEY (tenant_id, entity_type, version);
 
 ALTER TABLE transactions
-    ADD COLUMN IF NOT EXISTS tenant_id VARCHAR NOT NULL DEFAULT '1',
+    ADD COLUMN IF NOT EXISTS tenant_id VARCHAR NOT NULL DEFAULT '1';
 
 
 -- +goose Down
-DROP TABLE tenants;
+DROP TABLE IF EXISTS tenants;
 
 ALTER TABLE relation_tuples
     DROP CONSTRAINT IF EXISTS uq_relation_tuple,

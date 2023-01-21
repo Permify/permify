@@ -54,12 +54,12 @@ var _ = Describe("RelationshipReader", func() {
 				AddRow("organization", "abc", "admin", "user", "john", "")
 
 			mock.ExpectBegin()
-			mock.ExpectQuery(regexp.QuoteMeta(`SELECT entity_type, entity_id, relation, subject_type, subject_id, subject_relation FROM relation_tuples WHERE entity_id IN ($1) AND entity_type = $2 AND relation = $3 AND (pg_visible_in_snapshot(created_tx_id, (select snapshot from transactions where id = '4'::xid8)) = true OR created_tx_id = '4'::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, (select snapshot from transactions where id = '4'::xid8)) = false OR expired_tx_id = '0'::xid8) AND expired_tx_id <> '4'::xid8) ORDER BY subject_type, subject_relation ASC`)).
-				WithArgs("abc", "organization", "admin").
+			mock.ExpectQuery(regexp.QuoteMeta(`SELECT entity_type, entity_id, relation, subject_type, subject_id, subject_relation FROM relation_tuples WHERE tenant_id = $1 AND entity_id IN ($2) AND entity_type = $3 AND relation = $4 AND (pg_visible_in_snapshot(created_tx_id, (select snapshot from transactions where id = '4'::xid8)) = true OR created_tx_id = '4'::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, (select snapshot from transactions where id = '4'::xid8)) = false OR expired_tx_id = '0'::xid8) AND expired_tx_id <> '4'::xid8)`)).
+				WithArgs("noop", "abc", "organization", "admin").
 				WillReturnRows(rows)
 			mock.ExpectCommit()
 
-			value, err := relationshipReader.QueryRelationships(context.Background(), "1", &base.TupleFilter{
+			value, err := relationshipReader.QueryRelationships(context.Background(), "noop", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
 					Ids:  []string{"abc"},
