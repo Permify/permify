@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/Masterminds/squirrel"
+
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
@@ -36,7 +38,7 @@ func NewRelationshipReader(database *db.Postgres, logger logger.Interface) *Rela
 }
 
 // QueryRelationships - Gets all relationships for a given filter
-func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, t string) (tuples database.ITupleCollection, err error) {
+func (r *RelationshipReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, t string) (tuples database.ITupleCollection, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-reader.query-relationships")
 	defer span.End()
 
@@ -60,7 +62,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 
 	var args []interface{}
 
-	builder := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable)
+	builder := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.FilterQueryForSelectBuilder(builder, filter)
 
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
@@ -110,7 +112,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 }
 
 // GetUniqueEntityIDsByEntityType - Gets all unique entity ids for a given entity type
-func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, t string) (ids []string, err error) {
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID, typ, t string) (ids []string, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-reader.get-unique-entity-ids-by-entity-type")
 	defer span.End()
 
@@ -132,7 +134,7 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 
 	var args []interface{}
 
-	builder := r.database.Builder.Select("entity_id").Distinct().From(RelationTuplesTable).Where("entity_type = ?", typ)
+	builder := r.database.Builder.Select("entity_id").Distinct().From(RelationTuplesTable).Where(squirrel.Eq{"entity_type": typ, "tenant_id": tenantID})
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 
 	var query string
@@ -178,12 +180,12 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 }
 
 // HeadSnapshot - Gets the latest token
-func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
+func (r *RelationshipReader) HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error) {
 	ctx, span := tracer.Start(ctx, "relationship-reader.head-snapshot")
 	defer span.End()
 
 	var xid types.XID8
-	builder := r.database.Builder.Select("id").From(TransactionsTable).OrderBy("id DESC").Limit(1)
+	builder := r.database.Builder.Select("id").From(TransactionsTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("id DESC").Limit(1)
 	query, args, err := builder.ToSql()
 	if err != nil {
 		span.RecordError(err)

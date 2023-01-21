@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/rs/xid"
-
 	"github.com/Permify/permify/internal/repositories"
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/logger"
@@ -28,17 +26,15 @@ func NewSchemaWriter(database *db.Memory, logger logger.Interface) *SchemaWriter
 }
 
 // WriteSchema - Write Schema to repository
-func (r *SchemaWriter) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) (string, error) {
-	id := xid.New()
+func (r *SchemaWriter) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) error {
 	var err error
 	txn := r.database.DB.Txn(true)
 	defer txn.Abort()
 	for _, definition := range definitions {
-		definition.Version = id.String()
 		if err = txn.Insert(SchemaDefinitionTable, definition); err != nil {
-			return "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+			return errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}
 	txn.Commit()
-	return id.String(), nil
+	return nil
 }

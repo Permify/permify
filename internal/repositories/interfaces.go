@@ -11,33 +11,33 @@ import (
 // RelationshipReader -
 type RelationshipReader interface {
 	// QueryRelationships reads relation tuples from the repository.
-	QueryRelationships(ctx context.Context, filter *base.TupleFilter, token string) (collection database.ITupleCollection, err error)
+	QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (collection database.ITupleCollection, err error)
 	// GetUniqueEntityIDsByEntityType reads unique entity IDs from the repository.
-	GetUniqueEntityIDsByEntityType(ctx context.Context, typ, token string) (ids []string, err error)
+	GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID, typ, token string) (ids []string, err error)
 	// HeadSnapshot reads the latest version of the snapshot from the repository.
-	HeadSnapshot(ctx context.Context) (token.SnapToken, error)
+	HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error)
 }
 
 // RelationshipWriter -
 type RelationshipWriter interface {
 	// WriteRelationships writes relation tuples to the repository.
-	WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token token.EncodedSnapToken, err error)
+	WriteRelationships(ctx context.Context, tenantID string, collection database.ITupleCollection) (token token.EncodedSnapToken, err error)
 	// DeleteRelationships deletes relation tuples from the repository.
-	DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token token.EncodedSnapToken, err error)
+	DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token token.EncodedSnapToken, err error)
 }
 
 // SchemaReader -
 type SchemaReader interface {
 	// ReadSchema reads entity config from the repository.
-	ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error)
+	ReadSchema(ctx context.Context, tenantID, version string) (schema *base.IndexedSchema, err error)
 	// ReadSchemaDefinition reads entity config from the repository.
-	ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error)
+	ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error)
 	// HeadVersion reads the latest version of the schema from the repository.
-	HeadVersion(ctx context.Context) (version string, err error)
+	HeadVersion(ctx context.Context, tenantID string) (version string, err error)
 }
 
 // SchemaWriter -
 type SchemaWriter interface {
 	// WriteSchema writes schema to the repository.
-	WriteSchema(ctx context.Context, definitions []SchemaDefinition) (version string, err error)
+	WriteSchema(ctx context.Context, definitions []SchemaDefinition) (err error)
 }

@@ -32,7 +32,7 @@ func NewRelationshipWriter(database *db.Memory, logger logger.Interface) *Relati
 }
 
 // WriteRelationships - Write a Relation to repository
-func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID string, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
 	var err error
 
 	iterator := collection.CreateTupleIterator()
@@ -46,6 +46,7 @@ func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 	for iterator.HasNext() {
 		bt := iterator.GetNext()
 		t := repositories.RelationTuple{
+			TenantID:        tenantID,
 			EntityType:      bt.GetEntity().GetType(),
 			EntityID:        bt.GetEntity().GetId(),
 			Relation:        bt.GetRelation(),
@@ -63,12 +64,12 @@ func (r *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 }
 
 // DeleteRelationships - Delete relationship from repository
-func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	var err error
 	txn := r.database.DB.Txn(true)
 	defer txn.Abort()
 
-	index, args := utils.GetIndexNameAndArgsByFilters(filter)
+	index, args := utils.GetIndexNameAndArgsByFilters(tenantID, filter)
 	var it memdb.ResultIterator
 	it, err = txn.Get(RelationTuplesTable, index, args...)
 	if err != nil {

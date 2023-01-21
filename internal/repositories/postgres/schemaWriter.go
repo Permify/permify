@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/rs/xid"
 	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
@@ -34,26 +33,24 @@ func NewSchemaWriter(database *db.Postgres, logger logger.Interface) *SchemaWrit
 }
 
 // WriteSchema writes a schema to the database
-func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.SchemaDefinition) (version string, err error) {
+func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.SchemaDefinition) (err error) {
 	ctx, span := tracer.Start(ctx, "schema-writer.write-schema")
 	defer span.End()
-
-	id := xid.New()
 
 	var tx *sql.Tx
 	tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		return "", err
+		return err
 	}
 
 	defer utils.Rollback(tx, w.logger)
 
-	insertBuilder := w.database.Builder.Insert(SchemaDefinitionTable).Columns("entity_type, serialized_definition, version")
+	insertBuilder := w.database.Builder.Insert(SchemaDefinitionTable).Columns("entity_type, serialized_definition, version, tenant_id")
 
 	for _, schema := range schemas {
-		insertBuilder = insertBuilder.Values(schema.EntityType, schema.SerializedDefinition, id.String())
+		insertBuilder = insertBuilder.Values(schema.EntityType, schema.SerializedDefinition, schema.Version, schema.TenantID)
 	}
 
 	var query string
@@ -64,21 +61,21 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.S
 		utils.Rollback(tx, w.logger)
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		return "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		return "", err
+		return err
 	}
 
 	if err = tx.Commit(); err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		return "", err
+		return err
 	}
 
-	return id.String(), nil
+	return nil
 }

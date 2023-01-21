@@ -37,14 +37,14 @@ func (command *LookupSchemaCommand) Execute(ctx context.Context, request *base.P
 	}
 
 	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			return response, err
 		}
 	}
 
 	var en *base.EntityDefinition
-	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntityType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntityType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return nil, err
 	}

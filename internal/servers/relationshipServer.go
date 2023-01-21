@@ -38,7 +38,7 @@ func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipR
 		return nil, v
 	}
 
-	collection, err := r.relationshipService.ReadRelationships(ctx, request.GetFilter(), request.GetMetadata().GetSnapToken())
+	collection, err := r.relationshipService.ReadRelationships(ctx, request.GetTenantId(), request.GetFilter(), request.GetMetadata().GetSnapToken())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -68,7 +68,7 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 		}
 	}
 
-	snap, err := r.relationshipService.WriteRelationships(ctx, request.GetTuples(), request.GetMetadata().GetSchemaVersion())
+	snap, err := r.relationshipService.WriteRelationships(ctx, request.GetTenantId(), request.GetTuples(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -91,7 +91,7 @@ func (r *RelationshipServer) Delete(ctx context.Context, request *v1.Relationshi
 		return nil, v
 	}
 
-	snap, err := r.relationshipService.DeleteRelationships(ctx, request.GetFilter())
+	snap, err := r.relationshipService.DeleteRelationships(ctx, request.GetTenantId(), request.GetFilter())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

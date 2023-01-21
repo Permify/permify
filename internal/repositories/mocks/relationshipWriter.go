@@ -16,19 +16,19 @@ type RelationshipWriter struct {
 }
 
 // WriteRelationships - Write a Relation to repository
-func (_m *SchemaReader) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
-	ret := _m.Called(collection)
+func (_m *SchemaReader) WriteRelationships(ctx context.Context, tenantID string, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
+	ret := _m.Called(tenantID, collection)
 
 	var r0 token.EncodedSnapToken
-	if rf, ok := ret.Get(0).(func(context.Context, database.ITupleCollection) token.EncodedSnapToken); ok {
-		r0 = rf(ctx, collection)
+	if rf, ok := ret.Get(0).(func(context.Context, string, database.ITupleCollection) token.EncodedSnapToken); ok {
+		r0 = rf(ctx, tenantID, collection)
 	} else {
 		r0 = ret.Get(0).(token.EncodedSnapToken)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, database.ITupleCollection) error); ok {
-		r1 = rf(ctx, collection)
+	if rf, ok := ret.Get(1).(func(context.Context, string, database.ITupleCollection) error); ok {
+		r1 = rf(ctx, tenantID, collection)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {
 			r1 = e
@@ -41,19 +41,19 @@ func (_m *SchemaReader) WriteRelationships(ctx context.Context, collection datab
 }
 
 // DeleteRelationships - Delete relationship from repository
-func (_m *SchemaReader) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
-	ret := _m.Called(filter)
+func (_m *SchemaReader) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+	ret := _m.Called(tenantID, filter)
 
 	var r0 token.EncodedSnapToken
-	if rf, ok := ret.Get(0).(func(context.Context, *base.TupleFilter) token.EncodedSnapToken); ok {
-		r0 = rf(ctx, filter)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *base.TupleFilter) token.EncodedSnapToken); ok {
+		r0 = rf(ctx, tenantID, filter)
 	} else {
 		r0 = ret.Get(0).(token.EncodedSnapToken)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *base.TupleFilter) error); ok {
-		r1 = rf(ctx, filter)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *base.TupleFilter) error); ok {
+		r1 = rf(ctx, tenantID, filter)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {
 			r1 = e

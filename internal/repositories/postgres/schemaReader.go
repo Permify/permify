@@ -36,7 +36,7 @@ func NewSchemaReader(database *db.Postgres, logger logger.Interface) *SchemaRead
 }
 
 // ReadSchema - Reads entity config from the repository.
-func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (schema *base.IndexedSchema, err error) {
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
 
@@ -51,7 +51,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 	defer utils.Rollback(tx, r.logger)
 
 	var args []interface{}
-	builder := r.database.Builder.Select("entity_type, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version})
+	builder := r.database.Builder.Select("entity_type, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
 
 	var query string
 	query, args, err = builder.ToSql()
@@ -105,7 +105,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 }
 
 // ReadSchemaDefinition - Reads entity config from the repository.
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema-definition")
 	defer span.End()
 
@@ -119,7 +119,7 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, ver
 
 	defer utils.Rollback(tx, r.logger)
 
-	builder := r.database.Builder.Select("entity_type, serialized_definition, version").Where(squirrel.Eq{"entity_type": entityType, "version": version}).From(SchemaDefinitionTable).Limit(1)
+	builder := r.database.Builder.Select("entity_type, serialized_definition, version").Where(squirrel.Eq{"entity_type": entityType, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
 
 	var query string
 	var args []interface{}
@@ -168,14 +168,14 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, ver
 }
 
 // HeadVersion - Finds the latest version of the schema.
-func (r *SchemaReader) HeadVersion(ctx context.Context) (version string, err error) {
+func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
 	ctx, span := tracer.Start(ctx, "schema-reader.head-version")
 	defer span.End()
 
 	var query string
 	var args []interface{}
 	query, args, err = r.database.Builder.
-		Select("version").From(SchemaDefinitionTable).OrderBy("version DESC").Limit(1).
+		Select("version").From(SchemaDefinitionTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
 		span.RecordError(err)

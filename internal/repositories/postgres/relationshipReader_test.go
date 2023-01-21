@@ -59,7 +59,7 @@ var _ = Describe("RelationshipReader", func() {
 				WillReturnRows(rows)
 			mock.ExpectCommit()
 
-			value, err := relationshipReader.QueryRelationships(context.Background(), &base.TupleFilter{
+			value, err := relationshipReader.QueryRelationships(context.Background(), "1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
 					Ids:  []string{"abc"},

@@ -19,13 +19,13 @@ type IPermissionService interface {
 
 // IRelationshipService -
 type IRelationshipService interface {
-	ReadRelationships(ctx context.Context, filter *base.TupleFilter, token string) (database.ITupleCollection, error)
-	WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token.EncodedSnapToken, error)
-	DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error)
+	ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (database.ITupleCollection, error)
+	WriteRelationships(ctx context.Context, tenantID string, tuples []*base.Tuple, version string) (token.EncodedSnapToken, error)
+	DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error)
 }
 
 // ISchemaService -
 type ISchemaService interface {
-	ReadSchema(ctx context.Context, version string) (response *base.IndexedSchema, err error)
-	WriteSchema(ctx context.Context, schema string) (version string, err error)
+	ReadSchema(ctx context.Context, tenantID string, version string) (response *base.IndexedSchema, err error)
+	WriteSchema(ctx context.Context, tenantID string, schema string) (version string, err error)
 }

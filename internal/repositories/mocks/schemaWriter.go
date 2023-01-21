@@ -14,26 +14,19 @@ type SchemaWriter struct {
 }
 
 // WriteSchema - Write Schema to repository
-func (_m *SchemaReader) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) (version string, err error) {
+func (_m *SchemaReader) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) (err error) {
 	ret := _m.Called(definitions)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context, []repositories.SchemaDefinition) string); ok {
+	var r0 error
+	if rf, ok := ret.Get(1).(func(context.Context, []repositories.SchemaDefinition) error); ok {
 		r0 = rf(ctx, definitions)
 	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, []repositories.SchemaDefinition) error); ok {
-		r1 = rf(ctx, definitions)
-	} else {
 		if e, ok := ret.Get(1).(error); ok {
-			r1 = e
+			r0 = e
 		} else {
-			r1 = nil
+			r0 = nil
 		}
 	}
 
-	return r0, r1
+	return r0
 }

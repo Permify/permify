@@ -21,6 +21,9 @@ func SnapshotQuery(sl squirrel.SelectBuilder, revision uint64) squirrel.SelectBu
 }
 
 // NewTransactionQuery -
-func NewTransactionQuery() string {
-	return `INSERT INTO transactions DEFAULT VALUES RETURNING id`
+func NewTransactionQuery(tenantID string) squirrel.InsertBuilder {
+	return squirrel.Insert("transactions").
+		Columns("tenant_id").
+		Values(tenantID).
+		Suffix("RETURNING \"id\"")
 }

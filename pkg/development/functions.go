@@ -42,25 +42,25 @@ func LookupEntity(ctx context.Context, service services.IPermissionService, subj
 
 // ReadTuple - Creates new read API request
 func ReadTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
-	return service.ReadRelationships(ctx, filter, token)
+	return service.ReadRelationships(ctx, "noop", filter, token)
 }
 
 // WriteTuple - Creates new write API request
 func WriteTuple(ctx context.Context, service services.IRelationshipService, tuples []*v1.Tuple, version string) (token token.EncodedSnapToken, err error) {
-	return service.WriteRelationships(ctx, tuples, version)
+	return service.WriteRelationships(ctx, "noop", tuples, version)
 }
 
 // DeleteTuple - Creates new delete relation tuple request
 func DeleteTuple(ctx context.Context, service services.IRelationshipService, filter *v1.TupleFilter) (token token.EncodedSnapToken, err error) {
-	return service.DeleteRelationships(ctx, filter)
+	return service.DeleteRelationships(ctx, "noop", filter)
 }
 
 // WriteSchema - Creates new write schema request
 func WriteSchema(ctx context.Context, service services.ISchemaService, schema string) (version string, err error) {
-	return service.WriteSchema(ctx, schema)
+	return service.WriteSchema(ctx, "noop", schema)
 }
 
 // ReadSchema - Creates new read schema request
 func ReadSchema(ctx context.Context, service services.ISchemaService, version string) (sch *v1.IndexedSchema, err error) {
-	return service.ReadSchema(ctx, version)
+	return service.ReadSchema(ctx, "noop", version)
 }

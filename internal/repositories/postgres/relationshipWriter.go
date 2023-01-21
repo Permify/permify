@@ -42,7 +42,7 @@ func NewRelationshipWriter(database *db.Postgres, logger logger.Interface) *Rela
 }
 
 // WriteRelationships - Writes a collection of relationships to the database
-func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token token.EncodedSnapToken, err error) {
+func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID string, collection database.ITupleCollection) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-writer.write-relationships")
 	defer span.End()
 
@@ -59,12 +59,12 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 			return nil, err
 		}
 
-		insertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation")
+		insertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, tenant_id")
 
 		iter := collection.CreateTupleIterator()
 		for iter.HasNext() {
 			t := iter.GetNext()
-			insertBuilder = insertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation())
+			insertBuilder = insertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation(), tenantID)
 		}
 
 		var query string
@@ -92,8 +92,19 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 			}
 		}
 
+		var tQuery string
+		var tArgs []interface{}
+
+		tQuery, tArgs, err = utils.NewTransactionQuery(tenantID).ToSql()
+		if err != nil {
+			utils.Rollback(tx, w.logger)
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		}
+
 		var xid types.XID8
-		err = tx.QueryRowContext(ctx, utils.NewTransactionQuery()).Scan(&xid)
+		err = tx.QueryRowContext(ctx, tQuery, tArgs).Scan(&xid)
 		if err != nil {
 			utils.Rollback(tx, w.logger)
 			span.RecordError(err)
@@ -115,7 +126,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 }
 
 // DeleteRelationships - Deletes a collection of relationships to the database
-func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token token.EncodedSnapToken, err error) {
+func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-writer.delete-relationships")
 	defer span.End()
 
@@ -142,8 +153,19 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 		}
 
+		var tQuery string
+		var tArgs []interface{}
+
+		tQuery, tArgs, err = utils.NewTransactionQuery(tenantID).ToSql()
+		if err != nil {
+			utils.Rollback(tx, w.logger)
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		}
+
 		var xid types.XID8
-		err = tx.QueryRowContext(ctx, utils.NewTransactionQuery()).Scan(&xid)
+		err = tx.QueryRowContext(ctx, tQuery, tArgs).Scan(&xid)
 		if err != nil {
 			utils.Rollback(tx, w.logger)
 			span.RecordError(err)

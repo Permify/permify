@@ -16,19 +16,19 @@ type RelationshipReader struct {
 }
 
 // QueryRelationships - Reads relation tuples from the repository.
-func (_m *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, snap string) (database.ITupleCollection, error) {
-	ret := _m.Called(filter, snap)
+func (_m *RelationshipReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string) (database.ITupleCollection, error) {
+	ret := _m.Called(tenantID, filter, snap)
 
 	var r0 *database.TupleCollection
-	if rf, ok := ret.Get(0).(func(context.Context, *base.TupleFilter, string) *database.TupleCollection); ok {
-		r0 = rf(ctx, filter, snap)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *base.TupleFilter, string) *database.TupleCollection); ok {
+		r0 = rf(ctx, tenantID, filter, snap)
 	} else {
 		r0 = ret.Get(0).(*database.TupleCollection)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *base.TupleFilter, string) error); ok {
-		r1 = rf(ctx, filter, snap)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *base.TupleFilter, string) error); ok {
+		r1 = rf(ctx, tenantID, filter, snap)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {
 			r1 = e
@@ -41,19 +41,19 @@ func (_m *RelationshipReader) QueryRelationships(ctx context.Context, filter *ba
 }
 
 // GetUniqueEntityIDsByEntityType - Reads relation tuples from the repository.
-func (_m *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, token string) (ids []string, err error) {
+func (_m *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID, typ, token string) (ids []string, err error) {
 	ret := _m.Called(typ, token)
 
 	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) []string); ok {
-		r0 = rf(ctx, typ, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []string); ok {
+		r0 = rf(ctx, tenantID, typ, token)
 	} else {
 		r0 = ret.Get(0).([]string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, typ, token)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenantID, typ, token)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {
 			r1 = e
@@ -66,19 +66,19 @@ func (_m *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
-func (_m *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
-	ret := _m.Called()
+func (_m *RelationshipReader) HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error) {
+	ret := _m.Called(tenantID)
 
 	var r0 token.SnapToken
-	if rf, ok := ret.Get(0).(func(context.Context) token.SnapToken); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, string) token.SnapToken); ok {
+		r0 = rf(ctx, tenantID)
 	} else {
 		r0 = ret.Get(0).(token.SnapToken)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenantID)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {
 			r1 = e

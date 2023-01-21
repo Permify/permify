@@ -34,13 +34,13 @@ func NewRelationshipReader(database *db.Memory, logger logger.Interface) *Relati
 }
 
 // QueryRelationships - Reads relation tuples from the repository.
-func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *base.TupleFilter, _ string) (collection database.ITupleCollection, err error) {
+func (r *RelationshipReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, _ string) (collection database.ITupleCollection, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
 	collection = database.NewTupleCollection()
 
-	index, args := utils.GetIndexNameAndArgsByFilters(filter)
+	index, args := utils.GetIndexNameAndArgsByFilters(tenantID, filter)
 	var it memdb.ResultIterator
 
 	it, err = txn.Get(RelationTuplesTable, index, args...)
@@ -61,12 +61,12 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, filter *bas
 }
 
 // GetUniqueEntityIDsByEntityType - Gets all entity IDs for a given entity type (unique)
-func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, typ, _ string) (array []string, err error) {
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID string, typ, _ string) (array []string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
 	var it memdb.ResultIterator
-	it, err = txn.Get(RelationTuplesTable, "entity-type-index", typ)
+	it, err = txn.Get(RelationTuplesTable, "entity-type-index", tenantID, typ)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -84,6 +84,6 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
-func (r *RelationshipReader) HeadSnapshot(ctx context.Context) (token.SnapToken, error) {
+func (r *RelationshipReader) HeadSnapshot(ctx context.Context, _ string) (token.SnapToken, error) {
 	return snapshot.NewToken(time.Now()), nil
 }

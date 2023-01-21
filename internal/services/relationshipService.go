@@ -31,21 +31,21 @@ func NewRelationshipService(rr repositories.RelationshipReader, rw repositories.
 }
 
 // ReadRelationships -
-func (service *RelationshipService) ReadRelationships(ctx context.Context, filter *base.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
+func (service *RelationshipService) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
 	ctx, span := tracer.Start(ctx, "relationships.read")
 	defer span.End()
 
-	return service.rr.QueryRelationships(ctx, filter, token)
+	return service.rr.QueryRelationships(ctx, tenantID, filter, token)
 }
 
 // WriteRelationships -
-func (service *RelationshipService) WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
+func (service *RelationshipService) WriteRelationships(ctx context.Context, tenantID string, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationships.write")
 	defer span.End()
 
 	if version == "" {
 		var v string
-		v, err = service.sr.HeadVersion(ctx)
+		v, err = service.sr.HeadVersion(ctx, tenantID)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -56,7 +56,7 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tupl
 
 	for _, tup := range tuples {
 		var entity *base.EntityDefinition
-		entity, _, err = service.sr.ReadSchemaDefinition(ctx, tup.GetEntity().GetType(), version)
+		entity, _, err = service.sr.ReadSchemaDefinition(ctx, tenantID, tup.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -87,13 +87,13 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tupl
 		}
 	}
 
-	return service.rw.WriteRelationships(ctx, database.NewTupleCollection(tuples...))
+	return service.rw.WriteRelationships(ctx, tenantID, database.NewTupleCollection(tuples...))
 }
 
 // DeleteRelationships -
-func (service *RelationshipService) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (service *RelationshipService) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	ctx, span := tracer.Start(ctx, "relationships.delete")
 	defer span.End()
 
-	return service.rw.DeleteRelationships(ctx, filter)
+	return service.rw.DeleteRelationships(ctx, tenantID, filter)
 }

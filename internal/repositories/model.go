@@ -6,6 +6,7 @@ import (
 
 // RelationTuple - Structure for Relational Tuple
 type RelationTuple struct {
+	TenantID        string
 	EntityType      string
 	EntityID        string
 	Relation        string
@@ -32,6 +33,7 @@ func (r RelationTuple) ToTuple() *base.Tuple {
 
 // SchemaDefinition - Structure for Schema Definition
 type SchemaDefinition struct {
+	TenantID             string
 	EntityType           string
 	SerializedDefinition []byte
 	Version              string
