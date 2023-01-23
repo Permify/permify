@@ -222,12 +222,11 @@ func (command *CheckCommand) checkRewrite(ctx context.Context, request *base.Per
 
 // checkLeaf -
 func (command *CheckCommand) checkLeaf(ctx context.Context, request *base.PermissionCheckRequest, leaf *base.Leaf) CheckFunction {
-	request.Metadata.Exclusion = leaf.GetExclusion()
 	switch op := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
-		return command.checkTupleToUserSet(ctx, request, op.TupleToUserSet)
+		return command.checkTupleToUserSet(ctx, request, op.TupleToUserSet, leaf.GetExclusion())
 	case *base.Leaf_ComputedUserSet:
-		return command.checkComputedUserSet(ctx, request, op.ComputedUserSet)
+		return command.checkComputedUserSet(ctx, request, op.ComputedUserSet, leaf.GetExclusion())
 	default:
 		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
@@ -284,7 +283,12 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 					},
 					Permission: t.GetSubject().GetRelation(),
 					Subject:    request.GetSubject(),
-					Metadata:   decreaseDepth(request.Metadata),
+					Metadata: &base.PermissionCheckRequestMetadata{
+						SchemaVersion: request.Metadata.GetSchemaVersion(),
+						Exclusion:     request.Metadata.GetExclusion(),
+						SnapToken:     request.Metadata.GetSnapToken(),
+						Depth:         request.Metadata.Depth - 1,
+					},
 				}))
 			}
 		}
@@ -300,7 +304,7 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 }
 
 // checkTupleToUserSet -
-func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *base.PermissionCheckRequest, ttu *base.TupleToUserSet) CheckFunction {
+func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *base.PermissionCheckRequest, ttu *base.TupleToUserSet, exclusion bool) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 		var err error
 		var tupleCollection database.ITupleCollection
@@ -327,7 +331,7 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 				Permission: subject.GetRelation(),
 				Subject:    request.GetSubject(),
 				Metadata:   request.GetMetadata(),
-			}, ttu.GetComputed()))
+			}, ttu.GetComputed(), exclusion))
 		}
 
 		return checkUnion(ctx, checkFunctions, command.concurrencyLimit)
@@ -335,7 +339,7 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 }
 
 // checkComputedUserSet -
-func (command *CheckCommand) checkComputedUserSet(ctx context.Context, request *base.PermissionCheckRequest, cu *base.ComputedUserSet) CheckFunction {
+func (command *CheckCommand) checkComputedUserSet(ctx context.Context, request *base.PermissionCheckRequest, cu *base.ComputedUserSet, exclusion bool) CheckFunction {
 	return command.execute(ctx, &base.PermissionCheckRequest{
 		Entity: &base.Entity{
 			Type: request.GetEntity().GetType(),
@@ -343,7 +347,12 @@ func (command *CheckCommand) checkComputedUserSet(ctx context.Context, request *
 		},
 		Permission: cu.GetRelation(),
 		Subject:    request.GetSubject(),
-		Metadata:   decreaseDepth(request.Metadata),
+		Metadata: &base.PermissionCheckRequestMetadata{
+			SchemaVersion: request.Metadata.GetSchemaVersion(),
+			Exclusion:     exclusion,
+			SnapToken:     request.Metadata.GetSnapToken(),
+			Depth:         request.Metadata.Depth - 1,
+		},
 	})
 }
 
