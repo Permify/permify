@@ -30,11 +30,11 @@ func NewSchemaReader(database *db.Memory, logger logger.Interface) *SchemaReader
 }
 
 // ReadSchema - Reads a new schema from repository
-func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID uint64, version string) (schema *base.IndexedSchema, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
-	it, err = txn.Get(SchemaDefinitionTable, "version", version)
+	it, err = txn.Get(SchemaDefinitionsTable, "version", tenantID, version)
 	if err != nil {
 		return schema, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -53,11 +53,11 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, version string) (schema *
 }
 
 // ReadSchemaDefinition - Reads a Schema Definition from repository
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID uint64, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(SchemaDefinitionTable, "id", entityType, version)
+	raw, err = txn.First(SchemaDefinitionsTable, "id", tenantID, entityType, version)
 	if err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -80,12 +80,12 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, entityType, ver
 }
 
 // HeadVersion - Reads the latest version from the repository.
-func (r *SchemaReader) HeadVersion(ctx context.Context) (string, error) {
+func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID uint64) (string, error) {
 	var err error
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.Last(SchemaDefinitionTable, "version")
+	raw, err = txn.Last(SchemaDefinitionsTable, "tenant", tenantID)
 	if err != nil {
 		return "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}

@@ -23,7 +23,7 @@ func NewRelationshipWriterWithCircuitBreaker(delegate repositories.RelationshipW
 }
 
 // WriteRelationships - Write relation tuples from the repository
-func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Context, tenantID uint64, collection *database.TupleCollection) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.EncodedSnapToken
 		Error error
@@ -33,7 +33,7 @@ func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Co
 
 	hystrix.ConfigureCommand("relationshipWriter.writeRelationships", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("relationshipWriter.writeRelationships", func() error {
-		t, err := r.delegate.WriteRelationships(ctx, collection)
+		t, err := r.delegate.WriteRelationships(ctx, tenantID, collection)
 		output <- circuitBreakerResponse{Token: t, Error: err}
 		return nil
 	}, func(err error) error {
@@ -49,7 +49,7 @@ func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Co
 }
 
 // DeleteRelationships - Delete relation tuples from the repository
-func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.EncodedSnapToken
 		Error error
@@ -59,7 +59,7 @@ func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.C
 
 	hystrix.ConfigureCommand("relationshipWriter.deleteRelationships", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("relationshipWriter.deleteRelationships", func() error {
-		t, err := r.delegate.DeleteRelationships(ctx, filter)
+		t, err := r.delegate.DeleteRelationships(ctx, tenantID, filter)
 		output <- circuitBreakerResponse{Token: t, Error: err}
 		return nil
 	}, func(err error) error {

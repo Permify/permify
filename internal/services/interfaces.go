@@ -19,13 +19,20 @@ type IPermissionService interface {
 
 // IRelationshipService -
 type IRelationshipService interface {
-	ReadRelationships(ctx context.Context, filter *base.TupleFilter, token string) (database.ITupleCollection, error)
-	WriteRelationships(ctx context.Context, tuples []*base.Tuple, version string) (token.EncodedSnapToken, error)
-	DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token.EncodedSnapToken, error)
+	ReadRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, snap string, size uint32, continuousToken string) (*database.TupleCollection, database.EncodedContinuousToken, error)
+	WriteRelationships(ctx context.Context, tenantID uint64, tuples []*base.Tuple, version string) (token.EncodedSnapToken, error)
+	DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token.EncodedSnapToken, error)
 }
 
 // ISchemaService -
 type ISchemaService interface {
-	ReadSchema(ctx context.Context, version string) (response *base.IndexedSchema, err error)
-	WriteSchema(ctx context.Context, schema string) (version string, err error)
+	ReadSchema(ctx context.Context, tenantID uint64, version string) (response *base.IndexedSchema, err error)
+	WriteSchema(ctx context.Context, tenantID uint64, schema string) (version string, err error)
+}
+
+// ITenancyService -
+type ITenancyService interface {
+	CreateTenant(ctx context.Context, name string) (tenant *base.Tenant, err error)
+	DeleteTenant(ctx context.Context, tenantID uint64) (tenant *base.Tenant, err error)
+	ListTenants(ctx context.Context, size uint32, ct string) (tenants []*base.Tenant, continuousToken database.EncodedContinuousToken, err error)
 }

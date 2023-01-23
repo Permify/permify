@@ -21,18 +21,17 @@ func NewSchemaWriterWithCircuitBreaker(delegate repositories.SchemaWriter) *Sche
 }
 
 // WriteSchema - Write schema to repository
-func (r *SchemaWriterWithCircuitBreaker) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) (string, error) {
+func (r *SchemaWriterWithCircuitBreaker) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) error {
 	type circuitBreakerResponse struct {
-		Version string
-		Error   error
+		Error error
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
 
 	hystrix.ConfigureCommand("schemaWriter.writeSchema", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("schemaWriter.writeSchema", func() error {
-		version, err := r.delegate.WriteSchema(ctx, definitions)
-		output <- circuitBreakerResponse{Version: version, Error: err}
+		err := r.delegate.WriteSchema(ctx, definitions)
+		output <- circuitBreakerResponse{Error: err}
 		return nil
 	}, func(err error) error {
 		return nil
@@ -40,8 +39,8 @@ func (r *SchemaWriterWithCircuitBreaker) WriteSchema(ctx context.Context, defini
 
 	select {
 	case out := <-output:
-		return out.Version, out.Error
+		return out.Error
 	case <-bErrors:
-		return "", errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
+		return errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }

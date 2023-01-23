@@ -12,6 +12,14 @@ type TupleIterator struct {
 	tuples []*base.Tuple
 }
 
+// NewTupleIterator -
+func NewTupleIterator(tuples ...*base.Tuple) *TupleIterator {
+	return &TupleIterator{
+		index:  0,
+		tuples: tuples,
+	}
+}
+
 // HasNext - Checks whether next tuple exists
 func (i *TupleIterator) HasNext() bool {
 	return i.index < len(i.tuples)
@@ -35,6 +43,14 @@ type SubjectIterator struct {
 	subjects []*base.Subject
 }
 
+// NewSubjectIterator -
+func NewSubjectIterator(subjects []*base.Subject) *SubjectIterator {
+	return &SubjectIterator{
+		index:    0,
+		subjects: subjects,
+	}
+}
+
 // HasNext - Checks whether next subject exists
 func (u *SubjectIterator) HasNext() bool {
 	return u.index < len(u.subjects)
@@ -56,6 +72,14 @@ func (u *SubjectIterator) GetNext() *base.Subject {
 type EntityIterator struct {
 	index    int
 	entities []*base.Entity
+}
+
+// NewEntityIterator -
+func NewEntityIterator(entities []*base.Entity) *EntityIterator {
+	return &EntityIterator{
+		index:    0,
+		entities: entities,
+	}
 }
 
 // HasNext - Checks whether next entity exists

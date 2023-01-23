@@ -21,7 +21,7 @@ func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
 			attribute.String("id", xid.New().String()),
-			attribute.String("version", "0.2.4"),
+			attribute.String("version", "0.3.0"),
 			attribute.String("os", runtime.GOOS),
 			attribute.String("arch", runtime.GOARCH),
 		)),

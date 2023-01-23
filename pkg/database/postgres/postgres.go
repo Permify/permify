@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -11,8 +10,6 @@ import (
 	"github.com/Masterminds/squirrel"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-
-	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // Postgres - Structure for Postresql instance
@@ -76,31 +73,6 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 
 	pg.DB = db
 	return pg, nil
-}
-
-// Migrate - Migration operations for postgresql db
-func (p *Postgres) Migrate(statements []string) (err error) {
-	ctx := context.Background()
-
-	var tx *sql.Tx
-	tx, err = p.DB.Begin()
-	if err != nil {
-		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
-	}
-
-	for _, statement := range statements {
-		_, err = tx.ExecContext(ctx, statement)
-		if err != nil {
-			return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
-		}
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return errors.New(base.ErrorCode_ERROR_CODE_MIGRATION.String())
-	}
-
-	return nil
 }
 
 // GetEngineType - Get the engine type which is postgresql in string

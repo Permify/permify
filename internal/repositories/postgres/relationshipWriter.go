@@ -14,6 +14,7 @@ import (
 	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
@@ -42,7 +43,7 @@ func NewRelationshipWriter(database *db.Postgres, logger logger.Interface) *Rela
 }
 
 // WriteRelationships - Writes a collection of relationships to the database
-func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection database.ITupleCollection) (token token.EncodedSnapToken, err error) {
+func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID uint64, collection *database.TupleCollection) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-writer.write-relationships")
 	defer span.End()
 
@@ -59,12 +60,12 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 			return nil, err
 		}
 
-		insertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation")
+		insertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, tenant_id")
 
 		iter := collection.CreateTupleIterator()
 		for iter.HasNext() {
 			t := iter.GetNext()
-			insertBuilder = insertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation())
+			insertBuilder = insertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation(), tenantID)
 		}
 
 		var query string
@@ -92,9 +93,21 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 			}
 		}
 
-		var xid types.XID8
-		err = tx.QueryRowContext(ctx, utils.NewTransactionQuery()).Scan(&xid)
+		transaction := w.database.Builder.Insert("transactions").
+			Columns("tenant_id").
+			Values(tenantID).
+			Suffix("RETURNING id").RunWith(tx)
 		if err != nil {
+			utils.Rollback(tx, w.logger)
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		}
+
+		var xid types.XID8
+		err = transaction.QueryRowContext(ctx).Scan(&xid)
+		if err != nil {
+			helper.Pre(err)
 			utils.Rollback(tx, w.logger)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -115,7 +128,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, collection 
 }
 
 // DeleteRelationships - Deletes a collection of relationships to the database
-func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *base.TupleFilter) (token token.EncodedSnapToken, err error) {
+func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-writer.delete-relationships")
 	defer span.End()
 
@@ -142,15 +155,6 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 		}
 
-		var xid types.XID8
-		err = tx.QueryRowContext(ctx, utils.NewTransactionQuery()).Scan(&xid)
-		if err != nil {
-			utils.Rollback(tx, w.logger)
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-		}
-
 		_, err = tx.ExecContext(ctx, query, args...)
 		if err != nil {
 			utils.Rollback(tx, w.logger)
@@ -161,6 +165,27 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, filter *ba
 			} else {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
+		}
+
+		transaction := w.database.Builder.Insert("transactions").
+			Columns("tenant_id").
+			Values(tenantID).
+			Suffix("RETURNING id").RunWith(tx)
+		if err != nil {
+			utils.Rollback(tx, w.logger)
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		}
+
+		var xid types.XID8
+		err = transaction.QueryRowContext(ctx).Scan(&xid)
+		if err != nil {
+			helper.Pre(err)
+			utils.Rollback(tx, w.logger)
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 
 		if err = tx.Commit(); err != nil {

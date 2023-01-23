@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
-    "version": "v0.2.4",
+    "version": "v0.3.0",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
@@ -23,6 +23,9 @@
     },
     {
       "name": "Relationship"
+    },
+    {
+      "name": "Tenancy"
     },
     {
       "name": "Welcome"
@@ -61,7 +64,106 @@
         ]
       }
     },
-    "/v1/permissions/check": {
+    "/v1/tenants/create": {
+      "post": {
+        "summary": "create new tenant",
+        "operationId": "tenants.create",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TenantCreateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TenantCreateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
+    "/v1/tenants/delete": {
+      "post": {
+        "summary": "delete tenant",
+        "operationId": "tenants.delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TenantDeleteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TenantDeleteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
+    "/v1/tenants/list": {
+      "post": {
+        "summary": "list tenants",
+        "operationId": "tenants.list",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TenantListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TenantListRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/permissions/check": {
       "post": {
         "summary": "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?",
         "operationId": "permissions.check",
@@ -81,11 +183,34 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/PermissionCheckRequest"
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/PermissionCheckRequestMetadata"
+                },
+                "entity": {
+                  "$ref": "#/definitions/Entity"
+                },
+                "permission": {
+                  "type": "string",
+                  "title": "its can be action or relation"
+                },
+                "subject": {
+                  "$ref": "#/definitions/Subject"
+                }
+              },
+              "title": "PermissionCheckRequest"
             }
           }
         ],
@@ -94,7 +219,7 @@
         ]
       }
     },
-    "/v1/permissions/expand": {
+    "/v1/tenants/{tenant_id}/permissions/expand": {
       "post": {
         "summary": "expand relationships according to schema",
         "operationId": "permissions.expand",
@@ -114,11 +239,30 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/PermissionExpandRequest"
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/PermissionExpandRequestMetadata"
+                },
+                "entity": {
+                  "$ref": "#/definitions/Entity"
+                },
+                "permission": {
+                  "type": "string"
+                }
+              },
+              "title": "PermissionExpandRequest"
             }
           }
         ],
@@ -127,7 +271,7 @@
         ]
       }
     },
-    "/v1/permissions/lookup-entity": {
+    "/v1/tenants/{tenant_id}/permissions/lookup-entity": {
       "post": {
         "operationId": "permissions.lookupEntity",
         "responses": {
@@ -146,11 +290,33 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/PermissionLookupEntityRequest"
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/PermissionLookupEntityRequestMetadata"
+                },
+                "entity_type": {
+                  "type": "string"
+                },
+                "permission": {
+                  "type": "string"
+                },
+                "subject": {
+                  "$ref": "#/definitions/Subject"
+                }
+              },
+              "title": "PermissionLookupEntityRequest"
             }
           }
         ],
@@ -159,7 +325,7 @@
         ]
       }
     },
-    "/v1/permissions/lookup-entity-stream": {
+    "/v1/tenants/{tenant_id}/permissions/lookup-entity-stream": {
       "post": {
         "operationId": "permissions.lookupEntityStream",
         "responses": {
@@ -187,11 +353,33 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/PermissionLookupEntityRequest"
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/PermissionLookupEntityRequestMetadata"
+                },
+                "entity_type": {
+                  "type": "string"
+                },
+                "permission": {
+                  "type": "string"
+                },
+                "subject": {
+                  "$ref": "#/definitions/Subject"
+                }
+              },
+              "title": "PermissionLookupEntityRequest"
             }
           }
         ],
@@ -200,7 +388,7 @@
         ]
       }
     },
-    "/v1/permissions/lookup-schema": {
+    "/v1/tenants/{tenant_id}/permissions/lookup-schema": {
       "post": {
         "operationId": "permissions.lookupSchema",
         "responses": {
@@ -219,11 +407,33 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/PermissionLookupSchemaRequest"
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/PermissionLookupSchemaRequestMetadata"
+                },
+                "entity_type": {
+                  "type": "string"
+                },
+                "relation_names": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "title": "PermissionLookupSchemaRequest"
             }
           }
         ],
@@ -232,7 +442,7 @@
         ]
       }
     },
-    "/v1/relationships/delete": {
+    "/v1/tenants/{tenant_id}/relationships/delete": {
       "post": {
         "summary": "delete relation tuple",
         "operationId": "relationships.delete",
@@ -252,11 +462,24 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/RelationshipDeleteRequest"
+              "type": "object",
+              "properties": {
+                "filter": {
+                  "$ref": "#/definitions/TupleFilter"
+                }
+              },
+              "title": "RelationshipDeleteRequest"
             }
           }
         ],
@@ -265,7 +488,7 @@
         ]
       }
     },
-    "/v1/relationships/read": {
+    "/v1/tenants/{tenant_id}/relationships/read": {
       "post": {
         "summary": "read relation tuple(s)",
         "operationId": "relationships.read",
@@ -285,11 +508,34 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/RelationshipReadRequest"
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/RelationshipReadRequestMetadata"
+                },
+                "filter": {
+                  "$ref": "#/definitions/TupleFilter"
+                },
+                "page_size": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "continuous_token": {
+                  "type": "string"
+                }
+              },
+              "title": "RelationshipReadRequest"
             }
           }
         ],
@@ -298,7 +544,7 @@
         ]
       }
     },
-    "/v1/relationships/write": {
+    "/v1/tenants/{tenant_id}/relationships/write": {
       "post": {
         "summary": "create new relation tuple",
         "operationId": "relationships.write",
@@ -318,11 +564,30 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/RelationshipWriteRequest"
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/RelationshipWriteRequestMetadata"
+                },
+                "tuples": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Tuple"
+                  }
+                }
+              },
+              "title": "RelationshipWriteRequest"
             }
           }
         ],
@@ -331,7 +596,7 @@
         ]
       }
     },
-    "/v1/schemas/read": {
+    "/v1/tenants/{tenant_id}/schemas/read": {
       "post": {
         "summary": "read your authorization model",
         "operationId": "schemas.read",
@@ -351,11 +616,24 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/SchemaReadRequest"
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/SchemaReadRequestMetadata"
+                }
+              },
+              "title": "SchemaReadRequest"
             }
           }
         ],
@@ -364,7 +642,7 @@
         ]
       }
     },
-    "/v1/schemas/write": {
+    "/v1/tenants/{tenant_id}/schemas/write": {
       "post": {
         "summary": "write your authorization model",
         "operationId": "schemas.write",
@@ -384,11 +662,24 @@
         },
         "parameters": [
           {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/SchemaWriteRequest"
+              "type": "object",
+              "properties": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "title": "SchemaWriteRequest"
             }
           }
         ],
@@ -593,25 +884,6 @@
       },
       "title": "Leaf"
     },
-    "PermissionCheckRequest": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/PermissionCheckRequestMetadata"
-        },
-        "entity": {
-          "$ref": "#/definitions/Entity"
-        },
-        "permission": {
-          "type": "string",
-          "title": "its can be action or relation"
-        },
-        "subject": {
-          "$ref": "#/definitions/Subject"
-        }
-      },
-      "title": "PermissionCheckRequest"
-    },
     "PermissionCheckRequestMetadata": {
       "type": "object",
       "properties": {
@@ -663,21 +935,6 @@
       },
       "title": "CheckResponseMetadata"
     },
-    "PermissionExpandRequest": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/PermissionExpandRequestMetadata"
-        },
-        "entity": {
-          "$ref": "#/definitions/Entity"
-        },
-        "permission": {
-          "type": "string"
-        }
-      },
-      "title": "PermissionExpandRequest"
-    },
     "PermissionExpandRequestMetadata": {
       "type": "object",
       "properties": {
@@ -698,24 +955,6 @@
         }
       },
       "title": "PermissionExpandResponse"
-    },
-    "PermissionLookupEntityRequest": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/PermissionLookupEntityRequestMetadata"
-        },
-        "entity_type": {
-          "type": "string"
-        },
-        "permission": {
-          "type": "string"
-        },
-        "subject": {
-          "$ref": "#/definitions/Subject"
-        }
-      },
-      "title": "PermissionLookupEntityRequest"
     },
     "PermissionLookupEntityRequestMetadata": {
       "type": "object",
@@ -753,24 +992,6 @@
         }
       },
       "title": "PermissionLookupEntityStreamResponse"
-    },
-    "PermissionLookupSchemaRequest": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/PermissionLookupSchemaRequestMetadata"
-        },
-        "entity_type": {
-          "type": "string"
-        },
-        "relation_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "title": "PermissionLookupSchemaRequest"
     },
     "PermissionLookupSchemaRequestMetadata": {
       "type": "object",
@@ -837,15 +1058,6 @@
       "default": "RELATIONAL_REFERENCE_UNSPECIFIED",
       "title": "RelationalReference"
     },
-    "RelationshipDeleteRequest": {
-      "type": "object",
-      "properties": {
-        "filter": {
-          "$ref": "#/definitions/TupleFilter"
-        }
-      },
-      "title": "RelationshipDeleteRequest"
-    },
     "RelationshipDeleteResponse": {
       "type": "object",
       "properties": {
@@ -854,18 +1066,6 @@
         }
       },
       "title": "RelationshipDeleteResponse"
-    },
-    "RelationshipReadRequest": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/RelationshipReadRequestMetadata"
-        },
-        "filter": {
-          "$ref": "#/definitions/TupleFilter"
-        }
-      },
-      "title": "RelationshipReadRequest"
     },
     "RelationshipReadRequestMetadata": {
       "type": "object",
@@ -884,24 +1084,12 @@
           "items": {
             "$ref": "#/definitions/Tuple"
           }
+        },
+        "continuous_token": {
+          "type": "string"
         }
       },
       "title": "RelationshipReadResponse"
-    },
-    "RelationshipWriteRequest": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/RelationshipWriteRequestMetadata"
-        },
-        "tuples": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Tuple"
-          }
-        }
-      },
-      "title": "RelationshipWriteRequest"
     },
     "RelationshipWriteRequestMetadata": {
       "type": "object",
@@ -946,15 +1134,6 @@
       "default": "OPERATION_UNSPECIFIED",
       "title": "Operation"
     },
-    "SchemaReadRequest": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/SchemaReadRequestMetadata"
-        }
-      },
-      "title": "SchemaReadRequest"
-    },
     "SchemaReadRequestMetadata": {
       "type": "object",
       "properties": {
@@ -972,15 +1151,6 @@
         }
       },
       "title": "SchemaReadRequest"
-    },
-    "SchemaWriteRequest": {
-      "type": "object",
-      "properties": {
-        "schema": {
-          "type": "string"
-        }
-      },
-      "title": "SchemaWriteRequest"
     },
     "SchemaWriteResponse": {
       "type": "object",
@@ -1069,6 +1239,88 @@
         }
       },
       "title": "SubjectFilter is used to filter subjects"
+    },
+    "Tenant": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "Tenant"
+    },
+    "TenantCreateRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "title": "TenantCreateRequest"
+    },
+    "TenantCreateResponse": {
+      "type": "object",
+      "properties": {
+        "tenant": {
+          "$ref": "#/definitions/Tenant"
+        }
+      },
+      "title": "TenantCreateResponse"
+    },
+    "TenantDeleteRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "TenantDeleteRequest"
+    },
+    "TenantDeleteResponse": {
+      "type": "object",
+      "properties": {
+        "tenant": {
+          "$ref": "#/definitions/Tenant"
+        }
+      },
+      "title": "TenantDeleteResponse"
+    },
+    "TenantListRequest": {
+      "type": "object",
+      "properties": {
+        "page_size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "continuous_token": {
+          "type": "string"
+        }
+      },
+      "title": "TenantListRequest"
+    },
+    "TenantListResponse": {
+      "type": "object",
+      "properties": {
+        "tenants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Tenant"
+          }
+        },
+        "continuous_token": {
+          "type": "string"
+        }
+      },
+      "title": "TenantListResponse"
     },
     "Tuple": {
       "type": "object",

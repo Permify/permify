@@ -35,7 +35,7 @@ func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.P
 
 	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
-		st, err = command.relationshipReader.HeadSnapshot(ctx)
+		st, err = command.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
 			return response, err
 		}
@@ -43,7 +43,7 @@ func (command *LookupEntityCommand) Execute(ctx context.Context, request *base.P
 	}
 
 	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			return response, err
 		}
@@ -71,7 +71,7 @@ func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.Pe
 
 	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
-		st, err = command.relationshipReader.HeadSnapshot(ctx)
+		st, err = command.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.Pe
 	}
 
 	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.Pe
 
 // parallelChecker -
 func (command *LookupEntityCommand) parallelChecker(ctx context.Context, request *base.PermissionLookupEntityRequest, resultChan chan<- string, errChan chan<- error) {
-	ids, err := command.relationshipReader.GetUniqueEntityIDsByEntityType(ctx, request.GetEntityType(), request.GetMetadata().GetSnapToken())
+	ids, err := command.relationshipReader.GetUniqueEntityIDsByEntityType(ctx, request.GetTenantId(), request.GetEntityType(), request.GetMetadata().GetSnapToken())
 	if err != nil {
 		errChan <- err
 	}

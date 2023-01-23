@@ -36,7 +36,7 @@ func (command *ExpandCommand) Execute(ctx context.Context, request *base.Permiss
 
 	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
-		st, err = command.relationshipReader.HeadSnapshot(ctx)
+		st, err = command.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
 			return response, err
 		}
@@ -44,7 +44,7 @@ func (command *ExpandCommand) Execute(ctx context.Context, request *base.Permiss
 	}
 
 	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx)
+		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			return response, err
 		}
@@ -72,7 +72,7 @@ type ExpandCombiner func(ctx context.Context, functions []ExpandFunction) Expand
 
 // e -
 func (command *ExpandCommand) expand(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandResponse {
-	en, _, err := command.schemaReader.ReadSchemaDefinition(ctx, request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err := command.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return ExpandResponse{Err: err}
 	}
@@ -155,8 +155,8 @@ func (command *ExpandCommand) setChild(ctx context.Context, request *base.Permis
 func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
 		var err error
-		var tupleCollection database.ITupleCollection
-		tupleCollection, err = command.relationshipReader.QueryRelationships(ctx, &base.TupleFilter{
+		var it *database.TupleIterator
+		it, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -169,15 +169,15 @@ func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.Pe
 		}
 
 		var expandFunctions []ExpandFunction
-		it := tupleCollection.ToSubjectCollection().CreateSubjectIterator()
 
 		directUserCollection := database.NewSubjectCollection()
 
 		for it.HasNext() {
-			subject := it.GetNext()
+			subject := it.GetNext().GetSubject()
 			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
 				expandFunctions = append(expandFunctions, func(ctx context.Context, resultChan chan<- ExpandResponse) {
 					result := command.expand(ctx, &base.PermissionExpandRequest{
+						TenantId: request.GetTenantId(),
 						Entity: &base.Entity{
 							Type: subject.GetType(),
 							Id:   subject.GetId(),
@@ -241,8 +241,8 @@ func (command *ExpandCommand) expandTupleToUserSet(ctx context.Context, request 
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
 		var err error
 
-		var tupleCollection database.ITupleCollection
-		tupleCollection, err = command.relationshipReader.QueryRelationships(ctx, &base.TupleFilter{
+		var it *database.TupleIterator
+		it, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -253,12 +253,12 @@ func (command *ExpandCommand) expandTupleToUserSet(ctx context.Context, request 
 			expandChan <- expandFailResponse(err)
 		}
 
-		it := tupleCollection.ToSubjectCollection().CreateSubjectIterator()
 		var expandFunctions []ExpandFunction
 		for it.HasNext() {
-			subject := it.GetNext()
+			subject := it.GetNext().GetSubject()
 			if subject.GetRelation() == tuple.ELLIPSIS {
 				expandFunctions = append(expandFunctions, command.expandComputedUserSet(ctx, &base.PermissionExpandRequest{
+					TenantId: request.GetTenantId(),
 					Entity: &base.Entity{
 						Type: subject.GetType(),
 						Id:   subject.GetId(),
@@ -277,6 +277,7 @@ func (command *ExpandCommand) expandTupleToUserSet(ctx context.Context, request 
 func (command *ExpandCommand) expandComputedUserSet(ctx context.Context, request *base.PermissionExpandRequest, cu *base.ComputedUserSet, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, resultChan chan<- ExpandResponse) {
 		result := command.expand(ctx, &base.PermissionExpandRequest{
+			TenantId: request.GetTenantId(),
 			Entity: &base.Entity{
 				Type: request.GetEntity().GetType(),
 				Id:   request.GetEntity().GetId(),

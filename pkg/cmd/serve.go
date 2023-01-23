@@ -15,6 +15,7 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/keys"
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/servers"
 	"github.com/Permify/permify/internal/services"
@@ -29,7 +30,7 @@ import (
 
 const (
 	// Version of Permify
-	Version = "v0.2.4"
+	Version = "v0.3.0"
 	banner  = `
 
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
@@ -68,18 +69,19 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
 
+		if cfg.AutoMigrate {
+			err = repositories.Migrate(cfg.Database)
+			if err != nil {
+				l.Fatal(err)
+			}
+		}
+
 		var db database.Database
 		db, err = factories.DatabaseFactory(cfg.Database)
 		if err != nil {
 			l.Fatal(err)
 		}
 		defer db.Close()
-
-		// Migration
-		err = db.Migrate(factories.MigrationFactory(database.Engine(cfg.Database.Engine)))
-		if err != nil {
-			l.Fatal(err)
-		}
 
 		// Tracing
 		if cfg.Tracer.Enabled {
@@ -132,6 +134,8 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		relationshipWriter := factories.RelationshipWriterFactory(db, l)
 		schemaReader := factories.SchemaReaderFactory(db, l)
 		schemaWriter := factories.SchemaWriterFactory(db, l)
+		tenantReader := factories.TenantReaderFactory(db, l)
+		tenantWriter := factories.TenantWriterFactory(db, l)
 
 		// decorators
 		schemaReader = decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
@@ -163,11 +167,13 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		relationshipService := services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader)
 		permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaLookupCommand, lookupEntityCommand)
 		schemaService := services.NewSchemaService(schemaWriter, schemaReader)
+		tenancyService := services.NewTenancyService(tenantWriter, tenantReader)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,
 			PermissionService:   permissionService,
 			SchemaService:       schemaService,
+			TenancyService:      tenancyService,
 		}
 
 		var g *errgroup.Group
@@ -223,6 +229,10 @@ func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 
 	// DATABASE
 	cmd.Flags().StringVar(&config.Database.Engine, "database-engine", config.Database.Engine, "data source. e.g. postgres, memory")
-	cmd.Flags().IntVar(&config.Database.MaxOpenConnections, "database-max-open-connections", config.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
 	cmd.Flags().StringVar(&config.Database.URI, "database-uri", config.Database.URI, "uri of your data source to store relation tuples and schema")
+	cmd.Flags().BoolVar(&config.Database.AutoMigrate, "database-auto-migrate", config.Database.AutoMigrate, "auto migrate database tables")
+	cmd.Flags().IntVar(&config.Database.MaxOpenConnections, "database-max-open-connections", config.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
+	cmd.Flags().IntVar(&config.Database.MaxIdleConnections, "database-max-idle-connections", config.Database.MaxIdleConnections, "maximum number of idle connections that can be made to the database at any time")
+	cmd.Flags().DurationVar(&config.Database.MaxConnectionLifetime, "database-max-connection-lifetime", config.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
+	cmd.Flags().DurationVar(&config.Database.MaxConnectionIdleTime, "database-max-connection-idle-time", config.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
 }

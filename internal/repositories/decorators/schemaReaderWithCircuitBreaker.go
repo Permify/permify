@@ -21,7 +21,7 @@ func NewSchemaReaderWithCircuitBreaker(delegate repositories.SchemaReader) *Sche
 }
 
 // ReadSchema - Read schema from repository
-func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, version string) (*base.IndexedSchema, error) {
+func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, tenantID uint64, version string) (*base.IndexedSchema, error) {
 	type circuitBreakerResponse struct {
 		Schema *base.IndexedSchema
 		Error  error
@@ -31,7 +31,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, version
 
 	hystrix.ConfigureCommand("schemaReader.readSchema", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("schemaReader.readSchema", func() error {
-		sch, err := r.delegate.ReadSchema(ctx, version)
+		sch, err := r.delegate.ReadSchema(ctx, tenantID, version)
 		output <- circuitBreakerResponse{Schema: sch, Error: err}
 		return nil
 	}, func(err error) error {
@@ -47,7 +47,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, version
 }
 
 // ReadSchemaDefinition - Read schema definition from repository
-func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, entityType, version string) (*base.EntityDefinition, string, error) {
+func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, tenantID uint64, entityType, version string) (*base.EntityDefinition, string, error) {
 	type circuitBreakerResponse struct {
 		Definition *base.EntityDefinition
 		Version    string
@@ -58,7 +58,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Contex
 
 	hystrix.ConfigureCommand("schemaReader.readSchemaDefinition", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("schemaReader.readSchemaDefinition", func() error {
-		conf, v, err := r.delegate.ReadSchemaDefinition(ctx, entityType, version)
+		conf, v, err := r.delegate.ReadSchemaDefinition(ctx, tenantID, entityType, version)
 		output <- circuitBreakerResponse{Definition: conf, Version: v, Error: err}
 		return nil
 	}, func(err error) error {
@@ -74,7 +74,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Contex
 }
 
 // HeadVersion - Finds the latest version of the schema.
-func (r *SchemaReaderWithCircuitBreaker) HeadVersion(ctx context.Context) (version string, err error) {
+func (r *SchemaReaderWithCircuitBreaker) HeadVersion(ctx context.Context, tenantID uint64) (version string, err error) {
 	type circuitBreakerResponse struct {
 		Version string
 		Error   error
@@ -84,7 +84,7 @@ func (r *SchemaReaderWithCircuitBreaker) HeadVersion(ctx context.Context) (versi
 
 	hystrix.ConfigureCommand("schemaReader.headVersion", hystrix.CommandConfig{Timeout: 1000})
 	bErrors := hystrix.Go("schemaReader.headVersion", func() error {
-		v, err := r.delegate.HeadVersion(ctx)
+		v, err := r.delegate.HeadVersion(ctx, tenantID)
 		output <- circuitBreakerResponse{Version: v, Error: err}
 		return nil
 	}, func(err error) error {

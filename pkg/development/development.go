@@ -30,11 +30,6 @@ func NewContainer() *Container {
 		fmt.Println(err)
 	}
 
-	err = db.Migrate(factories.MigrationFactory(database.Engine(db.GetEngineType())))
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	l := logger.New("debug")
 
 	// Repositories
