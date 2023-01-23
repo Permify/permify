@@ -1029,5 +1029,4 @@ entity doc {
 			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
 		})
 	})
-
 })
