@@ -4,6 +4,7 @@ package base.v1;
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
 import "validate/validate.proto";
+import "google/protobuf/timestamp.proto";
 
 // Tuple
 message Tuple {
@@ -136,4 +137,11 @@ message Result {
   EntityAndRelation target = 1;
   bool exclusion = 2;
   repeated Subject subjects = 3;
+}
+
+// Tenant
+message Tenant {
+  uint64 id = 1 [json_name = "id"];
+  string name = 2 [json_name = "name"];
+  google.protobuf.Timestamp created_at = 3 [json_name = "created_at"];
 }

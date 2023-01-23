@@ -11,33 +11,49 @@ import (
 // RelationshipReader -
 type RelationshipReader interface {
 	// QueryRelationships reads relation tuples from the repository.
-	QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (collection database.ITupleCollection, err error)
+	QueryRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, snap string) (iterator *database.TupleIterator, err error)
+	// ReadRelationships reads relation tuples from the repository with different options.
+	ReadRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, snap string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error)
 	// GetUniqueEntityIDsByEntityType reads unique entity IDs from the repository.
-	GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID, typ, token string) (ids []string, err error)
+	GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID uint64, typ, snap string) (ids []string, err error)
 	// HeadSnapshot reads the latest version of the snapshot from the repository.
-	HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error)
+	HeadSnapshot(ctx context.Context, tenantID uint64) (token.SnapToken, error)
 }
 
 // RelationshipWriter -
 type RelationshipWriter interface {
 	// WriteRelationships writes relation tuples to the repository.
-	WriteRelationships(ctx context.Context, tenantID string, collection database.ITupleCollection) (token token.EncodedSnapToken, err error)
+	WriteRelationships(ctx context.Context, tenantID uint64, collection *database.TupleCollection) (token token.EncodedSnapToken, err error)
 	// DeleteRelationships deletes relation tuples from the repository.
-	DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token token.EncodedSnapToken, err error)
+	DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token token.EncodedSnapToken, err error)
 }
 
 // SchemaReader -
 type SchemaReader interface {
 	// ReadSchema reads entity config from the repository.
-	ReadSchema(ctx context.Context, tenantID, version string) (schema *base.IndexedSchema, err error)
+	ReadSchema(ctx context.Context, tenantID uint64, version string) (schema *base.IndexedSchema, err error)
 	// ReadSchemaDefinition reads entity config from the repository.
-	ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error)
+	ReadSchemaDefinition(ctx context.Context, tenantID uint64, entityType, version string) (definition *base.EntityDefinition, v string, err error)
 	// HeadVersion reads the latest version of the schema from the repository.
-	HeadVersion(ctx context.Context, tenantID string) (version string, err error)
+	HeadVersion(ctx context.Context, tenantID uint64) (version string, err error)
 }
 
 // SchemaWriter -
 type SchemaWriter interface {
 	// WriteSchema writes schema to the repository.
 	WriteSchema(ctx context.Context, definitions []SchemaDefinition) (err error)
+}
+
+// TenantReader -
+type TenantReader interface {
+	// ListTenants reads tenants from the repository.
+	ListTenants(ctx context.Context, pagination database.Pagination) (tenants []*base.Tenant, ct database.EncodedContinuousToken, err error)
+}
+
+// TenantWriter -
+type TenantWriter interface {
+	// CreateTenant writes tenant to the repository.
+	CreateTenant(ctx context.Context, name string) (tenant *base.Tenant, err error)
+	// DeleteTenant deletes tenant from the repository.
+	DeleteTenant(ctx context.Context, tenantID uint64) (tenant *base.Tenant, err error)
 }

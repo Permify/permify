@@ -32,12 +32,12 @@ func NewRelationshipWriter(database *db.Memory, logger logger.Interface) *Relati
 }
 
 // WriteRelationships - Write a Relation to repository
-func (r *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID string, collection database.ITupleCollection) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID uint64, collection *database.TupleCollection) (token.EncodedSnapToken, error) {
 	var err error
 
 	iterator := collection.CreateTupleIterator()
 	if !iterator.HasNext() {
-		return nil, nil
+		return token.NewNoopToken().Encode(), nil
 	}
 
 	txn := r.database.DB.Txn(true)
@@ -46,6 +46,7 @@ func (r *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 	for iterator.HasNext() {
 		bt := iterator.GetNext()
 		t := repositories.RelationTuple{
+			ID:              utils.RelationTuplesID.ID() + 1,
 			TenantID:        tenantID,
 			EntityType:      bt.GetEntity().GetType(),
 			EntityID:        bt.GetEntity().GetId(),
@@ -64,7 +65,7 @@ func (r *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 }
 
 // DeleteRelationships - Delete relationship from repository
-func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	var err error
 	txn := r.database.DB.Txn(true)
 	defer txn.Abort()

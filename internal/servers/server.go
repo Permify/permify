@@ -36,6 +36,7 @@ type ServiceContainer struct {
 	RelationshipService services.IRelationshipService
 	PermissionService   services.IPermissionService
 	SchemaService       services.ISchemaService
+	TenancyService      services.ITenancyService
 }
 
 // Run -
@@ -75,6 +76,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.PermissionService, l))
 	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SchemaService, l))
 	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RelationshipService, l))
+	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TenancyService, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
 	reflection.Register(grpcServer)
@@ -143,6 +145,9 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 			return err
 		}
 		if err = grpcV1.RegisterRelationshipHandler(ctx, mux, conn); err != nil {
+			return err
+		}
+		if err = grpcV1.RegisterTenancyHandler(ctx, mux, conn); err != nil {
 			return err
 		}
 		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {

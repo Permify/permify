@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
-    "version": "v0.2.2",
+    "version": "v0.3.0",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
@@ -23,6 +23,9 @@
     },
     {
       "name": "Relationship"
+    },
+    {
+      "name": "Tenancy"
     },
     {
       "name": "Welcome"
@@ -61,6 +64,105 @@
         ]
       }
     },
+    "/v1/tenants/create": {
+      "post": {
+        "summary": "create new tenant",
+        "operationId": "tenants.create",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TenantCreateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TenantCreateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
+    "/v1/tenants/delete": {
+      "post": {
+        "summary": "delete tenant",
+        "operationId": "tenants.delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TenantDeleteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TenantDeleteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
+    "/v1/tenants/list": {
+      "post": {
+        "summary": "list tenants",
+        "operationId": "tenants.list",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TenantListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TenantListRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
     "/v1/tenants/{tenant_id}/permissions/check": {
       "post": {
         "summary": "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?",
@@ -84,7 +186,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -139,7 +242,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -189,7 +293,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -251,7 +356,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -304,7 +410,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -358,7 +465,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -403,7 +511,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -417,6 +526,13 @@
                 },
                 "filter": {
                   "$ref": "#/definitions/TupleFilter"
+                },
+                "page_size": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "continuous_token": {
+                  "type": "string"
                 }
               },
               "title": "RelationshipReadRequest"
@@ -451,7 +567,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -502,7 +619,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -547,7 +665,8 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "body",
@@ -965,6 +1084,9 @@
           "items": {
             "$ref": "#/definitions/Tuple"
           }
+        },
+        "continuous_token": {
+          "type": "string"
         }
       },
       "title": "RelationshipReadResponse"
@@ -1117,6 +1239,88 @@
         }
       },
       "title": "SubjectFilter is used to filter subjects"
+    },
+    "Tenant": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "Tenant"
+    },
+    "TenantCreateRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "title": "TenantCreateRequest"
+    },
+    "TenantCreateResponse": {
+      "type": "object",
+      "properties": {
+        "tenant": {
+          "$ref": "#/definitions/Tenant"
+        }
+      },
+      "title": "TenantCreateResponse"
+    },
+    "TenantDeleteRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "TenantDeleteRequest"
+    },
+    "TenantDeleteResponse": {
+      "type": "object",
+      "properties": {
+        "tenant": {
+          "$ref": "#/definitions/Tenant"
+        }
+      },
+      "title": "TenantDeleteResponse"
+    },
+    "TenantListRequest": {
+      "type": "object",
+      "properties": {
+        "page_size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "continuous_token": {
+          "type": "string"
+        }
+      },
+      "title": "TenantListRequest"
+    },
+    "TenantListResponse": {
+      "type": "object",
+      "properties": {
+        "tenants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Tenant"
+          }
+        },
+        "continuous_token": {
+          "type": "string"
+        }
+      },
+      "title": "TenantListResponse"
     },
     "Tuple": {
       "type": "object",

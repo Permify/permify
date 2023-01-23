@@ -26,12 +26,12 @@ func NewSchemaWriter(database *db.Memory, logger logger.Interface) *SchemaWriter
 }
 
 // WriteSchema - Write Schema to repository
-func (r *SchemaWriter) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) error {
+func (w *SchemaWriter) WriteSchema(ctx context.Context, definitions []repositories.SchemaDefinition) error {
 	var err error
-	txn := r.database.DB.Txn(true)
+	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
 	for _, definition := range definitions {
-		if err = txn.Insert(SchemaDefinitionTable, definition); err != nil {
+		if err = txn.Insert(SchemaDefinitionsTable, definition); err != nil {
 			return errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}

@@ -8,7 +8,6 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -37,16 +36,6 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.S
 	ctx, span := tracer.Start(ctx, "schema-writer.write-schema")
 	defer span.End()
 
-	var tx *sql.Tx
-	tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return err
-	}
-
-	defer utils.Rollback(tx, w.logger)
-
 	insertBuilder := w.database.Builder.Insert(SchemaDefinitionTable).Columns("entity_type, serialized_definition, version, tenant_id")
 
 	for _, schema := range schemas {
@@ -58,20 +47,13 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []repositories.S
 
 	query, args, err = insertBuilder.ToSql()
 	if err != nil {
-		utils.Rollback(tx, w.logger)
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
 		return errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
-	_, err = tx.ExecContext(ctx, query, args...)
+	_, err = w.database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return err
-	}
-
-	if err = tx.Commit(); err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
 		return err

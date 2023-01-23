@@ -1,12 +1,17 @@
 package repositories
 
 import (
+	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // RelationTuple - Structure for Relational Tuple
 type RelationTuple struct {
-	TenantID        string
+	ID              uint64
+	TenantID        uint64
 	EntityType      string
 	EntityID        string
 	Relation        string
@@ -33,7 +38,7 @@ func (r RelationTuple) ToTuple() *base.Tuple {
 
 // SchemaDefinition - Structure for Schema Definition
 type SchemaDefinition struct {
-	TenantID             string
+	TenantID             uint64
 	EntityType           string
 	SerializedDefinition []byte
 	Version              string
@@ -42,4 +47,20 @@ type SchemaDefinition struct {
 // Serialized - get schema serialized definition
 func (e SchemaDefinition) Serialized() string {
 	return string(e.SerializedDefinition)
+}
+
+// Tenant - Structure for tenant
+type Tenant struct {
+	ID        uint64
+	Name      string
+	CreatedAt time.Time
+}
+
+// ToTenant - Convert database tenant to base tenant
+func (r Tenant) ToTenant() *base.Tenant {
+	return &base.Tenant{
+		Id:        r.ID,
+		Name:      r.Name,
+		CreatedAt: timestamppb.New(r.CreatedAt),
+	}
 }

@@ -557,6 +557,164 @@ var Relationship_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "base/v1/service.proto",
 }
 
+// TenancyClient is the client API for Tenancy service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TenancyClient interface {
+	Create(ctx context.Context, in *TenantCreateRequest, opts ...grpc.CallOption) (*TenantCreateResponse, error)
+	Delete(ctx context.Context, in *TenantDeleteRequest, opts ...grpc.CallOption) (*TenantDeleteResponse, error)
+	List(ctx context.Context, in *TenantListRequest, opts ...grpc.CallOption) (*TenantListResponse, error)
+}
+
+type tenancyClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTenancyClient(cc grpc.ClientConnInterface) TenancyClient {
+	return &tenancyClient{cc}
+}
+
+func (c *tenancyClient) Create(ctx context.Context, in *TenantCreateRequest, opts ...grpc.CallOption) (*TenantCreateResponse, error) {
+	out := new(TenantCreateResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Tenancy/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tenancyClient) Delete(ctx context.Context, in *TenantDeleteRequest, opts ...grpc.CallOption) (*TenantDeleteResponse, error) {
+	out := new(TenantDeleteResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Tenancy/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tenancyClient) List(ctx context.Context, in *TenantListRequest, opts ...grpc.CallOption) (*TenantListResponse, error) {
+	out := new(TenantListResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Tenancy/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TenancyServer is the server API for Tenancy service.
+// All implementations must embed UnimplementedTenancyServer
+// for forward compatibility
+type TenancyServer interface {
+	Create(context.Context, *TenantCreateRequest) (*TenantCreateResponse, error)
+	Delete(context.Context, *TenantDeleteRequest) (*TenantDeleteResponse, error)
+	List(context.Context, *TenantListRequest) (*TenantListResponse, error)
+	mustEmbedUnimplementedTenancyServer()
+}
+
+// UnimplementedTenancyServer must be embedded to have forward compatible implementations.
+type UnimplementedTenancyServer struct {
+}
+
+func (UnimplementedTenancyServer) Create(context.Context, *TenantCreateRequest) (*TenantCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedTenancyServer) Delete(context.Context, *TenantDeleteRequest) (*TenantDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTenancyServer) List(context.Context, *TenantListRequest) (*TenantListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedTenancyServer) mustEmbedUnimplementedTenancyServer() {}
+
+// UnsafeTenancyServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TenancyServer will
+// result in compilation errors.
+type UnsafeTenancyServer interface {
+	mustEmbedUnimplementedTenancyServer()
+}
+
+func RegisterTenancyServer(s grpc.ServiceRegistrar, srv TenancyServer) {
+	s.RegisterService(&Tenancy_ServiceDesc, srv)
+}
+
+func _Tenancy_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TenantCreateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenancyServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/base.v1.Tenancy/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenancyServer).Create(ctx, req.(*TenantCreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Tenancy_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TenantDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenancyServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/base.v1.Tenancy/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenancyServer).Delete(ctx, req.(*TenantDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Tenancy_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TenantListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenancyServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/base.v1.Tenancy/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenancyServer).List(ctx, req.(*TenantListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Tenancy_ServiceDesc is the grpc.ServiceDesc for Tenancy service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Tenancy_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "base.v1.Tenancy",
+	HandlerType: (*TenancyServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _Tenancy_Create_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _Tenancy_Delete_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _Tenancy_List_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "base/v1/service.proto",
+}
+
 // WelcomeClient is the client API for Welcome service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

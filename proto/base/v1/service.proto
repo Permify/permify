@@ -95,9 +95,7 @@ service Permission {
 
 // PermissionCheckRequest
 message PermissionCheckRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
@@ -145,9 +143,7 @@ message PermissionCheckResponseMetadata {
 
 // PermissionExpandRequest
 message PermissionExpandRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
@@ -177,9 +173,7 @@ message PermissionExpandResponse {
 
 // PermissionLookupSchemaRequest
 message PermissionLookupSchemaRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
@@ -206,9 +200,7 @@ message PermissionLookupSchemaResponse {
 
 // PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
@@ -285,9 +277,7 @@ service Schema {
 
 // SchemaWriteRequest
 message SchemaWriteRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
@@ -303,9 +293,7 @@ message SchemaWriteResponse {
 
 // SchemaReadRequest
 message SchemaReadRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
@@ -374,9 +362,7 @@ service Relationship {
 
 // RelationshipWriteRequest
 message RelationshipWriteRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
@@ -405,15 +391,20 @@ message RelationshipWriteResponse {
 
 // RelationshipReadRequest
 message RelationshipReadRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
   RelationshipReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
   TupleFilter filter = 3 [json_name = "filter"];
+
+  uint32 page_size = 4 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
+  ];
+
+  string continuous_token = 5 [json_name = "continuous_token",  (validate.rules).string = {ignore_empty: true}];
 }
 
 // RelationshipWriteRequestMetadata
@@ -424,13 +415,12 @@ message RelationshipReadRequestMetadata {
 // RelationshipReadResponse
 message RelationshipReadResponse {
   repeated Tuple tuples = 1 [json_name = "tuples"];
+  string continuous_token = 2 [json_name = "continuous_token"];
 }
 
 // RelationshipDeleteRequest
 message RelationshipDeleteRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-z0-9_]{0,62}[a-z0-9])$",
-    max_bytes : 64,
+  uint64 tenant_id = 1 [json_name = "tenant_id", (validate.rules).uint64 = {
     ignore_empty: false,
   }];
 
@@ -440,6 +430,96 @@ message RelationshipDeleteRequest {
 // RelationshipDeleteResponse
 message RelationshipDeleteResponse {
   string snap_token = 1 [json_name = "snap_token"];
+}
+
+// ** TENANCY SERVICE **
+
+service Tenancy {
+  rpc Create(TenantCreateRequest) returns (TenantCreateResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/create"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "create new tenant"
+      tags: [
+        "Tenant"
+      ]
+      operation_id: "tenants.create"
+    };
+  }
+
+  rpc Delete(TenantDeleteRequest) returns (TenantDeleteResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/delete"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "delete tenant"
+      tags: [
+        "Tenant"
+      ]
+      operation_id: "tenants.delete"
+    };
+  }
+
+  rpc List(TenantListRequest) returns (TenantListResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/list"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "list tenants"
+      tags: [
+        "Tenant"
+      ]
+      operation_id: "tenants.list"
+    };
+  }
+}
+
+// TenantCreateRequest
+message TenantCreateRequest {
+  string name = 1 [json_name = "name", (validate.rules).string = {
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+}
+
+// TenantCreateResponse
+message TenantCreateResponse {
+  Tenant tenant = 1 [json_name = "tenant"];
+}
+
+// TenantDeleteRequest
+message TenantDeleteRequest {
+  uint64 id = 1 [json_name = "id", (validate.rules).uint64 = {
+    ignore_empty: false,
+  }];
+}
+
+// TenantDeleteResponse
+message TenantDeleteResponse {
+  Tenant tenant = 1 [json_name = "tenant"];
+}
+
+// TenantListRequest
+message TenantListRequest {
+  uint32 page_size = 4 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
+  ];
+
+  string continuous_token = 5 [json_name = "continuous_token",  (validate.rules).string = {ignore_empty: true}];
+}
+
+// TenantListResponse
+message TenantListResponse {
+  repeated Tenant tenants = 1 [json_name = "tenants"];
+  string continuous_token = 2 [json_name = "continuous_token"];
 }
 
 // ** WELCOME SERVICE **

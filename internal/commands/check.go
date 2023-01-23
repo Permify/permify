@@ -255,8 +255,8 @@ func (command *CheckCommand) setChild(ctx context.Context, request *base.Permiss
 // checkDirect -
 func (command *CheckCommand) checkDirect(ctx context.Context, request *base.PermissionCheckRequest) CheckFunction {
 	return func(ctx context.Context) (result *base.PermissionCheckResponse, err error) {
-		var tupleCollection database.ITupleCollection
-		tupleCollection, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		var it *database.TupleIterator
+		it, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -267,23 +267,22 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 			return denied(&base.PermissionCheckResponseMetadata{}), err
 		}
 
-		it := tupleCollection.CreateTupleIterator()
 		var checkFunctions []CheckFunction
 		for it.HasNext() {
-			t := it.GetNext()
-			if tuple.AreSubjectsEqual(t.GetSubject(), request.GetSubject()) {
+			subject := it.GetNext().GetSubject()
+			if tuple.AreSubjectsEqual(subject, request.GetSubject()) {
 				result = allowed(&base.PermissionCheckResponseMetadata{})
 				command.commandKeyManager.SetCheckKey(request, result)
 				return result, nil
 			}
-			if !tuple.IsSubjectUser(t.GetSubject()) && t.GetSubject().GetRelation() != tuple.ELLIPSIS {
+			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
 				checkFunctions = append(checkFunctions, command.execute(ctx, &base.PermissionCheckRequest{
 					TenantId: request.GetTenantId(),
 					Entity: &base.Entity{
-						Type: t.GetSubject().GetType(),
-						Id:   t.GetSubject().GetId(),
+						Type: subject.GetType(),
+						Id:   subject.GetId(),
 					},
-					Permission: t.GetSubject().GetRelation(),
+					Permission: subject.GetRelation(),
 					Subject:    request.GetSubject(),
 					Metadata:   decreaseDepth(request.Metadata),
 				}))
@@ -304,8 +303,8 @@ func (command *CheckCommand) checkDirect(ctx context.Context, request *base.Perm
 func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *base.PermissionCheckRequest, ttu *base.TupleToUserSet) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 		var err error
-		var tupleCollection database.ITupleCollection
-		tupleCollection, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		var it *database.TupleIterator
+		it, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -316,10 +315,9 @@ func (command *CheckCommand) checkTupleToUserSet(ctx context.Context, request *b
 			return denied(&base.PermissionCheckResponseMetadata{}), err
 		}
 
-		it := tupleCollection.ToSubjectCollection().CreateSubjectIterator()
 		var checkFunctions []CheckFunction
 		for it.HasNext() {
-			subject := it.GetNext()
+			subject := it.GetNext().GetSubject()
 			checkFunctions = append(checkFunctions, command.checkComputedUserSet(ctx, &base.PermissionCheckRequest{
 				TenantId: request.GetTenantId(),
 				Entity: &base.Entity{

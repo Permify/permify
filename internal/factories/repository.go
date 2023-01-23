@@ -57,3 +57,27 @@ func SchemaWriterFactory(db database.Database, logger logger.Interface) (repo re
 		return MMRepository.NewSchemaWriter(db.(*MMDatabase.Memory), logger)
 	}
 }
+
+// TenantReaderFactory - Return tenant read operations according to given database interface
+func TenantReaderFactory(db database.Database, logger logger.Interface) (repo repositories.TenantReader) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewTenantReader(db.(*PQDatabase.Postgres), logger)
+	case "memory":
+		return MMRepository.NewTenantReader(db.(*MMDatabase.Memory), logger)
+	default:
+		return MMRepository.NewTenantReader(db.(*MMDatabase.Memory), logger)
+	}
+}
+
+// TenantWriterFactory - Return tenant write operations according to given database interface
+func TenantWriterFactory(db database.Database, logger logger.Interface) (repo repositories.TenantWriter) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewTenantWriter(db.(*PQDatabase.Postgres), logger)
+	case "memory":
+		return MMRepository.NewTenantWriter(db.(*MMDatabase.Memory), logger)
+	default:
+		return MMRepository.NewTenantWriter(db.(*MMDatabase.Memory), logger)
+	}
+}

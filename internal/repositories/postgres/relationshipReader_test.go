@@ -13,6 +13,7 @@ import (
 
 	"github.com/Permify/permify/internal/repositories/postgres/snapshot"
 	"github.com/Permify/permify/internal/repositories/postgres/types"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -68,7 +69,7 @@ var _ = Describe("RelationshipReader", func() {
 			}, snapshot.NewToken(types.XID8{Uint: 4, Status: pgtype.Present}).Encode().String())
 
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(value.GetTuples()).Should(Equal([]*base.Tuple{
+			Expect(value).Should(Equal(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "organization",
@@ -93,7 +94,7 @@ var _ = Describe("RelationshipReader", func() {
 						Relation: "",
 					},
 				},
-			}))
+			})))
 		})
 	})
 })

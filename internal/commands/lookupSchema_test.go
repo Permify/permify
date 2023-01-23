@@ -62,12 +62,12 @@ var _ = Describe("lookup-schema-command", func() {
 			en, err = schema.GetEntityByName(sch, "folder")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "noop", "folder", "noop").Return(en, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "folder", "noop").Return(en, "noop", nil).Times(1)
 
 			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
-				TenantId:      "noop",
+				TenantId:      uint64(0),
 				EntityType:    "folder",
 				RelationNames: []string{"creator"},
 				Metadata: &base.PermissionLookupSchemaRequestMetadata{
@@ -97,12 +97,12 @@ var _ = Describe("lookup-schema-command", func() {
 			en, err = schema.GetEntityByName(sch, "doc")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "noop", "doc", "noop").Return(en, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "doc", "noop").Return(en, "noop", nil).Times(2)
 
 			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
-				TenantId:      "noop",
+				TenantId:      uint64(0),
 				EntityType:    "doc",
 				RelationNames: []string{"owner", "org.admin"},
 				Metadata: &base.PermissionLookupSchemaRequestMetadata{
@@ -157,12 +157,12 @@ var _ = Describe("lookup-schema-command", func() {
 			en, err = schema.GetEntityByName(sch, "organization")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "noop", "organization", "noop").Return(en, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "organization", "noop").Return(en, "noop", nil).Times(2)
 
 			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
-				TenantId:      "noop",
+				TenantId:      uint64(0),
 				EntityType:    "organization",
 				RelationNames: []string{"admin"},
 				Metadata: &base.PermissionLookupSchemaRequestMetadata{
@@ -192,12 +192,12 @@ var _ = Describe("lookup-schema-command", func() {
 			en, err = schema.GetEntityByName(sch, "repository")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "noop", "repository", "noop").Return(en, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "repository", "noop").Return(en, "noop", nil).Times(2)
 
 			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
-				TenantId:      "noop",
+				TenantId:      uint64(0),
 				EntityType:    "repository",
 				RelationNames: []string{"parent.admin", "parent.member"},
 				Metadata: &base.PermissionLookupSchemaRequestMetadata{

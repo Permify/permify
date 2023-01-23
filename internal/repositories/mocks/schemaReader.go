@@ -13,18 +13,18 @@ type SchemaReader struct {
 }
 
 // ReadSchema - Reads a new schema from repository
-func (_m *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (schema *base.IndexedSchema, err error) {
+func (_m *SchemaReader) ReadSchema(ctx context.Context, tenantID uint64, version string) (schema *base.IndexedSchema, err error) {
 	ret := _m.Called(tenantID, version)
 
 	var r0 *base.IndexedSchema
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *base.IndexedSchema); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint64, string) *base.IndexedSchema); ok {
 		r0 = rf(ctx, tenantID, version)
 	} else {
 		r0 = ret.Get(0).(*base.IndexedSchema)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uint64, string) error); ok {
 		r1 = rf(ctx, tenantID, version)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {
@@ -38,25 +38,25 @@ func (_m *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string
 }
 
 // ReadSchemaDefinition - Reads a Schema Definition from repository
-func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID uint64, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	ret := _m.Called(tenantID, entityType, version)
 
 	var r0 *base.EntityDefinition
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *base.EntityDefinition); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint64, string, string) *base.EntityDefinition); ok {
 		r0 = rf(ctx, tenantID, entityType, version)
 	} else {
 		r0 = ret.Get(0).(*base.EntityDefinition)
 	}
 
 	var r1 string
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) string); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uint64, string, string) string); ok {
 		r1 = rf(ctx, tenantID, entityType, version)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, string, string, string) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, uint64, string, string) error); ok {
 		r2 = rf(ctx, tenantID, entityType, version)
 	} else {
 		if e, ok := ret.Get(2).(error); ok {
@@ -70,18 +70,18 @@ func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, enti
 }
 
 // HeadVersion - Reads the latest version from the repository.
-func (_m *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
+func (_m *SchemaReader) HeadVersion(ctx context.Context, tenantID uint64) (version string, err error) {
 	ret := _m.Called(tenantID)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) string); ok {
 		r0 = rf(ctx, tenantID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
 		r1 = rf(ctx, tenantID)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {

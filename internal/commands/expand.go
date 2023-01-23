@@ -155,8 +155,8 @@ func (command *ExpandCommand) setChild(ctx context.Context, request *base.Permis
 func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
 		var err error
-		var tupleCollection database.ITupleCollection
-		tupleCollection, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		var it *database.TupleIterator
+		it, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -169,12 +169,11 @@ func (command *ExpandCommand) expandDirect(ctx context.Context, request *base.Pe
 		}
 
 		var expandFunctions []ExpandFunction
-		it := tupleCollection.ToSubjectCollection().CreateSubjectIterator()
 
 		directUserCollection := database.NewSubjectCollection()
 
 		for it.HasNext() {
-			subject := it.GetNext()
+			subject := it.GetNext().GetSubject()
 			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
 				expandFunctions = append(expandFunctions, func(ctx context.Context, resultChan chan<- ExpandResponse) {
 					result := command.expand(ctx, &base.PermissionExpandRequest{
@@ -242,8 +241,8 @@ func (command *ExpandCommand) expandTupleToUserSet(ctx context.Context, request 
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
 		var err error
 
-		var tupleCollection database.ITupleCollection
-		tupleCollection, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		var it *database.TupleIterator
+		it, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -254,10 +253,9 @@ func (command *ExpandCommand) expandTupleToUserSet(ctx context.Context, request 
 			expandChan <- expandFailResponse(err)
 		}
 
-		it := tupleCollection.ToSubjectCollection().CreateSubjectIterator()
 		var expandFunctions []ExpandFunction
 		for it.HasNext() {
-			subject := it.GetNext()
+			subject := it.GetNext().GetSubject()
 			if subject.GetRelation() == tuple.ELLIPSIS {
 				expandFunctions = append(expandFunctions, command.expandComputedUserSet(ctx, &base.PermissionExpandRequest{
 					TenantId: request.GetTenantId(),

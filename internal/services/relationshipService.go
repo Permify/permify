@@ -31,15 +31,24 @@ func NewRelationshipService(rr repositories.RelationshipReader, rw repositories.
 }
 
 // ReadRelationships -
-func (service *RelationshipService) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (tuples database.ITupleCollection, err error) {
+func (service *RelationshipService) ReadRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, snap string, size uint32, continuousToken string) (tuples *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationships.read")
 	defer span.End()
 
-	return service.rr.QueryRelationships(ctx, tenantID, filter, token)
+	if snap == "" {
+		var st token.SnapToken
+		st, err = service.rr.HeadSnapshot(ctx, tenantID)
+		if err != nil {
+			return nil, nil, err
+		}
+		snap = st.Encode().String()
+	}
+
+	return service.rr.ReadRelationships(ctx, tenantID, filter, snap, database.NewPagination(database.Size(size), database.Token(continuousToken)))
 }
 
 // WriteRelationships -
-func (service *RelationshipService) WriteRelationships(ctx context.Context, tenantID string, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
+func (service *RelationshipService) WriteRelationships(ctx context.Context, tenantID uint64, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationships.write")
 	defer span.End()
 
@@ -91,7 +100,7 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tena
 }
 
 // DeleteRelationships -
-func (service *RelationshipService) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (service *RelationshipService) DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	ctx, span := tracer.Start(ctx, "relationships.delete")
 	defer span.End()
 

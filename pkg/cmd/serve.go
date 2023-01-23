@@ -134,6 +134,8 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		relationshipWriter := factories.RelationshipWriterFactory(db, l)
 		schemaReader := factories.SchemaReaderFactory(db, l)
 		schemaWriter := factories.SchemaWriterFactory(db, l)
+		tenantReader := factories.TenantReaderFactory(db, l)
+		tenantWriter := factories.TenantWriterFactory(db, l)
 
 		// decorators
 		schemaReader = decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
@@ -165,11 +167,13 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		relationshipService := services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader)
 		permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaLookupCommand, lookupEntityCommand)
 		schemaService := services.NewSchemaService(schemaWriter, schemaReader)
+		tenancyService := services.NewTenancyService(tenantWriter, tenantReader)
 
 		container := servers.ServiceContainer{
 			RelationshipService: relationshipService,
 			PermissionService:   permissionService,
 			SchemaService:       schemaService,
+			TenancyService:      tenancyService,
 		}
 
 		var g *errgroup.Group

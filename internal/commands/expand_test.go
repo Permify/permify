@@ -71,21 +71,21 @@ var _ = Describe("expand-command", func() {
 			organization, err = schema.GetEntityByName(sch, "organization")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "noop", "doc", "noop").Return(doc, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "noop", "folder", "noop").Return(folder, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "noop", "organization", "noop").Return(organization, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
 			relationshipReader := new(mocks.RelationshipReader)
 
-			relationshipReader.On("QueryRelationships", "noop", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "doc",
 					Ids:  []string{"1"},
 				},
 				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "doc",
@@ -100,13 +100,13 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", "noop", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "doc",
 					Ids:  []string{"1"},
 				},
 				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "doc",
@@ -121,13 +121,13 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", "noop", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "folder",
 					Ids:  []string{"1"},
 				},
 				Relation: "collaborator",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "folder",
@@ -154,13 +154,13 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", "noop", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "doc",
 					Ids:  []string{"1"},
 				},
 				Relation: "org",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "doc",
@@ -175,13 +175,13 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", "noop", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
 					Ids:  []string{"1"},
 				},
 				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "organization",
@@ -199,7 +199,7 @@ var _ = Describe("expand-command", func() {
 			expandCommand = NewExpandCommand(schemaReader, relationshipReader)
 
 			req := &base.PermissionExpandRequest{
-				TenantId:   "noop",
+				TenantId:   uint64(0),
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
 				Permission: "read",
 				Metadata: &base.PermissionExpandRequestMetadata{
