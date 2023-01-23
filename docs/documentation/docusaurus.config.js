@@ -1,7 +1,7 @@
-// @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
 const lightCodeTheme = require('prism-react-renderer/themes/github');
+const redirectJson = require('./redirects.json');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
@@ -16,6 +16,14 @@ const config = {
   projectName: 'docs', // Usually your repo name.
   trailingSlash: false,
 
+  plugins: [
+      [
+        "@docusaurus/plugin-client-redirects",
+        {
+            redirects: redirectJson.redirects,
+        },
+      ],
+  ],
   presets: [
     [
       '@docusaurus/preset-classic',
@@ -28,6 +36,15 @@ const config = {
               label: '0.2.x',
             },
           },
+        },
+        blog: {
+          path: 'blog',
+          editLocalizedFiles: false,
+          blogTitle: 'Blog title',
+          blogDescription: 'Blog',
+          blogSidebarCount: 50,
+          blogSidebarTitle: 'Recent posts',
+          routeBasePath: 'blog',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -56,6 +73,7 @@ const config = {
               position: 'left',
               label: 'Docs',
             },
+            {to: 'blog', label: 'Blog', position: 'left'},
             {
               type: 'dropdown',
               label: 'API Reference',

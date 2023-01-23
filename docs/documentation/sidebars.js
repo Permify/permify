@@ -111,6 +111,6 @@ module.exports = {
 				"reference/tracing"
 			],
 			collapsed: true
-		}
+		},
   ],
 };
