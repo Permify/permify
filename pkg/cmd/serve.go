@@ -29,7 +29,7 @@ import (
 
 const (
 	// Version of Permify
-	Version = "v0.2.3"
+	Version = "v0.2.4"
 	banner  = `
 
 ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
