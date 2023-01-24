@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"log"
 
 	"github.com/pressly/goose/v3"
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/logger"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 var postgresMigrations embed.FS
 
 // Migrate - migrate the database
-func Migrate(conf config.Database) (err error) {
+func Migrate(conf config.Database, l logger.Interface) (err error) {
 	switch conf.Engine {
 	case database.POSTGRES.String():
 
@@ -32,14 +32,14 @@ func Migrate(conf config.Database) (err error) {
 
 		defer func() {
 			if err = db.Close(); err != nil {
-				log.Fatal("failed to close the db", err)
+				l.Fatal("failed to close the db", err)
 			}
 		}()
 
 		goose.SetTableName("migrations")
 
 		if err = goose.SetDialect("postgres"); err != nil {
-			log.Fatal("failed to initialize the migrate command", err)
+			l.Fatal("failed to initialize the migrate command", err)
 		}
 
 		goose.SetBaseFS(postgresMigrations)
@@ -54,6 +54,4 @@ func Migrate(conf config.Database) (err error) {
 	default:
 		return fmt.Errorf("%s connection is unsupported", conf.Engine)
 	}
-
-	return err
 }

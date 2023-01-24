@@ -66,7 +66,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID uin
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
-	var lowerBound uint64 = 0
+	var lowerBound uint64
 	if pagination.Token() != "" {
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()

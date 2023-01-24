@@ -14,7 +14,6 @@ import (
 	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
@@ -107,7 +106,6 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID ui
 		var xid types.XID8
 		err = transaction.QueryRowContext(ctx).Scan(&xid)
 		if err != nil {
-			helper.Pre(err)
 			utils.Rollback(tx, w.logger)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -181,7 +179,6 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID u
 		var xid types.XID8
 		err = transaction.QueryRowContext(ctx).Scan(&xid)
 		if err != nil {
-			helper.Pre(err)
 			utils.Rollback(tx, w.logger)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
