@@ -17,6 +17,7 @@ type (
 	Config struct {
 		Server   `mapstructure:"server"`
 		Log      `mapstructure:"logger"`
+		Profiler `mapstructure:"profiler"`
 		Authn    `mapstructure:"authn"`
 		Tracer   `mapstructure:"tracer"`
 		Meter    `mapstructure:"meter"`
@@ -53,6 +54,12 @@ type (
 	Authn struct {
 		Enabled bool     `mapstructure:"enabled"`
 		Keys    []string `mapstructure:"keys"`
+	}
+
+	// Profiler -.
+	Profiler struct {
+		Enabled bool   `mapstructure:"enabled"`
+		Port    string `mapstructure:"port"`
 	}
 
 	// Log -.
@@ -135,6 +142,9 @@ func DefaultConfig() *Config {
 					Enabled: false,
 				},
 			},
+		},
+		Profiler: Profiler{
+			Enabled: false,
 		},
 		Log: Log{
 			Level: "info",

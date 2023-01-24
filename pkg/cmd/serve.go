@@ -70,7 +70,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		defer stop()
 
 		if cfg.AutoMigrate {
-			err = repositories.Migrate(cfg.Database)
+			err = repositories.Migrate(cfg.Database, l)
 			if err != nil {
 				l.Fatal(err)
 			}
@@ -180,7 +180,7 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 		g, ctx = errgroup.WithContext(ctx)
 
 		g.Go(func() error {
-			return container.Run(ctx, &cfg.Server, &cfg.Authn, l)
+			return container.Run(ctx, &cfg.Server, &cfg.Authn, &cfg.Profiler, l)
 		})
 
 		if err = g.Wait(); err != nil {
@@ -205,6 +205,10 @@ func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
 	cmd.Flags().StringVar(&config.Server.HTTP.TLSConfig.CertPath, "http-tls-config-cert-path", config.Server.HTTP.TLSConfig.CertPath, "HTTP tls certificate path")
 	cmd.Flags().StringSliceVar(&config.Server.HTTP.CORSAllowedOrigins, "http-cors-allowed-origins", config.Server.HTTP.CORSAllowedOrigins, "CORS allowed origins for http gateway")
 	cmd.Flags().StringSliceVar(&config.Server.HTTP.CORSAllowedHeaders, "http-cors-allowed-headers", config.Server.HTTP.CORSAllowedHeaders, "CORS allowed headers for http gateway")
+
+	// PROFILER
+	cmd.Flags().BoolVar(&config.Profiler.Enabled, "profiler-enabled", config.Profiler.Enabled, "switch option for profiler")
+	cmd.Flags().StringVar(&config.Profiler.Port, "profiler-port", config.Profiler.Port, "profiler port address")
 
 	// LOG
 	cmd.Flags().StringVar(&config.Log.Level, "log-level", config.Log.Level, "real time logs of authorization. Permify uses zerolog as a logger")

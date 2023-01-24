@@ -2,9 +2,11 @@ package servers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"time"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
@@ -40,7 +42,7 @@ type ServiceContainer struct {
 }
 
 // Run -
-func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authentication *config.Authn, l *logger.Logger) error {
+func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authentication *config.Authn, profiler *config.Profiler, l *logger.Logger) error {
 	var err error
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
@@ -80,6 +82,25 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
 	reflection.Register(grpcServer)
+
+	if profiler.Enabled {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/debug/pprof/", pprof.Index)
+		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+		go func() {
+			l.Info(fmt.Sprintf("🚀 profiler server successfully started: %s", profiler.Port))
+
+			if err = http.ListenAndServe(":"+profiler.Port, mux); err != nil {
+				if errors.Is(err, http.ErrServerClosed) {
+					l.Fatal("failed to start profiler", err)
+				}
+			}
+		}()
+	}
 
 	var lis net.Listener
 	lis, err = net.Listen("tcp", ":"+cfg.GRPC.Port)
