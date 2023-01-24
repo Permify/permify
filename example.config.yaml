@@ -14,7 +14,11 @@ server:
       key: /etc/letsencrypt/live/yourdomain.com/privkey.pem
 
 logger:
-  level: 'debug'
+  level: 'info'
+
+profiler:
+  enabled: true
+  port: 6060
 
 authn:
   enabled: false
