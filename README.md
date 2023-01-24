@@ -136,7 +136,7 @@ localhost:3476/healthz
 [Permify API]: https://docs.permify.co/docs/api-overview/
 [our article]: https://www.permify.co/post/google-zanzibar-in-a-nutshell
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de?action=collection%2Ffork&collection-url=entityId%3D16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de%26entityType%3Dcollection%26workspaceId%3Dd3a8746c-fa57-49c0-83a5-6fcf25a7fc05)
+[![Run in Postman](https://www.postman.com/permify-dev/workspace/permify/collection)
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://app.swaggerhub.com/apis-docs/permify/permify-api/v0.0.0-alpha4)
 
 ## Community & Support
