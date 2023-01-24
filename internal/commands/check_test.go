@@ -556,43 +556,42 @@ entity doc {
 
 			relationshipReader := new(mocks.RelationshipReader)
 
-				relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
-					Entity: &base.EntityFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "repository",
+					Ids:  []string{"1"},
+				},
+				Relation: "owner",
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
+				{
+					Entity: &base.Entity{
 						Type: "repository",
 						Id:   "1",
 					},
 					Relation: "owner",
-				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-					{
-						Entity: &base.Entity{
-							Type: "repository",
-							Id:   "1",
-						},
-						Relation: "owner",
-						Subject: &base.Subject{
-							Type:     tuple.USER,
-							Id:       "2",
-							Relation: "",
-						},
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
 					},
 				},
 			}...), nil).Times(1)
 
 			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
-				req := &base.PermissionCheckRequest{
-					TenantId:   uint64(0),
-					Entity:     &base.Entity{Type: "repository", Id: "1"},
-					Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-					Permission: "push",
-					Metadata: &base.PermissionCheckRequestMetadata{
-						SnapToken:     token.NewNoopToken().Encode().String(),
-						SchemaVersion: "noop",
-						Exclusion:     false,
-						Depth:         20,
-					},
-				}
-        
+			req := &base.PermissionCheckRequest{
+				TenantId:   uint64(0),
+				Entity:     &base.Entity{Type: "repository", Id: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Permission: "push",
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+					Exclusion:     false,
+					Depth:         20,
+				},
+			}
+
 			var response *base.PermissionCheckResponse
 			response, err = checkCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -625,69 +624,44 @@ entity doc {
 
 			relationshipReader := new(mocks.RelationshipReader)
 
-				relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
-					Entity: &base.EntityFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "repository",
+					Ids:  []string{"1"},
+				},
+				Relation: "owner",
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
+				{
+					Entity: &base.Entity{
 						Type: "repository",
 						Id:   "1",
 					},
 					Relation: "owner",
-				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-					{
-						Entity: &base.Entity{
-							Type: "repository",
-							Id:   "1",
-						},
-						Relation: "owner",
-						Subject: &base.Subject{
-							Type:     "organization",
-							Id:       "2",
-							Relation: "admin",
-						},
+					Subject: &base.Subject{
+						Type:     "organization",
+						Id:       "2",
+						Relation: "admin",
 					},
-				}...), nil).Times(1)
+				},
+			}...), nil).Times(1)
 
-				relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
-					Entity: &base.EntityFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"2"},
+				},
+				Relation: "admin",
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
+				{
+					Entity: &base.Entity{
 						Type: "organization",
 						Id:   "2",
 					},
 					Relation: "admin",
-				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-					{
-						Entity: &base.Entity{
-							Type: "organization",
-							Id:   "2",
-						},
-						Relation: "admin",
-						Subject: &base.Subject{
-							Type:     "organization",
-							Id:       "3",
-							Relation: "member",
-						},
-					},
-					{
-						Entity: &base.Entity{
-							Type: "organization",
-							Id:   "2",
-						},
-						Relation: "admin",
-						Subject: &base.Subject{
-							Type:     tuple.USER,
-							Id:       "3",
-							Relation: "",
-						},
-					},
-					{
-						Entity: &base.Entity{
-							Type: "organization",
-							Id:   "2",
-						},
-						Relation: "admin",
-						Subject: &base.Subject{
-							Type:     tuple.USER,
-							Id:       "8",
-							Relation: "",
-						},
+					Subject: &base.Subject{
+						Type:     "organization",
+						Id:       "3",
+						Relation: "member",
 					},
 				},
 				{
@@ -716,42 +690,41 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-				relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
-					Entity: &base.EntityFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"3"},
+				},
+				Relation: "member",
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
+				{
+					Entity: &base.Entity{
 						Type: "organization",
 						Id:   "3",
 					},
 					Relation: "member",
-				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-					{
-						Entity: &base.Entity{
-							Type: "organization",
-							Id:   "3",
-						},
-						Relation: "member",
-						Subject: &base.Subject{
-							Type:     tuple.USER,
-							Id:       "1",
-							Relation: "",
-						},
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
 					},
 				},
 			}...), nil).Times(1)
 
 			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
-				req := &base.PermissionCheckRequest{
-					TenantId:   uint64(0),
-					Entity:     &base.Entity{Type: "repository", Id: "1"},
-					Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-					Permission: "push",
-					Metadata: &base.PermissionCheckRequestMetadata{
-						SnapToken:     token.NewNoopToken().Encode().String(),
-						SchemaVersion: "noop",
-						Exclusion:     false,
-						Depth:         20,
-					},
-				}
+			req := &base.PermissionCheckRequest{
+				TenantId:   uint64(0),
+				Entity:     &base.Entity{Type: "repository", Id: "1"},
+				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Permission: "push",
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "noop",
+					Exclusion:     false,
+					Depth:         20,
+				},
+			}
 
 			var response *base.PermissionCheckResponse
 			response, err = checkCommand.Execute(context.Background(), req)
@@ -778,80 +751,85 @@ entity doc {
 			organization, err = schema.GetEntityByName(sch, "organization")
 			Expect(err).ShouldNot(HaveOccurred())
 
-				schemaReader.On("ReadSchemaDefinition", uint64(0), "repository", "noop").Return(repository, "noop", nil).Times(2)
-				schemaReader.On("ReadSchemaDefinition", uint64(0), "organization", "noop").Return(organization, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "repository", "noop").Return(repository, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "organization", "noop").Return(organization, "noop", nil).Times(2)
 
 			// RELATIONSHIPS
 
 			relationshipReader := new(mocks.RelationshipReader)
 
-				relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
-					Entity: &base.EntityFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "repository",
+					Ids:  []string{"1"},
+				},
+				Relation: "parent",
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
+				{
+					Entity: &base.Entity{
 						Type: "repository",
 						Id:   "1",
 					},
 					Relation: "parent",
-				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-					{
-						Entity: &base.Entity{
-							Type: "repository",
-							Id:   "1",
-						},
-						Relation: "parent",
-						Subject: &base.Subject{
-							Type:     "organization",
-							Id:       "8",
-							Relation: tuple.ELLIPSIS,
-						},
+					Subject: &base.Subject{
+						Type:     "organization",
+						Id:       "8",
+						Relation: tuple.ELLIPSIS,
 					},
-				}...), nil).Times(2)
+				},
+			}...), nil).Times(2)
 
-				relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
-					Entity: &base.EntityFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"8"},
+				},
+				Relation: "member",
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
+				{
+					Entity: &base.Entity{
 						Type: "organization",
 						Id:   "8",
 					},
 					Relation: "member",
-				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-					{
-						Entity: &base.Entity{
-							Type: "organization",
-							Id:   "8",
-						},
-						Relation: "member",
-						Subject: &base.Subject{
-							Type:     tuple.USER,
-							Id:       "1",
-							Relation: "",
-						},
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "1",
+						Relation: "",
 					},
 				},
 			}...), nil).Times(1)
 
-				relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
-					Entity: &base.EntityFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"8"},
+				},
+				Relation: "admin",
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
+				{
+					Entity: &base.Entity{
 						Type: "organization",
 						Id:   "8",
 					},
 					Relation: "admin",
-				}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-					{
-						Entity: &base.Entity{
-							Type: "organization",
-							Id:   "8",
-						},
-						Relation: "admin",
-						Subject: &base.Subject{
-							Type:     tuple.USER,
-							Id:       "2",
-							Relation: "",
-						},
+					Subject: &base.Subject{
+						Type:     tuple.USER,
+						Id:       "2",
+						Relation: "",
 					},
 				},
 			}...), nil).Times(1)
 
-				relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
-					Entity: &base.EntityFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "repository",
+					Ids:  []string{"1"},
+				},
+				Relation: "owner",
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
+				{
+					Entity: &base.Entity{
 						Type: "repository",
 						Id:   "1",
 					},
@@ -932,21 +910,21 @@ entity doc {
 			organization, err = schema.GetEntityByName(sch, "organization")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "repo", "noop").Return(repo, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "parent", "noop").Return(parent, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "organization", "noop").Return(organization, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "repo", "noop").Return(repo, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "parent", "noop").Return(parent, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", uint64(0), "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
 			relationshipReader := new(mocks.RelationshipReader)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
 					Ids:  []string{"1"},
 				},
 				Relation: "member",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "organization",
@@ -973,13 +951,13 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "parent",
 					Ids:  []string{"1"},
 				},
 				Relation: "member",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "parent",
@@ -994,13 +972,13 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "repo",
 					Ids:  []string{"1"},
 				},
 				Relation: "org",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "repo",
@@ -1015,13 +993,13 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "repo",
 					Ids:  []string{"1"},
 				},
 				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleCollection([]*base.Tuple{
+			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
 				{
 					Entity: &base.Entity{
 						Type: "repo",
@@ -1039,6 +1017,7 @@ entity doc {
 			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
 
 			req := &base.PermissionCheckRequest{
+				TenantId:   uint64(0),
 				Entity:     &base.Entity{Type: "repo", Id: "1"},
 				Subject:    &base.Subject{Type: tuple.USER, Id: "2"},
 				Permission: "push",
