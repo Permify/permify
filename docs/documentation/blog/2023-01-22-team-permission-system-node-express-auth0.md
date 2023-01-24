@@ -15,15 +15,16 @@ hide_table_of_contents: false
 ![rbac-vue-cover](https://user-images.githubusercontent.com/34595361/213848085-7eb83a3b-5bf6-4caa-a9eb-6d42973b813b.png)
 
 This is Part 2 in the series of guides on building team permission system in Node.js app using Auth0 and Permify. 
+
 <!--truncate-->
 
 ## Introduction
 
-In the first part we set up our express.js server and handle authentication via Auth0. In this part we'll handle the authorization with using [Permify](https://github.com/Permify/permify). It is an open-source authorization service for creating and maintaining  access control in your applications.
+In the first part we set up our express.js server and handle authentication via Auth0. In this part we'll handle the authorization with using [Permify](https://github.com/Permify/permify). It is an open-source authorization service for creating and maintaining access control in your applications.
 
 In this part we will:
 
-1. Build team permission authorization model with [Permify Schema](https://docs.permify.co/docs/getting-started/modeling).
+1. Build team permission authorization model with [Permify Schema](https://permify.co/docs/getting-started/modeling).
 2. Run and set up Permify authorization service.
 3. Build endpoints with check permission middleware to secure our resources.
 3. Test it out!
@@ -34,7 +35,7 @@ In this part we will:
 
 ## Step 1: Build team permission authorization model
 
-Authorization model is basically the structure of set of rules that give users or services permission to access some data or perform a particular action. Before creating the authorization lets remember our user types and rules for this example. We have 4 different user types to create a simple team permission system:
+Authorization model is basically the structure of set of rules that give users or services permission to access some data or perform a particular action. Before creating the authorization model, lets remember our user types and rules for this example. We have 4 different user types to create a simple team permission system:
 
 - **Member:** Member of the organization and can only view teams.
 - **Admin:** Administrator in an organization; can view, edit and delete the team resources.
@@ -66,9 +67,6 @@ entity organization {
 
 entity team {
 
-   // represents owner or creator of the team
-   relation manager @user
-
    // represents direct member of the team
    relation member @user @organization#member
 
@@ -78,6 +76,9 @@ entity team {
 
 entity document {
 
+   // refers owner of the document
+   relation owner @user
+
    // reference for team that team resource belongs
    relation team @team
 
@@ -85,8 +86,8 @@ entity document {
    relation org @organization
 
    // permissions
-   action view = team.member or team.manager or org.admin
-   action edit = team.manager or org.admin
+   action view = team.member or team.manager or org.admin or owner
+   action edit = team.manager or org.admin or owner
    action delete = team.manager or org.admin
 }
 ```
@@ -109,9 +110,12 @@ The team entity has 3 relations:
 - **org:** reference for organization that team belong
 
 #### Document Entity
-The resource entity has 2 relations
+The resource entity has 3 relations
 
 ```perm
+// refers owner of the document
+relation owner @user
+
 // reference for a team that team resource belongs
 relation team @team
  
@@ -136,14 +140,14 @@ These actions actually represents the user types and rules we defined earlier, l
 So in Permify it can be achievable with following document actions. 
 
 ```perm
-   action view = team.member or team.manager or org.admin
-   action edit = team.manager or org.admin
-   action delete = team.manager or org.admin
+   action view = team.member or team.manager or org.admin or owner
+   action edit = team.manager or org.admin or owner
+   action delete = team.manager or org.admin or owner
 ```
 
-Lets look at the edit action, if we say we have an document with id 14: only user that is member of the team, which document:14 belongs **or** user has administrator role in organization can edit document:14.
+Lets look at the **edit** action, if we say we have an document with id 14, only users that is member of the team (which document:14 belongs) **or** users that has administrator role in organization **or** users that is owner/creator of the document:14 can edit.
 
-## Step 2: Run and set up Permify authorization service.
+## Step 2: Run and set up Permify authorization service
 
 Lets run our authorization service in our local environment. We’ll use docker for running our service. If you don't have docker installed on your computer you can easily get it from [here](https://docs.docker.com/get-docker/). Lets run following docker command in our terminal: 
 
@@ -153,7 +157,7 @@ Lets run our authorization service in our local environment. We’ll use docker 
 docker run -p 3476:3476 -p 3478:3478  ghcr.io/permify/permify serve
 ```
 
-You should see following output on your terminal,
+You should see following output on your terminal -  please be sure that docker installed and running your computer - 
 
 ![terminal output](https://user-images.githubusercontent.com/34595361/214109434-51739ef2-6fb7-49c4-8ca2-c8b59ffe7c4a.png)
 
@@ -178,9 +182,9 @@ Lets test our connection with creating an HTTP GET request - localhost:3476/heal
 
 We’ll use Permify access control checks to secure our endpoints but before that we need to configure our created authorization model to our authorization service and create some data to test it out.
 
-Permify Schema needs to be sent to the [Write Schema API](https://docs.permify.co/docs/api-overview/write-schema) endpoint for configuration of your authorization model.
+Permify Schema needs to be sent to the [Write Schema API](https://permify.co/docs/api-overview/write-schema) endpoint for configuration of your authorization model.
 
- Lets copy that schema from our playground using the **Copy** button
+Lets copy that schema from our playground using the **Copy** button
 
 ![copy-button-playground](https://user-images.githubusercontent.com/34595361/214111689-88f7fd21-d812-48f9-ab9a-998ac2fab9c1.png)
 
@@ -190,7 +194,7 @@ And use it in postman as body params to make a POST "/v1/schemas/write” reques
 
 yayy 🥳, we just completed the configuration of Permify authorization service. Now we have a running API that has authorization model configured and ready to use!
 
-As next steps, we’ll build our endpoints and secure them with [Permify Check Request](https://docs.permify.co/docs/getting-started/enforcement).
+As next steps, we’ll build our endpoints and secure them with [Permify Check Request](https://permify.co/docs/getting-started/enforcement).
 
 ## Step 3: Build API endpoints and secure them with Check Middleware
 
@@ -208,6 +212,7 @@ const checkPermissions = (permissionType) => {
 
     // get authenticated user id from auth0
     const userInfo = await req.oidc.user;
+    req.userInfo = userInfo
     console.log('userInfo', userInfo)
     
     // body params of Permify check request
@@ -255,7 +260,7 @@ const checkPermissions = (permissionType) => {
 };
 ```
 
-As you can see this middleware performs a check request inside with using "http://localhost:3476/v1/permissions/check" [Permify Check Request](https://docs.permify.co/docs/api-overview/check-api)
+As you can see this middleware performs a check request inside with using "http://localhost:3476/v1/permissions/check" [Permify Check Request](https://permify.co/docs/api-overview/check-api)
 
 We need to pass some information such as; who's performing action, what is the specific action, etc via body params to endpoint: "http://localhost:3476/v1/permissions/check", and this endpoint will return a authorization decision result.
 
@@ -267,9 +272,9 @@ This middleware is used in the application's routing to ensure that only authori
 
 We’ll create following endpoints to test our authorization structure.
 
-- GET /docs?id API route to view resource
-- PUT /docs?id API route to edit resource
-- DELETE /docs?id API route to delete resource
+- GET /docs/id API route to view resource
+- PUT /docs/id API route to edit resource
+- DELETE /docs/id API route to delete resource
 
 For the sake of simplicity, we'll not do any operations in endpoints, just check the access control for each route.
 
@@ -280,7 +285,7 @@ For the sake of simplicity, we'll not do any operations in endpoints, just check
 app.get("/docs/:id", requiresAuth(), checkPermissions("view"), (req, res) => {
   
   /// Result
-  res.send(`"User is ${req.authorized} to view document:${req.params.id}`);
+  res.send(`User:${req.userInfo.sid} is ${req.authorized} to view document:${req.params.id}`);
 
 });
 ```
@@ -291,7 +296,7 @@ app.get("/docs/:id", requiresAuth(), checkPermissions("view"), (req, res) => {
 app.put("/docs/:id", requiresAuth(), checkPermissions("edit"), (req, res) => {
  
   // Result
-  res.send(`"User is ${req.authorized} to edit document:${req.params.id}`);
+  res.send(`User:${req.userInfo.sid} is ${req.authorized} to edit document:${req.params.id}`);
 
 });
 ```
@@ -302,7 +307,7 @@ app.put("/docs/:id", requiresAuth(), checkPermissions("edit"), (req, res) => {
 app.delete("/docs/:id", requiresAuth(), checkPermissions("delete"), (req, res) => {
 
   // Result
-  res.send(`"User is ${req.authorized} to delete document:${req.params.id}`);
+  res.send(`User:${req.userInfo.sid} is ${req.authorized} to delete document:${req.params.id}`);
   
 });
 ```
@@ -311,13 +316,52 @@ app.delete("/docs/:id", requiresAuth(), checkPermissions("delete"), (req, res) =
 
 So thus far we build an endpoints that protected from unauthorized actions according to our authorization model, so lets see this endpoints in action.
 
-Our permiy service is running on local:3476 so lets again run our express server with nodemon as follows:
+Our Permify service is running on local:3476 (please be sure its running before testing, you can check it with "localhost:3476/healthz" request. If its not running please repeat the set up process and make authorization service ready to use) so lets run our express server with nodemon as follows:
 
 ```js
 nodemon app.js
 ```
 
-Since we handled authentication part we should see "Logged in" when in the home page - "localhost:3000/". If you're not authenticated please check out the steps in part 1 of this series to log in.
+Since we handled authentication part we should see "Logged in" when in the home page - "localhost:3000/". If you're not authenticated please check out the steps in [part 1 of this series](./2023-01-21-team-permission-system-node-express-auth0.md) to log in.
+
+After successfully logged in, lets hit the PUT "/docs/14" endpoint, we should see "not authorized" message in the form of: *User:USER_ID_FROM_AUTH0 is not authorized to edit document:14*
+
+![authorization result](https://user-images.githubusercontent.com/34595361/214371155-2efe27c2-cb2f-49de-8a6e-c94cdeab86ab.png)
+
+Since we defined the action **edit** in our authorization model as follows:
+
+```
+action edit = team.manager or org.admin or owner
+```
+
+**User:sTLJTz5wXhURpqiWSmRFcZv6Ar_KCoh7** should be either team manager or administrator in organization or be the owner/creator of document:14 to have access to edit document:14.
+
+Let's assign our user as an owner of document:14 and see the result. In Permify, authorization data stored in relationships in a database you prefer. Since we didn't make any database configuration for now its storing in memory of your instance. 
+
+Moreover in Permify these relationships are relations between your entities, objects and users stored as relational tuples. Since relations and authorization data's are live instances these relational tuples can be created with an simple API call in runtime.
+
+We will use [Write Relationship API](https://permify.co/docs/api-overview/write-relationships) to make our user owner of document as follows:
+
+![write-relationships](https://user-images.githubusercontent.com/34595361/214378640-6e82ca0e-912b-42c2-98c5-72aa3bd77603.png)
+
+So now our user is the owner of document:14 so lets try our edit endpoint again.
+
+![re-test](https://user-images.githubusercontent.com/34595361/214379351-c70e615e-c2d6-4a74-b545-de0f305c8872.png)
+
+Our user is authorized now 🎉🎉
+
+## Conclusion 
+
+This is the end of our tutorial series, we created a boilerplate structure of team permission mechanism with using Auth0 for authentication and Permify for authorization. You can use this boilerplate and expand it according to your needs!!
+
+If you have any questions or doubts, feel free to reach me out at [ege@permify.co](ege@permify.co)
+
+
+
+
+
+
+
 
 
 

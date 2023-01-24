@@ -65,11 +65,18 @@ service:
   circuit_breaker: false
   concurrency_limit: 100
 
+profiler:
+  enabled: true
+  port: 6060
+
 database:
   engine: 'postgres'
-  database: 'db_name'
   uri: 'postgres://user:password@host:5432'
-  max_open_connections: 20
+  auto_migrate: true
+  max_open_connections: 100
+  max_idle_connections: 1
+  max_connection_lifetime: 300s
+  max_connection_idle_time: 60s
 ```
 * **server:** Server options to run Permify. (`grpc` and `http` available for now.)
   * **grpc:** example, same configurations for `http` option.
@@ -100,9 +107,16 @@ database:
 
 * **database** : Points out where your want to store your authorization data (relation tuples, audits, decision logs, authorization model )
   * **engine:** Data source. Permify supports **PostgreSQL**(`'postgres'`) for now. Contact with us for your preferred database. *(default: memory)*
-  * **database:** Custom database name.
   * **uri:** Uri of your data source.
-  * **max_open_connections:** Max connection pool size,  *(default: 20)*
+  * **auto_migrate** : When its false migrating flow won't work *(default: true)*
+  * **max_open_connections:** configuration parameter determines the maximum number of concurrent connections to the database that are allowed. *(default: 20)*
+  * **max_idle_connections:** which determines the maximum number of idle connections that can be held in the connection pool.  *(default: 1)*
+  * **max_connection_lifetime:** configuration parameter determines the maximum lifetime of a connection in seconds.,  *(default: 300s)*
+  * **max_connection_idle_time:** configuration parameter determines the maximum time in seconds that a connection can remain idle before it is closed.  *(default: 60s)*
+
+* **profiler** : pprof is a performance profiler for Go programs. It allows developers to analyze and understand the performance characteristics of their code by generating detailed profiles of program execution
+  * **enabled:** switch option for profiler. *(default: true)*
+  * **port:** port that profiler runs on *(default: 6060)*
 
 [jaeger]: https://www.jaegertracing.io/
 [zipkin]: https://zipkin.io/
