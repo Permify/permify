@@ -12,7 +12,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/envoyproxy/protoc-gen-validate v0.9.1
-	github.com/fatih/color v1.13.0
+	github.com/fatih/color v1.14.1
 	github.com/gookit/color v1.5.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
@@ -80,7 +80,7 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
