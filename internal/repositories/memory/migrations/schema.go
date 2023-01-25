@@ -25,7 +25,7 @@ var Schema = &memdb.DBSchema{
 				},
 				"version": {
 					Name:   "version",
-					Unique: true,
+					Unique: false,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "TenantID"},
