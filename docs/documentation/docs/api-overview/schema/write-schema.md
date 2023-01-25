@@ -19,7 +19,7 @@ Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for conf
 
 ## Request
 
-**POST** "/v1/schemas/write"**
+**POST** "/v1/tenants/{tenant_id}/schemas/write"**
 
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
@@ -31,6 +31,7 @@ Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for conf
 
 ```go
 sr, err: = client.Schema.Write(context.Background(), &v1.SchemaWriteRequest {
+    TenantId: "t1",
     Schema: `
     "entity user {}\n\n    entity organization {\n\n        relation admin @user\n        relation member @user\n\n        action create_repository = (admin or member)\n        action delete = admin\n    }\n\n    entity repository {\n\n        relation owner @user\n        relation parent @organization\n\n        action push = owner\n        action read = (owner and (parent.admin and parent.member))\n        action delete = (parent.member and (parent.admin or owner))\n    }"
     `,
@@ -42,6 +43,7 @@ sr, err: = client.Schema.Write(context.Background(), &v1.SchemaWriteRequest {
 
 ```javascript
 client.schema.write({
+    tenantId: "t1",
     schema: `
     "entity user {}\n\n    entity organization {\n\n        relation admin @user\n        relation member @user\n\n        action create_repository = (admin or member)\n        action delete = admin\n    }\n\n    entity repository {\n\n        relation owner @user\n        relation parent @organization\n\n        action push = owner\n        action read = (owner and (parent.admin and parent.member))\n        action delete = (parent.member and (parent.admin or owner))\n    }"
     `
@@ -64,7 +66,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/wr
 </Tabs>
 
 ## Example Request on Postman
-**POST** "/v1/schemas/write"**
+**POST** "/v1/tenants/{tenant_id}/schemas/write"**
 
 **Example Request on Postman:**
 

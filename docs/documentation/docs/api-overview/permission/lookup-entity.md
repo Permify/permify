@@ -34,6 +34,7 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 
 ```go
 cr, err: = client.Permission.LookupEntity(context.Background(), & v1.PermissionLookupEntityRequest {
+    TenantId: "t1",
     Metadata: & v1.PermissionLookupEntityRequestMetadata {
         SnapToken: ""
         SchemaVersion: ""
@@ -53,6 +54,7 @@ cr, err: = client.Permission.LookupEntity(context.Background(), & v1.PermissionL
 
 ```javascript
 client.permission.check({
+    tenantId: "t1",
     metadata: {
         snapToken: "",
         schemaVersion: "",

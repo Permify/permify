@@ -108,7 +108,8 @@ module.exports = {
 						slug: "/api-overview/tenancy",
 					},
 					items: [
-					
+						"api-overview/tenancy/create-tenant",
+						"api-overview/tenancy/delete-tenant",
 					],
 				  },
 			],

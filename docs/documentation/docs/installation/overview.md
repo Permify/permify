@@ -112,7 +112,7 @@ For implementation sake we'll not dive more deep about modeling but you can find
 After modeling completed, you need to send Permify Schema - authorization model - to [Write Schema API](../api-overview/schema/write-schema.md) for configuration of your authorization model on Permify authorization service.
 
 :::caution Before Continue on Writing Schema
-You'll see **tenant_id** parameter almost all Permify APIs including Write Schema. With version 0.3.x Permify authorization infrastructure is tenancy based and supports multi-tenancy by default so its a mandatory parameter when doing any operations.
+You'll see **tenant_id** parameter almost all Permify APIs including Write Schema. With version 0.3.x Permify became a tenancy based authorization infrastructure, and supports multi-tenancy by default so its a mandatory parameter when doing any operations.
 
 We provide a pre-inserted tenant - **t1** - for ones that don't need/want to use multi-tenancy. So, we will be passing **t1** to all tenant id parameters throughout this guidance. <!-- For more details about Multi Tenancy usage and structure of Permify see [Multi Tenancy Section](./aws.md). -->
 :::

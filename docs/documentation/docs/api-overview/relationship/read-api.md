@@ -7,7 +7,7 @@ Read API allows for directly querying the stored graph data to display and filte
 
 ## Request
 
-**Path:** POST /v1/relationship/read
+**Path:** POST /v1/tenants/{tenant_id/relationship/read
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
@@ -22,6 +22,7 @@ Read API allows for directly querying the stored graph data to display and filte
 
 ```go
 rr, err: = client.Relationship.Read(context.Background(), & v1.RelationshipReadRequest {
+    TenantId: "t1",
     Metadata: &v1.RelationshipReadRequestMetadata {
         SnapToken: ""
     },
@@ -45,6 +46,7 @@ rr, err: = client.Relationship.Read(context.Background(), & v1.RelationshipReadR
 
 ```javascript
 client.relationship.read({
+  tenantId: "t1",
   metadata: {
      snap_token: "",
   },
@@ -58,9 +60,7 @@ client.relationship.read({
     relation: "member",
     subject: {
       type: "",
-      ids: [
-        ""
-      ],
+      ids: [],
       relation: ""
     }
   }
@@ -89,9 +89,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationsh
     relation: "member",
     subject: {
       type: "",
-      ids: [
-        ""
-      ],
+      ids: [],
       relation: ""
     }
   }

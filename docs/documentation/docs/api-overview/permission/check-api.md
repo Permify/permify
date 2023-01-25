@@ -32,6 +32,7 @@ In this section we'll look at the resource based check request of Permify. You c
 
 ```go
 cr, err: = client.Permission.Check(context.Background(), & v1.PermissionCheckRequest {
+    TenantId: "t1",
     Metadata: & v1.PermissionCheckRequestMetadata {
         SnapToken: ""
         SchemaVersion: ""
@@ -60,6 +61,7 @@ cr, err: = client.Permission.Check(context.Background(), & v1.PermissionCheckReq
 
 ```javascript
 client.permission.check({
+    tenantId: "t1", 
     metadata: {
         snapToken: "",
         schemaVersion: "",

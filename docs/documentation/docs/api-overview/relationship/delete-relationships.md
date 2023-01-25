@@ -3,11 +3,11 @@ import TabItem from '@theme/TabItem';
 
 # Delete Relational Tuples
 
-You can delete any stored relation tuples with following path
+You can delete any stored relation tuples with following API
 
 ## Request
 
-**Path:** POST /v1/relationships/delete
+**Path:** POST /v1/tenants/{tenant_id}/relationships/delete
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
@@ -21,6 +21,7 @@ You can delete any stored relation tuples with following path
 
 ```go
 rr, err: = client.Relationship.Delete(context.Background(), & v1.RelationshipDeleteRequest {
+    TenantId: "t1",
     Metadata: &v1.RelationshipDeleteRequestMetadata {
         SnapToken: ""
     },
