@@ -12,6 +12,7 @@ import (
 // Check - Creates new permission check request
 func Check(ctx context.Context, service services.IPermissionService, subject *v1.Subject, action string, entity *v1.Entity, version, snapToken string) (res *v1.PermissionCheckResponse, err error) {
 	req := &v1.PermissionCheckRequest{
+		TenantId:   "t1",
 		Entity:     entity,
 		Subject:    subject,
 		Permission: action,
@@ -28,6 +29,7 @@ func Check(ctx context.Context, service services.IPermissionService, subject *v1
 // LookupEntity -
 func LookupEntity(ctx context.Context, service services.IPermissionService, subject *v1.Subject, permission, entityType, version, snapToken string) (res *v1.PermissionLookupEntityResponse, err error) {
 	req := &v1.PermissionLookupEntityRequest{
+		TenantId:   "t1",
 		EntityType: entityType,
 		Subject:    subject,
 		Permission: permission,
