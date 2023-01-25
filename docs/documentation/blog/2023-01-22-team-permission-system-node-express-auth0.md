@@ -166,7 +166,7 @@ This will start Permify our authorization service with the default configuration
 - Port 3478 is used to serve the GRPC Service.
 - Authorization data stored in memory
 
-For this tutorial we'll use REST API to manage authorization in our application. You can check our available endpoints from [Permify Swagger Docs](https://app.swaggerhub.com/apis-docs/permify/permify/latest#/)
+For this tutorial we'll use REST API to manage authorization in our application. You can check our available endpoints from [Permify Swagger Docs](https://permify.github.io/permify-swagger/)
 
 :::caution
 Production usage of Permify needs some other configurations when running this docker command; such as defining running options, selecting datastore to store authorization data, etc. But for simplicity of this tutorial we’ll skip those parts and use our local environment and store authorization data in memory.
@@ -182,7 +182,7 @@ Lets test our connection with creating an HTTP GET request - localhost:3476/heal
 
 We’ll use Permify access control checks to secure our endpoints but before that we need to configure our created authorization model to our authorization service and create some data to test it out.
 
-Permify Schema needs to be sent to the [Write Schema API](https://permify.co/docs/api-overview/write-schema) endpoint for configuration of your authorization model.
+Permify Schema needs to be sent to the [Write Schema API](https://permify.co/docs/api-overview/schema/write-schema) endpoint for configuration of your authorization model.
 
 Lets copy that schema from our playground using the **Copy** button
 
@@ -235,7 +235,7 @@ const checkPermissions = (permissionType) => {
     };
 
     // performing the check request
-    const checkRes = await fetch("http://localhost:3476/v1/permissions/check", {
+    const checkRes = await fetch("http://localhost:/v1/tenants/{tenant_id}permissions/check", {
       method: "POST",
       body: JSON.stringify(bodyParams),
       headers: { "Content-Type": "application/json" },
@@ -260,9 +260,9 @@ const checkPermissions = (permissionType) => {
 };
 ```
 
-As you can see this middleware performs a check request inside with using "http://localhost:3476/v1/permissions/check" [Permify Check Request](https://permify.co/docs/api-overview/check-api)
+As you can see this middleware performs a check request inside with using "http://localhost:/v1/tenants/{tenant_id}/permissions/check" [Permify Check Request](https://permify.co/docs/api-overview/permission/check-api)
 
-We need to pass some information such as; who's performing action, what is the specific action, etc via body params to endpoint: "http://localhost:3476/v1/permissions/check", and this endpoint will return a authorization decision result.
+We need to pass some information such as; who's performing action, what is the specific action, etc via body params to endpoint: "http://localhost:/v1/tenants/{tenant_id}/permissions/check", and this endpoint will return a authorization decision result.
 
 As you seen above the endpoints decision data is added to the req object as a property req.authorized. This can be used to determine whether the user is authorized to perform the action.
 
@@ -340,7 +340,7 @@ Let's assign our user as an owner of document:14 and see the result. In Permify,
 
 Moreover in Permify these relationships are relations between your entities, objects and users stored as relational tuples. Since relations and authorization data's are live instances these relational tuples can be created with an simple API call in runtime.
 
-We will use [Write Relationship API](https://permify.co/docs/api-overview/write-relationships) to make our user owner of document as follows:
+We will use [Write Relationship API](https://permify.co/docs/api-overview/relationship/write-relationships) to make our user owner of document as follows:
 
 ![write-relationships](https://user-images.githubusercontent.com/34595361/214378640-6e82ca0e-912b-42c2-98c5-72aa3bd77603.png)
 
@@ -354,7 +354,7 @@ Our user is authorized now 🎉🎉
 
 This is the end of our tutorial series, we created a boilerplate structure of team permission mechanism with using Auth0 for authentication and Permify for authorization. You can use this boilerplate and expand it according to your needs!!
 
-If you have any questions or doubts, feel free to reach me out at [ege@permify.co](ege@permify.co)
+If you have any questions or doubts, feel free to reach me out at ege@permify.co
 
 
 

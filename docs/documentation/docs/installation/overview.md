@@ -6,7 +6,7 @@ sidebar_position: 1
 
 This guide shows how to set up Permify in your servers and use it across your applications. Set up and implementation consists of 4 steps,
 
-1. [Set Up & Run Permify Service](#run-permify-api)
+1. [Set Up & Run Permify Service](#set-up-permify-service)
 2. [Model your Authorization with Permify's DSL, Permify Schema](#model-your-authorization-with-permify-schema)
 3. [Manage and Store Authorization Data as Relational Tuples](#store-authorization-data-as-relational-tuples)
 4. [Perform Access Check](#perform-access-check)
@@ -52,9 +52,8 @@ You can use our Postman Collection to work with the API. Also see the [Using the
 
 [Using the API]: /docs/api-overview
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de?action=collection%2Ffork&collection-url=entityId%3D16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de%26entityType%3Dcollection%26workspaceId%3Dd3a8746c-fa57-49c0-83a5-6fcf25a7fc05)
-[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://app.swaggerhub.com/apis-docs/permify/permify/latest)
-
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/)
 
 ## Model your Authorization with Permify Schema
 
@@ -110,16 +109,24 @@ For implementation sake we'll not dive more deep about modeling but you can find
 
 ### Configuring Schema via API 
 
-After modeling completed, you need to send Permify Schema - authorization model - to API endpoint **/v1/schemas/write"** for configuration of your authorization model on Permify API.
+After modeling completed, you need to send Permify Schema - authorization model - to [Write Schema API](../api-overview/schema/write-schema.md) for configuration of your authorization model on Permify authorization service.
 
-#### Path : ** POST "/v1/schemas/write"**
+:::caution Before Continue on Writing Schema
+You'll see **tenant_id** parameter almost all Permify APIs including Write Schema. With version 0.3.x Permify authorization infrastructure is tenancy based and supports multi-tenancy by default so its a mandatory parameter when doing any operations.
+
+We provide a pre-inserted tenant - **t1** - for ones that don't need/want to use multi-tenancy. So, we will be passing **t1** to all tenant id parameters throughout this guidance. <!-- For more details about Multi Tenancy usage and structure of Permify see [Multi Tenancy Section](./aws.md). -->
+:::
+
+#### Example HTTP Request on Postman: 
+
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
 | [x]   | schema | string | - | Permify Schema as string|
 
-**Example Request on Postman:**
+**POST /v1/tenants/{tenant_id}/schemas/write**
 
-![permify-schema](https://user-images.githubusercontent.com/34595361/197405641-d8197728-2080-4bc3-95cb-123e274c58ce.png)
+![permify-schema](https://user-images.githubusercontent.com/34595361/214457054-19b141ac-6bfa-4db4-aeab-f7b7149c3351.png)
 
 ## Store Authorization Data as Relational Tuples
 
@@ -127,15 +134,28 @@ After you completed configuration of your authorization model via Permify Schema
 
 ### Create Relational Tuples
 
-You can create relational tuples as authorization rules at this writeDB by using `/v1/relationships/write` endpoint.
+You can create relational tuples as authorization rules at this writeDB by using [Write Relationships API](../api-overview/relationship/write-relationships.md)
 
-For our guide let's grant one of the team members (Ashley) an admin role. 
+For our guide let's grant one of the team members (Ashley) an admin role.
 
-**Request:** POST - `/v1/relationships/write` 
+#### Example HTTP Request on Postman: 
+
+| Required | Argument | Type | Default | Description |
+|----------|-------------------|--------|---------|-------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant in your system) use pre-inserted tenant **t1** for this field.
+| [x]   | tuples | array | - | Can contain multiple relation tuple object|
+| [x]   | entity | object | - | Type and id of the entity. Example: "organization:1”|
+| [x]   | relation | string | - | Custom relation name. Eg. admin, manager, viewer etc.|
+| [x]   | subject | string | - | User or user set who wants to take the action. |
+| [ ]   | schema_version | string | 8 | Version of the schema |
+
+**POST /v1/tenants/{tenant_id}relationships/write** 
 
 ```json
 {
-    "schema_version": "",
+    "metadata": {
+        "schema_version": ""
+    },
     "tuples": [
         {
        "entity": {
@@ -153,14 +173,16 @@ For our guide let's grant one of the team members (Ashley) an admin role.
 }
 ```
 
-**Created relational tuple:** organization:1#admin@1
+![write-relationships](https://user-images.githubusercontent.com/34595361/214458203-8264e141-642d-48b0-9242-416bbf6f8795.png)
+
+**Created relational tuple:** organization:1#admin@user:1
 
 **Semantics:** User 1 (Ashley) has admin role on organization 1.
 
 :::tip
 In ideal production usage Permify stores your authorization data in a database you prefer. We called that database as WriteDB, and you can configure it with using [configuration yaml file](https://github.com/Permify/permify/blob/master/example.config.yaml) or CLI flag options. 
 
-But in this tutorial Permify Service running default configurations, so authorization data will be stored in memory.You can find more detailed explanation how Permify stores authorization data in [Managing Authorization Data] section.
+But in this tutorial Permify Service running default configurations on local, so authorization data will be stored in memory. You can find more detailed explanation how Permify stores authorization data in [Managing Authorization Data] section.
 
 [Managing Authorization Data]: /docs/getting-started/sync-data
 :::
@@ -169,18 +191,21 @@ But in this tutorial Permify Service running default configurations, so authoriz
 
 Finally we're ready to control authorization. Access decision results computed according to relational tuples and the stored model, [Permify Schema] action conditions.
 
-Lets get back to our example and perform an example access check via [check] API. We want to check whether an specific user has an access to view files in a organization.
+Lets get back to our example and perform an example access check via [Check API]. We want to check whether an specific user has an access to view files in a organization.
 
-[check]: /docs/api-overview/check-api
+[Check API]: /docs/api-overview/permission/check-api
 [Permify Schema]: /docs/getting-started/modeling
+
+#### Example HTTP Request: 
 
 ***Can the user 45 view files on organization 1 ?***
 
-**POST** /v1/permissions/check
+**POST /v1/tenants/{tenant_id}/permissions/check**
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [x]   | entity | object | - | name and id of the entity. Example: organization:1”.
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant in your system) use pre-inserted tenant **t1** for this field. 
+| [x]   | entity | object | - | name and id of the entity. Example: organization:1.
 | [x]   | action | string | - | the action the user wants to perform on the resource |
 | [x]   | subject | object | - | the user or user set who wants to take the action  |
 | [ ]   | schema_version | string | - | get results according to given schema version|

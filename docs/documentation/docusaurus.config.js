@@ -8,12 +8,13 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title: 'Permify',
   url: 'https://permify.co',
+  tagline: "Open Source Authorization Service Based on Google Zanzibar",
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'Permify', // Usually your GitHub org/user name.
-  projectName: 'docs', // Usually your repo name.
+  projectName: 'permify', // Usually your repo name.
   trailingSlash: false,
 
   plugins: [
@@ -33,14 +34,14 @@ const config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '0.2.x',
+              label: '0.3.x',
             },
           },
         },
         blog: {
           path: 'blog',
           editLocalizedFiles: false,
-          blogTitle: 'Blog title',
+          blogTitle: 'Blog',
           blogDescription: 'Blog',
           blogSidebarCount: 50,
           blogSidebarTitle: 'Recent posts',
@@ -64,7 +65,6 @@ const config = {
           logo: {
             alt: 'Permify Logo',
             src: 'img/logo.svg',
-            href: 'https://www.permify.co/',
           },
           items: [
             {
@@ -95,10 +95,10 @@ const config = {
               position: 'left',
               className: 'header-playground-link'
             },
-            /* {
+            {
               type: 'docsVersionDropdown',
               position: 'right',
-            }, */
+            },
             {
               href: 'https://github.com/Permify/permify',
               position: 'right',
@@ -116,6 +116,13 @@ const config = {
             }
           ],
         },
+        metadata: [
+          {
+              name: "keywords",
+              content:
+                  "google zanzibar, authorization, permissions, rbac, rebac, abac, access control, fine grained",
+          },
+        ],
         footer: {
           style: 'dark',
           links: [

@@ -11,8 +11,8 @@ Another example: when one a company executive grant admin role to user (lets say
 
 ![tuple-creation](https://user-images.githubusercontent.com/34595361/186637488-30838a3b-849a-4859-ae4f-d664137bb6ba.png)
 
-[relational tuples]: ../getting-started/sync-data
-[writeDB]: ../getting-started/sync-data#where-relational-tuples-used-
+[relational tuples]: ../../getting-started/sync-data
+[writeDB]: ../../getting-started/sync-data#where-relational-tuples-used
 
 ## Request
 
@@ -22,6 +22,7 @@ So if user:3 has been granted an admin role in organization:1, relational tuple 
 
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant in your system) use pre-inserted tenant **t1** for this field. 
 | [x]   | tuples | array | - | Can contain multiple relation tuple object|
 | [x]   | entity | object | - | Type and id of the entity. Example: "organization:1”|
 | [x]   | relation | string | - | Custom relation name. Eg. admin, manager, viewer etc.|
@@ -82,7 +83,7 @@ client.relationship.write({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/relationships/write' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "metadata": {

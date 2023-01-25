@@ -1,16 +1,18 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Delete Relational Tuples
+# Read Relational Tuples
 
-You can delete any stored relation tuples with following path
+Read API allows for directly querying the stored graph data to display and filter stored relational tuples.
 
 ## Request
 
-**Path:** POST /v1/relationships/delete
+**Path:** POST /v1/relationship/read
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
+| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | relation | string | - | relation of the given entity |
 | [ ]   | subject | object | - | the user or user set. It containes type and id of the subject.  ||
@@ -19,8 +21,8 @@ You can delete any stored relation tuples with following path
 <TabItem value="go" label="Go">
 
 ```go
-rr, err: = client.Relationship.Delete(context.Background(), & v1.RelationshipDeleteRequest {
-    Metadata: &v1.RelationshipDeleteRequestMetadata {
+rr, err: = client.Relationship.Read(context.Background(), & v1.RelationshipReadRequest {
+    Metadata: &v1.RelationshipReadRequestMetadata {
         SnapToken: ""
     },
     Filter: &v1.TupleFilter {
@@ -28,10 +30,10 @@ rr, err: = client.Relationship.Delete(context.Background(), & v1.RelationshipDel
         Type: "organization",
         Ids: []string {"1"} ,
     },
-    Relation: "admin",
+    Relation: "member",
     Subject: &v1.SubjectFilter {
-        Type: "user",
-        Id: []string {"1"},
+        Type: "",
+        Id: []string {""},
         Relation: ""
     }}
 })
@@ -42,7 +44,7 @@ rr, err: = client.Relationship.Delete(context.Background(), & v1.RelationshipDel
 <TabItem value="node" label="Node">
 
 ```javascript
-client.relationship.delete({
+client.relationship.read({
   metadata: {
      snap_token: "",
   },
@@ -53,11 +55,11 @@ client.relationship.delete({
         "1"
       ]
     },
-    relation: "admin",
+    relation: "member",
     subject: {
-      type: "user",
+      type: "",
       ids: [
-        "1"
+        ""
       ],
       relation: ""
     }
@@ -71,23 +73,26 @@ client.relationship.delete({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/relationships/delete' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/read' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-  "filter": {
-    "entity": {
-      "type": "organization",
-      "ids": [
+  metadata: {
+     snap_token: "",
+  },
+  filter: {
+    entity: {
+      type: "organization",
+      ids: [
         "1"
       ]
     },
-    "relation": "admin",
-    "subject": {
-      "type": "user",
-      "ids": [
-        "1"
+    relation: "member",
+    subject: {
+      type: "",
+      ids: [
+        ""
       ],
-      "relation": ""
+      relation: ""
     }
   }
 }'

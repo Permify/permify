@@ -28,6 +28,7 @@ Let's say you have a user X with a manager role. If you want to check what user 
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
 | [ ]   | schema_version | string | 8 | Version of the schema |
 | [x]   | entity_type | string | - | type of the entity. 
 | [x]   | relation_names | string[] | - | string array that holds entity relations |
@@ -62,7 +63,7 @@ client.permission.LookupSchema({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/permissions/lookup-schema' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/lookup-schema' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   "metadata": {

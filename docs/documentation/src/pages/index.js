@@ -18,6 +18,8 @@ function Home() {
         <>
             <Head>
                 <html data-page="index" data-customized="true" />
+                <title>Permify | Open Source Authorization Service Based on Google Zanzibar</title>
+                <meta name="Description" content="Open Source Authorization Service Based on Google Zanzibar" />
             </Head>
             <Landing />
         </>

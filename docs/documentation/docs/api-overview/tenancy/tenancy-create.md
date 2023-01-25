@@ -1,7 +1,7 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Write Schema
+# Create Tenant
 
 Permify provide it's own authorization language to model common patterns of easily. We called the authorization model Permify Schema and it can be created on our [playground](https://play.permify.co/) as well as in any IDE or text editor. 
 
@@ -23,6 +23,7 @@ Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for conf
 
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
 | [x]   | schema | string | - | Permify Schema as string|
 
 <Tabs>
@@ -53,7 +54,7 @@ client.schema.write({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/schemas/write' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/write' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "schema": "entity user {}\n\n    entity organization {\n\n        relation admin @user\n        relation member @user\n\n        action create_repository = (admin or member)\n        action delete = admin\n    }\n\n    entity repository {\n\n        relation owner @user\n        relation parent @organization\n\n        action push = owner\n        action read = (owner and (parent.admin and parent.member))\n        action delete = (parent.member and (parent.admin or owner))\n }"
