@@ -34,7 +34,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
-	var lowerBound uint64
+	var lowerBound string
 	if pagination.Token() != "" {
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()

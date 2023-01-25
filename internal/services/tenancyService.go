@@ -23,12 +23,12 @@ func NewTenancyService(tw repositories.TenantWriter, tr repositories.TenantReade
 }
 
 // CreateTenant -
-func (s *TenancyService) CreateTenant(ctx context.Context, name string) (tenant *base.Tenant, err error) {
-	return s.tw.CreateTenant(ctx, name)
+func (s *TenancyService) CreateTenant(ctx context.Context, id, name string) (tenant *base.Tenant, err error) {
+	return s.tw.CreateTenant(ctx, id, name)
 }
 
 // DeleteTenant -
-func (s *TenancyService) DeleteTenant(ctx context.Context, tenantID uint64) (tenant *base.Tenant, err error) {
+func (s *TenancyService) DeleteTenant(ctx context.Context, tenantID string) (tenant *base.Tenant, err error) {
 	return s.tw.DeleteTenant(ctx, tenantID)
 }
 

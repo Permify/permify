@@ -23,7 +23,7 @@ func NewRelationshipWriterWithCircuitBreaker(delegate repositories.RelationshipW
 }
 
 // WriteRelationships - Write relation tuples from the repository
-func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Context, tenantID uint64, collection *database.TupleCollection) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Context, tenantID string, collection *database.TupleCollection) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.EncodedSnapToken
 		Error error
@@ -49,7 +49,7 @@ func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Co
 }
 
 // DeleteRelationships - Delete relation tuples from the repository
-func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.EncodedSnapToken
 		Error error

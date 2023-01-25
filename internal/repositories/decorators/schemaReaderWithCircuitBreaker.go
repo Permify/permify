@@ -21,7 +21,7 @@ func NewSchemaReaderWithCircuitBreaker(delegate repositories.SchemaReader) *Sche
 }
 
 // ReadSchema - Read schema from repository
-func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, tenantID uint64, version string) (*base.IndexedSchema, error) {
+func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, tenantID string, version string) (*base.IndexedSchema, error) {
 	type circuitBreakerResponse struct {
 		Schema *base.IndexedSchema
 		Error  error
@@ -47,7 +47,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, tenantI
 }
 
 // ReadSchemaDefinition - Read schema definition from repository
-func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, tenantID uint64, entityType, version string) (*base.EntityDefinition, string, error) {
+func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (*base.EntityDefinition, string, error) {
 	type circuitBreakerResponse struct {
 		Definition *base.EntityDefinition
 		Version    string
@@ -74,7 +74,7 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Contex
 }
 
 // HeadVersion - Finds the latest version of the schema.
-func (r *SchemaReaderWithCircuitBreaker) HeadVersion(ctx context.Context, tenantID uint64) (version string, err error) {
+func (r *SchemaReaderWithCircuitBreaker) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
 	type circuitBreakerResponse struct {
 		Version string
 		Error   error

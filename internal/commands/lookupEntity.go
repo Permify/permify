@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/repositories"
@@ -140,6 +139,7 @@ func (command *LookupEntityCommand) parallelChecker(ctx context.Context, request
 // internalCheck -
 func (command *LookupEntityCommand) internalCheck(ctx context.Context, en *base.Entity, request *base.PermissionLookupEntityRequest, resultChan chan<- string) error {
 	result, err := command.checkCommand.Execute(ctx, &base.PermissionCheckRequest{
+		TenantId: request.GetTenantId(),
 		Metadata: &base.PermissionCheckRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),

@@ -26,12 +26,12 @@ func NewSchemaReaderWithCache(delegate repositories.SchemaReader, cache cache.Ca
 }
 
 // ReadSchema  - Read schema from the repository
-func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID uint64, version string) (schema *base.IndexedSchema, err error) {
+func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.IndexedSchema, err error) {
 	return r.delegate.ReadSchema(ctx, tenantID, version)
 }
 
 // ReadSchemaDefinition - Read schema definition from the repository
-func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, tenantID uint64, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, tenantID string, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	var s interface{}
 	found := false
 	if version != "" {
@@ -54,6 +54,6 @@ func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, tenant
 }
 
 // HeadVersion - Finds the latest version of the schema.
-func (r *SchemaReaderWithCache) HeadVersion(ctx context.Context, tenantID uint64) (version string, err error) {
+func (r *SchemaReaderWithCache) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
 	return r.delegate.HeadVersion(ctx, tenantID)
 }

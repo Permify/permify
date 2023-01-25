@@ -32,7 +32,7 @@ func (t *TenancyServer) Create(ctx context.Context, request *v1.TenantCreateRequ
 	ctx, span := tracer.Start(ctx, "tenant.create")
 	defer span.End()
 
-	tenant, err := t.tenancyService.CreateTenant(ctx, request.GetName())
+	tenant, err := t.tenancyService.CreateTenant(ctx, request.GetId(), request.GetName())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

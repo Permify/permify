@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/base64"
-	"encoding/binary"
 
 	"github.com/Permify/permify/pkg/database"
 )
@@ -10,7 +9,7 @@ import (
 type (
 	// ContinuousToken - Structure for continuous token
 	ContinuousToken struct {
-		Value uint64
+		Value string
 	}
 	// EncodedContinuousToken - Structure for encoded continuous token
 	EncodedContinuousToken struct {
@@ -19,7 +18,7 @@ type (
 )
 
 // NewContinuousToken - Creates a new continuous token
-func NewContinuousToken(value uint64) database.ContinuousToken {
+func NewContinuousToken(value string) database.ContinuousToken {
 	return &ContinuousToken{
 		Value: value,
 	}
@@ -27,10 +26,8 @@ func NewContinuousToken(value uint64) database.ContinuousToken {
 
 // Encode - Encodes the token to a string
 func (t ContinuousToken) Encode() database.EncodedContinuousToken {
-	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, t.Value)
 	return EncodedContinuousToken{
-		Value: base64.StdEncoding.EncodeToString(b),
+		Value: base64.StdEncoding.EncodeToString([]byte(t.Value)),
 	}
 }
 
@@ -41,7 +38,7 @@ func (t EncodedContinuousToken) Decode() (database.ContinuousToken, error) {
 		return nil, err
 	}
 	return ContinuousToken{
-		Value: binary.LittleEndian.Uint64(b),
+		Value: string(b),
 	}, nil
 }
 

@@ -104,7 +104,7 @@ message SubjectFilter {
   repeated string ids = 2 [json_name = "ids"];
 
   string relation = 3 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    pattern : "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
@@ -141,7 +141,7 @@ message Result {
 
 // Tenant
 message Tenant {
-  uint64 id = 1 [json_name = "id"];
+  string id = 1 [json_name = "id"];
   string name = 2 [json_name = "name"];
   google.protobuf.Timestamp created_at = 3 [json_name = "created_at"];
 }

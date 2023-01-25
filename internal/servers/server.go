@@ -47,10 +47,12 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpcValidator.UnaryServerInterceptor(),
+		//grpcRecovery.UnaryServerInterceptor(),
 	}
 
 	streamingInterceptors := []grpc.StreamServerInterceptor{
 		grpcValidator.StreamServerInterceptor(),
+		//grpcRecovery.StreamServerInterceptor(),
 	}
 
 	var authenticator authn.KeyAuthenticator

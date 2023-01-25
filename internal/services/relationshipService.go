@@ -31,7 +31,7 @@ func NewRelationshipService(rr repositories.RelationshipReader, rw repositories.
 }
 
 // ReadRelationships -
-func (service *RelationshipService) ReadRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, snap string, size uint32, continuousToken string) (tuples *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
+func (service *RelationshipService) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, size uint32, continuousToken string) (tuples *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationships.read")
 	defer span.End()
 
@@ -48,7 +48,7 @@ func (service *RelationshipService) ReadRelationships(ctx context.Context, tenan
 }
 
 // WriteRelationships -
-func (service *RelationshipService) WriteRelationships(ctx context.Context, tenantID uint64, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
+func (service *RelationshipService) WriteRelationships(ctx context.Context, tenantID string, tuples []*base.Tuple, version string) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationships.write")
 	defer span.End()
 
@@ -100,7 +100,7 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tena
 }
 
 // DeleteRelationships -
-func (service *RelationshipService) DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (service *RelationshipService) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	ctx, span := tracer.Start(ctx, "relationships.delete")
 	defer span.End()
 

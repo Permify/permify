@@ -30,7 +30,7 @@ func NewSchemaService(sw repositories.SchemaWriter, sr repositories.SchemaReader
 }
 
 // ReadSchema -
-func (service *SchemaService) ReadSchema(ctx context.Context, tenantID uint64, version string) (response *base.IndexedSchema, err error) {
+func (service *SchemaService) ReadSchema(ctx context.Context, tenantID, version string) (response *base.IndexedSchema, err error) {
 	ctx, span := tracer.Start(ctx, "schemas.read")
 	defer span.End()
 
@@ -47,7 +47,7 @@ func (service *SchemaService) ReadSchema(ctx context.Context, tenantID uint64, v
 }
 
 // WriteSchema -
-func (service *SchemaService) WriteSchema(ctx context.Context, tenantID uint64, schema string) (response string, err error) {
+func (service *SchemaService) WriteSchema(ctx context.Context, tenantID, schema string) (response string, err error) {
 	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()
 

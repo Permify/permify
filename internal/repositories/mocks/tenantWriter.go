@@ -14,19 +14,19 @@ type TenantWriter struct {
 }
 
 // CreateTenant - Create Tenant to repository
-func (_m *TenantWriter) CreateTenant(ctx context.Context, name string) (tenant *base.Tenant, err error) {
+func (_m *TenantWriter) CreateTenant(ctx context.Context, id, name string) (tenant *base.Tenant, err error) {
 	ret := _m.Called(name)
 
 	var r0 *base.Tenant
-	if rf, ok := ret.Get(0).(func(context.Context, string) *base.Tenant); ok {
-		r0 = rf(ctx, name)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *base.Tenant); ok {
+		r0 = rf(ctx, id, name)
 	} else {
 		r0 = ret.Get(0).(*base.Tenant)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, name)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, id, name)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {
 			r1 = e
@@ -39,18 +39,18 @@ func (_m *TenantWriter) CreateTenant(ctx context.Context, name string) (tenant *
 }
 
 // DeleteTenant - Delete Tenant to repository
-func (_m *TenantWriter) DeleteTenant(ctx context.Context, tenantID uint64) (tenant *base.Tenant, err error) {
+func (_m *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (tenant *base.Tenant, err error) {
 	ret := _m.Called(tenantID)
 
 	var r0 *base.Tenant
-	if rf, ok := ret.Get(0).(func(context.Context, uint64) *base.Tenant); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *base.Tenant); ok {
 		r0 = rf(ctx, tenantID)
 	} else {
 		r0 = ret.Get(0).(*base.Tenant)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, tenantID)
 	} else {
 		if e, ok := ret.Get(1).(error); ok {

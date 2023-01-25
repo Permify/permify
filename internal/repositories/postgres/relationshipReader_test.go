@@ -94,7 +94,7 @@ var _ = Describe("RelationshipReader", func() {
 						Relation: "",
 					},
 				},
-			})))
+			}...)))
 		})
 	})
 })

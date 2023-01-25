@@ -11,7 +11,7 @@ import (
 // RelationTuple - Structure for Relational Tuple
 type RelationTuple struct {
 	ID              uint64
-	TenantID        uint64
+	TenantID        string
 	EntityType      string
 	EntityID        string
 	Relation        string
@@ -38,7 +38,7 @@ func (r RelationTuple) ToTuple() *base.Tuple {
 
 // SchemaDefinition - Structure for Schema Definition
 type SchemaDefinition struct {
-	TenantID             uint64
+	TenantID             string
 	EntityType           string
 	SerializedDefinition []byte
 	Version              string
@@ -51,7 +51,7 @@ func (e SchemaDefinition) Serialized() string {
 
 // Tenant - Structure for tenant
 type Tenant struct {
-	ID        uint64
+	ID        string
 	Name      string
 	CreatedAt time.Time
 }

@@ -42,7 +42,7 @@ func NewRelationshipWriter(database *db.Postgres, logger logger.Interface) *Rela
 }
 
 // WriteRelationships - Writes a collection of relationships to the database
-func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID uint64, collection *database.TupleCollection) (token token.EncodedSnapToken, err error) {
+func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID string, collection *database.TupleCollection) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-writer.write-relationships")
 	defer span.End()
 
@@ -126,7 +126,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID ui
 }
 
 // DeleteRelationships - Deletes a collection of relationships to the database
-func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter) (token token.EncodedSnapToken, err error) {
+func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "relationship-writer.delete-relationships")
 	defer span.End()
 

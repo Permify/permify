@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sort"
+	`strconv`
 	"time"
 
 	"github.com/hashicorp/go-memdb"
@@ -35,7 +36,7 @@ func NewRelationshipReader(database *db.Memory, logger logger.Interface) *Relati
 }
 
 // QueryRelationships - Reads relation tuples from the repository.
-func (r *RelationshipReader) QueryRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, _ string) (it *database.TupleIterator, err error) {
+func (r *RelationshipReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, _ string) (it *database.TupleIterator, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -62,7 +63,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, tenantID ui
 }
 
 // ReadRelationships - Gets all relationships for a given filter
-func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, _ string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
+func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, _ string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -71,9 +72,12 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID uin
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, err
+			return nil, utils.NewNoopContinuousToken().Encode(), err
 		}
-		lowerBound = t.(utils.ContinuousToken).Value
+		lowerBound, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
+		if err != nil {
+			return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String())
+		}
 	}
 
 	index, args := utils.GetIndexNameAndArgsByFilters(tenantID, filter)
@@ -81,7 +85,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID uin
 
 	result, err = txn.LowerBound(RelationTuplesTable, index, args...)
 	if err != nil {
-		return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	tup := make([]repositories.RelationTuple, 0, 10)
@@ -89,7 +93,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID uin
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(repositories.RelationTuple)
 		if !ok {
-			return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+			return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
 		tup = append(tup, t)
 	}
@@ -104,7 +108,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID uin
 		if t.ID >= lowerBound {
 			tuples = append(tuples, t.ToTuple())
 			if len(tuples) > int(pagination.PageSize()) {
-				return database.NewTupleCollection(tuples[:pagination.PageSize()]...), utils.NewContinuousToken(t.ID).Encode(), nil
+				return database.NewTupleCollection(tuples[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(t.ID, 10)).Encode(), nil
 			}
 		}
 	}
@@ -113,7 +117,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID uin
 }
 
 // GetUniqueEntityIDsByEntityType - Gets all entity IDs for a given entity type (unique)
-func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID uint64, typ, _ string) (array []string, err error) {
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID string, typ, _ string) (array []string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -136,6 +140,6 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
-func (r *RelationshipReader) HeadSnapshot(ctx context.Context, _ uint64) (token.SnapToken, error) {
+func (r *RelationshipReader) HeadSnapshot(ctx context.Context, _ string) (token.SnapToken, error) {
 	return snapshot.NewToken(time.Now()), nil
 }

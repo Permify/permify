@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/memory/utils"
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -28,9 +27,9 @@ func NewTenantWriter(database *db.Memory, logger logger.Interface) *TenantWriter
 }
 
 // CreateTenant -
-func (w *TenantWriter) CreateTenant(ctx context.Context, name string) (result *base.Tenant, err error) {
+func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (result *base.Tenant, err error) {
 	tenant := repositories.Tenant{
-		ID:        utils.TenantsID.ID() + 1,
+		ID:        id,
 		Name:      name,
 		CreatedAt: time.Now(),
 	}
@@ -44,7 +43,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, name string) (result *b
 }
 
 // DeleteTenant -
-func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID uint64) (result *base.Tenant, err error) {
+func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (result *base.Tenant, err error) {
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
 	var raw interface{}

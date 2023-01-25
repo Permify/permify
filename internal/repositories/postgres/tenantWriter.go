@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	`strings`
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -34,19 +35,21 @@ func NewTenantWriter(database *db.Postgres, logger logger.Interface) *TenantWrit
 }
 
 // CreateTenant - Creates a new Tenant
-func (w *TenantWriter) CreateTenant(ctx context.Context, name string) (result *base.Tenant, err error) {
+func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (result *base.Tenant, err error) {
 	ctx, span := tracer.Start(ctx, "tenant-writer.create-tenant")
 	defer span.End()
 
-	var id uint64
 	var createdAt time.Time
 
-	query := w.database.Builder.Insert(TenantsTable).Columns("name").Values(name).Suffix("RETURNING id, created_at").RunWith(w.database.DB)
+	query := w.database.Builder.Insert(TenantsTable).Columns("id, name").Values(id, name).Suffix("RETURNING created_at").RunWith(w.database.DB)
 
-	err = query.QueryRowContext(ctx).Scan(&id, &createdAt)
+	err = query.QueryRowContext(ctx).Scan(&createdAt)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
+		if strings.Contains(err.Error(), "duplicate key value") {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
+		}
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
@@ -58,7 +61,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, name string) (result *b
 }
 
 // DeleteTenant - Deletes a Tenant
-func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID uint64) (result *base.Tenant, err error) {
+func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (result *base.Tenant, err error) {
 	ctx, span := tracer.Start(ctx, "tenant-writer.delete-tenant")
 	defer span.End()
 

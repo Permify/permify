@@ -30,7 +30,7 @@ func NewSchemaReader(database *db.Memory, logger logger.Interface) *SchemaReader
 }
 
 // ReadSchema - Reads a new schema from repository
-func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID uint64, version string) (schema *base.IndexedSchema, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.IndexedSchema, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
@@ -53,7 +53,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID uint64, version 
 }
 
 // ReadSchemaDefinition - Reads a Schema Definition from repository
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID uint64, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
@@ -80,7 +80,7 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID uint64
 }
 
 // HeadVersion - Reads the latest version from the repository.
-func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID uint64) (string, error) {
+func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, error) {
 	var err error
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()

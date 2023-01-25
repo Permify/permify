@@ -50,7 +50,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		// Write schema -
 		var version string
-		version, err = devContainer.S.WriteSchema(ctx, 0, s.Schema)
+		version, err = devContainer.S.WriteSchema(ctx, "t1", s.Schema)
 		if err != nil {
 			return err
 		}
@@ -69,7 +69,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			tuples = append(tuples, tup)
 		}
 
-		_, err = devContainer.R.WriteRelationships(ctx, 0, tuples, version)
+		_, err = devContainer.R.WriteRelationships(ctx, "t1", tuples, version)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 
 				res, err := devContainer.P.CheckPermissions(ctx, &base.PermissionCheckRequest{
-					TenantId: 0,
+					TenantId: "t1",
 					Metadata: &base.PermissionCheckRequestMetadata{
 						SchemaVersion: version,
 						SnapToken:     token.NewNoopToken().Encode().String(),

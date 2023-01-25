@@ -23,7 +23,7 @@ func NewRelationshipReaderWithCircuitBreaker(delegate repositories.RelationshipR
 }
 
 // QueryRelationships - Reads relation tuples from the repository
-func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, token string) (*database.TupleIterator, error) {
+func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (*database.TupleIterator, error) {
 	type circuitBreakerResponse struct {
 		Iterator *database.TupleIterator
 		Error    error
@@ -48,7 +48,7 @@ func (r *RelationshipReaderWithCircuitBreaker) QueryRelationships(ctx context.Co
 }
 
 // ReadRelationships reads relation tuples from the repository with different options.
-func (r *RelationshipReaderWithCircuitBreaker) ReadRelationships(ctx context.Context, tenantID uint64, filter *base.TupleFilter, snap string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
+func (r *RelationshipReaderWithCircuitBreaker) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
 	type circuitBreakerResponse struct {
 		Collection      *database.TupleCollection
 		ContinuousToken database.EncodedContinuousToken
@@ -74,7 +74,7 @@ func (r *RelationshipReaderWithCircuitBreaker) ReadRelationships(ctx context.Con
 }
 
 // GetUniqueEntityIDsByEntityType - Reads relation tuples from the repository
-func (r *RelationshipReaderWithCircuitBreaker) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID uint64, typ, token string) (array []string, err error) {
+func (r *RelationshipReaderWithCircuitBreaker) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID string, typ, token string) (array []string, err error) {
 	type circuitBreakerResponse struct {
 		IDs   []string
 		Error error
@@ -99,7 +99,7 @@ func (r *RelationshipReaderWithCircuitBreaker) GetUniqueEntityIDsByEntityType(ct
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
-func (r *RelationshipReaderWithCircuitBreaker) HeadSnapshot(ctx context.Context, tenantID uint64) (token.SnapToken, error) {
+func (r *RelationshipReaderWithCircuitBreaker) HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.SnapToken
 		Error error

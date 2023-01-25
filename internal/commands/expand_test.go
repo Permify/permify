@@ -71,15 +71,15 @@ var _ = Describe("expand-command", func() {
 			organization, err = schema.GetEntityByName(sch, "organization")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", uint64(0), "doc", "noop").Return(doc, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", uint64(0), "folder", "noop").Return(folder, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", uint64(0), "organization", "noop").Return(organization, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(doc, "noop", nil).Times(2)
+			schemaReader.On("ReadSchemaDefinition", "t1", "folder", "noop").Return(folder, "noop", nil).Times(1)
+			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
 			relationshipReader := new(mocks.RelationshipReader)
 
-			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "doc",
 					Ids:  []string{"1"},
@@ -100,7 +100,7 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "doc",
 					Ids:  []string{"1"},
@@ -121,7 +121,7 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "folder",
 					Ids:  []string{"1"},
@@ -154,7 +154,7 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "doc",
 					Ids:  []string{"1"},
@@ -175,7 +175,7 @@ var _ = Describe("expand-command", func() {
 				},
 			}...), nil).Times(1)
 
-			relationshipReader.On("QueryRelationships", uint64(0), &base.TupleFilter{
+			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
 					Ids:  []string{"1"},
@@ -199,7 +199,7 @@ var _ = Describe("expand-command", func() {
 			expandCommand = NewExpandCommand(schemaReader, relationshipReader)
 
 			req := &base.PermissionExpandRequest{
-				TenantId:   uint64(0),
+				TenantId:   "t1",
 				Entity:     &base.Entity{Type: "doc", Id: "1"},
 				Permission: "read",
 				Metadata: &base.PermissionExpandRequestMetadata{

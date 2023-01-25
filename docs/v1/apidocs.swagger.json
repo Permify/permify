@@ -93,40 +93,7 @@
           }
         ],
         "tags": [
-          "Tenant"
-        ]
-      }
-    },
-    "/v1/tenants/delete": {
-      "post": {
-        "summary": "delete tenant",
-        "operationId": "tenants.delete",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/TenantDeleteResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/TenantDeleteRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Tenant"
+          "Tenancy"
         ]
       }
     },
@@ -159,7 +126,38 @@
           }
         ],
         "tags": [
-          "Tenant"
+          "Tenancy"
+        ]
+      }
+    },
+    "/v1/tenants/{id}": {
+      "delete": {
+        "summary": "delete tenant",
+        "operationId": "tenants.delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TenantDeleteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Tenancy"
         ]
       }
     },
@@ -186,8 +184,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -242,8 +239,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -293,8 +289,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -356,8 +351,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -410,8 +404,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -465,8 +458,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -511,8 +503,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -567,8 +558,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -619,8 +609,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -665,8 +654,7 @@
             "name": "tenant_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "type": "string"
           },
           {
             "name": "body",
@@ -1244,8 +1232,7 @@
       "type": "object",
       "properties": {
         "id": {
-          "type": "string",
-          "format": "uint64"
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -1260,6 +1247,9 @@
     "TenantCreateRequest": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         }
@@ -1274,16 +1264,6 @@
         }
       },
       "title": "TenantCreateResponse"
-    },
-    "TenantDeleteRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        }
-      },
-      "title": "TenantDeleteRequest"
     },
     "TenantDeleteResponse": {
       "type": "object",

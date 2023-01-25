@@ -35,7 +35,7 @@ func NewTenantReader(database *db.Postgres, logger logger.Interface) *TenantRead
 
 // ListTenants - Lists all Tenants
 func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagination) (tenants []*base.Tenant, ct database.EncodedContinuousToken, err error) {
-	ctx, span := tracer.Start(ctx, "schema-reader.read-schema")
+	ctx, span := tracer.Start(ctx, "tenant-reader.list-tenants")
 	defer span.End()
 
 	builder := r.database.Builder.Select("id, name, created_at").From(TenantsTable)
@@ -71,8 +71,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	}
 	defer rows.Close()
 
-	var lastID uint64
-
+	var lastID string
 	tenants = make([]*base.Tenant, 0, pagination.PageSize()+1)
 	for rows.Next() {
 		sd := repositories.Tenant{}
