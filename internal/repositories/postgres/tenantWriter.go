@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	`strings`
+	"strings"
 	"time"
 
 	"github.com/Masterminds/squirrel"

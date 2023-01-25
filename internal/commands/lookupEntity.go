@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/repositories"

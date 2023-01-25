@@ -10,6 +10,7 @@ import (
 	"time"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpcValidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
@@ -47,12 +48,12 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpcValidator.UnaryServerInterceptor(),
-		//grpcRecovery.UnaryServerInterceptor(),
+		grpcRecovery.UnaryServerInterceptor(),
 	}
 
 	streamingInterceptors := []grpc.StreamServerInterceptor{
 		grpcValidator.StreamServerInterceptor(),
-		//grpcRecovery.StreamServerInterceptor(),
+		grpcRecovery.StreamServerInterceptor(),
 	}
 
 	var authenticator authn.KeyAuthenticator

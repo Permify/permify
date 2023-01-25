@@ -6,9 +6,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var (
-	RelationTuplesID AutoIncForRelationTuples
-)
+var RelationTuplesID AutoIncForRelationTuples
 
 type AutoIncForRelationTuples struct {
 	sync.Mutex
