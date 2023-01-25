@@ -208,7 +208,7 @@ Access decisions generated according to relational tuples, which stored in your 
 
 Finally we're ready to control authorization. Lets perform an example access check via [check] API. 
 
-[check]: /docs/api-overview/check-api
+[check]: ../api-overview/check-api
 
 ***Can the user 45 view files on organization 1 ?***
 

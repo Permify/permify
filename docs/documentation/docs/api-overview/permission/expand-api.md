@@ -55,6 +55,7 @@ We can use expand API to reason the access actions. If we want to reason access 
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
 | [ ]   | schema_version | string | 8 | Version of the schema |
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity | string | - | Name and id of the entity. Example: repository:1”.
@@ -304,7 +305,7 @@ client.permission.expand({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/permissions/expand' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/expand' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   "metadata": {

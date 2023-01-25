@@ -11,9 +11,10 @@ Permify API provides various functionalities around authorization such as perfor
 
 We structured Permify API in 3 core parts:
 
-- **Permission Section**: Consists access control requests and options.
-- **Relationship Section**: Authorization data operations such as creating, deleting and reading relational tuples.
-- **Schema Section**: Modeling and Permify Schema related functionalities including configuration and auditing.
+- **PermissionService**: Consists access control requests and options.
+- **RelationshipService**: Authorization data operations such as creating, deleting and reading relational tuples.
+- **SchemaService**: Modeling and Permify Schema related functionalities including configuration and auditing.
+- **TenantService**: Consists tenant operations such as creating, deleting and listing.
 
 Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/main:base.v1) - with [go] and [nodeJS] client options - and [REST](https://restfulapi.net/). 
 
@@ -21,19 +22,19 @@ Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/
 [go]: https://github.com/Permify/permify-go
 [nodeJS]: https://github.com/Permify/permify-node
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de?action=collection%2Ffork&collection-url=entityId%3D16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de%26entityType%3Dcollection%26workspaceId%3Dd3a8746c-fa57-49c0-83a5-6fcf25a7fc05)
-[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://app.swaggerhub.com/apis-docs/permify/permify/latest)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/)
 
 ## Core Paths
 
-- Configure your authorization model with [Schema Write](./api-overview/write-schema.md)
-- Write relational tuples with [Write Relationships](./api-overview/write-relationships.md)
-- Read relation tuples and filter them with [Read API](./api-overview/read-api.md)
-- Check access with [Check API](./api-overview/check-api.md)
-- Check entities permissions with [Lookup Entity](./api-overview/lookup-entity.md)
-- Delete relation tuples with [Delete Tuple](./api-overview/delete-relationships.md)
-- Expand schema actions with [Expand API](./api-overview/expand-api.md)
-- Get permissions of your resources with [Schema Lookup](./api-overview/schema-lookup.md)
+- Configure your authorization model with [Schema Write](./api-overview/schema/write-schema.md)
+- Write relational tuples with [Write Relationships](./api-overview/relationship/write-relationships.md)
+- Read relation tuples and filter them with [Read API](./api-overview/relationship/read-api.md)
+- Check access with [Check API](./api-overview/permission/check-api.md)
+- Check entities permissions with [Lookup Entity](./api-overview/permission/lookup-entity.md)
+- Delete relation tuples with [Delete Tuple](./api-overview/relationship/delete-relationships.md)
+- Expand schema actions with [Expand API](./api-overview/permission/expand-api.md)
+- Get permissions of your resources with [Schema Lookup](./api-overview/permission/schema-lookup.md)
 
 ## Need any help ?
 

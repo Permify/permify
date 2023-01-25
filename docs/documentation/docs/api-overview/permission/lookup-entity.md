@@ -22,6 +22,7 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
 | [ ]   | schema_version | string | 8 | Version of the schema |
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity_type | object | - | type of the  entity. Example: repository”.
@@ -72,7 +73,7 @@ client.permission.check({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/permissions/lookup-entity' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/lookup-entity' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   "metadata":{

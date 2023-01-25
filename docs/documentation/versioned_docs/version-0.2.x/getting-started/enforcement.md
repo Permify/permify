@@ -33,7 +33,7 @@ We would love to create a test environment for you in order to test Permify API 
 
 Let's follow an simplified access control decision for examining the resource specific [check] request.
 
-[check]:  https://app.swaggerhub.com/apis-docs/permify/permify/latest
+[check]:  ../api-overview/check-api.md
 
 ***Can the user 3 edit document 12 ?***
 

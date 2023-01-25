@@ -10,8 +10,8 @@ A simple [resource based] access check takes form of ***Can the subject U perfor
 
 On the other hand [subject based] access check takes form of  ***Which resources does subject U perform an action X ?*** This option is best for filtering data or bulk permission checks. 
 
-[resource based]: ../api-overview/check-api.md
-[subject based]: ../api-overview/lookup-entity.md
+[resource based]: ../api-overview/permission/check-api.md
+[subject based]: ../api-overview/permission/lookup-entity.md
 
 ## Performance & Availability
 

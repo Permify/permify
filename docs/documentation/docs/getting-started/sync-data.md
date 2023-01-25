@@ -2,6 +2,9 @@
 sidebar_position: 2
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Managing Authorization Data
 
 Permify unifies your authorization data in a database you prefer. We named that database as Write Database, shortly **WriteDB**.
@@ -59,37 +62,101 @@ entity document {
 } 
 ```
 
- According to the schema above; when a user creates a document in an organization, more specifically let's say, when user:1 in organization:2 create a document:4 we need to create the following relational tuple,
+According to the schema above; when a user creates a document in an organization, more specifically let's say, when user:1 in organization:2 create a document:4 we need to create the following relational tuple,
 
 - `document:4#owner@user:1`
 
 [WriteDB]: #write-database
 
-### API endpoint 
+### Write Relationships API
 
-You can create relational tuples by using `/v1/relationships/write` endpoint. 
+You can create relational tuples by using `Write Relationships API`. 
 
-Send a request to POST - `/v1/relationships/write`
+<Tabs>
+<TabItem value="go" label="Go">
 
-**Request**
+```go
+rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+    Metadata: &v1.RelationshipWriteRequestMetadata {
+        SchemaVersion: ""
+    },
+    Tuples: [] * v1.Tuple {
+        {
+            Entity: & v1.Entity {
+                Type: "organization",
+                Id: "1",
+            },
+            Relation: "admin",
+            Subject: & v1.Subject {
+                Type: "admin",
+                Id: "3",
+            },
+        }
+    },
+})
+```
 
-```json
-{
-    "schema_version": "",
+</TabItem>
+
+<TabItem value="node" label="Node">
+
+```javascript
+client.relationship.write({
+    metadata: {
+        schemaVersion: ""
+    },
+    tuples: [{
+        entity: {
+            type: "organization",
+            id: "1"
+        },
+        relation: "admin",
+        subject: {
+            type: "user",
+            id: "3"
+        }
+    }]
+}).then((response) => {
+    // handle response
+})
+```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "metadata": {
+        "schema_version": ""
+    },
     "tuples": [
         {
         "entity": {
-            "type": "document",
-            "id": "4" 
+            "type": "organization",
+            "id": "1"
         },
-        "relation": "owner",
-        "subject": {
+        "relation": "admin",
+        "subject":{
             "type": "user",
-            "id": "1", 
+            "id": "3",
             "relation": ""
         }
-        }
+    }
     ]
+}'
+```
+</TabItem>
+</Tabs>
+
+### Snap Tokens:
+
+In Write Relationships API response you'll get a snap token of the operation. This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting to use snap tokens in production to prevent data inconsistency and optimize the performance. See more on [Snap Tokens](../reference/snap-tokens.md)
+
+```json
+{
+    "snap_token": "FxHhb4CrLBc="
 }
 ```
 
@@ -97,11 +164,18 @@ Send a request to POST - `/v1/relationships/write`
 
 ### Organization Admin
 
-Request
-
 ```json
 {
-    "snap_token": "FxHhb4CrLBc="
+    "entity": {
+        "type": "organization",
+        "id": "1"
+    },
+    "relation": "admin",
+    "subject": {
+        "type": "user",
+        "id": "1",
+        "relation": ""
+    }
 }
 ```
 
@@ -110,8 +184,6 @@ Request
 **Definition:** User 1 has admin role on organization 1.
 
 ### Organization Members are Viewer of Repo
-
-Request
 
 ```json
 {
@@ -133,8 +205,6 @@ Request
 **Definition:** Members of organization 2 are viewers of repository 1.
 
 ### Parent Organization
-
-Request
 
 ```json
 {

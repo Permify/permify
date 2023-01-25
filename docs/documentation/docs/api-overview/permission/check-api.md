@@ -18,6 +18,7 @@ In this section we'll look at the resource based check request of Permify. You c
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
 | [ ]   | schema_version | string | 8 | Version of the schema |
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
@@ -86,7 +87,7 @@ client.permission.check({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/permissions/check' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/check' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   "metadata":{
@@ -118,9 +119,9 @@ curl --location --request POST 'localhost:3476/v1/permissions/check' \
 }
 ```
 
-Answering access checks is accomplished within Permify using a basic graph walking mechanism. See how [access decisions evaluated] in Permify. 
+Answering access checks is accomplished within Permify using a basic graph walking mechanism. See how [access decisions evaluated] in Permify.
 
-[access decisions evaluated]: ../../docs/getting-started/enforcement#how-access-decisions-are-evaluated
+[access decisions evaluated]: ../../getting-started/enforcement#how-access-decisions-evaluated
 
 ## Need any help ?
 

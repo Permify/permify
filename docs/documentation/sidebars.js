@@ -58,14 +58,59 @@ module.exports = {
                 id: "api-overview",
 			},
 			items: [
-				"api-overview/write-schema",
-				"api-overview/write-relationships",
-				"api-overview/read-api",
-				"api-overview/check-api",
-				"api-overview/lookup-entity",
-				"api-overview/delete-relationships",
-				"api-overview/expand-api",
-				"api-overview/schema-lookup",
+				{
+					type: 'category',
+					label: 'Schema Service',
+					link: {
+						type: "generated-index",
+						title: "Schema Service",
+						slug: "/api-overview/schema",
+					},
+					items: [
+						"api-overview/schema/write-schema"
+					],
+				  },
+				  {
+					type: 'category',
+					label: 'Relationship Service',
+					link: {
+						type: "generated-index",
+						title: "Relationship Service",
+						slug: "/api-overview/relationship",
+					},
+					items: [
+						"api-overview/relationship/write-relationships",
+						"api-overview/relationship/read-api", 
+						"api-overview/relationship/delete-relationships"
+					],
+				  },
+				  {
+					type: 'category',
+					label: 'Permission Service',
+					link: {
+						type: "generated-index",
+						title: "Permission Service",
+						slug: "/api-overview//permission",
+					},
+					items: [
+						"api-overview/permission/check-api",
+						"api-overview/permission/lookup-entity",
+						"api-overview/permission/expand-api",
+						"api-overview/permission/schema-lookup"
+					],
+				  },
+				  {
+					type: 'category',
+					label: 'Tenancy Service',
+					link: {
+						type: "generated-index",
+						title: "Tenancy Service",
+						slug: "/api-overview/tenancy",
+					},
+					items: [
+					
+					],
+				  },
 			],
 			collapsed: true
 		},
