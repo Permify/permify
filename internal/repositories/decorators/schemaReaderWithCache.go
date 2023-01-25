@@ -26,24 +26,24 @@ func NewSchemaReaderWithCache(delegate repositories.SchemaReader, cache cache.Ca
 }
 
 // ReadSchema  - Read schema from the repository
-func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, version string) (schema *base.IndexedSchema, err error) {
-	return r.delegate.ReadSchema(ctx, version)
+func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.IndexedSchema, err error) {
+	return r.delegate.ReadSchema(ctx, tenantID, version)
 }
 
 // ReadSchemaDefinition - Read schema definition from the repository
-func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	var s interface{}
 	found := false
 	if version != "" {
-		s, found = r.cache.Get(fmt.Sprintf("%s|%s", entityType, version))
+		s, found = r.cache.Get(fmt.Sprintf("%s|%s|%s", tenantID, entityType, version))
 	}
 	if !found {
-		definition, version, err = r.delegate.ReadSchemaDefinition(ctx, entityType, version)
+		definition, version, err = r.delegate.ReadSchemaDefinition(ctx, tenantID, entityType, version)
 		if err != nil {
 			return nil, "", err
 		}
 		size := reflect.TypeOf(definition).Size()
-		r.cache.Set(fmt.Sprintf("%s|%s", entityType, version), definition, int64(size))
+		r.cache.Set(fmt.Sprintf("%s|%s|%s", tenantID, entityType, version), definition, int64(size))
 		return definition, version, nil
 	}
 	def, ok := s.(*base.EntityDefinition)
@@ -54,6 +54,6 @@ func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, entity
 }
 
 // HeadVersion - Finds the latest version of the schema.
-func (r *SchemaReaderWithCache) HeadVersion(ctx context.Context) (version string, err error) {
-	return r.delegate.HeadVersion(ctx)
+func (r *SchemaReaderWithCache) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
+	return r.delegate.HeadVersion(ctx, tenantID)
 }

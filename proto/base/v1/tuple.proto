@@ -4,6 +4,7 @@ package base.v1;
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
 import "validate/validate.proto";
+import "google/protobuf/timestamp.proto";
 
 // Tuple
 message Tuple {
@@ -103,7 +104,7 @@ message SubjectFilter {
   repeated string ids = 2 [json_name = "ids"];
 
   string relation = 3 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    pattern : "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
@@ -136,4 +137,11 @@ message Result {
   EntityAndRelation target = 1;
   bool exclusion = 2;
   repeated Subject subjects = 3;
+}
+
+// Tenant
+message Tenant {
+  string id = 1 [json_name = "id"];
+  string name = 2 [json_name = "name"];
+  google.protobuf.Timestamp created_at = 3 [json_name = "created_at"];
 }

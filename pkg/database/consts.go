@@ -12,3 +12,7 @@ const (
 func (c Engine) String() string {
 	return string(c)
 }
+
+const (
+	_defaultPageSize = 50
+)

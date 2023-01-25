@@ -1,10 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"time"
 
-	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -14,93 +15,109 @@ const (
 type (
 	// Config -
 	Config struct {
-		Server   `yaml:"server"`
-		Log      `yaml:"logger"`
-		Authn    `yaml:"authn"`
-		Tracer   `yaml:"tracer"`
-		Meter    `yaml:"meter"`
-		Service  `yaml:"service"`
-		Database `yaml:"database"`
+		Server   `mapstructure:"server"`
+		Log      `mapstructure:"logger"`
+		Profiler `mapstructure:"profiler"`
+		Authn    `mapstructure:"authn"`
+		Tracer   `mapstructure:"tracer"`
+		Meter    `mapstructure:"meter"`
+		Service  `mapstructure:"service"`
+		Database `mapstructure:"database"`
 	}
 
 	Server struct {
-		HTTP `yaml:"http"`
-		GRPC `yaml:"grpc"`
+		HTTP `mapstructure:"http"`
+		GRPC `mapstructure:"grpc"`
 	}
 
 	// HTTP -.
 	HTTP struct {
-		Enabled            bool      `yaml:"enabled" env-default:"true"`
-		Port               string    `yaml:"port" env-default:"3476"`
-		TLSConfig          TLSConfig `yaml:"tls"`
-		CORSAllowedOrigins []string  `yaml:"cors_allowed_origins"`
-		CORSAllowedHeaders []string  `yaml:"cors_allowed_headers"`
+		Enabled            bool      `mapstructure:"enabled"`
+		Port               string    `mapstructure:"port"`
+		TLSConfig          TLSConfig `mapstructure:"tls"`
+		CORSAllowedOrigins []string  `mapstructure:"cors_allowed_origins"`
+		CORSAllowedHeaders []string  `mapstructure:"cors_allowed_headers"`
 	}
 
 	GRPC struct {
-		Port      string    `yaml:"port" env-default:"3478"`
-		TLSConfig TLSConfig `yaml:"tls"`
+		Port      string    `mapstructure:"port"`
+		TLSConfig TLSConfig `mapstructure:"tls"`
 	}
 
 	TLSConfig struct {
-		Enabled  bool   `yaml:"enabled"`
-		CertPath string `yaml:"cert_path"`
-		KeyPath  string `yaml:"key_path"`
+		Enabled  bool   `mapstructure:"enabled"`
+		CertPath string `mapstructure:"cert_path"`
+		KeyPath  string `mapstructure:"key_path"`
 	}
 
 	// Authn -.
 	Authn struct {
-		Enabled bool     `yaml:"enabled" env-default:"false"`
-		Keys    []string `yaml:"keys"`
+		Enabled bool     `mapstructure:"enabled"`
+		Keys    []string `mapstructure:"keys"`
+	}
+
+	// Profiler -.
+	Profiler struct {
+		Enabled bool   `mapstructure:"enabled"`
+		Port    string `mapstructure:"port"`
 	}
 
 	// Log -.
 	Log struct {
-		Level string `yaml:"level" env-default:"debug"`
+		Level string `mapstructure:"level"`
 	}
 
 	// Tracer -.
 	Tracer struct {
-		Enabled  bool   `yaml:"enabled" env-default:"false"`
-		Exporter string `yaml:"exporter"`
-		Endpoint string `yaml:"endpoint"`
+		Enabled  bool   `mapstructure:"enabled"`
+		Exporter string `mapstructure:"exporter"`
+		Endpoint string `mapstructure:"endpoint"`
 	}
 
 	// Meter -.
 	Meter struct {
-		Enabled  bool   `yaml:"enabled" env-default:"true"`
-		Exporter string `yaml:"exporter" env-default:"otlp"`
-		Endpoint string `yaml:"endpoint" env-default:"telemetry.permify.co"`
+		Enabled  bool   `mapstructure:"enabled"`
+		Exporter string `mapstructure:"exporter"`
+		Endpoint string `mapstructure:"endpoint"`
 	}
 
 	// Service -.
 	Service struct {
-		CircuitBreaker   bool `yaml:"circuit_breaker" env-default:"false"`
-		ConcurrencyLimit int  `yaml:"concurrency_limit" env-default:"100"`
+		CircuitBreaker   bool `mapstructure:"circuit_breaker"`
+		ConcurrencyLimit int  `mapstructure:"concurrency_limit"`
 	}
 
 	// Database -.
 	Database struct {
-		Engine                string        `yaml:"engine" env-default:"memory"`
-		URI                   string        `yaml:"uri"`
-		MaxOpenConnections    int           `yaml:"max_open_connections"`
-		MaxIdleConnections    int           `yaml:"max_idle_connections"`
-		MaxConnectionLifetime time.Duration `yaml:"max_connection_lifetime"`
-		MaxConnectionIdleTime time.Duration `yaml:"max_connection_idle_time"`
+		Engine                string        `mapstructure:"engine"`
+		URI                   string        `mapstructure:"uri"`
+		AutoMigrate           bool          `mapstructure:"auto_migrate"`
+		MaxOpenConnections    int           `mapstructure:"max_open_connections"`
+		MaxIdleConnections    int           `mapstructure:"max_idle_connections"`
+		MaxConnectionLifetime time.Duration `mapstructure:"max_connection_lifetime"`
+		MaxConnectionIdleTime time.Duration `mapstructure:"max_connection_idle_time"`
 	}
 )
 
 // NewConfig - Creates new config
 func NewConfig() (*Config, error) {
-	cfg := &Config{}
+	cfg := DefaultConfig()
 
 	if _, err := os.Stat("./" + Path); !os.IsNotExist(err) {
-		err = cleanenv.ReadConfig("./"+Path, cfg)
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath("./config")
+
+		err = viper.ReadInConfig()
 		if err != nil {
-			return nil, err
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				return nil, fmt.Errorf("failed to load server config: %w", err)
+			}
 		}
-	} else {
-		cfg = DefaultConfig()
+
+		if err = viper.Unmarshal(cfg); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal server config: %w", err)
+		}
 	}
 
 	return cfg, nil
@@ -126,8 +143,11 @@ func DefaultConfig() *Config {
 				},
 			},
 		},
+		Profiler: Profiler{
+			Enabled: false,
+		},
 		Log: Log{
-			Level: "debug",
+			Level: "info",
 		},
 		Tracer: Tracer{
 			Enabled: false,
@@ -146,7 +166,8 @@ func DefaultConfig() *Config {
 			Keys:    []string{},
 		},
 		Database: Database{
-			Engine: "memory",
+			Engine:      "memory",
+			AutoMigrate: true,
 		},
 	}
 }

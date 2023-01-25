@@ -33,7 +33,7 @@ func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String(xid.New().String()),
-			attribute.String("version", "0.2.2"),
+			attribute.String("version", "0.3.0"),
 			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),
 			attribute.String("arch", runtime.GOARCH),

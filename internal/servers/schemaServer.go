@@ -16,14 +16,14 @@ type SchemaServer struct {
 	v1.UnimplementedSchemaServer
 
 	schemaService services.ISchemaService
-	l             logger.Interface
+	logger        logger.Interface
 }
 
 // NewSchemaServer - Creates new Schema Server
 func NewSchemaServer(s services.ISchemaService, l logger.Interface) *SchemaServer {
 	return &SchemaServer{
 		schemaService: s,
-		l:             l,
+		logger:        l,
 	}
 }
 
@@ -32,11 +32,11 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()
 
-	version, err := r.schemaService.WriteSchema(ctx, request.GetSchema())
+	version, err := r.schemaService.WriteSchema(ctx, request.GetTenantId(), request.GetSchema())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.l.Error(err.Error())
+		r.logger.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -52,11 +52,11 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 
 	var err error
 	var response *v1.IndexedSchema
-	response, err = r.schemaService.ReadSchema(ctx, request.GetMetadata().GetSchemaVersion())
+	response, err = r.schemaService.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.l.Error(err.Error())
+		r.logger.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 

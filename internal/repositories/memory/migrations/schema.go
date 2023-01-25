@@ -9,23 +9,38 @@ import (
 // Schema - Database schema for memory db
 var Schema = &memdb.DBSchema{
 	Tables: map[string]*memdb.TableSchema{
-		memory.SchemaDefinitionTable: {
-			Name: memory.SchemaDefinitionTable,
+		memory.SchemaDefinitionsTable: {
+			Name: memory.SchemaDefinitionsTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
 					Unique: true,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
 							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "Version"},
 						},
 					},
 				},
 				"version": {
-					Name:    "version",
-					Unique:  false,
-					Indexer: &memdb.StringFieldIndex{Field: "Version"},
+					Name:   "version",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
+							&memdb.StringFieldIndex{Field: "Version"},
+						},
+					},
+				},
+				"tenant": {
+					Name:   "tenant",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
+						},
+					},
 				},
 			},
 		},
@@ -37,6 +52,7 @@ var Schema = &memdb.DBSchema{
 					Unique: true,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
 							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "EntityID"},
 							&memdb.StringFieldIndex{Field: "Relation"},
@@ -52,6 +68,7 @@ var Schema = &memdb.DBSchema{
 					Unique: false,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
 							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "EntityID"},
 							&memdb.StringFieldIndex{Field: "Relation"},
@@ -63,6 +80,7 @@ var Schema = &memdb.DBSchema{
 					Unique: false,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
 							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "Relation"},
 							&memdb.StringFieldIndex{Field: "SubjectType"},
@@ -74,6 +92,7 @@ var Schema = &memdb.DBSchema{
 					Unique: false,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
 							&memdb.StringFieldIndex{Field: "EntityType"},
 						},
 					},
@@ -83,8 +102,23 @@ var Schema = &memdb.DBSchema{
 					Unique: false,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
 							&memdb.StringFieldIndex{Field: "EntityType"},
 							&memdb.StringFieldIndex{Field: "Relation"},
+						},
+					},
+				},
+			},
+		},
+		memory.TenantsTable: {
+			Name: memory.TenantsTable,
+			Indexes: map[string]*memdb.IndexSchema{
+				"id": {
+					Name:   "id",
+					Unique: true,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "ID"},
 						},
 					},
 				},

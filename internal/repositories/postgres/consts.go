@@ -4,6 +4,7 @@ const (
 	RelationTuplesTable   = "relation_tuples"
 	SchemaDefinitionTable = "schema_definitions"
 	TransactionsTable     = "transactions"
+	TenantsTable          = "tenants"
 )
 
 const (

@@ -2,12 +2,15 @@ package servers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"time"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpcValidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
@@ -36,18 +39,21 @@ type ServiceContainer struct {
 	RelationshipService services.IRelationshipService
 	PermissionService   services.IPermissionService
 	SchemaService       services.ISchemaService
+	TenancyService      services.ITenancyService
 }
 
 // Run -
-func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authentication *config.Authn, l *logger.Logger) error {
+func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authentication *config.Authn, profiler *config.Profiler, l *logger.Logger) error {
 	var err error
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpcValidator.UnaryServerInterceptor(),
+		grpcRecovery.UnaryServerInterceptor(),
 	}
 
 	streamingInterceptors := []grpc.StreamServerInterceptor{
 		grpcValidator.StreamServerInterceptor(),
+		grpcRecovery.StreamServerInterceptor(),
 	}
 
 	var authenticator authn.KeyAuthenticator
@@ -75,9 +81,29 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.PermissionService, l))
 	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SchemaService, l))
 	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RelationshipService, l))
+	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TenancyService, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
 	reflection.Register(grpcServer)
+
+	if profiler.Enabled {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/debug/pprof/", pprof.Index)
+		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+		go func() {
+			l.Info(fmt.Sprintf("🚀 profiler server successfully started: %s", profiler.Port))
+
+			if err = http.ListenAndServe(":"+profiler.Port, mux); err != nil {
+				if errors.Is(err, http.ErrServerClosed) {
+					l.Fatal("failed to start profiler", err)
+				}
+			}
+		}()
+	}
 
 	var lis net.Listener
 	lis, err = net.Listen("tcp", ":"+cfg.GRPC.Port)
@@ -143,6 +169,9 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 			return err
 		}
 		if err = grpcV1.RegisterRelationshipHandler(ctx, mux, conn); err != nil {
+			return err
+		}
+		if err = grpcV1.RegisterTenancyHandler(ctx, mux, conn); err != nil {
 			return err
 		}
 		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {

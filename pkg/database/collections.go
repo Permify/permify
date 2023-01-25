@@ -20,7 +20,7 @@ func NewTupleCollection(tuples ...*base.Tuple) *TupleCollection {
 }
 
 // CreateTupleIterator - Create tuple iterator according to collection.
-func (t *TupleCollection) CreateTupleIterator() ITupleIterator {
+func (t *TupleCollection) CreateTupleIterator() *TupleIterator {
 	return &TupleIterator{
 		tuples: t.tuples,
 	}
@@ -37,7 +37,7 @@ func (t *TupleCollection) Add(tuple *base.Tuple) {
 }
 
 // ToSubjectCollection - Converts new subject collection from given tuple collection
-func (t *TupleCollection) ToSubjectCollection() ISubjectCollection {
+func (t *TupleCollection) ToSubjectCollection() *SubjectCollection {
 	subjects := make([]*base.Subject, len(t.tuples))
 	for index, tuple := range t.tuples {
 		subjects[index] = tuple.GetSubject()
@@ -53,7 +53,7 @@ type SubjectCollection struct {
 }
 
 // NewSubjectCollection - Create new subject collection.
-func NewSubjectCollection(subjects ...*base.Subject) ISubjectCollection {
+func NewSubjectCollection(subjects ...*base.Subject) *SubjectCollection {
 	if len(subjects) == 0 {
 		return &SubjectCollection{}
 	}
@@ -63,7 +63,7 @@ func NewSubjectCollection(subjects ...*base.Subject) ISubjectCollection {
 }
 
 // CreateSubjectIterator - Create subject iterator according to collection.
-func (s *SubjectCollection) CreateSubjectIterator() ISubjectIterator {
+func (s *SubjectCollection) CreateSubjectIterator() *SubjectIterator {
 	return &SubjectIterator{
 		subjects: s.subjects,
 	}
@@ -87,7 +87,7 @@ type EntityCollection struct {
 }
 
 // NewEntityCollection - Create new subject collection.
-func NewEntityCollection(entities ...*base.Entity) IEntityCollection {
+func NewEntityCollection(entities ...*base.Entity) *EntityCollection {
 	if len(entities) == 0 {
 		return &EntityCollection{}
 	}
@@ -97,7 +97,7 @@ func NewEntityCollection(entities ...*base.Entity) IEntityCollection {
 }
 
 // CreateEntityIterator  - Create entity iterator according to collection.
-func (e *EntityCollection) CreateEntityIterator() IEntityIterator {
+func (e *EntityCollection) CreateEntityIterator() *EntityIterator {
 	return &EntityIterator{
 		entities: e.entities,
 	}

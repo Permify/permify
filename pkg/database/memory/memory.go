@@ -27,11 +27,6 @@ func (m *Memory) GetEngineType() string {
 	return "memory"
 }
 
-// Migrate - In memory migration, nil
-func (m *Memory) Migrate(statements []string) (err error) {
-	return nil
-}
-
 // Close - Closing the in memory instance
 func (m *Memory) Close() error {
 	m.Lock()
