@@ -77,6 +77,7 @@ You can create relational tuples by using `Write Relationships API`.
 
 ```go
 rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+    TenantId: "t1",
     Metadata: &v1.RelationshipWriteRequestMetadata {
         SchemaVersion: ""
     },
@@ -102,6 +103,7 @@ rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWrit
 
 ```javascript
 client.relationship.write({
+    tenantId: "t1",
     metadata: {
         schemaVersion: ""
     },

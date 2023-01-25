@@ -51,7 +51,7 @@ According to above authorization model, let's create 3 example relation tuples f
 
 We can use expand API to reason the access actions. If we want to reason access structure for actions of repository entity, we can use expand API with ***POST "/v1/permissions/expand"***. 
 
-**Path:** POST /v1/permissions/expand
+**Path:** POST /v1/tenants/{tenant_id}/permissions/expand
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
@@ -269,6 +269,7 @@ We can use expand API to reason the access actions. If we want to reason access 
 
 ```go
 cr, err: = client.Permission.Expand(context.Background(), & v1.PermissionExpandRequest {
+    TenantId: "t1",
     Metadata: & v1.PermissionExpandRequestMetadata {
         SnapToken: ""
         SchemaVersion: ""
@@ -288,6 +289,7 @@ cr, err: = client.Permission.Expand(context.Background(), & v1.PermissionExpandR
 
 ```javascript
 client.permission.expand({
+  tenantId: "t1",
   metadata: {
         snapToken: "",
         schemaVersion: "",

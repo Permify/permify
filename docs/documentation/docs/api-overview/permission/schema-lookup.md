@@ -38,6 +38,7 @@ Let's say you have a user X with a manager role. If you want to check what user 
 
 ```go
 cr, err: = client.Permission.LookupSchema(context.Background(), & v1.PermissionLookupSchemaRequest {
+    TenantId: "t1",
     Metadata: & v1.PermissionLookupSchemaRequestMetadata {
         SchemaVersion: ""
     },
@@ -51,6 +52,7 @@ cr, err: = client.Permission.LookupSchema(context.Background(), & v1.PermissionL
 
 ```javascript
 client.permission.LookupSchema({
+     tenantId: "t1",
      metadata: {
       schema_version: ""
     },

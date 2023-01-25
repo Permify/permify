@@ -18,7 +18,7 @@ Another example: when one a company executive grant admin role to user (lets say
 
 So if user:3 has been granted an admin role in organization:1, relational tuple `organization:1#admin@user:3` must be created by using **/v1/relationships/write** endpoint.
 
-**Path:** POST /v1/relationships/write
+**Path:** POST /v1/tenants/{tenant_id}/relationships/write
 
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
@@ -35,6 +35,7 @@ So if user:3 has been granted an admin role in organization:1, relational tuple 
 
 ```go
 rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+    TenantId: "t1",
     Metadata: &v1.RelationshipWriteRequestMetadata {
         SchemaVersion: ""
     },
@@ -60,6 +61,7 @@ rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWrit
 
 ```javascript
 client.relationship.write({
+    tenantId: "t1",
     metadata: {
         schemaVersion: ""
     },
