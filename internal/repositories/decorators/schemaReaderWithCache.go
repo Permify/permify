@@ -31,11 +31,11 @@ func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID string,
 }
 
 // ReadSchemaDefinition - Read schema definition from the repository
-func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, tenantID string, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	var s interface{}
 	found := false
 	if version != "" {
-		s, found = r.cache.Get(fmt.Sprintf("%s|%s", entityType, version))
+		s, found = r.cache.Get(fmt.Sprintf("%s|%s|%s", tenantID, entityType, version))
 	}
 	if !found {
 		definition, version, err = r.delegate.ReadSchemaDefinition(ctx, tenantID, entityType, version)
@@ -43,7 +43,7 @@ func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, tenant
 			return nil, "", err
 		}
 		size := reflect.TypeOf(definition).Size()
-		r.cache.Set(fmt.Sprintf("%s|%s", entityType, version), definition, int64(size))
+		r.cache.Set(fmt.Sprintf("%s|%s|%s", tenantID, entityType, version), definition, int64(size))
 		return definition, version, nil
 	}
 	def, ok := s.(*base.EntityDefinition)
