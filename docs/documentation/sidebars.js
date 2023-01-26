@@ -120,6 +120,11 @@ module.exports = {
 			id: "playground",
 			label: "Permify Playground",
 		},
+		{
+			type: "doc",
+			id: "migrating",
+			label: "Migrating From 0.2.x to 0.3.x",
+		},
 		/* {
 			type: "doc",
 			id: "comparison",

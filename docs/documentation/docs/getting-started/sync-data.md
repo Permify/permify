@@ -231,7 +231,7 @@ In Write Relationships API response you'll get a snap token of the operation. Th
 Note: `relation: “...”` used when subject type is different from **user** entity. **#…** represents a relation that does not affect the semantics of the tuple.
 :::
 
-## Write Database 
+<!-- ## Write Database 
 
 But how authorization data stored in WriteDB ? Let's take a look at a snap shot of demo table on example Write Database.
 
@@ -244,7 +244,7 @@ Each row represents object-user or object-object relations, which we call relati
 Alternatively user U can behave as "set of users".
 More specifically, “set of users S has relation R to object O”, where S is itself specified in terms of another object-relation pair. 
 
- → First row in our table (id:7), we can see that **organization 1 (set of users in organization) is parent of repository 1**
+ → First row in our table (id:7), we can see that **organization 1 (set of users in organization) is parent of repository 1** -->
 
 :::info
 These relational tuples data form is inspired by Google’s Consistent, Global Authorization System, [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
