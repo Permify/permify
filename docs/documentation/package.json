@@ -49,6 +49,7 @@
     "react-id-swiper": "^4.0.0",
     "react-image": "^4.0.3",
     "react-image-gallery": "1.2.7",
+    "react-loader-spinner": "^5.3.4",
     "react-masonry-component": "^6.3.0",
     "react-parallax": "^3.5.1",
     "react-parallax-component": "^1.0.6",
