@@ -12,7 +12,7 @@ image: https://user-images.githubusercontent.com/34595361/213847473-2c865a2e-687
 hide_table_of_contents: false
 ---
 
-![rbac-vue-cover](https://user-images.githubusercontent.com/34595361/213848085-7eb83a3b-5bf6-4caa-a9eb-6d42973b813b.png)
+<!-- ![rbac-vue-cover](https://user-images.githubusercontent.com/34595361/213848085-7eb83a3b-5bf6-4caa-a9eb-6d42973b813b.png) -->
 
 In this article series we will build a team permission system in ExpressJs with using Auth0 and Permify.
 

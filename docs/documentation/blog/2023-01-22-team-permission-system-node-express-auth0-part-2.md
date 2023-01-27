@@ -12,7 +12,7 @@ image: https://user-images.githubusercontent.com/34595361/213847473-2c865a2e-687
 hide_table_of_contents: false
 ---
 
-![rbac-vue-cover](https://user-images.githubusercontent.com/34595361/213848085-7eb83a3b-5bf6-4caa-a9eb-6d42973b813b.png)
+<!-- ![rbac-vue-cover](https://user-images.githubusercontent.com/34595361/213848085-7eb83a3b-5bf6-4caa-a9eb-6d42973b813b.png) -->
 
 This is Part 2 in the series of guides on building team permission system in Node.js app using Auth0 and Permify. 
 
@@ -322,7 +322,7 @@ Our Permify service is running on local:3476 (please be sure its running before 
 nodemon app.js
 ```
 
-Since we handled authentication part we should see "Logged in" when in the home page - "localhost:3000/". If you're not authenticated please check out the steps in [part 1 of this series](./2023-01-21-team-permission-system-node-express-auth0.md) to log in.
+Since we handled authentication part we should see "Logged in" when in the home page - "localhost:3000/". If you're not authenticated please check out the steps in [part 1 of this series](./2023-01-21-team-permission-system-node-express-auth0-part-1.md) to log in.
 
 After successfully logged in, lets hit the PUT "/docs/14" endpoint, we should see "not authorized" message in the form of: *User:USER_ID_FROM_AUTH0 is not authorized to edit document:14*
 
