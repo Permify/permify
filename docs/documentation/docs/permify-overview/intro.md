@@ -13,17 +13,17 @@ Permify's data model is inspired by Google’s consistent, global authorization 
 
 ## Key Features
 
-⚙️ **Production ready** authorization API that serve as **gRPC** and **REST**
+🛡️ **Production ready** authorization API that serve as **gRPC** and **REST**
 
 🔮 Domain Specific Authorization Language - Permify Schema - to **easily model** your authorization
 
 🔐 Database Configuration to store your permissions **in house** with **high availability**
 
-✅ Ask authorization questions and get answers **down to 10ms** with **parallel graph engine**
+✅ Perform access control checks and get answers **down to 10ms** with **parallel graph engine**
 
 💪 Battle tested, robust **authorization architecture and data model** based on [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
 
-📝 **Audit & Reason** your access control hassle-free with various functionalities via API
+⚙️ Create custom permissions for your **tenants**, and manage them in single place with **Multi Tenancy**
 
 ⚡ Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin]
 
