@@ -1,14 +1,79 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Expand API
-We developed a expand API to see Permify Schema actions in a tree structure to improve observability and reasonability of access permissions.
+# Expand API 
 
-Expand API is represented by a user set tree whose leaf nodes are user IDs or user sets pointing to other ⟨object#relation⟩ pairs, and intermediate nodes represent union, intersection, or exclusion operators.
+Retrieve all subjects (users and usersets) that have a relationship with given entity and permission
 
-Expand is crucial for our users to reason about the complete set of users and groups that have access to their objects, which allows them to build efficient search indices for access-controlled content. Unlike the Read API, Expand follows indirect references expressed through user set rewrite rules.
+Expand API response is represented by a user set tree, whose leaf nodes are user IDs or user sets pointing to other ⟨object#relation⟩ pairs. 
 
-## Usage
+:::caution When To Use ?
+Expand is designed for reasoning the complete set of users that have access to their objects, which allows our users to build efficient search indices for access-controlled content. 
+
+It is not designed to use as a check access. Expand request has a high latency which can cause a performance issues when its used as access check.
+:::
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+cr, err: = client.Permission.Expand(context.Background(), & v1.PermissionExpandRequest {
+    TenantId: "t1",
+    Metadata: & v1.PermissionExpandRequestMetadata {
+        SnapToken: ""
+        SchemaVersion: ""
+        Depth: 20,
+    },
+    Entity: & v1.Entity {
+        Type: "repository",
+        Id: "1",
+    },
+    Permission: "push",
+})
+```
+
+</TabItem>
+
+<TabItem value="node" label="Node">
+
+```javascript
+client.permission.expand({
+  tenantId: "t1",
+  metadata: {
+        snapToken: "",
+        schemaVersion: "",
+        depth: 20
+    },
+    entity: {
+        type: "repository",
+        id: "1"
+    },
+    permission: "push",
+})
+```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/expand' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "metadata": {
+    "schema_version": "",
+    "snap_token": ""
+  },
+  "entity": {
+    "type": "repository",
+    "id": "1"
+  },
+  "permission": "push"
+}'
+```
+</TabItem>
+</Tabs>
+
+## Example Usage
 
 To give an example usage for Expand API, let's examine following authorization model.
 
@@ -262,68 +327,3 @@ We can use expand API to reason the access actions. If we want to reason access 
 </p>
 </details>
 
-### Using gRPC Clients
-
-<Tabs>
-<TabItem value="go" label="Go">
-
-```go
-cr, err: = client.Permission.Expand(context.Background(), & v1.PermissionExpandRequest {
-    TenantId: "t1",
-    Metadata: & v1.PermissionExpandRequestMetadata {
-        SnapToken: ""
-        SchemaVersion: ""
-        Depth: 20,
-    },
-    Entity: & v1.Entity {
-        Type: "repository",
-        Id: "1",
-    },
-    Permission: "push",
-})
-```
-
-</TabItem>
-
-<TabItem value="node" label="Node">
-
-```javascript
-client.permission.expand({
-  tenantId: "t1",
-  metadata: {
-        snapToken: "",
-        schemaVersion: "",
-        depth: 20
-    },
-    entity: {
-        type: "repository",
-        id: "1"
-    },
-    permission: "push",
-})
-```
-
-</TabItem>
-<TabItem value="curl" label="cURL">
-
-```curl
-curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/expand' \
---header 'Content-Type: application/json' \
---data-raw '{
-  "metadata": {
-    "schema_version": "",
-    "snap_token": ""
-  },
-  "entity": {
-    "type": "repository",
-    "id": "1"
-  },
-  "permission": "push"
-}'
-```
-</TabItem>
-</Tabs>
-
-#### **Graph Representation of Expanding Read Action**
-
-![graph-of-relations](https://user-images.githubusercontent.com/34595361/186653899-7090feb5-8ef4-4a8c-991f-ed9475a5e1f7.png)
