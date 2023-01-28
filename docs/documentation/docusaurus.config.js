@@ -74,7 +74,7 @@ const config = {
               label: 'Docs',
             },
             {to: 'blog', label: 'Blog', position: 'left'},
-            {
+            /* {
               type: 'dropdown',
               label: 'API Reference',
               position: 'left',
@@ -85,10 +85,10 @@ const config = {
                 },
                 {
                   label: 'REST API Reference',
-                  href: 'https://app.swaggerhub.com/apis-docs/permify/permify/latest',
+                  href: 'https://permify.github.io/permify-swagger',
                 },
               ],
-            },
+            }, */
             {
               label: 'Playground',
               href: 'https://play.permify.co',
