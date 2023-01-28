@@ -1,6 +1,6 @@
 import React from "react";
-import Head from "@docusaurus/Head";
 import Layout from "@theme/Layout";
+import Head from "@docusaurus/Head";
 
 import { Landing } from "../components/landing";
 
@@ -28,7 +28,7 @@ function Home() {
                     href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=DM+Sans:wght@400&family=Inter:wght@400;500;600&family=Manrope:wght@700&family=Noto+Serif+KR:wght@700;900&display=swap"
                 />
             </Head>
-            <Landing />
+           <Landing />
         </>
     );
 }

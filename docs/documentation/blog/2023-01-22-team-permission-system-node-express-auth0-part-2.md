@@ -8,11 +8,11 @@ authors:
     title: Permify Core Team
     email: ege@permify.co
 tags: [nodejs, expressjs, auth0, role, permissions, authorization, google zanzibar]
-image: https://user-images.githubusercontent.com/34595361/213847473-2c865a2e-6872-4797-918c-ded8dd340068.jpeg
+image: https://user-images.githubusercontent.com/34595361/215231739-67155bce-a770-46fc-a5c8-0a9f73a25123.png
 hide_table_of_contents: false
 ---
 
-<!-- ![rbac-vue-cover](https://user-images.githubusercontent.com/34595361/213848085-7eb83a3b-5bf6-4caa-a9eb-6d42973b813b.png) -->
+![Build a Team permissions system in Node js app using Auth0 and Permify - Part 2](https://user-images.githubusercontent.com/34595361/215231739-67155bce-a770-46fc-a5c8-0a9f73a25123.png)
 
 This is Part 2 in the series of guides on building team permission system in Node.js app using Auth0 and Permify. 
 
