@@ -9,39 +9,6 @@ import PlayOutput from "../layout/sides/outputs/playOutput";
 import FrameOutput from "../layout/sides/outputs/frameOutput";
 import {setRelationships, setSchema} from "../redux/shape/actions";
 
-
-const def = {
-    schema: `entity user {}
-            
-entity organization {
-    
-    // organizational roles
-    relation admin @user
-    relation member @user
-        
-}
-    
-entity repository {
-    
-    // represents repositories parent organization
-    relation parent @organization
-        
-    // represents owner of this repository
-    relation owner  @user
-        
-    // permissions
-    action edit   = parent.admin or owner
-    action delete = owner
-        
-}`,
-    relationships: [
-        "repository:1#owner@user:1"
-    ],
-    assertions: {
-        "can user:2 push repo:1": true
-    }
-}
-
 const client = axios.create();
 
 function Play(props) {
@@ -56,23 +23,20 @@ function Play(props) {
 
     useEffect(() => {
         setLoading(true)
-
-        dispatch(setSchema(``))
-        dispatch(setRelationships([]))
-
         const params = new URLSearchParams(location.search);
         if (params.has('s')) {
             let search = params.get('s');
             client.get(`https://s3.amazonaws.com/permify.playground.storage/shapes/${search}.yaml`).then((response) => {
-                let data = yaml.load(response.data, null)
-                if (data.schema !== null) {
-                    dispatch(setSchema(data.schema))
+                return yaml.load(response.data, null)
+            }).then((result) => {
+                if (result.schema !== null) {
+                    dispatch(setSchema(result.schema))
                 }else {
-                    dispatch(setSchema(def.schema))
-                    dispatch(setRelationships(def.relationships))
+                    dispatch(setSchema(``))
+                    dispatch(setRelationships([]))
                 }
-                if (data.relationships !== null){
-                    dispatch(setRelationships(data.relationships))
+                if (result.relationships !== null){
+                    dispatch(setRelationships(result.relationships))
                 }else {
                     dispatch(setRelationships([]))
                 }
@@ -81,11 +45,9 @@ function Play(props) {
                 navigate('/404')
             });
         } else {
-            dispatch(setSchema(def.schema))
-            dispatch(setRelationships(def.relationships))
-            setLoading(false)
+            window.location = window.location.href.split('?')[0] + `?s=p`
         }
-    }, [location.search]);
+    }, []);
 
     return (
         <ContextLayout.Consumer>

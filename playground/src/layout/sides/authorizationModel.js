@@ -35,7 +35,7 @@ function AuthorizationModel(props) {
             setModel(props.initialValue)
             save(props.initialValue)
         }
-    }, []);
+    }, [props.initialValue]);
 
     function copyModel(text) {
         if ('clipboard' in navigator) {

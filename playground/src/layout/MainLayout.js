@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import {Layout, Row, Button, Select} from 'antd';
 import {toAbsoluteUrl} from "../utility/helpers/asset";
 import {GithubOutlined, ShareAltOutlined} from "@ant-design/icons";
-import {useNavigate} from "react-router-dom"
 import {shallowEqual, useSelector} from "react-redux";
 import yaml from "js-yaml";
 import Upload from "../services/s3";
@@ -25,14 +24,11 @@ const MainLayout = ({children, ...rest}) => {
 
     const shape = useSelector((state) => state.shape, shallowEqual);
 
-    const navigate = useNavigate()
-
     const handleSampleChange = (value) => {
         setSelectedSample(value)
         const params = new URLSearchParams()
         params.append("s", value)
-        navigate(`/p?${params.toString()}`)
-        window.location.reload()
+        window.location = window.location.href.split('?')[0] + `?${params.toString()}`
     };
 
     const share = () => {

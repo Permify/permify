@@ -71,20 +71,18 @@ function AuthorizationData(props) {
     }, [trigger]);
 
     useEffect(() => {
-        if (props.initialValue !== []) {
-            for (let i = 0; i < props.initialValue.length; i++) {
-                WriteTuple(Tuple(props.initialValue[i])).then((res) => {
-                    if (res[0] != null) {
-                        setError(res[0])
-                    }
-                })
-            }
+        for (let i = 0; i < props.initialValue.length; i++) {
+            WriteTuple(Tuple(props.initialValue[i])).then((res) => {
+                if (res[0] != null) {
+                    setError(res[0])
+                }
+            })
         }
-    }, []);
+    }, [props.initialValue]);
 
     return (
         <>
-            <CreateTuple visible={createModalVisibility} toggle={toggleCreateModalVisibility} model={model} />
+            <CreateTuple visible={createModalVisibility} toggle={toggleCreateModalVisibility} model={model}/>
 
             <Card title={props.title} className="h-screen"
                   extra={<>
