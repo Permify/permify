@@ -2,7 +2,7 @@ import React from "react"
 
 const FullPageLayout = ({ children, ...rest }) => {
     return (
-        <div className="center-of-screen">
+        <div>
             {children}
         </div>
     )

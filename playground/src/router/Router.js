@@ -1,35 +1,40 @@
-import React, {lazy} from "react"
-import {Router, Switch, Redirect} from "react-router-dom"
-import AppRoute from "../router/RouteConfig"
-import {history} from "../utility/shared/history"
-
-// Route-based code splitting
-const Play = lazy(() =>
-    import("../views/Play")
-);
-
-const P404 = lazy(() =>
-    import("../views/404")
-);
+import React, {Suspense} from "react"
+import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom"
+import Play from "../views/Play";
+import P404 from "../views/404";
+import {ContextLayout} from "../utility/context/Layout";
+import {Skeleton} from "antd";
 
 export default function AppRouter() {
     return (
-        <Router history={history}>
-            <Switch>
-                <AppRoute
-                    exact
+        <BrowserRouter>
+            <Routes>
+                <Route
+                    path=":typ"
+                    element={<Play/>}
+                />
+                <Route
                     path="/"
-                    component={Play}
-                    privateRoute
+                    element={<Play/>}
                 />
-                <AppRoute
-                    exact
-                    path="/404"
-                    component={P404}
-                    fullLayout
+                <Route
+                    path="404"
+                    element={
+                        <ContextLayout.Consumer>
+                            {context => {
+                                let LayoutTag = context.fullLayout;
+                                return (
+                                    <LayoutTag>
+                                        <Suspense fallback={<Skeleton active/>}>
+                                            <P404/>
+                                        </Suspense>
+                                    </LayoutTag>
+                                )
+                            }}
+                        </ContextLayout.Consumer>
+                    }
                 />
-                <Redirect to="/404"/>
-            </Switch>
-        </Router>
+            </Routes>
+        </BrowserRouter>
     );
 }

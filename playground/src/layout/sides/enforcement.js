@@ -12,7 +12,7 @@ function Enforcement(props) {
     };
 
     return (
-        <Card className="ml-12 mt-12 h-screen" >
+        <Card title={props.title} className="h-screen" style={{display: props.hidden && 'none'}}>
             <div className="p-12">
                 <Radio.Group defaultValue="check" onChange={onChange} value={selected}>
                     <Radio value="check">Check</Radio>

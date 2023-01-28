@@ -1,9 +1,13 @@
 import React, {useState} from "react";
 import {Layout, Row, Button, Select} from 'antd';
-import {withRouter} from "react-router-dom"
 import {toAbsoluteUrl} from "../utility/helpers/asset";
-import {GithubOutlined} from "@ant-design/icons";
-import {useHistory} from "react-router-dom"
+import {GithubOutlined, ShareAltOutlined} from "@ant-design/icons";
+import {useNavigate} from "react-router-dom"
+import {shallowEqual, useSelector} from "react-redux";
+import yaml from "js-yaml";
+import Upload from "../services/s3";
+import Share from "./components/Modals/Share";
+import {nanoid} from "nanoid";
 
 const {Option, OptGroup} = Select;
 const {Content, Header} = Layout;
@@ -11,19 +15,46 @@ const {Content, Header} = Layout;
 const MainLayout = ({children, ...rest}) => {
 
     const [selectedSample, setSelectedSample] = useState("View an Example");
+    const [shareModalVisibility, setShareModalVisibility] = React.useState(false);
 
-    const history = useHistory()
+    const toggleShareModalVisibility = () => {
+        setShareModalVisibility(!shareModalVisibility);
+    };
+
+    const [id, setId] = useState("");
+
+    const shape = useSelector((state) => state.shape, shallowEqual);
+
+    const navigate = useNavigate()
 
     const handleSampleChange = (value) => {
         setSelectedSample(value)
         const params = new URLSearchParams()
         params.append("s", value)
-        history.push({search: params.toString()})
+        navigate(`/p?${params.toString()}`)
+        window.location.reload()
     };
+
+    const share = () => {
+        let id = nanoid()
+        setId(id)
+        const yamlString = yaml.dump({
+            schema: shape.schema,
+            relationships: shape.relationships,
+            assertions: shape.assertions
+        })
+        const file = new File([yamlString], `shapes/${id}.yaml`, {type : 'text/x-yaml'});
+        Upload(file).then((res) => {
+            toggleShareModalVisibility()
+        })
+    }
 
     return (
         <Layout className="App h-screen flex flex-col">
             <Header className="header">
+
+                <Share visible={shareModalVisibility} toggle={toggleShareModalVisibility} id={id}></Share>
+
                 <Row justify="center" type="flex">
                     <div className="logo">
                         <a href="/">
@@ -32,7 +63,7 @@ const MainLayout = ({children, ...rest}) => {
                         </a>
                     </div>
                     <div className="ml-12">
-                        <Select value={selectedSample} style={{width: 220}} onChange={handleSampleChange} showArrow={false}>
+                        <Select className="mr-8" value={selectedSample} style={{width: 220}} onChange={handleSampleChange} showArrow={true}>
                             <OptGroup label="Use Cases">
                                 <Option key="i" value="i">Empty</Option>
                                 <Option key="p" value="p">Organizations
@@ -47,6 +78,9 @@ const MainLayout = ({children, ...rest}) => {
                                 <Option key="g" value="g">Mercury</Option>
                             </OptGroup>
                         </Select>
+                        <Button type="secondary" onClick={() => {
+                            share()
+                        }} icon={<ShareAltOutlined/>}>Share</Button>
                     </div>
                     <div className="ml-auto">
                         <Button className="mr-8 text-white" type="link" target="_blank"
@@ -73,4 +107,4 @@ const MainLayout = ({children, ...rest}) => {
     );
 };
 
-export default withRouter(MainLayout);
+export default MainLayout;

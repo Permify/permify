@@ -17,9 +17,7 @@ export const LoadWasm: React.FC<React.PropsWithChildren<{}>> = (props) => {
 
     useEffect(() => {
         loadWasm().then(() => {
-            setTimeout(function () {
-                setIsLoading(false);
-            }, 1000);
+            setIsLoading(false);
         });
     }, []);
 
