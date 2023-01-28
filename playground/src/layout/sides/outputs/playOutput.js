@@ -20,7 +20,7 @@ function PlayOutput(props) {
                             <div style={{marginRight: "10px", marginBottom: "10px"}}>
                                 <AuthorizationModel title={
                                     <div>
-                                        <span className="mr-8">Schema</span>
+                                        <span className="mr-8">Authorization Model</span>
                                         <Tooltip placement="right" color="black"
                                                  title={"Permify has its own language that you can model your authorization logic with it, we called it Permify Schema. You can define your entities, relations between them and access control decisions with using Permify Schema."}>
                                             <InfoCircleOutlined/>
