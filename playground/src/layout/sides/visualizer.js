@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react'
 import {Alert, Card} from "antd";
 import V from "../../pkg/Visualizer";
 import {shallowEqual, useSelector} from "react-redux";
+import {ReadSchemaGraph} from "../../services/schema";
 
 function Visualizer(props) {
     const ref = useRef(false);
@@ -11,15 +12,8 @@ function Visualizer(props) {
     const [error, setError] = useState("");
     const [graph, setGraph] = useState({nodes: [], edges: []});
 
-    const ReadSchemaCall = () => {
-        return new Promise((resolve) => {
-            let res = window.readSchemaGraph("")
-            resolve(res);
-        });
-    }
-
     const read = () => {
-        ReadSchemaCall().then((res) => {
+        ReadSchemaGraph().then((res) => {
             if (res[1] != null) {
                 setError(res[1])
             }
@@ -34,12 +28,13 @@ function Visualizer(props) {
         ref.current = true;
     }, [trigger]);
 
+
     return (
-        <Card title="Visualizer" className="ml-12">
+        <Card title={props.title} style={{display: props.hidden && 'none'}}>
             {error !== "" &&
                 <Alert message={error} type="error" showIcon className="mb-12"/>
             }
-            <div className="visualizer-background">
+            <div className="spot-background">
                 <V graph={graph}></V>
             </div>
         </Card>

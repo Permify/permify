@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import {Alert, Button, Input, Result, Spin} from "antd";
 import {InfoCircleOutlined} from "@ant-design/icons";
+import {CheckPermission} from "../../../services/permission";
 
 function Check(props) {
 
@@ -87,28 +88,10 @@ function Check(props) {
     const [permission, setPermission] = useState("");
     const [entity, setEntity] = useState({});
 
-    const call = () => {
-        return new Promise((resolve) => {
-            let q = JSON.stringify({
-                metadata: {
-                    snap_token: "",
-                    schema_version: "",
-                    depth: 20,
-                    exclusion: false,
-                },
-                entity: entity,
-                permission: permission,
-                subject: subject,
-            })
-            let res = window.check(q, "")
-            resolve(res);
-        });
-    }
-
     const onCheck = () => {
         setError("")
         setLoading(true)
-        call().then(res => {
+        CheckPermission(entity, permission, subject).then(res => {
             if (res[1] != null) {
                 setError(res[1].replaceAll('_', ' '))
             }

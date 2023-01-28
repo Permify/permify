@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import {Alert, Button, Input, Result, Spin} from "antd";
 import {InfoCircleOutlined} from "@ant-design/icons";
+import {FilterData} from "../../../services/permission";
 
 function DataFiltering(props) {
 
@@ -72,27 +73,10 @@ function DataFiltering(props) {
     const [permission, setPermission] = useState("");
     const [entityType, setEntityType] = useState("");
 
-    const call = () => {
-        return new Promise((resolve) => {
-            let q = JSON.stringify({
-                metadata: {
-                    snap_token: "",
-                    schema_version: "",
-                    depth: 20,
-                },
-                entity_type: entityType,
-                permission: permission,
-                subject: subject,
-            })
-            let res = window.lookupEntity(q, "")
-            resolve(res);
-        });
-    }
-
     const onQuery = () => {
         setError("")
         setLoading(true)
-        call().then(res => {
+        FilterData(entityType,permission, subject ).then(res => {
             if (res[1] != null) {
                 setError(res[1].replaceAll('_', ' '))
             }
