@@ -58,8 +58,8 @@ function FrameOutput(props) {
                 </div>
                 {!props.loading &&
                     <>
-                        <AuthorizationModel title="Schema" hidden={selected !== 'schema'} initialValue={props.shape.schema}/>
-                        <AuthorizationData title="Data" hidden={selected !== 'data'} initialValue={props.shape.relationships}/>
+                        <AuthorizationModel title="Authorization Model" hidden={selected !== 'schema'} initialValue={props.shape.schema}/>
+                        <AuthorizationData title="Authorization Data" hidden={selected !== 'data'} initialValue={props.shape.relationships}/>
                         <Visualizer title="Visualizer" hidden={selected !== 'visualizer'}/>
                         <Enforcement title="Enforcement" hidden={selected !== 'enforcement'}/>
                     </>
