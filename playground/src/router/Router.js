@@ -10,15 +10,11 @@ export default function AppRouter() {
         <BrowserRouter>
             <Routes>
                 <Route
-                    path=":typ"
-                    element={<Play/>}
-                />
-                <Route
                     path="/"
                     element={<Play/>}
                 />
                 <Route
-                    path="404"
+                    path="*"
                     element={
                         <ContextLayout.Consumer>
                             {context => {

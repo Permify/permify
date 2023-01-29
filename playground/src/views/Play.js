@@ -12,18 +12,22 @@ import {setRelationships, setSchema} from "../redux/shape/actions";
 const client = axios.create();
 
 function Play(props) {
-    let {typ} = useParams();
-
     let location = useLocation();
     let navigate = useNavigate();
 
     const dispatch = useDispatch();
     const shape = useSelector((state) => state.shape, shallowEqual);
+
+    const [type, setType] = useState("");
+
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setLoading(true)
         const params = new URLSearchParams(location.search);
+        if (params.has("t")){
+            setType(params.get('t'))
+        }
         if (params.has('s')) {
             let search = params.get('s');
             client.get(`https://s3.amazonaws.com/permify.playground.storage/shapes/${search}.yaml`).then((response) => {
@@ -52,7 +56,7 @@ function Play(props) {
     return (
         <ContextLayout.Consumer>
             {context => {
-                if (typ === 'f') {
+                if (type === 'f') {
                     let LayoutTag = context.fullLayout;
                     return (
                         <LayoutTag>
