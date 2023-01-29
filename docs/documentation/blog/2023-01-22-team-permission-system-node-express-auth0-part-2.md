@@ -3,6 +3,10 @@ title: "Build a Team permissions system in Node.js app using Auth0 and Permify -
 description: "We will build a team permission system in ExpressJs with using Auth0 and Permify."
 slug: team-permission-system-node-express-auth0-part-2
 authors:
+  - name: Bhagat Pratham
+    image_url: https://user-images.githubusercontent.com/34595361/215285932-d489c586-d728-4ee5-b878-eea4b4dec23f.jpeg
+    title: Full-stack Developer
+    email: bhagatpratham101@gmail.com
   - name: Ege Aytin
     image_url: https://user-images.githubusercontent.com/34595361/213848483-fe6f2073-18c5-46ef-ae60-8db80ae66b8d.png
     title: Permify Core Team
@@ -12,9 +16,9 @@ image: https://user-images.githubusercontent.com/34595361/215231739-67155bce-a77
 hide_table_of_contents: false
 ---
 
-![Build a Team permissions system in Node js app using Auth0 and Permify - Part 2](https://user-images.githubusercontent.com/34595361/215231739-67155bce-a770-46fc-a5c8-0a9f73a25123.png)
+This is Part 2 in the series of guides on building a team permission system in Node.js app using Auth0 and Permify. 
 
-This is Part 2 in the series of guides on building team permission system in Node.js app using Auth0 and Permify. 
+![Build a Team permissions system in Node js app using Auth0 and Permify - Part 2](https://user-images.githubusercontent.com/34595361/215231739-67155bce-a770-46fc-a5c8-0a9f73a25123.png)
 
 <!--truncate-->
 
@@ -28,6 +32,8 @@ In this part we will:
 2. Run and set up Permify authorization service.
 3. Build endpoints with check permission middleware to secure our resources.
 3. Test it out!
+
+You can find the [source code on Github](https://github.com/bhagatpratham/team-permissions)
 
 ### Prerequisites
 
