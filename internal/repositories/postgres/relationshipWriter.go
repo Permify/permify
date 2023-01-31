@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -47,7 +48,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 	defer span.End()
 
 	if len(collection.GetTuples()) > w.maxTuplesPerWrite {
-		return nil, errors.New("")
+		return nil, errors.New("max tuples per write exceeded")
 	}
 
 	for i := 0; i <= w.maxRetries; i++ {
@@ -80,6 +81,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 
 		_, err = tx.ExecContext(ctx, query, args...)
 		if err != nil {
+			fmt.Println(err, "ERROR")
 			utils.Rollback(tx, w.logger)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
