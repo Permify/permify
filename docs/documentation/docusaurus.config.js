@@ -74,21 +74,6 @@ const config = {
               label: 'Docs',
             },
             {to: 'blog', label: 'Blog', position: 'left'},
-            /* {
-              type: 'dropdown',
-              label: 'API Reference',
-              position: 'left',
-              items: [
-                {
-                  label: 'gRPC API Reference',
-                  href: 'https://buf.build/permify/permify/docs/main:base.v1',
-                },
-                {
-                  label: 'REST API Reference',
-                  href: 'https://permify.github.io/permify-swagger',
-                },
-              ],
-            }, */
             {
               label: 'Playground',
               href: 'https://play.permify.co',
@@ -116,15 +101,6 @@ const config = {
             }
           ],
         },
-        /* algolia: {
-          // The application ID provided by Algolia
-          appId: 'PV97F452C4',
-    
-          // Public API key: it is safe to commit it
-          apiKey: '3952e8f4f172e50b44abb743181536e8',
-    
-          indexName: 'permify',
-        }, */
         metadata: [
           {
               name: "keywords",
