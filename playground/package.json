@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@ant-design/colors": "^6.0.0",
+    "@ant-design/colors": "^7.0.0",
     "@ant-design/icons": "^4.6.2",
     "@craco/craco": "^6.2.0",
     "@devbookhq/ui": "^1.0.24",
