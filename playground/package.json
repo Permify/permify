@@ -43,7 +43,7 @@
     "react-inlinesvg": "^3.0.1",
     "react-moment": "^1.1.1",
     "react-redux": "^8.0.5",
-    "react-router": "5.2.0",
+    "react-router": "6.8.0",
     "react-router-dom": "^6.7.0",
     "react-scripts": "4.0.3",
     "react-simple-code-editor": "^0.13.0",
