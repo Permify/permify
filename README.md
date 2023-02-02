@@ -65,16 +65,7 @@ Permify stores access control relations on a database you choose and performs au
 
 ## QuickStart
 
-You can run Permify Service with two options: 
-
-- [Run From Container](#run-from-container)  
-- [Install With Brew](#install-with-brew). 
-
-### Run From Container
-
-Installation needs some configuration such as defining running options, selecting datastore to store authorization data and more. 
-
-However, If you want to play around with Permify without doing any configurations, you can quickly start Permify on your local with running the command below:
+You can quickly start Permify on your local with running the docker command below:
 
 ```shell
 docker run -p 3476:3476 -p 3478:3478  ghcr.io/permify/permify serve
@@ -85,34 +76,9 @@ This will start Permify with the default configuration options:
 * Port 3478 is used to serve the GRPC Service.
 * Authorization data stored in memory.
 
-See [Container With Configurations] section to get more details about the configuration options and learn the full integration to run Permify Service from container.
+See [all of the options] that you can use to set up and deploy Permify in your servers.
 
-[Container With Configurations]: https://docs.permify.co/docs/installation/container
-
-### Install With Brew
-
-Firstly, open terminal and run following line,
-
-```shell
-brew install permify/tap/permify
-```
-
-After the brew installation, the `serve` command should be used to run Permify. 
-
-```shell
-permify serve
-```
-
-This will start Permify with the default configuration options: 
-* Port 3476 is used to serve the REST API.
-* Port 3478 is used to serve the GRPC Service.
-* Authorization data stored in memory.
-
-You can override these configurations with running the command with configuration flags. See all configuration options with running `permify serve --help` on terminal. 
-
-Check out the [Brew With Configurations] section to learn full implementation with configurations.
-
-[Brew With Configurations]: https://docs.permify.co/docs/installation/brew
+[all of the options]: https://www.permify.co/docs/installation
 
 ### Test your connection
 
