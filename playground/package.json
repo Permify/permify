@@ -21,7 +21,7 @@
     "allotment": "^1.17.1",
     "antd": "5.1.7",
     "as-bind": "^0.8.2",
-    "assemblyscript": "^0.26.3",
+    "assemblyscript": "^0.27.0",
     "aws-sdk": "^2.1304.0",
     "axios": "^1.2.2",
     "craco-less": "^2.0.0",
