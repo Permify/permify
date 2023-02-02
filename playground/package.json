@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/colors": "^7.0.0",
-    "@ant-design/icons": "^4.6.2",
+    "@ant-design/icons": "^5.0.1",
     "@craco/craco": "^6.2.0",
     "@devbookhq/ui": "^1.0.24",
     "@fontsource/red-hat-display": "^4.5.0",
