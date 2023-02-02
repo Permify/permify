@@ -44,6 +44,5 @@ var _ = Describe("token", func() {
 				Expect(t).Should(Equal(tt.expected))
 			}
 		})
-
 	})
 })
