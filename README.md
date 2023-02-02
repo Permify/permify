@@ -43,7 +43,7 @@ Permify's data model is inspired by Google’s consistent, global authorization 
 [signoz]: https://signoz.io/
 [zipkin]: https://zipkin.io/
 
-### Permify works best:
+### Cases that can benefit from Permify
 
 - If you already have an identity/auth solution and want to plug in fine-grained authorization on top of that.
 - If you want to create a unified access control mechanism to use across your individual applications.
