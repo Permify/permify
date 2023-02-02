@@ -19,7 +19,7 @@
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^14.4.3",
     "allotment": "^1.17.1",
-    "antd": "4.16.8",
+    "antd": "5.1.7",
     "as-bind": "^0.8.2",
     "assemblyscript": "^0.26.3",
     "aws-sdk": "^2.1304.0",
