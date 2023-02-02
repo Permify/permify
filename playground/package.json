@@ -16,7 +16,7 @@
     "@monaco-editor/react": "^4.4.5",
     "@reduxjs/toolkit": "^1.6.1",
     "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^11.1.0",
+    "@testing-library/react": "^12.1.5",
     "@testing-library/user-event": "^14.4.3",
     "allotment": "^1.17.1",
     "antd": "5.1.7",
