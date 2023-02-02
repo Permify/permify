@@ -14,7 +14,6 @@ func TestToken(t *testing.T) {
 }
 
 var _ = Describe("token", func() {
-
 	Context("LookupKeywords", func() {
 		It("Case 1", func() {
 			tests := []struct {
