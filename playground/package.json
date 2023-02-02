@@ -8,7 +8,7 @@
     "@craco/craco": "^6.2.0",
     "@devbookhq/ui": "^1.0.24",
     "@fontsource/red-hat-display": "^4.5.0",
-    "@fortawesome/react-fontawesome": "^0.1.14",
+    "@fortawesome/react-fontawesome": "^0.2.0",
     "@icon/linearicons": "^1.0.2-alpha.2",
     "@manaflair/redux-batch": "^1.0.0",
     "@material-ui/core": "^4.12.3",
