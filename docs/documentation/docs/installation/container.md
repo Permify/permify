@@ -71,7 +71,7 @@ profiler:
 
 database:
   engine: 'postgres'
-  uri: 'postgres://user:password@host:5432'
+  uri: 'postgres://user:password@host:5432/db_name'
   auto_migrate: true
   max_open_connections: 100
   max_idle_connections: 1
