@@ -24,7 +24,7 @@
     "assemblyscript": "^0.26.3",
     "aws-sdk": "^2.1304.0",
     "axios": "^1.2.2",
-    "craco-less": "^1.18.0",
+    "craco-less": "^2.0.0",
     "dynamic-antd-theme": "^0.8.5",
     "formik": "^2.2.9",
     "formik-antd": "^2.0.4",
