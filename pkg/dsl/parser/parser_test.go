@@ -9,7 +9,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/ast"
 )
 
-// TestLexer -
+// TestParser -
 func TestParser(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "parser-suite")
