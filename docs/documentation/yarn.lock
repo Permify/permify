@@ -3593,10 +3593,10 @@ country-flag-icons@^1.5.4:
   resolved "https://registry.yarnpkg.com/country-flag-icons/-/country-flag-icons-1.5.5.tgz#04a41c83e2ea38ea28054d4e3eff9d1ce16aec1c"
   integrity sha512-k4WXZ/WvWOSiYXRG1n8EYHNr1m/IX0GffKqAidaet5DrJsDOmJ8Q/8JvvONhZNnKYg24s4lvsm+9og1HcuIU/g==
 
-countup.js@^2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/countup.js/-/countup.js-2.3.2.tgz#9a91d95780be1c908d1e6feb548625f353f57988"
-  integrity sha512-dQ7F/CmKGjaO6cDfhtEXwsKVlXIpJ89dFs8PvkaZH9jBVJ2Z8GU4iwG/qP7MgY8qwr+1skbwR6qecWWQLUzB8Q==
+countup.js@^2.4.1:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/countup.js/-/countup.js-2.4.2.tgz#723538b4b2b01ebe2ed0e6759d41b8f97dc00c34"
+  integrity sha512-EExCcu5rd7ffBj65B3CVNuS1HddN1Y4WuTfJEuocJXwZlNnlXZQ4sD9M/Cq32ZS0zR38F9vGMCw/iFcVImrNbw==
 
 create-react-class@^15.6.2:
   version "15.7.0"
@@ -6919,13 +6919,13 @@ react-countdown-now@^2.1.2:
     lodash.isequal "^4.5.0"
     prop-types "^15.7.2"
 
-react-countup@^6.3.2:
-  version "6.4.0"
-  resolved "https://registry.yarnpkg.com/react-countup/-/react-countup-6.4.0.tgz#f18d24e40c37c465b29353172cc8b3b5e82f3241"
-  integrity sha512-7vvz0IIcDwWdd1JDzDB3z+9wSWL5Cf7pqwMPUXnIe66M3UXZyMWrvTp1p96wpPgg8/v4Gvf8YLvJoO+34G0GMA==
+react-countup@^6.4.1:
+  version "6.4.1"
+  resolved "https://registry.yarnpkg.com/react-countup/-/react-countup-6.4.1.tgz#cbbda64a64065cb12376eff23e5aa084665e6c4d"
+  integrity sha512-FxQ7qaNnnbA+Px9RebOZY4Tbawa1bhgpVPlUqRemZb90mh3f3OqyHVgr1SZqnJgaRxR3uEYqgkszgkDgFVCeEw==
   dependencies:
     "@rollup/plugin-babel" "^6.0.2"
-    countup.js "^2.3.2"
+    countup.js "^2.4.1"
 
 react-dev-utils@^12.0.1:
   version "12.0.1"
