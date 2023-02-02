@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -81,7 +80,6 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 
 		_, err = tx.ExecContext(ctx, query, args...)
 		if err != nil {
-			fmt.Println(err, "ERROR")
 			utils.Rollback(tx, w.logger)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
