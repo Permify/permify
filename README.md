@@ -96,11 +96,11 @@ localhost:3476/healthz
 - Take a look at the overview of [Permify API].
 - See [our article] to examine Google Zanzibar In A Nutshell.
 
-[Set Up & Run Permify Service]: https://docs.permify.co/docs/installation/overview
-[Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
+[Set Up & Run Permify Service]: https://www.permify.co/docs/installation
+[Permify Schema]: https://www.permify.co/docs/getting-started/modeling
 [playground]: https://play.permify.co/
-[Permify API]: https://docs.permify.co/docs/api-overview/
-[our article]: https://www.permify.co/post/google-zanzibar-in-a-nutshell
+[Permify API]: https://www.permify.co/docs/api-overview
+[our article]: https://www.permify.co/blog/google-zanzibar-in-a-nutshell
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger)
