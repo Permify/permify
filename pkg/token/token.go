@@ -29,7 +29,7 @@ type (
 
 // NewNoopToken - Creates a new noop snapshot token
 func NewNoopToken() SnapToken {
-	return &NoopToken{
+	return NoopToken{
 		Value: "noop",
 	}
 }

@@ -14,7 +14,7 @@ import (
 )
 
 var _ = Describe("lookup-schema-command", func() {
-	var schemaLookupCommand *LookupSchemaCommand
+	var lookupSchemaCommand *LookupSchemaCommand
 
 	// DRIVE SAMPLE
 
@@ -46,7 +46,7 @@ var _ = Describe("lookup-schema-command", func() {
 	}
 	`
 
-	Context("Drive Sample: Schema Lookup", func() {
+	Context("Drive Sample: Lookup Schema", func() {
 		It("Drive Sample: Case 1", func() {
 			var err error
 
@@ -64,7 +64,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "t1", "folder", "noop").Return(en, "noop", nil).Times(1)
 
-			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
+			lookupSchemaCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				TenantId:      "t1",
@@ -75,7 +75,7 @@ var _ = Describe("lookup-schema-command", func() {
 				},
 			}
 
-			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
+			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
 				Expect(helper.InArray(actionName, []string{"delete"})).Should(Equal(helper.InArray(actionName, []string{"delete"})))
@@ -99,7 +99,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(en, "noop", nil).Times(2)
 
-			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
+			lookupSchemaCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				TenantId:      "t1",
@@ -110,7 +110,7 @@ var _ = Describe("lookup-schema-command", func() {
 				},
 			}
 
-			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
+			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
 				Expect(helper.InArray(actionName, []string{"read", "update", "delete"})).Should(Equal(helper.InArray(actionName, []string{"read", "update", "delete"})))
@@ -141,7 +141,7 @@ var _ = Describe("lookup-schema-command", func() {
 		}
 		`
 
-	Context("Github Sample: Schema Lookup", func() {
+	Context("Github Sample: Lookup Schema", func() {
 		It("Github Sample: Case 1", func() {
 			var err error
 
@@ -159,7 +159,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(en, "noop", nil).Times(2)
 
-			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
+			lookupSchemaCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				TenantId:      "t1",
@@ -170,7 +170,7 @@ var _ = Describe("lookup-schema-command", func() {
 				},
 			}
 
-			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
+			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
 				Expect(helper.InArray(actionName, []string{"create_repository", "delete"})).Should(Equal(helper.InArray(actionName, []string{"create_repository", "delete"})))
@@ -194,7 +194,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "t1", "repository", "noop").Return(en, "noop", nil).Times(2)
 
-			schemaLookupCommand = NewLookupSchemaCommand(schemaReader)
+			lookupSchemaCommand = NewLookupSchemaCommand(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				TenantId:      "t1",
@@ -205,7 +205,7 @@ var _ = Describe("lookup-schema-command", func() {
 				},
 			}
 
-			actualResult, err := schemaLookupCommand.Execute(context.Background(), req)
+			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
 				Expect(helper.InArray(actionName, []string{"delete"})).Should(Equal(helper.InArray(actionName, []string{"delete"})))

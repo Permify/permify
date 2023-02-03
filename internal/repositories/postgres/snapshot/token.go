@@ -23,7 +23,7 @@ type (
 
 // NewToken - Creates a new snapshot token
 func NewToken(value types.XID8) token.SnapToken {
-	return &Token{
+	return Token{
 		Value: value,
 	}
 }
