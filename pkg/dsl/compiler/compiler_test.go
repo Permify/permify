@@ -1,14 +1,14 @@
 package compiler
 
 import (
-	`errors`
+	"errors"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/pkg/dsl/parser`
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	"github.com/Permify/permify/pkg/dsl/parser"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // TestCompiler -
@@ -18,11 +18,8 @@ func TestCompiler(t *testing.T) {
 }
 
 var _ = Describe("compiler", func() {
-
 	Context("NewCompiler", func() {
-
 		It("Case 1", func() {
-
 			sch, err := parser.NewParser(`
 			entity user {}`).Parse()
 
@@ -47,11 +44,9 @@ var _ = Describe("compiler", func() {
 				RelationDefinitions: map[string]*base.RelationDefinition{},
 				ActionDefinitions:   map[string]*base.ActionDefinition{},
 			}))
-
 		})
 
 		It("Case 2", func() {
-
 			sch, err := parser.NewParser(`
 			entity user {}
 				
@@ -167,11 +162,9 @@ var _ = Describe("compiler", func() {
 			}
 
 			Expect(is.String()).Should(Equal(i.String()))
-
 		})
 
 		It("Case 3", func() {
-
 			sch, err := parser.NewParser(`
 			entity user {}
 				
@@ -190,11 +183,9 @@ var _ = Describe("compiler", func() {
 
 			_, err = c.Compile()
 			Expect(err).Should(Equal(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())))
-
 		})
 
 		It("Case 4", func() {
-
 			sch, err := parser.NewParser(`
 			entity user {}
 				
@@ -224,5 +215,4 @@ var _ = Describe("compiler", func() {
 			Expect(err).Should(Equal(errors.New(base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())))
 		})
 	})
-
 })
