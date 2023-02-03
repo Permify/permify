@@ -30,6 +30,7 @@
     "polished": "^4.2.2",
     "prism-react-renderer": "^1.2.1",
     "prop-types": "^15.8.1",
+    "query-string": "^8.1.0",
     "rc-collapse": "^3.5.2",
     "rc-drawer": "^6.0.0",
     "rc-progress": "^3.4.1",
