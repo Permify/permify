@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "^2.0.0-beta.17",
-    "@docusaurus/plugin-client-redirects": "^2.2.0",
+    "@docusaurus/plugin-client-redirects": "^2.3.0",
     "@docusaurus/plugin-google-analytics": "^2.0.0-beta.17",
     "@docusaurus/plugin-google-gtag": "^2.0.0-beta.17",
     "@docusaurus/preset-classic": "^2.0.0-beta.17",
@@ -31,7 +31,7 @@
     "prism-react-renderer": "^1.2.1",
     "prop-types": "^15.8.1",
     "query-string": "^8.1.0",
-    "rc-collapse": "^3.4.2",
+    "rc-collapse": "^3.5.2",
     "rc-drawer": "^6.0.0",
     "rc-progress": "^3.4.1",
     "rc-tabs": "11.10.1",
@@ -42,7 +42,7 @@
     "react-collapser": "^1.5.10",
     "react-content-loader": "^6.2.0",
     "react-countdown-now": "^2.1.2",
-    "react-countup": "^6.3.2",
+    "react-countup": "^6.4.1",
     "react-dom": "^17.0.1",
     "react-github-btn": "^1.4.0",
     "react-icons": "^4.7.1",
@@ -64,7 +64,7 @@
     "react-select": "^5.6.0",
     "react-slick": "^0.29.0",
     "react-stickynode": "^4.1.0",
-    "react-tabs": "^5.1.0",
+    "react-tabs": "^6.0.0",
     "react-tsparticles": "^2.5.1",
     "react-waypoint": "10.3.0",
     "styled-components": "^5.3.6",
@@ -72,7 +72,7 @@
     "swiper": "^8.4.4"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^2.0.0-beta.17",
+    "@docusaurus/module-type-aliases": "^2.3.0",
     "@tsconfig/docusaurus": "^1.0.4",
     "typescript": "^4.5.2"
   },

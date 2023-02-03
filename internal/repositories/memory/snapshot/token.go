@@ -21,7 +21,7 @@ type (
 
 // NewToken - Creates a new snapshot token
 func NewToken(value time.Time) token.SnapToken {
-	return &Token{
+	return Token{
 		Value: uint64(value.UnixNano()),
 	}
 }

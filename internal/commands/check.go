@@ -7,7 +7,6 @@ import (
 
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/instrument"
-	"go.opentelemetry.io/otel/metric/instrument/syncint64"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
 
@@ -28,8 +27,8 @@ type CheckCommand struct {
 	// key manager
 	commandKeyManager keys.CommandKeyManager
 	// counters
-	executionCounter       syncint64.Counter
-	cachedExecutionCounter syncint64.Counter
+	executionCounter       instrument.Int64Counter
+	cachedExecutionCounter instrument.Int64Counter
 	// options
 	concurrencyLimit int
 }
@@ -48,18 +47,12 @@ func NewCheckCommand(km keys.CommandKeyManager, sr repositories.SchemaReader, rr
 		opt(command)
 	}
 
-	checkExecutionCounter, err := m.SyncInt64().Counter(
-		"check_execution_count",
-		instrument.WithDescription("check execution count"),
-	)
+	checkExecutionCounter, err := m.Int64Counter("check_execution_count", instrument.WithDescription("check execution count"))
 	if err != nil {
 		return nil, err
 	}
 
-	cachedCheckExecutionCounter, err := m.SyncInt64().Counter(
-		"cached_check_execution_count",
-		instrument.WithDescription("cached check execution count"),
-	)
+	cachedCheckExecutionCounter, err := m.Int64Counter("cached_check_execution_count", instrument.WithDescription("cached check execution count"))
 	if err != nil {
 		return nil, err
 	}
