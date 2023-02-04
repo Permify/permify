@@ -77,7 +77,7 @@ This will start Permify with the default configuration options:
 
 See [all of the options] that you can use to set up and deploy Permify in your servers.
 
-[all of the options]: https://docs.permify.co/installation
+[all of the options]: https://docs.permify.co/docs/installation
 
 ### Test your connection
 
@@ -95,10 +95,10 @@ localhost:3476/healthz
 - Take a look at the overview of [Permify API].
 - See [our article] to examine Google Zanzibar In A Nutshell.
 
-[Set Up & Run Permify Service]: https://docs.permify.co/installation
-[Permify Schema]: https://docs.permify.co/getting-started/modeling
+[Set Up & Run Permify Service]: https://docs.permify.co/docs/installation
+[Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
 [playground]: https://play.permify.co/
-[Permify API]: https://docs.permify.co/api-overview
+[Permify API]: https://docs.permify.co/docs/api-overview
 [our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
