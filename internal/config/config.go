@@ -2,14 +2,9 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/spf13/viper"
-)
-
-const (
-	Path = "config/config.yaml"
 )
 
 type (
@@ -46,8 +41,8 @@ type (
 
 	TLSConfig struct {
 		Enabled  bool   `mapstructure:"enabled"`
-		CertPath string `mapstructure:"cert_path"`
-		KeyPath  string `mapstructure:"key_path"`
+		CertPath string `mapstructure:"cert"`
+		KeyPath  string `mapstructure:"key"`
 	}
 
 	// Authn -.
@@ -103,21 +98,19 @@ type (
 func NewConfig() (*Config, error) {
 	cfg := DefaultConfig()
 
-	if _, err := os.Stat("./" + Path); !os.IsNotExist(err) {
-		viper.SetConfigName("config")
-		viper.SetConfigType("yaml")
-		viper.AddConfigPath("./config")
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("./config")
 
-		err = viper.ReadInConfig()
-		if err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-				return nil, fmt.Errorf("failed to load server config: %w", err)
-			}
+	err := viper.ReadInConfig()
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, fmt.Errorf("failed to load server config: %w", err)
 		}
+	}
 
-		if err = viper.Unmarshal(cfg); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal server config: %w", err)
-		}
+	if err = viper.Unmarshal(cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal server config: %w", err)
 	}
 
 	return cfg, nil

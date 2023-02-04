@@ -5,6 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/spf13/viper"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -45,19 +47,22 @@ Fine-grained Authorization System %s
 )
 
 // NewServeCommand - Creates new server command
-func NewServeCommand(cfg *config.Config) *cobra.Command {
+func NewServeCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
 		Short: "serve the Permify server",
-		RunE:  serve(cfg),
+		RunE:  serve(),
 		Args:  cobra.NoArgs,
 	}
 }
 
 // serve - permify serve command
-func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
+func serve() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		var err error
+		cfg, err := config.NewConfig()
+		if err = viper.Unmarshal(cfg); err != nil {
+			return err
+		}
 
 		red := color.New(color.FgGreen)
 		_, _ = red.Printf(banner, Version)
@@ -189,54 +194,4 @@ func serve(cfg *config.Config) func(cmd *cobra.Command, args []string) error {
 
 		return nil
 	}
-}
-
-// RegisterServeFlags - Define and registers permify CLI flags
-func RegisterServeFlags(cmd *cobra.Command, config *config.Config) {
-	// GRPC Server
-	cmd.Flags().StringVar(&config.Server.GRPC.Port, "grpc-port", config.Server.GRPC.Port, "port that GRPC server run on")
-	cmd.Flags().StringVar(&config.Server.GRPC.TLSConfig.KeyPath, "grpc-tls-config-key-path", config.Server.GRPC.TLSConfig.KeyPath, "GRPC tls key path")
-	cmd.Flags().StringVar(&config.Server.GRPC.TLSConfig.CertPath, "grpc-tls-config-cert-path", config.Server.GRPC.TLSConfig.CertPath, "GRPC tls certificate path")
-
-	// HTTP Server
-	cmd.Flags().BoolVar(&config.Server.HTTP.Enabled, "http-enabled", config.Server.HTTP.Enabled, "switch option for HTTP server")
-	cmd.Flags().StringVar(&config.Server.HTTP.Port, "http-port", config.Server.HTTP.Port, "HTTP port address")
-	cmd.Flags().StringVar(&config.Server.HTTP.TLSConfig.KeyPath, "http-tls-config-key-path", config.Server.HTTP.TLSConfig.KeyPath, "HTTP tls key path")
-	cmd.Flags().StringVar(&config.Server.HTTP.TLSConfig.CertPath, "http-tls-config-cert-path", config.Server.HTTP.TLSConfig.CertPath, "HTTP tls certificate path")
-	cmd.Flags().StringSliceVar(&config.Server.HTTP.CORSAllowedOrigins, "http-cors-allowed-origins", config.Server.HTTP.CORSAllowedOrigins, "CORS allowed origins for http gateway")
-	cmd.Flags().StringSliceVar(&config.Server.HTTP.CORSAllowedHeaders, "http-cors-allowed-headers", config.Server.HTTP.CORSAllowedHeaders, "CORS allowed headers for http gateway")
-
-	// PROFILER
-	cmd.Flags().BoolVar(&config.Profiler.Enabled, "profiler-enabled", config.Profiler.Enabled, "switch option for profiler")
-	cmd.Flags().StringVar(&config.Profiler.Port, "profiler-port", config.Profiler.Port, "profiler port address")
-
-	// LOG
-	cmd.Flags().StringVar(&config.Log.Level, "log-level", config.Log.Level, "real time logs of authorization. Permify uses zerolog as a logger")
-
-	// AUTHN
-	cmd.Flags().BoolVar(&config.Authn.Enabled, "authn-enabled", config.Authn.Enabled, "enable server authentication")
-	cmd.Flags().StringSliceVar(&config.Authn.Keys, "authn-preshared-keys", config.Authn.Keys, "preshared key/keys for server authentication")
-
-	// TRACER
-	cmd.Flags().BoolVar(&config.Tracer.Enabled, "tracer-enabled", config.Tracer.Enabled, "switch option for tracing")
-	cmd.Flags().StringVar(&config.Tracer.Exporter, "tracer-exporter", config.Tracer.Exporter, "export uri for tracing data")
-	cmd.Flags().StringVar(&config.Tracer.Endpoint, "tracer-endpoint", config.Tracer.Endpoint, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
-
-	// METER
-	cmd.Flags().BoolVar(&config.Meter.Enabled, "meter-enabled", config.Meter.Enabled, "switch option for metric")
-	cmd.Flags().StringVar(&config.Meter.Exporter, "meter-exporter", config.Meter.Exporter, "export uri for metric data")
-	cmd.Flags().StringVar(&config.Meter.Endpoint, "meter-endpoint", config.Meter.Endpoint, "can be; otlp. (integrated metric tools)")
-
-	// SERVICE
-	cmd.Flags().BoolVar(&config.Service.CircuitBreaker, "service-circuit-breaker", config.Service.CircuitBreaker, "switch option for service circuit breaker")
-	cmd.Flags().IntVar(&config.Service.ConcurrencyLimit, "service-concurrency-limit", config.Service.ConcurrencyLimit, "concurrency limit")
-
-	// DATABASE
-	cmd.Flags().StringVar(&config.Database.Engine, "database-engine", config.Database.Engine, "data source. e.g. postgres, memory")
-	cmd.Flags().StringVar(&config.Database.URI, "database-uri", config.Database.URI, "uri of your data source to store relation tuples and schema")
-	cmd.Flags().BoolVar(&config.Database.AutoMigrate, "database-auto-migrate", config.Database.AutoMigrate, "auto migrate database tables")
-	cmd.Flags().IntVar(&config.Database.MaxOpenConnections, "database-max-open-connections", config.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
-	cmd.Flags().IntVar(&config.Database.MaxIdleConnections, "database-max-idle-connections", config.Database.MaxIdleConnections, "maximum number of idle connections that can be made to the database at any time")
-	cmd.Flags().DurationVar(&config.Database.MaxConnectionLifetime, "database-max-connection-lifetime", config.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
-	cmd.Flags().DurationVar(&config.Database.MaxConnectionIdleTime, "database-max-connection-idle-time", config.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
 }
