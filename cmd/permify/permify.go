@@ -1,24 +1,17 @@
 package main
 
 import (
-	"log"
 	"os"
 
-	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/pkg/cmd"
+	"github.com/Permify/permify/pkg/cmd/flags"
 )
 
 func main() {
-	// Configuration
-	cfg, err := config.NewConfig()
-	if err != nil {
-		log.Fatalf("config error: %s", err)
-	}
-
 	root := cmd.NewRootCommand()
 
-	serve := cmd.NewServeCommand(cfg)
-	cmd.RegisterServeFlags(serve, cfg)
+	serve := cmd.NewServeCommand()
+	flags.RegisterServeFlags(serve)
 	root.AddCommand(serve)
 
 	validate := cmd.NewValidateCommand()
