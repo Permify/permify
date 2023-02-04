@@ -9,7 +9,7 @@ Read API allows for directly querying the stored graph data to display and filte
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](/docs/reference/snap-tokens) |
+| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../reference/snap-tokens) |
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | relation | string | - | relation of the given entity |
 | [ ]   | subject | object | - | the user or user set. It containes type and id of the subject.  ||

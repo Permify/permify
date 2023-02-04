@@ -22,7 +22,7 @@ By default, the service is configured to listen on ports 3476 (HTTP) and 3478 (g
 
 Check out the [Centralize Authorization Data] section to learn how to organize this config YAML file and get more details about the configuration options.
 
-[Centralize Authorization Data]:  /docs/getting-started/sync-data
+[Centralize Authorization Data]:  ../getting-started/sync-data
 
 ### Configuration Flags
 

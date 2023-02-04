@@ -125,11 +125,6 @@ module.exports = {
 			id: "migrating",
 			label: "Migrating From 0.2.x to 0.3.x",
 		},
-		/* {
-			type: "doc",
-			id: "comparison",
-			label: "Comparision",
-		}, */
 		{
 			type: "category",
 			label: "Common Use Cases",
