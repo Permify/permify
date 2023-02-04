@@ -39,12 +39,12 @@ Then this snap token can be used in endpoints. For example it can be used in acc
 }
 ```
 
-[Write API]: /docs/api-overview/relationship/write-relationships
-[Check API]: /docs/api-overview/permission/check-api
+[Write API]: ../api-overview/relationship/write-relationships
+[Check API]: ../api-overview/permission/check-api
 
 #### All endpoints that used snap token 
 
-- [Write API](/docs/api-overview/relationship/write-relationships) 
-- [Check API](/docs/api-overview/permission/check-api)
-- [Expand API](/docs/api-overview/permission/expand-api) 
-- [Schema Lookup](/docs/api-overview/permission/schema-lookup)
+- [Write API](../api-overview/relationship/write-relationships) 
+- [Check API](../api-overview/permission/check-api)
+- [Expand API](../api-overview/permission/expand-api) 
+- [Schema Lookup](../api-overview/permission/schema-lookup)

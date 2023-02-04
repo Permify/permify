@@ -32,7 +32,7 @@ These ACLs called relational tuples: the underlying data form that represents ob
 
 ## Write Database - WriteDB
 
-Permify stores your relational tuples (authorization data) in **WriteDB**. You can configure it **WriteDB** when running Permify Service with using both [configuration flags](/docs/installation/brew#configuration-flags)  or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
+Permify stores your relational tuples (authorization data) in **WriteDB**. You can configure it **WriteDB** when running Permify Service with using both [configuration flags](../installation/brew#configuration-flags)  or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
 
 ## Relationship Based Access Control (ReBAC)
 

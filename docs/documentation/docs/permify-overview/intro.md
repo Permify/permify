@@ -1,6 +1,5 @@
 ---
 sidebar_position: 1
-slug: /
 ---
 
 # What is Permify?
@@ -39,9 +38,9 @@ In Permify, authorization divided into 3 core aspects; **modeling**, **storing a
 - Learn how Permify [Store Authorization Data] as relations.
 - Perform an [Access Checks] anywhere in your stack.
 
-[Model your Authorization]: /docs/getting-started/modeling
-[Store Authorization Data]: /docs/getting-started/sync-data
-[Access Checks]: /docs/getting-started/enforcement
+[Model your Authorization]: ../getting-started/modeling
+[Store Authorization Data]: ../getting-started/sync-data
+[Access Checks]: ../getting-started/enforcement
 
 This document explains how Permify handles these aspects to provide a robust and scalable authorization system for your applications. For the ones that want trying out and examine it instantly, 
 
