@@ -7228,10 +7228,10 @@ react-id-swiper@^4.0.0:
   dependencies:
     object-assign "^4.1.1"
 
-react-image-gallery@1.2.7:
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/react-image-gallery/-/react-image-gallery-1.2.7.tgz#2dfb83c52f32828a5340ca565f91bca58241fcfe"
-  integrity sha512-ts7yMWykvZhslGMuvVAUk7a1dJIx9QtIwK6Clv8dOGxPsJid92FRrLvXbZDvkYcUyj48sHalnBhqU6mZNCB2jg==
+react-image-gallery@1.2.11:
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/react-image-gallery/-/react-image-gallery-1.2.11.tgz#707331e71b02964f00c1f3ab98e9efe071ff9f15"
+  integrity sha512-YLMCdNSCf3YPhRmnjEOdEZGEXghTMx4o3dlAqd0rz0nAyebUvTz/xJnIHPActbPSHCvVJgt5A09EPHYbGqw++w==
 
 react-image@^4.0.3:
   version "4.0.3"
