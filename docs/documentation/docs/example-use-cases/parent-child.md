@@ -5,9 +5,7 @@ See how parent child relations can model in Permify. In this use case we'll foll
 
 [Permify Schema]: ../getting-started/modeling
 
--------
-
-## Full Schema
+Before we get started, here's the final schema that we will create in this tutorial.
 
 ```perm
 entity user {}

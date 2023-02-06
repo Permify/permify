@@ -138,8 +138,9 @@ module.exports = {
 				"example-use-cases/organizational",
 				"example-use-cases/ownership",
 				"example-use-cases/parent-child",
+				"example-use-cases/nested-hierarchies",
+				"example-use-cases/user-groups",
 				"example-use-cases/sharing",
-				"example-use-cases/user-groups"
 			],
 			collapsed: true,
 		},

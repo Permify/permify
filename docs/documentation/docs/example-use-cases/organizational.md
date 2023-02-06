@@ -1,14 +1,12 @@
 
 
-# Organizations & Hierarchies
+# Organization Specific Resources
 
-Group your users by organization with giving them access organzational-wide resources. In this use case we'll follow a simplified version of Github's access control that shows how to model basic repository push, read and delete permissions with Permify's DSL, [Permify Schema].
+Group your users by organization with giving them access organizational-wide resources. In this use case we'll follow a simplified version of Github's access control that shows how to model basic repository push, read and delete permissions with Permify's DSL, [Permify Schema].
 
 [Permify Schema]: ../getting-started/modeling
 
--------
-
-## Full Schema
+Before we get started, here's the final schema that we will create in this tutorial.
 
 ```perm
 entity user {} 

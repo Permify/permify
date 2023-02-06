@@ -5,7 +5,7 @@ Granting privileges to the owner of the resource is a common pattern that many a
 
 [Permify Schema]: ../getting-started/modeling
 
--------
+Before we get started, here's the final schema that we will create in this tutorial.
 
 ```perm
 entity user {}

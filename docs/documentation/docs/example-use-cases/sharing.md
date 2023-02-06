@@ -5,7 +5,7 @@ Inviting a team member to a document, project or repository should be hassle fre
 
 [Permify Schema]: ../getting-started/modeling
 
--------
+Before we get started, here's the final schema that we will create in this tutorial.
 
 ```perm
 entity user {}
