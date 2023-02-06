@@ -6950,30 +6950,29 @@ rc-drawer@^6.0.0:
     rc-motion "^2.6.1"
     rc-util "^5.21.2"
 
-rc-dropdown@^3.2.0:
-  version "3.6.2"
-  resolved "https://registry.yarnpkg.com/rc-dropdown/-/rc-dropdown-3.6.2.tgz#d23b8b2762941ac39e665673946f67ca9c39118f"
-  integrity sha512-Wsw7GkVbUXADEs8FPL0v8gd+3mWQiydPFXBlr2imMScQaf8hh79pG9KrBc1DwK+nqHmYOpQfK2gn6jG2AQw9Pw==
+rc-dropdown@~4.0.0:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/rc-dropdown/-/rc-dropdown-4.0.1.tgz#f65d9d3d89750241057db59d5a75e43cd4576b68"
+  integrity sha512-OdpXuOcme1rm45cR0Jzgfl1otzmU4vuBVb+etXM8vcaULGokAKVpKlw8p6xzspG7jGd/XxShvq+N3VNEfk/l5g==
   dependencies:
-    "@babel/runtime" "^7.10.1"
+    "@babel/runtime" "^7.18.3"
     classnames "^2.2.6"
-    rc-trigger "^5.0.4"
+    rc-trigger "^5.3.1"
     rc-util "^5.17.0"
 
-rc-menu@^9.0.0:
-  version "9.8.1"
-  resolved "https://registry.yarnpkg.com/rc-menu/-/rc-menu-9.8.1.tgz#988cd807f78d2f92eab686f6813f50b165f78405"
-  integrity sha512-179weouypfjWJSRvvoo/vPy+StojsMzK2XC5jRNhL1ryt/N/8wAFESte8K6jZJkNp9DHDLFTe+dCGmikKpiFuA==
+rc-menu@~9.8.0:
+  version "9.8.2"
+  resolved "https://registry.yarnpkg.com/rc-menu/-/rc-menu-9.8.2.tgz#179df4ea0fc46fffb7a21e18d3cddb901ce35986"
+  integrity sha512-EahOJVjLuEnJsThoPN+mGnVm431RzVzDLZWHRS/YnXTQULa7OsgdJa/Y7qXxc3Z5sz8mgT6xYtgpmBXLxrZFaQ==
   dependencies:
     "@babel/runtime" "^7.10.1"
     classnames "2.x"
     rc-motion "^2.4.3"
     rc-overflow "^1.2.8"
     rc-trigger "^5.1.2"
-    rc-util "^5.12.0"
-    shallowequal "^1.1.0"
+    rc-util "^5.27.0"
 
-rc-motion@^2.0.0, rc-motion@^2.3.4, rc-motion@^2.4.3, rc-motion@^2.6.1:
+rc-motion@^2.0.0, rc-motion@^2.3.4, rc-motion@^2.4.3, rc-motion@^2.6.1, rc-motion@^2.6.2:
   version "2.6.3"
   resolved "https://registry.yarnpkg.com/rc-motion/-/rc-motion-2.6.3.tgz#e6d8ca06591c2c1bcd3391a8e7a822ebc4d94e9c"
   integrity sha512-xFLkes3/7VL/J+ah9jJruEW/Akbx5F6jVa2wG5o/ApGKQKSOd5FR3rseHLL9+xtJg4PmCwo6/1tqhDO/T+jFHA==
@@ -7011,19 +7010,20 @@ rc-resize-observer@^1.0.0:
     rc-util "^5.27.0"
     resize-observer-polyfill "^1.5.1"
 
-rc-tabs@11.10.1:
-  version "11.10.1"
-  resolved "https://registry.yarnpkg.com/rc-tabs/-/rc-tabs-11.10.1.tgz#7b112f78bac998480c777ae160adc425e3fdb7cb"
-  integrity sha512-ey1i2uMyfnRNYbViLcUYGH+Y7hueJbdCVSLaXnXki9hxBcGqxJMPy9t5xR0n/3QFQspj7Tf6+2VTXVtmO7Yaug==
+rc-tabs@12.5.6:
+  version "12.5.6"
+  resolved "https://registry.yarnpkg.com/rc-tabs/-/rc-tabs-12.5.6.tgz#611728575d5f3ef010a8e5e75d2c1b67bb71e86a"
+  integrity sha512-aArXHzxK7YICxe+622CZ8FlO5coMi8P7E6tXpseCPKm1gdTjUt0LrQK1/AxcrRXZXG3K4QqhlKmET0+cX5DQaQ==
   dependencies:
     "@babel/runtime" "^7.11.2"
     classnames "2.x"
-    rc-dropdown "^3.2.0"
-    rc-menu "^9.0.0"
+    rc-dropdown "~4.0.0"
+    rc-menu "~9.8.0"
+    rc-motion "^2.6.2"
     rc-resize-observer "^1.0.0"
-    rc-util "^5.5.0"
+    rc-util "^5.16.0"
 
-rc-trigger@^5.0.4, rc-trigger@^5.1.2:
+rc-trigger@^5.1.2, rc-trigger@^5.3.1:
   version "5.3.4"
   resolved "https://registry.yarnpkg.com/rc-trigger/-/rc-trigger-5.3.4.tgz#6b4b26e32825677c837d1eb4d7085035eecf9a61"
   integrity sha512-mQv+vas0TwKcjAO2izNPkqR4j86OemLRmvL2nOzdP9OWNWA1ivoTt5hzFqYNW9zACwmTezRiN8bttrC7cZzYSw==
@@ -7034,10 +7034,10 @@ rc-trigger@^5.0.4, rc-trigger@^5.1.2:
     rc-motion "^2.0.0"
     rc-util "^5.19.2"
 
-rc-util@^5.12.0, rc-util@^5.16.1, rc-util@^5.17.0, rc-util@^5.19.2, rc-util@^5.21.0, rc-util@^5.21.2, rc-util@^5.24.4, rc-util@^5.26.0, rc-util@^5.27.0, rc-util@^5.5.0:
-  version "5.27.1"
-  resolved "https://registry.yarnpkg.com/rc-util/-/rc-util-5.27.1.tgz#d12f02b9577b04299c0f1a235c8acbcf56e2824b"
-  integrity sha512-PsjHA+f+KBCz+YTZxrl3ukJU5RoNKoe3KSNMh0xGiISbR67NaM9E9BiMjCwxa3AcCUOg/rZ+V0ZKLSimAA+e3w==
+rc-util@^5.16.0, rc-util@^5.16.1, rc-util@^5.17.0, rc-util@^5.19.2, rc-util@^5.21.0, rc-util@^5.21.2, rc-util@^5.24.4, rc-util@^5.26.0, rc-util@^5.27.0:
+  version "5.27.2"
+  resolved "https://registry.yarnpkg.com/rc-util/-/rc-util-5.27.2.tgz#472a7bab26a62856c2c016d18dc6356e46d01012"
+  integrity sha512-8XHRbeJOWlTR2Hk1K2xLaPOf7lZu+3taskAGuqOPccA676vB3ygrz3ZgdrA3wml40CzR9RlIEHDWwI7FZT3wBQ==
   dependencies:
     "@babel/runtime" "^7.18.3"
     react-is "^16.12.0"
