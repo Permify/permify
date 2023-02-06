@@ -4,11 +4,13 @@ sidebar_position: 1
 
 # Modeling Authorization
 
+Permify has its own language that you can model your authorization logic with it, we called it **Permify Schema**. 
+
+The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like user types such as admin, manager, member, etc.
+
 ![modeling-authorization](https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif)
 
 ## Permify Schema
-
-Permify has its own language that you can model your authorization logic with it, we called it Permify Schema. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like user types such as admin, manager, member, etc.
 
 You can define your entities, relations between them and access control decisions with using Permify Schema. It includes set-algebraic operators such as inter- section and union for specifying potentially complex access control policies in terms of those user-object relations.
 
@@ -31,7 +33,7 @@ You can start developing Permify Schema on [VSCode]. You can install the extensi
 
 :::
 
-### Entities
+### Defining Entities
 
 The very first step to build Permify Schema is creating your Entities. Entity is an object that defines your resources that held role in your permission system.
 
@@ -54,7 +56,7 @@ Entities has 2 different attributes. These are;
 - **relations**
 - **actions**
 
-### Relations
+### Defining Relations
 
 Relations represent relationships between entities. It's probably the most critical part of the schema because Permify mostly based on relations between resources and their permissions. Keyword **_relation_** need to used to create a entity relation with name and type attributes.
 
@@ -134,11 +136,14 @@ As you can see we have new syntax above,
 
 When we look at the maintainer relation, it indicates that the maintainer can be an `user` as well as this user can be a `team member`.
 
-**_Quick note here:_** with using # you can reach entities relation. When we look at the `@team#member` it specifies that if the user has a relation with the team, this relation can only be the `member`. We called that feature locking, because it basically locks the relation type according to the prefixed entity.
+:::info
+You can use **#** to reach entities relation. When we look at the `@team#member` it specifies that if the user has a relation with the team, this relation can only be the `member`. We called that feature locking, because it basically locks the relation type according to the prefixed entity.
+:::
+
 
 Defining multiple relation types totally optional. The goal behind it to improve validation and reasonability. And for complex models, it allows you to model your entities in a more structured way.
 
-### Actions
+### Defining Actions
 
 Actions describe what relations, or relation’s relation can do. Think of actions as permissions of the entity it belongs. So actions defines who can perform a specific action on a resource in which circumstances. So, the basic form of authorization check in Permify is **_Can the user U perform action X on a resource Y ?_**.
 
@@ -197,7 +202,7 @@ delete action can inherit the edit action rules like above. To sum up, only orga
 
 :::
 
-## Github Example
+### Full Schema
 
 Here is full implementation of simple Github access control example with using Permify Schema.
 
@@ -238,4 +243,6 @@ entity repository {
 }
 ```
 
-See more schema examples from the [Example Use Cases](../example-use-cases/simple-rbac) section with their detailed examination.
+## Common Use Cases
+
+This example shows almost all aspects of the Permify Schema. You can check out more schema examples from the [Common Use Cases](../example-use-cases) section with their detailed examination.

@@ -8,9 +8,7 @@ Want to implement role and permissions to your application ? Permify fully cover
 
 [Permify Schema]: ../getting-started/modeling
 
--------
-
-## Full Schema
+Before we get started, here's the final schema that we will create in this tutorial.
 
 ```perm
 entity user {} 
