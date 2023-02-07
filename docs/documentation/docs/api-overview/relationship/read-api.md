@@ -7,7 +7,7 @@ Read API allows for directly querying the stored graph data to display and filte
 
 ## Request
 
-**Path:** POST /v1/tenants/{tenant_id/relationship/read
+**Path:** POST /v1/tenants/{tenant_id/relationships/read
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
