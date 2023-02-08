@@ -463,8 +463,8 @@ go.opentelemetry.io/contrib/instrumentation/runtime v0.38.0 h1:uTd4XAyfZ51V5w+ZO
 go.opentelemetry.io/contrib/instrumentation/runtime v0.38.0/go.mod h1:LYI0Tb+eGfyp/IRpjSSERc3rv/3FT/IjqUeNNTZdJRQ=
 go.opentelemetry.io/otel v1.13.0 h1:1ZAKnNQKwBBxFtww/GwxNUyTf0AxkZzrukO8MeXqe4Y=
 go.opentelemetry.io/otel v1.13.0/go.mod h1:FH3RtdZCzRkJYFTCsAKDy9l/XYjMdNv6QrkFFB8DvVg=
-go.opentelemetry.io/otel/exporters/jaeger v1.12.0 h1:1Vy11S0iAD70EPfcP3N2f2IhLq/cIuTW+Zt010MswR8=
-go.opentelemetry.io/otel/exporters/jaeger v1.12.0/go.mod h1:SCLbaspEoU9mGJZB6ksc2iSGU6CLWY5yefchDqOM0IM=
+go.opentelemetry.io/otel/exporters/jaeger v1.13.0 h1:VAMoGujbVV8Q0JNM/cEbhzUIWWBxnEqH45HP9iBKN04=
+go.opentelemetry.io/otel/exporters/jaeger v1.13.0/go.mod h1:fHwbmle6mBFJA1p2ZIhilvffCdq/dM5UTIiCOmEjS+w=
 go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.13.0 h1:pa05sNT/P8OsIQ8mPZKTIyiBuzS/xDGLVx+DCt0y6Vs=
 go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.13.0/go.mod h1:rqbht/LlhVBgn5+k3M5QK96K5Xb0DvXpMJ5SFQpY6uw=
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.36.0 h1:9uzubQUMa9RsQqQZc0Btl51pTLMdHgDHJszg6839rBQ=
