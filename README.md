@@ -11,7 +11,10 @@
     <a href="https://discord.gg/MJbUjwskdH" target="_blank"><img src="https://img.shields.io/discord/950799928047833088?style=for-the-badge&logo=discord&label=DISCORD" alt="Permify Discord Channel" /></a>&nbsp;
     <a href="https://github.com/Permify/permify/pkgs/container/permify" target="_blank"><img src="https://img.shields.io/github/v/release/permify/permify?include_prereleases&style=for-the-badge" alt="Permify Release" /></a>&nbsp;
     <a href="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge" alt="Permify Commit Activity" /></a>&nbsp;
+    <a href="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" alt="GitHub Workflow Status" /></a>&nbsp;
+    <a href="https://play.permify.co" target="_blank"><img src="https://img.shields.io/badge/Try-Permify%20Playground-blueviolet?style=for-the-badge" alt="Try Permify" /></a>
 </p>
+
 <p align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif" alt="Permify - Open source authorization as a service" />
 </p>
@@ -74,7 +77,7 @@ This will start Permify with the default configuration options:
 
 See [all of the options] that you can use to set up and deploy Permify in your servers.
 
-[all of the options]: https://www.permify.co/docs/installation
+[all of the options]: https://docs.permify.co/docs/installation
 
 ### Test your connection
 
@@ -92,11 +95,11 @@ localhost:3476/healthz
 - Take a look at the overview of [Permify API].
 - See [our article] to examine Google Zanzibar In A Nutshell.
 
-[Set Up & Run Permify Service]: https://www.permify.co/docs/installation
-[Permify Schema]: https://www.permify.co/docs/getting-started/modeling
+[Set Up & Run Permify Service]: https://docs.permify.co/docs/installation
+[Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
 [playground]: https://play.permify.co/
-[Permify API]: https://www.permify.co/docs/api-overview
-[our article]: https://www.permify.co/blog/google-zanzibar-in-a-nutshell
+[Permify API]: https://docs.permify.co/docs/api-overview
+[our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger)

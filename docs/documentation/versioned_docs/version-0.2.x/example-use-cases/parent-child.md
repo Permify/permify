@@ -3,7 +3,7 @@
 
 See how parent child relations can model in Permify. In this use case we'll follow a simple student-calendar management system with Permify's DSL, [Permify Schema].
 
-[Permify Schema]: /docs/getting-started/modeling
+[Permify Schema]: ../getting-started/modeling
 
 -------
 

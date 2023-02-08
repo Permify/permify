@@ -120,7 +120,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationsh
 
 You can store that snap token alongside with the resource in your relational database, then use it used in endpoints to get fresh results from the API's. For example it can be used in access control check with sending via `snap_token` field to ensure getting check result as fresh as previous request.
 
-See more details on what is [Snap Tokens](/docs/reference/snap-tokens) and how its avoiding stale cache.
+See more details on what is [Snap Tokens](../../reference/snap-tokens) and how its avoiding stale cache.
 
 ## Suggested Workflow 
 

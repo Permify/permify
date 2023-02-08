@@ -3,9 +3,9 @@
 
 Granting privileges to the owner of the resource is a common pattern that many applications follow. Generally we want creators of the resource - document, post, comment etc -  have superior power on that resource. Check out the below model see how ownership can be modeled with Permify's DSL, [Permify Schema].
 
-[Permify Schema]: /docs/getting-started/modeling
+[Permify Schema]: ../getting-started/modeling
 
--------
+Before we get started, here's the final schema that we will create in this tutorial.
 
 ```perm
 entity user {}

@@ -125,11 +125,6 @@ module.exports = {
 			id: "migrating",
 			label: "Migrating From 0.2.x to 0.3.x",
 		},
-		/* {
-			type: "doc",
-			id: "comparison",
-			label: "Comparision",
-		}, */
 		{
 			type: "category",
 			label: "Common Use Cases",
@@ -143,8 +138,9 @@ module.exports = {
 				"example-use-cases/organizational",
 				"example-use-cases/ownership",
 				"example-use-cases/parent-child",
+				"example-use-cases/nested-hierarchies",
+				"example-use-cases/user-groups",
 				"example-use-cases/sharing",
-				"example-use-cases/user-groups"
 			],
 			collapsed: true,
 		},
