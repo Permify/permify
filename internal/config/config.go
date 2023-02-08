@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/spf13/viper"
 )
 
@@ -47,8 +49,11 @@ type (
 
 	// Authn -.
 	Authn struct {
-		Enabled bool     `mapstructure:"enabled"`
-		Keys    []string `mapstructure:"keys"`
+		Enabled      bool     `mapstructure:"enabled"`
+		Method       string   `mapstructure:"method"`
+		Keys         []string `mapstructure:"keys"`
+		PrivateToken string   `mapstructure:"private_token"`
+		Algorithms   []string `mapstructure:"algorithms"`
 	}
 
 	// Profiler -.
@@ -102,10 +107,11 @@ func NewConfig() (*Config, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config")
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return nil, fmt.Errorf("failed to load server config: %w", err)
+		err = viper.ReadInConfig()
+		if err != nil {
+			if ok := errors.As(err, viper.ConfigFileNotFoundError{}); !ok {
+				return nil, fmt.Errorf("failed to load server config: %w", err)
+			}
 		}
 	}
 
