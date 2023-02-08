@@ -10,6 +10,7 @@ import (
 	"time"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpcValidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -24,7 +25,8 @@ import (
 
 	health "google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/Permify/permify/internal/authn"
+	"github.com/Permify/permify/internal/authn/multitenant"
+	"github.com/Permify/permify/internal/authn/preshared"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/servers/middleware"
 	"github.com/Permify/permify/internal/services"
@@ -56,11 +58,27 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		grpcRecovery.StreamServerInterceptor(),
 	}
 
-	var authenticator authn.KeyAuthenticator
 	if authentication != nil && authentication.Enabled {
-		authenticator, err = authn.NewKeyAuthn(authentication.Keys...)
-		unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.AuthFunc(authenticator)))
-		streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.AuthFunc(authenticator)))
+		switch authentication.Method {
+		case "preshared":
+			var authenticator *preshared.KeyAuthn
+			authenticator, err = preshared.NewKeyAuthn(authentication.Keys...)
+			if err != nil {
+				return err
+			}
+			unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.KeyAuthFunc(authenticator)))
+			streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.KeyAuthFunc(authenticator)))
+		case "multitenant":
+			var authenticator *multitenant.TenantAuthn
+			authenticator, err = multitenant.NewTenantAuthn(authentication.PrivateToken, authentication.Algorithms)
+			if err != nil {
+				return err
+			}
+			unaryInterceptors = append(unaryInterceptors, multitenant.UnaryServerInterceptor(authenticator))
+			streamingInterceptors = append(streamingInterceptors, multitenant.StreamServerInterceptor(authenticator))
+		default:
+			return err
+		}
 	}
 
 	opts := []grpc.ServerOption{

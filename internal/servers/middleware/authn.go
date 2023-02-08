@@ -5,11 +5,11 @@ import (
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
-	"github.com/Permify/permify/internal/authn"
+	"github.com/Permify/permify/internal/authn/preshared"
 )
 
-// AuthFunc - Middleware that responsible for key authentication
-func AuthFunc(authenticator authn.KeyAuthenticator) grpcAuth.AuthFunc {
+// KeyAuthFunc - Middleware that responsible for key authentication
+func KeyAuthFunc(authenticator preshared.KeyAuthenticator) grpcAuth.AuthFunc {
 	return func(ctx context.Context) (context.Context, error) {
 		err := authenticator.Authenticate(ctx)
 		if err != nil {
