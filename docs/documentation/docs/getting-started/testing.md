@@ -23,7 +23,7 @@ After adding [permify-validate-action] to your Github Action workflow, you need 
 - **With local file:**
 ```yaml
 steps:
-- uses: "permify/permify-validate-action@v1"
+- uses: "permify/permify-validate-action@v1.0.0"
   with:
     validationFile: "test.yaml"
 ```
@@ -31,7 +31,7 @@ steps:
 - **With external url:**
 ```yaml
 steps:
-- uses: "permify/permify-validate-action@v1"
+- uses: "permify/permify-validate-action@v1.0.0"
   with:
     validationFile: "https://gist.github.com/permify-bot/bb8f95acb64525d2a41688ae0a6f4274"
 ```
