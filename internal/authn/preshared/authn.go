@@ -1,19 +1,12 @@
-package authn
+package preshared
 
 import (
 	"context"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
-	base "github.com/Permify/permify/pkg/pb/base/v1"
-)
-
-var (
-	Unauthenticated         = status.Error(codes.Code(base.ErrorCode_ERROR_CODE_UNAUTHENTICATED), "unauthenticated")
-	MissingBearerTokenError = status.Error(codes.Code(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN), "missing bearer token")
+	"github.com/Permify/permify/internal/authn"
 )
 
 // KeyAuthenticator - Interface for key authenticator
@@ -23,7 +16,7 @@ type KeyAuthenticator interface {
 
 // KeyAuthn - Authentication Keys Structure
 type KeyAuthn struct {
-	Keys map[string]struct{}
+	keys map[string]struct{}
 }
 
 // NewKeyAuthn - Create New Authenticated Keys
@@ -36,7 +29,7 @@ func NewKeyAuthn(keys ...string) (*KeyAuthn, error) {
 		mapKeys[k] = struct{}{}
 	}
 	return &KeyAuthn{
-		Keys: mapKeys,
+		keys: mapKeys,
 	}, nil
 }
 
@@ -44,10 +37,10 @@ func NewKeyAuthn(keys ...string) (*KeyAuthn, error) {
 func (a *KeyAuthn) Authenticate(ctx context.Context) error {
 	key, err := grpcAuth.AuthFromMD(ctx, "Bearer")
 	if err != nil {
-		return MissingBearerTokenError
+		return authn.MissingBearerTokenError
 	}
-	if _, found := a.Keys[key]; found {
+	if _, found := a.keys[key]; found {
 		return nil
 	}
-	return Unauthenticated
+	return authn.Unauthenticated
 }
