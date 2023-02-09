@@ -107,11 +107,10 @@ func NewConfig() (*Config, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config")
 
-		err = viper.ReadInConfig()
-		if err != nil {
-			if ok := errors.As(err, viper.ConfigFileNotFoundError{}); !ok {
-				return nil, fmt.Errorf("failed to load server config: %w", err)
-			}
+	err := viper.ReadInConfig()
+	if err != nil {
+		if ok := errors.As(err, viper.ConfigFileNotFoundError{}); !ok {
+			return nil, fmt.Errorf("failed to load server config: %w", err)
 		}
 	}
 
