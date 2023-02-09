@@ -43,16 +43,21 @@ server:
       key: /etc/letsencrypt/live/yourdomain.com/privkey.pem
 
 logger:
-  level: 'debug'
+  level: 'info'
+
+profiler:
+  enabled: true
+  port: 6060
 
 authn:
+  method: preshared
   enabled: false
   keys: []
 
 tracer:
   exporter: 'zipkin'
   endpoint: 'http://localhost:9411/api/v2/spans'
-  enabled: false
+  enabled: true
 
 meter:
   exporter: 'otlp'
@@ -61,17 +66,22 @@ meter:
 
 service:
   circuit_breaker: false
-  concurrency_limit: 100
-
-profiler:
-  enabled: true
-  port: 6060
+  schema:
+    cache:
+      number_of_counters: 1_000
+      max_cost: 10MiB
+  permission:
+    concurrency_limit: 100
+    cache:
+      number_of_counters: 10_000
+      max_cost: 10MiB
+  relationship:
 
 database:
   engine: 'postgres'
   uri: 'postgres://user:password@host:5432/db_name'
-  auto_migrate: true
-  max_open_connections: 100
+  auto_migrate: false
+  max_open_connections: 20
   max_idle_connections: 1
   max_connection_lifetime: 300s
   max_connection_idle_time: 60s
@@ -193,33 +203,114 @@ On this method, you must provide a pre shared keys in order to identify yourself
 </p>
 </details>
 
-* **tracer** (optional)
-  * **exporter:** Permify integrated with [jaeger] , [signoz] and [zipkin] tacing tools. See our [change log] about tracing performance of your authorization.
-  * **endpoint:** export uri for tracing data.
-  * **enabled:** switch option for tracing. *(default: false)*
 
-* **meter** (optional)
-  * **exporter:** [otpl](https://opentelemetry.io/docs/collector/) is default.
-  * **endpoint:** export uri to observe metrics; check count, cache check count and session information; Permify version, hostname, os, arch. 
-  * **enabled:** switch option for meter tracing. *(default: true)*
+<details><summary>tracer | Tracing Configurations</summary>
+<p>
 
-* **database** : Points out where your want to store your authorization data (relation tuples, audits, decision logs, authorization model )
-  * **engine:** Data source. Permify supports **PostgreSQL**(`'postgres'`) for now. Contact with us for your preferred database. *(default: memory)*
-  * **uri:** Uri of your data source.
-  * **auto_migrate** : When its false migrating flow won't work *(default: true)*
-  * **max_open_connections:** configuration parameter determines the maximum number of concurrent connections to the database that are allowed. *(default: 20)*
-  * **max_idle_connections:** which determines the maximum number of idle connections that can be held in the connection pool.  *(default: 1)*
-  * **max_connection_lifetime:** configuration parameter determines the maximum lifetime of a connection in seconds.,  *(default: 300s)*
-  * **max_connection_idle_time:** configuration parameter determines the maximum time in seconds that a connection can remain idle before it is closed.  *(default: 60s)*
+#### Definition
+Permify integrated with [jaeger] , [signoz] and [zipkin] tacing tools to analyze performance and behavior of your authorization when using Permify.
+#### Structure
+```
+├── tracer
+|   ├── exporter
+|   ├── endpoint
+|   ├── enabled
+```
 
-* **profiler** : pprof is a performance profiler for Go programs. It allows developers to analyze and understand the performance characteristics of their code by generating detailed profiles of program execution
-  * **enabled:** switch option for profiler. *(default: true)*
-  * **port:** port that profiler runs on *(default: 6060)*
+#### Glossary
+
+| Required | Argument | Default | Description |
+|----------|----------|---------|---------|
+| [x]   | exporter | - | Tracer exporter, the options are `jaeger`, `signoz` and `zipkin`
+| [x]   | endpoint | - | export uri for tracing data.  |
+| [ ]   | enabled | false | switch option for tracing. 
+
+</p>
+</details>
+
+<details><summary>meter | Meter Configurations</summary>
+<p>
+
+#### Definition
+Configuration for observing metrics; check count, cache check count and session information; Permify version, hostname, os, arch. 
+
+#### Structure
+```
+├── meter
+|   ├── exporter
+|   ├── endpoint
+|   ├── enabled
+```
+
+#### Glossary
+
+| Required | Argument | Default | Description |
+|----------|----------|---------|---------|
+| [x]   | exporter | - | [otpl](https://opentelemetry.io/docs/collector/) is default.
+| [x]   | endpoint | - | export uri for metric observation  |
+| [ ]   | enabled | true |  switch option for meter tracing.
+
+</p>
+</details>
+
+<details><summary>database | Database (WriteDB) Configurations</summary>
+<p>
+
+#### Definition
+Configurations for the database that points out where your want to store your authorization data (relation tuples, audits, decision logs, authorization model) 
+
+#### Structure
+```
+├── database
+|   ├── engine
+|   ├── uri
+|   ├── auto_migrate
+|   ├── max_open_connections
+|   ├── max_idle_connections
+|   ├── max_connection_lifetime
+|   ├── max_connection_idle_time
+```
+
+#### Glossary
+
+| Required | Argument | Default | Description |
+|----------|----------|---------|---------|
+| [x]   | engine | memory | Data source. Permify supports **PostgreSQL**(`'postgres'`) for now. Contact with us for your preferred database.  
+| [x]   | uri | - | Uri of your data source.  |
+| [ ]   | auto_migrate | true |  When its configured as false migrating flow won't work 
+| [ ]   | max_open_connections | 20 | Configuration parameter determines the maximum number of concurrent connections to the database that are allowed. 
+| [ ]   | max_idle_connections | 1 |  Determines the maximum number of idle connections that can be held in the connection pool.
+| [ ]   | max_connection_lifetime | 300s | Determines the maximum lifetime of a connection in seconds.
+| [ ]   | max_connection_idle_time | 60s | Determines the maximum time in seconds that a connection can remain idle before it is closed.
+
+</p>
+</details>
+
+<details><summary>profiler | Performance Profiler Configurations</summary>
+<p>
+
+#### Definition
+pprof is a performance profiler for Go programs. It allows developers to analyze and understand the performance characteristics of their code by generating detailed profiles of program execution
+#### Structure
+```
+├── meter
+|   ├── enabled
+|   ├── port
+```
+
+#### Glossary
+
+| Required | Argument | Default | Description |
+|----------|----------|---------|---------|
+| [ ]   | enabled | true |  switch option for profiler.
+| [x]   | port | - | port that profiler runs on *(default: 6060)*  |
+
+</p>
+</details>
 
 [jaeger]: https://www.jaegertracing.io/
 [zipkin]: https://zipkin.io/
 [signoz]: https://signoz.io/
-[change log]: https://www.permify.co/change-log/integration-with-tracing-tools-jaeger-signoz-and-zipkin
 
 ### Configure With Using Flags
 
