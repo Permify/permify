@@ -6,7 +6,7 @@ title: "Docker Container"
 
 This section shows how to run Permify Service from a docker container. You can run Permify service from a container with following steps.
 
-### Run following line on Terminal
+## Run following line on Terminal
 
 ```shell
 docker run -p 3476:3476 -p 3478:3478 -v {YOUR-CONFIG-PATH}:/config ghcr.io/permify/permify serve
@@ -20,9 +20,7 @@ This config path - `{YOUR-CONFIG-PATH}:/config` - addresses [config yaml file](#
 By default, the container is configured to listen on ports 3476 (HTTP) and 3478 (gRPC) and store the authorization data in memory rather than an actual database.
 :::
 
-Permify designed to be store authorization data in a database you prefer as relation tuples. We called that database **‘writeDB’**. Additional to other configuration options, you can also define (point out) your **‘writeDB’** on the configuration YAML file as well.
-
-### Configuration File
+## Configuration File
 
 Here is the example configuration YAML file with descriptions below. You can also find this [example config file](https://github.com/Permify/permify/blob/master/example.config.yaml) in Permify repo.
 
@@ -78,13 +76,43 @@ database:
   max_connection_lifetime: 300s
   max_connection_idle_time: 60s
 ```
-* **server:** Server options to run Permify. (`grpc` and `http` available for now.)
-  * **grpc:** example, same configurations for `http` option.
-    * **port:** port that server run on.
-    * **tls:** transport layer security options.
-       * **enabled** switch option for tls, *(default: false)*.
-       * **cert** tls certificate path.
-       * **key** tls key path.
+
+### Options
+
+<details><summary>server</summary>
+<p>
+
+#### Definition
+Server options to run Permify. (`grpc` and `http` available for now.)
+
+#### Structure
+```
+├── server
+    ├── (`grpc` or `http`)
+    │   ├── enabled
+    │   ├── port
+    │   └── tls
+    │       ├── enabled
+    │       ├── cert
+    │       └── key
+```
+
+#### Glossary
+
+| Required | Argument | Default | Description |
+|----------|----------|---------|---------|
+| [x]   | [ server_type ] | - | server option type can either be `grpc` or `http`.
+| [ ]   | enabled (for server type) | true | switch option for server.  |
+| [x]   | port | - | port that server run on.
+| [x]   | tls | - | transport layer security options. |
+| [ ]   | enabled (for tls) | false | switch option for tls  |
+| [ ]   | cert | - | tls certificate path.  |
+| [ ]   | key | - | tls key pat  |
+
+</p>
+</details>
+
+
 
 * **logger**
   * **level:** Real time logs of authorization. Permify uses [zerolog] as a logger.
