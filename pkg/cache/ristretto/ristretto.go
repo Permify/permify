@@ -2,12 +2,13 @@ package ristretto
 
 import (
 	"github.com/dgraph-io/ristretto"
+	`github.com/dustin/go-humanize`
 )
 
 // Ristretto - Structure for Ristretto
 type Ristretto struct {
 	numCounters int64
-	maxCost     int64
+	maxCost     string
 	bufferItems int64
 
 	*ristretto.Cache
@@ -18,7 +19,7 @@ func New(opts ...Option) (*Ristretto, error) {
 	rs := &Ristretto{
 		numCounters: _defaultNumCounters,
 		maxCost:     _defaultMaxCost,
-		bufferItems: _defaultBufferItems,
+		bufferItems: 64,
 	}
 
 	// Custom options
@@ -26,9 +27,14 @@ func New(opts ...Option) (*Ristretto, error) {
 		opt(rs)
 	}
 
+	mc, err := humanize.ParseBytes(rs.maxCost)
+	if err != nil {
+		return nil, err
+	}
+
 	c, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: rs.numCounters,
-		MaxCost:     rs.maxCost,
+		MaxCost:     int64(mc),
 		BufferItems: rs.bufferItems,
 	})
 

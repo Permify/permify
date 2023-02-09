@@ -122,14 +122,14 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// schema cache
 		var schemaCache cache.Cache
-		schemaCache, err = ristretto.New()
+		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Schema.Cache.MaxCost))
 		if err != nil {
 			l.Fatal(err)
 		}
 
 		// commands cache keys
 		var commandsKeyCache cache.Cache
-		commandsKeyCache, err = ristretto.New()
+		commandsKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Permission.Cache.MaxCost))
 		if err != nil {
 			l.Fatal(err)
 		}
@@ -159,7 +159,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// commands
 		var checkCommand *commands.CheckCommand
-		checkCommand, err = commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader, meter, commands.ConcurrencyLimit(cfg.Service.ConcurrencyLimit))
+		checkCommand, err = commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader, meter, commands.ConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
 		if err != nil {
 			l.Fatal(err)
 		}

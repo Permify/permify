@@ -83,8 +83,30 @@ type (
 
 	// Service -.
 	Service struct {
-		CircuitBreaker   bool `mapstructure:"circuit_breaker"`
-		ConcurrencyLimit int  `mapstructure:"concurrency_limit"`
+		CircuitBreaker bool         `mapstructure:"circuit_breaker"`
+		Schema         Schema       `mapstructure:"schema"`
+		Permission     Permission   `mapstructure:"permission"`
+		Relationship   Relationship `mapstructure:"relationship"`
+	}
+
+	// Schema -.
+	Schema struct {
+		Cache Cache `mapstructure:"cache"`
+	}
+
+	// Permission -.
+	Permission struct {
+		ConcurrencyLimit int   `mapstructure:"concurrency_limit"`
+		Cache            Cache `mapstructure:"cache"`
+	}
+
+	// Relationship -.
+	Relationship struct{}
+
+	// Cache -.
+	Cache struct {
+		NumberOfCounters int64  `mapstructure:"number_of_counters"`
+		MaxCost          string `mapstructure:"max_cost"`
 	}
 
 	// Database -.
@@ -156,8 +178,21 @@ func DefaultConfig() *Config {
 			Endpoint: "telemetry.permify.co",
 		},
 		Service: Service{
-			CircuitBreaker:   false,
-			ConcurrencyLimit: 100,
+			CircuitBreaker: false,
+			Schema: Schema{
+				Cache: Cache{
+					NumberOfCounters: 1_000,
+					MaxCost:          "10MiB",
+				},
+			},
+			Permission: Permission{
+				ConcurrencyLimit: 100,
+				Cache: Cache{
+					NumberOfCounters: 10_000,
+					MaxCost:          "10MiB",
+				},
+			},
+			Relationship: Relationship{},
 		},
 		Authn: Authn{
 			Enabled: false,
