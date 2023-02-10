@@ -21,6 +21,7 @@ profiler:
   port: 6060
 
 authn:
+  method: preshared
   enabled: false
   keys: []
 
@@ -36,7 +37,16 @@ meter:
 
 service:
   circuit_breaker: false
-  concurrency_limit: 100
+  schema:
+    cache:
+      number_of_counters: 1_000
+      max_cost: 10MiB
+  permission:
+    concurrency_limit: 100
+    cache:
+      number_of_counters: 10_000
+      max_cost: 10MiB
+  relationship:
 
 database:
   engine: 'postgres'

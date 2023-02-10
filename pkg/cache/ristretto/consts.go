@@ -1,7 +1,6 @@
 package ristretto
 
 const (
-	_defaultNumCounters = 1e7
-	_defaultMaxCost     = 1 << 30
-	_defaultBufferItems = 64
+	_defaultNumCounters = 10_000
+	_defaultMaxCost     = "10MiB"
 )

@@ -199,11 +199,11 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int("service-concurrency-limit", conf.Service.ConcurrencyLimit, "concurrency limit")
-	if err = viper.BindPFlag("service.concurrency_limit", flags.Lookup("service-concurrency-limit")); err != nil {
+	flags.Int("service-permission-concurrency-limit", conf.Service.Permission.ConcurrencyLimit, "concurrency limit")
+	if err = viper.BindPFlag("service.permission.concurrency_limit", flags.Lookup("service-permission-concurrency-limit")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("service.concurrency_limit", "PERMIFY_SERVICE_CONCURRENCY_LIMIT"); err != nil {
+	if err = viper.BindEnv("service.permission.concurrency_limit", "PERMIFY_SERVICE_PERMISSION_CONCURRENCY_LIMIT"); err != nil {
 		panic(err)
 	}
 
