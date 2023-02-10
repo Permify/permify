@@ -154,6 +154,7 @@ module.exports = {
 			},
 			items: [
 				"reference/glossary",
+				"reference/configuration",
 				"reference/snap-tokens",
 				"reference/tracing"
 			],
