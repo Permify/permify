@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/ast"
-	"github.com/Permify/permify/pkg/dsl/parser"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -27,7 +25,7 @@ func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 }
 
 // Compile -
-func (t *Compiler) Compile() (sch *base.IndexedSchema, err error) {
+func (t *Compiler) Compile() (sch []*base.EntityDefinition, err error) {
 	if !t.withoutReferenceValidation {
 		err = t.schema.ValidateReferences()
 		if err != nil {
@@ -49,7 +47,7 @@ func (t *Compiler) Compile() (sch *base.IndexedSchema, err error) {
 		entities = append(entities, en)
 	}
 
-	return schema.NewSchema(entities...), err
+	return entities, err
 }
 
 // translateToEntity -
@@ -88,9 +86,6 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			relationTypeSt, okRt := rts.(*ast.RelationTypeStatement)
 			if !okRt {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
-			}
-			if relationTypeSt.IsEntityReference() {
-				relationDefinition.EntityReference = &base.RelationReference{Name: relationTypeSt.Token.Literal}
 			}
 			relationDefinition.RelationReferences = append(relationDefinition.RelationReferences, &base.RelationReference{Name: relationTypeSt.Token.Literal})
 		}
@@ -279,32 +274,4 @@ func (t *Compiler) compileTupleToUserSetIdentifier(p, r string) (l *base.Leaf, e
 	}
 	leaf.Type = &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet}
 	return leaf, nil
-}
-
-// NewSchema -
-func NewSchema(schema ...string) (*base.IndexedSchema, error) {
-	sch, err := parser.NewParser(strings.Join(schema, "\n")).Parse()
-	if err != nil {
-		return nil, err
-	}
-	var s *base.IndexedSchema
-	s, err = NewCompiler(false, sch).Compile()
-	if err != nil {
-		return nil, err
-	}
-	return s, err
-}
-
-// NewSchemaWithoutReferenceValidation -
-func NewSchemaWithoutReferenceValidation(schema ...string) (*base.IndexedSchema, error) {
-	sch, err := parser.NewParser(strings.Join(schema, "\n")).Parse()
-	if err != nil {
-		return nil, err
-	}
-	var s *base.IndexedSchema
-	s, err = NewCompiler(true, sch).Compile()
-	if err != nil {
-		return nil, err
-	}
-	return s, err
 }

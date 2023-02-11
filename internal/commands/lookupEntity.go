@@ -111,6 +111,21 @@ func (command *LookupEntityCommand) Stream(ctx context.Context, request *base.Pe
 
 // parallelChecker -
 func (command *LookupEntityCommand) parallelChecker(ctx context.Context, request *base.PermissionLookupEntityRequest, resultChan chan<- string, errChan chan<- error) {
+	//var err error
+	//var en *base.EntityDefinition
+	//en, _, err = command.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntityType(), request.GetMetadata().GetSchemaVersion())
+	//if err != nil {
+	//	return
+	//}
+	//
+	//var tor base.EntityDefinition_RelationalReference
+	//tor, err = schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
+	//if err != nil {
+	//	return
+	//}
+	//
+	//helper.Pre(tor)
+
 	ids, err := command.relationshipReader.GetUniqueEntityIDsByEntityType(ctx, request.GetTenantId(), request.GetEntityType(), request.GetMetadata().GetSnapToken())
 	if err != nil {
 		errChan <- err

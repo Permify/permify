@@ -7,9 +7,8 @@ import (
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/schema"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/dsl/compiler"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -30,13 +29,13 @@ func NewSchemaReader(database *db.Memory, logger logger.Interface) *SchemaReader
 }
 
 // ReadSchema - Reads a new schema from repository
-func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.IndexedSchema, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (sch *base.SchemaDefinition, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
 	it, err = txn.Get(SchemaDefinitionsTable, "version", tenantID, version)
 	if err != nil {
-		return schema, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return sch, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	var definitions []string
@@ -44,12 +43,12 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version 
 		definitions = append(definitions, obj.(repositories.SchemaDefinition).Serialized())
 	}
 
-	schema, err = compiler.NewSchema(definitions...)
+	sch, err = schema.NewSchemaFromStringDefinitions(true, definitions...)
 	if err != nil {
 		return nil, err
 	}
 
-	return schema, nil
+	return sch, nil
 }
 
 // ReadSchemaDefinition - Reads a Schema Definition from repository
@@ -64,8 +63,8 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entit
 
 	def, ok := raw.(repositories.SchemaDefinition)
 	if ok {
-		var sch *base.IndexedSchema
-		sch, err = compiler.NewSchemaWithoutReferenceValidation(def.Serialized())
+		var sch *base.SchemaDefinition
+		sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
 		if err != nil {
 			return nil, "", err
 		}

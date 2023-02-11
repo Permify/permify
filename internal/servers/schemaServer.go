@@ -51,7 +51,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	defer span.End()
 
 	var err error
-	var response *v1.IndexedSchema
+	var response *v1.SchemaDefinition
 	response, err = r.schemaService.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		span.RecordError(err)

@@ -9,9 +9,8 @@ import (
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/schema"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/dsl/compiler"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -35,7 +34,7 @@ func NewSchemaReader(database *db.Postgres, logger logger.Interface) *SchemaRead
 }
 
 // ReadSchema - Reads entity config from the repository.
-func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.IndexedSchema, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (sch *base.SchemaDefinition, err error) {
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
 
@@ -77,14 +76,14 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version 
 		return nil, err
 	}
 
-	schema, err = compiler.NewSchema(definitions...)
+	sch, err = schema.NewSchemaFromStringDefinitions(true, definitions...)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
-	return schema, err
+	return sch, err
 }
 
 // ReadSchemaDefinition - Reads entity config from the repository.
@@ -121,8 +120,8 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID string
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
 	}
 
-	var sch *base.IndexedSchema
-	sch, err = compiler.NewSchemaWithoutReferenceValidation(def.Serialized())
+	var sch *base.SchemaDefinition
+	sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

@@ -6,12 +6,12 @@ import (
 
 	"github.com/rs/xid"
 
-	"github.com/Permify/permify/pkg/dsl/schema"
+	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // SchemaToGraph - Convert schema to graph
-func SchemaToGraph(schema *base.IndexedSchema) (g Graph, err error) {
+func SchemaToGraph(schema *base.SchemaDefinition) (g Graph, err error) {
 	for _, en := range schema.GetEntityDefinitions() {
 		eg, err := EntityToGraph(en)
 		if err != nil {
@@ -89,7 +89,7 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 				}
 				g.AddEdge(from, &Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:permission:%s", schema.GetEntityReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
+					ID:    fmt.Sprintf("entity:%s:permission:%s", schema.GetMainReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
 					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
 				}, leaf.GetExclusion())
 			case *base.Leaf_ComputedUserSet:

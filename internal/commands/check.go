@@ -12,8 +12,8 @@ import (
 
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"

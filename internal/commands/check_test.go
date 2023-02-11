@@ -8,9 +8,8 @@ import (
 
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/dsl/compiler"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
@@ -59,8 +58,8 @@ entity doc {
 
 			schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(driveSchema)
+			var sch *base.SchemaDefinition
+			sch, err = schema.NewSchemaFromStringDefinitions(true, driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var doc *base.EntityDefinition
@@ -228,8 +227,8 @@ entity doc {
 
 			schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(driveSchema)
+			var sch *base.SchemaDefinition
+			sch, err = schema.NewSchemaFromStringDefinitions(true, driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var doc *base.EntityDefinition
@@ -343,8 +342,8 @@ entity doc {
 
 			schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(driveSchema)
+			var sch *base.SchemaDefinition
+			sch, err = schema.NewSchemaFromStringDefinitions(true, driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var doc *base.EntityDefinition
@@ -537,8 +536,8 @@ entity doc {
 
 			schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(githubSchema)
+			var sch *base.SchemaDefinition
+			sch, err = schema.NewSchemaFromStringDefinitions(true, githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var repository *base.EntityDefinition
@@ -605,8 +604,8 @@ entity doc {
 
 			schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(githubSchema)
+			var sch *base.SchemaDefinition
+			sch, err = schema.NewSchemaFromStringDefinitions(true, githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var repository *base.EntityDefinition
@@ -739,8 +738,8 @@ entity doc {
 
 			schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(githubSchema)
+			var sch *base.SchemaDefinition
+			sch, err = schema.NewSchemaFromStringDefinitions(true, githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var repository *base.EntityDefinition
@@ -895,8 +894,8 @@ entity doc {
 
 			schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(exclusionSchema)
+			var sch *base.SchemaDefinition
+			sch, err = schema.NewSchemaFromStringDefinitions(true, exclusionSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var repo *base.EntityDefinition

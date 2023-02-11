@@ -27,22 +27,18 @@ var _ = Describe("compiler", func() {
 
 			c := NewCompiler(true, sch)
 
-			var is *base.IndexedSchema
+			var is []*base.EntityDefinition
 			is, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(is).Should(Equal(&base.IndexedSchema{
-				EntityDefinitions: map[string]*base.EntityDefinition{
-					"user": {
-						Name:       "user",
-						Relations:  map[string]*base.RelationDefinition{},
-						Actions:    map[string]*base.ActionDefinition{},
-						References: map[string]base.EntityDefinition_RelationalReference{},
-						Option:     map[string]string{},
-					},
+			Expect(is).Should(Equal([]*base.EntityDefinition{
+				{
+					Name:       "user",
+					Relations:  map[string]*base.RelationDefinition{},
+					Actions:    map[string]*base.ActionDefinition{},
+					References: map[string]base.EntityDefinition_RelationalReference{},
+					Option:     map[string]string{},
 				},
-				RelationDefinitions: map[string]*base.RelationDefinition{},
-				ActionDefinitions:   map[string]*base.ActionDefinition{},
 			}))
 		})
 
@@ -63,47 +59,48 @@ var _ = Describe("compiler", func() {
 
 			c := NewCompiler(false, sch)
 
-			var is *base.IndexedSchema
+			var is []*base.EntityDefinition
 			is, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ue := &base.EntityDefinition{
-				Name:       "user",
-				Relations:  map[string]*base.RelationDefinition{},
-				Actions:    map[string]*base.ActionDefinition{},
-				References: map[string]base.EntityDefinition_RelationalReference{},
-				Option:     map[string]string{},
-			}
-
-			oe := &base.EntityDefinition{
-				Name: "organization",
-				Actions: map[string]*base.ActionDefinition{
-					"update": {
-						Name: "update",
-						Child: &base.Child{
-							Type: &base.Child_Rewrite{
-								Rewrite: &base.Rewrite{
-									RewriteOperation: base.Rewrite_OPERATION_UNION,
-									Children: []*base.Child{
-										{
-											Type: &base.Child_Leaf{
-												Leaf: &base.Leaf{
-													Exclusion: false,
-													Type: &base.Leaf_ComputedUserSet{
-														ComputedUserSet: &base.ComputedUserSet{
-															Relation: "owner",
+			i := []*base.EntityDefinition{
+				{
+					Name:       "user",
+					Relations:  map[string]*base.RelationDefinition{},
+					Actions:    map[string]*base.ActionDefinition{},
+					References: map[string]base.EntityDefinition_RelationalReference{},
+					Option:     map[string]string{},
+				},
+				{
+					Name: "organization",
+					Actions: map[string]*base.ActionDefinition{
+						"update": {
+							Name: "update",
+							Child: &base.Child{
+								Type: &base.Child_Rewrite{
+									Rewrite: &base.Rewrite{
+										RewriteOperation: base.Rewrite_OPERATION_UNION,
+										Children: []*base.Child{
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Exclusion: false,
+														Type: &base.Leaf_ComputedUserSet{
+															ComputedUserSet: &base.ComputedUserSet{
+																Relation: "owner",
+															},
 														},
 													},
 												},
 											},
-										},
-										{
-											Type: &base.Child_Leaf{
-												Leaf: &base.Leaf{
-													Exclusion: false,
-													Type: &base.Leaf_ComputedUserSet{
-														ComputedUserSet: &base.ComputedUserSet{
-															Relation: "admin",
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Exclusion: false,
+														Type: &base.Leaf_ComputedUserSet{
+															ComputedUserSet: &base.ComputedUserSet{
+																Relation: "admin",
+															},
 														},
 													},
 												},
@@ -114,54 +111,36 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-				},
-				Relations: map[string]*base.RelationDefinition{
-					"owner": {
-						Name: "owner",
-						RelationReferences: []*base.RelationReference{
-							{
-								Name: "user",
+					Relations: map[string]*base.RelationDefinition{
+						"owner": {
+							Name: "owner",
+							RelationReferences: []*base.RelationReference{
+								{
+									Name: "user",
+								},
 							},
+							Option: map[string]string{},
 						},
-						EntityReference: &base.RelationReference{
-							Name: "user",
+						"admin": {
+							Name: "admin",
+							RelationReferences: []*base.RelationReference{
+								{
+									Name: "user",
+								},
+							},
+							Option: map[string]string{},
 						},
 					},
-					"admin": {
-						Name: "admin",
-						RelationReferences: []*base.RelationReference{
-							{
-								Name: "user",
-							},
-						},
-						EntityReference: &base.RelationReference{
-							Name: "user",
-						},
+					References: map[string]base.EntityDefinition_RelationalReference{
+						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
+						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 					},
-				},
-				References: map[string]base.EntityDefinition_RelationalReference{
-					"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
-				},
-				Option: map[string]string{},
-			}
-
-			i := &base.IndexedSchema{
-				EntityDefinitions: map[string]*base.EntityDefinition{
-					"user":         ue,
-					"organization": oe,
-				},
-				RelationDefinitions: map[string]*base.RelationDefinition{
-					"organization#owner": oe.Relations["owner"],
-					"organization#admin": oe.Relations["admin"],
-				},
-				ActionDefinitions: map[string]*base.ActionDefinition{
-					"organization#update": oe.Actions["update"],
+					Option: map[string]string{},
 				},
 			}
 
-			Expect(is.String()).Should(Equal(i.String()))
+			Expect(is).Should(Equal(i))
 		})
 
 		It("Case 3", func() {

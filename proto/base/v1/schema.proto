@@ -38,15 +38,9 @@ message Rewrite {
   repeated Child children = 2;
 }
 
-// IndexedSchema
-message IndexedSchema {
+// Definition
+message SchemaDefinition {
   map<string, EntityDefinition> entity_definitions = 1;
-
-  // ["entity_name#relation_name"] => RelationDefinition
-  map<string, RelationDefinition> relation_definitions = 2;
-
-  // ["entity_name#action_name"] => ActionDefinition
-  map<string, ActionDefinition> action_definitions = 3;
 }
 
 // EntityDefinition
@@ -82,12 +76,9 @@ message RelationDefinition {
     max_bytes : 64,
   }];
 
-  RelationReference entity_reference = 2;
+  repeated RelationReference relation_references = 2;
 
-  // relation reference includes entity reference
-  repeated RelationReference relation_references = 3;
-
-  map<string, string> option = 4;
+  map<string, string> option = 3;
 }
 
 // ActionDefinition

@@ -30,7 +30,7 @@ func NewSchemaService(sw repositories.SchemaWriter, sr repositories.SchemaReader
 }
 
 // ReadSchema -
-func (service *SchemaService) ReadSchema(ctx context.Context, tenantID, version string) (response *base.IndexedSchema, err error) {
+func (service *SchemaService) ReadSchema(ctx context.Context, tenantID, version string) (response *base.SchemaDefinition, err error) {
 	ctx, span := tracer.Start(ctx, "schemas.read")
 	defer span.End()
 

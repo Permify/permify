@@ -28,17 +28,15 @@ var _ = Describe("schema", func() {
 				Option:     map[string]string{},
 			})
 
-			Expect(NewSchema(entities...)).To(Equal(&base.IndexedSchema{
+			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
 				EntityDefinitions: map[string]*base.EntityDefinition{
 					"user": entities[0],
 				},
-				RelationDefinitions: map[string]*base.RelationDefinition{},
-				ActionDefinitions:   map[string]*base.ActionDefinition{},
 			}))
 		})
 
 		It("Case 2", func() {
-			entities := make([]*base.EntityDefinition, 0, 1)
+			entities := make([]*base.EntityDefinition, 0, 2)
 
 			entities = append(entities, &base.EntityDefinition{
 				Name:       "user",
@@ -51,15 +49,21 @@ var _ = Describe("schema", func() {
 				Relations: map[string]*base.RelationDefinition{
 					"owner": {
 						Name: "owner",
-						EntityReference: &base.RelationReference{
-							Name: "user",
+						RelationReferences: []*base.RelationReference{
+							{
+								Name: "user",
+							},
 						},
+						Option: map[string]string{},
 					},
 					"admin": {
 						Name: "admin",
-						EntityReference: &base.RelationReference{
-							Name: "user",
+						RelationReferences: []*base.RelationReference{
+							{
+								Name: "user",
+							},
 						},
+						Option: map[string]string{},
 					},
 				},
 				Actions: map[string]*base.ActionDefinition{
@@ -107,23 +111,16 @@ var _ = Describe("schema", func() {
 				Option: map[string]string{},
 			})
 
-			Expect(NewSchema(entities...)).To(Equal(&base.IndexedSchema{
+			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
 				EntityDefinitions: map[string]*base.EntityDefinition{
 					"user":         entities[0],
 					"organization": entities[1],
-				},
-				RelationDefinitions: map[string]*base.RelationDefinition{
-					"organization#owner": entities[1].Relations["owner"],
-					"organization#admin": entities[1].Relations["admin"],
-				},
-				ActionDefinitions: map[string]*base.ActionDefinition{
-					"organization#update": entities[1].Actions["update"],
 				},
 			}))
 		})
 
 		It("Case 3", func() {
-			entities := make([]*base.EntityDefinition, 0, 1)
+			entities := make([]*base.EntityDefinition, 0, 3)
 
 			entities = append(entities, &base.EntityDefinition{
 				Name:       "user",
@@ -136,19 +133,21 @@ var _ = Describe("schema", func() {
 				Relations: map[string]*base.RelationDefinition{
 					"owner": {
 						Name: "owner",
-						EntityReference: &base.RelationReference{
-							Name: "user",
+						RelationReferences: []*base.RelationReference{
+							{
+								Name: "user",
+							},
 						},
-						RelationReferences: []*base.RelationReference{},
-						Option:             map[string]string{},
+						Option: map[string]string{},
 					},
 					"admin": {
 						Name: "admin",
-						EntityReference: &base.RelationReference{
-							Name: "user",
+						RelationReferences: []*base.RelationReference{
+							{
+								Name: "user",
+							},
 						},
-						RelationReferences: []*base.RelationReference{},
-						Option:             map[string]string{},
+						Option: map[string]string{},
 					},
 				},
 				Actions: map[string]*base.ActionDefinition{
@@ -199,18 +198,19 @@ var _ = Describe("schema", func() {
 				Relations: map[string]*base.RelationDefinition{
 					"parent": {
 						Name: "parent",
-						EntityReference: &base.RelationReference{
-							Name: "organization",
+						RelationReferences: []*base.RelationReference{
+							{
+								Name: "organization",
+							},
 						},
-						RelationReferences: []*base.RelationReference{},
-						Option:             map[string]string{},
+						Option: map[string]string{},
 					},
 					"maintainer": {
 						Name: "maintainer",
-						EntityReference: &base.RelationReference{
-							Name: "user",
-						},
 						RelationReferences: []*base.RelationReference{
+							{
+								Name: "user",
+							},
 							{
 								Name: "organization#member",
 							},
@@ -219,11 +219,12 @@ var _ = Describe("schema", func() {
 					},
 					"owner": {
 						Name: "owner",
-						EntityReference: &base.RelationReference{
-							Name: "user",
+						RelationReferences: []*base.RelationReference{
+							{
+								Name: "user",
+							},
 						},
-						RelationReferences: []*base.RelationReference{},
-						Option:             map[string]string{},
+						Option: map[string]string{},
 					},
 				},
 				Actions: map[string]*base.ActionDefinition{
@@ -320,23 +321,11 @@ var _ = Describe("schema", func() {
 				Option: map[string]string{},
 			})
 
-			Expect(NewSchema(entities...)).To(Equal(&base.IndexedSchema{
+			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
 				EntityDefinitions: map[string]*base.EntityDefinition{
 					"user":         entities[0],
 					"organization": entities[1],
 					"repository":   entities[2],
-				},
-				RelationDefinitions: map[string]*base.RelationDefinition{
-					"organization#owner":    entities[1].Relations["owner"],
-					"organization#admin":    entities[1].Relations["admin"],
-					"repository#parent":     entities[2].Relations["parent"],
-					"repository#maintainer": entities[2].Relations["maintainer"],
-					"repository#owner":      entities[2].Relations["owner"],
-				},
-				ActionDefinitions: map[string]*base.ActionDefinition{
-					"organization#update": entities[1].Actions["update"],
-					"repository#update":   entities[2].Actions["update"],
-					"repository#delete":   entities[2].Actions["delete"],
 				},
 			}))
 		})

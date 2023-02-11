@@ -26,7 +26,7 @@ type IRelationshipService interface {
 
 // ISchemaService -
 type ISchemaService interface {
-	ReadSchema(ctx context.Context, tenantID string, version string) (response *base.IndexedSchema, err error)
+	ReadSchema(ctx context.Context, tenantID string, version string) (response *base.SchemaDefinition, err error)
 	WriteSchema(ctx context.Context, tenantID string, schema string) (version string, err error)
 }
 
