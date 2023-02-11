@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Access Control Check
 
-In Permify, you can perform access control checks as both [resource specific] and [subject specific] (data filtering) with single API calls.
+In Permify, you can perform access control checks as both resource specific and subject specific (data filtering) with single API calls.
 
 A simple [resource based] access check takes form of ***Can the subject U perform action X on a resource Y ?***. A real world example would be: *can user:1 edit document:2* where the right side of the ":" represents identifier of the entity.
 
