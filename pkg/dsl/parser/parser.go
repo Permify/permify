@@ -36,7 +36,7 @@ type Parser struct {
 	entityReferences map[string]struct{}
 
 	// relational references
-	relationReferences map[string][]ast.RelationTypeStatement
+	relationReferences map[string][]string
 	actionReferences   map[string]struct{}
 
 	// its contains all references
@@ -55,7 +55,7 @@ func NewParser(str string) (p *Parser) {
 		l:                    lexer.NewLexer(str),
 		errors:               []string{},
 		entityReferences:     map[string]struct{}{},
-		relationReferences:   map[string][]ast.RelationTypeStatement{},
+		relationReferences:   map[string][]string{},
 		actionReferences:     map[string]struct{}{},
 		relationalReferences: map[string]ast.RelationalReferenceType{},
 	}
@@ -68,8 +68,6 @@ func NewParser(str string) (p *Parser) {
 	p.registerInfix(token.AND, p.parseInfixExpression)
 	p.registerInfix(token.OR, p.parseInfixExpression)
 
-	p.next()
-	p.next()
 	return
 }
 
@@ -87,9 +85,9 @@ func (p *Parser) setEntityReference(key string) error {
 }
 
 // setRelationReference -
-func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatement) error {
+func (p *Parser) setRelationReference(key string, types []string) error {
 	if p.relationReferences == nil {
-		p.relationReferences = map[string][]ast.RelationTypeStatement{}
+		p.relationReferences = map[string][]string{}
 	}
 	if _, ok := p.relationReferences[key]; ok {
 		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
@@ -124,18 +122,34 @@ func (p *Parser) setActionReference(key string) error {
 
 // next -
 func (p *Parser) next() {
-	p.currentToken = p.peekToken
-	p.peekToken = p.l.NextToken()
+	for {
+		peek := p.l.NextToken()
+		if !token.IsIgnores(peek.Type) {
+			p.currentToken = p.peekToken
+			p.peekToken = peek
+			break
+		}
+	}
 }
 
 // currentTokenIs -
-func (p *Parser) currentTokenIs(t token.Type) bool {
-	return p.currentToken.Type == t
+func (p *Parser) currentTokenIs(tokens ...token.Type) bool {
+	for _, t := range tokens {
+		if p.currentToken.Type == t {
+			return true
+		}
+	}
+	return false
 }
 
 // peekTokenIs -
-func (p *Parser) peekTokenIs(t token.Type) bool {
-	return p.peekToken.Type == t
+func (p *Parser) peekTokenIs(tokens ...token.Type) bool {
+	for _, t := range tokens {
+		if p.peekToken.Type == t {
+			return true
+		}
+	}
+	return false
 }
 
 // Error -
@@ -182,12 +196,13 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 
 // parseEntityStatement returns a LET Statement AST Node
 func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
-	stmt := &ast.EntityStatement{Token: p.currentToken}
+	stmt := &ast.EntityStatement{Entity: p.currentToken}
 	if !p.expectAndNext(token.IDENT) {
 		return nil, p.Error()
 	}
 
 	stmt.Name = p.currentToken
+
 	entityName := stmt.Name.Literal
 	err := p.setEntityReference(entityName)
 	if err != nil {
@@ -217,7 +232,7 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 			}
 			stmt.ActionStatements = append(stmt.ActionStatements, action)
 		default:
-			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
+			if !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
 				p.currentError(token.RELATION, token.ACTION)
 				return nil, p.Error()
 			}
@@ -225,22 +240,17 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 		p.next()
 	}
 
-	if p.peekTokenIs(token.OPTION) {
-		p.next()
-		stmt.Option = p.currentToken
-	}
-
 	return stmt, nil
 }
 
 // parseRelationStatement -
 func (p *Parser) parseRelationStatement(entityName string) (*ast.RelationStatement, error) {
-	stmt := &ast.RelationStatement{Token: p.currentToken}
+	stmt := &ast.RelationStatement{Relation: p.currentToken}
 	if !p.expectAndNext(token.IDENT) {
 		return nil, p.Error()
 	}
 
-	var relationTypeStatements []ast.RelationTypeStatement
+	var relationTypeStatements []string
 
 	stmt.Name = p.currentToken
 	relationName := stmt.Name.Literal
@@ -249,23 +259,18 @@ func (p *Parser) parseRelationStatement(entityName string) (*ast.RelationStateme
 		return nil, p.Error()
 	}
 
-	for p.peekTokenIs(token.SIGN) && !p.peekTokenIs(token.OPTION) {
+	for p.peekTokenIs(token.SIGN) {
 		relSt, err := p.parseRelationTypeStatement()
 		if err != nil {
 			return nil, p.Error()
 		}
 		stmt.RelationTypes = append(stmt.RelationTypes, relSt)
-		relationTypeStatements = append(relationTypeStatements, *relSt)
+		relationTypeStatements = append(relationTypeStatements, relSt.Ident.Literal)
 	}
 
 	err := p.setRelationReference(fmt.Sprintf("%v#%v", entityName, relationName), relationTypeStatements)
 	if err != nil {
 		return nil, err
-	}
-
-	if p.peekTokenIs(token.OPTION) {
-		p.next()
-		stmt.Option = p.currentToken
 	}
 
 	return stmt, nil
@@ -280,13 +285,13 @@ func (p *Parser) parseRelationTypeStatement() (*ast.RelationTypeStatement, error
 	if !p.expectAndNext(token.IDENT) {
 		return nil, p.Error()
 	}
-	stmt.Token = p.currentToken
+	stmt.Ident = p.currentToken
 	return stmt, nil
 }
 
 // parseActionStatement -
 func (p *Parser) parseActionStatement(entityName string) (ast.Statement, error) {
-	stmt := &ast.ActionStatement{Token: p.currentToken}
+	stmt := &ast.ActionStatement{Action: p.currentToken}
 
 	if !p.expectAndNext(token.IDENT) {
 		return nil, p.Error()
@@ -368,7 +373,7 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 		return nil, p.Error()
 	}
 
-	for !p.peekTokenIs(token.NEWLINE) && precedence < p.peekPrecedence() {
+	for precedence < p.peekPrecedence() {
 		infix := p.infixParseFunc[p.peekToken.Type]
 		if infix == nil {
 			return exp, nil
@@ -420,10 +425,11 @@ func (p *Parser) parseInnerParen() (ast.Expression, error) {
 // parsePrefixExpression -
 func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
 	expression := &ast.PrefixExpression{
-		Token:    p.currentToken,
+		Not:      p.currentToken,
 		Operator: p.currentToken.Literal,
 	}
 	p.next()
+	expression.Ident = p.currentToken
 	expression.Value = p.currentToken.Literal
 	return expression, nil
 }
@@ -431,7 +437,7 @@ func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
 // parseInfixExpression
 func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, error) {
 	expression := &ast.InfixExpression{
-		Token:    p.currentToken, // and, or
+		Op:       p.currentToken, // and, or
 		Left:     left,
 		Operator: ast.Operator(p.currentToken.Literal),
 	}
@@ -447,8 +453,8 @@ func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, erro
 
 // peekPrecedence -
 func (p *Parser) peekPrecedence() int {
-	if p, ok := precedences[p.peekToken.Type]; ok {
-		return p
+	if pr, ok := precedences[p.peekToken.Type]; ok {
+		return pr
 	}
 	return LOWEST
 }
@@ -463,7 +469,7 @@ func (p *Parser) currentPrecedence() int {
 
 // parseIdentifier
 func (p *Parser) parseIdentifier() (ast.Expression, error) {
-	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}, nil
+	return &ast.Identifier{Ident: p.currentToken, Value: p.currentToken.Literal}, nil
 }
 
 // registerPrefix

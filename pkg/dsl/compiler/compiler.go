@@ -54,20 +54,9 @@ func (t *Compiler) Compile() (sch []*base.EntityDefinition, err error) {
 func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, error) {
 	entityDefinition := &base.EntityDefinition{
 		Name:       sc.Name.Literal,
-		Option:     map[string]string{},
 		Relations:  map[string]*base.RelationDefinition{},
 		Actions:    map[string]*base.ActionDefinition{},
 		References: map[string]base.EntityDefinition_RelationalReference{},
-	}
-
-	if sc.Option.Literal != "" {
-		options := strings.Split(sc.Option.Literal, "|")
-		for _, option := range options {
-			op := strings.Split(option, ":")
-			if len(op) == 2 {
-				entityDefinition.Option[op[0]] = op[1]
-			}
-		}
 	}
 
 	// relations
@@ -78,7 +67,6 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		}
 		relationDefinition := &base.RelationDefinition{
 			Name:               relationSt.Name.Literal,
-			Option:             map[string]string{},
 			RelationReferences: []*base.RelationReference{},
 		}
 
@@ -87,17 +75,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			if !okRt {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 			}
-			relationDefinition.RelationReferences = append(relationDefinition.RelationReferences, &base.RelationReference{Name: relationTypeSt.Token.Literal})
-		}
-
-		if relationSt.Option.Literal != "" {
-			options := strings.Split(relationSt.Option.Literal, "|")
-			for _, option := range options {
-				op := strings.Split(option, ":")
-				if len(op) == 2 {
-					relationDefinition.Option[op[0]] = op[1]
-				}
-			}
+			relationDefinition.RelationReferences = append(relationDefinition.RelationReferences, &base.RelationReference{Name: relationTypeSt.Ident.Literal})
 		}
 
 		entityDefinition.Relations[relationDefinition.GetName()] = relationDefinition
@@ -131,7 +109,7 @@ func (t *Compiler) compileExpressionStatement(entityName string, expression *ast
 }
 
 // compileChildren -
-func (t *Compiler) compileChildren(entityName string, expression ast.Expression) (children *base.Child, err error) {
+func (t *Compiler) compileChildren(entityName string, expression ast.Expression) (*base.Child, error) {
 	if expression.IsInfix() {
 		return t.compileRewrite(entityName, expression.(*ast.InfixExpression))
 	}
@@ -139,7 +117,9 @@ func (t *Compiler) compileChildren(entityName string, expression ast.Expression)
 }
 
 // compileRewrite -
-func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (children *base.Child, err error) {
+func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (*base.Child, error) {
+	var err error
+
 	child := &base.Child{}
 	rewrite := &base.Rewrite{}
 
@@ -175,7 +155,8 @@ func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (
 }
 
 // compileLeaf -
-func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (children *base.Child, err error) {
+func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*base.Child, error) {
+	var err error
 	child := &base.Child{}
 	leaf := &base.Leaf{}
 	switch expression.GetType() {
@@ -199,7 +180,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (ch
 				if !exist {
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 				}
-				_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
+				_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.GetEntityReference(value), s[1]))
 				if !exist {
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 				}
@@ -230,7 +211,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (ch
 				if !exist {
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 				}
-				_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.RelationTypeStatements(value).GetEntityReference(), s[1]))
+				_, exist = t.schema.GetRelationalReferenceTypeIfExist(fmt.Sprintf("%v#%v", ast.GetEntityReference(value), s[1]))
 				if !exist {
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 				}

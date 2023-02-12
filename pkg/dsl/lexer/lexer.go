@@ -53,8 +53,11 @@ func (l *Lexer) peekChar() byte {
 
 // NextToken -
 func (l *Lexer) NextToken() (tok token.Token) {
-	l.skipWhitespace()
 	switch l.ch {
+	case '\t':
+		tok = token.New(token.TAB, l.ch)
+	case ' ':
+		tok = token.New(token.SPACE, l.ch)
 	case '\n':
 		l.newLine()
 		tok = token.New(token.NEWLINE, l.ch)
@@ -75,11 +78,6 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		tok = token.New(token.LBRACE, l.ch)
 	case '}':
 		tok = token.New(token.RBRACE, l.ch)
-	case '`':
-		tok.Type = token.OPTION
-		tok.Literal = l.lexBacktick()
-	case '"':
-		tok = token.New(token.QUOTE, l.ch)
 	case ',':
 		tok = token.New(token.COMMA, l.ch)
 	case 0:
@@ -91,25 +89,19 @@ func (l *Lexer) NextToken() (tok token.Token) {
 			return
 		}
 		if l.ch == '/' && l.peekChar() == '/' {
-			l.skipUntilNewline()
-			l.newLine()
-			tok = token.New(token.NEWLINE, l.ch)
+			tok.Literal = l.lexSingleLineComment()
+			tok.Type = token.SINGLE_LINE_COMMENT
+			return
+		} else if l.ch == '/' && l.peekChar() == '*' {
+			tok.Literal = l.lexMultiLineComment()
+			tok.Type = token.MULTI_LINE_COMMENT
+			return
 		} else {
 			tok = token.New(token.ILLEGAL, l.ch)
 		}
 	}
 	l.readChar()
 	return
-}
-
-// lexBacktick -
-func (l *Lexer) lexBacktick() (lit string) {
-	l.readChar()
-	position := l.position
-	for !isBacktick(l.ch) && l.ch != 0 {
-		l.readChar()
-	}
-	return l.input[position:l.position]
 }
 
 // newLine -
@@ -127,28 +119,34 @@ func (l *Lexer) lexIdent() string {
 	return l.input[position:l.position]
 }
 
-// skipWhitespace -
-func (l *Lexer) skipWhitespace() {
-	for isSpace(l.ch) {
+// lexSingleLineComment -
+func (l *Lexer) lexSingleLineComment() string {
+	l.readChar()
+	l.readChar()
+	position := l.position
+	for !isNewline(l.ch) {
+		if l.ch == 0 {
+			return l.input[position:l.position]
+		}
 		l.readChar()
 	}
+	return l.input[position:l.position]
 }
 
-// skipUntilNewline -
-func (l *Lexer) skipUntilNewline() {
-	for !isNewline(l.ch) && l.ch != 0 {
+// lexMultiLineComment -
+func (l *Lexer) lexMultiLineComment() string {
+	l.readChar()
+	l.readChar()
+	position := l.position
+	for !(l.ch == '*' && l.peekChar() == '/') {
+		if l.ch == 0 {
+			return l.input[position:l.position]
+		}
 		l.readChar()
 	}
-}
-
-// isBacktick -
-func isBacktick(r byte) bool {
-	return r == '`'
-}
-
-// isSpace -
-func isSpace(r byte) bool {
-	return r == ' ' || r == '\t'
+	l.readChar()
+	l.readChar()
+	return l.input[position : l.position-2]
 }
 
 // isNewline -

@@ -36,7 +36,6 @@ const (
 
 // Node -
 type Node interface {
-	TokenLiteral() string
 	String() string
 }
 
@@ -63,7 +62,7 @@ type Schema struct {
 
 	// relational references
 	actionReferences   map[string]struct{}
-	relationReferences map[string][]RelationTypeStatement
+	relationReferences map[string][]string
 
 	// all relational references
 	relationalReferences map[string]RelationalReferenceType
@@ -77,8 +76,8 @@ func (sch *Schema) ValidateReferences() error {
 	for _, st := range sch.relationReferences {
 		entityReferenceCount := 0
 		for _, s := range st {
-			if s.IsEntityReference() {
-				if !sch.IsEntityReferenceExist(s.Token.Literal) {
+			if IsEntityReference(s) {
+				if !sch.IsEntityReferenceExist(s) {
 					return errors.New(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String())
 				}
 				entityReferenceCount++
@@ -108,9 +107,9 @@ func (sch *Schema) SetActionReferences(r map[string]struct{}) {
 }
 
 // SetRelationReferences -
-func (sch *Schema) SetRelationReferences(r map[string][]RelationTypeStatement) {
+func (sch *Schema) SetRelationReferences(r map[string][]string) {
 	if sch.relationReferences == nil {
-		sch.relationReferences = map[string][]RelationTypeStatement{}
+		sch.relationReferences = map[string][]string{}
 	}
 	sch.relationReferences = r
 }
@@ -148,7 +147,7 @@ func (sch *Schema) IsRelationReferenceExist(name string) bool {
 }
 
 // GetRelationReferenceIfExist -
-func (sch *Schema) GetRelationReferenceIfExist(name string) ([]RelationTypeStatement, bool) {
+func (sch *Schema) GetRelationReferenceIfExist(name string) ([]string, bool) {
 	if _, ok := sch.relationReferences[name]; ok {
 		return sch.relationReferences[name], true
 	}
@@ -157,20 +156,14 @@ func (sch *Schema) GetRelationReferenceIfExist(name string) ([]RelationTypeState
 
 // EntityStatement -
 type EntityStatement struct {
-	Token              token.Token // token.ENTITY
+	Entity             token.Token // token.ENTITY
 	Name               token.Token // token.IDENT
 	RelationStatements []Statement
 	ActionStatements   []Statement
-	Option             token.Token // token.OPTION
 }
 
 // statementNode -
 func (ls *EntityStatement) statementNode() {}
-
-// TokenLiteral -
-func (ls *EntityStatement) TokenLiteral() string {
-	return ls.Token.Literal
-}
 
 // String -
 func (ls *EntityStatement) String() string {
@@ -195,37 +188,25 @@ func (ls *EntityStatement) String() string {
 
 	sb.WriteString("}")
 	sb.WriteString(" ")
-
-	if ls.Option.Literal != "" {
-		sb.WriteString("`")
-		sb.WriteString(ls.Option.Literal)
-		sb.WriteString("`")
-	}
-
 	sb.WriteString("\n")
 	return sb.String()
 }
 
 // RelationStatement -
 type RelationStatement struct {
-	Token         token.Token // token.RELATION
+	Relation      token.Token // token.RELATION
 	Name          token.Token // token.IDENT
 	RelationTypes []Statement
-	Option        token.Token // token.OPTION
 }
 
 // statementNode -
 func (ls *RelationStatement) statementNode() {}
 
-// TokenLiteral -
-func (ls *RelationStatement) TokenLiteral() string {
-	return ls.Token.Literal
-}
-
 // String -
 func (ls *RelationStatement) String() string {
 	var sb strings.Builder
-	sb.WriteString("\trelation")
+	sb.WriteString("\t")
+	sb.WriteString("relation")
 	sb.WriteString(" ")
 	sb.WriteString(ls.Name.Literal)
 	sb.WriteString(" ")
@@ -235,57 +216,39 @@ func (ls *RelationStatement) String() string {
 		sb.WriteString(" ")
 	}
 
-	sb.WriteString(" ")
-
-	if ls.Option.Literal != "" {
-		sb.WriteString("`")
-		sb.WriteString(ls.Option.Literal)
-		sb.WriteString("`")
-	}
-
 	return sb.String()
 }
 
 // RelationTypeStatement -
 type RelationTypeStatement struct {
 	Sign  token.Token // token.SIGN
-	Token token.Token // token.IDENT
+	Ident token.Token // token.IDENT
 }
 
 // statementNode -
 func (ls *RelationTypeStatement) statementNode() {}
 
-// TokenLiteral -
-func (ls *RelationTypeStatement) TokenLiteral() string {
-	return ls.Token.Literal
-}
-
 // String -
 func (ls *RelationTypeStatement) String() string {
 	var sb strings.Builder
-	sb.WriteString(ls.Sign.Literal)
-	sb.WriteString(ls.Token.Literal)
+	sb.WriteString("@")
+	sb.WriteString(ls.Ident.Literal)
 	return sb.String()
 }
 
 // IsEntityReference -
-func (ls *RelationTypeStatement) IsEntityReference() bool {
-	return !strings.Contains(ls.Token.Literal, "#")
+func IsEntityReference(s string) bool {
+	return !strings.Contains(s, "#")
 }
 
 // Identifier -
 type Identifier struct {
-	Token token.Token // token.IDENT
+	Ident token.Token // token.IDENT
 	Value string
 }
 
 // expressionNode -
 func (ls *Identifier) expressionNode() {}
-
-// TokenLiteral -
-func (ls *Identifier) TokenLiteral() string {
-	return ls.Token.Literal
-}
 
 // String -
 func (ls *Identifier) String() string {
@@ -309,7 +272,7 @@ func (ls *Identifier) GetValue() string {
 
 // ActionStatement -
 type ActionStatement struct {
-	Token               token.Token // token.ACTION
+	Action              token.Token // token.ACTION
 	Name                token.Token // token.IDENT
 	ExpressionStatement Statement
 }
@@ -317,15 +280,10 @@ type ActionStatement struct {
 // statementNode -
 func (ls *ActionStatement) statementNode() {}
 
-// TokenLiteral -
-func (ls *ActionStatement) TokenLiteral() string {
-	return ls.Token.Literal
-}
-
 // String -
 func (ls *ActionStatement) String() string {
 	var sb strings.Builder
-	sb.WriteString("\t" + ls.TokenLiteral() + " ")
+	sb.WriteString("\t")
 	sb.WriteString(ls.Name.Literal)
 	sb.WriteString(" = ")
 	if ls.ExpressionStatement != nil {
@@ -342,11 +300,7 @@ type ExpressionStatement struct {
 // statementNode function on ExpressionStatement
 func (es *ExpressionStatement) statementNode() {}
 
-// TokenLiteral function on ExpressionStatement
-func (es *ExpressionStatement) TokenLiteral() string {
-	return "start"
-}
-
+// String -
 func (es *ExpressionStatement) String() string {
 	if es.Expression != nil {
 		return es.Expression.String()
@@ -356,7 +310,7 @@ func (es *ExpressionStatement) String() string {
 
 // InfixExpression -
 type InfixExpression struct {
-	Token    token.Token // The operator token, e.g. and, or
+	Op       token.Token // The operator token, e.g. and, or
 	Left     Expression
 	Operator Operator
 	Right    Expression
@@ -365,17 +319,18 @@ type InfixExpression struct {
 // expressionNode -
 func (ie *InfixExpression) expressionNode() {}
 
-// TokenLiteral -
-func (ie *InfixExpression) TokenLiteral() string {
-	return ie.Token.Literal
-}
+//// TokenLiteral -
+//func (ie *InfixExpression) TokenLiteral() string {
+//	return ie.Op.Literal
+//}
 
 // String -
 func (ie *InfixExpression) String() string {
 	var sb strings.Builder
 	sb.WriteString("(")
 	sb.WriteString(ie.Left.String())
-	sb.WriteString(" " + ie.Operator.String())
+	sb.WriteString(" ")
+	sb.WriteString(ie.Operator.String())
 	sb.WriteString(" ")
 	sb.WriteString(ie.Right.String())
 	sb.WriteString(")")
@@ -394,18 +349,16 @@ func (ie *InfixExpression) GetType() ExpressionType {
 
 // GetValue -
 func (ie *InfixExpression) GetValue() string {
-	return ie.Token.Literal
+	return ie.Op.Literal
 }
 
 // PrefixExpression -
 type PrefixExpression struct {
-	Token    token.Token // not
+	Not      token.Token
+	Ident    token.Token
 	Operator string
 	Value    string
 }
-
-// TokenLiteral -
-func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
 
 // String -
 func (pe *PrefixExpression) String() string {
@@ -438,11 +391,34 @@ func (pe *PrefixExpression) GetValue() string {
 type RelationTypeStatements []RelationTypeStatement
 
 // GetEntityReference -
-func (st RelationTypeStatements) GetEntityReference() string {
-	for _, rt := range st {
-		if rt.IsEntityReference() {
-			return rt.TokenLiteral()
+func GetEntityReference(references []string) string {
+	for _, rt := range references {
+		if IsEntityReference(rt) {
+			return rt
 		}
 	}
 	return ""
 }
+
+// WriteIgnores -
+//func WriteIgnores(tokens []token.Token) string {
+//	var sb bytes.Buffer
+//	for _, t := range tokens {
+//		switch t.Type {
+//		case token.SINGLE_LINE_COMMENT:
+//			sb.WriteString("//")
+//			sb.WriteString(t.Literal)
+//		case token.MULTI_LINE_COMMENT:
+//			sb.WriteString("/*")
+//			sb.WriteString(t.Literal)
+//			sb.WriteString("*/")
+//		case token.SPACE:
+//			sb.WriteString(" ")
+//		case token.TAB:
+//			sb.WriteString("\t")
+//		case token.NEWLINE:
+//			sb.WriteString("\n")
+//		}
+//	}
+//	return sb.String()
+//}

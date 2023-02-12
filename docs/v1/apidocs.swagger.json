@@ -769,12 +769,6 @@
             "$ref": "#/definitions/RelationalReference"
           },
           "title": "[\"relation_name or action_name\"] =\u003e RelationalReference"
-        },
-        "option": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
         }
       },
       "title": "EntityDefinition"
@@ -986,12 +980,6 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/RelationReference"
-          }
-        },
-        "option": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
           }
         }
       },

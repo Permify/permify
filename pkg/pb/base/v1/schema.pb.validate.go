@@ -847,8 +847,6 @@ func (m *EntityDefinition) validate(all bool) error {
 
 	// no validation rules for References
 
-	// no validation rules for Option
-
 	if len(errors) > 0 {
 		return EntityDefinitionMultiError(errors)
 	}
@@ -1006,8 +1004,6 @@ func (m *RelationDefinition) validate(all bool) error {
 		}
 
 	}
-
-	// no validation rules for Option
 
 	if len(errors) > 0 {
 		return RelationDefinitionMultiError(errors)

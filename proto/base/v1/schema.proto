@@ -65,8 +65,6 @@ message EntityDefinition {
 
   // ["relation_name or action_name"] => RelationalReference
   map<string, RelationalReference> references = 4;
-
-  map<string, string> option = 5;
 }
 
 // RelationDefinition
@@ -77,8 +75,6 @@ message RelationDefinition {
   }];
 
   repeated RelationReference relation_references = 2;
-
-  map<string, string> option = 3;
 }
 
 // ActionDefinition
