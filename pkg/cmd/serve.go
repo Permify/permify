@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
 
+	`github.com/Permify/permify/internal`
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
@@ -28,22 +29,6 @@ import (
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/telemetry/meterexporters"
 	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
-)
-
-const (
-	// Version of Permify
-	Version = "v0.3.0"
-	banner  = `
-
-██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
-██╔══██╗██╔════╝██╔══██╗████╗ ████║██║██╔════╝╚██╗ ██╔╝
-██████╔╝█████╗  ██████╔╝██╔████╔██║██║█████╗   ╚████╔╝ 
-██╔═══╝ ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██╔══╝    ╚██╔╝  
-██║     ███████╗██║  ██║██║ ╚═╝ ██║██║██║        ██║   
-╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝        ╚═╝   
-_______________________________________________________
-Fine-grained Authorization System %s
-`
 )
 
 // NewServeCommand - Creates new server command
@@ -65,7 +50,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		red := color.New(color.FgGreen)
-		_, _ = red.Printf(banner, Version)
+		_, _ = red.Printf(internal.Banner, internal.Version)
 
 		l := logger.New(cfg.Log.Level)
 

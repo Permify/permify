@@ -14,6 +14,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/semconv/v1.10.0"
+
+	`github.com/Permify/permify/internal`
 )
 
 // NewNoopMeter - Creates new noop meter
@@ -33,7 +35,7 @@ func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String(xid.New().String()),
-			attribute.String("version", "0.3.0"),
+			attribute.String("version", internal.Version),
 			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),
 			attribute.String("arch", runtime.GOARCH),
