@@ -37,7 +37,6 @@ var _ = Describe("compiler", func() {
 					Relations:  map[string]*base.RelationDefinition{},
 					Actions:    map[string]*base.ActionDefinition{},
 					References: map[string]base.EntityDefinition_RelationalReference{},
-					Option:     map[string]string{},
 				},
 			}))
 		})
@@ -69,7 +68,6 @@ var _ = Describe("compiler", func() {
 					Relations:  map[string]*base.RelationDefinition{},
 					Actions:    map[string]*base.ActionDefinition{},
 					References: map[string]base.EntityDefinition_RelationalReference{},
-					Option:     map[string]string{},
 				},
 				{
 					Name: "organization",
@@ -119,7 +117,6 @@ var _ = Describe("compiler", func() {
 									Name: "user",
 								},
 							},
-							Option: map[string]string{},
 						},
 						"admin": {
 							Name: "admin",
@@ -128,7 +125,6 @@ var _ = Describe("compiler", func() {
 									Name: "user",
 								},
 							},
-							Option: map[string]string{},
 						},
 					},
 					References: map[string]base.EntityDefinition_RelationalReference{
@@ -136,7 +132,6 @@ var _ = Describe("compiler", func() {
 						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 					},
-					Option: map[string]string{},
 				},
 			}
 

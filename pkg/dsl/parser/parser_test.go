@@ -33,20 +33,19 @@ var _ = Describe("parser", func() {
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("repository"))
-			Expect(st.Option.Literal).Should(Equal(""))
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("parent"))
 
 			for _, a := range r1.RelationTypes {
-				Expect(a.TokenLiteral()).Should(Equal("organization"))
+				Expect(a.String()).Should(Equal("@organization"))
 			}
 
 			r2 := st.RelationStatements[1].(*ast.RelationStatement)
 			Expect(r2.Name.Literal).Should(Equal("owner"))
 
 			for _, a := range r2.RelationTypes {
-				Expect(a.TokenLiteral()).Should(Equal("user"))
+				Expect(a.String()).Should(Equal("@user"))
 			}
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
@@ -73,25 +72,20 @@ var _ = Describe("parser", func() {
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("repository"))
-			Expect(st.Option.Literal).Should(Equal(""))
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("parent"))
 
 			for _, a := range r1.RelationTypes {
-				Expect(a.TokenLiteral()).Should(Equal("organization"))
+				Expect(a.String()).Should(Equal("@organization"))
 			}
-
-			Expect(r1.Option.Literal).Should(Equal(""))
 
 			r2 := st.RelationStatements[1].(*ast.RelationStatement)
 			Expect(r2.Name.Literal).Should(Equal("owner"))
 
 			for _, a := range r2.RelationTypes {
-				Expect(a.TokenLiteral()).Should(Equal("user"))
+				Expect(a.String()).Should(Equal("@user"))
 			}
-
-			Expect(r2.Option.Literal).Should(Equal(""))
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
 			Expect(a1.Name.Literal).Should(Equal("read"))
@@ -115,16 +109,13 @@ var _ = Describe("parser", func() {
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("organization"))
-			Expect(st.Option.Literal).Should(Equal(""))
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("owner"))
 
 			for _, a := range r1.RelationTypes {
-				Expect(a.TokenLiteral()).Should(Equal("user"))
+				Expect(a.String()).Should(Equal("@user"))
 			}
-
-			Expect(r1.Option.Literal).Should(Equal(""))
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
 			Expect(a1.Name.Literal).Should(Equal("delete"))
@@ -142,16 +133,13 @@ var _ = Describe("parser", func() {
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("organization"))
-			Expect(st.Option.Literal).Should(Equal(""))
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("owner"))
 
 			for _, a := range r1.RelationTypes {
-				Expect(a.TokenLiteral()).Should(Equal("user"))
+				Expect(a.String()).Should(Equal("@user"))
 			}
-
-			Expect(r1.Option.Literal).Should(Equal(""))
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
 			Expect(a1.Name.Literal).Should(Equal("delete"))
@@ -179,23 +167,20 @@ var _ = Describe("parser", func() {
 			st := schema.Statements[0].(*ast.EntityStatement)
 
 			Expect(st.Name.Literal).Should(Equal("repository"))
-			Expect(st.Option.Literal).Should(Equal(""))
 
 			r1 := st.RelationStatements[0].(*ast.RelationStatement)
 			Expect(r1.Name.Literal).Should(Equal("parent"))
 
 			for _, a := range r1.RelationTypes {
-				Expect(a.TokenLiteral()).Should(Equal("organization"))
+				Expect(a.String()).Should(Equal("@organization"))
 			}
 
 			r2 := st.RelationStatements[1].(*ast.RelationStatement)
 			Expect(r2.Name.Literal).Should(Equal("owner"))
 
 			for _, a := range r2.RelationTypes {
-				Expect(a.TokenLiteral()).Should(Equal("user"))
+				Expect(a.String()).Should(Equal("@user"))
 			}
-
-			Expect(r2.Option.Literal).Should(Equal(""))
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
 			Expect(a1.Name.Literal).Should(Equal("view"))

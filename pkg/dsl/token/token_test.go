@@ -36,4 +36,27 @@ var _ = Describe("token", func() {
 			}
 		})
 	})
+
+	Context("LookupKeywords", func() {
+		It("Case 1", func() {
+			tests := []struct {
+				target   Type
+				expected bool
+			}{
+				{target: MULTI_LINE_COMMENT, expected: true},
+				{target: ACTION, expected: false},
+				{target: OR, expected: false},
+				{target: NEWLINE, expected: true},
+				{target: SINGLE_LINE_COMMENT, expected: true},
+				{target: ENTITY, expected: false},
+				{target: SPACE, expected: true},
+				{target: TAB, expected: true},
+				{target: "test", expected: false},
+			}
+
+			for _, tt := range tests {
+				Expect(IsIgnores(tt.target)).Should(Equal(tt.expected))
+			}
+		})
+	})
 })
