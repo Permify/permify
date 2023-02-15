@@ -13,7 +13,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
 
-	`github.com/Permify/permify/internal`
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"

@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	`github.com/Permify/permify/internal`
+	"github.com/Permify/permify/internal"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 

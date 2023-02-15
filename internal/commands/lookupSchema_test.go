@@ -3,12 +3,13 @@ package commands
 import (
 	"context"
 
+	"golang.org/x/exp/slices"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/internal/schema"
-	"github.com/Permify/permify/pkg/helper"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -77,7 +78,7 @@ var _ = Describe("lookup-schema-command", func() {
 			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
-				Expect(helper.InArray(actionName, []string{"delete"})).Should(Equal(helper.InArray(actionName, []string{"delete"})))
+				Expect(slices.Contains([]string{"delete"}, actionName)).Should(Equal(slices.Contains([]string{"delete"}, actionName)))
 			}
 		})
 
@@ -112,7 +113,7 @@ var _ = Describe("lookup-schema-command", func() {
 			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
-				Expect(helper.InArray(actionName, []string{"read", "update", "delete"})).Should(Equal(helper.InArray(actionName, []string{"read", "update", "delete"})))
+				Expect(slices.Contains([]string{"read", "update", "delete"}, actionName)).Should(Equal(slices.Contains([]string{"read", "update", "delete"}, actionName)))
 			}
 		})
 	})
@@ -172,7 +173,7 @@ var _ = Describe("lookup-schema-command", func() {
 			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
-				Expect(helper.InArray(actionName, []string{"create_repository", "delete"})).Should(Equal(helper.InArray(actionName, []string{"create_repository", "delete"})))
+				Expect(slices.Contains([]string{"create_repository", "delete"}, actionName)).Should(Equal(slices.Contains([]string{"create_repository", "delete"}, actionName)))
 			}
 		})
 
@@ -207,7 +208,7 @@ var _ = Describe("lookup-schema-command", func() {
 			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
-				Expect(helper.InArray(actionName, []string{"delete"})).Should(Equal(helper.InArray(actionName, []string{"delete"})))
+				Expect(slices.Contains([]string{"delete"}, actionName)).Should(Equal(slices.Contains([]string{"delete"}, actionName)))
 			}
 		})
 	})

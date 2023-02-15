@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	"golang.org/x/exp/slices"
+
 	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/helper"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -150,10 +151,10 @@ func (command *LookupSchemaCommand) lookup(ctx context.Context, relation string,
 	return func(ctx context.Context, lookupChan chan<- SchemaLookupDecision) {
 		var err error
 		if exclusion {
-			lookupChan <- sendSchemaLookupDecision(!helper.InArray(relation, request.GetRelationNames()), err)
+			lookupChan <- sendSchemaLookupDecision(!slices.Contains(request.GetRelationNames(), relation), err)
 			return
 		}
-		lookupChan <- sendSchemaLookupDecision(helper.InArray(relation, request.GetRelationNames()), err)
+		lookupChan <- sendSchemaLookupDecision(slices.Contains(request.GetRelationNames(), relation), err)
 	}
 }
 
