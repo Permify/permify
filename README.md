@@ -107,9 +107,9 @@ localhost:3476/healthz
 ## Community & Support
 We would love to hear from you :heart:
 
-You can get immidiate help on our [Discord](https://discord.gg/MJbUjwskdH) channel. This can be any kind of questions related to Permify, authorization, or even from authentication or identity access control. We'd love to discuss anything related with access control space.
+You can get immediate help on our Discord channel. This can be any kind of question-related to Permify, authorization, or authentication and identity management. We'd love to discuss anything related to access control space.
 
-For feature requests, bugs or any improvements you can always open an issue. 
+For feature requests, bugs, or any improvements you can always open an issue. 
 
 ### Want to Contribute? Here are the ways to contribute to Permify
 
