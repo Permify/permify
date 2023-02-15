@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	`strconv`
+	"strconv"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -19,8 +19,7 @@ func TestLexer(t *testing.T) {
 var _ = Describe("lexer", func() {
 	Context("NextToken", func() {
 		It("Case 1", func() {
-			str :=
-				`
+			str := `
 entity user {}
 entity organization {
 	relation admin @user
@@ -122,8 +121,7 @@ entity organization {
 		})
 
 		It("Case 2", func() {
-			str :=
-				`
+			str := `
 entity user {}
 
 entity organization {

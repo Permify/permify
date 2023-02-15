@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/semconv/v1.10.0"
 
-	`github.com/Permify/permify/internal`
+	"github.com/Permify/permify/internal"
 )
 
 // NewTracer - Creates new tracer

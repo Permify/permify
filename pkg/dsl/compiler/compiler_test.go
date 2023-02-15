@@ -19,7 +19,6 @@ func TestCompiler(t *testing.T) {
 
 var _ = Describe("compiler", func() {
 	Context("NewCompiler", func() {
-
 		It("Case 1", func() {
 			sch, err := parser.NewParser(`
 			entity user {}`).Parse()

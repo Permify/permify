@@ -3,11 +3,13 @@ package graph
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/rs/xid"
 
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // SchemaToGraph - Convert schema to graph
@@ -89,7 +91,7 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 				}
 				g.AddEdge(from, &Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("entity:%s:permission:%s", schema.GetMainReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
+					ID:    fmt.Sprintf("entity:%s:permission:%s", GetMainReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
 					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
 				}, leaf.GetExclusion())
 			case *base.Leaf_ComputedUserSet:
@@ -104,4 +106,18 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 		}
 	}
 	return
+}
+
+// GetMainReference -
+func GetMainReference(definition *base.RelationDefinition) string {
+	if len(definition.GetRelationReferences()) > 0 {
+		return tuple.USER
+	} else {
+		for _, ref := range definition.GetRelationReferences() {
+			if !strings.Contains(ref.GetName(), "#") {
+				return ref.GetName()
+			}
+		}
+	}
+	return tuple.USER
 }

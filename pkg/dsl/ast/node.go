@@ -319,11 +319,6 @@ type InfixExpression struct {
 // expressionNode -
 func (ie *InfixExpression) expressionNode() {}
 
-//// TokenLiteral -
-//func (ie *InfixExpression) TokenLiteral() string {
-//	return ie.Op.Literal
-//}
-
 // String -
 func (ie *InfixExpression) String() string {
 	var sb strings.Builder
@@ -399,26 +394,3 @@ func GetEntityReference(references []string) string {
 	}
 	return ""
 }
-
-// WriteIgnores -
-//func WriteIgnores(tokens []token.Token) string {
-//	var sb bytes.Buffer
-//	for _, t := range tokens {
-//		switch t.Type {
-//		case token.SINGLE_LINE_COMMENT:
-//			sb.WriteString("//")
-//			sb.WriteString(t.Literal)
-//		case token.MULTI_LINE_COMMENT:
-//			sb.WriteString("/*")
-//			sb.WriteString(t.Literal)
-//			sb.WriteString("*/")
-//		case token.SPACE:
-//			sb.WriteString(" ")
-//		case token.TAB:
-//			sb.WriteString("\t")
-//		case token.NEWLINE:
-//			sb.WriteString("\n")
-//		}
-//	}
-//	return sb.String()
-//}

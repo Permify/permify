@@ -1,12 +1,12 @@
 package schema
 
 import (
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // Schema - Schema builder
 func Schema(entities ...*base.EntityDefinition) *base.SchemaDefinition {
-	var def = &base.SchemaDefinition{
+	def := &base.SchemaDefinition{
 		EntityDefinitions: map[string]*base.EntityDefinition{},
 	}
 	for _, entity := range entities {
@@ -17,7 +17,7 @@ func Schema(entities ...*base.EntityDefinition) *base.SchemaDefinition {
 
 // Entity - Entity builder
 func Entity(name string, relations []*base.RelationDefinition, actions []*base.ActionDefinition) *base.EntityDefinition {
-	var def = &base.EntityDefinition{
+	def := &base.EntityDefinition{
 		Name:       name,
 		Relations:  map[string]*base.RelationDefinition{},
 		Actions:    map[string]*base.ActionDefinition{},

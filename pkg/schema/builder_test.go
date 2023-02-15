@@ -1,12 +1,12 @@
 package schema
 
 import (
-	`testing`
+	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // TestBuilder -
@@ -16,11 +16,8 @@ func TestBuilder(t *testing.T) {
 }
 
 var _ = Describe("compiler", func() {
-
-	Context("SchemaDefinition", func() {
-
+	Context("Schema", func() {
 		It("Case 1", func() {
-
 			is := Schema(
 				Entity("user", Relations(), Actions()),
 			)
