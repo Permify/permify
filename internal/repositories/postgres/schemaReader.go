@@ -34,7 +34,7 @@ func NewSchemaReader(database *db.Postgres, logger logger.Interface) *SchemaRead
 }
 
 // ReadSchema - Reads entity config from the repository.
-func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (sch *base.SchemaDefinition, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
 
@@ -87,7 +87,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version 
 }
 
 // ReadSchemaDefinition - Reads entity config from the repository.
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID string, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema-definition")
 	defer span.End()
 

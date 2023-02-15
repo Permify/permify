@@ -84,7 +84,7 @@ func ComputedUserSet(relation string, exclusion bool) *base.Child {
 }
 
 // TupleToUserSet -
-func TupleToUserSet(reference string, relation string, exclusion bool) *base.Child {
+func TupleToUserSet(reference, relation string, exclusion bool) *base.Child {
 	return &base.Child{
 		Type: &base.Child_Leaf{
 			Leaf: &base.Leaf{

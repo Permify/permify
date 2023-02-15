@@ -29,7 +29,7 @@ func NewSchemaReader(database *db.Memory, logger logger.Interface) *SchemaReader
 }
 
 // ReadSchema - Reads a new schema from repository
-func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (sch *base.SchemaDefinition, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator

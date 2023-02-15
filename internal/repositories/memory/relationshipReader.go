@@ -116,7 +116,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 }
 
 // GetUniqueEntityIDsByEntityType - Gets all entity IDs for a given entity type (unique)
-func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID string, typ, _ string) (array []string, err error) {
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID, typ, _ string) (array []string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 

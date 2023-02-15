@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/rs/xid"
-	`strings`
+	"strings"
 
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"

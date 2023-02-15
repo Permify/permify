@@ -45,6 +45,10 @@ func NewServeCommand() *cobra.Command {
 func serve() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.NewConfig()
+		if err != nil {
+			return err
+		}
+
 		if err = viper.Unmarshal(cfg); err != nil {
 			return err
 		}
