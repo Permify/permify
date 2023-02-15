@@ -7,7 +7,6 @@ import (
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 // NewSchemaFromStringDefinitions -
@@ -80,18 +79,4 @@ func GetRelationByNameInEntityDefinition(entityDefinition *base.EntityDefinition
 		return re, nil
 	}
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
-}
-
-// GetMainReference -
-func GetMainReference(definition *base.RelationDefinition) string {
-	if len(definition.GetRelationReferences()) > 0 {
-		return tuple.USER
-	} else {
-		for _, ref := range definition.GetRelationReferences() {
-			if !strings.Contains(ref.GetName(), "#") {
-				return ref.GetName()
-			}
-		}
-	}
-	return tuple.USER
 }

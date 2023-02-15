@@ -3,9 +3,8 @@ package graph
 import (
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/rs/xid"
+	`strings`
 
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -110,9 +109,7 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 
 // GetMainReference -
 func GetMainReference(definition *base.RelationDefinition) string {
-	if len(definition.GetRelationReferences()) > 0 {
-		return tuple.USER
-	} else {
+	if len(definition.GetRelationReferences()) > 1 {
 		for _, ref := range definition.GetRelationReferences() {
 			if !strings.Contains(ref.GetName(), "#") {
 				return ref.GetName()
