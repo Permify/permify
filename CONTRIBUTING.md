@@ -2,12 +2,9 @@
 
 Welcome to Permify contribution guidelines, happy to see you here :blush:
 
-Before dive into a contributing flow and steps for creating good issues and pull requests. We must spesificy that all of the contributions must 
-follow our [Code of Conduct](https://github.com/Permify/permify/blob/master/CODE_OF_CONDUCT.md). 
-Please read it before you make any contributions.
+Before participating in the community, we must spesificy that all of the contributions must follow our [Code of Conduct](https://github.com/Permify/permify/blob/master/CODE_OF_CONDUCT.md). Please read it before you make any contributions.
 
-If you need any help or want to talk about about a spesific topic, you can reach out to me. I'm Ege one of the co-founders of Permify and here is my email:
-ege@permify.co
+If you need any help or want to talk about about a spesific issue, you can always reach out to me from my mail:ege@permify.co.
 
 You're always more than welcome to our other communication channels.
 
@@ -25,21 +22,13 @@ You're always more than welcome to our other communication channels.
 </a>
 </p>
 
-## Issues
+## Ways to contribute
 
-The best way to contribute to Permify is opening a issue. If you found any bug on Permify or mistake in our documents, contents
-you can open an issue about it to let us know. Evaluating problems and fixing them is high priority for us. 
+* **Contribute to codebase:** We're collaboratively working with our community to make Permify the best it can be! You can develop new features, fix existing issues or make third-party integrations/packages. 
+* **Improve documentation:** Alongisde with our codebase, documentation is the other heart of open source journey. We're trying to give the best DX possible to explain ourselfs and Permify. And you can help on that with importing resources or adding new ones.
+* **Contribute to playground:** The playground is where Permify can be visualized. You can contribute to our playground by improving its user interface, fixing bugs/glitches, or adding new features.
 
-### When opening a issue
-
-- If you plan to work on a problem, please check that same problem or topic does not already exist.
-- If you plan to work on a new feature, our advice it discuss it with other community members/maintainers who might give you a idea or support.
-- If you stuck anywhere, ask for help in our discord community.
-- Please relate one bug with one issue, do not use issues as bug lists. 
-
-After issue creation, If you are looking to make your contribution follow the steps below.
-
-## Contribution Steps
+### Contribution Steps
 
 - Fork this repository.
 - Clone the repository you forked.
@@ -48,14 +37,51 @@ After issue creation, If you are looking to make your contribution follow the st
 - Push changes to your branch.
 - Submit your changes for review.
 
-You can create an issue and contribute about anything you want but following above steps
-will definitely ease your work and other maintainers too.
+## Commit convention
 
+We use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) to keep our commit messages consistent and easy to understand. Here is the applied form of a commit message.
 
+```
+<type>(optional scope): <description>
+```
 
+**Examples:**
 
+- `feat: added multi tenant authentication support`
+- `fix: fixed welcomeServer duplicated syntax`
+- `docs: update the deployment options on set up section`
 
+### Types
 
+`fix:`,  `feat:`, `build:`, `chore:`, `ci:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`
 
+## Running Tests 
+
+In order to contribute and test in our codebase you need to have Go version 1.19 or higher.
+
+```go test -v ./...```
+
+### Adding dependencies
+Permify is not using anything other than the standard Go modules toolchain to manage dependencies.
+
+```go get github.com/org/newdependency@version```
+
+### Updating generated Protobuf code
+All Protobuf code is managed using buf.
+
+```buf generate```
+
+## Issues
+
+If you found any bug, have feature request or just want to improve our code base, docs or other resources; you can open an issue about it to let us know. If you plan to work on an existing issue, mention us on the issue page before you start working on it so we can assign you to it.
+
+### When opening a issue
+
+- If you plan to work on a problem, please check that same problem or topic does not already exist.
+- If you plan to work on a new feature, our advice it discuss it with other community members/maintainers who might give you a idea or support.
+- If you stuck anywhere, ask for help in our discord community.
+- Please relate one bug with one issue, do not use issues as bug lists. 
+
+You can create an issue and contribute about anything you want but following above steps. We will definitely ease your work and help on anything when needed.
 
 
