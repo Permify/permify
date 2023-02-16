@@ -11,6 +11,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/semconv/v1.10.0"
+
+	"github.com/Permify/permify/internal"
 )
 
 // NewTracer - Creates new tracer
@@ -21,7 +23,7 @@ func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
 			attribute.String("id", xid.New().String()),
-			attribute.String("version", "0.3.0"),
+			attribute.String("version", internal.Version),
 			attribute.String("os", runtime.GOOS),
 			attribute.String("arch", runtime.GOARCH),
 		)),

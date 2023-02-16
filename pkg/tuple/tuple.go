@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Permify/permify/pkg/helper"
+	"golang.org/x/exp/slices"
+
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -88,7 +89,7 @@ func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err err
 		}
 	}
 
-	if !helper.InArray(key, relationTypes) {
+	if !slices.Contains(relationTypes, key) {
 		return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_TYPE_NOT_FOUND.String())
 	}
 	return nil

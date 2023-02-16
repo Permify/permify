@@ -2,9 +2,9 @@ package utils
 
 import (
 	"github.com/hashicorp/go-memdb"
+	"golang.org/x/exp/slices"
 
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/pkg/helper"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -18,13 +18,13 @@ func FilterQuery(filter *base.TupleFilter) memdb.FilterFunc {
 		switch {
 		case filter.GetEntity().GetType() != "" && tuple.EntityType != filter.GetEntity().GetType():
 			return true
-		case len(filter.GetEntity().GetIds()) > 0 && !helper.InArray(tuple.EntityID, filter.GetEntity().GetIds()):
+		case len(filter.GetEntity().GetIds()) > 0 && !slices.Contains(filter.GetEntity().GetIds(), tuple.EntityID):
 			return true
 		case filter.GetRelation() != "" && tuple.Relation != filter.GetRelation():
 			return true
 		case filter.GetSubject().GetType() != "" && tuple.SubjectType != filter.GetSubject().GetType():
 			return true
-		case len(filter.GetSubject().GetIds()) > 0 && !helper.InArray(tuple.SubjectID, filter.GetSubject().GetIds()):
+		case len(filter.GetSubject().GetIds()) > 0 && !slices.Contains(filter.GetSubject().GetIds(), tuple.SubjectID):
 			return true
 		case filter.GetSubject().GetRelation() != "" && tuple.SubjectRelation != filter.GetSubject().GetRelation():
 			return true

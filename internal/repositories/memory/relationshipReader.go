@@ -14,7 +14,6 @@ import (
 	"github.com/Permify/permify/internal/repositories/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/helper"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
@@ -117,7 +116,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 }
 
 // GetUniqueEntityIDsByEntityType - Gets all entity IDs for a given entity type (unique)
-func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID string, typ, _ string) (array []string, err error) {
+func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID, typ, _ string) (array []string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -136,10 +135,23 @@ func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context,
 		result = append(result, t.EntityID)
 	}
 
-	return helper.RemoveDuplicate(result), nil
+	return removeDuplicate(result), nil
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (r *RelationshipReader) HeadSnapshot(ctx context.Context, _ string) (token.SnapToken, error) {
 	return snapshot.NewToken(time.Now()), nil
+}
+
+// RemoveDuplicate - Remove duplicated keys in given slice
+func removeDuplicate[T string | int](sliceList []T) []T {
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }

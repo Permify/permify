@@ -1,38 +1,29 @@
-package compiler
+package schema
 
 import (
-	"errors"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/pkg/dsl/parser"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// TestCompiler -
-func TestCompiler(t *testing.T) {
+// TestBuilder -
+func TestBuilder(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "compiler-suite")
+	RunSpecs(t, "builder-suite")
 }
 
 var _ = Describe("compiler", func() {
-	Context("NewCompiler", func() {
+	Context("Schema", func() {
 		It("Case 1", func() {
-			sch, err := parser.NewParser(`
-			entity user {}`).Parse()
+			is := Schema(
+				Entity("user", Relations(), Actions()),
+			)
 
-			Expect(err).ShouldNot(HaveOccurred())
-
-			c := NewCompiler(true, sch)
-
-			var is []*base.EntityDefinition
-			is, err = c.Compile()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(is).Should(Equal([]*base.EntityDefinition{
-				{
+			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
+				"user": {
 					Name:       "user",
 					Relations:  map[string]*base.RelationDefinition{},
 					Actions:    map[string]*base.ActionDefinition{},
@@ -42,34 +33,32 @@ var _ = Describe("compiler", func() {
 		})
 
 		It("Case 2", func() {
-			sch, err := parser.NewParser(`
-			entity user {}
-				
-			entity organization {
-				
-				relation owner @user
-				relation admin @user
+			is := Schema(
+				Entity("user", Relations(), Actions()),
+				Entity("organization",
+					Relations(
+						Relation("owner", Reference("user")),
+						Relation("admin", Reference("user")),
+					),
+					Actions(
+						Action("update",
+							Union(
+								ComputedUserSet("owner", false),
+								ComputedUserSet("admin", false),
+							),
+						),
+					),
+				),
+			)
 
-				action update = owner or admin
-			}
-			`).Parse()
-
-			Expect(err).ShouldNot(HaveOccurred())
-
-			c := NewCompiler(false, sch)
-
-			var is []*base.EntityDefinition
-			is, err = c.Compile()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			i := []*base.EntityDefinition{
-				{
+			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
+				"user": {
 					Name:       "user",
 					Relations:  map[string]*base.RelationDefinition{},
 					Actions:    map[string]*base.ActionDefinition{},
 					References: map[string]base.EntityDefinition_RelationalReference{},
 				},
-				{
+				"organization": {
 					Name: "organization",
 					Actions: map[string]*base.ActionDefinition{
 						"update": {
@@ -135,40 +124,39 @@ var _ = Describe("compiler", func() {
 						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 					},
 				},
-			}
-
-			Expect(is).Should(Equal(i))
+			}))
 		})
 
 		It("Case 3", func() {
-			sch, err := parser.NewParser(`
-			entity user {}
-				
-			entity organization {
-				
-				relation owner @user
-				relation admin @user
+			is := Schema(
+				Entity("user", Relations(), Actions()),
+				Entity("organization",
+					Relations(
+						Relation("owner", Reference("user")),
+						Relation("admin", Reference("user")),
+					),
+					Actions(
+						Action("update",
+							Union(
+								ComputedUserSet("owner", false),
+								Intersection(
+									ComputedUserSet("admin", false),
+									ComputedUserSet("owner", false),
+								),
+							),
+						),
+					),
+				),
+			)
 
-				action update = owner or (admin and owner)
-			}
-			`).Parse()
-
-			Expect(err).ShouldNot(HaveOccurred())
-
-			c := NewCompiler(false, sch)
-
-			var is []*base.EntityDefinition
-			is, err = c.Compile()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			i := []*base.EntityDefinition{
-				{
+			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
+				"user": {
 					Name:       "user",
 					Relations:  map[string]*base.RelationDefinition{},
 					Actions:    map[string]*base.ActionDefinition{},
 					References: map[string]base.EntityDefinition_RelationalReference{},
 				},
-				{
+				"organization": {
 					Name: "organization",
 					Actions: map[string]*base.ActionDefinition{
 						"update": {
@@ -255,40 +243,33 @@ var _ = Describe("compiler", func() {
 						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 					},
 				},
-			}
-
-			Expect(is).Should(Equal(i))
+			}))
 		})
 
 		It("Case 4", func() {
-			sch, err := parser.NewParser(`
-			entity user {}
-				
-			entity organization {
-				
-				relation owner @user
-				relation admin @user
+			is := Schema(
+				Entity("user", Relations(), Actions()),
+				Entity("organization",
+					Relations(
+						Relation("owner", Reference("user")),
+						Relation("admin", Reference("user")),
+					),
+					Actions(
+						Action("update",
+							ComputedUserSet("owner", false),
+						),
+					),
+				),
+			)
 
-				action update = owner
-			}
-			`).Parse()
-
-			Expect(err).ShouldNot(HaveOccurred())
-
-			c := NewCompiler(false, sch)
-
-			var is []*base.EntityDefinition
-			is, err = c.Compile()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			i := []*base.EntityDefinition{
-				{
+			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
+				"user": {
 					Name:       "user",
 					Relations:  map[string]*base.RelationDefinition{},
 					Actions:    map[string]*base.ActionDefinition{},
 					References: map[string]base.EntityDefinition_RelationalReference{},
 				},
-				{
+				"organization": {
 					Name: "organization",
 					Actions: map[string]*base.ActionDefinition{
 						"update": {
@@ -333,132 +314,61 @@ var _ = Describe("compiler", func() {
 						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 					},
 				},
-			}
-
-			Expect(is).Should(Equal(i))
+			}))
 		})
 
 		It("Case 5", func() {
-			sch, err := parser.NewParser(`
-			entity user {}
-				
-			entity organization {
-				
-				relation owner @user
-				relation admin @user
+			is := Schema(
+				Entity("user", Relations(), Actions()),
+				Entity("organization",
+					Relations(
+						Relation("owner", Reference("user")),
+						Relation("admin", Reference("user")),
+					),
+					Actions(
+						Action("update",
+							ComputedUserSet("owner", false),
+						),
+					),
+				),
+				Entity("repository",
+					Relations(
+						Relation("parent", Reference("organization")),
+						Relation("owner", Reference("user"), Reference("organization#admin")),
+					),
+					Actions(
+						Action("delete",
+							Union(
+								ComputedUserSet("owner", false),
+								Union(
+									TupleToUserSet("parent", "update", false),
+									TupleToUserSet("parent", "owner", true),
+								),
+							),
+						),
+					),
+				),
+			)
 
-				action update = maintainer or admin
-			}
-			`).Parse()
-
-			Expect(err).ShouldNot(HaveOccurred())
-
-			c := NewCompiler(false, sch)
-
-			_, err = c.Compile()
-			Expect(err).Should(Equal(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())))
-		})
-
-		It("Case 6", func() {
-			sch, err := parser.NewParser(`
-			entity user {}
-				
-			entity parent {
-				
-				relation admin @user
-			}
-
-			entity organization {
-				
-				relation parent @parent
-				relation admin @user
-			}
-
-			entity repository {
-				
-				relation parent @organization
-				action update = parent.parent.admin or admin
-			}
-			`).Parse()
-
-			Expect(err).ShouldNot(HaveOccurred())
-
-			c := NewCompiler(false, sch)
-
-			_, err = c.Compile()
-			Expect(err).Should(Equal(errors.New(base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())))
-		})
-
-		It("Case 7", func() {
-			sch, err := parser.NewParser(`
-			entity user {}
-				
-			entity organization {
-				
-				relation owner @user
-				relation admin @user
-
-				action update = owner or admin
-			}
-
-			entity repository {
-				
-				relation parent @organization
-				relation owner @user
-
-				action delete = owner or (parent.update or not parent.owner)
-			}
-
-			`).Parse()
-
-			Expect(err).ShouldNot(HaveOccurred())
-
-			c := NewCompiler(false, sch)
-
-			var is []*base.EntityDefinition
-			is, err = c.Compile()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			i := []*base.EntityDefinition{
-				{
+			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
+				"user": {
 					Name:       "user",
 					Relations:  map[string]*base.RelationDefinition{},
 					Actions:    map[string]*base.ActionDefinition{},
 					References: map[string]base.EntityDefinition_RelationalReference{},
 				},
-				{
+				"organization": {
 					Name: "organization",
 					Actions: map[string]*base.ActionDefinition{
 						"update": {
 							Name: "update",
 							Child: &base.Child{
-								Type: &base.Child_Rewrite{
-									Rewrite: &base.Rewrite{
-										RewriteOperation: base.Rewrite_OPERATION_UNION,
-										Children: []*base.Child{
-											{
-												Type: &base.Child_Leaf{
-													Leaf: &base.Leaf{
-														Exclusion: false,
-														Type: &base.Leaf_ComputedUserSet{
-															ComputedUserSet: &base.ComputedUserSet{
-																Relation: "owner",
-															},
-														},
-													},
-												},
-											},
-											{
-												Type: &base.Child_Leaf{
-													Leaf: &base.Leaf{
-														Exclusion: false,
-														Type: &base.Leaf_ComputedUserSet{
-															ComputedUserSet: &base.ComputedUserSet{
-																Relation: "admin",
-															},
-														},
-													},
-												},
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Exclusion: false,
+										Type: &base.Leaf_ComputedUserSet{
+											ComputedUserSet: &base.ComputedUserSet{
+												Relation: "owner",
 											},
 										},
 									},
@@ -492,7 +402,7 @@ var _ = Describe("compiler", func() {
 						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 					},
 				},
-				{
+				"repository": {
 					Name: "repository",
 					Actions: map[string]*base.ActionDefinition{
 						"delete": {
@@ -580,6 +490,10 @@ var _ = Describe("compiler", func() {
 									EntityType: "user",
 									Relation:   "",
 								},
+								{
+									EntityType: "organization",
+									Relation:   "admin",
+								},
 							},
 						},
 					},
@@ -589,9 +503,7 @@ var _ = Describe("compiler", func() {
 						"delete": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 					},
 				},
-			}
-
-			Expect(is).Should(Equal(i))
+			}))
 		})
 	})
 })

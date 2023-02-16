@@ -2,7 +2,7 @@ package ristretto
 
 import (
 	"github.com/dgraph-io/ristretto"
-	`github.com/dustin/go-humanize`
+	"github.com/dustin/go-humanize"
 )
 
 // Ristretto - Structure for Ristretto

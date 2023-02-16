@@ -319,7 +319,7 @@ message SchemaReadRequestMetadata {
 
 // SchemaReadRequest
 message SchemaReadResponse {
-  IndexedSchema schema = 1 [json_name = "schema"];
+  SchemaDefinition schema = 1 [json_name = "schema"];
 }
 
 // ** RELATIONSHIP SERVICE **
@@ -420,7 +420,7 @@ message RelationshipReadRequest {
     (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
   ];
 
-  string continuous_token = 5 [json_name = "continuous_token",  (validate.rules).string = {ignore_empty: true}];
+  string continuous_token = 5 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
 
 // RelationshipWriteRequestMetadata
@@ -535,7 +535,7 @@ message TenantListRequest {
     (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
   ];
 
-  string continuous_token = 5 [json_name = "continuous_token",  (validate.rules).string = {ignore_empty: true}];
+  string continuous_token = 5 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
 
 // TenantListResponse

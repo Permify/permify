@@ -63,6 +63,6 @@ func WriteSchema(ctx context.Context, service services.ISchemaService, schema st
 }
 
 // ReadSchema - Creates new read schema request
-func ReadSchema(ctx context.Context, service services.ISchemaService, version string) (sch *v1.IndexedSchema, err error) {
+func ReadSchema(ctx context.Context, service services.ISchemaService, version string) (sch *v1.SchemaDefinition, err error) {
 	return service.ReadSchema(ctx, "t1", version)
 }

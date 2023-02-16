@@ -31,7 +31,7 @@ type RelationshipWriter interface {
 // SchemaReader -
 type SchemaReader interface {
 	// ReadSchema reads entity config from the repository.
-	ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.IndexedSchema, err error)
+	ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.SchemaDefinition, err error)
 	// ReadSchemaDefinition reads entity config from the repository.
 	ReadSchemaDefinition(ctx context.Context, tenantID string, entityType, version string) (definition *base.EntityDefinition, v string, err error)
 	// HeadVersion reads the latest version of the schema from the repository.

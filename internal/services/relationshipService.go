@@ -7,8 +7,8 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
@@ -85,7 +85,7 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tena
 			return token, err
 		}
 		for _, t := range rel.GetRelationReferences() {
-			vt = append(vt, t.GetName())
+			vt = append(vt, t.String())
 		}
 
 		err = tuple.ValidateSubjectType(tup.Subject, vt)

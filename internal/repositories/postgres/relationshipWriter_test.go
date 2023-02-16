@@ -91,7 +91,7 @@ var _ = Describe("RelationshipWriter", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			//TODO: can we write a helper function to fetch the recently inserted record? as we are just creating a mock! any comments? Will think about it!
+			// TODO: can we write a helper function to fetch the recently inserted record? as we are just creating a mock! any comments? Will think about it!
 
 		})
 	})

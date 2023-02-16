@@ -8,6 +8,12 @@ func (t Type) String() string {
 	return string(t)
 }
 
+// WithIgnores -
+type WithIgnores struct {
+	Token   Token
+	Ignores []Token
+}
+
 // Token -
 type Token struct {
 	Type    Type
@@ -27,6 +33,15 @@ var keywords = map[string]Type{
 	"and":      AND,
 	"or":       OR,
 	"not":      NOT,
+}
+
+// ignores -
+var ignores = map[Type]struct{}{
+	SINGLE_LINE_COMMENT: {},
+	MULTI_LINE_COMMENT:  {},
+	SPACE:               {},
+	TAB:                 {},
+	NEWLINE:             {},
 }
 
 const (
@@ -58,6 +73,8 @@ const (
 
 	ASSIGN = "ASSIGN"
 	SIGN   = "SIGN"
+	HASH   = "HASH"
+	DOT    = "DOT"
 
 	NEWLINE = "NEWLINE"
 
@@ -82,8 +99,14 @@ const (
 	AND = "AND"
 	OR  = "OR"
 
-	QUOTE  = "QUOTE"
-	OPTION = "OPTION"
+	//
+	// Comments
+	//
+
+	SINGLE_LINE_COMMENT = "SINGLE_LINE_COMMENT"
+	MULTI_LINE_COMMENT  = "MULTI_LINE_COMMENT"
+	SPACE               = "SPACE"
+	TAB                 = "TAB"
 )
 
 // LookupKeywords -
@@ -92,4 +115,12 @@ func LookupKeywords(ident string) Type {
 		return tok
 	}
 	return IDENT
+}
+
+// IsIgnores -
+func IsIgnores(typ Type) bool {
+	if _, ok := ignores[typ]; ok {
+		return true
+	}
+	return false
 }

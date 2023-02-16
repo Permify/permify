@@ -769,12 +769,6 @@
             "$ref": "#/definitions/RelationalReference"
           },
           "title": "[\"relation_name or action_name\"] =\u003e RelationalReference"
-        },
-        "option": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
         }
       },
       "title": "EntityDefinition"
@@ -830,32 +824,6 @@
       ],
       "default": "OPERATION_UNSPECIFIED",
       "title": "Operation"
-    },
-    "IndexedSchema": {
-      "type": "object",
-      "properties": {
-        "entityDefinitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/EntityDefinition"
-          }
-        },
-        "relationDefinitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/RelationDefinition"
-          },
-          "title": "[\"entity_name#relation_name\"] =\u003e RelationDefinition"
-        },
-        "actionDefinitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/ActionDefinition"
-          },
-          "title": "[\"entity_name#action_name\"] =\u003e ActionDefinition"
-        }
-      },
-      "title": "IndexedSchema"
     },
     "Leaf": {
       "type": "object",
@@ -1008,20 +976,10 @@
         "name": {
           "type": "string"
         },
-        "entityReference": {
-          "$ref": "#/definitions/RelationReference"
-        },
         "relationReferences": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/RelationReference"
-          },
-          "title": "relation reference includes entity reference"
-        },
-        "option": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
           }
         }
       },
@@ -1030,7 +988,10 @@
     "RelationReference": {
       "type": "object",
       "properties": {
-        "name": {
+        "entityType": {
+          "type": "string"
+        },
+        "relation": {
           "type": "string"
         }
       },
@@ -1122,6 +1083,18 @@
       "default": "OPERATION_UNSPECIFIED",
       "title": "Operation"
     },
+    "SchemaDefinition": {
+      "type": "object",
+      "properties": {
+        "entityDefinitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/EntityDefinition"
+          }
+        }
+      },
+      "title": "Definition"
+    },
     "SchemaReadRequestMetadata": {
       "type": "object",
       "properties": {
@@ -1135,7 +1108,7 @@
       "type": "object",
       "properties": {
         "schema": {
-          "$ref": "#/definitions/IndexedSchema"
+          "$ref": "#/definitions/SchemaDefinition"
         }
       },
       "title": "SchemaReadRequest"

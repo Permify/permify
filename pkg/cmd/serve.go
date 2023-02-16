@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
@@ -30,22 +31,6 @@ import (
 	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
 )
 
-const (
-	// Version of Permify
-	Version = "v0.3.0"
-	banner  = `
-
-██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗██╗   ██╗
-██╔══██╗██╔════╝██╔══██╗████╗ ████║██║██╔════╝╚██╗ ██╔╝
-██████╔╝█████╗  ██████╔╝██╔████╔██║██║█████╗   ╚████╔╝ 
-██╔═══╝ ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██╔══╝    ╚██╔╝  
-██║     ███████╗██║  ██║██║ ╚═╝ ██║██║██║        ██║   
-╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝        ╚═╝   
-_______________________________________________________
-Fine-grained Authorization System %s
-`
-)
-
 // NewServeCommand - Creates new server command
 func NewServeCommand() *cobra.Command {
 	return &cobra.Command{
@@ -60,12 +45,16 @@ func NewServeCommand() *cobra.Command {
 func serve() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.NewConfig()
+		if err != nil {
+			return err
+		}
+
 		if err = viper.Unmarshal(cfg); err != nil {
 			return err
 		}
 
 		red := color.New(color.FgGreen)
-		_, _ = red.Printf(banner, Version)
+		_, _ = red.Printf(internal.Banner, internal.Version)
 
 		l := logger.New(cfg.Log.Level)
 

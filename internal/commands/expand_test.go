@@ -7,9 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/dsl/compiler"
-	"github.com/Permify/permify/pkg/dsl/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
@@ -55,8 +54,8 @@ var _ = Describe("expand-command", func() {
 
 			schemaReader := new(mocks.SchemaReader)
 
-			var sch *base.IndexedSchema
-			sch, err = compiler.NewSchema(driveSchema)
+			var sch *base.SchemaDefinition
+			sch, err = schema.NewSchemaFromStringDefinitions(true, driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var doc *base.EntityDefinition

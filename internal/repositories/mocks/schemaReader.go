@@ -13,14 +13,14 @@ type SchemaReader struct {
 }
 
 // ReadSchema - Reads a new schema from repository
-func (_m *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.IndexedSchema, err error) {
+func (_m *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.SchemaDefinition, err error) {
 	ret := _m.Called(tenantID, version)
 
-	var r0 *base.IndexedSchema
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *base.IndexedSchema); ok {
+	var r0 *base.SchemaDefinition
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *base.SchemaDefinition); ok {
 		r0 = rf(ctx, tenantID, version)
 	} else {
-		r0 = ret.Get(0).(*base.IndexedSchema)
+		r0 = ret.Get(0).(*base.SchemaDefinition)
 	}
 
 	var r1 error

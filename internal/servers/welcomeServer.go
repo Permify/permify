@@ -5,6 +5,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/Permify/permify/internal"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -20,16 +21,16 @@ func NewWelcomeServer() *WelcomeServer {
 
 func (r *WelcomeServer) Hello(context.Context, *emptypb.Empty) (*v1.WelcomeResponse, error) {
 	return &v1.WelcomeResponse{
-		Permify: "Open-source authorization service inspired by Google Zanzibar",
+		Permify: internal.OneLiner,
 		Sources: &v1.WelcomeResponse_Sources{
-			Docs:   "https://docs.permify.co/",
-			GitHub: "https://github.com/Permify/permify",
-			Blog:   "https://www.permify.co/blog",
+			Docs:   internal.Docs,
+			GitHub: internal.GitHub,
+			Blog:   internal.Blog,
 		},
 		Socials: &v1.WelcomeResponse_Socials{
-			Discord:  "https://discord.gg/JJnMeCh6qP",
-			Twitter:  "https://twitter.com/GetPermify",
-			Linkedin: "https://twitter.com/GetPermify",
+			Discord:  internal.Discord,
+			Twitter:  internal.Twitter,
+			Linkedin: internal.Linkedin,
 		},
 	}, nil
 }
