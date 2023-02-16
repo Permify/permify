@@ -105,13 +105,23 @@ localhost:3476/healthz
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger)
 
 ## Community & Support
-We love to talk about authorization also we would love to hear from you :heart:
+We would love to hear from you :heart:
 
-You can get immidiate help on our [Discord](https://discord.gg/MJbUjwskdH) channel. This can be any kind of questions related to Permify, authorization, or even from authentication or identity access control. We'd love to discuss anything related with access control space.
+You can get immediate help on our Discord channel. This can be any kind of question-related to Permify, authorization, or authentication and identity management. We'd love to discuss anything related to access control space.
 
-For feature requests, bugs or any improvements you can always open an issue. If you like Permify, please consider giving us a :star:
+For feature requests, bugs, or any improvements you can always open an issue. 
 
-Want to contribute ? See [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
+### Want to Contribute? Here are the ways to contribute to Permify
+
+* **Contribute to codebase:** We're collaboratively working with our community to make Permify the best it can be! You can develop new features, fix existing issues or make third-party integrations/packages. 
+* **Improve documentation:** Alongside our codebase, documentation one of the most significant things in our open-source journey. We're trying to give the best DX possible to explain ourselfs and Permify. And you can help on that with importing resources or adding new ones.
+* **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
+
+You can find more details about contributions on [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
+
+## Communication Channels
+
+If you like Permify, please consider giving us a :star:
 
 <p align="left">
 <a href="https://discord.gg/MJbUjwskdH">

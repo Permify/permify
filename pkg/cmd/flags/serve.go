@@ -199,11 +199,43 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
+	if err = viper.BindPFlag("service.schema.cache.number_of_counters", flags.Lookup("service-schema-cache-number-of-counters")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("service.schema.cache.number_of_counters", "PERMIFY_SERVICE_SCHEMA_CACHE_NUMBER_OF_COUNTERS"); err != nil {
+		panic(err)
+	}
+
+	flags.String("service-schema-cache-max-cost", conf.Service.Schema.Cache.MaxCost, "schema service cache max cost")
+	if err = viper.BindPFlag("service.schema.cache.max_cost", flags.Lookup("service-schema-cache-max-cost")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("service.schema.cache.max_cost", "PERMIFY_SERVICE_SCHEMA_CACHE_MAX_COST"); err != nil {
+		panic(err)
+	}
+
 	flags.Int("service-permission-concurrency-limit", conf.Service.Permission.ConcurrencyLimit, "concurrency limit")
 	if err = viper.BindPFlag("service.permission.concurrency_limit", flags.Lookup("service-permission-concurrency-limit")); err != nil {
 		panic(err)
 	}
 	if err = viper.BindEnv("service.permission.concurrency_limit", "PERMIFY_SERVICE_PERMISSION_CONCURRENCY_LIMIT"); err != nil {
+		panic(err)
+	}
+
+	flags.Int64("service-permission-cache-number-of-counters", conf.Service.Permission.Cache.NumberOfCounters, "permission service cache number of counters")
+	if err = viper.BindPFlag("service.permission.cache.number_of_counters", flags.Lookup("service-permission-cache-number-of-counters")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("service.permission.cache.number_of_counters", "PERMIFY_SERVICE_PERMISSION_CACHE_NUMBER_OF_COUNTERS"); err != nil {
+		panic(err)
+	}
+
+	flags.String("service-permission-cache-max-cost", conf.Service.Permission.Cache.MaxCost, "permission service cache max cost")
+	if err = viper.BindPFlag("service.permission.cache.max_cost", flags.Lookup("service-permission-cache-max-cost")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("service.permission.cache.max_cost", "PERMIFY_SERVICE_PERMISSION_CACHE_MAX_COST"); err != nil {
 		panic(err)
 	}
 
