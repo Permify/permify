@@ -58,6 +58,10 @@ Permify's data model is inspired by Google’s consistent, global authorization 
 - If your data model is getting too complicated to handle your authorization within the service.
 - If your authorization is growing too complex to handle within code or API gateway.
 
+```diff
++ Missing a specific use case? no problem, let's implement it for you! just open an issue. 
+```
+
 ## How it works
 
 Permify stores access control relations on a database you choose and performs authorization checks based on the stored relations. We called that database Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model your authorization with Permify's DSL - Permify Schema and perform access checks with a single API call anywhere on your stack.
