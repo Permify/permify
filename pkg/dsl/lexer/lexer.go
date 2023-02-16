@@ -80,6 +80,10 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		tok = token.New(token.RBRACE, l.ch)
 	case ',':
 		tok = token.New(token.COMMA, l.ch)
+	case '#':
+		tok = token.New(token.HASH, l.ch)
+	case '.':
+		tok = token.New(token.DOT, l.ch)
 	case 0:
 		tok = token.Token{Type: token.EOF, Literal: ""}
 	default:
@@ -156,5 +160,5 @@ func isNewline(r byte) bool {
 
 // isLetter -
 func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '.' || ch == '#'
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
 }

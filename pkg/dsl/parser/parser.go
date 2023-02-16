@@ -7,6 +7,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/lexer"
 	"github.com/Permify/permify/pkg/dsl/token"
+	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -32,12 +33,17 @@ type Parser struct {
 	prefixParseFns map[token.Type]prefixParseFn
 	infixParseFunc map[token.Type]infixParseFn
 
-	// references
+	// entity references
+	// sample keys: entity_type
 	entityReferences map[string]struct{}
 
-	// relational references
-	relationReferences map[string][]string
-	actionReferences   map[string]struct{}
+	// relation references
+	// sample keys: entity_type#member
+	relationReferences map[string][]ast.RelationTypeStatement
+
+	// action references
+	// sample keys: entity_type#read
+	actionReferences map[string]struct{}
 
 	// its contains all references
 	// sample keys: entity_type#member, entity_type#read
@@ -55,7 +61,7 @@ func NewParser(str string) (p *Parser) {
 		l:                    lexer.NewLexer(str),
 		errors:               []string{},
 		entityReferences:     map[string]struct{}{},
-		relationReferences:   map[string][]string{},
+		relationReferences:   map[string][]ast.RelationTypeStatement{},
 		actionReferences:     map[string]struct{}{},
 		relationalReferences: map[string]ast.RelationalReferenceType{},
 	}
@@ -85,9 +91,9 @@ func (p *Parser) setEntityReference(key string) error {
 }
 
 // setRelationReference -
-func (p *Parser) setRelationReference(key string, types []string) error {
+func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatement) error {
 	if p.relationReferences == nil {
-		p.relationReferences = map[string][]string{}
+		p.relationReferences = map[string][]ast.RelationTypeStatement{}
 	}
 	if _, ok := p.relationReferences[key]; ok {
 		p.errors = append(p.errors, base.ErrorCode_ERROR_CODE_DUPLICATED_RELATION_REFERENCE.String())
@@ -203,8 +209,7 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 
 	stmt.Name = p.currentToken
 
-	entityName := stmt.Name.Literal
-	err := p.setEntityReference(entityName)
+	err := p.setEntityReference(stmt.Name.Literal)
 	if err != nil {
 		return nil, err
 	}
@@ -220,13 +225,13 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 		}
 		switch p.currentToken.Type {
 		case token.RELATION:
-			relation, err := p.parseRelationStatement(entityName)
+			relation, err := p.parseRelationStatement(stmt.Name.Literal)
 			if err != nil {
 				return nil, p.Error()
 			}
 			stmt.RelationStatements = append(stmt.RelationStatements, relation)
 		case token.ACTION:
-			action, err := p.parseActionStatement(entityName)
+			action, err := p.parseActionStatement(stmt.Name.Literal)
 			if err != nil {
 				return nil, p.Error()
 			}
@@ -250,8 +255,6 @@ func (p *Parser) parseRelationStatement(entityName string) (*ast.RelationStateme
 		return nil, p.Error()
 	}
 
-	var relationTypeStatements []string
-
 	stmt.Name = p.currentToken
 	relationName := stmt.Name.Literal
 
@@ -260,15 +263,14 @@ func (p *Parser) parseRelationStatement(entityName string) (*ast.RelationStateme
 	}
 
 	for p.peekTokenIs(token.SIGN) {
-		relSt, err := p.parseRelationTypeStatement()
+		relationStatement, err := p.parseRelationTypeStatement()
 		if err != nil {
 			return nil, p.Error()
 		}
-		stmt.RelationTypes = append(stmt.RelationTypes, relSt)
-		relationTypeStatements = append(relationTypeStatements, relSt.Ident.Literal)
+		stmt.RelationTypes = append(stmt.RelationTypes, *relationStatement)
 	}
 
-	err := p.setRelationReference(fmt.Sprintf("%v#%v", entityName, relationName), relationTypeStatements)
+	err := p.setRelationReference(utils.Key(entityName, relationName), stmt.RelationTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +287,18 @@ func (p *Parser) parseRelationTypeStatement() (*ast.RelationTypeStatement, error
 	if !p.expectAndNext(token.IDENT) {
 		return nil, p.Error()
 	}
-	stmt.Ident = p.currentToken
+
+	stmt.Type = p.currentToken
+
+	if p.peekTokenIs(token.HASH) {
+		p.next()
+		if !p.expectAndNext(token.IDENT) {
+			return nil, p.Error()
+		}
+		stmt.Relation = p.currentToken
+		p.next()
+	}
+
 	return stmt, nil
 }
 
@@ -298,7 +311,7 @@ func (p *Parser) parseActionStatement(entityName string) (ast.Statement, error) 
 	}
 
 	stmt.Name = p.currentToken
-	err := p.setActionReference(fmt.Sprintf("%v#%v", entityName, stmt.Name.Literal))
+	err := p.setActionReference(utils.Key(entityName, stmt.Name.Literal))
 	if err != nil {
 		return nil, err
 	}
@@ -424,14 +437,17 @@ func (p *Parser) parseInnerParen() (ast.Expression, error) {
 
 // parsePrefixExpression -
 func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
-	expression := &ast.PrefixExpression{
-		Not:      p.currentToken,
-		Operator: p.currentToken.Literal,
+	ident := &ast.Identifier{
+		Prefix: p.currentToken,
 	}
 	p.next()
-	expression.Ident = p.currentToken
-	expression.Value = p.currentToken.Literal
-	return expression, nil
+	ident.Idents = append(ident.Idents, p.currentToken)
+	for p.peekTokenIs(token.DOT) {
+		p.next()
+		p.next()
+		ident.Idents = append(ident.Idents, p.currentToken)
+	}
+	return ident, nil
 }
 
 // parseInfixExpression
@@ -469,7 +485,13 @@ func (p *Parser) currentPrecedence() int {
 
 // parseIdentifier
 func (p *Parser) parseIdentifier() (ast.Expression, error) {
-	return &ast.Identifier{Ident: p.currentToken, Value: p.currentToken.Literal}, nil
+	ident := &ast.Identifier{Idents: []token.Token{p.currentToken}}
+	for p.peekTokenIs(token.DOT) {
+		p.next()
+		p.next()
+		ident.Idents = append(ident.Idents, p.currentToken)
+	}
+	return ident, nil
 }
 
 // registerPrefix
@@ -487,18 +509,6 @@ func (p *Parser) noPrefixParseFnError(t token.Type) {
 	msg := fmt.Sprintf("%v:%v:no prefix parse function for %s found", p.l.GetLinePosition(), p.l.GetColumnPosition(), t)
 	p.errors = append(p.errors, msg)
 }
-
-//// noInfixParseFnError -
-//func (p *Parser) noInfixParseFnError(t token.Type) {
-//	msg := fmt.Sprintf("%v:%v:no infix parse function for %s found", p.l.GetLinePosition(), p.l.GetColumnPosition(), t)
-//	p.errors = append(p.errors, msg)
-//}
-
-//// illegal -
-//func (p *Parser) illegal() {
-//	msg := fmt.Sprintf("%v:%v:illegal token found", p.l.GetLinePosition(), p.l.GetColumnPosition())
-//	p.errors = append(p.errors, msg)
-//}
 
 // peekError -
 func (p *Parser) peekError(t ...token.Type) {

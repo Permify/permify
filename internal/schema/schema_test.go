@@ -25,7 +25,6 @@ var _ = Describe("schema", func() {
 				Relations:  map[string]*base.RelationDefinition{},
 				Actions:    map[string]*base.ActionDefinition{},
 				References: map[string]base.EntityDefinition_RelationalReference{},
-				Option:     map[string]string{},
 			})
 
 			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
@@ -43,7 +42,6 @@ var _ = Describe("schema", func() {
 				Relations:  map[string]*base.RelationDefinition{},
 				Actions:    map[string]*base.ActionDefinition{},
 				References: map[string]base.EntityDefinition_RelationalReference{},
-				Option:     map[string]string{},
 			}, &base.EntityDefinition{
 				Name: "organization",
 				Relations: map[string]*base.RelationDefinition{
@@ -51,19 +49,19 @@ var _ = Describe("schema", func() {
 						Name: "owner",
 						RelationReferences: []*base.RelationReference{
 							{
-								Name: "user",
+								EntityType: "user",
+								Relation:   "",
 							},
 						},
-						Option: map[string]string{},
 					},
 					"admin": {
 						Name: "admin",
 						RelationReferences: []*base.RelationReference{
 							{
-								Name: "user",
+								EntityType: "user",
+								Relation:   "",
 							},
 						},
-						Option: map[string]string{},
 					},
 				},
 				Actions: map[string]*base.ActionDefinition{
@@ -108,7 +106,6 @@ var _ = Describe("schema", func() {
 					"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 					"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 				},
-				Option: map[string]string{},
 			})
 
 			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
@@ -127,7 +124,6 @@ var _ = Describe("schema", func() {
 				Relations:  map[string]*base.RelationDefinition{},
 				Actions:    map[string]*base.ActionDefinition{},
 				References: map[string]base.EntityDefinition_RelationalReference{},
-				Option:     map[string]string{},
 			}, &base.EntityDefinition{
 				Name: "organization",
 				Relations: map[string]*base.RelationDefinition{
@@ -135,19 +131,19 @@ var _ = Describe("schema", func() {
 						Name: "owner",
 						RelationReferences: []*base.RelationReference{
 							{
-								Name: "user",
+								EntityType: "user",
+								Relation:   "",
 							},
 						},
-						Option: map[string]string{},
 					},
 					"admin": {
 						Name: "admin",
 						RelationReferences: []*base.RelationReference{
 							{
-								Name: "user",
+								EntityType: "user",
+								Relation:   "",
 							},
 						},
-						Option: map[string]string{},
 					},
 				},
 				Actions: map[string]*base.ActionDefinition{
@@ -192,7 +188,6 @@ var _ = Describe("schema", func() {
 					"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 					"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 				},
-				Option: map[string]string{},
 			}, &base.EntityDefinition{
 				Name: "repository",
 				Relations: map[string]*base.RelationDefinition{
@@ -200,31 +195,32 @@ var _ = Describe("schema", func() {
 						Name: "parent",
 						RelationReferences: []*base.RelationReference{
 							{
-								Name: "organization",
+								EntityType: "organization",
+								Relation:   "",
 							},
 						},
-						Option: map[string]string{},
 					},
 					"maintainer": {
 						Name: "maintainer",
 						RelationReferences: []*base.RelationReference{
 							{
-								Name: "user",
+								EntityType: "user",
+								Relation:   "",
 							},
 							{
-								Name: "organization#member",
+								EntityType: "organization",
+								Relation:   "member",
 							},
 						},
-						Option: map[string]string{},
 					},
 					"owner": {
 						Name: "owner",
 						RelationReferences: []*base.RelationReference{
 							{
-								Name: "user",
+								EntityType: "user",
+								Relation:   "",
 							},
 						},
-						Option: map[string]string{},
 					},
 				},
 				Actions: map[string]*base.ActionDefinition{
@@ -318,7 +314,6 @@ var _ = Describe("schema", func() {
 					"update":     base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 					"delete":     base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
 				},
-				Option: map[string]string{},
 			})
 
 			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{

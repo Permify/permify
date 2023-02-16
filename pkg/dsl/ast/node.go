@@ -1,14 +1,9 @@
 package ast
 
 import (
-	"bytes"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/Permify/permify/pkg/dsl/token"
-	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 type (
@@ -24,7 +19,6 @@ func (o Operator) String() string {
 
 const (
 	IDENTIFIER ExpressionType = "identifier"
-	PREFIX     ExpressionType = "prefix"
 	INFLIX     ExpressionType = "inflix"
 
 	AND Operator = "and"
@@ -45,113 +39,12 @@ type Expression interface {
 	expressionNode()
 	IsInfix() bool
 	GetType() ExpressionType
-	GetValue() string
 }
 
 // Statement -
 type Statement interface {
 	Node
 	statementNode()
-}
-
-// Schema -
-type Schema struct {
-	Statements []Statement
-
-	entityReferences map[string]struct{}
-
-	// relational references
-	actionReferences   map[string]struct{}
-	relationReferences map[string][]string
-
-	// all relational references
-	relationalReferences map[string]RelationalReferenceType
-}
-
-// ValidateReferences -
-func (sch *Schema) ValidateReferences() error {
-	if !sch.IsEntityReferenceExist(tuple.USER) {
-		return errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_MUST_HAVE_USER_ENTITY_DEFINITION.String())
-	}
-	for _, st := range sch.relationReferences {
-		entityReferenceCount := 0
-		for _, s := range st {
-			if IsEntityReference(s) {
-				if !sch.IsEntityReferenceExist(s) {
-					return errors.New(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String())
-				}
-				entityReferenceCount++
-			}
-			if entityReferenceCount > 1 {
-				return errors.New(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_MUST_HAVE_ONE_ENTITY_REFERENCE.String())
-			}
-		}
-	}
-	return nil
-}
-
-// SetEntityReferences -
-func (sch *Schema) SetEntityReferences(r map[string]struct{}) {
-	if sch.entityReferences == nil {
-		sch.entityReferences = map[string]struct{}{}
-	}
-	sch.entityReferences = r
-}
-
-// SetActionReferences -
-func (sch *Schema) SetActionReferences(r map[string]struct{}) {
-	if sch.actionReferences == nil {
-		sch.actionReferences = map[string]struct{}{}
-	}
-	sch.actionReferences = r
-}
-
-// SetRelationReferences -
-func (sch *Schema) SetRelationReferences(r map[string][]string) {
-	if sch.relationReferences == nil {
-		sch.relationReferences = map[string][]string{}
-	}
-	sch.relationReferences = r
-}
-
-// SetRelationalReferences it contains action and relation references
-func (sch *Schema) SetRelationalReferences(r map[string]RelationalReferenceType) {
-	if sch.relationalReferences == nil {
-		sch.relationalReferences = map[string]RelationalReferenceType{}
-	}
-	sch.relationalReferences = r
-}
-
-// GetRelationalReferenceTypeIfExist -
-func (sch *Schema) GetRelationalReferenceTypeIfExist(r string) (RelationalReferenceType, bool) {
-	if _, ok := sch.relationalReferences[r]; ok {
-		return sch.relationalReferences[r], true
-	}
-	return RELATION, false
-}
-
-// IsEntityReferenceExist -
-func (sch *Schema) IsEntityReferenceExist(name string) bool {
-	if _, ok := sch.entityReferences[name]; ok {
-		return ok
-	}
-	return false
-}
-
-// IsRelationReferenceExist -
-func (sch *Schema) IsRelationReferenceExist(name string) bool {
-	if _, ok := sch.relationReferences[name]; ok {
-		return true
-	}
-	return false
-}
-
-// GetRelationReferenceIfExist -
-func (sch *Schema) GetRelationReferenceIfExist(name string) ([]string, bool) {
-	if _, ok := sch.relationReferences[name]; ok {
-		return sch.relationReferences[name], true
-	}
-	return nil, false
 }
 
 // EntityStatement -
@@ -196,7 +89,7 @@ func (ls *EntityStatement) String() string {
 type RelationStatement struct {
 	Relation      token.Token // token.RELATION
 	Name          token.Token // token.IDENT
-	RelationTypes []Statement
+	RelationTypes []RelationTypeStatement
 }
 
 // statementNode -
@@ -221,30 +114,32 @@ func (ls *RelationStatement) String() string {
 
 // RelationTypeStatement -
 type RelationTypeStatement struct {
-	Sign  token.Token // token.SIGN
-	Ident token.Token // token.IDENT
+	Sign     token.Token // token.SIGN
+	Type     token.Token // token.IDENT
+	Relation token.Token // token.IDENT
 }
-
-// statementNode -
-func (ls *RelationTypeStatement) statementNode() {}
 
 // String -
 func (ls *RelationTypeStatement) String() string {
 	var sb strings.Builder
 	sb.WriteString("@")
-	sb.WriteString(ls.Ident.Literal)
+	sb.WriteString(ls.Type.Literal)
+	if ls.Relation.Literal != "" {
+		sb.WriteString("#")
+		sb.WriteString(ls.Relation.Literal)
+	}
 	return sb.String()
 }
 
-// IsEntityReference -
-func IsEntityReference(s string) bool {
-	return !strings.Contains(s, "#")
+// IsDirectEntityReference -
+func IsDirectEntityReference(s RelationTypeStatement) bool {
+	return s.Relation.Literal == ""
 }
 
 // Identifier -
 type Identifier struct {
-	Ident token.Token // token.IDENT
-	Value string
+	Prefix token.Token
+	Idents []token.Token // token.IDENT
 }
 
 // expressionNode -
@@ -252,7 +147,22 @@ func (ls *Identifier) expressionNode() {}
 
 // String -
 func (ls *Identifier) String() string {
-	return ls.Value
+	var sb strings.Builder
+	if ls.Prefix.Literal != "" {
+		sb.WriteString("not")
+		sb.WriteString(" ")
+	}
+	for _, ident := range ls.Idents[:len(ls.Idents)-1] {
+		sb.WriteString(ident.Literal)
+		sb.WriteString(".")
+	}
+	sb.WriteString(ls.Idents[len(ls.Idents)-1].Literal)
+	return sb.String()
+}
+
+// IsPrefix -
+func (ls *Identifier) IsPrefix() bool {
+	return ls.Prefix.Literal != ""
 }
 
 // IsInfix -
@@ -263,11 +173,6 @@ func (ls *Identifier) IsInfix() bool {
 // GetType -
 func (ls *Identifier) GetType() ExpressionType {
 	return IDENTIFIER
-}
-
-// GetValue -
-func (ls *Identifier) GetValue() string {
-	return ls.Value
 }
 
 // ActionStatement -
@@ -340,57 +245,4 @@ func (ie *InfixExpression) IsInfix() bool {
 // GetType -
 func (ie *InfixExpression) GetType() ExpressionType {
 	return INFLIX
-}
-
-// GetValue -
-func (ie *InfixExpression) GetValue() string {
-	return ie.Op.Literal
-}
-
-// PrefixExpression -
-type PrefixExpression struct {
-	Not      token.Token
-	Ident    token.Token
-	Operator string
-	Value    string
-}
-
-// String -
-func (pe *PrefixExpression) String() string {
-	var sb bytes.Buffer
-	sb.WriteString(pe.Operator)
-	sb.WriteString(" ")
-	sb.WriteString(pe.Value)
-	return sb.String()
-}
-
-// expressionNode -
-func (pe *PrefixExpression) expressionNode() {}
-
-// IsInfix -
-func (pe *PrefixExpression) IsInfix() bool {
-	return false
-}
-
-// GetType -
-func (pe *PrefixExpression) GetType() ExpressionType {
-	return PREFIX
-}
-
-// GetValue -
-func (pe *PrefixExpression) GetValue() string {
-	return pe.Value
-}
-
-// RelationTypeStatements -
-type RelationTypeStatements []RelationTypeStatement
-
-// GetEntityReference -
-func GetEntityReference(references []string) string {
-	for _, rt := range references {
-		if IsEntityReference(rt) {
-			return rt
-		}
-	}
-	return ""
 }

@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"strings"
+
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -49,8 +51,16 @@ func Relations(defs ...*base.RelationDefinition) []*base.RelationDefinition {
 
 // Reference - Reference builder
 func Reference(name string) *base.RelationReference {
+	s := strings.Split(name, "#")
+	if len(s) == 1 {
+		return &base.RelationReference{
+			EntityType: s[0],
+			Relation:   "",
+		}
+	}
 	return &base.RelationReference{
-		Name: name,
+		EntityType: s[0],
+		Relation:   s[1],
 	}
 }
 

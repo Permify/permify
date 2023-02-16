@@ -73,6 +73,8 @@ const (
 
 	ASSIGN = "ASSIGN"
 	SIGN   = "SIGN"
+	HASH   = "HASH"
+	DOT    = "DOT"
 
 	NEWLINE = "NEWLINE"
 

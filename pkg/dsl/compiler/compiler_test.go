@@ -114,7 +114,8 @@ var _ = Describe("compiler", func() {
 							Name: "owner",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},
@@ -122,7 +123,8 @@ var _ = Describe("compiler", func() {
 							Name: "admin",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},
@@ -232,7 +234,8 @@ var _ = Describe("compiler", func() {
 							Name: "owner",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},
@@ -240,7 +243,8 @@ var _ = Describe("compiler", func() {
 							Name: "admin",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},
@@ -308,7 +312,8 @@ var _ = Describe("compiler", func() {
 							Name: "owner",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},
@@ -316,7 +321,8 @@ var _ = Describe("compiler", func() {
 							Name: "admin",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},
@@ -465,7 +471,8 @@ var _ = Describe("compiler", func() {
 							Name: "owner",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},
@@ -473,7 +480,8 @@ var _ = Describe("compiler", func() {
 							Name: "admin",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},
@@ -560,7 +568,8 @@ var _ = Describe("compiler", func() {
 							Name: "parent",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "organization",
+									EntityType: "organization",
+									Relation:   "",
 								},
 							},
 						},
@@ -568,7 +577,8 @@ var _ = Describe("compiler", func() {
 							Name: "owner",
 							RelationReferences: []*base.RelationReference{
 								{
-									Name: "user",
+									EntityType: "user",
+									Relation:   "",
 								},
 							},
 						},

@@ -85,7 +85,7 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tena
 			return token, err
 		}
 		for _, t := range rel.GetRelationReferences() {
-			vt = append(vt, t.GetName())
+			vt = append(vt, t.String())
 		}
 
 		err = tuple.ValidateSubjectType(tup.Subject, vt)
