@@ -59,7 +59,7 @@ Permify's data model is inspired by Google’s consistent, global authorization 
 - If your authorization is growing too complex to handle within code or API gateway.
 
 ```diff
-+ Missing a specific use case? no problem, let's implement it for you! just open an issue. 
++ Missing a specific use case? no problem, let's discuss it together! just open an issue. 
 ```
 
 ## How it works
