@@ -33,7 +33,7 @@ const config = {
           customCss: require.resolve('./src/css/custom.css'),
         },
         gtag: {
-          trackingID: 'GTM-5RNMNVR',
+          trackingID: 'GTM-MMRXPLH',
           anonymizeIP: true,
         },
       },
