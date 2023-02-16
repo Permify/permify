@@ -26,6 +26,8 @@ With Permify you can easily structure your authorization model, store authorizat
 
 Permify's data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
+**Looking for Permify Managed Service?** See our [pricing plans](https://permify.co/pricing/1).
+
 ## Key Features
 
 🛡️ **Production ready** authorization API that serve as **gRPC** and **REST**
