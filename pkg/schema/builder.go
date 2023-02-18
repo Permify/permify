@@ -54,13 +54,13 @@ func Reference(name string) *base.RelationReference {
 	s := strings.Split(name, "#")
 	if len(s) == 1 {
 		return &base.RelationReference{
-			EntityType: s[0],
-			Relation:   "",
+			Type:     s[0],
+			Relation: "",
 		}
 	}
 	return &base.RelationReference{
-		EntityType: s[0],
-		Relation:   s[1],
+		Type:     s[0],
+		Relation: s[1],
 	}
 }
 

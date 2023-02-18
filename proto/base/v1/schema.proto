@@ -89,7 +89,7 @@ message ActionDefinition {
 
 // RelationReference
 message RelationReference {
-  string entity_type = 1 [(validate.rules).string = {
+  string type = 1 [(validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
   }];

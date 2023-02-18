@@ -49,8 +49,8 @@ var _ = Describe("schema", func() {
 						Name: "owner",
 						RelationReferences: []*base.RelationReference{
 							{
-								EntityType: "user",
-								Relation:   "",
+								Type:     "user",
+								Relation: "",
 							},
 						},
 					},
@@ -58,8 +58,8 @@ var _ = Describe("schema", func() {
 						Name: "admin",
 						RelationReferences: []*base.RelationReference{
 							{
-								EntityType: "user",
-								Relation:   "",
+								Type:     "user",
+								Relation: "",
 							},
 						},
 					},
@@ -131,8 +131,8 @@ var _ = Describe("schema", func() {
 						Name: "owner",
 						RelationReferences: []*base.RelationReference{
 							{
-								EntityType: "user",
-								Relation:   "",
+								Type:     "user",
+								Relation: "",
 							},
 						},
 					},
@@ -140,8 +140,8 @@ var _ = Describe("schema", func() {
 						Name: "admin",
 						RelationReferences: []*base.RelationReference{
 							{
-								EntityType: "user",
-								Relation:   "",
+								Type:     "user",
+								Relation: "",
 							},
 						},
 					},
@@ -195,8 +195,8 @@ var _ = Describe("schema", func() {
 						Name: "parent",
 						RelationReferences: []*base.RelationReference{
 							{
-								EntityType: "organization",
-								Relation:   "",
+								Type:     "organization",
+								Relation: "",
 							},
 						},
 					},
@@ -204,12 +204,12 @@ var _ = Describe("schema", func() {
 						Name: "maintainer",
 						RelationReferences: []*base.RelationReference{
 							{
-								EntityType: "user",
-								Relation:   "",
+								Type:     "user",
+								Relation: "",
 							},
 							{
-								EntityType: "organization",
-								Relation:   "member",
+								Type:     "organization",
+								Relation: "member",
 							},
 						},
 					},
@@ -217,8 +217,8 @@ var _ = Describe("schema", func() {
 						Name: "owner",
 						RelationReferences: []*base.RelationReference{
 							{
-								EntityType: "user",
-								Relation:   "",
+								Type:     "user",
+								Relation: "",
 							},
 						},
 					},
