@@ -154,7 +154,7 @@ var _ = Describe("parser", func() {
 			entity repository {
 
 				relation parent  @organization 
-				relation owner  @user 
+				relation owner  @user @organization#member
 
 				action view = owner
 				action read = view and (parent.admin and parent.member)
@@ -178,9 +178,9 @@ var _ = Describe("parser", func() {
 			r2 := st.RelationStatements[1].(*ast.RelationStatement)
 			Expect(r2.Name.Literal).Should(Equal("owner"))
 
-			for _, a := range r2.RelationTypes {
-				Expect(a.Type.Literal).Should(Equal("user"))
-			}
+			Expect(r2.RelationTypes[0].Type.Literal).Should(Equal("user"))
+			Expect(r2.RelationTypes[1].Type.Literal).Should(Equal("organization"))
+			Expect(r2.RelationTypes[1].Relation.Literal).Should(Equal("member"))
 
 			a1 := st.ActionStatements[0].(*ast.ActionStatement)
 			Expect(a1.Name.Literal).Should(Equal("view"))
