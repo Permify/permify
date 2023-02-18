@@ -296,7 +296,6 @@ func (p *Parser) parseRelationTypeStatement() (*ast.RelationTypeStatement, error
 			return nil, p.Error()
 		}
 		stmt.Relation = p.currentToken
-		p.next()
 	}
 
 	return stmt, nil
