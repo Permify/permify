@@ -1262,9 +1262,9 @@ func (m *RelationReference) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetEntityType()) > 64 {
+	if len(m.GetType()) > 64 {
 		err := RelationReferenceValidationError{
-			field:  "EntityType",
+			field:  "Type",
 			reason: "value length must be at most 64 bytes",
 		}
 		if !all {
@@ -1273,9 +1273,9 @@ func (m *RelationReference) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_RelationReference_EntityType_Pattern.MatchString(m.GetEntityType()) {
+	if !_RelationReference_Type_Pattern.MatchString(m.GetType()) {
 		err := RelationReferenceValidationError{
-			field:  "EntityType",
+			field:  "Type",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
 		if !all {
@@ -1386,7 +1386,7 @@ var _ interface {
 	ErrorName() string
 } = RelationReferenceValidationError{}
 
-var _RelationReference_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _RelationReference_Type_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 var _RelationReference_Relation_Pattern = regexp.MustCompile("^[a-z][a-z0-9_]{1,62}[a-z0-9]$")
 

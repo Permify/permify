@@ -988,7 +988,7 @@
     "RelationReference": {
       "type": "object",
       "properties": {
-        "entityType": {
+        "type": {
           "type": "string"
         },
         "relation": {

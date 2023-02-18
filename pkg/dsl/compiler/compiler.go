@@ -70,8 +70,8 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 
 		for _, rts := range relationSt.RelationTypes {
 			relationDefinition.RelationReferences = append(relationDefinition.RelationReferences, &base.RelationReference{
-				EntityType: rts.Type.Literal,
-				Relation:   rts.Relation.Literal,
+				Type:     rts.Type.Literal,
+				Relation: rts.Relation.Literal,
 			})
 		}
 
