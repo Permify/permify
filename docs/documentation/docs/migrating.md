@@ -1,5 +1,5 @@
 ---
-title: "Migrating from 0.2.x to 0.3.x"
+title: "Migrating to 0.3.x (Multi Tenancy)"
 ---
 
 import Tabs from '@theme/Tabs';

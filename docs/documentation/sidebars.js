@@ -136,7 +136,6 @@ module.exports = {
 				"use-cases/simple-rbac",
 				"use-cases/organizational",
 				"use-cases/ownership",
-				"use-cases/parent-child",
 				"use-cases/nested-hierarchies",
 				"use-cases/user-groups",
 				"use-cases/sharing",
