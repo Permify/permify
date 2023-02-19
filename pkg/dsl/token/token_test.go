@@ -46,7 +46,7 @@ var _ = Describe("token", func() {
 				{target: MULTI_LINE_COMMENT, expected: true},
 				{target: ACTION, expected: false},
 				{target: OR, expected: false},
-				{target: NEWLINE, expected: true},
+				{target: NEWLINE, expected: false},
 				{target: SINGLE_LINE_COMMENT, expected: true},
 				{target: ENTITY, expected: false},
 				{target: SPACE, expected: true},

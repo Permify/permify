@@ -237,7 +237,7 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 			}
 			stmt.ActionStatements = append(stmt.ActionStatements, action)
 		default:
-			if !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
+			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
 				p.currentError(token.RELATION, token.ACTION)
 				return nil, p.Error()
 			}
@@ -385,7 +385,7 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 		return nil, p.Error()
 	}
 
-	for precedence < p.peekPrecedence() {
+	for !p.peekTokenIs(token.NEWLINE) && precedence < p.peekPrecedence() {
 		infix := p.infixParseFunc[p.peekToken.Type]
 		if infix == nil {
 			return exp, nil

@@ -41,7 +41,6 @@ var ignores = map[Type]struct{}{
 	MULTI_LINE_COMMENT:  {},
 	SPACE:               {},
 	TAB:                 {},
-	NEWLINE:             {},
 }
 
 const (
