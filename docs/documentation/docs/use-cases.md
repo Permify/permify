@@ -13,7 +13,7 @@ No problem, let's discuss it together! just open an issue about it or join our c
 :::
 
 ```mdx-code-block
+import {CaseList} from '../src/components/Case';
 
+<CaseList />
 ```
-
-If options your deployment preference is not listed below please let us know Also if you have any questions join our [Discord community](https://discord.gg/MJbUjwskdH) or send us an email at support@permify.co.

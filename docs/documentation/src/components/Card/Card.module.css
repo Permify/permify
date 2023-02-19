@@ -1,3 +1,14 @@
+html[data-theme='dark'] .card {
+  background-color: #242526;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+  box-shadow: rgba(0, 0, 0, 0.35) 0 1px 1px;
+  cursor: pointer;
+}
+
 .card {
     border-radius: 5px;
     display: flex;
