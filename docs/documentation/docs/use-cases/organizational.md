@@ -22,10 +22,10 @@ entity organization {
 entity repository {
 
     // represents repositories parent organization
-    relation    parent   @organization 
+    relation parent @organization 
 
     // represents user of this repository
-    relation    owner    @user           
+    relation owner  @user           
 
     // permissions
     action push   = owner
