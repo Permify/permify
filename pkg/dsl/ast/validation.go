@@ -35,7 +35,7 @@ func (sch *Schema) validateRelationTypeStatement(ref RelationTypeStatement) erro
 		return errors.New(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String())
 	}
 	if !IsDirectEntityReference(ref) {
-		if !sch.IsRelationReferenceExist(ref.String()) {
+		if !sch.IsRelationReferenceExist(ref.Type.Literal + "#" + ref.Relation.Literal) {
 			return errors.New(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String())
 		}
 	}
