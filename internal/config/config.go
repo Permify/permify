@@ -131,7 +131,7 @@ func NewConfig() (*Config, error) {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		if ok := errors.As(err, viper.ConfigFileNotFoundError{}); !ok {
+		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok {
 			return nil, fmt.Errorf("failed to load server config: %w", err)
 		}
 	}
