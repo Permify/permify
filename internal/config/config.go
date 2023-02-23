@@ -54,6 +54,12 @@ type (
 		Keys         []string `mapstructure:"keys"`
 		PrivateToken string   `mapstructure:"private_token"`
 		Algorithms   []string `mapstructure:"algorithms"`
+		Oidc         Oidc     `mapstructure:"oidc"`
+	}
+
+	Oidc struct {
+		Issuer   string `mapstructure:"issuer"`
+		ClientId string `mapstructure:"client_id"`
 	}
 
 	// Profiler -.

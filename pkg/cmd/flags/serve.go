@@ -140,6 +140,22 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.String("authn-oidc-issuer", conf.Authn.Oidc.Issuer, "issuer identifier of the OpenID Connect Provider")
+	if err = viper.BindPFlag("authn.oidc.issuer", flags.Lookup("authn-oidc-issuer")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("authn.oidc.issuer", "PERMIFY_AUTHN_OIDC_ISSUER"); err != nil {
+		panic(err)
+	}
+
+	flags.String("authn-oidc-client-id", conf.Authn.Oidc.ClientId, "client ID which requested the token from OIDC issuer")
+	if err = viper.BindPFlag("authn.oidc.client_id", flags.Lookup("authn-oidc-client-id")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("authn.oidc.client_id", "PERMIFY_AUTHN_OIDC_CLIENT_ID"); err != nil {
+		panic(err)
+	}
+
 	// TRACER
 	flags.Bool("tracer-enabled", conf.Tracer.Enabled, "switch option for tracing")
 	if err = viper.BindPFlag("tracer.enabled", flags.Lookup("tracer-enabled")); err != nil {
