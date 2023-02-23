@@ -1,7 +1,7 @@
 
 # Sharing & Collaboration
 
-Inviting a team member to a document, project or repository should be hassle free to model. In Permify you can achieve this with simply defining a invite action. Check out the below model block see how sharing can be modeled with Permify's DSL, [Permify Schema].
+Inviting a team member to a document, project or repository should be hassle free to model. In Permify you can achieve this with simply defining a invite action. Check out the below model block see how sharing can be modeled with our authorization language, [Permify Schema].
 
 [Permify Schema]: ../getting-started/modeling
 

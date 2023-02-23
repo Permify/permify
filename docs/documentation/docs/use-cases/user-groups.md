@@ -1,7 +1,7 @@
 
 # User Groups & Team Permissions
 
-This use case shows how to organize permissions based on groupings of users or resources. In this use case we'll follow a simple project management app with Permify's DSL, [Permify Schema].
+This use case shows how to organize permissions based on groupings of users or resources. In this use case we'll follow a simple project management app with our authorization language, [Permify Schema].
 
 [Permify Schema]: ../getting-started/modeling
 
