@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Role Based Access Control
 
-Want to implement role and permissions to your application ? Permify fully covers you at that point. Below example shows how to model simple role based access control for organizational roles and permissions with Permify's DSL, [Permify Schema].
+Want to implement role and permissions to your application ? Permify fully covers you at that point. Below example shows how to model simple role based access control for organizational roles and permissions with our authorization language, [Permify Schema].
 
 [Permify Schema]: ../getting-started/modeling
 

@@ -3,7 +3,7 @@ import TabItem from '@theme/TabItem';
 
 # Expand API 
 
-Retrieve all subjects (users and usersets) that have a relationship with given entity and permission
+Retrieve all subjects (users and user sets) that have a relationship with given entity and permission
 
 Expand API response is represented by a user set tree, whose leaf nodes are user IDs or user sets pointing to other ⟨object#relation⟩ pairs. 
 
@@ -101,7 +101,7 @@ entity repository {
 } 
 ```
 
-Above schema - modeled with Permify's DSL - represents a simplified version of GitHub access control. When we look at the repository entity, we can see two actions and corresponding accesses:
+Above schema - modeled with Permify DSL - represents a simplified version of GitHub access control. When we look at the repository entity, we can see two actions and corresponding accesses:
 
  - Only owners can push to a private repository.
  - To read a private repository, the user should be one of the owners of that repository and need to belong to the parent organization of that repository ( user can either be admin or member on that organization).
