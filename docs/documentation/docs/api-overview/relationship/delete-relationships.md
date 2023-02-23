@@ -45,6 +45,7 @@ rr, err: = client.Relationship.Delete(context.Background(), & v1.RelationshipDel
 
 ```javascript
 client.relationship.delete({
+  tenantId: "t1",
   metadata: {
      snap_token: "",
   },
