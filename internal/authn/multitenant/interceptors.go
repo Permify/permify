@@ -5,7 +5,6 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/Permify/permify/internal/authn"
 	basev1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -40,7 +39,7 @@ func UnaryServerInterceptor(t TenantAuthenticator) grpc.UnaryServerInterceptor {
 
 		err := t.Authenticate(ctx, reqTenantID)
 		if err != nil {
-			return nil, authn.Unauthenticated
+			return nil, err
 		}
 
 		return handler(ctx, req)
@@ -75,7 +74,7 @@ func (s *authnWrapper) RecvMsg(req interface{}) error {
 	}
 	err := s.authenticator.Authenticate(s.ServerStream.Context(), reqTenantID)
 	if err != nil {
-		return authn.Unauthenticated
+		return err
 	}
 	return nil
 }

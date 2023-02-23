@@ -54,6 +54,12 @@ type (
 		Keys         []string `mapstructure:"keys"`
 		PrivateToken string   `mapstructure:"private_token"`
 		Algorithms   []string `mapstructure:"algorithms"`
+		Oidc         Oidc     `mapstructure:"oidc"`
+	}
+
+	Oidc struct {
+		Issuer   string `mapstructure:"issuer"`
+		ClientId string `mapstructure:"client_id"`
 	}
 
 	// Profiler -.
@@ -131,7 +137,7 @@ func NewConfig() (*Config, error) {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		if ok := errors.As(err, viper.ConfigFileNotFoundError{}); !ok {
+		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok {
 			return nil, fmt.Errorf("failed to load server config: %w", err)
 		}
 	}
