@@ -6,7 +6,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Permify',
-  url: 'https://permify.co',
+  url: 'https://docs.permify.co/',
   tagline: "Open Source Authorization Service Based on Google Zanzibar",
   baseUrl: '/',
   onBrokenLinks: 'throw',
@@ -33,8 +33,7 @@ const config = {
           customCss: require.resolve('./src/css/custom.css'),
         },
         gtag: {
-          trackingID: 'GTM-MMRXPLH',
-          anonymizeIP: true,
+          trackingID: 'G-BSRXWHBYR1',
         },
       },
     ],
