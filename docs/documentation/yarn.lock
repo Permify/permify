@@ -6847,10 +6847,10 @@ rc-resize-observer@^1.0.0:
     rc-util "^5.27.0"
     resize-observer-polyfill "^1.5.1"
 
-rc-tabs@12.5.6:
-  version "12.5.6"
-  resolved "https://registry.yarnpkg.com/rc-tabs/-/rc-tabs-12.5.6.tgz#611728575d5f3ef010a8e5e75d2c1b67bb71e86a"
-  integrity sha512-aArXHzxK7YICxe+622CZ8FlO5coMi8P7E6tXpseCPKm1gdTjUt0LrQK1/AxcrRXZXG3K4QqhlKmET0+cX5DQaQ==
+rc-tabs@12.5.7:
+  version "12.5.7"
+  resolved "https://registry.yarnpkg.com/rc-tabs/-/rc-tabs-12.5.7.tgz#9175f5e27341416d3f572c8d9a40e300d0e2de6b"
+  integrity sha512-i9gY2TcwCNmBM+bXCDDTvb6mnRYIDkkNm+UGoIqrLOFnRRbAqjsSf+tgyvzhBvbK8XcSrMhzKKLaOMbGyND8YA==
   dependencies:
     "@babel/runtime" "^7.11.2"
     classnames "2.x"
