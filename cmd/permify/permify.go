@@ -17,6 +17,9 @@ func main() {
 	validate := cmd.NewValidateCommand()
 	root.AddCommand(validate)
 
+	migrate := cmd.NewMigrateCommand()
+	root.AddCommand(migrate)
+
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}

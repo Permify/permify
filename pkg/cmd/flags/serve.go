@@ -1,10 +1,9 @@
 package flags
 
 import (
+	"github.com/Permify/permify/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/Permify/permify/internal/config"
 )
 
 // RegisterServeFlags - Define and registers permify CLI flags
