@@ -36,13 +36,13 @@ func NewMigrateCommand() *cobra.Command {
 func NewMigrateUpCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "up",
-		Short: "migrate the database up",
+		Short: "migrate the database",
 		RunE:  migrateUp(),
 		Args:  cobra.NoArgs,
 	}
 
 	// add flags to the migration up command
-	cmd.PersistentFlags().String(target, "0", "target version")
+	cmd.PersistentFlags().String(target, "0", "version to migrate")
 	cmd.PersistentFlags().String(databaseEngine, "", "database engine")
 	cmd.PersistentFlags().String(databaseURI, "", "database URI")
 
@@ -53,13 +53,13 @@ func NewMigrateUpCommand() *cobra.Command {
 func NewMigrateDownCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "down",
-		Short: "migrate the database down",
+		Short: "roll back the migration for the current database",
 		RunE:  migrateDown(),
 		Args:  cobra.NoArgs,
 	}
 
 	// add flags to the migration down command
-	cmd.PersistentFlags().String(target, "0", "database driver")
+	cmd.PersistentFlags().String(target, "0", "version to rollback")
 	cmd.PersistentFlags().String(databaseEngine, "", "database engine")
 	cmd.PersistentFlags().String(databaseURI, "", "database URI")
 
@@ -70,7 +70,7 @@ func NewMigrateDownCommand() *cobra.Command {
 func NewMigrateStatusCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "migrate the database status",
+		Short: "migration status for the current database",
 		RunE:  migrateStatus(),
 		Args:  cobra.NoArgs,
 	}
