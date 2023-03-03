@@ -90,6 +90,11 @@ func migrateUp() func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
+		switch flags[databaseEngine] {
+		case "postgres":
+			flags[databaseEngine] = "pgx"
+		}
+
 		db, err := goose.OpenDBWithDriver(flags[databaseEngine], flags[databaseURI])
 		if err != nil {
 			color.Warn.Println("migration failed: Database Connection Error")
@@ -129,6 +134,11 @@ func migrateDown() func(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			color.Warn.Println("migration failed: flags error")
 			return nil
+		}
+
+		switch flags[databaseEngine] {
+		case "postgres":
+			flags[databaseEngine] = "pgx"
 		}
 
 		db, err := goose.OpenDBWithDriver(flags[databaseEngine], flags[databaseURI])
@@ -184,6 +194,11 @@ func migrateStatus() func(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			color.Warn.Println("migration failed: flags error")
 			return err
+		}
+
+		switch flags[databaseEngine] {
+		case "postgres":
+			flags[databaseEngine] = "pgx"
 		}
 
 		db, err := goose.OpenDBWithDriver(flags[databaseEngine], flags[databaseURI])
