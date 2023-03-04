@@ -149,7 +149,7 @@ func httpError(w http.ResponseWriter, code int) {
 }
 
 func (s *fakeOidcProvider) SignIDToken(unsignedToken *jwt.Token) (string, error) {
-	var signedToken = ""
+	signedToken := ""
 	var err error
 
 	switch unsignedToken.Method {

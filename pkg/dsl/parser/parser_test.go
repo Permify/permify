@@ -289,7 +289,6 @@ var _ = Describe("parser", func() {
 
 			Expect(res2.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
 			Expect(res2.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.create_repository"))
-
 		})
 	})
 })

@@ -835,7 +835,6 @@ var _ = Describe("compiler", func() {
 
 			_, err = c.Compile()
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_MUST_HAVE_ONE_ENTITY_REFERENCE.String()))
-
 		})
 
 		It("Case 10", func() {
@@ -866,7 +865,6 @@ var _ = Describe("compiler", func() {
 
 			_, err = c.Compile()
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String()))
-
 		})
 	})
 })

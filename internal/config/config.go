@@ -49,12 +49,14 @@ type (
 
 	// Authn -.
 	Authn struct {
-		Enabled      bool     `mapstructure:"enabled"`
-		Method       string   `mapstructure:"method"`
-		Keys         []string `mapstructure:"keys"`
-		PrivateToken string   `mapstructure:"private_token"`
-		Algorithms   []string `mapstructure:"algorithms"`
-		Oidc         Oidc     `mapstructure:"oidc"`
+		Enabled   bool      `mapstructure:"enabled"`
+		Method    string    `mapstructure:"method"`
+		Preshared Preshared `mapstructure:"preshared"`
+		Oidc      Oidc      `mapstructure:"oidc"`
+	}
+
+	Preshared struct {
+		Keys []string `mapstructure:"keys"`
 	}
 
 	Oidc struct {
@@ -201,8 +203,9 @@ func DefaultConfig() *Config {
 			Relationship: Relationship{},
 		},
 		Authn: Authn{
-			Enabled: false,
-			Keys:    []string{},
+			Enabled:   false,
+			Preshared: Preshared{},
+			Oidc:      Oidc{},
 		},
 		Database: Database{
 			Engine:      "memory",

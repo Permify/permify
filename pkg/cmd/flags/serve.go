@@ -1,9 +1,10 @@
 package flags
 
 import (
-	"github.com/Permify/permify/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/Permify/permify/internal/config"
 )
 
 // RegisterServeFlags - Define and registers permify CLI flags
@@ -131,11 +132,11 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSlice("authn-keys", conf.Authn.Keys, "preshared key/keys for server authentication")
-	if err = viper.BindPFlag("authn.keys", flags.Lookup("authn-keys")); err != nil {
+	flags.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
+	if err = viper.BindPFlag("authn.preshared.keys", flags.Lookup("authn-preshared-keys")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("authn.keys", "PERMIFY_AUTHN_KEYS"); err != nil {
+	if err = viper.BindEnv("authn.preshared.keys", "PERMIFY_AUTHN_PRESHARED_KEYS"); err != nil {
 		panic(err)
 	}
 
