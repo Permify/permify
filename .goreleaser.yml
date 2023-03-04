@@ -104,7 +104,7 @@ changelog:
       - "^test:"
 checksum:
   name_template: checksums.txt
-sboms:
-  - artifacts: archive
+# sboms:
+#   - artifacts: archive
 release:
   prerelease: true
