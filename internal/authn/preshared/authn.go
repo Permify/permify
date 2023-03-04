@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/Permify/permify/internal/authn"
+	"github.com/Permify/permify/internal/config"
 )
 
 // KeyAuthenticator - Interface for key authenticator
@@ -20,12 +21,12 @@ type KeyAuthn struct {
 }
 
 // NewKeyAuthn - Create New Authenticated Keys
-func NewKeyAuthn(keys ...string) (*KeyAuthn, error) {
-	if len(keys) < 1 {
+func NewKeyAuthn(ctx context.Context, cfg config.Preshared) (*KeyAuthn, error) {
+	if len(cfg.Keys) < 1 {
 		return nil, errors.New("pre shared key authn must have at least one key")
 	}
 	mapKeys := make(map[string]struct{})
-	for _, k := range keys {
+	for _, k := range cfg.Keys {
 		mapKeys[k] = struct{}{}
 	}
 	return &KeyAuthn{

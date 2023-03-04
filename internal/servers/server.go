@@ -25,7 +25,6 @@ import (
 
 	health "google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/Permify/permify/internal/authn/multitenant"
 	"github.com/Permify/permify/internal/authn/oidc"
 	"github.com/Permify/permify/internal/authn/preshared"
 	"github.com/Permify/permify/internal/config"
@@ -63,20 +62,12 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		switch authentication.Method {
 		case "preshared":
 			var authenticator *preshared.KeyAuthn
-			authenticator, err = preshared.NewKeyAuthn(authentication.Keys...)
+			authenticator, err = preshared.NewKeyAuthn(ctx, authentication.Preshared)
 			if err != nil {
 				return err
 			}
 			unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.KeyAuthFunc(authenticator)))
 			streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.KeyAuthFunc(authenticator)))
-		case "multitenant":
-			var authenticator *multitenant.TenantAuthn
-			authenticator, err = multitenant.NewTenantAuthn(authentication.PrivateToken, authentication.Algorithms)
-			if err != nil {
-				return err
-			}
-			unaryInterceptors = append(unaryInterceptors, multitenant.UnaryServerInterceptor(authenticator))
-			streamingInterceptors = append(streamingInterceptors, multitenant.StreamServerInterceptor(authenticator))
 		case "oidc":
 			var authenticator *oidc.OidcAuthn
 			authenticator, err = oidc.NewOidcAuthn(ctx, authentication.Oidc)
@@ -86,7 +77,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 			unaryInterceptors = append(unaryInterceptors, oidc.UnaryServerInterceptor(authenticator))
 			streamingInterceptors = append(streamingInterceptors, oidc.StreamServerInterceptor(authenticator))
 		default:
-			return fmt.Errorf("Unkown authentication method: '%s'", authentication.Method)
+			return fmt.Errorf("unkown authentication method: '%s'", authentication.Method)
 		}
 	}
 

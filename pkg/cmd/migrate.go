@@ -1,14 +1,15 @@
 package cmd
 
 import (
-	"github.com/gookit/color"
-	"github.com/hashicorp/go-multierror"
-	"github.com/pressly/goose/v3"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/gookit/color"
+	"github.com/hashicorp/go-multierror"
+	"github.com/pressly/goose/v3"
+	"github.com/spf13/cobra"
 )
 
 const (
@@ -115,15 +116,15 @@ func migrateUp() func(cmd *cobra.Command, args []string) error {
 
 			color.Success.Println("migration successfully up: ✓ ✅ ")
 			return nil
-		} else {
-			if err := goose.UpTo(db, "internal/repositories/postgres/migrations", p); err != nil {
-				color.Warn.Println("migration failed: Goose Up Error")
-				return nil
-			}
+		}
 
-			color.Success.Println("migration successfully up: ✓ ✅ ")
+		if err := goose.UpTo(db, "internal/repositories/postgres/migrations", p); err != nil {
+			color.Warn.Println("migration failed: Goose Up Error")
 			return nil
 		}
+
+		color.Success.Println("migration successfully up: ✓ ✅ ")
+		return nil
 	}
 }
 
@@ -174,16 +175,16 @@ func migrateDown() func(cmd *cobra.Command, args []string) error {
 
 			color.Success.Println("migration successfully down: ✓ ✅ ")
 			return nil
-		} else {
-			if err := goose.DownTo(db, "internal/repositories/postgres/migrations", p); err != nil {
-				color.Warn.Println("migration failed: down error " + err.Error())
+		}
 
-				return nil
-			}
+		if err := goose.DownTo(db, "internal/repositories/postgres/migrations", p); err != nil {
+			color.Warn.Println("migration failed: down error " + err.Error())
 
-			color.Success.Println("migration successfully down: ✓ ✅ ")
 			return nil
 		}
+
+		color.Success.Println("migration successfully down: ✓ ✅ ")
+		return nil
 	}
 }
 

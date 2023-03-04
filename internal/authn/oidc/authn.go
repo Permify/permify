@@ -54,7 +54,6 @@ func (t *OidcAuthn) Authenticate(ctx context.Context) error {
 		return authn.Unauthenticated
 	}
 	return nil
-
 }
 
 // validateOtherClaims - Validate claims that are not validated by the oidc client library

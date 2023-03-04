@@ -32,20 +32,24 @@ func Test_AuthenticateWithSigningMethods(t *testing.T) {
 		method  jwt.SigningMethod
 		wantErr bool
 	}{
-		{"Should pass with RS256",
+		{
+			"Should pass with RS256",
 			jwt.SigningMethodRS256,
 			false,
 		},
-		{"Should fail with HS256, zitadel/oidc does not support HSXXX algorithms by default",
+		{
+			"Should fail with HS256, zitadel/oidc does not support HSXXX algorithms by default",
 			// see https://github.com/zitadel/oidc/blob/v1.13.0/pkg/oidc/keyset.go#L94
 			jwt.SigningMethodHS256,
 			true,
 		},
-		{"Should pass with ES256",
+		{
+			"Should pass with ES256",
 			jwt.SigningMethodES256,
 			false,
 		},
-		{"Should pass with PS256",
+		{
+			"Should pass with PS256",
 			jwt.SigningMethodPS256,
 			false,
 		},
@@ -104,35 +108,41 @@ func Test_AuthenticateClaims(t *testing.T) {
 		claimOverride *jwt.RegisteredClaims
 		wantErr       bool
 	}{
-		{"With correct values there should be no errors",
+		{
+			"With correct values there should be no errors",
 			&jwt.RegisteredClaims{},
 			false,
 		},
-		{"Wrong issuer in the token, it should fail",
+		{
+			"Wrong issuer in the token, it should fail",
 			&jwt.RegisteredClaims{
 				Issuer: "http://wrong-issuer",
 			},
 			true,
 		},
-		{"Wrong clientID in the token, it should fail",
+		{
+			"Wrong clientID in the token, it should fail",
 			&jwt.RegisteredClaims{
 				Audience: []string{"wrong-clientid"},
 			},
 			true,
 		},
-		{"Expired Token, it should fail",
+		{
+			"Expired Token, it should fail",
 			&jwt.RegisteredClaims{
 				ExpiresAt: &jwt.NumericDate{Time: time.Date(1999, 1, 0, 0, 0, 0, 0, time.UTC)},
 			},
 			true,
 		},
-		{"Issued at the future, it should fail",
+		{
+			"Issued at the future, it should fail",
 			&jwt.RegisteredClaims{
 				IssuedAt: &jwt.NumericDate{Time: time.Date(3999, 1, 0, 0, 0, 0, 0, time.UTC)},
 			},
 			true,
 		},
-		{"Token used before its NotBefore date, it should fail",
+		{
+			"Token used before its NotBefore date, it should fail",
 			&jwt.RegisteredClaims{
 				NotBefore: &jwt.NumericDate{Time: time.Date(3999, 1, 0, 0, 0, 0, 0, time.UTC)},
 			},
@@ -196,27 +206,32 @@ func Test_AuthenticateKeyIds(t *testing.T) {
 		keyId    string
 		wantErr  bool
 	}{
-		{"With no keyid using RS256 it should fail, multiple public RSA keys matching for RS256 and PS256",
+		{
+			"With no keyid using RS256 it should fail, multiple public RSA keys matching for RS256 and PS256",
 			jwt.SigningMethodRS256,
 			false, "",
 			true,
 		},
-		{"With no keyid using ES256 it should pass, unique public ecdsa key in keyset",
+		{
+			"With no keyid using ES256 it should pass, unique public ecdsa key in keyset",
 			jwt.SigningMethodES256,
 			true, "",
 			false,
 		},
-		{"With right keyid using RS256 it should pass",
+		{
+			"With right keyid using RS256 it should pass",
 			jwt.SigningMethodRS256,
 			true, fakeOidcProvider.keyIds[jwt.SigningMethodRS256],
 			false,
 		},
-		{"With wrong keyid using RS256 it should fail",
+		{
+			"With wrong keyid using RS256 it should fail",
 			jwt.SigningMethodRS256,
 			true, "wrongkeyid",
 			true,
 		},
-		{"With keyid belonging to a different key it should fail",
+		{
+			"With keyid belonging to a different key it should fail",
 			jwt.SigningMethodES256,
 			true, fakeOidcProvider.keyIds[jwt.SigningMethodRS256],
 			true,
