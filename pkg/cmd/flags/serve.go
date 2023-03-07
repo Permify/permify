@@ -132,6 +132,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.String("authn-method", conf.Authn.Method, "server authentication method")
+	if err = viper.BindPFlag("authn.method", flags.Lookup("authn-method")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("authn.method", "PERMIFY_AUTHN_METHOD"); err != nil {
+		panic(err)
+	}
+
 	flags.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
 	if err = viper.BindPFlag("authn.preshared.keys", flags.Lookup("authn-preshared-keys")); err != nil {
 		panic(err)

@@ -21,9 +21,10 @@ profiler:
   port: 6060
 
 authn:
+  enabled: true
   method: preshared
-  enabled: false
-  keys: []
+  preshared:
+    keys: []
 
 tracer:
   exporter: 'zipkin'
