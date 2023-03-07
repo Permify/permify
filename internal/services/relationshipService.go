@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-
 	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
@@ -85,10 +84,10 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tena
 			return token, err
 		}
 		for _, t := range rel.GetRelationReferences() {
-			vt = append(vt, t.String())
+			vt = append(vt, t.GetType())
 		}
 
-		err = tuple.ValidateSubjectType(tup.Subject, vt)
+		err = tuple.ValidateSubjectType(tup.GetSubject(), vt)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
