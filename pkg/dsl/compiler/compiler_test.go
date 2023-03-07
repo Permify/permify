@@ -866,5 +866,175 @@ var _ = Describe("compiler", func() {
 			_, err = c.Compile()
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String()))
 		})
+
+		It("Case 11", func() {
+			sch, err := parser.NewParser(`
+			entity user {
+    			relation org @organization
+
+    			action read = org.admin
+    			action write = org.admin
+			}
+
+			entity organization {
+    			relation admin @user
+			}
+
+			entity division {
+    			relation manager @user @organization#admin
+
+				action read = manager
+    			action write = manager
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(false, sch)
+
+			var is []*base.EntityDefinition
+			is, err = c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			i := []*base.EntityDefinition{
+				{
+					Name: "user",
+					Relations: map[string]*base.RelationDefinition{
+						"org": {
+							Name: "org",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "organization",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Actions: map[string]*base.ActionDefinition{
+						"read": {
+							Name: "read",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Exclusion: false,
+										Type: &base.Leaf_TupleToUserSet{
+											TupleToUserSet: &base.TupleToUserSet{
+												TupleSet: &base.TupleSet{
+													Relation: "org",
+												},
+												Computed: &base.ComputedUserSet{
+													Relation: "admin",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"write": {
+							Name: "write",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Exclusion: false,
+										Type: &base.Leaf_TupleToUserSet{
+											TupleToUserSet: &base.TupleToUserSet{
+												TupleSet: &base.TupleSet{
+													Relation: "org",
+												},
+												Computed: &base.ComputedUserSet{
+													Relation: "admin",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					References: map[string]base.EntityDefinition_RelationalReference{
+						"org":   base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
+						"read":  base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+						"write": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+					},
+				},
+				{
+					Name: "organization",
+					Relations: map[string]*base.RelationDefinition{
+						"admin": {
+							Name: "admin",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "user",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Actions: map[string]*base.ActionDefinition{},
+					References: map[string]base.EntityDefinition_RelationalReference{
+						"admin": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
+					},
+				},
+				{
+					Name: "division",
+					Relations: map[string]*base.RelationDefinition{
+						"manager": {
+							Name: "manager",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "user",
+									Relation: "",
+								},
+								{
+									Type:     "organization",
+									Relation: "admin",
+								},
+							},
+						},
+					},
+					Actions: map[string]*base.ActionDefinition{
+						"read": {
+							Name: "read",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Exclusion: false,
+										Type: &base.Leaf_ComputedUserSet{
+											ComputedUserSet: &base.ComputedUserSet{
+												Relation: "manager",
+											},
+										},
+									},
+								},
+							},
+						},
+						"write": {
+							Name: "write",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Exclusion: false,
+										Type: &base.Leaf_ComputedUserSet{
+											ComputedUserSet: &base.ComputedUserSet{
+												Relation: "manager",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					References: map[string]base.EntityDefinition_RelationalReference{
+						"manager": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
+						"read":    base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+						"write":   base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+					},
+				},
+			}
+
+			Expect(is).Should(Equal(i))
+		})
 	})
 })

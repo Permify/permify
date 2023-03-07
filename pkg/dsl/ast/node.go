@@ -189,6 +189,8 @@ func (ls *ActionStatement) statementNode() {}
 func (ls *ActionStatement) String() string {
 	var sb strings.Builder
 	sb.WriteString("\t")
+	sb.WriteString("action")
+	sb.WriteString(" ")
 	sb.WriteString(ls.Name.Literal)
 	sb.WriteString(" = ")
 	if ls.ExpressionStatement != nil {
