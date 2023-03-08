@@ -229,6 +229,8 @@ In Write Relationships API response you'll get a snap token of the operation. Th
 
 :::info
 Note: `relation: “...”` used when subject type is different from **user** entity. **#…** represents a relation that does not affect the semantics of the tuple.
+
+Simply, the usage of ... is straightforward: if you're use user entity as an subject, you should not be using the `...` If you're using another subject rather than user entity then you need to use the `...` 
 :::
 
 <!-- ## Write Database 
