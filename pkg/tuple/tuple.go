@@ -32,20 +32,6 @@ func IsSubjectUser(subject *base.Subject) bool {
 	return subject.Type == USER
 }
 
-// ValidateSubject -
-func ValidateSubject(subject *base.Subject) error {
-	if subject.Type == USER {
-		if subject.GetRelation() != "" {
-			return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_RELATION_MUST_BE_EMPTY.String())
-		}
-	} else {
-		if subject.GetRelation() == "" {
-			return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_RELATION_CANNOT_BE_EMPTY.String())
-		}
-	}
-	return nil
-}
-
 // AreSubjectsEqual -
 func AreSubjectsEqual(s1, s2 *base.Subject) bool {
 	return s1.GetRelation() == s2.GetRelation() && s1.GetId() == s2.GetId() && s1.GetType() == s2.GetType()
