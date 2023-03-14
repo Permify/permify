@@ -1,6 +1,7 @@
 package tuple
 
 import (
+	`errors`
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -333,6 +334,81 @@ var _ = Describe("tuple", func() {
 
 			for _, tt := range tests {
 				Expect(IsSubjectValid(tt.target)).Should(Equal(tt.expected))
+			}
+		})
+
+		It("ValidateSubjectType", func() {
+			tests := []struct {
+				target        *base.Subject
+				relationTypes []string
+				expected      error
+			}{
+				{
+					target: &base.Subject{
+						Type:     "organization",
+						Id:       "1",
+						Relation: "member",
+					},
+					relationTypes: []string{
+						"organization#member",
+						"user",
+					},
+					expected: nil,
+				},
+				{
+					target: &base.Subject{
+						Type:     "organization",
+						Id:       "1",
+						Relation: "",
+					},
+					relationTypes: []string{
+						"organization",
+					},
+					expected: nil,
+				},
+				{
+					target: &base.Subject{
+						Type:     "user",
+						Id:       "u82",
+						Relation: "",
+					},
+					relationTypes: []string{
+						"user",
+					},
+					expected: nil,
+				},
+				{
+					target: &base.Subject{
+						Type:     "testrel",
+						Id:       "u82",
+						Relation: "",
+					},
+					relationTypes: []string{
+						"test",
+						"user",
+					},
+					expected: errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_TYPE_NOT_FOUND.String()),
+				},
+				{
+					target: &base.Subject{
+						Type:     "test",
+						Id:       "u3",
+						Relation: "mem",
+					},
+					relationTypes: []string{
+						"test#member",
+						"user",
+					},
+					expected: errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_TYPE_NOT_FOUND.String()),
+				},
+			}
+
+			for _, tt := range tests {
+				if tt.expected == nil {
+					Expect(ValidateSubjectType(tt.target, tt.relationTypes)).Should(BeNil())
+				} else {
+					Expect(ValidateSubjectType(tt.target, tt.relationTypes)).Should(Equal(tt.expected))
+				}
 			}
 		})
 	})

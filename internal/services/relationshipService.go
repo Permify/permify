@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
+
 	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/repositories"
@@ -62,7 +64,14 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tena
 		version = v
 	}
 
+	relationships := make([]*base.Tuple, 0, len(tuples))
+
 	for _, tup := range tuples {
+		subject := tup.GetSubject()
+		if !tuple.IsSubjectUser(subject) {
+			subject.Relation = tuple.ELLIPSIS
+		}
+
 		var entity *base.EntityDefinition
 		entity, _, err = service.sr.ReadSchemaDefinition(ctx, tenantID, tup.GetEntity().GetType(), version)
 		if err != nil {
@@ -84,18 +93,28 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tena
 			return token, err
 		}
 		for _, t := range rel.GetRelationReferences() {
-			vt = append(vt, t.GetType())
+			if t.GetRelation() != "" {
+				vt = append(vt, fmt.Sprintf("%s#%s", t.GetType(), t.GetRelation()))
+			} else {
+				vt = append(vt, t.GetType())
+			}
 		}
 
-		err = tuple.ValidateSubjectType(tup.GetSubject(), vt)
+		err = tuple.ValidateSubjectType(subject, vt)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return token, err
 		}
+
+		relationships = append(relationships, &base.Tuple{
+			Entity:   tup.GetEntity(),
+			Relation: tup.GetRelation(),
+			Subject:  subject,
+		})
 	}
 
-	return service.rw.WriteRelationships(ctx, tenantID, database.NewTupleCollection(tuples...))
+	return service.rw.WriteRelationships(ctx, tenantID, database.NewTupleCollection(relationships...))
 }
 
 // DeleteRelationships -
