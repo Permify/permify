@@ -85,6 +85,8 @@ assertions:
     - "can user:43 edit repository:1": false
 ```
 
+## Testing in Local
+
 You can also test your new authorization model in your local (Permify clone) without using [permify-validate-action] at all. 
 
 For that open up a new file and add a schema yaml file inside. Then build your project with, run `make run` command and run `./permify validate {path of your schema validation file}`. 
