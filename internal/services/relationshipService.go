@@ -68,7 +68,7 @@ func (service *RelationshipService) WriteRelationships(ctx context.Context, tena
 
 	for _, tup := range tuples {
 		subject := tup.GetSubject()
-		if !tuple.IsSubjectUser(subject) {
+		if !tuple.IsSubjectUser(subject) && subject.GetRelation() == "" {
 			subject.Relation = tuple.ELLIPSIS
 		}
 
