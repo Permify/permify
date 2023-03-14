@@ -450,5 +450,105 @@ entity organization {
 				Expect(index + lexeme.Literal).Should(Equal(index + tt.expectedLiteral))
 			}
 		})
+
+		It("Case 6", func() {
+			str := `
+	entity user {}
+
+	entity organization {
+		relation member @user
+	}
+
+	// This is a role for an entity
+	entity maintainer {
+		relation org @organization#member
+
+		action enabled = org
+	}`
+
+			tests := []struct {
+				expectedType    token.Type
+				expectedLiteral string
+			}{
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.ENTITY, "entity"},
+				{token.SPACE, " "},
+				{token.IDENT, "user"},
+				{token.SPACE, " "},
+				{token.LBRACE, "{"},
+				{token.RBRACE, "}"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.ENTITY, "entity"},
+				{token.SPACE, " "},
+
+				{token.IDENT, "organization"},
+				{token.SPACE, " "},
+				{token.LBRACE, "{"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.TAB, "\t"},
+				{token.RELATION, "relation"},
+				{token.SPACE, " "},
+				{token.IDENT, "member"},
+				{token.SPACE, " "},
+				{token.SIGN, "@"},
+
+				{token.IDENT, "user"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.RBRACE, "}"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.SINGLE_LINE_COMMENT, " This is a role for an entity"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.ENTITY, "entity"},
+				{token.SPACE, " "},
+				{token.IDENT, "maintainer"},
+
+				{token.SPACE, " "},
+				{token.LBRACE, "{"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.TAB, "\t"},
+				{token.RELATION, "relation"},
+				{token.SPACE, " "},
+				{token.IDENT, "org"},
+				{token.SPACE, " "},
+				{token.SIGN, "@"},
+				{token.IDENT, "organization"},
+				{token.HASH, "#"},
+				{token.IDENT, "member"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.TAB, "\t"},
+
+				{token.ACTION, "action"},
+				{token.SPACE, " "},
+				{token.IDENT, "enabled"},
+				{token.SPACE, " "},
+				{token.ASSIGN, "="},
+				{token.SPACE, " "},
+				{token.IDENT, "org"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.RBRACE, "}"},
+				{token.EOF, ""},
+			}
+
+			l := NewLexer(str)
+
+			for i, tt := range tests {
+				lexeme := l.NextToken()
+				index := strconv.Itoa(i) + ": "
+				Expect(index + lexeme.Type.String()).Should(Equal(index + tt.expectedType.String()))
+				Expect(index + lexeme.Literal).Should(Equal(index + tt.expectedLiteral))
+			}
+		})
 	})
 })
