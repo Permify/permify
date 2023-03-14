@@ -1,6 +1,8 @@
 package servers
 
 import (
+	"errors"
+
 	"google.golang.org/grpc/status"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
@@ -63,9 +65,10 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 	}
 
 	for _, tup := range request.GetTuples() {
-		v = tuple.ValidateSubject(tup.GetSubject())
-		if v != nil {
-			return nil, v
+		if tuple.IsSubjectUser(tup.GetSubject()) {
+			if tup.GetSubject().GetRelation() != "" {
+				return nil, errors.New(v1.ErrorCode_ERROR_CODE_SUBJECT_RELATION_MUST_BE_EMPTY.String())
+			}
 		}
 	}
 
