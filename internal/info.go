@@ -2,7 +2,7 @@ package internal
 
 const (
 	// Version is the last release of the Permify (e.g. v0.1.0)
-	Version = "v0.3.3"
+	Version = "v0.3.4"
 
 	// Banner is the view for terminal.
 	Banner = `
