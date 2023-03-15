@@ -18,6 +18,7 @@ function AuthorizationModel(props) {
     const [isModelCopied, setIsModelCopied] = useState(false);
 
     const save = (m) => {
+        props.isReady(false)
         setError("")
         WriteSchema(m).then((res) => {
             if (res[1] != null) {
@@ -26,6 +27,7 @@ function AuthorizationModel(props) {
                 setIsModelCopied(false)
                 dispatch(setSchema(m))
                 dispatch(setModelChangeActivity(!modelChangeTrigger))
+                props.isReady(true)
             }
         })
     }

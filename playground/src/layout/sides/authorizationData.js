@@ -71,14 +71,17 @@ function AuthorizationData(props) {
     }, [trigger]);
 
     useEffect(() => {
-        for (let i = 0; i < props.initialValue.length; i++) {
-            WriteTuple(Tuple(props.initialValue[i])).then((res) => {
-                if (res[0] != null) {
-                    setError(res[0])
-                }
-            })
+        if (props.isModelReady) {
+            for (let i = 0; i < props.initialValue.length; i++) {
+                WriteTuple(Tuple(props.initialValue[i])).then((res) => {
+                    if (res[0] != null) {
+                        setError(res[0])
+                    }
+                })
+            }
+            readTuples()
         }
-    }, [props.initialValue]);
+    }, [props.isModelReady]);
 
     return (
         <>

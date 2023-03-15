@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import {Allotment} from "allotment";
 import "allotment/dist/style.css";
 import Enforcement from "../enforcement";
@@ -10,6 +10,12 @@ import {InfoCircleOutlined} from "@ant-design/icons";
 
 function PlayOutput(props) {
     const ref = React.useRef(null);
+
+    const [isModelReady, setIsModelReady] = useState(false);
+
+    function isReady(value) {
+        setIsModelReady(value)
+    }
 
     return (
         <Allotment defaultSizes={[130, 120]}>
@@ -26,7 +32,7 @@ function PlayOutput(props) {
                                             <InfoCircleOutlined/>
                                         </Tooltip>
                                     </div>
-                                } initialValue={props.shape.schema} hidden={false}/>
+                                } initialValue={props.shape.schema} isReady={isReady} hidden={false}/>
                             </div>
                         </Spin>
                     </Allotment.Pane>
@@ -41,7 +47,7 @@ function PlayOutput(props) {
                                             <InfoCircleOutlined/>
                                         </Tooltip>
                                     </div>
-                                } initialValue={props.shape.relationships} hidden={false}/>
+                                } initialValue={props.shape.relationships} isModelReady={isModelReady} hidden={false}/>
                             </div>
                         </Spin>
                     </Allotment.Pane>

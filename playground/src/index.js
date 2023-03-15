@@ -9,7 +9,7 @@ import {LoadWasm} from './loadWasm';
 ReactDOM.render(
     <React.StrictMode>
         <LoadWasm>
-            <App store={store} persistor={persistor}/>
+            <App store={store} />
         </LoadWasm>
     </React.StrictMode>,
     document.getElementById('root')
