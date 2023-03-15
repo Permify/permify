@@ -23,8 +23,10 @@ export const LoadWasm: React.FC<React.PropsWithChildren<{}>> = (props) => {
 
     if (isLoading) {
         return (
-            <div className="center-of-screen">
-                <SVG src={toAbsoluteUrl("/media/svg/rocket.svg")}/>
+            <div className="spot-background h-screen">
+                <div className="center-of-screen">
+                    <SVG src={toAbsoluteUrl("/media/svg/rocket.svg")}/>
+                </div>
             </div>
         );
     } else {

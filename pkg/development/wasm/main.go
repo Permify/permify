@@ -138,7 +138,7 @@ func readTuple() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
-		var collection database.ITupleCollection
+		var collection *database.TupleCollection
 		collection, _, err = development.ReadTuple(context.Background(), dev.R, params, "")
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})

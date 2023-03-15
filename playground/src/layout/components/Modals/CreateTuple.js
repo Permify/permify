@@ -1,13 +1,15 @@
 import React, {useState} from 'react'
-import {Modal, Form, Button, Select, Input, Alert} from "antd";
+import {Alert, Button, Form, Input, Modal, Select} from "antd";
 import {WriteTuple} from "../../../services/relationship";
 import {useDispatch} from "react-redux";
-import {addAssertions, addRelationships} from "../../../redux/shape/actions";
+import {addRelationships} from "../../../redux/shape/actions";
 import {TupleObjectToTupleString} from "../../../utility/helpers/tuple";
 
 const {Option} = Select;
 
 function CreateTuple(props) {
+
+    const definitions = props.model.entityDefinitions
 
     const [form] = Form.useForm();
 
@@ -15,10 +17,10 @@ function CreateTuple(props) {
 
     const [error, setError] = useState("");
 
-    const [isSubjectUser, setIsSubjectUser] = useState(false);
+    const [selectedEntityType, setSelectedEntityType] = useState("");
+    const [selectedEntityRelation, setSelectedEntityRelation] = useState("");
 
-    const [selectedEntity, setSelectedEntity] = useState({});
-    const [subjectOptions, setSubjectOptions] = useState([]);
+    const [subjectTypeOptions, setSubjectTypeOptions] = useState([]);
     const [entityRelationOptions, setEntityRelationOptions] = useState([]);
     const [subjectRelationOptions, setSubjectRelationOptions] = useState([]);
 
@@ -28,7 +30,6 @@ function CreateTuple(props) {
                 setError(res[0])
             } else {
                 props.toggle();
-                setIsSubjectUser(false)
                 dispatch(addRelationships(TupleObjectToTupleString(tuple)))
                 form.resetFields();
             }
@@ -55,61 +56,93 @@ function CreateTuple(props) {
         form.resetFields();
     };
 
-    const handleSubjectTypeChange = (value) => {
-        setIsSubjectUser(false)
-        if (value === "user") {
-            setIsSubjectUser(true)
-        }
-    }
-
-    const clearInputs = () => {
-        setSelectedEntity({})
-        setEntityRelationOptions([])
-        setSubjectOptions([])
-        setSubjectRelationOptions([])
-    }
-
     const handleEntityTypeChange = (value) => {
-        clearInputs()
-        for (const [_, definition] of Object.entries(props.model.entityDefinitions)) {
-            if (definition.name === value) {
-                setSelectedEntity(definition)
-                setEntityRelationOptions(Object.keys(definition.relations))
-            }
+        if (!definitions[value]) {
+            console.error("Selected entity type not found in definitions.");
+            return;
         }
-    }
+        clearInputs();
+        setSelectedEntityType(value);
+        if (definitions[value].relations){
+            const relationKeys = Object.keys(definitions[value].relations);
+            if (!relationKeys || !Array.isArray(relationKeys)) {
+                console.error("Invalid relation keys.");
+                return;
+            }
+            setEntityRelationOptions(relationKeys);
+        }
+        form.setFieldsValue({
+            entity_relation: null,
+            subject_type: null,
+            subject_relation: null,
+        });
+    };
 
     const handleEntityRelationChange = (value) => {
-        setSubjectOptions([])
-        setSubjectRelationOptions([])
-        let so = []
-        let sr = []
-        for (const [_, v] of Object.entries(selectedEntity.relations[value].relationReferences)) {
-            let e = v.name.split("#")
-            so.push(e[0])
-            if (e.length === 2) {
-                sr.push(e[1])
-            } else {
-                if (e[0] !== "user") {
-                    sr.push('...')
-                }
-            }
+        if (!definitions[selectedEntityType] || !definitions[selectedEntityType].relations[value]) {
+            console.error("Selected entity type or relation not found in definitions.");
+            return;
         }
-        setSubjectOptions(so)
-        setSubjectRelationOptions(sr)
+        const relationReferences = definitions[selectedEntityType].relations[value].relationReferences;
+        if (!relationReferences || !Array.isArray(relationReferences)) {
+            console.error("Invalid relationReferences value.");
+            return;
+        }
+        setSelectedEntityRelation(value);
+        setSubjectTypeOptions([]);
+        setSubjectRelationOptions([]);
+        const so = relationReferences
+            .filter(v => v && v.type)
+            .reduce((uniqueTypes, v) => {
+                if (!uniqueTypes.includes(v.type)) {
+                    uniqueTypes.push(v.type);
+                }
+                return uniqueTypes;
+            }, []);
+        setSubjectTypeOptions(so);
+        form.setFieldsValue({
+            subject_type: null,
+            subject_relation: null,
+        });
+    };
+
+    const handleSubjectTypeChange = (value) => {
+        if (!definitions[selectedEntityType] || !definitions[selectedEntityType].relations[selectedEntityRelation]) {
+            console.error("Selected entity type or relation not found in definitions.");
+            return;
+        }
+        const relationReferences = definitions[selectedEntityType].relations[selectedEntityRelation].relationReferences;
+        if (!relationReferences || !Array.isArray(relationReferences)) {
+            console.error("Invalid relationReferences value.");
+            return;
+        }
+        const sr = relationReferences
+            .filter(v => v && v.relation && v.type === value)
+            .map(v => v.relation);
+        setSubjectRelationOptions(sr);
+        form.setFieldsValue({
+            subject_relation: null,
+        });
+    };
+
+    const clearInputs = () => {
+        setEntityRelationOptions([])
+        setSubjectTypeOptions([])
+        setSubjectRelationOptions([])
     }
 
     return (
-        <Modal title="CreateTuple Tuple" visible={props.visible} onCancel={handleCancel} destroyOnClose
+        <Modal title="Create Tuple" visible={props.visible} onCancel={handleCancel} destroyOnClose
                bordered={true} footer={[
-            <Button type="secondary" onClick={handleCancel}>
+            <Button type="secondary" onClick={handleCancel} key="cancel">
                 Cancel
             </Button>,
             <Button form="tuple-creation-form" type="primary" key="submit" htmlType="submit">
                 CreateTuple
             </Button>
         ]}>
-            <Form name="tuple-creation-form" form={form} onFinish={onFinish} labelCol={{span: 4}} wrapperCol={{span: 20}}>
+            <Form name="tuple-creation-form" form={form} onFinish={onFinish} labelCol={{span: 4}}
+                  wrapperCol={{span: 20}}>
                 {error !== "" &&
                     <Alert message={error} type="error" showIcon className="mb-12"/>
                 }
@@ -121,9 +154,15 @@ function CreateTuple(props) {
                             rules={[{required: true, message: ''}]}
                         >
                             <Select placeholder="Entity Type" style={{width: '35%'}} onChange={handleEntityTypeChange}>
-                                {Object.keys(props.model.entityDefinitions).map((key, index) => {
+                                {definitions && Object.keys(definitions).map((key, index) => {
+                                    if (typeof key !== "string") {
+                                        console.error("Invalid key: ", key);
+                                        return null;
+                                    }
                                     return (
-                                        <Option key={key} value={key}>{key}</Option>
+                                        <Option key={key} value={key}>
+                                            {key}
+                                        </Option>
                                     );
                                 })}
                             </Select>
@@ -143,9 +182,18 @@ function CreateTuple(props) {
                             rules={[{required: true, message: ''}]}
                         >
                             <Select placeholder="Relation" style={{width: '35%'}} onChange={handleEntityRelationChange}>
-                                {entityRelationOptions.map(key => (
-                                    <Option key={key} value={key}>{key}</Option>
-                                ))}
+                                {entityRelationOptions &&
+                                    <>
+                                        {
+                                            Array.isArray(entityRelationOptions) &&
+                                            entityRelationOptions.map((key) => (
+                                                <Option key={key} value={key}>
+                                                    {key}
+                                                </Option>
+                                            ))
+                                        }
+                                    </>
+                                }
                             </Select>
                         </Form.Item>
 
@@ -161,9 +209,18 @@ function CreateTuple(props) {
                         >
                             <Select placeholder="Subject Type" onChange={handleSubjectTypeChange}
                                     style={{width: '35%'}}>
-                                {subjectOptions.map(item => (
-                                    <Option key={item} value={item}>{item}</Option>
-                                ))}
+                                {subjectTypeOptions &&
+                                    <>
+                                        {
+                                            Array.isArray(subjectTypeOptions) &&
+                                            subjectTypeOptions.map(key => (
+                                                <Option key={key} value={key}>
+                                                    {key}
+                                                </Option>
+                                            ))
+                                        }
+                                    </>
+                                }
                             </Select>
                         </Form.Item>
 
@@ -175,16 +232,25 @@ function CreateTuple(props) {
                             <Input style={{width: '20%'}} placeholder="ID"/>
                         </Form.Item>
 
-                        {!isSubjectUser &&
+                        {subjectRelationOptions.length > 0 &&
                             <Form.Item
                                 name="optional_subject_relation"
                                 noStyle
                                 rules={[{required: true, message: ''}]}
                             >
                                 <Select placeholder="Relation" style={{width: '35%'}}>
-                                    {subjectRelationOptions.map(item => (
-                                        <Option key={item} value={item}>{item}</Option>
-                                    ))}
+                                    {subjectRelationOptions &&
+                                        <>
+                                            {
+                                                Array.isArray(subjectRelationOptions) &&
+                                                subjectRelationOptions.map(item => (
+                                                    <Option key={item} value={item}>
+                                                        {item}
+                                                    </Option>
+                                                ))
+                                            }
+                                        </>
+                                    }
                                 </Select>
                             </Form.Item>
                         }
