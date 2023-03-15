@@ -33,18 +33,9 @@ function Play(props) {
             client.get(`https://s3.amazonaws.com/permify.playground.storage/shapes/${search}.yaml`).then((response) => {
                 return yaml.load(response.data, null)
             }).then((result) => {
-                if (result.schema !== null) {
-                    dispatch(setSchema(result.schema))
-                }else {
-                    dispatch(setSchema(``))
-                    dispatch(setRelationships([]))
-                }
-                if (result.relationships !== null){
-                    dispatch(setRelationships(result.relationships))
-                }else {
-                    dispatch(setRelationships([]))
-                }
-                setLoading(false)
+                dispatch(setSchema(result.schema ?? ``));
+                dispatch(setRelationships(result.relationships ?? []));
+                setLoading(false);
             }).catch((error) => {
                 navigate('/404')
             });

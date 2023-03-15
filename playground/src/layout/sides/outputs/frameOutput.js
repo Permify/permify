@@ -18,6 +18,12 @@ function FrameOutput(props) {
     const [shareModalVisibility, setShareModalVisibility] = React.useState(false);
     const [id, setId] = useState("");
 
+    const [isModelReady, setIsModelReady] = useState(false);
+
+    function isReady(value) {
+        setIsModelReady(value)
+    }
+
     const toggleShareModalVisibility = () => {
         setShareModalVisibility(!shareModalVisibility);
     };
@@ -58,8 +64,8 @@ function FrameOutput(props) {
                 </div>
                 {!props.loading &&
                     <>
-                        <AuthorizationModel title="Authorization Model" hidden={selected !== 'schema'} initialValue={props.shape.schema}/>
-                        <AuthorizationData title="Authorization Data" hidden={selected !== 'data'} initialValue={props.shape.relationships}/>
+                        <AuthorizationModel title="Authorization Model" hidden={selected !== 'schema'} isReady={isReady} initialValue={props.shape.schema}/>
+                        <AuthorizationData title="Authorization Data" hidden={selected !== 'data'} isModelReady={isModelReady} initialValue={props.shape.relationships}/>
                         <Visualizer title="Visualizer" hidden={selected !== 'visualizer'}/>
                         <Enforcement title="Enforcement" hidden={selected !== 'enforcement'}/>
                     </>

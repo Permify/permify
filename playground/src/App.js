@@ -4,14 +4,12 @@ import {Layout} from "./utility/context/Layout"
 import {Provider} from 'react-redux'
 import {PersistGate} from "redux-persist/integration/react";
 
-function App({store, persistor}) {
+function App({store}) {
     return (
         <Provider store={store}>
-            <PersistGate persistor={persistor} loading={null}>
                 <Layout>
                     <AppRouter/>
                 </Layout>
-            </PersistGate>
         </Provider>
     );
 }
