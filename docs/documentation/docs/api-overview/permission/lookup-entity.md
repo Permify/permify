@@ -53,7 +53,7 @@ cr, err: = client.Permission.LookupEntity(context.Background(), & v1.PermissionL
 <TabItem value="node" label="Node">
 
 ```javascript
-client.permission.check({
+client.permission.lookupEntity({
     tenantId: "t1",
     metadata: {
         snapToken: "",

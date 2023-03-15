@@ -51,7 +51,7 @@ cr, err: = client.Permission.LookupSchema(context.Background(), & v1.PermissionL
 <TabItem value="node" label="Node">
 
 ```javascript
-client.permission.LookupSchema({
+client.permission.lookupSchema({
      tenantId: "t1",
      metadata: {
       schema_version: ""
