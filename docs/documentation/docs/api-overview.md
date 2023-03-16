@@ -40,6 +40,12 @@ Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/
 - Expand schema actions with [Expand API](./api-overview/permission/expand-api.md)
 - Get permissions of your resources with [Schema Lookup](./api-overview/permission/schema-lookup.md)
 
+## Authentication
+
+You can secure APIs with our authentication methods; **Open ID Connect** or **Pre Shared Keys**. They can be configurable with flags or using configuration yaml file. See more details how to enable authentication from [Configuration Options](http://localhost:3000/docs/reference/configuration)
+
+To access the endpoints after enabling authentication, it's necessary to provide a Bearer Token for identification. If your using golang or nodeJs client library, an authentication token can be provided via interceptors. You can find details in the clients' documentation.
+
 ## Need any help ?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
