@@ -20,6 +20,9 @@ func main() {
 	migrate := cmd.NewMigrateCommand()
 	root.AddCommand(migrate)
 
+	version := cmd.NewVersionCommand()
+	root.AddCommand(version)
+
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}
