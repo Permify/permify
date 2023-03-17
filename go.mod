@@ -28,7 +28,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.9.1
 	github.com/onsi/gomega v1.27.4
 	github.com/pkg/errors v0.9.1
-	github.com/pressly/goose/v3 v3.9.0
+	github.com/pressly/goose/v3 v3.10.0
 	github.com/rs/cors v1.8.3
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
@@ -123,7 +123,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.37.0 // indirect
 	go.opentelemetry.io/otel/trace v1.14.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/oauth2 v0.5.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
