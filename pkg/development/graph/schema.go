@@ -110,11 +110,9 @@ func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*bas
 
 // GetMainReference -
 func GetMainReference(definition *base.RelationDefinition) string {
-	if len(definition.GetRelationReferences()) > 1 {
-		for _, ref := range definition.GetRelationReferences() {
-			if !strings.Contains(ref.String(), "#") {
-				return ref.String()
-			}
+	for _, ref := range definition.GetRelationReferences() {
+		if !strings.Contains(ref.String(), "#") {
+			return ref.GetType()
 		}
 	}
 	return tuple.USER
