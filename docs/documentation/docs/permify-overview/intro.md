@@ -44,6 +44,8 @@ In Permify, authorization divided into 3 core aspects; **modeling**, **storing a
 
 This document explains how Permify handles these aspects to provide a robust and scalable authorization system for your applications. For the ones that want trying out and examine it instantly, 
 
+**Looking for Permify Managed Service?** See our [pricing plans](https://permify.co/pricing/1).
+
 <div className="getting-started-grid">
     <a href="https://play.permify.co/">
         <div className="btn-thumb">
