@@ -1,7 +1,7 @@
 package tuple
 
 import (
-	`errors`
+	"errors"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"

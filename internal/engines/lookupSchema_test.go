@@ -1,4 +1,4 @@
-package commands
+package engines
 
 import (
 	"context"
@@ -13,8 +13,8 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var _ = Describe("lookup-schema-command", func() {
-	var lookupSchemaCommand *LookupSchemaCommand
+var _ = Describe("lookup-schema-engine", func() {
+	var lookupSchemaEngine *LookupSchemaEngine
 
 	// DRIVE SAMPLE
 
@@ -64,7 +64,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "t1", "folder", "noop").Return(en, "noop", nil).Times(1)
 
-			lookupSchemaCommand = NewLookupSchemaCommand(schemaReader)
+			lookupSchemaEngine = NewLookupSchemaEngine(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				TenantId:      "t1",
@@ -75,7 +75,7 @@ var _ = Describe("lookup-schema-command", func() {
 				},
 			}
 
-			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
+			actualResult, err := lookupSchemaEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
 				Expect(slices.Contains([]string{"delete"}, actionName)).Should(Equal(slices.Contains([]string{"delete"}, actionName)))
@@ -99,7 +99,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(en, "noop", nil).Times(2)
 
-			lookupSchemaCommand = NewLookupSchemaCommand(schemaReader)
+			lookupSchemaEngine = NewLookupSchemaEngine(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				TenantId:      "t1",
@@ -110,7 +110,7 @@ var _ = Describe("lookup-schema-command", func() {
 				},
 			}
 
-			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
+			actualResult, err := lookupSchemaEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
 				Expect(slices.Contains([]string{"read", "update", "delete"}, actionName)).Should(Equal(slices.Contains([]string{"read", "update", "delete"}, actionName)))
@@ -159,7 +159,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(en, "noop", nil).Times(2)
 
-			lookupSchemaCommand = NewLookupSchemaCommand(schemaReader)
+			lookupSchemaEngine = NewLookupSchemaEngine(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				TenantId:      "t1",
@@ -170,7 +170,7 @@ var _ = Describe("lookup-schema-command", func() {
 				},
 			}
 
-			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
+			actualResult, err := lookupSchemaEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
 				Expect(slices.Contains([]string{"create_repository", "delete"}, actionName)).Should(Equal(slices.Contains([]string{"create_repository", "delete"}, actionName)))
@@ -194,7 +194,7 @@ var _ = Describe("lookup-schema-command", func() {
 
 			schemaReader.On("ReadSchemaDefinition", "t1", "repository", "noop").Return(en, "noop", nil).Times(2)
 
-			lookupSchemaCommand = NewLookupSchemaCommand(schemaReader)
+			lookupSchemaEngine = NewLookupSchemaEngine(schemaReader)
 
 			req := &base.PermissionLookupSchemaRequest{
 				TenantId:      "t1",
@@ -205,7 +205,7 @@ var _ = Describe("lookup-schema-command", func() {
 				},
 			}
 
-			actualResult, err := lookupSchemaCommand.Execute(context.Background(), req)
+			actualResult, err := lookupSchemaEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			for _, actionName := range actualResult.ActionNames {
 				Expect(slices.Contains([]string{"delete"}, actionName)).Should(Equal(slices.Contains([]string{"delete"}, actionName)))

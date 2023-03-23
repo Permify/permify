@@ -3,14 +3,13 @@ package development
 import (
 	"fmt"
 
-	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
-	"github.com/Permify/permify/pkg/telemetry"
 )
 
 // Container - Structure for container instance
@@ -39,14 +38,14 @@ func NewContainer() *Container {
 	schemaReader := factories.SchemaReaderFactory(db, l)
 	schemaWriter := factories.SchemaWriterFactory(db, l)
 
-	// commands
-	checkCommand, _ := commands.NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
-	expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader)
-	lookupSchemaCommand := commands.NewLookupSchemaCommand(schemaReader)
-	lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader)
+	// engines
+	checkEngine := engines.NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+	expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
+	lookupSchemaEngine := engines.NewLookupSchemaEngine(schemaReader)
+	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, relationshipReader)
 
 	return &Container{
-		P: services.NewPermissionService(checkCommand, expandCommand, lookupSchemaCommand, lookupEntityCommand),
+		P: services.NewPermissionService(checkEngine, expandEngine, lookupSchemaEngine, lookupEntityEngine),
 		R: services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader),
 		S: services.NewSchemaService(schemaWriter, schemaReader),
 	}

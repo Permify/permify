@@ -5,17 +5,18 @@ import (
 	"os/signal"
 	"syscall"
 
+	"go.opentelemetry.io/otel/sdk/metric"
+
 	"github.com/spf13/viper"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal"
-	"github.com/Permify/permify/internal/commands"
 	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories"
@@ -31,7 +32,9 @@ import (
 	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
 )
 
-// NewServeCommand - Creates new server command
+// NewServeCommand returns a new Cobra command that can be used to run the "permify serve" command.
+// The command takes no arguments and runs the serve() function to start the Permify service.
+// The command has a short description of what it does.
 func NewServeCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
@@ -41,7 +44,11 @@ func NewServeCommand() *cobra.Command {
 	}
 }
 
-// serve - permify serve command
+// serve is the main function for the "permify serve" command. It starts the Permify service by configuring and starting the necessary components.
+// It initializes the configuration, logger, database, tracing and metering components, and creates instances of the necessary engines, services, and decorators.
+// It then creates a ServiceContainer and runs it with the given configuration.
+// The function uses errgroup to manage the goroutines and gracefully shuts down the service upon receiving a termination signal.
+// It returns an error if there is an issue with any of the components or if any goroutine fails.
 func serve() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.NewConfig()
@@ -95,7 +102,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Meter
-		meter := telemetry.NewNoopMeter()
+		// meter := telemetry.NewNoopMeter()
 		if cfg.Meter.Enabled {
 			var exporter metric.Exporter
 			exporter, err = meterexporters.ExporterFactory(cfg.Meter.Exporter, cfg.Meter.Endpoint)
@@ -103,7 +110,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				l.Fatal(err)
 			}
 
-			meter, err = telemetry.NewMeter(exporter)
+			_, err = telemetry.NewMeter(exporter)
 			if err != nil {
 				l.Fatal(err)
 			}
@@ -116,9 +123,9 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			l.Fatal(err)
 		}
 
-		// commands cache keys
-		var commandsKeyCache cache.Cache
-		commandsKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Permission.Cache.MaxCost))
+		// engines cache keys
+		var engineKeyCache cache.Cache
+		engineKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Permission.Cache.MaxCost))
 		if err != nil {
 			l.Fatal(err)
 		}
@@ -144,22 +151,17 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// key managers
-		checkKeyManager := keys.NewCheckCommandKeys(commandsKeyCache)
+		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache)
 
-		// commands
-		var checkCommand *commands.CheckCommand
-		checkCommand, err = commands.NewCheckCommand(checkKeyManager, schemaReader, relationshipReader, meter, commands.ConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
-		if err != nil {
-			l.Fatal(err)
-		}
-
-		expandCommand := commands.NewExpandCommand(schemaReader, relationshipReader)
-		schemaLookupCommand := commands.NewLookupSchemaCommand(schemaReader)
-		lookupEntityCommand := commands.NewLookupEntityCommand(checkCommand, schemaReader, relationshipReader)
+		// engines
+		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, relationshipReader, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
+		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
+		schemaLookupEngine := engines.NewLookupSchemaEngine(schemaReader)
 
 		// Services
 		relationshipService := services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader)
-		permissionService := services.NewPermissionService(checkCommand, expandCommand, schemaLookupCommand, lookupEntityCommand)
+		permissionService := services.NewPermissionService(checkEngine, expandEngine, schemaLookupEngine, lookupEntityEngine)
 		schemaService := services.NewSchemaService(schemaWriter, schemaReader)
 		tenancyService := services.NewTenancyService(tenantWriter, tenantReader)
 
