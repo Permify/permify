@@ -30,7 +30,7 @@ func NewRelationshipServer(r services.IRelationshipService, l logger.Interface) 
 	}
 }
 
-// Read - Allows directly querying the stored graph data to display and filter stored relational tuples
+// Read - Allows directly querying the stored engines data to display and filter stored relational tuples
 func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipReadRequest) (*v1.RelationshipReadResponse, error) {
 	ctx, span := tracer.Start(ctx, "relationships.read")
 	defer span.End()

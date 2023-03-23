@@ -1,4 +1,4 @@
-package commands
+package engines
 
 import (
 	"context"
@@ -6,51 +6,47 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-var _ = Describe("lookup-entity-command", func() {
-	var checkCommand *CheckCommand
+var _ = Describe("expand-engine", func() {
+	var expandEngine *ExpandEngine
 
 	// DRIVE SAMPLE
-
 	driveSchema := `
-entity user {}
-
-entity organization {
-	relation admin @user
-}
-
-entity folder {
-	relation org @organization
-	relation creator @user
-	relation collaborator @user
-
-	action read = collaborator
-	action update = collaborator
-	action delete = creator or org.admin
-}
-
-entity doc {
-	relation org @organization
-	relation parent @folder
-	relation owner @user
+	entity user {}
 	
-	action read = (owner or parent.collaborator) or org.admin
-	action update = owner and org.admin
-	action delete = owner or org.admin
-	action share = update and (owner or parent.update)
-}
-`
+	entity organization {
+		relation admin @user
+	}
+	
+	entity folder {
+		relation org @organization
+		relation creator @user
+		relation collaborator @user
+	
+		action read = collaborator
+		action update = collaborator
+		action delete = creator or org.admin
+	}
+	
+	entity doc {
+		relation org @organization
+		relation parent @folder
+		relation owner @user
+	
+		action read = (owner or parent.collaborator) or org.admin
+		action update = owner and org.admin
+		action delete = owner or org.admin
+	}
+	`
 
-	Context("Drive Sample: Check", func() {
+	Context("Drive Sample: Expand", func() {
 		It("Drive Sample: Case 1", func() {
 			var err error
 
@@ -74,14 +70,13 @@ entity doc {
 			organization, err = schema.GetEntityByName(sch, "organization")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(doc, "noop", nil).Times(4)
+			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(doc, "noop", nil).Times(2)
 			schemaReader.On("ReadSchemaDefinition", "t1", "folder", "noop").Return(folder, "noop", nil).Times(1)
 			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
 			relationshipReader := new(mocks.RelationshipReader)
-			relationshipReaderForLookupCommand := new(mocks.RelationshipReader)
 
 			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
@@ -107,27 +102,6 @@ entity doc {
 			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "doc",
-					Ids:  []string{"2"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "2",
-					},
-					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "8",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
 					Ids:  []string{"1"},
 				},
 				Relation: "parent",
@@ -145,14 +119,6 @@ entity doc {
 					},
 				},
 			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"2"},
-				},
-				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{}...), nil).Times(1)
 
 			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
@@ -210,14 +176,6 @@ entity doc {
 
 			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"2"},
-				},
-				Relation: "org",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
 					Type: "organization",
 					Ids:  []string{"1"},
 				},
@@ -237,27 +195,121 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			relationshipReaderForLookupCommand.On("GetUniqueEntityIDsByEntityType", "t1", "doc", token.NewNoopToken().Encode().String()).Return([]string{"1", "2"}, nil).Times(1)
+			expandEngine = NewExpandEngine(schemaReader, relationshipReader)
 
-			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
-			lookupEntityCommand := NewLookupEntityCommand(checkCommand, schemaReader, relationshipReaderForLookupCommand)
-
-			req := &base.PermissionLookupEntityRequest{
+			req := &base.PermissionExpandRequest{
 				TenantId:   "t1",
-				EntityType: "doc",
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
+				Entity:     &base.Entity{Type: "doc", Id: "1"},
 				Permission: "read",
-				Metadata: &base.PermissionLookupEntityRequestMetadata{
+				Metadata: &base.PermissionExpandRequestMetadata{
 					SnapToken:     token.NewNoopToken().Encode().String(),
 					SchemaVersion: "noop",
-					Depth:         20,
 				},
 			}
 
-			var response *base.PermissionLookupEntityResponse
-			response, err = lookupEntityCommand.Execute(context.Background(), req)
+			var response *base.PermissionExpandResponse
+			response, err = expandEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(response.EntityIds).Should(Equal([]string{"1"}))
+
+			// fmt.Println(response.GetTree())
+
+			Expect(&base.Expand{
+				Node: &base.Expand_Expand{
+					Expand: &base.ExpandTreeNode{
+						Operation: base.ExpandTreeNode_OPERATION_UNION,
+						Children: []*base.Expand{
+							{
+								Node: &base.Expand_Expand{
+									Expand: &base.ExpandTreeNode{
+										Operation: base.ExpandTreeNode_OPERATION_UNION,
+										Children: []*base.Expand{
+											{
+												Node: &base.Expand_Leaf{
+													Leaf: &base.Result{
+														Target: &base.EntityAndRelation{
+															Entity: &base.Entity{
+																Type: "doc",
+																Id:   "1",
+															},
+															Relation: "owner",
+														},
+														Subjects: []*base.Subject{
+															{
+																Type: tuple.USER,
+																Id:   "2",
+															},
+														},
+													},
+												},
+											},
+											{
+												Node: &base.Expand_Expand{
+													Expand: &base.ExpandTreeNode{
+														Operation: base.ExpandTreeNode_OPERATION_UNION,
+														Children: []*base.Expand{
+															{
+																Node: &base.Expand_Leaf{
+																	Leaf: &base.Result{
+																		Target: &base.EntityAndRelation{
+																			Entity: &base.Entity{
+																				Type: "folder",
+																				Id:   "1",
+																			},
+																			Relation: "collaborator",
+																		},
+																		Subjects: []*base.Subject{
+																			{
+																				Type: tuple.USER,
+																				Id:   "1",
+																			},
+																			{
+																				Type: tuple.USER,
+																				Id:   "3",
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+							{
+								Node: &base.Expand_Expand{
+									Expand: &base.ExpandTreeNode{
+										Operation: base.ExpandTreeNode_OPERATION_UNION,
+										Children: []*base.Expand{
+											{
+												Node: &base.Expand_Leaf{
+													Leaf: &base.Result{
+														Target: &base.EntityAndRelation{
+															Entity: &base.Entity{
+																Type: "organization",
+																Id:   "1",
+															},
+															Relation: "admin",
+														},
+														Subjects: []*base.Subject{
+															{
+																Type: tuple.USER,
+																Id:   "1",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}).Should(Equal(response.Tree))
 		})
 	})
 })

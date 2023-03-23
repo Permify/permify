@@ -104,6 +104,7 @@ type (
 
 	// Permission -.
 	Permission struct {
+		BulkLimit        int   `mapstructure:"bulk_limit"`
 		ConcurrencyLimit int   `mapstructure:"concurrency_limit"`
 		Cache            Cache `mapstructure:"cache"`
 	}
@@ -194,6 +195,7 @@ func DefaultConfig() *Config {
 				},
 			},
 			Permission: Permission{
+				BulkLimit:        100,
 				ConcurrencyLimit: 100,
 				Cache: Cache{
 					NumberOfCounters: 10_000,

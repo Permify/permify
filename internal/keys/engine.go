@@ -11,19 +11,19 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-type CommandKeys struct {
+type EngineKeys struct {
 	cache cache.Cache
 }
 
-// NewCheckCommandKeys new instance of CheckCommandKeys
-func NewCheckCommandKeys(cache cache.Cache) CommandKeyManager {
-	return &CommandKeys{
+// NewCheckEngineKeys new instance of CheckEngineKeys
+func NewCheckEngineKeys(cache cache.Cache) EngineKeyManager {
+	return &EngineKeys{
 		cache: cache,
 	}
 }
 
 // SetCheckKey - Sets the value for the given key.
-func (c *CommandKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse) bool {
+func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse) bool {
 	checkKey := fmt.Sprintf("check_%s_%s:%s:%s@%s", key.GetTenantId(), key.GetMetadata().GetSchemaVersion(), key.GetMetadata().GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
 		Entity:   key.GetEntity(),
 		Relation: key.GetPermission(),
@@ -38,7 +38,7 @@ func (c *CommandKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.
 }
 
 // GetCheckKey - Gets the value for the given key.
-func (c *CommandKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
+func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
 	checkKey := fmt.Sprintf("check_%s_%s:%s:%s@%s", key.GetTenantId(), key.GetMetadata().GetSchemaVersion(), key.GetMetadata().GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
 		Entity:   key.GetEntity(),
 		Relation: key.GetPermission(),
@@ -56,20 +56,20 @@ func (c *CommandKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permi
 	return nil, false
 }
 
-// NoopCommandKeys -
-type NoopCommandKeys struct{}
+// NoopEngineKeys -
+type NoopEngineKeys struct{}
 
-// NewNoopCheckCommandKeys new noop instance of CheckCommandKeys
-func NewNoopCheckCommandKeys() CommandKeyManager {
-	return &NoopCommandKeys{}
+// NewNoopCheckEngineKeys new noop instance of CheckEngineKeys
+func NewNoopCheckEngineKeys() EngineKeyManager {
+	return &NoopEngineKeys{}
 }
 
 // SetCheckKey sets the value for the given key.
-func (c *NoopCommandKeys) SetCheckKey(*base.PermissionCheckRequest, *base.PermissionCheckResponse) bool {
+func (c *NoopEngineKeys) SetCheckKey(*base.PermissionCheckRequest, *base.PermissionCheckResponse) bool {
 	return true
 }
 
 // GetCheckKey gets the value for the given key.
-func (c *NoopCommandKeys) GetCheckKey(*base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
+func (c *NoopEngineKeys) GetCheckKey(*base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
 	return nil, false
 }

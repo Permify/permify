@@ -1,4 +1,4 @@
-package commands
+package engines
 
 import (
 	"context"
@@ -11,13 +11,12 @@ import (
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-var _ = Describe("check-command", func() {
-	var checkCommand *CheckCommand
+var _ = Describe("check-engine", func() {
+	var checkEngine *CheckEngine
 
 	// DRIVE SAMPLE
 
@@ -199,7 +198,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
+			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -215,7 +214,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
+			response, err = checkEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
 		})
@@ -314,7 +313,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
+			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -330,7 +329,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
+			response, err = checkEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
@@ -483,7 +482,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
+			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -499,7 +498,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
+			response, err = checkEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
@@ -576,7 +575,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
+			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -592,7 +591,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
+			response, err = checkEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
@@ -710,7 +709,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
+			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -726,7 +725,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
+			response, err = checkEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
 		})
@@ -841,7 +840,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
+			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -857,7 +856,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
+			response, err = checkEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
@@ -1014,7 +1013,7 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkCommand, _ = NewCheckCommand(keys.NewNoopCheckCommandKeys(), schemaReader, relationshipReader, telemetry.NewNoopMeter())
+			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -1030,7 +1029,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkCommand.Execute(context.Background(), req)
+			response, err = checkEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
 		})
