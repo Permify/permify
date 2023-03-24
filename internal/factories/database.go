@@ -10,7 +10,20 @@ import (
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
-// DatabaseFactory - Create database according to given configuration
+// DatabaseFactory is a factory function that creates a database instance according to the given configuration.
+// It supports different types of databases, such as PostgreSQL and in-memory databases.
+//
+// conf: the configuration object containing the necessary information to create a database connection.
+//       It should have the following properties:
+//       - Engine: the type of the database, e.g., POSTGRES or MEMORY
+//       - URI: the connection string for the database (only required for some database engines, e.g., POSTGRES)
+//       - MaxOpenConnections: the maximum number of open connections to the database
+//       - MaxIdleConnections: the maximum number of idle connections in the connection pool
+//       - MaxConnectionIdleTime: the maximum amount of time a connection can be idle before being closed
+//       - MaxConnectionLifetime: the maximum amount of time a connection can be reused before being closed
+//
+// Returns a database.Database instance if the database connection is successfully created, or an error if the
+// creation fails or the specified database engine is unsupported.
 func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 	switch conf.Engine {
 	case database.POSTGRES.String():

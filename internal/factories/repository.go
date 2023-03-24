@@ -10,7 +10,14 @@ import (
 	"github.com/Permify/permify/pkg/logger"
 )
 
-// RelationshipReaderFactory - Return relationship read operations according to given database interface
+// RelationshipReaderFactory is a factory function that returns a relationship reader instance according to the
+// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
+//
+// db: the database.Database instance for which the relationship reader should be created
+// logger: the logger.Interface instance to be used by the relationship reader for logging purposes
+//
+// Returns a repositories.RelationshipReader instance that performs read operations on the relationships stored
+// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
 func RelationshipReaderFactory(db database.Database, logger logger.Interface) (repo repositories.RelationshipReader) {
 	switch db.GetEngineType() {
 	case "postgres":
@@ -22,7 +29,14 @@ func RelationshipReaderFactory(db database.Database, logger logger.Interface) (r
 	}
 }
 
-// RelationshipWriterFactory - Return relationship write operations according to given database interface
+// RelationshipWriterFactory is a factory function that returns a relationship writer instance according to the
+// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
+//
+// db: the database.Database instance for which the relationship writer should be created
+// logger: the logger.Interface instance to be used by the relationship writer for logging purposes
+//
+// Returns a repositories.RelationshipWriter instance that performs write operations on the relationships stored
+// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
 func RelationshipWriterFactory(db database.Database, logger logger.Interface) (repo repositories.RelationshipWriter) {
 	switch db.GetEngineType() {
 	case "postgres":
@@ -34,7 +48,14 @@ func RelationshipWriterFactory(db database.Database, logger logger.Interface) (r
 	}
 }
 
-// SchemaReaderFactory - Return schema read operations according to given database interface
+// SchemaReaderFactory is a factory function that returns a schema reader instance according to the
+// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
+//
+// db: the database.Database instance for which the schema reader should be created
+// logger: the logger.Interface instance to be used by the schema reader for logging purposes
+//
+// Returns a repositories.SchemaReader instance that performs read operations on the schema stored
+// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
 func SchemaReaderFactory(db database.Database, logger logger.Interface) (repo repositories.SchemaReader) {
 	switch db.GetEngineType() {
 	case "postgres":
@@ -46,7 +67,14 @@ func SchemaReaderFactory(db database.Database, logger logger.Interface) (repo re
 	}
 }
 
-// SchemaWriterFactory - Return schema write operations according to given database interface
+// SchemaWriterFactory is a factory function that returns a schema writer instance according to the
+// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
+//
+// db: the database.Database instance for which the schema writer should be created
+// logger: the logger.Interface instance to be used by the schema writer for logging purposes
+//
+// Returns a repositories.SchemaWriter instance that performs write operations on the schema stored
+// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
 func SchemaWriterFactory(db database.Database, logger logger.Interface) (repo repositories.SchemaWriter) {
 	switch db.GetEngineType() {
 	case "postgres":
@@ -58,7 +86,14 @@ func SchemaWriterFactory(db database.Database, logger logger.Interface) (repo re
 	}
 }
 
-// TenantReaderFactory - Return tenant read operations according to given database interface
+// TenantReaderFactory is a factory function that returns a tenant reader instance according to the
+// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
+//
+// db: the database.Database instance for which the tenant reader should be created
+// logger: the logger.Interface instance to be used by the tenant reader for logging purposes
+//
+// Returns a repositories.TenantReader instance that performs read operations on the tenants stored
+// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
 func TenantReaderFactory(db database.Database, logger logger.Interface) (repo repositories.TenantReader) {
 	switch db.GetEngineType() {
 	case "postgres":
@@ -70,7 +105,14 @@ func TenantReaderFactory(db database.Database, logger logger.Interface) (repo re
 	}
 }
 
-// TenantWriterFactory - Return tenant write operations according to given database interface
+// TenantWriterFactory is a factory function that returns a tenant writer instance according to the
+// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
+//
+// db: the database.Database instance for which the tenant writer should be created
+// logger: the logger.Interface instance to be used by the tenant writer for logging purposes
+//
+// Returns a repositories.TenantWriter instance that performs write operations on the tenants stored
+// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
 func TenantWriterFactory(db database.Database, logger logger.Interface) (repo repositories.TenantWriter) {
 	switch db.GetEngineType() {
 	case "postgres":
