@@ -1,18 +1,19 @@
 package engines
 
 import (
-	`context`
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/keys`
-	`github.com/Permify/permify/internal/repositories/mocks`
-	`github.com/Permify/permify/internal/schema`
-	`github.com/Permify/permify/pkg/database`
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	"github.com/Permify/permify/internal/keys"
+	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/pkg/database"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 
-	`github.com/Permify/permify/pkg/token`
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("lookup-entity-engine", func() {

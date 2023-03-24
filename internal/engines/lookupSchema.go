@@ -80,7 +80,7 @@ type SchemaLookupDecision struct {
 
 // sendSchemaLookupDecision - This function returns a SchemaLookupDecision struct with a boolean can and an
 // error err indicating whether a permission check can be performed and any error occurred during the process,
-//respectively. The function is named sendSchemaLookupDecision.
+// respectively. The function is named sendSchemaLookupDecision.
 func sendSchemaLookupDecision(can bool, err error) SchemaLookupDecision {
 	return SchemaLookupDecision{
 		Can: can,
@@ -179,7 +179,7 @@ func (command *LookupSchemaEngine) setChild(ctx context.Context, request *base.P
 // return a SchemaLookupDecision indicating whether the check was successful or not, based on the exclusion flag. If the exclusion flag is set,
 // the function will return true if the relation name is not present in the list, and false if it is. If the exclusion flag is not set, the function
 // will return true if the relation name is present in the list, and false if it is not. The SchemaLookupFunction is returned as a closure that
-//takes a context and a channel, and sends the SchemaLookupDecision through the channel.
+// takes a context and a channel, and sends the SchemaLookupDecision through the channel.
 func (command *LookupSchemaEngine) lookup(ctx context.Context, relation string, request *base.PermissionLookupSchemaRequest, exclusion bool) SchemaLookupFunction {
 	return func(ctx context.Context, lookupChan chan<- SchemaLookupDecision) {
 		var err error
