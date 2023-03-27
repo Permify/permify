@@ -1,21 +1,23 @@
 package ast
 
-// Schema - it contains all statements
+// Schema represents the parsed schema, which contains all the statements
+// and extracted entity and relational references used by the schema. It
+// is used as an intermediate representation before generating the
+// corresponding metadata.
 type Schema struct {
+	// The list of statements in the schema
 	Statements []Statement
-
-	// entity references
+	// Map of entity references extracted from the schema
 	entityReferences map[string]struct{}
-
-	// relational references
-	actionReferences   map[string]struct{}
+	// Map of action references extracted from the schema
+	actionReferences map[string]struct{}
+	// Map of relation references extracted from the schema
 	relationReferences map[string][]RelationTypeStatement
-
-	// all relational references
+	// Map of all relational references extracted from the schema
 	relationalReferences map[string]RelationalReferenceType
 }
 
-// SetEntityReferences - it contains entity references
+// SetEntityReferences sets the entity references in the schema
 func (sch *Schema) SetEntityReferences(r map[string]struct{}) {
 	if sch.entityReferences == nil {
 		sch.entityReferences = map[string]struct{}{}
@@ -23,7 +25,7 @@ func (sch *Schema) SetEntityReferences(r map[string]struct{}) {
 	sch.entityReferences = r
 }
 
-// SetActionReferences - it contains action references
+// SetActionReferences sets the action references in the schema
 func (sch *Schema) SetActionReferences(r map[string]struct{}) {
 	if sch.actionReferences == nil {
 		sch.actionReferences = map[string]struct{}{}
@@ -31,7 +33,7 @@ func (sch *Schema) SetActionReferences(r map[string]struct{}) {
 	sch.actionReferences = r
 }
 
-// SetRelationReferences - it contains relation references
+// SetRelationReferences sets the relation references in the schema
 func (sch *Schema) SetRelationReferences(r map[string][]RelationTypeStatement) {
 	if sch.relationReferences == nil {
 		sch.relationReferences = map[string][]RelationTypeStatement{}
@@ -39,7 +41,7 @@ func (sch *Schema) SetRelationReferences(r map[string][]RelationTypeStatement) {
 	sch.relationReferences = r
 }
 
-// SetRelationalReferences it contains action and relation references
+// SetRelationalReferences sets the relational references in the schema
 func (sch *Schema) SetRelationalReferences(r map[string]RelationalReferenceType) {
 	if sch.relationalReferences == nil {
 		sch.relationalReferences = map[string]RelationalReferenceType{}
@@ -47,7 +49,7 @@ func (sch *Schema) SetRelationalReferences(r map[string]RelationalReferenceType)
 	sch.relationalReferences = r
 }
 
-// GetRelationalReferenceTypeIfExist - it returns the relational reference type
+// GetRelationalReferenceTypeIfExist returns the relational reference type if it exists
 func (sch *Schema) GetRelationalReferenceTypeIfExist(r string) (RelationalReferenceType, bool) {
 	if _, ok := sch.relationalReferences[r]; ok {
 		return sch.relationalReferences[r], true
@@ -55,7 +57,7 @@ func (sch *Schema) GetRelationalReferenceTypeIfExist(r string) (RelationalRefere
 	return RELATION, false
 }
 
-// IsEntityReferenceExist - it checks if the entity reference exists
+// IsEntityReferenceExist checks if the entity reference exists in the schema
 func (sch *Schema) IsEntityReferenceExist(name string) bool {
 	if _, ok := sch.entityReferences[name]; ok {
 		return ok
@@ -63,7 +65,7 @@ func (sch *Schema) IsEntityReferenceExist(name string) bool {
 	return false
 }
 
-// IsRelationReferenceExist - it checks if the relation reference exists
+// IsRelationReferenceExist checks if the relation reference exists in the schema
 func (sch *Schema) IsRelationReferenceExist(name string) bool {
 	if _, ok := sch.relationReferences[name]; ok {
 		return true
@@ -71,7 +73,7 @@ func (sch *Schema) IsRelationReferenceExist(name string) bool {
 	return false
 }
 
-// IsRelationalReferenceExist - it checks if the relational reference exists
+// IsRelationalReferenceExist checks if the relational reference exists in the schema
 func (sch *Schema) IsRelationalReferenceExist(name string) bool {
 	if _, ok := sch.relationalReferences[name]; ok {
 		return true
@@ -79,7 +81,7 @@ func (sch *Schema) IsRelationalReferenceExist(name string) bool {
 	return false
 }
 
-// GetRelationReferenceIfExist - it returns the relation reference
+// GetRelationReferenceIfExist returns the relation reference if it exists in the schema
 func (sch *Schema) GetRelationReferenceIfExist(name string) ([]RelationTypeStatement, bool) {
 	if _, ok := sch.relationReferences[name]; ok {
 		return sch.relationReferences[name], true
