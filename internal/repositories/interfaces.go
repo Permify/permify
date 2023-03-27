@@ -14,8 +14,6 @@ type RelationshipReader interface {
 	QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string) (iterator *database.TupleIterator, err error)
 	// ReadRelationships reads relation tuples from the repository with different options.
 	ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error)
-	// GetUniqueEntityIDsByEntityType reads unique entity IDs from the repository.
-	GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID string, typ, snap string) (ids []string, err error)
 	// HeadSnapshot reads the latest version of the snapshot from the repository.
 	HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error)
 }

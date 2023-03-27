@@ -73,31 +73,6 @@ func (r *RelationshipReaderWithCircuitBreaker) ReadRelationships(ctx context.Con
 	}
 }
 
-// GetUniqueEntityIDsByEntityType - Reads relation tuples from the repository
-func (r *RelationshipReaderWithCircuitBreaker) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID string, typ, token string) (array []string, err error) {
-	type circuitBreakerResponse struct {
-		IDs   []string
-		Error error
-	}
-
-	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("relationshipReader.queryRelationships", hystrix.CommandConfig{Timeout: 1000})
-	bErrors := hystrix.Go("relationshipReader.queryRelationships", func() error {
-		ids, err := r.delegate.GetUniqueEntityIDsByEntityType(ctx, tenantID, typ, token)
-		output <- circuitBreakerResponse{IDs: ids, Error: err}
-		return nil
-	}, func(err error) error {
-		return nil
-	})
-
-	select {
-	case out := <-output:
-		return out.IDs, out.Error
-	case <-bErrors:
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
-	}
-}
-
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (r *RelationshipReaderWithCircuitBreaker) HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error) {
 	type circuitBreakerResponse struct {
