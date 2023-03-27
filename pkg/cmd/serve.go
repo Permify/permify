@@ -155,7 +155,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// engines
 		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
-		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, relationshipReader, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
+		linkedEntityEngine := engines.NewLinkedEntityEngine(schemaReader, relationshipReader)
+		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, linkedEntityEngine, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
 		schemaLookupEngine := engines.NewLookupSchemaEngine(schemaReader)
 

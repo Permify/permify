@@ -42,7 +42,8 @@ func NewContainer() *Container {
 	checkEngine := engines.NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
 	expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
 	lookupSchemaEngine := engines.NewLookupSchemaEngine(schemaReader)
-	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, relationshipReader)
+	linkedEntityEngine := engines.NewLinkedEntityEngine(schemaReader, relationshipReader)
+	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, linkedEntityEngine)
 
 	return &Container{
 		P: services.NewPermissionService(checkEngine, expandEngine, lookupSchemaEngine, lookupEntityEngine),
