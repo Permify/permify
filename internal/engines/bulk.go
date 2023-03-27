@@ -9,11 +9,17 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// BulkCheckerRequest is a struct for a permission check request and the channel to send the result.
+type BulkCheckerRequest struct {
+	Request *base.PermissionCheckRequest
+	Result  base.PermissionCheckResponse_Result
+}
+
 // BulkChecker is a struct for checking permissions in bulk.
 type BulkChecker struct {
 	checkEngine *CheckEngine
 	// input queue for permission check requests
-	RequestChan chan *base.PermissionCheckRequest
+	RequestChan chan BulkCheckerRequest
 	// context to manage goroutines and cancellation
 	ctx context.Context
 	// errgroup for managing multiple goroutines
@@ -31,7 +37,7 @@ type BulkChecker struct {
 // concurrencyLimit: the maximum number of concurrent permission checks
 func NewBulkChecker(ctx context.Context, engine *CheckEngine, callback func(entityID string, result base.PermissionCheckResponse_Result), concurrencyLimit int) *BulkChecker {
 	return &BulkChecker{
-		RequestChan:      make(chan *base.PermissionCheckRequest),
+		RequestChan:      make(chan BulkCheckerRequest),
 		checkEngine:      engine,
 		g:                &errgroup.Group{},
 		concurrencyLimit: concurrencyLimit,
@@ -59,12 +65,17 @@ func (c *BulkChecker) Start() {
 			// run the permission check in a separate goroutine
 			c.g.Go(func() error {
 				defer sem.Release(1)
-				result, err := c.checkEngine.Run(c.ctx, req)
-				if err != nil {
-					return err
+				if req.Result == base.PermissionCheckResponse_RESULT_UNKNOWN {
+					result, err := c.checkEngine.Run(c.ctx, req.Request)
+					if err != nil {
+						return err
+					}
+
+					// call the callback with the result
+					c.callback(req.Request.GetEntity().GetId(), result.Can)
+				} else {
+					c.callback(req.Request.GetEntity().GetId(), req.Result)
 				}
-				// call the callback with the result
-				c.callback(req.GetEntity().GetId(), result.Can)
 				return nil
 			})
 		}
@@ -88,4 +99,27 @@ func (c *BulkChecker) Wait() error {
 		return err
 	}
 	return nil
+}
+
+// BulkPublisher is a struct for streaming permission check results.
+type BulkPublisher struct {
+	bulkChecker *BulkChecker
+	// context to manage goroutines and cancellation
+	ctx context.Context
+}
+
+// NewBulkPublisher creates a new BulkStreamer instance.
+func NewBulkPublisher(ctx context.Context, bulkChecker *BulkChecker) *BulkPublisher {
+	return &BulkPublisher{
+		bulkChecker: bulkChecker,
+		ctx:         ctx,
+	}
+}
+
+// Publish publishes a permission check request to the BulkChecker.
+func (s *BulkPublisher) Publish(request *base.PermissionCheckRequest, result base.PermissionCheckResponse_Result) {
+	s.bulkChecker.RequestChan <- BulkCheckerRequest{
+		Request: request,
+		Result:  result,
+	}
 }
