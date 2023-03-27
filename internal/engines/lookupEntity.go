@@ -4,17 +4,16 @@ import (
 	"context"
 	"sync"
 
-	"github.com/Permify/permify/internal/repositories"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 )
 
 // LookupEntityEngine is a struct that performs permission checks on a set of entities
 // and returns the entities that have the requested permission.
 type LookupEntityEngine struct {
+	// checkEngine is responsible for performing permission checks
 	checkEngine *CheckEngine
-	// relationshipReader is responsible for reading relationship information
-	relationshipReader repositories.RelationshipReader
+	// linkedEntityEngine is responsible for retrieving linked entities
+	linkedEntityEngine *LinkedEntityEngine
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
 }
@@ -22,10 +21,10 @@ type LookupEntityEngine struct {
 // NewLookupEntityEngine creates a new LookupEntityEngine instance.
 // engine: the CheckEngine to use for permission checks
 // reader: the RelationshipReader to retrieve entity relationships
-func NewLookupEntityEngine(checker *CheckEngine, reader repositories.RelationshipReader, opts ...LookupEntityOption) *LookupEntityEngine {
+func NewLookupEntityEngine(check *CheckEngine, linked *LinkedEntityEngine, opts ...LookupEntityOption) *LookupEntityEngine {
 	engine := &LookupEntityEngine{
-		checkEngine:        checker,
-		relationshipReader: reader,
+		checkEngine:        check,
+		linkedEntityEngine: linked,
 		concurrencyLimit:   _defaultConcurrencyLimit,
 	}
 
@@ -43,26 +42,9 @@ func (engine *LookupEntityEngine) Run(ctx context.Context, request *base.Permiss
 	ctx, span := tracer.Start(ctx, "permissions.lookup-entity.execute")
 	defer span.End()
 
-	// Retrieve the snapshot token if not provided
-	if request.GetMetadata().GetSnapToken() == "" {
-		var st token.SnapToken
-		st, err = engine.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
-		if err != nil {
-			return response, err
-		}
-		request.Metadata.SnapToken = st.Encode().String()
-	}
-
-	// Get unique entity IDs by entity type
-	var ids []string
-	ids, err = engine.relationshipReader.GetUniqueEntityIDsByEntityType(ctx, request.GetTenantId(), request.GetEntityType(), request.GetMetadata().GetSnapToken())
-	if err != nil {
-		return nil, err
-	}
-
 	// Mutex and slice for storing allowed entity IDs
 	var mu sync.Mutex
-	entityIDs := make([]string, 0, len(ids))
+	var entityIDs []string
 
 	callback := func(entityID string, result base.PermissionCheckResponse_Result) {
 		if result == base.PermissionCheckResponse_RESULT_ALLOWED {
@@ -75,22 +57,13 @@ func (engine *LookupEntityEngine) Run(ctx context.Context, request *base.Permiss
 	checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
 	checker.Start()
 
-	for _, id := range ids {
-		checker.RequestChan <- &base.PermissionCheckRequest{
-			TenantId: request.GetTenantId(),
-			Metadata: &base.PermissionCheckRequestMetadata{
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-				Exclusion:     false,
-			},
-			Entity: &base.Entity{
-				Type: request.GetEntityType(),
-				Id:   id,
-			},
-			Permission: request.GetPermission(),
-			Subject:    request.GetSubject(),
-		}
+	// Create and start BulkPublisher
+	publisher := NewBulkPublisher(ctx, checker)
+
+	// Get unique entity IDs by entity type
+	err = engine.linkedEntityEngine.Run(ctx, request, publisher)
+	if err != nil {
+		return nil, err
 	}
 
 	// Stop input and wait for BulkChecker to finish
@@ -112,23 +85,6 @@ func (engine *LookupEntityEngine) Stream(ctx context.Context, request *base.Perm
 	ctx, span := tracer.Start(ctx, "permissions.lookup-entity.stream")
 	defer span.End()
 
-	// Retrieve the snapshot token if not provided
-	if request.GetMetadata().GetSnapToken() == "" {
-		var st token.SnapToken
-		st, err = engine.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
-		if err != nil {
-			return err
-		}
-		request.Metadata.SnapToken = st.Encode().String()
-	}
-
-	// Get unique entity IDs by entity type
-	var ids []string
-	ids, err = engine.relationshipReader.GetUniqueEntityIDsByEntityType(ctx, request.GetTenantId(), request.GetEntityType(), request.GetMetadata().GetSnapToken())
-	if err != nil {
-		return err
-	}
-
 	var mu sync.Mutex
 
 	// Define callback function for handling permission check results
@@ -149,23 +105,13 @@ func (engine *LookupEntityEngine) Stream(ctx context.Context, request *base.Perm
 	checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
 	checker.Start()
 
-	// Add permission check requests to the BulkChecker's RequestChan
-	for _, id := range ids {
-		checker.RequestChan <- &base.PermissionCheckRequest{
-			TenantId: request.GetTenantId(),
-			Metadata: &base.PermissionCheckRequestMetadata{
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-				Exclusion:     false,
-			},
-			Entity: &base.Entity{
-				Type: request.GetEntityType(),
-				Id:   id,
-			},
-			Permission: request.GetPermission(),
-			Subject:    request.GetSubject(),
-		}
+	// Create and start BulkPublisher
+	publisher := NewBulkPublisher(ctx, checker)
+
+	// Get unique entity IDs by entity type
+	err = engine.linkedEntityEngine.Run(ctx, request, publisher)
+	if err != nil {
+		return err
 	}
 
 	// Stop input and wait for BulkChecker to finish
