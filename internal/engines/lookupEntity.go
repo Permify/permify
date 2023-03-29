@@ -58,7 +58,7 @@ func (engine *LookupEntityEngine) Run(ctx context.Context, request *base.Permiss
 	checker.Start()
 
 	// Create and start BulkPublisher
-	publisher := NewBulkPublisher(ctx, checker)
+	publisher := NewBulkPublisher(ctx, request, checker)
 
 	// Create ERMap for storing visited entities
 	visits := &ERMap{}
@@ -109,7 +109,7 @@ func (engine *LookupEntityEngine) Stream(ctx context.Context, request *base.Perm
 	checker.Start()
 
 	// Create and start BulkPublisher
-	publisher := NewBulkPublisher(ctx, checker)
+	publisher := NewBulkPublisher(ctx, request, checker)
 
 	// Create ERMap for storing visited entities
 	visits := &ERMap{}

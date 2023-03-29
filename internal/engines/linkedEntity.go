@@ -11,6 +11,7 @@ import (
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // LinkedEntityEngine is responsible for executing linked entity operations
@@ -120,7 +121,7 @@ func (engine *LinkedEntityEngine) Run(ctx context.Context, request *base.Permiss
 					Relation: request.GetPermission(),
 				},
 				Subject: request.GetSubject(),
-			}, entrance, g, visits, publisher)
+			}, g, visits, publisher)
 			if err != nil {
 				return err
 			}
@@ -164,24 +165,11 @@ func (engine *LinkedEntityEngine) relationEntrance(
 			//if request.Entrance.IsDirect {
 			//	result = base.PermissionCheckResponse_RESULT_ALLOWED
 			//}
-			publisher.Publish(&base.PermissionCheckRequest{
-				TenantId: request.TenantID,
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     request.Metadata.GetSnapToken(),
-					SchemaVersion: request.Metadata.GetSchemaVersion(),
-					Depth:         request.Metadata.GetDepth(),
-					Exclusion:     false,
-				},
-				Entity: &base.Entity{
-					Type: current.GetEntity().GetType(),
-					Id:   current.GetEntity().GetId(),
-				},
-				Permission: request.Target.GetRelation(),
-				Subject: &base.Subject{
-					Type:     request.Subject.GetType(),
-					Id:       request.Subject.GetId(),
-					Relation: request.Subject.Relation,
-				},
+			publisher.Publish(current.GetEntity(), &base.PermissionCheckRequestMetadata{
+				SnapToken:     request.Metadata.GetSnapToken(),
+				SchemaVersion: request.Metadata.GetSchemaVersion(),
+				Depth:         request.Metadata.GetDepth(),
+				Exclusion:     false,
 			}, result)
 		}
 
@@ -190,11 +178,11 @@ func (engine *LinkedEntityEngine) relationEntrance(
 				TenantId:   request.TenantID,
 				Metadata:   request.Metadata,
 				EntityType: request.Target.GetType(),
-				Permission: request.Entrance.LinkedEntrance.GetRelation(),
+				Permission: request.Target.GetRelation(),
 				Subject: &base.Subject{
 					Type:     current.GetEntity().GetType(),
 					Id:       current.GetEntity().GetId(),
-					Relation: request.Entrance.LinkedEntrance.GetRelation(),
+					Relation: current.GetRelation(),
 				},
 			}, visited, publisher)
 		})
@@ -206,21 +194,20 @@ func (engine *LinkedEntityEngine) relationEntrance(
 func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
 	ctx context.Context,
 	request LinkedEntityRequest,
-	entrance schema.LinkedEntrance,
 	g *errgroup.Group,
 	visited *ERMap,
 	publisher *BulkPublisher,
 ) error {
 	it, err := engine.relationshipReader.QueryRelationships(ctx, request.TenantID, &base.TupleFilter{
 		Entity: &base.EntityFilter{
-			Type: entrance.LinkedEntrance.GetType(),
+			Type: request.Entrance.LinkedEntrance.GetType(),
 			Ids:  []string{},
 		},
 		Relation: request.Entrance.TupleSetRelation.GetRelation(),
 		Subject: &base.SubjectFilter{
 			Type:     request.Subject.GetType(),
 			Ids:      []string{request.Subject.GetId()},
-			Relation: request.Subject.Relation,
+			Relation: tuple.ELLIPSIS,
 		},
 	}, request.Metadata.GetSnapToken())
 	if err != nil {
@@ -235,24 +222,11 @@ func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
 			//if request.Entrance.IsDirect {
 			//	result = base.PermissionCheckResponse_RESULT_ALLOWED
 			//}
-			publisher.Publish(&base.PermissionCheckRequest{
-				TenantId: request.TenantID,
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     request.Metadata.GetSnapToken(),
-					SchemaVersion: request.Metadata.GetSchemaVersion(),
-					Depth:         request.Metadata.GetDepth(),
-					Exclusion:     false,
-				},
-				Entity: &base.Entity{
-					Type: current.GetEntity().GetType(),
-					Id:   current.GetEntity().GetId(),
-				},
-				Permission: request.Entrance.LinkedEntrance.GetRelation(),
-				Subject: &base.Subject{
-					Type:     request.Subject.GetType(),
-					Id:       request.Subject.GetId(),
-					Relation: request.Subject.Relation,
-				},
+			publisher.Publish(current.GetEntity(), &base.PermissionCheckRequestMetadata{
+				SnapToken:     request.Metadata.GetSnapToken(),
+				SchemaVersion: request.Metadata.GetSchemaVersion(),
+				Depth:         request.Metadata.GetDepth(),
+				Exclusion:     false,
 			}, result)
 		}
 

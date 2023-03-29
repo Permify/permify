@@ -104,22 +104,31 @@ func (c *BulkChecker) Wait() error {
 // BulkPublisher is a struct for streaming permission check results.
 type BulkPublisher struct {
 	bulkChecker *BulkChecker
+
+	request *base.PermissionLookupEntityRequest
 	// context to manage goroutines and cancellation
 	ctx context.Context
 }
 
 // NewBulkPublisher creates a new BulkStreamer instance.
-func NewBulkPublisher(ctx context.Context, bulkChecker *BulkChecker) *BulkPublisher {
+func NewBulkPublisher(ctx context.Context, request *base.PermissionLookupEntityRequest, bulkChecker *BulkChecker) *BulkPublisher {
 	return &BulkPublisher{
 		bulkChecker: bulkChecker,
+		request:     request,
 		ctx:         ctx,
 	}
 }
 
 // Publish publishes a permission check request to the BulkChecker.
-func (s *BulkPublisher) Publish(request *base.PermissionCheckRequest, result base.PermissionCheckResponse_Result) {
+func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, result base.PermissionCheckResponse_Result) {
 	s.bulkChecker.RequestChan <- BulkCheckerRequest{
-		Request: request,
-		Result:  result,
+		Request: &base.PermissionCheckRequest{
+			TenantId:   s.request.GetTenantId(),
+			Metadata:   metadata,
+			Entity:     entity,
+			Permission: s.request.GetPermission(),
+			Subject:    s.request.GetSubject(),
+		},
+		Result: result,
 	}
 }
