@@ -162,9 +162,9 @@ func (engine *LinkedEntityEngine) relationEntrance(
 
 		if current.GetEntity().GetType() == request.Target.GetType() {
 			result := base.PermissionCheckResponse_RESULT_UNKNOWN
-			//if request.Entrance.IsDirect {
-			//	result = base.PermissionCheckResponse_RESULT_ALLOWED
-			//}
+			if request.Entrance.IsDirect {
+				result = base.PermissionCheckResponse_RESULT_ALLOWED
+			}
 			publisher.Publish(current.GetEntity(), &base.PermissionCheckRequestMetadata{
 				SnapToken:     request.Metadata.GetSnapToken(),
 				SchemaVersion: request.Metadata.GetSchemaVersion(),
@@ -219,9 +219,9 @@ func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
 
 		if current.GetEntity().GetType() == request.Target.GetType() {
 			result := base.PermissionCheckResponse_RESULT_UNKNOWN
-			//if request.Entrance.IsDirect {
-			//	result = base.PermissionCheckResponse_RESULT_ALLOWED
-			//}
+			if request.Entrance.IsDirect {
+				result = base.PermissionCheckResponse_RESULT_ALLOWED
+			}
 			publisher.Publish(current.GetEntity(), &base.PermissionCheckRequestMetadata{
 				SnapToken:     request.Metadata.GetSnapToken(),
 				SchemaVersion: request.Metadata.GetSchemaVersion(),
