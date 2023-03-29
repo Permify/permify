@@ -60,8 +60,11 @@ func (engine *LookupEntityEngine) Run(ctx context.Context, request *base.Permiss
 	// Create and start BulkPublisher
 	publisher := NewBulkPublisher(ctx, checker)
 
+	// Create ERMap for storing visited entities
+	visits := &ERMap{}
+
 	// Get unique entity IDs by entity type
-	err = engine.linkedEntityEngine.Run(ctx, request, publisher)
+	err = engine.linkedEntityEngine.Run(ctx, request, visits, publisher)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +111,11 @@ func (engine *LookupEntityEngine) Stream(ctx context.Context, request *base.Perm
 	// Create and start BulkPublisher
 	publisher := NewBulkPublisher(ctx, checker)
 
+	// Create ERMap for storing visited entities
+	visits := &ERMap{}
+
 	// Get unique entity IDs by entity type
-	err = engine.linkedEntityEngine.Run(ctx, request, publisher)
+	err = engine.linkedEntityEngine.Run(ctx, request, visits, publisher)
 	if err != nil {
 		return err
 	}

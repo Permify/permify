@@ -1,16 +1,16 @@
 package engines
 
 import (
-	`context`
-	`errors`
-	otelCodes `go.opentelemetry.io/otel/codes`
-	`golang.org/x/sync/errgroup`
+	"context"
+	"errors"
 
-	`github.com/Permify/permify/internal/repositories`
-	`github.com/Permify/permify/internal/schema`
-	base `github.com/Permify/permify/pkg/pb/base/v1`
-	`github.com/Permify/permify/pkg/token`
-	`github.com/Permify/permify/pkg/tuple`
+	otelCodes "go.opentelemetry.io/otel/codes"
+	"golang.org/x/sync/errgroup"
+
+	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/schema"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/token"
 )
 
 // LinkedEntityEngine is responsible for executing linked entity operations
@@ -30,13 +30,9 @@ func NewLinkedEntityEngine(schemaReader repositories.SchemaReader, relationshipR
 }
 
 // Run returns a list of linked entities
-func (engine *LinkedEntityEngine) Run(ctx context.Context, request *base.PermissionLookupEntityRequest, publisher *BulkPublisher) (err error) {
+func (engine *LinkedEntityEngine) Run(ctx context.Context, request *base.PermissionLookupEntityRequest, visits *ERMap, publisher *BulkPublisher) (err error) {
 	ctx, span := tracer.Start(ctx, "permissions.linked-entity.execute")
 	defer span.End()
-
-	if request.GetSubject().GetType() == request.GetEntityType() && request.GetSubject().GetRelation() == request.GetPermission() {
-		publisher.Publish(convertToCheck(request, request.GetSubject().GetId()), base.PermissionCheckResponse_RESULT_ALLOWED)
-	}
 
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" {
@@ -89,17 +85,42 @@ func (engine *LinkedEntityEngine) Run(ctx context.Context, request *base.Permiss
 	for _, entrance := range entrances {
 		switch entrance.LinkedEntranceKind() {
 		case schema.RelationLinkedEntrance:
-			err = engine.relationEntrance(cont, request, entrance, g, publisher)
+			err = engine.relationEntrance(cont, LinkedEntityRequest{
+				Metadata: request.GetMetadata(),
+				TenantID: request.GetTenantId(),
+				Entrance: entrance,
+				Target: &base.RelationReference{
+					Type:     request.GetEntityType(),
+					Relation: request.GetPermission(),
+				},
+				Subject: request.GetSubject(),
+			}, g, visits, publisher)
 			if err != nil {
 				return err
 			}
 		case schema.ComputedUserSetLinkedEntrance:
-			err = engine.computedUserSetEntrance(cont, request, entrance, g, publisher)
-			if err != nil {
-				return err
-			}
+			return engine.Run(ctx, &base.PermissionLookupEntityRequest{
+				TenantId:   request.GetTenantId(),
+				Metadata:   request.GetMetadata(),
+				EntityType: request.GetEntityType(),
+				Permission: request.GetPermission(),
+				Subject: &base.Subject{
+					Type:     request.GetSubject().GetType(),
+					Id:       request.GetSubject().GetId(),
+					Relation: entrance.LinkedEntrance.GetRelation(),
+				},
+			}, visits, publisher)
 		case schema.TupleToUserSetLinkedEntrance:
-			err = engine.tupleToUserSetEntrance(cont, request, entrance, g, publisher)
+			err = engine.tupleToUserSetEntrance(cont, LinkedEntityRequest{
+				Metadata: request.GetMetadata(),
+				TenantID: request.GetTenantId(),
+				Entrance: entrance,
+				Target: &base.RelationReference{
+					Type:     request.GetEntityType(),
+					Relation: request.GetPermission(),
+				},
+				Subject: request.GetSubject(),
+			}, entrance, g, visits, publisher)
 			if err != nil {
 				return err
 			}
@@ -112,147 +133,142 @@ func (engine *LinkedEntityEngine) Run(ctx context.Context, request *base.Permiss
 }
 
 // relationEntrance is responsible for executing a relation linked entrance
-func (engine *LinkedEntityEngine) relationEntrance(ctx context.Context, request *base.PermissionLookupEntityRequest, entrance schema.LinkedEntrance, g *errgroup.Group, publisher *BulkPublisher) error {
-	it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+func (engine *LinkedEntityEngine) relationEntrance(
+	ctx context.Context,
+	request LinkedEntityRequest,
+	g *errgroup.Group,
+	visited *ERMap,
+	publisher *BulkPublisher,
+) error {
+	it, err := engine.relationshipReader.QueryRelationships(ctx, request.TenantID, &base.TupleFilter{
 		Entity: &base.EntityFilter{
-			Type: entrance.LinkedEntrance.GetType(),
+			Type: request.Entrance.LinkedEntrance.GetType(),
 			Ids:  []string{},
 		},
-		Relation: entrance.LinkedEntrance.GetRelation(),
+		Relation: request.Entrance.LinkedEntrance.GetRelation(),
 		Subject: &base.SubjectFilter{
-			Type:     request.GetSubject().GetType(),
-			Ids:      []string{request.GetSubject().GetId()},
-			Relation: request.GetSubject().GetRelation(),
+			Type:     request.Subject.GetType(),
+			Ids:      []string{request.Subject.GetId()},
+			Relation: request.Subject.Relation,
 		},
-	}, request.GetMetadata().GetSnapToken())
+	}, request.Metadata.GetSnapToken())
 	if err != nil {
 		return err
 	}
 
 	for it.HasNext() {
 		current := it.GetNext()
+
+		if current.GetEntity().GetType() == request.Target.GetType() {
+			result := base.PermissionCheckResponse_RESULT_UNKNOWN
+			//if request.Entrance.IsDirect {
+			//	result = base.PermissionCheckResponse_RESULT_ALLOWED
+			//}
+			publisher.Publish(&base.PermissionCheckRequest{
+				TenantId: request.TenantID,
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     request.Metadata.GetSnapToken(),
+					SchemaVersion: request.Metadata.GetSchemaVersion(),
+					Depth:         request.Metadata.GetDepth(),
+					Exclusion:     false,
+				},
+				Entity: &base.Entity{
+					Type: current.GetEntity().GetType(),
+					Id:   current.GetEntity().GetId(),
+				},
+				Permission: request.Target.GetRelation(),
+				Subject: &base.Subject{
+					Type:     request.Subject.GetType(),
+					Id:       request.Subject.GetId(),
+					Relation: request.Subject.Relation,
+				},
+			}, result)
+		}
+
 		g.Go(func() error {
-			return engine.resolve(ctx, &base.EntityAndRelation{
-				Entity:   current.GetEntity(),
-				Relation: current.GetRelation(),
-			}, request, g, publisher)
+			return engine.Run(ctx, &base.PermissionLookupEntityRequest{
+				TenantId:   request.TenantID,
+				Metadata:   request.Metadata,
+				EntityType: request.Target.GetType(),
+				Permission: request.Entrance.LinkedEntrance.GetRelation(),
+				Subject: &base.Subject{
+					Type:     current.GetEntity().GetType(),
+					Id:       current.GetEntity().GetId(),
+					Relation: request.Entrance.LinkedEntrance.GetRelation(),
+				},
+			}, visited, publisher)
 		})
 	}
 	return nil
 }
 
-// computedUserSetEntrance is responsible for executing a computed user set linked entrance
-func (engine *LinkedEntityEngine) computedUserSetEntrance(ctx context.Context, request *base.PermissionLookupEntityRequest, entrance schema.LinkedEntrance, g *errgroup.Group, publisher *BulkPublisher) error {
-	return engine.resolve(ctx, &base.EntityAndRelation{
-		Entity: &base.Entity{
-			Type: entrance.LinkedEntrance.GetType(),
-			Id:   request.GetSubject().GetId(),
-		},
-		Relation: entrance.LinkedEntrance.GetRelation(),
-	}, request, g, publisher)
-}
-
 // tupleToUserSetEntrance is responsible for executing a tuple to user set linked entrance
-func (engine *LinkedEntityEngine) tupleToUserSetEntrance(ctx context.Context, request *base.PermissionLookupEntityRequest, entrance schema.LinkedEntrance, g *errgroup.Group, publisher *BulkPublisher) error {
-	relations := []string{tuple.ELLIPSIS, request.GetSubject().GetRelation()}
-	for _, relation := range relations {
-		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
-			Entity: &base.EntityFilter{
-				Type: entrance.LinkedEntrance.GetType(),
-				Ids:  []string{},
-			},
-			Relation: entrance.TupleSetRelation.GetRelation(),
-			Subject: &base.SubjectFilter{
-				Type:     request.GetSubject().GetType(),
-				Ids:      []string{request.GetSubject().GetId()},
-				Relation: relation,
-			},
-		}, request.GetMetadata().GetSnapToken())
-		if err != nil {
-			return err
-		}
-
-		for it.HasNext() {
-			current := it.GetNext()
-			g.Go(func() error {
-				return engine.resolve(ctx, &base.EntityAndRelation{
-					Entity: &base.Entity{
-						Type: entrance.TupleSetRelation.GetType(),
-						Id:   current.GetEntity().GetId(),
-					},
-					Relation: entrance.TupleSetRelation.GetRelation(),
-				}, request, g, publisher)
-			})
-		}
-	}
-	return nil
-}
-
-// resolve is responsible for resolving a linked entity
-func (engine *LinkedEntityEngine) resolve(ctx context.Context, found *base.EntityAndRelation, request *base.PermissionLookupEntityRequest, g *errgroup.Group, publisher *BulkPublisher) error {
-
-	// Retrieve entity definition
-	sc, err := engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
+	ctx context.Context,
+	request LinkedEntityRequest,
+	entrance schema.LinkedEntrance,
+	g *errgroup.Group,
+	visited *ERMap,
+	publisher *BulkPublisher,
+) error {
+	it, err := engine.relationshipReader.QueryRelationships(ctx, request.TenantID, &base.TupleFilter{
+		Entity: &base.EntityFilter{
+			Type: entrance.LinkedEntrance.GetType(),
+			Ids:  []string{},
+		},
+		Relation: request.Entrance.TupleSetRelation.GetRelation(),
+		Subject: &base.SubjectFilter{
+			Type:     request.Subject.GetType(),
+			Ids:      []string{request.Subject.GetId()},
+			Relation: request.Subject.Relation,
+		},
+	}, request.Metadata.GetSnapToken())
 	if err != nil {
 		return err
 	}
 
-	// Retrieve linked entrances
-	cn := schema.NewLinkedGraph(sc)
-	var entrances []schema.LinkedEntrance
-	entrances, err = cn.RelationshipLinkedEntrances(
-		&base.RelationReference{
-			Type:     request.GetEntityType(),
-			Relation: request.GetPermission(),
-		},
-		&base.RelationReference{
-			Type:     found.GetEntity().GetType(),
-			Relation: found.GetRelation(),
-		},
-	)
+	for it.HasNext() {
+		current := it.GetNext()
 
-	// If no linked entrances are found, we can stop here
-	if len(entrances) == 0 {
-		if found.GetEntity().GetType() == request.GetEntityType() && found.GetRelation() == request.GetPermission() {
-			publisher.Publish(convertToCheck(request, found.GetEntity().GetId()), base.PermissionCheckResponse_RESULT_UNKNOWN)
-			return nil
+		if current.GetEntity().GetType() == request.Target.GetType() {
+			result := base.PermissionCheckResponse_RESULT_UNKNOWN
+			//if request.Entrance.IsDirect {
+			//	result = base.PermissionCheckResponse_RESULT_ALLOWED
+			//}
+			publisher.Publish(&base.PermissionCheckRequest{
+				TenantId: request.TenantID,
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     request.Metadata.GetSnapToken(),
+					SchemaVersion: request.Metadata.GetSchemaVersion(),
+					Depth:         request.Metadata.GetDepth(),
+					Exclusion:     false,
+				},
+				Entity: &base.Entity{
+					Type: current.GetEntity().GetType(),
+					Id:   current.GetEntity().GetId(),
+				},
+				Permission: request.Entrance.LinkedEntrance.GetRelation(),
+				Subject: &base.Subject{
+					Type:     request.Subject.GetType(),
+					Id:       request.Subject.GetId(),
+					Relation: request.Subject.Relation,
+				},
+			}, result)
 		}
-		return nil
+
+		g.Go(func() error {
+			return engine.Run(ctx, &base.PermissionLookupEntityRequest{
+				TenantId:   request.TenantID,
+				Metadata:   request.Metadata,
+				EntityType: request.Target.GetType(),
+				Permission: request.Target.GetRelation(),
+				Subject: &base.Subject{
+					Type:     current.GetEntity().GetType(),
+					Id:       current.GetEntity().GetId(),
+					Relation: request.Entrance.LinkedEntrance.GetRelation(),
+				},
+			}, visited, publisher)
+		})
 	}
-
-	// If the linked entrance is a relation, we need to resolve it
-	g.Go(func() error {
-		return engine.Run(ctx, &base.PermissionLookupEntityRequest{
-			TenantId:   request.GetTenantId(),
-			Metadata:   request.GetMetadata(),
-			EntityType: request.GetEntityType(),
-			Permission: request.GetPermission(),
-			Subject: &base.Subject{
-				Type:     found.GetEntity().GetType(),
-				Id:       found.GetEntity().GetId(),
-				Relation: found.GetRelation(),
-			},
-		}, publisher)
-	})
-
 	return nil
-}
-
-// convertToCheck a PermissionLookupEntityRequest to a PermissionCheckRequest
-func convertToCheck(req *base.PermissionLookupEntityRequest, entityID string) *base.PermissionCheckRequest {
-	return &base.PermissionCheckRequest{
-		TenantId: req.GetTenantId(),
-		Metadata: &base.PermissionCheckRequestMetadata{
-			SnapToken:     req.GetMetadata().GetSnapToken(),
-			SchemaVersion: req.GetMetadata().GetSchemaVersion(),
-			Depth:         req.GetMetadata().GetDepth(),
-			Exclusion:     false,
-		},
-		Entity: &base.Entity{
-			Type: req.GetEntityType(),
-			Id:   entityID,
-		},
-		Permission: req.GetPermission(),
-		Subject:    req.GetSubject(),
-	}
 }
