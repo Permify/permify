@@ -80,8 +80,8 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 	}
 
 	index, args := utils.GetIndexNameAndArgsByFilters(tenantID, filter)
-	var result memdb.ResultIterator
 
+	var result memdb.ResultIterator
 	result, err = txn.LowerBound(RelationTuplesTable, index, args...)
 	if err != nil {
 		return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
@@ -115,43 +115,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 	return database.NewTupleCollection(tuples...), utils.NewNoopContinuousToken().Encode(), nil
 }
 
-// GetUniqueEntityIDsByEntityType - Gets all entity IDs for a given entity type (unique)
-func (r *RelationshipReader) GetUniqueEntityIDsByEntityType(ctx context.Context, tenantID, typ, _ string) (array []string, err error) {
-	txn := r.database.DB.Txn(false)
-	defer txn.Abort()
-
-	var it memdb.ResultIterator
-	it, err = txn.Get(RelationTuplesTable, "entity-type-index", tenantID, typ)
-	if err != nil {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-	}
-
-	var result []string
-	for obj := it.Next(); obj != nil; obj = it.Next() {
-		t, ok := obj.(repositories.RelationTuple)
-		if !ok {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
-		}
-		result = append(result, t.EntityID)
-	}
-
-	return removeDuplicate(result), nil
-}
-
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (r *RelationshipReader) HeadSnapshot(ctx context.Context, _ string) (token.SnapToken, error) {
 	return snapshot.NewToken(time.Now()), nil
-}
-
-// RemoveDuplicate - Remove duplicated keys in given slice
-func removeDuplicate[T string | int](sliceList []T) []T {
-	allKeys := make(map[T]bool)
-	list := []T{}
-	for _, item := range sliceList {
-		if _, value := allKeys[item]; !value {
-			allKeys[item] = true
-			list = append(list, item)
-		}
-	}
-	return list
 }

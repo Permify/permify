@@ -8,13 +8,15 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// Compiler -
+// Compiler compiles an AST schema into a list of entity definitions.
 type Compiler struct {
-	schema                     *ast.Schema
+	// The AST schema to be compiled
+	schema *ast.Schema
+	// Whether to skip reference validation during compilation
 	withoutReferenceValidation bool
 }
 
-// NewCompiler -
+// NewCompiler returns a new Compiler instance with the given schema and reference validation flag.
 func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 	return &Compiler{
 		withoutReferenceValidation: w,
@@ -22,7 +24,7 @@ func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 	}
 }
 
-// Compile -
+// Compile compiles the schema into a list of entity definitions.
 func (t *Compiler) Compile() (sch []*base.EntityDefinition, err error) {
 	if !t.withoutReferenceValidation {
 		err = t.schema.Validate()
@@ -48,8 +50,9 @@ func (t *Compiler) Compile() (sch []*base.EntityDefinition, err error) {
 	return entities, err
 }
 
-// translateToEntity -
+// compile - compiles an EntityStatement into an EntityDefinition
 func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, error) {
+	// Initialize the entity definition
 	entityDefinition := &base.EntityDefinition{
 		Name:       sc.Name.Literal,
 		Relations:  map[string]*base.RelationDefinition{},
@@ -57,17 +60,21 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		References: map[string]base.EntityDefinition_RelationalReference{},
 	}
 
-	// relations
+	// Compile relations
 	for _, rs := range sc.RelationStatements {
+		// Cast the relation statement
 		relationSt, okRs := rs.(*ast.RelationStatement)
 		if !okRs {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
+
+		// Initialize the relation definition
 		relationDefinition := &base.RelationDefinition{
 			Name:               relationSt.Name.Literal,
 			RelationReferences: []*base.RelationReference{},
 		}
 
+		// Compile the relation types
 		for _, rts := range relationSt.RelationTypes {
 			relationDefinition.RelationReferences = append(relationDefinition.RelationReferences, &base.RelationReference{
 				Type:     rts.Type.Literal,
@@ -75,20 +82,26 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			})
 		}
 
+		// Add the relation definition and reference
 		entityDefinition.Relations[relationDefinition.GetName()] = relationDefinition
 		entityDefinition.References[relationDefinition.GetName()] = base.EntityDefinition_RELATIONAL_REFERENCE_RELATION
 	}
 
-	// actions
+	// Compile actions
 	for _, as := range sc.ActionStatements {
+		// Cast the action statement
 		st, okAs := as.(*ast.ActionStatement)
 		if !okAs {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
+
+		// Compile the child expression
 		ch, err := t.compileExpressionStatement(entityDefinition.GetName(), st.ExpressionStatement.(*ast.ExpressionStatement))
 		if err != nil {
 			return nil, err
 		}
+
+		// Initialize the action definition and reference
 		actionDefinition := &base.ActionDefinition{
 			Name:  st.Name.Literal,
 			Child: ch,
@@ -100,12 +113,15 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 	return entityDefinition, nil
 }
 
-// compileExpressionStatement -
+// compileExpressionStatement compiles an ExpressionStatement into a Child node that can be used to construct an ActionDefinition.
+// It calls compileChildren to compile the expression into Child node(s).
+// entityName is passed as an argument to the function to use it as a reference to the parent entity.
+// Returns a pointer to a Child and an error if the compilation process fails.
 func (t *Compiler) compileExpressionStatement(entityName string, expression *ast.ExpressionStatement) (*base.Child, error) {
 	return t.compileChildren(entityName, expression.Expression)
 }
 
-// compileChildren -
+// compileChildren - compiles the child nodes of an expression and returns a Child struct that represents them.
 func (t *Compiler) compileChildren(entityName string, expression ast.Expression) (*base.Child, error) {
 	if expression.IsInfix() {
 		return t.compileRewrite(entityName, expression.(*ast.InfixExpression))
@@ -113,7 +129,14 @@ func (t *Compiler) compileChildren(entityName string, expression ast.Expression)
 	return t.compileLeaf(entityName, expression)
 }
 
-// compileRewrite -
+// compileRewrite - Compiles an InfixExpression node of type OR or AND to a base.Child struct with a base.Rewrite struct
+// representing the logical operation of the expression. Recursively calls compileChildren to compile the child nodes.
+// Parameters:
+// - entityName: The name of the entity being compiled
+// - exp: The InfixExpression node being compiled
+// Returns:
+// - *base.Child: A pointer to a base.Child struct representing the expression
+// - error: An error if one occurred during compilation
 func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (*base.Child, error) {
 	var err error
 
@@ -151,7 +174,12 @@ func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (
 	return child, nil
 }
 
-// compileLeaf -
+// compileLeaf compiles a leaf expression into a child object. If the leaf expression is an identifier,
+// it checks whether it is a valid reference to a relational reference, and creates a leaf object accordingly.
+// If the identifier has one segment, it is treated as a reference to a relational reference.
+// If the identifier has two segments, it is treated as a reference to a tuple and its corresponding user set.
+// If the identifier has more than two segments, it is not supported and an error is returned.
+// The created child object will have a Leaf field, which will be a computed user set identifier for the reference.
 func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*base.Child, error) {
 	child := &base.Child{}
 
@@ -203,7 +231,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())
 }
 
-// compileComputedUserSetIdentifier -
+// compileComputedUserSetIdentifier - compiles the computed user set identifier by creating a leaf with a ComputedUserSet type.
 func (t *Compiler) compileComputedUserSetIdentifier(r string) (l *base.Leaf, err error) {
 	leaf := &base.Leaf{}
 	computedUserSet := &base.ComputedUserSet{
@@ -213,7 +241,10 @@ func (t *Compiler) compileComputedUserSetIdentifier(r string) (l *base.Leaf, err
 	return leaf, nil
 }
 
-// compileTupleToUserSetIdentifier -
+// compileTupleToUserSetIdentifier compiles a tuple to user set identifier to a leaf node in the IR tree.
+// The resulting leaf node is used in the child node of an action definition in the final compiled schema.
+// It takes in the parameters p and r, which represent the parent and relation of the tuple, respectively.
+// It returns a pointer to a leaf node and an error.
 func (t *Compiler) compileTupleToUserSetIdentifier(p, r string) (l *base.Leaf, err error) {
 	leaf := &base.Leaf{}
 	computedUserSet := &base.ComputedUserSet{

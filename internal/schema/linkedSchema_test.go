@@ -24,9 +24,9 @@ var _ = Describe("connected schema", func() {
 			c := compiler.NewCompiler(false, sch)
 			a, _ := c.Compile()
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "viewer",
 			}, &base.RelationReference{
@@ -36,14 +36,15 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -64,9 +65,9 @@ var _ = Describe("connected schema", func() {
 			c := compiler.NewCompiler(false, sch)
 			a, _ := c.Compile()
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -76,30 +77,33 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "editor",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "owner",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -120,9 +124,9 @@ var _ = Describe("connected schema", func() {
 			c := compiler.NewCompiler(false, sch)
 			a, _ := c.Compile()
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -132,30 +136,33 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "editor",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "owner",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -179,9 +186,9 @@ var _ = Describe("connected schema", func() {
 			c := compiler.NewCompiler(false, sch)
 			a, _ := c.Compile()
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -191,30 +198,33 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "owner",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -243,9 +253,9 @@ var _ = Describe("connected schema", func() {
 			c := compiler.NewCompiler(false, sch)
 			a, _ := c.Compile()
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -255,38 +265,42 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "owner",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "container_admin",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -311,9 +325,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -323,22 +337,24 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "group",
 						Relation: "manager",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -366,9 +382,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -378,61 +394,67 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "banned",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "fist_rel",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "second_rel",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "third_rel",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
 
 		It("Case 8", func() {
 			sch, err := parser.NewParser(`
-	        entity user {}
+		  entity user {}
 			entity organization {
 				relation admin @user
 				relation banned @user
@@ -453,9 +475,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -465,14 +487,15 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: ComputedUserSetEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: ComputedUserSetLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "view",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         false,
 				},
 			}))
 		})
@@ -500,9 +523,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -512,10 +535,10 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: TupleToUserSetEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: TupleToUserSetLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "view",
 					},
@@ -523,6 +546,7 @@ var _ = Describe("connected schema", func() {
 						Type:     "document",
 						Relation: "org",
 					},
+					IsDirect: false,
 				},
 			}))
 		})
@@ -553,9 +577,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -565,22 +589,24 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: ComputedUserSetEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: ComputedUserSetLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: ComputedUserSetEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: ComputedUserSetLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "test",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -610,9 +636,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -622,22 +648,24 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: ComputedUserSetEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: ComputedUserSetLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: ComputedUserSetEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: ComputedUserSetLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "test",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         false,
 				},
 			}))
 		})
@@ -658,9 +686,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -670,22 +698,24 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: ComputedUserSetEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: ComputedUserSetLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "view",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: ComputedUserSetEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: ComputedUserSetLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "view",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -708,9 +738,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -720,14 +750,15 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})
@@ -748,9 +779,9 @@ var _ = Describe("connected schema", func() {
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewConnectedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
 
-			ent, err := g.RelationshipEntryPoints(&base.RelationReference{
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
 				Relation: "view",
 			}, &base.RelationReference{
@@ -760,22 +791,24 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]Entrypoint{
+			Expect(ent).Should(Equal([]LinkedEntrance{
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 				{
-					Kind: RelationEntrypoint,
-					Entrypoint: &base.RelationReference{
+					Kind: RelationLinkedEntrance,
+					LinkedEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "editor",
 					},
 					TupleSetRelation: nil,
+					IsDirect:         true,
 				},
 			}))
 		})

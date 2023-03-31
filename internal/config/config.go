@@ -151,7 +151,6 @@ func NewConfig() (*Config, error) {
 
 	// Read the config file
 	err := viper.ReadInConfig()
-
 	// If there's an error during reading the config file
 	if err != nil {
 		// Check if the error is because of the config file not being found
