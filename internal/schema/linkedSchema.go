@@ -62,7 +62,6 @@ type LinkedEntrance struct {
 	Kind             LinkedEntranceKind
 	LinkedEntrance   *base.RelationReference
 	TupleSetRelation *base.RelationReference
-	IsDirect         bool
 }
 
 // LinkedEntranceKind returns the kind of the LinkedEntrance object. The kind specifies the type of entry point (e.g. relation,
@@ -130,9 +129,9 @@ func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference,
 		}
 		child := action.GetChild()
 		if child.GetRewrite() != nil {
-			return g.findEntranceRewrite(target, source, child.GetRewrite(), true, visited)
+			return g.findEntranceRewrite(target, source, child.GetRewrite(), visited)
 		}
-		return g.findEntranceLeaf(target, source, child.GetLeaf(), true, visited)
+		return g.findEntranceLeaf(target, source, child.GetLeaf(), visited)
 	}
 	return g.findRelationEntrance(target, source, visited)
 }
@@ -171,7 +170,6 @@ func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationRe
 				Type:     target.GetType(),
 				Relation: target.GetRelation(),
 			},
-			IsDirect: true,
 		})
 	}
 
@@ -206,7 +204,7 @@ func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationRe
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationReference, leaf *base.Leaf, isDirect bool, visited map[string]struct{}) ([]LinkedEntrance, error) {
+func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationReference, leaf *base.Leaf, visited map[string]struct{}) ([]LinkedEntrance, error) {
 	switch t := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
 		tupleSet := t.TupleToUserSet.GetTupleSet().GetRelation()
@@ -225,7 +223,6 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 						Type:     target.GetType(),
 						Relation: tupleSet,
 					},
-					IsDirect: isDirect,
 				})
 			}
 			results, err := g.findEntrance(
@@ -251,7 +248,6 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 						Type:     target.GetType(),
 						Relation: target.GetRelation(),
 					},
-					IsDirect: isDirect,
 				},
 			}, nil
 		}
@@ -283,21 +279,17 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntranceRewrite(target *base.RelationReference, source *base.RelationReference, rewrite *base.Rewrite, isDirect bool, visited map[string]struct{}) (results []LinkedEntrance, err error) {
-	isDirect = true
-	if rewrite.GetRewriteOperation() == *base.Rewrite_OPERATION_INTERSECTION.Enum() {
-		isDirect = false
-	}
+func (g *LinkedSchemaGraph) findEntranceRewrite(target *base.RelationReference, source *base.RelationReference, rewrite *base.Rewrite, visited map[string]struct{}) (results []LinkedEntrance, err error) {
 	var res []LinkedEntrance
 	for _, child := range rewrite.GetChildren() {
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
-			results, err = g.findEntranceRewrite(target, source, child.GetRewrite(), isDirect, visited)
+			results, err = g.findEntranceRewrite(target, source, child.GetRewrite(), visited)
 			if err != nil {
 				return nil, err
 			}
 		case *base.Child_Leaf:
-			results, err = g.findEntranceLeaf(target, source, child.GetLeaf(), isDirect, visited)
+			results, err = g.findEntranceLeaf(target, source, child.GetLeaf(), visited)
 			if err != nil {
 				return nil, err
 			}
