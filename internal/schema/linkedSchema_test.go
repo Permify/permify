@@ -44,7 +44,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -85,7 +84,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -94,7 +92,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "editor",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -103,7 +100,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "owner",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -144,7 +140,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -153,7 +148,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "editor",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -162,7 +156,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "owner",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -206,7 +199,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -215,7 +207,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "owner",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -224,7 +215,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -273,7 +263,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -282,7 +271,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "owner",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -291,7 +279,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -300,7 +287,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "container_admin",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -345,7 +331,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -354,7 +339,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "manager",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -402,7 +386,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -411,7 +394,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "banned",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -420,7 +402,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -429,7 +410,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "fist_rel",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -438,7 +418,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "second_rel",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -447,7 +426,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "third_rel",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -495,7 +473,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "view",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         false,
 				},
 			}))
 		})
@@ -546,7 +523,6 @@ var _ = Describe("connected schema", func() {
 						Type:     "document",
 						Relation: "org",
 					},
-					IsDirect: false,
 				},
 			}))
 		})
@@ -597,7 +573,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: ComputedUserSetLinkedEntrance,
@@ -606,7 +581,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "test",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -656,7 +630,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "admin",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: ComputedUserSetLinkedEntrance,
@@ -665,7 +638,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "test",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         false,
 				},
 			}))
 		})
@@ -706,7 +678,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "view",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: ComputedUserSetLinkedEntrance,
@@ -715,7 +686,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "view",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -758,7 +728,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
@@ -799,7 +768,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "viewer",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -808,7 +776,6 @@ var _ = Describe("connected schema", func() {
 						Relation: "editor",
 					},
 					TupleSetRelation: nil,
-					IsDirect:         true,
 				},
 			}))
 		})
