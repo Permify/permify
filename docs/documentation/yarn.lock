@@ -6937,10 +6937,10 @@ react-collapser@^1.5.10:
   resolved "https://registry.yarnpkg.com/react-collapser/-/react-collapser-1.5.10.tgz#f3d2962df65f12546b36520f432159333bd06258"
   integrity sha512-J4rYmaaidi3CI+KLobfrtPBJjAgygp7bltPWX0V4NbUALCBqoHt+nj02r6VzelxBYHmJF278yqZd5vJ163etxA==
 
-react-content-loader@^6.2.0:
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/react-content-loader/-/react-content-loader-6.2.0.tgz#cd8fee8160b8fda6610d0c69ce5aee7b8094cba6"
-  integrity sha512-r1dI6S+uHNLW68qraLE2njJYOuy6976PpCExuCZUcABWbfnF3FMcmuESRI8L4Bj45wnZ7n8g71hkPLzbma7/Cw==
+react-content-loader@^6.2.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/react-content-loader/-/react-content-loader-6.2.1.tgz#8feb733c2d2495002e1b216f13707f2b5f2a8ead"
+  integrity sha512-6ONbFX+Hi3SHuP66JB8CPvJn372pj+qwltJV0J8z/8MFrq98I1cbFdZuhDWeQXu3CFxiiDTXJn7DFxx2ZvrO7g==
 
 react-countdown-now@^2.1.2:
   version "2.1.2"

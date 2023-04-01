@@ -40,7 +40,7 @@
     "react-anchor-link-smooth-scroll": "^1.0.12",
     "react-aria-menubutton": "^7.0.3",
     "react-collapser": "^1.5.10",
-    "react-content-loader": "^6.2.0",
+    "react-content-loader": "^6.2.1",
     "react-countdown-now": "^2.1.2",
     "react-countup": "^6.4.1",
     "react-dom": "^17.0.1",
