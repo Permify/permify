@@ -27,7 +27,7 @@ brews:
     download_strategy: CurlDownloadStrategy
     folder: Formula
     homepage: "https://github.com/Permify/permify"
-    license: "GNU General Public License v3.0"
+    license: "Apache-2.0"
     custom_block: |
       head "https://github.com/Permify/permify.git", :branch => "master"
     install: |
@@ -91,7 +91,7 @@ nfpms:
       - rpm
       - apk
     homepage: "https://permify.co"
-    license: "GNU General Public License v3.0"
+    license: "Apache-2.0"
     maintainer: "permify <help@permify.co>"
     vendor: "permify inc."
 snapshot:

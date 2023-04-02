@@ -1,6 +1,5 @@
-ARG BASE=distroless.dev/static
+ARG BASE=cgr.dev/chainguard/static:latest
 FROM $BASE
-EXPOSE 3476
-EXPOSE 3478
+COPY --from=ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.12 /ko-app/grpc-health-probe /usr/local/bin/grpc_health_probe
 COPY permify /usr/local/bin/permify
 ENTRYPOINT ["permify"]
