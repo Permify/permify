@@ -5,7 +5,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/denisbrodbeck/machineid"
+	"github.com/rs/xid"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -23,17 +23,12 @@ func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
 		return func(context.Context) error { return nil }
 	}
 
-	id, err := machineid.ProtectedID("permify")
-	if err != nil {
-		return func(context.Context) error { return nil }
-	}
-
 	tp := trace.NewTracerProvider(
 		trace.WithSpanProcessor(trace.NewBatchSpanProcessor(exporter)),
 		trace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
-			attribute.String("id", id),
+			attribute.String("id", xid.New().String()),
 			attribute.String("version", internal.Version),
 			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),

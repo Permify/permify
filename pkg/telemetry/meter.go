@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/denisbrodbeck/machineid"
+	"github.com/rs/xid"
 
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	orn "go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -31,17 +31,12 @@ func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 		return nil, err
 	}
 
-	id, err := machineid.ProtectedID("permify")
-	if err != nil {
-		return nil, err
-	}
-
 	mp := metric.NewMeterProvider(
 		metric.WithReader(metric.NewPeriodicReader(exporter)),
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
-			attribute.String("id", id),
+			attribute.String("id", xid.New().String()),
 			attribute.String("version", internal.Version),
 			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),
