@@ -1,15 +1,5 @@
 export
 
-
-REPO    := github.com/Permify/permify
-HASH    := $(shell git rev-parse --short HEAD)
-DATE    := $(shell date)
-TAG     := $(shell git describe --tags --always --abbrev=0 --match="v[0-9]*.[0-9]*.[0-9]*" 2> /dev/null)
-VERSION := $(shell echo "${TAG}" | sed 's/^.//')
-
-LDFLAGS_RELEASE := -ldflags "-X '${REPO}/pkg/cmd.Version=${VERSION}' -X '${REPO}/pkg/cmd.BuildDate=${DATE}' -X '${REPO}/pkg/cmd.GitCommit=${HASH}'"
-
-
 # HELP =================================================================================================================
 # This will output the help for each task
 # thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -43,7 +33,7 @@ integration-test: ### run integration-test
 
 .PHONY: build
 build: ## Build/compile the Permify service
-	go build ${LDFLAGS_RELEASE} -o ./permify ./cmd/permify
+	go build -o ./permify ./cmd/permify
 
 .PHONY: serve
 run: build ## Run the Permify server with memory
