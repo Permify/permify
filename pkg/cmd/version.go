@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	`github.com/Permify/permify/internal`
+	"github.com/Permify/permify/internal"
 )
 
 // NewVersionCommand - Creates new Version command
