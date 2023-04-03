@@ -30,10 +30,7 @@ brews:
     license: "Apache-2.0"
     custom_block: |
       head "https://github.com/Permify/permify.git", :branch => "master"
-    install: |
-        if !File.exists? "permify"
-          system "go build --ldflags ./cmd/permify"
-        end
+    install: |-
         bin.install "permify"
     tap:
       name: homebrew-tap
