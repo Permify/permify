@@ -3,7 +3,7 @@ FROM golang:1.20-alpine3.16 as permify-builder
 WORKDIR /go/src/app
 RUN apk update && apk add --no-cache git
 COPY . .
-RUN go build -v ./cmd/permify/
+RUN CGO_ENABLED=0 go build -v ./cmd/permify/
 
 # Step 2: Final
 FROM cgr.dev/chainguard/static:latest
