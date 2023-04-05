@@ -91,7 +91,7 @@
       "link": {
         "type": "generated-index",
         "title": "Common Use Cases",
-        "slug": "/example-use-cases"
+        "slug": "/use-cases"
       },
       "items": [
         "example-use-cases/simple-rbac",

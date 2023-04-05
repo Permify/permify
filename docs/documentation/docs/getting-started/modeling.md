@@ -243,4 +243,4 @@ entity repository {
 
 ## Common Use Cases
 
-This example shows almost all aspects of the Permify Schema. You can check out more schema examples from the [Common Use Cases](../example-use-cases) section with their detailed examination.
+This example shows almost all aspects of the Permify Schema. You can check out more schema examples from the [Common Use Cases](../use-cases) section with their detailed examination.

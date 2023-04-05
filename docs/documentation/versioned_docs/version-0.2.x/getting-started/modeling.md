@@ -238,4 +238,4 @@ entity repository {
 }
 ```
 
-See more schema examples from the [Example Use Cases](../example-use-cases/simple-rbac) section with their detailed examination.
+See more schema examples from the [Example Use Cases](../use-cases) section with their detailed examination.

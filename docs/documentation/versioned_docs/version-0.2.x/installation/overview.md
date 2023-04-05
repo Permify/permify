@@ -131,7 +131,7 @@ Lets roll back our example,
 For implementation sake we'll not dive more deep about modeling but you can find more information about modeling on [Modeling Authorization with Permify] section. Also can check out [example use cases] to better understand some basic use cases modeled with Permify Schema. 
 
 [Modeling Authorization with Permify]: ../getting-started/modeling
-[example use cases]: ../example-use-cases/simple-rbac
+[example use cases]: ../use-cases/simple-rbac
 :::
 
 ### Configuring Permify Schema to API 
