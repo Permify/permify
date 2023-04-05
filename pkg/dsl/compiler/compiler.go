@@ -190,12 +190,18 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 	if expression.GetType() == ast.IDENTIFIER {
 		ident = expression.(*ast.Identifier)
 	} else {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
+		return nil, compileError(token.PositionInfo{
+			LinePosition:   1,
+			ColumnPosition: 1,
+		}, base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 	}
 
 	// If the identifier has more than two segments, it is not supported
 	if len(ident.Idents) == 0 {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+		return nil, compileError(token.PositionInfo{
+			LinePosition:   1,
+			ColumnPosition: 1,
+		}, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 	}
 
 	// If the identifier has one segment, it is treated as a reference to a relational reference.
