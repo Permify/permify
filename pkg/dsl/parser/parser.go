@@ -644,7 +644,7 @@ func (p *Parser) registerInfix(tokenType token.Type, fn infixParseFn) {
 // duplicationError adds an error message to the parser's error list indicating that a duplication was found.
 // It takes a key string as an argument that is used to identify the source of the duplication in the input.
 func (p *Parser) duplicationError(key string) {
-	msg := fmt.Sprintf("%v:%v:duplication found. %s", p.l.GetLinePosition(), p.l.GetColumnPosition(), key)
+	msg := fmt.Sprintf("%v:%v:duplication found for %s", p.l.GetLinePosition(), p.l.GetColumnPosition(), key)
 	p.errors = append(p.errors, msg)
 }
 
