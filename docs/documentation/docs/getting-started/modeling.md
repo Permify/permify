@@ -4,15 +4,13 @@ sidebar_position: 1
 
 # Modeling Authorization
 
-Permify has its own language that you can model your authorization logic with it, we called it **Permify Schema**. 
-
-The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like user types such as admin, manager, member, etc.
+Permify has its own language that you can model your authorization logic with it. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like user types such as admin, manager, member, etc.
 
 ![modeling-authorization](https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif)
 
 ## Permify Schema
 
-You can define your entities, relations between them and access control decisions with using Permify Schema. It includes set-algebraic operators such as inter- section and union for specifying potentially complex access control policies in terms of those user-object relations.
+You can define your entities, relations between them and access control decisions with using Permify Schema. It includes set-algebraic operators such as intersection and union for specifying potentially complex access control policies in terms of those user-object relations.
 
 Here’s a simple breakdown of our schema.
 
@@ -30,7 +28,6 @@ We'll follow a simplified version of github access control system. To see comple
 You can start developing Permify Schema on [VSCode]. You can install the extension by searching for **Perm** in the extensions marketplace.
 
 [vscode]: https://marketplace.visualstudio.com/items?itemName=Permify.perm
-
 :::
 
 ### Defining Entities
