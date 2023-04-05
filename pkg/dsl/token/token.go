@@ -1,31 +1,33 @@
 package token
 
-// Type -
+// Type - defines a custom type for tokens.
 type Type string
 
-// String -
+// String - converts the Type to a string.
 func (t Type) String() string {
 	return string(t)
 }
 
-// WithIgnores -
+// WithIgnores - is a helper struct that includes a token and a list of ignored tokens.
 type WithIgnores struct {
 	Token   Token
 	Ignores []Token
 }
 
-// Token -
+// Token - represents a lexical token in the input source code.
 type Token struct {
-	Type    Type
+	// The type of the token.
+	Type Type
+	// The literal value of the token.
 	Literal string
 }
 
-// New -
+// New - creates a new Token with the given type and literal value.
 func New(typ Type, ch byte) Token {
 	return Token{Type: typ, Literal: string(ch)}
 }
 
-// keywords -
+// keywords - maps string keywords to their corresponding Type.
 var keywords = map[string]Type{
 	"entity":   ENTITY,
 	"relation": RELATION,
@@ -35,7 +37,7 @@ var keywords = map[string]Type{
 	"not":      NOT,
 }
 
-// ignores -
+// ignores - maps ignored token types to an empty struct.
 var ignores = map[Type]struct{}{
 	SINGLE_LINE_COMMENT: {},
 	MULTI_LINE_COMMENT:  {},
@@ -45,70 +47,63 @@ var ignores = map[Type]struct{}{
 
 const (
 
-	//
-	// Special Types
-	//
-
+	/*
+		Special Types
+	*/
 	EOF     = "EOF"
 	ILLEGAL = "ILLEGAL"
 
-	//
-	// Identifiers & Literals
-	//
-
+	/*
+		Identifiers & Literals
+	*/
 	IDENT = "IDENT"
 
-	//
-	// Delimiters
-	//
-
-	COMMA = "COMMA"
-
-	LBRACE = "LBRACE"
-	RBRACE = "RBRACE"
-
-	LPAREN = "LPAREN"
-	RPAREN = "RPAREN"
-
-	ASSIGN = "ASSIGN"
-	SIGN   = "SIGN"
-	HASH   = "HASH"
-	DOT    = "DOT"
-
+	/*
+		Delimiters
+	*/
+	COMMA   = "COMMA"
+	LBRACE  = "LBRACE"
+	RBRACE  = "RBRACE"
+	LPAREN  = "LPAREN"
+	RPAREN  = "RPAREN"
+	ASSIGN  = "ASSIGN"
+	SIGN    = "SIGN"
+	HASH    = "HASH"
+	DOT     = "DOT"
 	NEWLINE = "NEWLINE"
 
-	//
-	// Keywords
-	//
-
+	/*
+		Keywords
+	*/
 	ENTITY   = "ENTITY"
 	RELATION = "RELATION"
 	ACTION   = "ACTION"
 
-	//
-	// Prefix
-	//
-
+	/*
+		Prefix
+	*/
 	NOT = "NOT"
 
-	//
-	// Logical
-	//
-
+	/*
+		Logical
+	*/
 	AND = "AND"
 	OR  = "OR"
 
-	//
-	// Comments
-	//
-
+	/*
+		Comments
+	*/
 	SINGLE_LINE_COMMENT = "SINGLE_LINE_COMMENT"
 	MULTI_LINE_COMMENT  = "MULTI_LINE_COMMENT"
-	SPACE               = "SPACE"
-	TAB                 = "TAB"
+
+	/*
+		Whitespace
+	*/
+	SPACE = "SPACE"
+	TAB   = "TAB"
 )
 
-// LookupKeywords -
+// LookupKeywords - looks up a keyword in the keywords map and returns its corresponding Type.
 func LookupKeywords(ident string) Type {
 	if tok, ok := keywords[ident]; ok {
 		return tok
@@ -116,7 +111,7 @@ func LookupKeywords(ident string) Type {
 	return IDENT
 }
 
-// IsIgnores -
+// IsIgnores - checks if the given Type is an ignored token type.
 func IsIgnores(typ Type) bool {
 	if _, ok := ignores[typ]; ok {
 		return true
