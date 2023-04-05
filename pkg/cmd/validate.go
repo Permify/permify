@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
+	`os`
+	`strings`
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
@@ -26,9 +27,34 @@ func NewValidateCommand() *cobra.Command {
 	}
 }
 
+// ErrList - error list
+type ErrList struct {
+	Errors []string
+}
+
+// Add - add error to error list
+func (l *ErrList) Add(message string) {
+	l.Errors = append(l.Errors, message)
+}
+
+// Print - print error list
+func (l *ErrList) Print() {
+	fmt.Println("")
+	fmt.Println("fails:")
+	for _, m := range l.Errors {
+		color.Danger.Println(strings.ToLower("fail: " + strings.Replace(strings.Replace(m, "ERROR_CODE_", "", -1), "_", " ", -1)))
+	}
+	color.Danger.Println("FAILED")
+}
+
 // validate - permify validate command
 func validate() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+
+		var list = &ErrList{
+			Errors: []string{},
+		}
+
 		ctx := context.Background()
 		devContainer := development.NewContainer()
 
@@ -48,34 +74,47 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
+		color.Blue.Println("schema is creating... 🚀")
+
 		// Write schema -
 		var version string
 		version, err = devContainer.S.WriteSchema(ctx, "t1", s.Schema)
 		if err != nil {
-			return err
+			list.Add(err.Error())
+			color.Danger.Printf("fail:       %s\n", strings.Replace(strings.Replace(err.Error(), "ERROR_CODE_", "", -1), "_", " ", -1))
+			if len(list.Errors) != 0 {
+				list.Print()
+				os.Exit(1)
+			}
 		}
 
-		color.Success.Println("schema successfully created: ✓ ✅ ")
+		if len(list.Errors) == 0 {
+			color.Success.Println("success")
+		}
 
-		var tuples []*base.Tuple
+		color.Blue.Println("relationships are creating... 🚀")
 
-		// Write tuples -
-		for _, t := range s.Tuples {
+		// Write Relationships -
+		for _, t := range s.Relationships {
 			var tup *base.Tuple
 			tup, err = tuple.Tuple(t)
 			if err != nil {
-				return err
+				list.Add(err.Error())
 			}
-			tuples = append(tuples, tup)
+
+			_, err = devContainer.R.WriteRelationships(ctx, "t1", []*base.Tuple{
+				tup,
+			}, version)
+			if err != nil {
+				list.Add(fmt.Sprintf("fail: %s failed %s", t, err.Error()))
+				color.Danger.Println(fmt.Sprintf("fail:       %s failed %s", t, strings.ToLower(strings.Replace(strings.Replace(err.Error(), "ERROR_CODE_", "", -1), "_", " ", -1))))
+				continue
+			}
+
+			color.Success.Println(fmt.Sprintf("success:    %s ", t))
 		}
 
-		_, err = devContainer.R.WriteRelationships(ctx, "t1", tuples, version)
-		if err != nil {
-			return err
-		}
-
-		color.Success.Println("tuples successfully created: ✓ ✅ ")
-		color.Success.Println("checking assertions...")
+		color.Blue.Println("checking assertions... 🚀")
 
 		// Check Assertions
 		for i, assertion := range s.Assertions {
@@ -87,7 +126,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 				q, err := tuple.NewQueryFromString(query)
 				if err != nil {
-					return err
+					list.Add(err.Error())
 				}
 
 				res, err := devContainer.P.CheckPermissions(ctx, &base.PermissionCheckRequest{
@@ -102,29 +141,35 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					Subject:    q.Subject,
 				})
 				if err != nil {
-					return err
+					list.Add(err.Error())
 				}
 
 				if res.Can == exp {
-					fmt.Printf("%v. %s ? => ", i+1, query)
-					if res.Can == base.PermissionCheckResponse_RESULT_ALLOWED {
-						color.Success.Println("expected: ✓ ✅ , actual: ✓ ✅ ")
-					} else {
-						color.Success.Println("expected: ✗ ❌ , actual: ✗ ❌ ")
-					}
+					color.Success.Print("success:    ")
+					fmt.Printf("%v. %s ? passed \n", i+1, query)
 				} else {
-					color.Danger.Printf("%v. %s ? => ", i+1, query)
+					color.Danger.Printf("fail:       %v. %s ? failed ", i+1, query)
 					if res.Can == base.PermissionCheckResponse_RESULT_ALLOWED {
-						color.Danger.Println("expected: ✗ ❌ , actual: ✓ ✅ ")
+						color.Danger.Println("expected: DENIED actual: ALLOWED ")
+						list.Add(fmt.Sprintf("fail: %s ? failed expected: DENIED actual: ALLOWED ", query))
 					} else {
-						color.Danger.Println("expected: ✓ ✅ , actual: ✗ ❌ ")
+						color.Danger.Println("expected: ALLOWED actual: DENIED ")
+						list.Add(fmt.Sprintf("fail: %s ? failed expected: ALLOWED actual: DENIED ", query))
 					}
-					color.Danger.Println("FAILED.")
-					os.Exit(1)
 				}
 			}
 		}
 
+		if len(list.Errors) != 0 {
+			list.Print()
+			os.Exit(1)
+		}
+
+		color.Blue.Println("schema successfully created")
+		color.Blue.Println("relationships successfully created")
+		color.Blue.Println("assertions successfully passed")
+
+		color.Success.Println("SUCCESS")
 		return nil
 	}
 }

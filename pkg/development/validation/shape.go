@@ -5,8 +5,8 @@ type Shape struct {
 	// Schema - String of authorization model.
 	Schema string `yaml:"schema"`
 
-	// Tuples - Authorization data
-	Tuples []string `yaml:"relationships"`
+	// Relationships - Authorization data
+	Relationships []string `yaml:"relationships"`
 
 	// Assertions -
 	// can user:1 push repository:2 => true
