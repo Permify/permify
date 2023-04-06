@@ -4,34 +4,40 @@ import (
 	"github.com/Permify/permify/pkg/dsl/token"
 )
 
-// Lexer -
+// Lexer - represents a lexical analyzer for the input source code.
 type Lexer struct {
-	input          string
-	position       int
-	readPosition   int
-	linePosition   int
+	// The input source code to be analyzed.
+	input string
+	// The current position in the input source code.
+	position int
+	// The next position to read in the input source code.
+	readPosition int
+	// The current line position in the input source code.
+	linePosition int
+	// The current column position in the input source code.
 	columnPosition int
-	ch             byte
+	// The current character being read from the input source code.
+	ch byte
 }
 
-// NewLexer -
+// NewLexer - creates a new Lexer instance with the given input source code.
 func NewLexer(input string) (l *Lexer) {
 	l = &Lexer{input: input, linePosition: 1, columnPosition: 1}
 	l.readChar()
 	return
 }
 
-// GetLinePosition -
+// GetLinePosition - returns the current line position of the Lexer in the input source code.
 func (l *Lexer) GetLinePosition() int {
 	return l.linePosition
 }
 
-// GetColumnPosition -
+// GetColumnPosition - returns the current column position of the Lexer in the input source code.
 func (l *Lexer) GetColumnPosition() int {
 	return l.columnPosition
 }
 
-// readChar -
+// readChar - reads the next character from the input source code and updates the Lexer's position and column position.
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
 		l.ch = 0
@@ -43,7 +49,7 @@ func (l *Lexer) readChar() {
 	l.columnPosition++
 }
 
-// peekChar -
+// peekChar - peeks the next character from the input source code without advancing the Lexer's position.
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
 		return 0
@@ -51,70 +57,81 @@ func (l *Lexer) peekChar() byte {
 	return l.input[l.readPosition]
 }
 
-// NextToken -
+// NextToken returns the next token from the input string
 func (l *Lexer) NextToken() (tok token.Token) {
+	// switch statement to determine the type of token based on the current character
 	switch l.ch {
 	case '\t':
-		tok = token.New(token.TAB, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.TAB, l.ch)
 	case ' ':
-		tok = token.New(token.SPACE, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.SPACE, l.ch)
 	case '\n':
 		l.newLine()
-		tok = token.New(token.NEWLINE, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.NEWLINE, l.ch)
 	case '\r':
 		l.newLine()
-		tok = token.New(token.NEWLINE, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.NEWLINE, l.ch)
 	case ';':
-		tok = token.New(token.NEWLINE, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.NEWLINE, l.ch)
 	case '=':
-		tok = token.New(token.ASSIGN, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.ASSIGN, l.ch)
 	case '@':
-		tok = token.New(token.SIGN, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.SIGN, l.ch)
 	case '(':
-		tok = token.New(token.LPAREN, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.LPAREN, l.ch)
 	case ')':
-		tok = token.New(token.RPAREN, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.RPAREN, l.ch)
 	case '{':
-		tok = token.New(token.LBRACE, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.LBRACE, l.ch)
 	case '}':
-		tok = token.New(token.RBRACE, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.RBRACE, l.ch)
 	case ',':
-		tok = token.New(token.COMMA, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.COMMA, l.ch)
 	case '#':
-		tok = token.New(token.HASH, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.HASH, l.ch)
 	case '.':
-		tok = token.New(token.DOT, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.DOT, l.ch)
 	case 0:
-		tok = token.Token{Type: token.EOF, Literal: ""}
+		tok = token.Token{PositionInfo: positionInfo(l.linePosition, l.columnPosition), Type: token.EOF, Literal: ""}
 	default:
+		// check if the character is a letter, and if so, lex the identifier and look up the keyword
 		if isLetter(l.ch) {
+			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexIdent()
 			tok.Type = token.LookupKeywords(tok.Literal)
 			return
 		}
+
 		if l.ch == '/' && l.peekChar() == '/' {
+			// check if the character is the start of a single-line comment
+			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexSingleLineComment()
 			tok.Type = token.SINGLE_LINE_COMMENT
 			return
 		} else if l.ch == '/' && l.peekChar() == '*' {
+			// check if the character is the start of a multi-line comment
+			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexMultiLineComment()
 			tok.Type = token.MULTI_LINE_COMMENT
 			return
 		} else {
-			tok = token.New(token.ILLEGAL, l.ch)
+			// if none of the above cases match, create an illegal token with the current character
+			tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.ILLEGAL, l.ch)
 		}
 	}
+	// read the next character and return the token
 	l.readChar()
 	return
 }
 
-// newLine -
+// newLine - increments the line position and resets the column position to 1.
 func (l *Lexer) newLine() {
 	l.linePosition++
 	l.columnPosition = 1
 }
 
-// lexIdent -
+// lexIdent - reads and returns an identifier.
+// An identifier is a sequence of letters (upper and lowercase) and underscores.
 func (l *Lexer) lexIdent() string {
 	position := l.position
 	for isLetter(l.ch) {
@@ -123,7 +140,8 @@ func (l *Lexer) lexIdent() string {
 	return l.input[position:l.position]
 }
 
-// lexSingleLineComment -
+// lexSingleLineComment - reads and returns a single line comment.
+// A single line comment starts with "//" and ends at the end of the line.
 func (l *Lexer) lexSingleLineComment() string {
 	l.readChar()
 	l.readChar()
@@ -137,7 +155,8 @@ func (l *Lexer) lexSingleLineComment() string {
 	return l.input[position:l.position]
 }
 
-// lexMultiLineComment -
+// lexMultiLineComment - reads and returns a multi-line comment.
+// A multi-line comment starts with "/" and ends with "/".
 func (l *Lexer) lexMultiLineComment() string {
 	l.readChar()
 	l.readChar()
@@ -153,12 +172,20 @@ func (l *Lexer) lexMultiLineComment() string {
 	return l.input[position : l.position-2]
 }
 
-// isNewline -
+// isNewline - returns true if the given byte is a newline character (\r or \n).
 func isNewline(r byte) bool {
 	return r == '\r' || r == '\n'
 }
 
-// isLetter -
+// isLetter - returns true if the given byte is a letter (upper or lowercase) or an underscore.
 func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
+// positionInfo - returns a token.PositionInfo struct with the current line and column position.
+func positionInfo(line, column int) token.PositionInfo {
+	return token.PositionInfo{
+		LinePosition:   line,
+		ColumnPosition: column,
+	}
 }
