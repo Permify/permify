@@ -2,11 +2,11 @@ package compiler
 
 import (
 	"errors"
-	`fmt`
-	`strings`
+	"fmt"
+	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/ast"
-	`github.com/Permify/permify/pkg/dsl/token`
+	"github.com/Permify/permify/pkg/dsl/token"
 	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
