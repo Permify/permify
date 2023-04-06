@@ -2,10 +2,10 @@ package ast
 
 import (
 	"errors"
-	`fmt`
-	`strings`
+	"fmt"
+	"strings"
 
-	`github.com/Permify/permify/pkg/dsl/token`
+	"github.com/Permify/permify/pkg/dsl/token"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
