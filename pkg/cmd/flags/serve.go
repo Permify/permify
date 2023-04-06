@@ -1,10 +1,9 @@
 package flags
 
 import (
+	"github.com/Permify/permify/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/Permify/permify/internal/config"
 )
 
 // RegisterServeFlags - Define and registers permify CLI flags
@@ -317,6 +316,38 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	if err = viper.BindEnv("database.max_connection_idle_time", "PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME"); err != nil {
+		panic(err)
+	}
+
+	flags.Bool("database-garbage-collection-enable", conf.Database.DatabaseGarbageCollection.Enable, "use database garbage collection for expired relation tuples")
+	if err = viper.BindPFlag("database.garbage_collection.enable", flags.Lookup("database-garbage-collection-enable")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.garbage_collection.enable", "PERMIFY_DATABASE_AUTO_MIGRATE"); err != nil {
+		panic(err)
+	}
+
+	flags.Duration("database-garbage-collection-interval", conf.Database.DatabaseGarbageCollection.Interval, "interval for database garbage collection")
+	if err = viper.BindPFlag("database.garbage_collection.interval", flags.Lookup("database-garbage-collection-interval")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.garbage_collection.interval", "PERMIFY_DATABASE_GARBAGE_COLLECTION_INTERVAL"); err != nil {
+		panic(err)
+	}
+
+	flags.Duration("database-garbage-collection-timeout", conf.Database.DatabaseGarbageCollection.Timeout, "timeout for database garbage collection")
+	if err = viper.BindPFlag("database.garbage_collection.timeout", flags.Lookup("database-garbage-collection-timeout")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.garbage_collection.timeout", "PERMIFY_DATABASE_GARBAGE_COLLECTION_TIMEOUT"); err != nil {
+		panic(err)
+	}
+
+	flags.Duration("database-garbage-collection-window", conf.Database.DatabaseGarbageCollection.Window, "window for database garbage collection")
+	if err = viper.BindPFlag("database.garbage_collection.window", flags.Lookup("database-garbage-collection-window")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.garbage_collection.window", "PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW"); err != nil {
 		panic(err)
 	}
 }
