@@ -25,11 +25,11 @@ In Permify, the simplest form of relational tuple structured as: `entity # relat
 
 In Permify, these relational tuples represents your authorization data. 
 
-Permify stores your relational tuples (authorization data) in **WriteDB**. You can configure it **WriteDB** when running Permify Service with using both [configuration flags](../installation/brew#configuration-flags)  or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
+Permify stores your relational tuples (authorization data) in a database you prefer. You can configure the database when running Permify Service with using both [configuration flags](../installation/brew#configuration-flags) or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
 
-Stored relational tuples are queried on access control check requests to decide whether user action is authorized. 
+Stored relational tuples are queried and utilized in Permify APIs, including the check API, which is an access control check request used to determine whether a user's action is authorized.
 
-As an example; to decide whether a user could view a protected resource, Permify looks up the relations between that specific user and the protected resource. These relation types could be ownership, parent-child relation, or even a role such as an administrator or manager.
+As an example; to decide whether a user could view a protected resource, Permify looks up the relations between that specific user and the protected resource. These relation types could be ownership, parent-child relation, or even a role such as an admin or manager.
 [WriteDB]: #write-database
 
 ## Creating Relational Tuples 
@@ -40,13 +40,14 @@ Relational tuples can be created with an simple API call in runtime, since relat
 
 ![tuple-creation](https://user-images.githubusercontent.com/34595361/186637488-30838a3b-849a-4859-ae4f-d664137bb6ba.png)
 
-Let's follow a real example to see how to create relation tuples. Lets say we have a document management system with the following Permify Schema.
+Let's follow a simple document management system example with the following Permify Schema to see how to create relation tuples. 
 
 ```perm
 entity user {} 
 
 entity organization {
 
+    relation admin  @user
     relation member @user
 
 } 
@@ -54,17 +55,18 @@ entity organization {
 entity document {
     
     relation  owner  @user   
-    relation  org    @organization      
+    relation  parent    @organization   
+    relation  maintainer  @user @organization#member      
 
-    action view   = owner or org.member
-    action edit   = owner 
-    action delete = owner
+    action view   = owner or parent.member or maintainer or parent.admin
+    action edit   = owner or maintainer or parent.admin
+    action delete = owner or parent.admin
 } 
 ```
 
-According to the schema above; when a user creates a document in an organization, more specifically let's say, when user:1 in organization:2 create a document:4 we need to create the following relational tuple,
+According to the schema above; when a user creates a document in an organization, more specifically let's say, when user:1 create a document:2 we need to create the following relational tuple,
 
-- `document:4#owner@user:1`
+- `document:2#owner@user:1`
 
 [WriteDB]: #write-database
 
@@ -84,12 +86,112 @@ rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWrit
     Tuples: [] * v1.Tuple {
         {
             Entity: & v1.Entity {
+                Type: "document",
+                Id: "2",
+            },
+            Relation: "owner",
+            Subject: & v1.Subject {
+                Type: "user",
+                Id: "1",
+            },
+        }
+    },
+})
+```
+
+</TabItem>
+
+<TabItem value="node" label="Node">
+
+```javascript
+client.relationship.write({
+    tenantId: "t1",
+    metadata: {
+        schemaVersion: ""
+    },
+    tuples: [{
+        entity: {
+            type: "document",
+            id: "2"
+        },
+        relation: "owner",
+        subject: {
+            type: "user",
+            id: "1"
+        }
+    }]
+}).then((response) => {
+    // handle response
+})
+```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "metadata": {
+        "schema_version": ""
+    },
+    "tuples": [
+        {
+        "entity": {
+            "type": "document",
+            "id": "2s"
+        },
+        "relation": "owner",
+        "subject":{
+            "type": "user",
+            "id": "1",
+            "relation": ""
+        }
+    }
+    ]
+}'
+```
+</TabItem>
+</Tabs>
+
+### Snap Tokens:
+
+In Write Relationships API response you'll get a snap token of the operation. This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting to use snap tokens in production to prevent data inconsistency and optimize the performance. See more on [Snap Tokens](../reference/snap-tokens.md)
+
+```json
+{
+    "snap_token": "FxHhb4CrLBc="
+}
+```
+
+## More Relationships
+
+Let's create more relationships according to the schema we defined above.
+
+### Organization Admin
+
+**relational tuple:** organization:1#admin@user:3
+
+**Semantics:** User 3 is administrator in organization 1.
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+    TenantId: "t1",
+    Metadata: &v1.RelationshipWriteRequestMetadata {
+        SchemaVersion: ""
+    },
+    Tuples: [] * v1.Tuple {
+        {
+            Entity: & v1.Entity {
                 Type: "organization",
                 Id: "1",
             },
             Relation: "admin",
             Subject: & v1.Subject {
-                Type: "admin",
+                Type: "user",
                 Id: "3",
             },
         }
@@ -152,80 +254,93 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationsh
 </TabItem>
 </Tabs>
 
-### Snap Tokens:
-
-In Write Relationships API response you'll get a snap token of the operation. This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting to use snap tokens in production to prevent data inconsistency and optimize the performance. See more on [Snap Tokens](../reference/snap-tokens.md)
-
-```json
-{
-    "snap_token": "FxHhb4CrLBc="
-}
-```
-
-## More Relation Tuple Examples
-
-### Organization Admin
-
-```json
-{
-    "entity": {
-        "type": "organization",
-        "id": "1"
-    },
-    "relation": "admin",
-    "subject": {
-        "type": "user",
-        "id": "1",
-        "relation": ""
-    }
-}
-```
-
-**Created relational tuple:** organization:1#admin@1
-
-**Definition:** User 1 has admin role on organization 1.
-
-### Organization Members are Viewer of Repo
-
-```json
-{
-    "entity": {
-        "type": "repository",
-        "id": "1"
-    },
-    "relation": "viewer",
-    "subject": {
-        "type": "organization",
-        "id": "2",
-        "relation": "member"
-    }
-}
-```
-
-**Created relational tuple:** repository:1#admin@organization:2#member
-
-**Definition:** Members of organization 2 are viewers of repository 1.
-
 ### Parent Organization
 
-```json
-{
-    "entity": {
-        "type": "repository",
-        "id": "1"
+**Relational Tuple:** document:1#parent@organization:1#…
+
+**Semantics:** Organization 1 is parent of document 1.
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+    TenantId: "t1",
+    Metadata: &v1.RelationshipWriteRequestMetadata {
+        SchemaVersion: ""
     },
-    "relation": "parent",
-    "subject": {
-        "type": "organization",
-        "id": "1",
-        "relation": "..."
-    }
-}
+    Tuples: [] * v1.Tuple {
+        {
+            Entity: & v1.Entity {
+                Type: "document",
+                Id: "1",
+            },
+            Relation: "parent",
+            Subject: & v1.Subject {
+                Type: "organization",
+                Id: "1",
+                Relation: "..."
+            },
+        }
+    },
+})
 ```
 
-**Relational Tuple:** repository:1#parent@organization:1#…
+</TabItem>
 
-**Definition:** Organization 1 is parent of repository 1.
+<TabItem value="node" label="Node">
+
+```javascript
+client.relationship.write({
+    tenantId: "t1",
+    metadata: {
+        schemaVersion: ""
+    },
+    tuples: [{
+        entity: {
+            type: "document",
+            id: "1"
+        },
+        relation: "parent",
+        subject: {
+            type: "organization",
+            id: "1",
+            relation: "..."
+        }
+    }]
+}).then((response) => {
+    // handle response
+})
+```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "metadata": {
+        "schema_version": ""
+    },
+    "tuples": [
+        {
+        "entity": {
+            "type": "document",
+            "id": "1"
+        },
+        "relation": "parent",
+        "subject":{
+            "type": "organization",
+            "id": "1",
+            "relation": "..."
+        }
+    }
+    ]
+}'
+```
+</TabItem>
+</Tabs>
 
 :::info
 Note: `relation: “...”` used when subject type is different from **user** entity. **#…** represents a relation that does not affect the semantics of the tuple.
@@ -233,21 +348,98 @@ Note: `relation: “...”` used when subject type is different from **user** en
 Simply, the usage of ... is straightforward: if you're use user entity as an subject, you should not be using the `...` If you're using another subject rather than user entity then you need to use the `...` 
 :::
 
-<!-- ## Write Database 
+### Organization Members Are Maintainers in specific Doc
 
-But how authorization data stored in WriteDB ? Let's take a look at a snap shot of demo table on example Write Database.
+**Created relational tuple:** document:1#maintainer@organization:2#member
 
-![demo-table](https://user-images.githubusercontent.com/34595361/180988784-a9424088-2d4f-4cee-8db4-96adde40d27d.png)
+**Definition:** Members of organization 2 are maintainers in document 1.
 
-Each row represents object-user or object-object relations, which we call relational tuples. Each row (tuple) behave as ACL and takes the form of “user U has relation R to object O”
+<Tabs>
+<TabItem value="go" label="Go">
 
-→ Considering table above, semantics of second row (id:8) is **user 1 is owner of repository 1**
+```go
+rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+    TenantId: "t1",
+    Metadata: &v1.RelationshipWriteRequestMetadata {
+        SchemaVersion: ""
+    },
+    Tuples: [] * v1.Tuple {
+        {
+            Entity: & v1.Entity {
+                Type: "document",
+                Id: "1",
+            },
+            Relation: "maintainer",
+            Subject: & v1.Subject {
+                Type: "organization",
+                Id: "2",
+                Relation: "member"
+            },
+        }
+    },
+})
+```
 
-Alternatively user U can behave as "set of users".
-More specifically, “set of users S has relation R to object O”, where S is itself specified in terms of another object-relation pair. 
+</TabItem>
 
- → First row in our table (id:7), we can see that **organization 1 (set of users in organization) is parent of repository 1** -->
+<TabItem value="node" label="Node">
 
-:::info
-These relational tuples data form is inspired by Google’s Consistent, Global Authorization System, [Google Zanzibar White Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
-:::
+```javascript
+client.relationship.write({
+    tenantId: "t1",
+    metadata: {
+        schemaVersion: ""
+    },
+    tuples: [{
+        entity: {
+            type: "document",
+            id: "1"
+        },
+        relation: "maintainer",
+        subject: {
+            type: "organization",
+            id: "2",
+            relation: "member"
+        }
+    }]
+}).then((response) => {
+    // handle response
+})
+```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "metadata": {
+        "schema_version": ""
+    },
+    "tuples": [
+        {
+        "entity": {
+            "type": "document",
+            "id": "1"
+        },
+        "relation": "maintainer",
+        "subject":{
+            "type": "organization",
+            "id": "2",
+            "relation": "member"
+        }
+    }
+    ]
+}'
+```
+</TabItem>
+</Tabs>
+
+## Test this Example on Playground
+
+You can test and examine the above schema and relational tuples that we created in our playground using this [link](https://play.permify.co/?s=bCDvst-22ISFR6DV90y8_).
+
+## Next 
+
+Let's now head over to the **Access Control Check** section and learn how to perform access control in Permify to ensure that only authorized users have the right level of access to our resources.
