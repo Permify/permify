@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Alert, Button, Card, Space} from 'antd';
+import {Button, Card, Space} from 'antd';
 import {CopyOutlined, SaveOutlined} from "@ant-design/icons";
 import Editor from "../../pkg/Editor";
 import {shallowEqual, useDispatch, useSelector} from "react-redux";
@@ -19,10 +19,15 @@ function AuthorizationModel(props) {
 
     const save = (m) => {
         props.isReady(false)
-        setError("")
+        setError(null)
         WriteSchema(m).then((res) => {
             if (res[1] != null) {
-                setError(res[1].replaceAll('_', ' '))
+                let numbers = parseNumbers(res[1])
+                setError({
+                    line: numbers[0],
+                    column: numbers[1],
+                    message: res[1].replaceAll('_', ' ').toLowerCase(),
+                })
             } else {
                 setIsModelCopied(false)
                 dispatch(setSchema(m))
@@ -48,6 +53,18 @@ function AuthorizationModel(props) {
         }
     }
 
+    function parseNumbers(input) {
+        const regex = /^(\d+):(\d+)/;
+        const match = regex.exec(input);
+        if (match) {
+            const num1 = parseInt(match[1], 10);
+            const num2 = parseInt(match[2], 10);
+            return [num1, num2]
+        } else {
+            return [0, 0]
+        }
+    }
+
     return (
         <Card title={props.title} extra={<Space>
 
@@ -60,8 +77,7 @@ function AuthorizationModel(props) {
             }} icon={<SaveOutlined/>}>Save</Button>
 
         </Space>} style={{display: props.hidden && 'none'}}>
-            {error !== "" && <Alert message={error} type="error" showIcon className="mb-12 ml-12 mr-12"/>}
-            <Editor setCode={setModel} code={model}></Editor>
+            <Editor setCode={setModel} code={model} error={error}></Editor>
         </Card>
     )
 }

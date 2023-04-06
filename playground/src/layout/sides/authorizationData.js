@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react'
-import {Alert, Button, Card, List, Typography} from 'antd';
+import {Button, Card, List, Typography, Tooltip} from 'antd';
 import {DeleteOutlined} from "@ant-design/icons";
 import CreateTuple from "../components/Modals/CreateTuple";
 import {shallowEqual, useSelector} from "react-redux";
@@ -21,17 +21,14 @@ function AuthorizationData(props) {
         readTuples()
     };
 
-    const [error, setError] = useState("");
     const [model, setModel] = useState({entityDefinitions: {}});
     const [tuples, setTuples] = useState([]);
+    const [errList, setErrList] = useState(new Map());
 
     const trigger = useSelector((state) => state.common.model_change_toggle, shallowEqual);
 
     const readSchema = () => {
         ReadSchema().then((res) => {
-            if (res[1] != null) {
-                setError(res[1].replaceAll('_', ' '))
-            }
             let m = JSON.parse(res[0])
             if (res[0] !== null) {
                 setModel(m)
@@ -41,18 +38,12 @@ function AuthorizationData(props) {
 
     const deleteTuple = (tuple) => {
         DeleteTuple(tuple).then((res) => {
-            if (res[0] != null) {
-                setError(res[0].replaceAll('_', ' '))
-            }
             readTuples()
         })
     }
 
     const readTuples = () => {
         ReadTuples({}).then((res) => {
-            if (res[1] != null) {
-                setError(res[1].replaceAll('_', ' '))
-            }
             let p = JSON.parse(res[0])
             if (p.tuples !== undefined) {
                 setTuples(p.tuples)
@@ -75,7 +66,7 @@ function AuthorizationData(props) {
             for (let i = 0; i < props.initialValue.length; i++) {
                 WriteTuple(Tuple(props.initialValue[i])).then((res) => {
                     if (res[0] != null) {
-                        setError(res[0])
+                        setErrList(errList.set(props.initialValue[i], res[0]))
                     }
                 })
             }
@@ -91,9 +82,6 @@ function AuthorizationData(props) {
                   extra={<>
                       <Button className="ml-auto" type="primary" onClick={toggleCreateModalVisibility}>New</Button>
                   </>} style={{display: props.hidden && 'none'}}>
-                {error !== "" &&
-                    <Alert message={error} type="error" showIcon className="mb-12 ml-12 mr-12"/>
-                }
                 <div className="px-12 pb-12 pt-12">
                     <List
                         className="scroll"
@@ -107,7 +95,13 @@ function AuthorizationData(props) {
                                 ]}
                             >
                                 <List.Item.Meta
-                                    avatar={<Text keyboard>[TUPLE]</Text>}
+                                    avatar={ errList.has(TupleObjectToTupleString(item)) ?
+                                        <Tooltip placement="topRight" title={errList.get(TupleObjectToTupleString(item)).toLowerCase().replaceAll("_", " ")}>
+                                            <Text keyboard type="danger">[TUPLE]</Text>
+                                        </Tooltip>
+                                        :
+                                        <Text keyboard>[TUPLE]</Text>
+                                    }
                                     title={TupleToHumanLanguage(TupleObjectToTupleString(item))}
                                     description={TupleObjectToTupleString(item)}
                                 />
