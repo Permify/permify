@@ -1,15 +1,21 @@
-import React from "react";
+import React, {useEffect} from "react";
 import AppRouter from "./router/Router";
 import {Layout} from "./utility/context/Layout"
 import {Provider} from 'react-redux'
-import {PersistGate} from "redux-persist/integration/react";
 
 function App({store}) {
+
+    useEffect(
+        () => {
+            localStorage.clear()
+        }
+    )
+
     return (
         <Provider store={store}>
-                <Layout>
-                    <AppRouter/>
-                </Layout>
+            <Layout>
+                <AppRouter/>
+            </Layout>
         </Provider>
     );
 }

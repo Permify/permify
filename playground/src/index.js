@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './_assets/less/index.less';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import store, {persistor} from "./redux/store";
+import store from "./redux/store";
 import {LoadWasm} from './loadWasm';
 
 ReactDOM.render(
