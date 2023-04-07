@@ -3,8 +3,8 @@ package utils
 import (
 	"database/sql"
 	"fmt"
-
 	"github.com/pkg/errors"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 
@@ -23,6 +23,26 @@ func SnapshotQuery(sl squirrel.SelectBuilder, revision uint64) squirrel.SelectBu
 		},
 		squirrel.Expr(fmt.Sprintf("expired_tx_id <> '%v'::xid8", revision)),
 	})
+}
+
+// GarbageCollectQuery -
+func GarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
+	expiredTransactions := squirrel.
+		Select("id").
+		From("transactions").
+		Where(squirrel.Expr("timestamp < ?", time.Now().Add(-window)))
+	expiredRows := squirrel.
+		Select("*").
+		From("relation_tuples rt").
+		JoinClause(fmt.Sprintf("JOIN (%s) et ON rt.created_tx_id = et.id", expiredTransactions)).
+		Where(squirrel.Or{
+			squirrel.Expr("rt.expired_tx_id = '0'::xid8"),
+			squirrel.Expr("rt.expired_tx_id IN ?", expiredTransactions),
+		})
+	deleteQuery := squirrel.
+		Delete("relation_tuples").
+		Where(squirrel.Expr("id IN ?", expiredRows), squirrel.Eq{"tenant_id": tenantID})
+	return deleteQuery
 }
 
 // Rollback - Rollbacks a transaction and logs the error

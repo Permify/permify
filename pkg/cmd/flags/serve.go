@@ -350,4 +350,12 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindEnv("database.garbage_collection.window", "PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW"); err != nil {
 		panic(err)
 	}
+
+	flags.Int("database-garbage-collection-number-of-threads", conf.Database.DatabaseGarbageCollection.NumberOfThreads, "number of threads for database garbage collection")
+	if err = viper.BindPFlag("database.garbage_collection.number_of_threads", flags.Lookup("database-garbage-collection-number-of-threads")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.garbage_collection.number_of_threads", "PERMIFY_DATABASE_GARBAGE_COLLECTION_NUMBER_OF_THREADS"); err != nil {
+		panic(err)
+	}
 }

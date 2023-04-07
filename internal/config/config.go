@@ -136,10 +136,11 @@ type (
 	}
 
 	DatabaseGarbageCollection struct {
-		Enable   bool          `mapstructure:"enable"`
-		Interval time.Duration `mapstructure:"interval"`
-		Timeout  time.Duration `mapstructure:"timeout"`
-		Window   time.Duration `mapstructure:"window"`
+		Enable          bool          `mapstructure:"enable"`
+		Interval        time.Duration `mapstructure:"interval"`
+		Timeout         time.Duration `mapstructure:"timeout"`
+		Window          time.Duration `mapstructure:"window"`
+		NumberOfThreads int           `mapstructure:"number_of_threads"`
 	}
 )
 
@@ -239,6 +240,9 @@ func DefaultConfig() *Config {
 		Database: Database{
 			Engine:      "memory",
 			AutoMigrate: true,
+			DatabaseGarbageCollection: DatabaseGarbageCollection{
+				Enable: false,
+			},
 		},
 	}
 }
