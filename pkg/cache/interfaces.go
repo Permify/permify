@@ -2,8 +2,8 @@ package cache
 
 // Cache - Defines an interface for a generic cache.
 type Cache interface {
-	Get(key any) (any, bool)
-	Set(key, entry any, cost int64) bool
+	Get(key interface{}) (interface{}, bool)
+	Set(key, value interface{}, cost int64) bool
 	Wait()
 	Close()
 }
