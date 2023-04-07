@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/cespare/xxhash"
+	"github.com/cespare/xxhash/v2"
 
 	"github.com/Permify/permify/pkg/cache"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -28,6 +28,11 @@ func NewCheckEngineKeys(cache cache.Cache) EngineKeyManager {
 // SetCheckKey sets the value for the given key in the EngineKeys cache.
 // It returns true if the operation is successful, false otherwise.
 func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse) bool {
+	if key == nil || value == nil {
+		// If either the key or value is nil, return false
+		return false
+	}
+
 	// Generate a unique checkKey string based on the provided PermissionCheckRequest
 	checkKey := fmt.Sprintf("check_%s_%s:%s:%s@%s", key.GetTenantId(), key.GetMetadata().GetSchemaVersion(), key.GetMetadata().GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
 		Entity:   key.GetEntity(),
@@ -48,13 +53,19 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 	k := hex.EncodeToString(h.Sum(nil))
 
 	// Set the cache key with the given value and size, then return the result
-	return c.cache.Set(k, value, int64(size))
+	return c.cache.Set(k, value.Can, int64(size))
 }
 
 // GetCheckKey retrieves the value for the given key from the EngineKeys cache.
 // It returns the PermissionCheckResponse if the key is found, and a boolean value
 // indicating whether the key was found or not.
 func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
+
+	if key == nil {
+		// If either the key or value is nil, return false
+		return nil, false
+	}
+
 	// Generate a unique checkKey string based on the provided PermissionCheckRequest
 	checkKey := fmt.Sprintf("check_%s_%s:%s:%s@%s", key.GetTenantId(), key.GetMetadata().GetSchemaVersion(), key.GetMetadata().GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
 		Entity:   key.GetEntity(),
@@ -79,7 +90,13 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 
 	// If the key is found, return the value and true
 	if found {
-		return resp.(*base.PermissionCheckResponse), true
+		// If permission is granted, return allowed response
+		return &base.PermissionCheckResponse{
+			Can: resp.(base.PermissionCheckResponse_Result),
+			Metadata: &base.PermissionCheckResponseMetadata{
+				CheckCount: 0,
+			},
+		}, true
 	}
 
 	// If the key is not found, return nil and false
