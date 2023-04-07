@@ -75,8 +75,9 @@ database:
   max_idle_connections: 1
   max_connection_lifetime: 300s
   max_connection_idle_time: 60s
-  garbage_collector:
-    enabled: true
+  garbage_collection:
+    enable: true
     interval: 3m
     timeout: 3m
     window: 30d
+    number_of_threads: 1

@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"github.com/Permify/permify/internal/repositories/postgres"
+	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"os/signal"
 	"syscall"
 
@@ -99,6 +101,19 @@ func serve() func(cmd *cobra.Command, args []string) error {
 					l.Fatal(err)
 				}
 			}()
+		}
+
+		// Garbage collection
+		if cfg.DatabaseGarbageCollection.Enable {
+			l.Info("🗑️ starting database garbage collection...")
+			gc := postgres.NewGarbageCollector(ctx, db.(*PQDatabase.Postgres), l, cfg.DatabaseGarbageCollection)
+
+			err := gc.Start()
+			if err != nil {
+				l.Fatal(err)
+			}
+
+			// TODO: add a way to stop the garbage collector
 		}
 
 		// Meter
