@@ -1,13 +1,14 @@
 package config
 
 import (
-	`github.com/spf13/viper`
-	`github.com/stretchr/testify/assert`
-	`github.com/stretchr/testify/require`
-	`io/ioutil`
-	`os`
-	`path/filepath`
-	`testing`
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewConfig_FileNotFound(t *testing.T) {
@@ -41,7 +42,7 @@ logger:
 
 	// Create a temporary config file
 	tmpFile := filepath.Join(tmpDir, "config.yaml")
-	err = ioutil.WriteFile(tmpFile, configContent, 0666)
+	err = ioutil.WriteFile(tmpFile, configContent, 0o666)
 	assert.NoError(t, err)
 
 	// Set the config path in viper to the temporary directory
@@ -77,7 +78,7 @@ invalid_config_content
 
 	// Create a temporary config file
 	tmpFile := filepath.Join(tmpDir, "config.yaml")
-	err = ioutil.WriteFile(tmpFile, configContent, 0666)
+	err = ioutil.WriteFile(tmpFile, configContent, 0o666)
 	require.NoError(t, err)
 
 	// Set the config path in viper to the temporary directory
@@ -110,7 +111,7 @@ database:
 
 	// Create a temporary config file
 	tmpFile := filepath.Join(tmpDir, "config.yaml")
-	err = ioutil.WriteFile(tmpFile, configContent, 0666)
+	err = ioutil.WriteFile(tmpFile, configContent, 0o666)
 	require.NoError(t, err)
 
 	// Set the config path in viper to the temporary directory
