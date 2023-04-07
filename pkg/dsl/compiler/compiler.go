@@ -2,8 +2,11 @@ package compiler
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/ast"
+	"github.com/Permify/permify/pkg/dsl/token"
 	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -38,7 +41,7 @@ func (t *Compiler) Compile() (sch []*base.EntityDefinition, err error) {
 		var en *base.EntityDefinition
 		es, ok := sc.(*ast.EntityStatement)
 		if !ok {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(es.Entity.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 		en, err = t.compile(es)
 		if err != nil {
@@ -65,7 +68,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		// Cast the relation statement
 		relationSt, okRs := rs.(*ast.RelationStatement)
 		if !okRs {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(relationSt.Relation.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
 		// Initialize the relation definition
@@ -92,7 +95,7 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		// Cast the action statement
 		st, okAs := as.(*ast.ActionStatement)
 		if !okAs {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(st.Action.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
 		// Compile the child expression
@@ -187,19 +190,31 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 	if expression.GetType() == ast.IDENTIFIER {
 		ident = expression.(*ast.Identifier)
 	} else {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
+		return nil, compileError(token.PositionInfo{
+			LinePosition:   1,
+			ColumnPosition: 1,
+		}, base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 	}
 
+	// If the identifier has more than two segments, it is not supported
+	if len(ident.Idents) == 0 {
+		return nil, compileError(token.PositionInfo{
+			LinePosition:   1,
+			ColumnPosition: 1,
+		}, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+	}
+
+	// If the identifier has one segment, it is treated as a reference to a relational reference.
 	if len(ident.Idents) == 1 {
 		if !t.withoutReferenceValidation {
 			if !t.schema.IsRelationalReferenceExist(utils.Key(entityName, ident.Idents[0].Literal)) {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 			}
 		}
 
 		leaf, err := t.compileComputedUserSetIdentifier(ident.Idents[0].Literal)
 		if err != nil {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
 		leaf.Exclusion = ident.IsPrefix()
@@ -207,20 +222,21 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 		return child, nil
 	}
 
+	// If the identifier has two segments, it is treated as a reference to a tuple and its corresponding user set.
 	if len(ident.Idents) == 2 {
 		if !t.withoutReferenceValidation {
 			types, exist := t.schema.GetRelationReferenceIfExist(utils.Key(entityName, ident.Idents[0].Literal))
 			if !exist {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 			}
 			if !t.schema.IsRelationalReferenceExist(utils.Key(utils.GetBaseEntityRelationTypeStatement(types).Type.Literal, ident.Idents[1].Literal)) {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+				return nil, compileError(ident.Idents[1].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 			}
 		}
 
 		leaf, err := t.compileTupleToUserSetIdentifier(ident.Idents[0].Literal, ident.Idents[1].Literal)
 		if err != nil {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
 		leaf.Exclusion = ident.IsPrefix()
@@ -228,7 +244,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 		return child, nil
 	}
 
-	return nil, errors.New(base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())
+	return nil, compileError(ident.Idents[2].PositionInfo, base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())
 }
 
 // compileComputedUserSetIdentifier - compiles the computed user set identifier by creating a leaf with a ComputedUserSet type.
@@ -258,4 +274,10 @@ func (t *Compiler) compileTupleToUserSetIdentifier(p, r string) (l *base.Leaf, e
 	}
 	leaf.Type = &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet}
 	return leaf, nil
+}
+
+// compileError creates an error with the given message and position information.
+func compileError(info token.PositionInfo, message string) error {
+	msg := fmt.Sprintf("%v:%v: %s", info.LinePosition, info.ColumnPosition, strings.ToLower(strings.Replace(strings.Replace(message, "ERROR_CODE_", "", -1), "_", " ", -1)))
+	return errors.New(msg)
 }
