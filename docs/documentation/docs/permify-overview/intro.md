@@ -73,6 +73,10 @@ This document explains how Permify handles these aspects to provide a robust and
     </a>
 </div>
 
+## Roadmap
+
+You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/projects/1)!
+
 ## Community & Support
 
 We would love to hear from you :heart:
