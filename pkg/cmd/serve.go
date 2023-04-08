@@ -113,7 +113,9 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				l.Fatal(err)
 			}
 
-			// TODO: add a way to stop the garbage collector
+			defer func() {
+				gc.Stop()
+			}()
 		}
 
 		// Meter

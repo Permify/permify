@@ -60,63 +60,57 @@ func (c *GarbageCollector) Start() error {
 		sem := semaphore.NewWeighted(int64(c.concurrencyLimit))
 		// for loop time ticker
 
+		// tracer start
+		ctx, span := tracer.Start(c.ctx, "garbage-collector.start")
+		defer span.End()
+
 		ticker := time.NewTicker(c.interval)
 		for _ = range ticker.C {
-
-			c.logger.Info("garbage collector started")
-			// acquire a semaphore before processing a request
-			if err := sem.Acquire(c.ctx, 1); err != nil {
-				return err
-			}
-
-			// tracer start
-			ctx, span := tracer.Start(c.ctx, "garbage-collector.start")
-			defer span.End()
-
-			tenants, err := c.getTenants(ctx)
-			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
-				return err
-			}
-
-			// run the permission check in a separate goroutine
-			c.g.Go(func() error {
-				defer sem.Release(1)
-
-				for i := range tenants {
-					garbageQuery := utils.GarbageCollectQuery(c.window, tenants[i].Id)
-
-					garbageSQL, garbageQueryArgs, err := garbageQuery.ToSql()
-					if err != nil {
-						span.RecordError(err)
-						span.SetStatus(codes.Error, err.Error())
-						return err
-					}
-
-					var garbageRows *sql.Rows
-					garbageRows, err = c.database.DB.QueryContext(ctx, garbageSQL, garbageQueryArgs...)
-					if err != nil {
-						span.RecordError(err)
-						span.SetStatus(codes.Error, err.Error())
-						c.logger.Error("garbage collector failed for tenant: " + tenants[i].Id + " " + err.Error())
-						return err
-					}
-
-					defer garbageRows.Close()
-
-					c.logger.Info("garbage collector finished for tenant: " + tenants[i].Id)
+			select {
+			case <-ctx.Done():
+				c.logger.Info("garbage collector stopped due to timeout")
+				return nil
+			default:
+				c.logger.Info("garbage collector started")
+				// acquire a semaphore before processing a request
+				if err := sem.Acquire(c.ctx, 1); err != nil {
+					return err
 				}
 
-				return nil
-			})
-		}
+				tenants, err := c.getTenants(ctx)
+				if err != nil {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
+					return err
+				}
 
+				// run the permission check in a separate goroutine
+				c.g.Go(func() error {
+					defer sem.Release(1)
+
+					for i := range tenants {
+						err := c.executeCollector(ctx, tenants[i].Id)
+						if err != nil {
+							span.RecordError(err)
+							span.SetStatus(codes.Error, err.Error())
+							c.logger.Error("garbage collector failed for tenant: " + tenants[i].Id + " with error: " + err.Error())
+
+							return err
+						}
+						c.logger.Info("garbage collector finished for tenant: " + tenants[i].Id)
+					}
+
+					time.Sleep(c.timeout)
+
+					return nil
+				})
+			}
+		}
 		// wait for all remaining semaphore resources to be released
 		if err := sem.Acquire(c.ctx, int64(c.concurrencyLimit)); err != nil {
 			return err
-		}
 
+		}
 		return nil
 	})
 
@@ -171,4 +165,21 @@ func (c *GarbageCollector) getTenants(ctx context.Context) ([]*base.Tenant, erro
 		return nil, err
 	}
 	return tenants, nil
+}
+
+func (c *GarbageCollector) executeCollector(ctx context.Context, tenantID string) error {
+	garbageQuery := utils.GarbageCollectQuery(c.window, tenantID)
+
+	garbageSQL, garbageQueryArgs, err := garbageQuery.ToSql()
+	if err != nil {
+
+		return err
+	}
+
+	_, err = c.database.DB.QueryContext(ctx, garbageSQL, garbageQueryArgs...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
