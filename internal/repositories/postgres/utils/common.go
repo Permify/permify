@@ -27,22 +27,15 @@ func SnapshotQuery(sl squirrel.SelectBuilder, revision uint64) squirrel.SelectBu
 
 // GarbageCollectQuery -
 func GarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
-	expiredTransactions := squirrel.
-		Select("id").
-		From("transactions").
-		Where(squirrel.Expr("timestamp < ?", time.Now().Add(-window)))
-	expiredRows := squirrel.
-		Select("*").
-		From("relation_tuples rt").
-		JoinClause(fmt.Sprintf("JOIN (%s) et ON rt.created_tx_id = et.id", expiredTransactions)).
-		Where(squirrel.Or{
-			squirrel.Expr("rt.expired_tx_id = '0'::xid8"),
-			squirrel.Expr("rt.expired_tx_id IN ?", expiredTransactions),
-		})
-	deleteQuery := squirrel.
-		Delete("relation_tuples").
-		Where(squirrel.Expr("id IN ?", expiredRows), squirrel.Eq{"tenant_id": tenantID})
-	return deleteQuery
+	return squirrel.Delete("relation_tuples").
+		Where(squirrel.Expr(fmt.Sprintf("created_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339)))).
+		Where(squirrel.And{
+			squirrel.Or{
+				squirrel.Expr("expired_tx_id = '0'::xid8"),
+				squirrel.Expr(fmt.Sprintf("expired_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339))),
+			},
+			squirrel.Expr(fmt.Sprintf("tenant_id = '%v'", tenantID))})
+
 }
 
 // Rollback - Rollbacks a transaction and logs the error
