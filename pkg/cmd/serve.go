@@ -104,7 +104,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Garbage collection
-		if cfg.DatabaseGarbageCollection.Enable {
+		if cfg.DatabaseGarbageCollection.Enable && cfg.Database.Engine != "memory" {
 			l.Info("🗑️ starting database garbage collection...")
 			gc := postgres.NewGarbageCollector(ctx, db.(*PQDatabase.Postgres), l, cfg.DatabaseGarbageCollection)
 
