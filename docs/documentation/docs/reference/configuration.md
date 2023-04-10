@@ -65,6 +65,12 @@ database:
   max_idle_connections: 1
   max_connection_lifetime: 300s
   max_connection_idle_time: 60s
+  garbage_collection:
+    enable: true
+    interval: 3m
+    timeout: 3m
+    window: 30d
+    number_of_threads: 1
 ```
 
 ## Options
@@ -251,19 +257,30 @@ Configurations for the database that points out where your want to store your au
 |   ├── max_idle_connections
 |   ├── max_connection_lifetime
 |   ├── max_connection_idle_time
+|   ├──garbage_collection
+|       ├──enable: true
+|       ├──interval: 3m
+|       ├──timeout: 3m
+|       ├──window: 30d
+|       ├──number_of_threads: 1
 ```
 
 #### Glossary
 
-| Required | Argument | Default | Description |
-|----------|----------|---------|---------|
-| [x]   | engine | memory | Data source. Permify supports **PostgreSQL**(`'postgres'`) for now. Contact with us for your preferred database.  
-| [x]   | uri | - | Uri of your data source.  |
-| [ ]   | auto_migrate | true |  When its configured as false migrating flow won't work 
-| [ ]   | max_open_connections | 20 | Configuration parameter determines the maximum number of concurrent connections to the database that are allowed. 
-| [ ]   | max_idle_connections | 1 |  Determines the maximum number of idle connections that can be held in the connection pool.
-| [ ]   | max_connection_lifetime | 300s | Determines the maximum lifetime of a connection in seconds.
-| [ ]   | max_connection_idle_time | 60s | Determines the maximum time in seconds that a connection can remain idle before it is closed.
+| Required | Argument                        | Default | Description |
+|----------|---------------------------------|---------|---------|
+| [x]   | engine                          | memory  | Data source. Permify supports **PostgreSQL**(`'postgres'`) for now. Contact with us for your preferred database.  
+| [x]   | uri                             | -       | Uri of your data source.  |
+| [ ]   | auto_migrate                    | true    |  When its configured as false migrating flow won't work 
+| [ ]   | max_open_connections            | 20      | Configuration parameter determines the maximum number of concurrent connections to the database that are allowed. 
+| [ ]   | max_idle_connections            | 1       |  Determines the maximum number of idle connections that can be held in the connection pool.
+| [ ]   | max_connection_lifetime         | 300s    | Determines the maximum lifetime of a connection in seconds.
+| [ ]   | max_connection_idle_time        | 60s     | Determines the maximum time in seconds that a connection can remain idle before it is closed.
+| [ ]   | enable (for garbage collection) | false   | Switch option for garbage collection.  
+| [ ]   | interval                        | 3m      | Determines the run period of a Garbage Collection operation. 
+| [ ]   | timeout                         | 3m      | Sets the duration of the Garbage Collection timeout.
+| [ ]   | window                          | 30d     | Determines how much backward cleaning the Garbage Collection process will perform.
+| [ ]   | number_of_threads               | 1       | Limits how many threads Garbage Collection processes concurrently with.
 
 </p>
 </details>
