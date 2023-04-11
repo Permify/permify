@@ -29,6 +29,18 @@ module.exports = {
 				"getting-started/sync-data",
 				"getting-started/enforcement",
 				"getting-started/testing",
+				{
+					type: 'category',
+					label: 'Examples',
+					link: {
+						type: "generated-index",
+						title: "Examples",
+						slug: "/getting-started/examples",
+					},
+					items: [
+						"getting-started/examples/google-docs"
+					],
+				},
 			],
 			collapsed: false,
 		},
