@@ -3,6 +3,7 @@ package keys
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/buraksezer/consistent"
 
 	"github.com/cespare/xxhash/v2"
 
@@ -13,15 +14,29 @@ import (
 
 // EngineKeys is a struct that holds an instance of a cache.Cache for managing engine keys.
 type EngineKeys struct {
-	cache cache.Cache
+	keys             []uint64
+	cache            cache.Cache
+	consistent       *consistent.Consistent
+	localNodeAddress string
 }
+
+type hashed struct{}
 
 // NewCheckEngineKeys creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
 func NewCheckEngineKeys(cache cache.Cache) EngineKeyManager {
+	// Create a new consistent instance
+	cfg := consistent.Config{
+		PartitionCount:    7,
+		ReplicationFactor: 20,
+		Load:              1.25,
+		Hasher:            hashed{},
+	}
+
 	// Return a new instance of EngineKeys with the provided cache
 	return &EngineKeys{
-		cache: cache,
+		consistent: consistent.New(nil, cfg),
+		cache:      cache,
 	}
 }
 
@@ -126,4 +141,19 @@ func (c *NoopEngineKeys) SetCheckKey(*base.PermissionCheckRequest, *base.Permiss
 // the key is not found, as it performs no actual caching or operations.
 func (c *NoopEngineKeys) GetCheckKey(*base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
 	return nil, false
+}
+
+func (h hashed) Sum64(data []byte) uint64 {
+	// you should use a proper hash function for uniformity.
+	return xxhash.Sum64(data)
+}
+
+// AddNode adds a new node to the EngineKeys cache for consistent hashing.
+func (c *EngineKeys) AddNode(node string) {
+	c.AddNode(node)
+}
+
+// RemoveNode removes a node from the EngineKeys cache for consistent hashing.
+func (c *EngineKeys) RemoveNode(node string) {
+	c.RemoveNode(node)
 }

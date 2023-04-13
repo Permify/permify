@@ -20,6 +20,7 @@ type (
 		Meter    `mapstructure:"meter"`    // Metrics configuration
 		Service  `mapstructure:"service"`  // Service configuration
 		Database `mapstructure:"database"` // Database configuration
+		Nodes    `mapstructure:"nodes"`    // Nodes configuration
 	}
 
 	// Server contains the configurations for both HTTP and gRPC servers.
@@ -141,6 +142,11 @@ type (
 		Timeout         time.Duration `mapstructure:"timeout"`
 		Window          time.Duration `mapstructure:"window"`
 		NumberOfThreads int           `mapstructure:"number_of_threads"`
+	}
+
+	// Nodes contains configuration for the nodes.
+	Nodes struct {
+		NodeList []string `mapstructure:"node_list"`
 	}
 )
 
