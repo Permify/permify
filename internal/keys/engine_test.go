@@ -1,6 +1,7 @@
 package keys
 
 import (
+	"github.com/Permify/permify/internal/config"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,8 +16,11 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
+	// Initialize a new Config struct with default values
+	cfg := config.DefaultConfig()
+
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := NewCheckEngineKeys(cache)
+	engineKeys := NewCheckEngineKeys(cache, cfg.Server)
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -66,8 +70,11 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
+	// Initialize a new Config struct with default values
+	cfg := config.DefaultConfig()
+
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := NewCheckEngineKeys(cache)
+	engineKeys := NewCheckEngineKeys(cache, cfg.Server)
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -117,8 +124,11 @@ func TestEngineKeys_GetCheckKey_KeyNotFound(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
+	// Initialize a new Config struct with default values
+	cfg := config.DefaultConfig()
+
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := NewCheckEngineKeys(cache)
+	engineKeys := NewCheckEngineKeys(cache, cfg.Server)
 
 	// Create a new PermissionCheckRequest
 	checkReq := &base.PermissionCheckRequest{
@@ -153,8 +163,11 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
+	// Initialize a new Config struct with default values
+	cfg := config.DefaultConfig()
+
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := NewCheckEngineKeys(cache)
+	engineKeys := NewCheckEngineKeys(cache, cfg.Server)
 
 	// Create some new PermissionCheckRequests and PermissionCheckResponses
 	checkReq1 := &base.PermissionCheckRequest{

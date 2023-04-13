@@ -168,7 +168,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// key managers
-		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache)
+		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, cfg.Server)
 
 		// engines
 		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))

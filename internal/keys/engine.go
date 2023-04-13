@@ -3,8 +3,8 @@ package keys
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/buraksezer/consistent"
-
+	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/pkg/consistent"
 	"github.com/cespare/xxhash/v2"
 
 	"github.com/Permify/permify/pkg/cache"
@@ -16,27 +16,23 @@ import (
 type EngineKeys struct {
 	keys             []uint64
 	cache            cache.Cache
-	consistent       *consistent.Consistent
+	consistent       *hash.ConsistentHash
 	localNodeAddress string
 }
 
-type hashed struct{}
-
 // NewCheckEngineKeys creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineKeys(cache cache.Cache) EngineKeyManager {
-	// Create a new consistent instance
-	cfg := consistent.Config{
-		PartitionCount:    7,
-		ReplicationFactor: 20,
-		Load:              1.25,
-		Hasher:            hashed{},
-	}
+func NewCheckEngineKeys(cache cache.Cache, cfg config.Server) EngineKeyManager {
+
+	// Initialize a new instance of ConsistentHash with 100 replicas
+	consistent := hash.NewConsistentHash(100, nil)
+	consistent.Add(cfg.Address + ":" + cfg.HTTP.Port)
 
 	// Return a new instance of EngineKeys with the provided cache
 	return &EngineKeys{
-		consistent: consistent.New(nil, cfg),
-		cache:      cache,
+		localNodeAddress: cfg.Address + ":" + cfg.HTTP.Port,
+		consistent:       consistent,
+		cache:            cache,
 	}
 }
 
@@ -67,8 +63,21 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 	// Generate the final cache key by encoding the hash object's sum as a hexadecimal string
 	k := hex.EncodeToString(h.Sum(nil))
 
-	// Set the cache key with the given value and size, then return the result
-	return c.cache.Set(k, value.Can, int64(size))
+	// Use Consistent Hashing to find the responsible node for the given key
+	node, found := c.consistent.Get(checkKey)
+	if !found {
+		// If the responsible node is not found, return false
+		return false
+	}
+
+	// Check if the node is the local node
+	if node == c.localNodeAddress {
+		// Set the cache key with the given value and size, then return the result
+		return c.cache.Set(k, value.Can, int64(size))
+	} else {
+		// if node is not local, forward the request to the responsible node
+		return true
+	}
 }
 
 // GetCheckKey retrieves the value for the given key from the EngineKeys cache.
@@ -100,21 +109,32 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 	// Generate the final cache key by encoding the hash object's sum as a hexadecimal string
 	k := hex.EncodeToString(h.Sum(nil))
 
-	// Get the value from the cache using the generated cache key
-	resp, found := c.cache.Get(k)
-
-	// If the key is found, return the value and true
-	if found {
-		// If permission is granted, return allowed response
-		return &base.PermissionCheckResponse{
-			Can: resp.(base.PermissionCheckResponse_Result),
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, true
+	// Find the responsible node for the given key
+	node, ok := c.consistent.Get(k)
+	if !ok {
+		// If the node is not found, return nil and false
+		return nil, false
 	}
 
-	// If the key is not found, return nil and false
+	// Check if the responsible node is the local node
+	if node == c.localNodeAddress {
+		// Get the value from the cache using the generated cache key
+		resp, found := c.cache.Get(k)
+
+		// If the key is found, return the value and true
+		if found {
+			// If permission is granted, return allowed response
+			return &base.PermissionCheckResponse{
+				Can: resp.(base.PermissionCheckResponse_Result),
+				Metadata: &base.PermissionCheckResponseMetadata{
+					CheckCount: 0,
+				},
+			}, true
+		}
+	} else {
+		// if node is not local, forward the request to the responsible node
+	}
+
 	return nil, false
 }
 
@@ -141,19 +161,4 @@ func (c *NoopEngineKeys) SetCheckKey(*base.PermissionCheckRequest, *base.Permiss
 // the key is not found, as it performs no actual caching or operations.
 func (c *NoopEngineKeys) GetCheckKey(*base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
 	return nil, false
-}
-
-func (h hashed) Sum64(data []byte) uint64 {
-	// you should use a proper hash function for uniformity.
-	return xxhash.Sum64(data)
-}
-
-// AddNode adds a new node to the EngineKeys cache for consistent hashing.
-func (c *EngineKeys) AddNode(node string) {
-	c.AddNode(node)
-}
-
-// RemoveNode removes a node from the EngineKeys cache for consistent hashing.
-func (c *EngineKeys) RemoveNode(node string) {
-	c.RemoveNode(node)
 }

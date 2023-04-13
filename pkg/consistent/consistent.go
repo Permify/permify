@@ -96,6 +96,7 @@ func (h *ConsistentHash) Get(v string) (string, bool) {
 	if node != "" {
 		return node, true
 	}
+
 	return "", false
 }
 
