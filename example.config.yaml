@@ -2,6 +2,7 @@
 # including whether or not TLS is enabled and the certificate and
 # key file locations.
 server:
+  address: localhost
   http:
     enabled: true
     port: 3476
@@ -81,6 +82,3 @@ database:
     timeout: 3m
     window: 30d
     number_of_threads: 1
-
-nodes:
-  node_list: ['string1', 'string2']

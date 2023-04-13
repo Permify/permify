@@ -14,6 +14,15 @@ func RegisterServeFlags(cmd *cobra.Command) {
 
 	flags := cmd.Flags()
 
+	// Server
+	flags.String("server-address", conf.Server.Address, "address that server run on")
+	if err = viper.BindPFlag("server.address", flags.Lookup("address")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.address", "PERMIFY_ADDRESS"); err != nil {
+		panic(err)
+	}
+
 	// GRPC Server
 	flags.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
 	if err = viper.BindPFlag("server.grpc.port", flags.Lookup("grpc-port")); err != nil {

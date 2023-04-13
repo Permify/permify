@@ -20,13 +20,13 @@ type (
 		Meter    `mapstructure:"meter"`    // Metrics configuration
 		Service  `mapstructure:"service"`  // Service configuration
 		Database `mapstructure:"database"` // Database configuration
-		Nodes    `mapstructure:"nodes"`    // Nodes configuration
 	}
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		HTTP `mapstructure:"http"` // HTTP server configuration
-		GRPC `mapstructure:"grpc"` // gRPC server configuration
+		Address string                `mapstructure:"address"` // Address for the server
+		HTTP    `mapstructure:"http"` // HTTP server configuration
+		GRPC    `mapstructure:"grpc"` // gRPC server configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.
@@ -143,11 +143,6 @@ type (
 		Window          time.Duration `mapstructure:"window"`
 		NumberOfThreads int           `mapstructure:"number_of_threads"`
 	}
-
-	// Nodes contains configuration for the nodes.
-	Nodes struct {
-		NodeList []string `mapstructure:"node_list"`
-	}
 )
 
 // NewConfig initializes and returns a new Config object by reading and unmarshalling
@@ -190,6 +185,7 @@ func NewConfig() (*Config, error) {
 func DefaultConfig() *Config {
 	return &Config{
 		Server: Server{
+			Address: "localhost",
 			HTTP: HTTP{
 				Enabled: true,
 				Port:    "3476",
