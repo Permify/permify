@@ -82,8 +82,8 @@ func GetRelationByNameInEntityDefinition(entityDefinition *base.EntityDefinition
 }
 
 // IsDirectlyRelated -
-func IsDirectlyRelated(targetRelation *base.RelationDefinition, source *base.RelationReference) bool {
-	for _, refs := range targetRelation.GetRelationReferences() {
+func IsDirectlyRelated(target *base.RelationDefinition, source *base.RelationReference) bool {
+	for _, refs := range target.GetRelationReferences() {
 		if source.GetType() == refs.GetType() {
 			if refs.GetRelation() == source.GetRelation() {
 				return true

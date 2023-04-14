@@ -60,7 +60,6 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 // It returns the PermissionCheckResponse if the key is found, and a boolean value
 // indicating whether the key was found or not.
 func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
-
 	if key == nil {
 		// If either the key or value is nil, return false
 		return nil, false

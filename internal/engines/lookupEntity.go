@@ -64,7 +64,19 @@ func (engine *LookupEntityEngine) Run(ctx context.Context, request *base.Permiss
 	visits := &ERMap{}
 
 	// Get unique entity IDs by entity type
-	err = engine.linkedEntityEngine.Run(ctx, request, visits, publisher)
+	err = engine.linkedEntityEngine.Run(ctx, &base.PermissionLinkedEntityRequest{
+		TenantId: request.GetTenantId(),
+		Metadata: &base.PermissionLinkedEntityRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		},
+		EntityReference: &base.RelationReference{
+			Type:     request.GetEntityType(),
+			Relation: request.GetPermission(),
+		},
+		Subject: request.GetSubject(),
+	}, visits, publisher)
 	if err != nil {
 		return nil, err
 	}
@@ -88,17 +100,13 @@ func (engine *LookupEntityEngine) Stream(ctx context.Context, request *base.Perm
 	ctx, span := tracer.Start(ctx, "permissions.lookup-entity.stream")
 	defer span.End()
 
-	var mu sync.Mutex
-
 	// Define callback function for handling permission check results
 	callback := func(entityID string, result base.PermissionCheckResponse_Result) {
 		if result == base.PermissionCheckResponse_RESULT_ALLOWED {
-			// Send allowed entity ID to the stream
-			mu.Lock()
-			defer mu.Unlock()
-			if err = server.Send(&base.PermissionLookupEntityStreamResponse{
+			err := server.Send(&base.PermissionLookupEntityStreamResponse{
 				EntityId: entityID,
-			}); err != nil {
+			})
+			if err != nil {
 				return
 			}
 		}
@@ -115,10 +123,19 @@ func (engine *LookupEntityEngine) Stream(ctx context.Context, request *base.Perm
 	visits := &ERMap{}
 
 	// Get unique entity IDs by entity type
-	err = engine.linkedEntityEngine.Run(ctx, request, visits, publisher)
-	if err != nil {
-		return err
-	}
+	err = engine.linkedEntityEngine.Run(ctx, &base.PermissionLinkedEntityRequest{
+		TenantId: request.GetTenantId(),
+		Metadata: &base.PermissionLinkedEntityRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		},
+		EntityReference: &base.RelationReference{
+			Type:     request.GetEntityType(),
+			Relation: request.GetPermission(),
+		},
+		Subject: request.GetSubject(),
+	}, visits, publisher)
 
 	// Stop input and wait for BulkChecker to finish
 	checker.Stop()

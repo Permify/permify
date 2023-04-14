@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 // LinkedEntityEngine is responsible for executing linked entity operations
@@ -30,72 +29,51 @@ func NewLinkedEntityEngine(schemaReader repositories.SchemaReader, relationshipR
 	}
 }
 
-// Run is a function that processes PermissionLookupEntityRequest and returns linked entities based on the given request.
-// It finds the relationships and associated permissions between entities, and then publishes the results using a BulkPublisher.
-// This function handles different types of LinkedEntrance, such as RelationLinkedEntrance, ComputedUserSetLinkedEntrance, and TupleToUserSetLinkedEntrance.
-//
-// Parameters:
-// - ctx: A context that carries deadlines, cancellations, and other request-scoped values.
-// - request: A PermissionLookupEntityRequest object that contains information about the entities, permissions, and metadata.
-// - visits: An ERMap used to store the visited entity relationships to avoid cyclic dependencies and duplicate processing.
-// - publisher: A BulkPublisher used to publish the results.
-//
-// Returns:
-// - An error if any issues are encountered during the process, otherwise nil.
-//
-// The function starts by checking if the subject type and relation match the requested entity type and permission.
-// If they match, it publishes an entity with an unknown permission result and returns.
-//
-// It then sets the SnapToken and SchemaVersion in the request metadata if they are not provided.
-//
-// The function retrieves the schema definition and linked entrances based on the entity type, permission, subject type, and subject relation.
-//
-// It iterates through the entrances, handling each entrance type differently.
-// For RelationLinkedEntrance, it calls the relationEntrance function.
-// For ComputedUserSetLinkedEntrance, it recursively calls the Run function with an updated subject relation.
-// For TupleToUserSetLinkedEntrance, it calls the tupleToUserSetEntrance function.
-//
-// In case of an unknown entrance type, it returns an error.
-//
-// Finally, the function waits for all the goroutines to finish and returns any errors encountered.
-func (engine *LinkedEntityEngine) Run(ctx context.Context, request *base.PermissionLookupEntityRequest, visits *ERMap, publisher *BulkPublisher) (err error) {
-	ctx, span := tracer.Start(ctx, "permissions.linked-entity.execute")
+// Run is a method of the LinkedEntityEngine struct. It executes a permission request for linked entities.
+func (engine *LinkedEntityEngine) Run(
+	ctx context.Context, // A context used for tracing and cancellation.
+	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
+	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
+	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+) (err error) { // Returns an error if one occurs during execution.
+	ctx, span := tracer.Start(ctx, "permissions.linked-entity.execute") // Start a new span for tracing purposes.
 	defer span.End()
 
-	if request.GetSubject().GetType() == request.GetEntityType() && request.GetSubject().GetRelation() == request.GetPermission() {
-
-		// (TODO) direct result and exclusion impl.
-
-		publisher.Publish(&base.Entity{
-			Type: request.GetSubject().GetType(),
-			Id:   request.GetSubject().GetId(),
-		}, &base.PermissionCheckRequestMetadata{
-			SnapToken:     request.Metadata.GetSnapToken(),
-			SchemaVersion: request.Metadata.GetSchemaVersion(),
-			Depth:         request.Metadata.GetDepth(),
-			Exclusion:     false,
-		}, base.PermissionCheckResponse_RESULT_UNKNOWN)
-		return nil
-	}
-
 	// Set SnapToken if not provided
-	if request.GetMetadata().GetSnapToken() == "" {
+	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
 		var st token.SnapToken
-		st, err = engine.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
+		st, err = engine.relationshipReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
 		if err != nil {
 			return err
 		}
-		request.Metadata.SnapToken = st.Encode().String()
+		request.Metadata.SnapToken = st.Encode().String() // Set the SnapToken in the request metadata.
 	}
 
 	// Set SchemaVersion if not provided
-	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = engine.schemaReader.HeadVersion(ctx, request.GetTenantId())
+	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
+		request.Metadata.SchemaVersion, err = engine.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return err
 		}
+	}
+
+	// Check if direct result
+	if request.GetEntityReference().GetType() == request.GetSubject().GetType() && request.GetEntityReference().GetRelation() == request.GetSubject().GetRelation() {
+		// TODO: Implement direct result and exclusion logic.
+
+		// If the entity reference is the same as the subject, publish the result directly and return.
+		publisher.Publish(&base.Entity{
+			Type: request.GetSubject().GetType(),
+			Id:   request.GetSubject().GetId(),
+		}, &base.PermissionCheckRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+			Exclusion:     false,
+		}, base.PermissionCheckResponse_RESULT_UNKNOWN)
+		return nil
 	}
 
 	// Retrieve entity definition
@@ -108,213 +86,198 @@ func (engine *LinkedEntityEngine) Run(ctx context.Context, request *base.Permiss
 	}
 
 	// Retrieve linked entrances
-	cn := schema.NewLinkedGraph(sc)
-	var entrances []schema.LinkedEntrance
+	cn := schema.NewLinkedGraph(sc) // Create a new linked graph from the schema definition.
+	var entrances []*schema.LinkedEntrance
 	entrances, err = cn.RelationshipLinkedEntrances(
 		&base.RelationReference{
-			Type:     request.GetEntityType(),
-			Relation: request.GetPermission(),
+			Type:     request.GetEntityReference().GetType(),
+			Relation: request.GetEntityReference().GetRelation(),
 		},
 		&base.RelationReference{
 			Type:     request.GetSubject().GetType(),
 			Relation: request.GetSubject().GetRelation(),
 		},
-	)
+	) // Retrieve the linked entrances between the entity reference and subject.
 
+	// Create a new context for executing goroutines and a cancel function.
 	cctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	// Create a new errgroup and a new context that inherits the original context.
 	g, cont := errgroup.WithContext(cctx)
 
+	// Loop over each linked entrance.
 	for _, entrance := range entrances {
+		// Switch on the kind of linked entrance.
 		switch entrance.LinkedEntranceKind() {
-		case schema.RelationLinkedEntrance:
-			err = engine.relationEntrance(cont, LinkedEntityRequest{
-				Metadata: request.GetMetadata(),
-				TenantID: request.GetTenantId(),
-				Entrance: entrance,
-				Target: &base.RelationReference{
-					Type:     request.GetEntityType(),
-					Relation: request.GetPermission(),
-				},
-				Subject: request.GetSubject(),
-			}, g, visits, publisher)
+		case schema.RelationLinkedEntrance: // If the linked entrance is a relation entrance.
+			err = engine.relationEntrance(cont, request, entrance, visits, g, publisher) // Call the relation entrance method.
 			if err != nil {
 				return err
 			}
-		case schema.ComputedUserSetLinkedEntrance:
-			return engine.Run(ctx, &base.PermissionLookupEntityRequest{
-				TenantId:   request.GetTenantId(),
-				Metadata:   request.GetMetadata(),
-				EntityType: request.GetEntityType(),
-				Permission: request.GetPermission(),
-				Subject: &base.Subject{
-					Type:     request.GetSubject().GetType(),
-					Id:       request.GetSubject().GetId(),
-					Relation: entrance.LinkedEntrance.GetRelation(),
+		case schema.ComputedUserSetLinkedEntrance: // If the linked entrance is a computed user set entrance.
+			err = engine.run(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
+				Entity: &base.Entity{
+					Type: entrance.TargetEntrance.GetType(),
+					Id:   request.GetSubject().GetId(),
 				},
-			}, visits, publisher)
-		case schema.TupleToUserSetLinkedEntrance:
-			err = engine.tupleToUserSetEntrance(cont, LinkedEntityRequest{
-				Metadata: request.GetMetadata(),
-				TenantID: request.GetTenantId(),
-				Entrance: entrance,
-				Target: &base.RelationReference{
-					Type:     request.GetEntityType(),
-					Relation: request.GetPermission(),
-				},
-				Subject: request.GetSubject(),
-			}, g, visits, publisher)
+				Relation: entrance.TargetEntrance.GetRelation(),
+			}, visits, g, publisher)
+			if err != nil {
+				return err
+			}
+		case schema.TupleToUserSetLinkedEntrance: // If the linked entrance is a tuple to user set entrance.
+			err = engine.tupleToUserSetEntrance(cont, request, entrance, visits, g, publisher) // Call the tuple to user set entrance method.
 			if err != nil {
 				return err
 			}
 		default:
-			return errors.New("unknown linked entrance type")
+			return errors.New("unknown linked entrance type") // Return an error if the linked entrance is of an unknown type.
 		}
 	}
 
-	return g.Wait()
+	return g.Wait() // Wait for all goroutines in the errgroup to complete and return any errors that occur.
 }
 
-// relationEntrance is a function that handles the execution of a RelationLinkedEntrance.
-// It queries relationships based on the provided LinkedEntityRequest and publishes the results using a BulkPublisher.
-//
-// Parameters:
-// - ctx: A context that carries deadlines, cancellations, and other request-scoped values.
-// - request: A LinkedEntityRequest object containing the metadata, tenant ID, entrance, target, and subject information.
-// - g: An errgroup.Group to manage concurrent goroutines and collect errors.
-// - visits: An ERMap used to store the visited entity relationships to avoid cyclic dependencies and duplicate processing.
-// - publisher: A BulkPublisher used to publish the results.
-//
-// Returns:
-// - An error if any issues are encountered during the process, otherwise nil.
-//
-// The function starts by querying relationships using the relationshipReader, based on the entrance type, relation, and subject filter.
-// The results are obtained through an iterator.
-//
-// It iterates through the relationships returned by the iterator.
-// If the current entity relationship has not been visited, it adds the entity to the visits ERMap.
-//
-// The function then spawns a new goroutine, calling the Run function with a PermissionLookupEntityRequest built from the current entity relationship.
-//
-// The Run function handles the next steps of the process and publishes the results using the provided BulkPublisher.
-//
-// The relationEntrance function returns nil once all relationships have been processed.
+// relationEntrance is a method of the LinkedEntityEngine struct. It handles relation entrances.
 func (engine *LinkedEntityEngine) relationEntrance(
-	ctx context.Context,
-	request LinkedEntityRequest,
-	g *errgroup.Group,
-	visits *ERMap,
-	publisher *BulkPublisher,
-) error {
-	it, err := engine.relationshipReader.QueryRelationships(ctx, request.TenantID, &base.TupleFilter{
+	ctx context.Context, // A context used for tracing and cancellation.
+	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
+	entrance *schema.LinkedEntrance, // A linked entrance.
+	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group, // An errgroup used for executing goroutines.
+	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+) error { // Returns an error if one occurs during execution.
+	it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 		Entity: &base.EntityFilter{
-			Type: request.Entrance.LinkedEntrance.GetType(),
+			Type: entrance.TargetEntrance.GetType(),
 			Ids:  []string{},
 		},
-		Relation: request.Entrance.LinkedEntrance.GetRelation(),
+		Relation: entrance.TargetEntrance.GetRelation(),
 		Subject: &base.SubjectFilter{
-			Type:     request.Subject.GetType(),
-			Ids:      []string{request.Subject.GetId()},
-			Relation: request.Subject.Relation,
+			Type:     request.GetSubject().GetType(),
+			Ids:      []string{request.GetSubject().GetId()},
+			Relation: request.GetSubject().GetRelation(),
 		},
-	}, request.Metadata.GetSnapToken())
+	}, request.GetMetadata().GetSnapToken()) // Query the relationship reader for relationships that match the linked entrance and the request metadata.
 	if err != nil {
 		return err
 	}
 
-	for it.HasNext() {
+	for it.HasNext() { // Loop over each relationship.
 		current := it.GetNext()
-
-		if !visits.Add(current.GetEntity()) {
-			continue
-		}
-
 		g.Go(func() error {
-			return engine.Run(ctx, &base.PermissionLookupEntityRequest{
-				TenantId:   request.TenantID,
-				Metadata:   request.Metadata,
-				EntityType: request.Target.GetType(),
-				Permission: request.Target.GetRelation(),
-				Subject: &base.Subject{
-					Type:     current.GetEntity().GetType(),
-					Id:       current.GetEntity().GetId(),
-					Relation: current.GetRelation(),
+			return engine.run(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
+				Entity: &base.Entity{
+					Type: current.GetEntity().GetType(),
+					Id:   current.GetEntity().GetId(),
 				},
-			}, visits, publisher)
+				Relation: current.GetRelation(),
+			}, visits, g, publisher)
 		})
 	}
 	return nil
 }
 
-// tupleToUserSetEntrance is a function that handles the execution of a TupleToUserSetLinkedEntrance.
-// It queries relationships based on the provided LinkedEntityRequest and publishes the results using a BulkPublisher.
-//
-// Parameters:
-// - ctx: A context that carries deadlines, cancellations, and other request-scoped values.
-// - request: A LinkedEntityRequest object containing the metadata, tenant ID, entrance, target, and subject information.
-// - g: An errgroup.Group to manage concurrent goroutines and collect errors.
-// - visits: An ERMap used to store the visited entity relationships to avoid cyclic dependencies and duplicate processing.
-// - publisher: A BulkPublisher used to publish the results.
-//
-// Returns:
-// - An error if any issues are encountered during the process, otherwise nil.
-//
-// The function starts by querying relationships using the relationshipReader, based on the entrance type, tuple set relation, and subject filter.
-// The results are obtained through an iterator.
-//
-// It iterates through the relationships returned by the iterator.
-// If the current entity relationship has not been visited, it adds the entity to the visits ERMap.
-//
-// The function then spawns a new goroutine, calling the Run function with a PermissionLookupEntityRequest built from the current entity relationship,
-// and the relation from the LinkedEntrance instead of the tuple set relation.
-//
-// The Run function handles the next steps of the process and publishes the results using the provided BulkPublisher.
-//
-// The tupleToUserSetEntrance function returns nil once all relationships have been processed.
+// tupleToUserSetEntrance is a method of the LinkedEntityEngine struct. It handles tuple to user set entrances.
 func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
+	// A context used for tracing and cancellation.
 	ctx context.Context,
-	request LinkedEntityRequest,
-	g *errgroup.Group,
+	// A permission request for linked entities.
+	request *base.PermissionLinkedEntityRequest,
+	// A linked entrance.
+	entrance *schema.LinkedEntrance,
+	// A map that keeps track of visited entities to avoid infinite loops.
 	visits *ERMap,
+	// An errgroup used for executing goroutines.
+	g *errgroup.Group,
+	// A custom publisher that publishes results in bulk.
 	publisher *BulkPublisher,
-) error {
-	it, err := engine.relationshipReader.QueryRelationships(ctx, request.TenantID, &base.TupleFilter{
+) error { // Returns an error if one occurs during execution.
+	it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 		Entity: &base.EntityFilter{
-			Type: request.Entrance.LinkedEntrance.GetType(),
+			Type: entrance.TargetEntrance.GetType(),
 			Ids:  []string{},
 		},
-		Relation: request.Entrance.TupleSetRelation.GetRelation(),
+		Relation: entrance.TupleSetRelation, // Query for relationships that match the tuple set relation.
 		Subject: &base.SubjectFilter{
-			Type:     request.Subject.GetType(),
-			Ids:      []string{request.Subject.GetId()},
-			Relation: tuple.ELLIPSIS,
+			Type:     request.GetSubject().GetType(),
+			Ids:      []string{request.GetSubject().GetId()},
+			Relation: request.GetSubject().GetRelation(),
 		},
-	}, request.Metadata.GetSnapToken())
+	}, request.GetMetadata().GetSnapToken())
 	if err != nil {
 		return err
 	}
 
-	for it.HasNext() {
+	for it.HasNext() { // Loop over each relationship.
 		current := it.GetNext()
-
-		if !visits.Add(current.GetEntity()) {
-			continue
-		}
-
 		g.Go(func() error {
-			return engine.Run(ctx, &base.PermissionLookupEntityRequest{
-				TenantId:   request.TenantID,
-				Metadata:   request.Metadata,
-				EntityType: request.Target.GetType(),
-				Permission: request.Target.GetRelation(),
-				Subject: &base.Subject{
-					Type:     current.GetEntity().GetType(),
-					Id:       current.GetEntity().GetId(),
-					Relation: request.Entrance.LinkedEntrance.GetRelation(),
+			return engine.run(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
+				Entity: &base.Entity{
+					Type: entrance.TargetEntrance.GetType(),
+					Id:   current.GetEntity().GetId(),
 				},
-			}, visits, publisher)
+				Relation: entrance.TargetEntrance.GetRelation(),
+			}, visits, g, publisher)
 		})
 	}
+
+	return nil
+}
+
+// run is a method of the LinkedEntityEngine struct. It executes the linked entity engine for a given request.
+func (engine *LinkedEntityEngine) run(
+	ctx context.Context, // A context used for tracing and cancellation.
+	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
+	found *base.EntityAndRelation, // An entity and relation that was previously found.
+	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group, // An errgroup used for executing goroutines.
+	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+) error { // Returns an error if one occurs during execution.
+	sc, err := engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion()) // Retrieve the entity definition for the request.
+	if err != nil {
+		return err
+	}
+
+	// Retrieve linked entrances
+	cn := schema.NewLinkedGraph(sc)
+	var entrances []*schema.LinkedEntrance
+	entrances, err = cn.RelationshipLinkedEntrances(
+		&base.RelationReference{
+			Type:     request.GetEntityReference().GetType(),
+			Relation: request.GetEntityReference().GetRelation(),
+		},
+		&base.RelationReference{
+			Type:     request.GetSubject().GetType(),
+			Relation: request.GetSubject().GetRelation(),
+		},
+	) // Retrieve the linked entrances for the request.
+
+	if entrances == nil { // If there are no linked entrances for the request.
+		if found.GetEntity().GetType() == request.GetEntityReference().GetType() && found.GetRelation() == request.GetEntityReference().GetRelation() { // Check if the found entity matches the requested entity reference.
+			publisher.Publish(found.GetEntity(), &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
+				SnapToken:     request.GetMetadata().GetSnapToken(),
+				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+				Depth:         request.GetMetadata().GetDepth(),
+				Exclusion:     false,
+			}, base.PermissionCheckResponse_RESULT_UNKNOWN)
+			return nil
+		}
+		return nil // Otherwise, return without publishing any results.
+	}
+
+	g.Go(func() error {
+		return engine.Run(ctx, &base.PermissionLinkedEntityRequest{ // Call the Run method recursively with a new permission request.
+			TenantId:        request.GetTenantId(),
+			EntityReference: request.GetEntityReference(),
+			Subject: &base.Subject{
+				Type:     found.GetEntity().GetType(),
+				Id:       found.GetEntity().GetId(),
+				Relation: found.GetRelation(),
+			},
+			Metadata: request.GetMetadata(),
+		}, visits, publisher)
+	})
 	return nil
 }

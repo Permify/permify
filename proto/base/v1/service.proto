@@ -246,6 +246,29 @@ message PermissionLookupEntityStreamResponse {
   string entity_id = 1 [json_name = "entity_id"];
 }
 
+// PermissionLinkedEntityRequest
+message PermissionLinkedEntityRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern: "^[a-zA-Z0-9]+$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  PermissionLinkedEntityRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  RelationReference entity_reference = 3;
+
+  Subject subject = 4;
+}
+
+// PermissionLookupEntityRequestMetadata
+message PermissionLinkedEntityRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
+  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
+}
+
+
 // ** SCHEMA SERVICE **
 
 // Schema
