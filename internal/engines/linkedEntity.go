@@ -3,7 +3,6 @@ package engines
 import (
 	"context"
 	"errors"
-
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/sync/errgroup"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
+	`github.com/Permify/permify/pkg/tuple`
 )
 
 // LinkedEntityEngine is responsible for executing linked entity operations
@@ -31,10 +31,10 @@ func NewLinkedEntityEngine(schemaReader repositories.SchemaReader, relationshipR
 
 // Run is a method of the LinkedEntityEngine struct. It executes a permission request for linked entities.
 func (engine *LinkedEntityEngine) Run(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) (err error) { // Returns an error if one occurs during execution.
 	ctx, span := tracer.Start(ctx, "permissions.linked-entity.execute") // Start a new span for tracing purposes.
 	defer span.End()
@@ -141,12 +141,12 @@ func (engine *LinkedEntityEngine) Run(
 
 // relationEntrance is a method of the LinkedEntityEngine struct. It handles relation entrances.
 func (engine *LinkedEntityEngine) relationEntrance(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
-	entrance *schema.LinkedEntrance, // A linked entrance.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	entrance *schema.LinkedEntrance,             // A linked entrance.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group,                           // An errgroup used for executing goroutines.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
 	it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 		Entity: &base.EntityFilter{
@@ -181,59 +181,60 @@ func (engine *LinkedEntityEngine) relationEntrance(
 
 // tupleToUserSetEntrance is a method of the LinkedEntityEngine struct. It handles tuple to user set entrances.
 func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
-	// A context used for tracing and cancellation.
+// A context used for tracing and cancellation.
 	ctx context.Context,
-	// A permission request for linked entities.
+// A permission request for linked entities.
 	request *base.PermissionLinkedEntityRequest,
-	// A linked entrance.
+// A linked entrance.
 	entrance *schema.LinkedEntrance,
-	// A map that keeps track of visited entities to avoid infinite loops.
+// A map that keeps track of visited entities to avoid infinite loops.
 	visits *ERMap,
-	// An errgroup used for executing goroutines.
+// An errgroup used for executing goroutines.
 	g *errgroup.Group,
-	// A custom publisher that publishes results in bulk.
+// A custom publisher that publishes results in bulk.
 	publisher *BulkPublisher,
 ) error { // Returns an error if one occurs during execution.
-	it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
-		Entity: &base.EntityFilter{
-			Type: entrance.TargetEntrance.GetType(),
-			Ids:  []string{},
-		},
-		Relation: entrance.TupleSetRelation, // Query for relationships that match the tuple set relation.
-		Subject: &base.SubjectFilter{
-			Type:     request.GetSubject().GetType(),
-			Ids:      []string{request.GetSubject().GetId()},
-			Relation: request.GetSubject().GetRelation(),
-		},
-	}, request.GetMetadata().GetSnapToken())
-	if err != nil {
-		return err
-	}
+	for _, relation := range []string{tuple.ELLIPSIS, request.GetSubject().GetRelation()} {
+		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+			Entity: &base.EntityFilter{
+				Type: entrance.TargetEntrance.GetType(),
+				Ids:  []string{},
+			},
+			Relation: entrance.TupleSetRelation, // Query for relationships that match the tuple set relation.
+			Subject: &base.SubjectFilter{
+				Type:     request.GetSubject().GetType(),
+				Ids:      []string{request.GetSubject().GetId()},
+				Relation: relation,
+			},
+		}, request.GetMetadata().GetSnapToken())
+		if err != nil {
+			return err
+		}
 
-	for it.HasNext() { // Loop over each relationship.
-		current := it.GetNext()
-		g.Go(func() error {
-			return engine.run(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
-				Entity: &base.Entity{
-					Type: entrance.TargetEntrance.GetType(),
-					Id:   current.GetEntity().GetId(),
-				},
-				Relation: entrance.TargetEntrance.GetRelation(),
-			}, visits, g, publisher)
-		})
+		for it.HasNext() { // Loop over each relationship.
+			current := it.GetNext()
+			g.Go(func() error {
+				return engine.run(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
+					Entity: &base.Entity{
+						Type: entrance.TargetEntrance.GetType(),
+						Id:   current.GetEntity().GetId(),
+					},
+					Relation: entrance.TargetEntrance.GetRelation(),
+				}, visits, g, publisher)
+			})
+		}
 	}
-
 	return nil
 }
 
 // run is a method of the LinkedEntityEngine struct. It executes the linked entity engine for a given request.
 func (engine *LinkedEntityEngine) run(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
-	found *base.EntityAndRelation, // An entity and relation that was previously found.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	found *base.EntityAndRelation,               // An entity and relation that was previously found.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group,                           // An errgroup used for executing goroutines.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
 	sc, err := engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion()) // Retrieve the entity definition for the request.
 	if err != nil {
