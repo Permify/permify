@@ -1,8 +1,9 @@
 package ristretto
 
 import (
-	`github.com/stretchr/testify/assert`
-	`testing`
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRistretto(t *testing.T) {
