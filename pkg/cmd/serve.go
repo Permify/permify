@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Permify/permify/internal/repositories/postgres"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/gossip"
 	"os/signal"
 	"syscall"
 
@@ -133,6 +134,22 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
+		var gossipEngine *gossip.Engine
+		if cfg.Distributed.Enabled {
+			l.Info("🔗 starting distributed mode...")
+
+			gossipEngine, err := gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Server)
+			if err != nil {
+				return err
+			}
+
+			defer func() {
+				if err = gossipEngine.Shutdown(); err != nil {
+					l.Fatal(err)
+				}
+			}()
+		}
+
 		// schema cache
 		var schemaCache cache.Cache
 		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Schema.Cache.MaxCost))
@@ -168,7 +185,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// key managers
-		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, cfg.Server)
+		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, gossipEngine, cfg.Server)
 
 		// engines
 		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))

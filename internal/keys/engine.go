@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/pkg/consistent"
+	"github.com/Permify/permify/pkg/gossip"
 	"github.com/cespare/xxhash/v2"
 
 	"github.com/Permify/permify/pkg/cache"
@@ -16,13 +17,14 @@ import (
 type EngineKeys struct {
 	keys             []uint64
 	cache            cache.Cache
+	gossip           *gossip.Engine
 	consistent       *hash.ConsistentHash
 	localNodeAddress string
 }
 
 // NewCheckEngineKeys creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineKeys(cache cache.Cache, cfg config.Server) EngineKeyManager {
+func NewCheckEngineKeys(cache cache.Cache, gossip *gossip.Engine, cfg config.Server) EngineKeyManager {
 
 	// Initialize a new instance of ConsistentHash with 100 replicas
 	consistent := hash.NewConsistentHash(100, nil)
@@ -31,6 +33,7 @@ func NewCheckEngineKeys(cache cache.Cache, cfg config.Server) EngineKeyManager {
 	// Return a new instance of EngineKeys with the provided cache
 	return &EngineKeys{
 		localNodeAddress: cfg.Address + ":" + cfg.HTTP.Port,
+		gossip:           gossip,
 		consistent:       consistent,
 		cache:            cache,
 	}
@@ -63,20 +66,26 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 	// Generate the final cache key by encoding the hash object's sum as a hexadecimal string
 	k := hex.EncodeToString(h.Sum(nil))
 
-	// Use Consistent Hashing to find the responsible node for the given key
-	node, found := c.consistent.Get(checkKey)
-	if !found {
-		// If the responsible node is not found, return false
-		return false
-	}
+	if c.gossip.Enabled {
 
-	// Check if the node is the local node
-	if node == c.localNodeAddress {
+		// Use Consistent Hashing to find the responsible node for the given key
+		node, found := c.consistent.Get(checkKey)
+		if !found {
+			// If the responsible node is not found, return false
+			return false
+		}
+
+		// Check if the node is the local node
+		if node == c.localNodeAddress {
+			// Set the cache key with the given value and size, then return the result
+			return c.cache.Set(k, value.Can, int64(size))
+		} else {
+			// if node is not local, forward the request to the responsible node
+			return true
+		}
+	} else {
 		// Set the cache key with the given value and size, then return the result
 		return c.cache.Set(k, value.Can, int64(size))
-	} else {
-		// if node is not local, forward the request to the responsible node
-		return true
 	}
 }
 
@@ -109,15 +118,33 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 	// Generate the final cache key by encoding the hash object's sum as a hexadecimal string
 	k := hex.EncodeToString(h.Sum(nil))
 
-	// Find the responsible node for the given key
-	node, ok := c.consistent.Get(k)
-	if !ok {
-		// If the node is not found, return nil and false
-		return nil, false
-	}
+	if c.gossip.Enabled {
+		// Find the responsible node for the given key
+		node, ok := c.consistent.Get(k)
+		if !ok {
+			// If the node is not found, return nil and false
+			return nil, false
+		}
 
-	// Check if the responsible node is the local node
-	if node == c.localNodeAddress {
+		// Check if the responsible node is the local node
+		if node == c.localNodeAddress {
+			// Get the value from the cache using the generated cache key
+			resp, found := c.cache.Get(k)
+
+			// If the key is found, return the value and true
+			if found {
+				// If permission is granted, return allowed response
+				return &base.PermissionCheckResponse{
+					Can: resp.(base.PermissionCheckResponse_Result),
+					Metadata: &base.PermissionCheckResponseMetadata{
+						CheckCount: 0,
+					},
+				}, true
+			}
+		} else {
+			// if node is not local, forward the request to the responsible node
+		}
+	} else {
 		// Get the value from the cache using the generated cache key
 		resp, found := c.cache.Get(k)
 
@@ -131,8 +158,6 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 				},
 			}, true
 		}
-	} else {
-		// if node is not local, forward the request to the responsible node
 	}
 
 	return nil, false
