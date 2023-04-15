@@ -68,10 +68,6 @@ func (engine *LinkedEntityEngine) Run(
 			Id:   request.GetSubject().GetId(),
 		}
 
-		if !visits.Add(found) { // If the entity and relation has already been visited.
-			return nil
-		}
-
 		// If the entity reference is the same as the subject, publish the result directly and return.
 		publisher.Publish(found, &base.PermissionCheckRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
@@ -242,6 +238,11 @@ func (engine *LinkedEntityEngine) run(
 	g *errgroup.Group,                           // An errgroup used for executing goroutines.
 	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
+
+	if !visits.Add(found) { // If the entity and relation has already been visited.
+		return nil
+	}
+
 	sc, err := engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion()) // Retrieve the entity definition for the request.
 	if err != nil {
 		return err
@@ -263,9 +264,6 @@ func (engine *LinkedEntityEngine) run(
 
 	if entrances == nil { // If there are no linked entrances for the request.
 		if found.GetEntity().GetType() == request.GetEntityReference().GetType() && found.GetRelation() == request.GetEntityReference().GetRelation() { // Check if the found entity matches the requested entity reference.
-			if !visits.Add(found.GetEntity()) { // If the entity and relation has already been visited.
-				return nil
-			}
 			publisher.Publish(found.GetEntity(), &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
 				SnapToken:     request.GetMetadata().GetSnapToken(),
 				SchemaVersion: request.GetMetadata().GetSchemaVersion(),

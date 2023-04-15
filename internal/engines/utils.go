@@ -71,8 +71,8 @@ type ERMap struct {
 	value sync.Map
 }
 
-func (s *ERMap) Add(onr *base.Entity) bool {
-	key := tuple.EntityToString(onr)
+func (s *ERMap) Add(onr *base.EntityAndRelation) bool {
+	key := tuple.EntityAndRelationToString(onr)
 	_, existed := s.value.LoadOrStore(key, struct{}{})
 	return !existed
 }
