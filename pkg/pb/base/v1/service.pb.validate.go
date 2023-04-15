@@ -71,7 +71,7 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 	if !_PermissionCheckRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := PermissionCheckRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -301,7 +301,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionCheckRequestValidationError{}
 
-var _PermissionCheckRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _PermissionCheckRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 var _PermissionCheckRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
@@ -699,7 +699,7 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 	if !_PermissionExpandRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := PermissionExpandRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -893,7 +893,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionExpandRequestValidationError{}
 
-var _PermissionExpandRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _PermissionExpandRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 var _PermissionExpandRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
@@ -1171,7 +1171,7 @@ func (m *PermissionLookupSchemaRequest) validate(all bool) error {
 	if !_PermissionLookupSchemaRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := PermissionLookupSchemaRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -1322,7 +1322,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionLookupSchemaRequestValidationError{}
 
-var _PermissionLookupSchemaRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _PermissionLookupSchemaRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 var _PermissionLookupSchemaRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
@@ -1572,7 +1572,7 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 	if !_PermissionLookupEntityRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := PermissionLookupEntityRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -1785,7 +1785,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionLookupEntityRequestValidationError{}
 
-var _PermissionLookupEntityRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _PermissionLookupEntityRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 var _PermissionLookupEntityRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
@@ -2157,7 +2157,7 @@ func (m *PermissionLinkedEntityRequest) validate(all bool) error {
 	if !_PermissionLinkedEntityRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := PermissionLinkedEntityRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -2344,7 +2344,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionLinkedEntityRequestValidationError{}
 
-var _PermissionLinkedEntityRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _PermissionLinkedEntityRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 // Validate checks the field values on PermissionLinkedEntityRequestMetadata
 // with the rules defined in the proto definition for this message. If any
@@ -2502,7 +2502,7 @@ func (m *SchemaWriteRequest) validate(all bool) error {
 	if !_SchemaWriteRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := SchemaWriteRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -2592,7 +2592,7 @@ var _ interface {
 	ErrorName() string
 } = SchemaWriteRequestValidationError{}
 
-var _SchemaWriteRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _SchemaWriteRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 // Validate checks the field values on SchemaWriteResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -2734,7 +2734,7 @@ func (m *SchemaReadRequest) validate(all bool) error {
 	if !_SchemaReadRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := SchemaReadRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -2862,7 +2862,7 @@ var _ interface {
 	ErrorName() string
 } = SchemaReadRequestValidationError{}
 
-var _SchemaReadRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _SchemaReadRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 // Validate checks the field values on SchemaReadRequestMetadata with the rules
 // defined in the proto definition for this message. If any rules are
@@ -3135,7 +3135,7 @@ func (m *RelationshipWriteRequest) validate(all bool) error {
 	if !_RelationshipWriteRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := RelationshipWriteRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -3319,7 +3319,7 @@ var _ interface {
 	ErrorName() string
 } = RelationshipWriteRequestValidationError{}
 
-var _RelationshipWriteRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _RelationshipWriteRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 // Validate checks the field values on RelationshipWriteRequestMetadata with
 // the rules defined in the proto definition for this message. If any rules
@@ -3568,7 +3568,7 @@ func (m *RelationshipReadRequest) validate(all bool) error {
 	if !_RelationshipReadRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := RelationshipReadRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -3744,7 +3744,7 @@ var _ interface {
 	ErrorName() string
 } = RelationshipReadRequestValidationError{}
 
-var _RelationshipReadRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _RelationshipReadRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 // Validate checks the field values on RelationshipReadRequestMetadata with the
 // rules defined in the proto definition for this message. If any rules are
@@ -4025,7 +4025,7 @@ func (m *RelationshipDeleteRequest) validate(all bool) error {
 	if !_RelationshipDeleteRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := RelationshipDeleteRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 		}
 		if !all {
 			return err
@@ -4142,7 +4142,7 @@ var _ interface {
 	ErrorName() string
 } = RelationshipDeleteRequestValidationError{}
 
-var _RelationshipDeleteRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+var _RelationshipDeleteRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 // Validate checks the field values on RelationshipDeleteResponse with the
 // rules defined in the proto definition for this message. If any rules are
@@ -4281,6 +4281,17 @@ func (m *TenantCreateRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if !_TenantCreateRequest_Id_Pattern.MatchString(m.GetId()) {
+		err := TenantCreateRequestValidationError{
+			field:  "Id",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(m.GetName()) > 64 {
 		err := TenantCreateRequestValidationError{
 			field:  "Name",
@@ -4371,6 +4382,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = TenantCreateRequestValidationError{}
+
+var _TenantCreateRequest_Id_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
 // Validate checks the field values on TenantCreateResponse with the rules
 // defined in the proto definition for this message. If any rules are
