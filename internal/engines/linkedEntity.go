@@ -63,11 +63,17 @@ func (engine *LinkedEntityEngine) Run(
 	if request.GetEntityReference().GetType() == request.GetSubject().GetType() && request.GetEntityReference().GetRelation() == request.GetSubject().GetRelation() {
 		// TODO: Implement direct result and exclusion logic.
 
-		// If the entity reference is the same as the subject, publish the result directly and return.
-		publisher.Publish(&base.Entity{
+		found := &base.Entity{
 			Type: request.GetSubject().GetType(),
 			Id:   request.GetSubject().GetId(),
-		}, &base.PermissionCheckRequestMetadata{
+		}
+
+		if !visits.Add(found) { // If the entity and relation has already been visited.
+			return nil
+		}
+
+		// If the entity reference is the same as the subject, publish the result directly and return.
+		publisher.Publish(found, &base.PermissionCheckRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
@@ -257,6 +263,9 @@ func (engine *LinkedEntityEngine) run(
 
 	if entrances == nil { // If there are no linked entrances for the request.
 		if found.GetEntity().GetType() == request.GetEntityReference().GetType() && found.GetRelation() == request.GetEntityReference().GetRelation() { // Check if the found entity matches the requested entity reference.
+			if !visits.Add(found.GetEntity()) { // If the entity and relation has already been visited.
+				return nil
+			}
 			publisher.Publish(found.GetEntity(), &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
 				SnapToken:     request.GetMetadata().GetSnapToken(),
 				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
