@@ -35,15 +35,14 @@ var _ = Describe("connected schema", func() {
 			})
 
 			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -75,31 +74,30 @@ var _ = Describe("connected schema", func() {
 			})
 
 			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "editor",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "owner",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -132,30 +130,30 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "editor",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "owner",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -191,30 +189,30 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "owner",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "admin",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -255,38 +253,38 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "owner",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "admin",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "container_admin",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -323,22 +321,22 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "group",
 						Relation: "manager",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -378,61 +376,61 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "banned",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "admin",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "fist_rel",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "second_rel",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "third_rel",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
 
 		It("Case 8", func() {
 			sch, err := parser.NewParser(`
-		  entity user {}
+		entity user {}
 			entity organization {
 				relation admin @user
 				relation banned @user
@@ -465,14 +463,14 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: ComputedUserSetLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "view",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -511,18 +509,14 @@ var _ = Describe("connected schema", func() {
 			})
 
 			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: TupleToUserSetLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "view",
 					},
-					TupleSetRelation: &base.RelationReference{
-						Type:     "document",
-						Relation: "org",
-					},
+					TupleSetRelation: "org",
 				},
 			}))
 		})
@@ -565,22 +559,22 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: ComputedUserSetLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "admin",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: ComputedUserSetLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "test",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -622,22 +616,22 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: ComputedUserSetLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "admin",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: ComputedUserSetLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "test",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -670,22 +664,22 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: ComputedUserSetLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "view",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: ComputedUserSetLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "view",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -720,14 +714,14 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "organization",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 			}))
 		})
@@ -760,22 +754,159 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(ent).Should(Equal([]LinkedEntrance{
+			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "viewer",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
 				},
 				{
 					Kind: RelationLinkedEntrance,
-					LinkedEntrance: &base.RelationReference{
+					TargetEntrance: &base.RelationReference{
 						Type:     "document",
 						Relation: "editor",
 					},
-					TupleSetRelation: nil,
+					TupleSetRelation: "",
+				},
+			}))
+		})
+
+		It("Case 15", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+		
+			entity account {
+				relation super_admin @user
+				relation admin @user @account#admin
+				relation member @user @account#member
+		
+				action add_member = admin
+				action delete_member = super_admin
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(false, sch)
+			a, err := c.Compile()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
+				Type:     "account",
+				Relation: "add_member",
+			}, &base.RelationReference{
+				Type:     "user",
+				Relation: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "account",
+						Relation: "admin",
+					},
+					TupleSetRelation: "",
+				},
+			}))
+		})
+
+		It("Case 16", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+		
+			entity account {
+				relation super_admin @user
+				relation admin @user @account#admin
+				relation member @user @account#member
+		
+				action add_member = admin
+				action delete_member = super_admin
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(false, sch)
+			a, err := c.Compile()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
+				Type:     "account",
+				Relation: "add_member",
+			}, &base.RelationReference{
+				Type:     "account",
+				Relation: "admin",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: ComputedUserSetLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "account",
+						Relation: "add_member",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "account",
+						Relation: "admin",
+					},
+					TupleSetRelation: "",
+				},
+			}))
+		})
+
+		It("Case 17", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+		
+			entity account {
+				relation super_admin @user
+				relation admin @user @account#admin
+				relation member @user @account#member
+		
+				action add_member = admin or member
+				action delete_member = super_admin
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(false, sch)
+			a, err := c.Compile()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+
+			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
+				Type:     "account",
+				Relation: "admin",
+			}, &base.RelationReference{
+				Type:     "account",
+				Relation: "admin",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "account",
+						Relation: "admin",
+					},
+					TupleSetRelation: "",
 				},
 			}))
 		})
