@@ -16,7 +16,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 
 	// Server
 	flags.String("server-address", conf.Server.Address, "address that server run on")
-	if err = viper.BindPFlag("server.address", flags.Lookup("address")); err != nil {
+	if err = viper.BindPFlag("server.address", flags.Lookup("server-address")); err != nil {
 		panic(err)
 	}
 	if err = viper.BindEnv("server.address", "PERMIFY_ADDRESS"); err != nil {
