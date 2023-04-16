@@ -31,14 +31,15 @@ module.exports = {
 				"getting-started/testing",
 				{
 					type: 'category',
-					label: 'Examples',
+					label: 'Real World Examples',
 					link: {
 						type: "generated-index",
-						title: "Examples",
+						title: "Real World Examples",
 						slug: "/getting-started/examples",
 					},
 					items: [
-						"getting-started/examples/google-docs"
+						"getting-started/examples/google-docs",
+						"getting-started/examples/facebook-groups"
 					],
 				},
 			],
