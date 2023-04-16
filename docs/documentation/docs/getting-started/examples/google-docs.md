@@ -1,8 +1,8 @@
-# Google Docs Style System
+# Google Docs Simplified
 
 This example models a simplified version of Google Docs style permission system where users can be granted direct access to a resource, or access via organizations and nested groups.
 
-### Model
+### Schema | [Open in playground](https://play.permify.co/?s=iuRic3nR1HeZJcFyRNKPo)
 
 ```perm
 entity user {}
@@ -161,15 +161,15 @@ resource:hr_documents#manager@group:hr#manager
 resource:hr_documents#viewer@group:hr#member
 ```
 
-## See on the Playground
+<!-- ## See on the Playground
 
-Here is the visualization of the relationships of the schema, also you can see and play around with this example in our playground using this [link](https://play.permify.co/?s=iuRic3nR1HeZJcFyRNKPo).
+Here is the visualization of the relationships of the schema, also you can see and play around with this example in our playground using this .
 
-![visualization](https://user-images.githubusercontent.com/34595361/231216456-1430d952-856a-4dad-996b-968a1a59fc04.png)
+![visualization](https://user-images.githubusercontent.com/34595361/231216456-1430d952-856a-4dad-996b-968a1a59fc04.png) -->
 
 ## Test & Validation
 
-Finally, let's check some permissions and test our authorization logic. Specifically I want to check following permissions for this example;
+Finally, let's check some permissions and test our authorization logic. 
 
 <details><summary>can <strong>user:ashley edit resource:product_database</strong> ? </summary>
 <p>
@@ -233,7 +233,7 @@ David doesn't have member or manager relationship related with marketing group o
 
 Let's test these access checks in our local with using **permify validator**. We'll use the below schema for the schema validation file. 
 
-```
+```yaml
 schema: >-
     entity user {}
 
@@ -261,7 +261,7 @@ schema: >-
         action admin = administrator
         action member = direct_member or administrator or group.member
     }
-s
+
 relationships:
     - group:tech#manager@user:ashley
     - group:tech#member@user:david
@@ -287,14 +287,24 @@ relationships:
 
 assertions:
     - "can user:ashley edit resource:product_database": true
-    - "user:joe view resource:hr_documents2": true
-    - "user:david view resource:marketing_materials": false
+    - "can user:joe view resource:hr_documents": true
+    - "can user:david view resource:marketing_materials": false
 ```
 
-### Using Schema Validator
+### Using Schema Validator in Local 
 
-Open up a new file and add a above schema yaml file inside. Then build your project with, run make run command and run ./permify validate {path of your schema validation file}.
+After cloning [Permify](https://github.com/Permify/permify), open up a new file and copy the **schema yaml file** content inside. Then, build and run Permify instance using the command `make run`.
 
-If we use the above example schema validation file, after running ./permify validate {path of your schema validation file}.
+![Running Permify](https://user-images.githubusercontent.com/34595361/232312254-5a6558fa-f085-4aac-9c83-e62447daef7d.png)
+
+Then run `permify validate {path of your schema validation file}` with pointing the above schema.
+
+The validation result according to our example schema validation file:
 
 ![tuple](https://user-images.githubusercontent.com/34595361/231486033-57913b62-6274-408c-b485-f033c692f638.png)
+
+## Need any help ?
+
+This is the end of modeling Google Docs style permission system. To install and implement this see the [Set Up Permify](../../installation.md) section.
+
+If you need any kind of help, our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about it, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
