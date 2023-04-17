@@ -22,13 +22,14 @@ var _ = Describe("token", func() {
 			}{
 				{target: "entity", expected: ENTITY},
 				{target: "relation", expected: RELATION},
-				{target: "action", expected: ACTION},
+				{target: "action", expected: PERMISSION},
 				{target: "or", expected: OR},
 				{target: "not", expected: NOT},
 				{target: "no t", expected: IDENT},
 				{target: " no t", expected: IDENT},
 				{target: "test", expected: IDENT},
 				{target: "and", expected: AND},
+				{target: "permission", expected: PERMISSION},
 			}
 
 			for _, tt := range tests {
@@ -44,7 +45,7 @@ var _ = Describe("token", func() {
 				expected bool
 			}{
 				{target: MULTI_LINE_COMMENT, expected: true},
-				{target: ACTION, expected: false},
+				{target: PERMISSION, expected: false},
 				{target: OR, expected: false},
 				{target: NEWLINE, expected: false},
 				{target: SINGLE_LINE_COMMENT, expected: true},

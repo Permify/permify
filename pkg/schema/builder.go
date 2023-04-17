@@ -29,20 +29,20 @@ func Schema(entities ...*base.EntityDefinition) *base.SchemaDefinition {
 // It takes in the name of the entity, an array of relations, and an array of actions.
 // It then initializes the EntityDefinition with the provided values and returns it.
 // The EntityDefinition contains information about the entity's name, its relations, actions, and references.
-func Entity(name string, relations []*base.RelationDefinition, actions []*base.ActionDefinition) *base.EntityDefinition {
+func Entity(name string, relations []*base.RelationDefinition, actions []*base.PermissionDefinition) *base.EntityDefinition {
 	def := &base.EntityDefinition{
-		Name:       name,
-		Relations:  map[string]*base.RelationDefinition{},
-		Actions:    map[string]*base.ActionDefinition{},
-		References: map[string]base.EntityDefinition_RelationalReference{},
+		Name:        name,
+		Relations:   map[string]*base.RelationDefinition{},
+		Permissions: map[string]*base.PermissionDefinition{},
+		References:  map[string]base.EntityDefinition_RelationalReference{},
 	}
 	for _, relation := range relations {
 		def.Relations[relation.Name] = relation
 		def.References[relation.Name] = base.EntityDefinition_RELATIONAL_REFERENCE_RELATION
 	}
 	for _, action := range actions {
-		def.Actions[action.Name] = action
-		def.References[action.Name] = base.EntityDefinition_RELATIONAL_REFERENCE_ACTION
+		def.Permissions[action.Name] = action
+		def.References[action.Name] = base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION
 	}
 	return def
 }
@@ -87,16 +87,16 @@ func Reference(name string) *base.RelationReference {
 	}
 }
 
-// Action - Action builder creates a new action definition with the given name and child entity
-func Action(name string, child *base.Child) *base.ActionDefinition {
-	return &base.ActionDefinition{
+// Permission - Permission builder creates a new action definition with the given name and child entity
+func Permission(name string, child *base.Child) *base.PermissionDefinition {
+	return &base.PermissionDefinition{
 		Name:  name,
 		Child: child,
 	}
 }
 
-// Actions - Actions builder creates a slice of action definitions from the given variadic list of action definitions
-func Actions(defs ...*base.ActionDefinition) []*base.ActionDefinition {
+// Permissions - Permissions builder creates a slice of action definitions from the given variadic list of action definitions
+func Permissions(defs ...*base.PermissionDefinition) []*base.PermissionDefinition {
 	return defs
 }
 

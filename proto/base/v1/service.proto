@@ -22,7 +22,7 @@ service Permission {
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?"
+      summary: "This method returns a decision about whether user can perform an permission on a certain resource. For example, Can the user 1 push to repository 1?"
       tags: [
         "Permission"
       ]
@@ -105,7 +105,7 @@ message PermissionCheckRequest {
 
   Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
-  // its can be action or relation
+  // its can be permission or relation
   string permission = 4 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
@@ -201,7 +201,7 @@ message PermissionLookupSchemaRequestMetadata {
 
 // PermissionLookupSchemaResponse
 message PermissionLookupSchemaResponse {
-  repeated string action_names = 1 [json_name = "action_names"];
+  repeated string permission_names = 1 [json_name = "permission_names"];
 }
 
 // PermissionLookupEntityRequest

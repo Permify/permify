@@ -27,8 +27,8 @@ const (
 	AND Operator = "and"
 	OR  Operator = "or"
 
-	ACTION   RelationalReferenceType = "action"
-	RELATION RelationalReferenceType = "relation"
+	PERMISSION RelationalReferenceType = "permission"
+	RELATION   RelationalReferenceType = "relation"
 )
 
 // Node defines an interface for a tree node.
@@ -52,10 +52,10 @@ type Statement interface {
 
 // EntityStatement represents a statement that refers to an entity.
 type EntityStatement struct {
-	Entity             token.Token // token.ENTITY
-	Name               token.Token // token.IDENT
-	RelationStatements []Statement // Statements that define relationships between entities
-	ActionStatements   []Statement // Statements that define actions performed on the entity
+	Entity               token.Token // token.ENTITY
+	Name                 token.Token // token.IDENT
+	RelationStatements   []Statement // Statements that define relationships between entities
+	PermissionStatements []Statement // Statements that define actions performed on the entity
 }
 
 // statementNode is a dummy method that satisfies the Statement interface.
@@ -79,7 +79,7 @@ func (ls *EntityStatement) String() string {
 	sb.WriteString("\n")
 
 	// Iterate over the action statements and add them to the string builder.
-	for _, rs := range ls.ActionStatements {
+	for _, rs := range ls.PermissionStatements {
 		sb.WriteString(rs.String())
 		sb.WriteString("\n")
 	}
@@ -184,19 +184,19 @@ func (ls *Identifier) GetType() ExpressionType {
 	return IDENTIFIER
 }
 
-// ActionStatement represents an action statement, which consists of an action name and an optional expression statement.
+// PermissionStatement represents an action statement, which consists of an action name and an optional expression statement.
 // It implements the Statement interface.
-type ActionStatement struct {
-	Action              token.Token // token.ACTION
+type PermissionStatement struct {
+	Permission          token.Token // token.PERMISSION
 	Name                token.Token // token.IDENT
 	ExpressionStatement Statement
 }
 
 // statementNode is a marker method used to implement the Statement interface.
-func (ls *ActionStatement) statementNode() {}
+func (ls *PermissionStatement) statementNode() {}
 
 // String returns a string representation of the action statement.
-func (ls *ActionStatement) String() string {
+func (ls *PermissionStatement) String() string {
 	var sb strings.Builder
 	sb.WriteString("\t")
 	sb.WriteString("action")

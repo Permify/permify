@@ -77,7 +77,7 @@ var _ = Describe("lookup-schema-engine", func() {
 
 			actualResult, err := lookupSchemaEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			for _, actionName := range actualResult.ActionNames {
+			for _, actionName := range actualResult.PermissionNames {
 				Expect(slices.Contains([]string{"delete"}, actionName)).Should(Equal(slices.Contains([]string{"delete"}, actionName)))
 			}
 		})
@@ -112,7 +112,7 @@ var _ = Describe("lookup-schema-engine", func() {
 
 			actualResult, err := lookupSchemaEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			for _, actionName := range actualResult.ActionNames {
+			for _, actionName := range actualResult.PermissionNames {
 				Expect(slices.Contains([]string{"read", "update", "delete"}, actionName)).Should(Equal(slices.Contains([]string{"read", "update", "delete"}, actionName)))
 			}
 		})
@@ -172,7 +172,7 @@ var _ = Describe("lookup-schema-engine", func() {
 
 			actualResult, err := lookupSchemaEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			for _, actionName := range actualResult.ActionNames {
+			for _, actionName := range actualResult.PermissionNames {
 				Expect(slices.Contains([]string{"create_repository", "delete"}, actionName)).Should(Equal(slices.Contains([]string{"create_repository", "delete"}, actionName)))
 			}
 		})
@@ -207,7 +207,7 @@ var _ = Describe("lookup-schema-engine", func() {
 
 			actualResult, err := lookupSchemaEngine.Run(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-			for _, actionName := range actualResult.ActionNames {
+			for _, actionName := range actualResult.PermissionNames {
 				Expect(slices.Contains([]string{"delete"}, actionName)).Should(Equal(slices.Contains([]string{"delete"}, actionName)))
 			}
 		})

@@ -30,8 +30,8 @@ func NewLookupSchemaEngine(schemaReader repositories.SchemaReader) *LookupSchema
 // Run method executes the lookup schema engine by taking the context and a lookup schema request and returning
 // the lookup schema response or an error. It starts an OpenTelemetry span, initializes the response and determines
 // the schema version for the request. It then retrieves the entity definition from the schema reader and iterates
-// over each action within it, checking if the request has the necessary permissions to execute the action. The
-// allowed action names are added to the response and returned, or an error is returned if encountered.
+// over each permission within it, checking if the request has the necessary permissions to execute the permission. The
+// allowed permission names are added to the response and returned, or an error is returned if encountered.
 func (command *LookupSchemaEngine) Run(ctx context.Context, request *base.PermissionLookupSchemaRequest) (*base.PermissionLookupSchemaResponse, error) {
 	ctx, span := tracer.Start(ctx, "permissions.lookup-schema.execute")
 	defer span.End()
@@ -39,7 +39,7 @@ func (command *LookupSchemaEngine) Run(ctx context.Context, request *base.Permis
 	var err error
 
 	response := &base.PermissionLookupSchemaResponse{
-		ActionNames: []string{},
+		PermissionNames: []string{},
 	}
 
 	if request.GetMetadata().GetSchemaVersion() == "" {
@@ -55,16 +55,16 @@ func (command *LookupSchemaEngine) Run(ctx context.Context, request *base.Permis
 		return nil, err
 	}
 
-	for _, action := range en.GetActions() {
+	for _, permission := range en.GetPermissions() {
 		var can bool
-		can, err = command.l(ctx, request, action.Child)
+		can, err = command.l(ctx, request, permission.Child)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, err
 		}
 		if can {
-			response.ActionNames = append(response.ActionNames, action.Name)
+			response.PermissionNames = append(response.PermissionNames, permission.Name)
 		}
 	}
 	return response, nil

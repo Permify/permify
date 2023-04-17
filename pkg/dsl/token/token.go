@@ -39,12 +39,13 @@ func New(positionInfo PositionInfo, typ Type, ch byte) Token {
 
 // keywords - maps string keywords to their corresponding Type.
 var keywords = map[string]Type{
-	"entity":   ENTITY,
-	"relation": RELATION,
-	"action":   ACTION,
-	"and":      AND,
-	"or":       OR,
-	"not":      NOT,
+	"entity":     ENTITY,
+	"relation":   RELATION,
+	"action":     PERMISSION,
+	"permission": PERMISSION,
+	"and":        AND,
+	"or":         OR,
+	"not":        NOT,
 }
 
 // ignores - maps ignored token types to an empty struct.
@@ -85,9 +86,9 @@ const (
 	/*
 		Keywords
 	*/
-	ENTITY   = "ENTITY"
-	RELATION = "RELATION"
-	ACTION   = "ACTION"
+	ENTITY     = "ENTITY"
+	RELATION   = "RELATION"
+	PERMISSION = "PERMISSION"
 
 	/*
 		Prefix

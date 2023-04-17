@@ -48,7 +48,7 @@ var _ = Describe("parser", func() {
 				Expect(a.Type.Literal).Should(Equal("user"))
 			}
 
-			a1 := st.ActionStatements[0].(*ast.ActionStatement)
+			a1 := st.PermissionStatements[0].(*ast.PermissionStatement)
 			Expect(a1.Name.Literal).Should(Equal("read"))
 
 			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
@@ -87,7 +87,7 @@ var _ = Describe("parser", func() {
 				Expect(a.Type.Literal).Should(Equal("user"))
 			}
 
-			a1 := st.ActionStatements[0].(*ast.ActionStatement)
+			a1 := st.PermissionStatements[0].(*ast.PermissionStatement)
 			Expect(a1.Name.Literal).Should(Equal("read"))
 
 			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
@@ -117,7 +117,7 @@ var _ = Describe("parser", func() {
 				Expect(a.Type.Literal).Should(Equal("user"))
 			}
 
-			a1 := st.ActionStatements[0].(*ast.ActionStatement)
+			a1 := st.PermissionStatements[0].(*ast.PermissionStatement)
 			Expect(a1.Name.Literal).Should(Equal("delete"))
 
 			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
@@ -141,7 +141,7 @@ var _ = Describe("parser", func() {
 				Expect(a.Type.Literal).Should(Equal("user"))
 			}
 
-			a1 := st.ActionStatements[0].(*ast.ActionStatement)
+			a1 := st.PermissionStatements[0].(*ast.PermissionStatement)
 			Expect(a1.Name.Literal).Should(Equal("delete"))
 
 			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
@@ -182,13 +182,13 @@ var _ = Describe("parser", func() {
 			Expect(r2.RelationTypes[1].Type.Literal).Should(Equal("organization"))
 			Expect(r2.RelationTypes[1].Relation.Literal).Should(Equal("member"))
 
-			a1 := st.ActionStatements[0].(*ast.ActionStatement)
+			a1 := st.PermissionStatements[0].(*ast.PermissionStatement)
 			Expect(a1.Name.Literal).Should(Equal("view"))
 
 			es1 := a1.ExpressionStatement.(*ast.ExpressionStatement)
 			Expect(es1.Expression.(*ast.Identifier).String()).Should(Equal("owner"))
 
-			a2 := st.ActionStatements[1].(*ast.ActionStatement)
+			a2 := st.PermissionStatements[1].(*ast.PermissionStatement)
 			Expect(a2.Name.Literal).Should(Equal("read"))
 
 			es2 := a2.ExpressionStatement.(*ast.ExpressionStatement)
@@ -247,7 +247,7 @@ var _ = Describe("parser", func() {
 
 			Expect(or2.RelationTypes[0].Type.Literal).Should(Equal("user"))
 
-			oa1 := organizationSt.ActionStatements[0].(*ast.ActionStatement)
+			oa1 := organizationSt.PermissionStatements[0].(*ast.PermissionStatement)
 			Expect(oa1.Name.Literal).Should(Equal("create_repository"))
 
 			oes1 := oa1.ExpressionStatement.(*ast.ExpressionStatement)
@@ -273,7 +273,7 @@ var _ = Describe("parser", func() {
 
 			Expect(rr2.RelationTypes[0].Type.Literal).Should(Equal("organization"))
 
-			ra1 := repositorySt.ActionStatements[0].(*ast.ActionStatement)
+			ra1 := repositorySt.PermissionStatements[0].(*ast.PermissionStatement)
 			Expect(ra1.Name.Literal).Should(Equal("read"))
 
 			res1 := ra1.ExpressionStatement.(*ast.ExpressionStatement)
@@ -282,7 +282,7 @@ var _ = Describe("parser", func() {
 			Expect(res1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(res1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not parent.member"))
 
-			ra2 := repositorySt.ActionStatements[1].(*ast.ActionStatement)
+			ra2 := repositorySt.PermissionStatements[1].(*ast.PermissionStatement)
 			Expect(ra2.Name.Literal).Should(Equal("delete"))
 
 			res2 := ra2.ExpressionStatement.(*ast.ExpressionStatement)

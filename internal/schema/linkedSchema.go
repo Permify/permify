@@ -122,8 +122,8 @@ func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference,
 		return nil, errors.New("entity definition not found")
 	}
 
-	if def.References[target.GetRelation()] == base.EntityDefinition_RELATIONAL_REFERENCE_ACTION {
-		action, ok := def.Actions[target.GetRelation()]
+	if def.References[target.GetRelation()] == base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
+		action, ok := def.Permissions[target.GetRelation()]
 		if !ok {
 			return nil, errors.New("action not found")
 		}

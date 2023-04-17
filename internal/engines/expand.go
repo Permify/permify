@@ -101,14 +101,14 @@ func (command *ExpandEngine) expand(ctx context.Context, request *base.Permissio
 	}
 
 	var fn ExpandFunction
-	if typeOfRelation == base.EntityDefinition_RELATIONAL_REFERENCE_ACTION {
+	if typeOfRelation == base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
 		var child *base.Child
-		var action *base.ActionDefinition
-		action, err = schema.GetActionByNameInEntityDefinition(en, request.GetPermission())
+		var permission *base.PermissionDefinition
+		permission, err = schema.GetPermissionByNameInEntityDefinition(en, request.GetPermission())
 		if err != nil {
 			return ExpandResponse{Err: err}
 		}
-		child = action.GetChild()
+		child = permission.GetChild()
 		if child.GetRewrite() != nil {
 			fn = command.expandRewrite(ctx, request, child.GetRewrite())
 		} else {
