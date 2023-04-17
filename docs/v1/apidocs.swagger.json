@@ -29,6 +29,9 @@
     },
     {
       "name": "Welcome"
+    },
+    {
+      "name": "Consistent"
     }
   ],
   "schemes": [
@@ -61,6 +64,68 @@
         },
         "tags": [
           "Welcome"
+        ]
+      }
+    },
+    "/v1/consistent/get/{key}": {
+      "get": {
+        "summary": "get consistent key",
+        "operationId": "consistent.get",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ConsistentGetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Consistent"
+        ]
+      }
+    },
+    "/v1/consistent/set/{key}": {
+      "post": {
+        "summary": "Set consistent key",
+        "operationId": "consistent.set",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ConsistentSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Consistent"
         ]
       }
     },
@@ -707,6 +772,24 @@
         }
       },
       "title": "ComputedUserSet"
+    },
+    "ConsistentGetResponse": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      },
+      "title": "ConsistentGetResponse"
+    },
+    "ConsistentSetResponse": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      },
+      "title": "ConsistentGetResponse"
     },
     "Entity": {
       "type": "object",

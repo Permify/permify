@@ -800,3 +800,125 @@ var Welcome_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "base/v1/service.proto",
 }
+
+// ConsistentClient is the client API for Consistent service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ConsistentClient interface {
+	Get(ctx context.Context, in *ConsistentGetRequest, opts ...grpc.CallOption) (*ConsistentGetResponse, error)
+	Post(ctx context.Context, in *ConsistentSetRequest, opts ...grpc.CallOption) (*ConsistentSetResponse, error)
+}
+
+type consistentClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewConsistentClient(cc grpc.ClientConnInterface) ConsistentClient {
+	return &consistentClient{cc}
+}
+
+func (c *consistentClient) Get(ctx context.Context, in *ConsistentGetRequest, opts ...grpc.CallOption) (*ConsistentGetResponse, error) {
+	out := new(ConsistentGetResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Consistent/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *consistentClient) Post(ctx context.Context, in *ConsistentSetRequest, opts ...grpc.CallOption) (*ConsistentSetResponse, error) {
+	out := new(ConsistentSetResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Consistent/Post", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ConsistentServer is the server API for Consistent service.
+// All implementations must embed UnimplementedConsistentServer
+// for forward compatibility
+type ConsistentServer interface {
+	Get(context.Context, *ConsistentGetRequest) (*ConsistentGetResponse, error)
+	Post(context.Context, *ConsistentSetRequest) (*ConsistentSetResponse, error)
+	mustEmbedUnimplementedConsistentServer()
+}
+
+// UnimplementedConsistentServer must be embedded to have forward compatible implementations.
+type UnimplementedConsistentServer struct {
+}
+
+func (UnimplementedConsistentServer) Get(context.Context, *ConsistentGetRequest) (*ConsistentGetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedConsistentServer) Post(context.Context, *ConsistentSetRequest) (*ConsistentSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Post not implemented")
+}
+func (UnimplementedConsistentServer) mustEmbedUnimplementedConsistentServer() {}
+
+// UnsafeConsistentServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ConsistentServer will
+// result in compilation errors.
+type UnsafeConsistentServer interface {
+	mustEmbedUnimplementedConsistentServer()
+}
+
+func RegisterConsistentServer(s grpc.ServiceRegistrar, srv ConsistentServer) {
+	s.RegisterService(&Consistent_ServiceDesc, srv)
+}
+
+func _Consistent_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConsistentGetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConsistentServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/base.v1.Consistent/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConsistentServer).Get(ctx, req.(*ConsistentGetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Consistent_Post_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConsistentSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConsistentServer).Post(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/base.v1.Consistent/Post",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConsistentServer).Post(ctx, req.(*ConsistentSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Consistent_ServiceDesc is the grpc.ServiceDesc for Consistent service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Consistent_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "base.v1.Consistent",
+	HandlerType: (*ConsistentServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _Consistent_Get_Handler,
+		},
+		{
+			MethodName: "Post",
+			Handler:    _Consistent_Post_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "base/v1/service.proto",
+}

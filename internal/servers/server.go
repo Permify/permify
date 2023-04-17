@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	hash "github.com/Permify/permify/pkg/consistent"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -42,6 +43,7 @@ type ServiceContainer struct {
 	PermissionService   services.IPermissionService
 	SchemaService       services.ISchemaService
 	TenancyService      services.ITenancyService
+	ConsistentService   *hash.ConsistentHash
 }
 
 // Run -
@@ -102,6 +104,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TenancyService, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
+	grpcV1.RegisterConsistentServer(grpcServer, NewConsistentServer(s.ConsistentService, l))
 	reflection.Register(grpcServer)
 
 	if profiler.Enabled {
@@ -193,6 +196,9 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 			return err
 		}
 		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {
+			return err
+		}
+		if err = grpcV1.RegisterConsistentHandler(ctx, mux, conn); err != nil {
 			return err
 		}
 

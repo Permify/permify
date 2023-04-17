@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"github.com/Permify/permify/internal/repositories/postgres"
+	hash "github.com/Permify/permify/pkg/consistent"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/gossip"
 	"os/signal"
@@ -135,10 +136,21 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		var gossipEngine *gossip.Engine
+		var consistencyChecker *hash.ConsistentHash
 		if cfg.Distributed.Enabled {
 			l.Info("🔗 starting distributed mode...")
 
-			gossipEngine, err := gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Server)
+			consistencyChecker := hash.NewConsistentHash(100, cfg.Distributed.SeedNodes, nil)
+
+			externalIP, err := gossip.ExternalIP()
+			if err != nil {
+				l.Fatal(err)
+			}
+			l.Info("🔗 external IP: " + externalIP)
+
+			consistencyChecker.Add(externalIP + ":" + cfg.HTTP.Port)
+
+			gossipEngine, err := gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Distributed)
 			if err != nil {
 				return err
 			}
@@ -205,6 +217,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			PermissionService:   permissionService,
 			SchemaService:       schemaService,
 			TenancyService:      tenancyService,
+			ConsistentService:   consistencyChecker,
 		}
 
 		var g *errgroup.Group
