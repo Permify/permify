@@ -29,7 +29,7 @@ require (
 	github.com/onsi/gomega v1.27.6
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.10.0
-	github.com/rs/cors v1.8.3
+	github.com/rs/cors v1.9.0
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/spf13/cobra v1.7.0
