@@ -800,25 +800,25 @@ func (m *EntityDefinition) validate(all bool) error {
 	}
 
 	{
-		sorted_keys := make([]string, len(m.GetActions()))
+		sorted_keys := make([]string, len(m.GetPermissions()))
 		i := 0
-		for key := range m.GetActions() {
+		for key := range m.GetPermissions() {
 			sorted_keys[i] = key
 			i++
 		}
 		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
 		for _, key := range sorted_keys {
-			val := m.GetActions()[key]
+			val := m.GetPermissions()[key]
 			_ = val
 
-			// no validation rules for Actions[key]
+			// no validation rules for Permissions[key]
 
 			if all {
 				switch v := interface{}(val).(type) {
 				case interface{ ValidateAll() error }:
 					if err := v.ValidateAll(); err != nil {
 						errors = append(errors, EntityDefinitionValidationError{
-							field:  fmt.Sprintf("Actions[%v]", key),
+							field:  fmt.Sprintf("Permissions[%v]", key),
 							reason: "embedded message failed validation",
 							cause:  err,
 						})
@@ -826,7 +826,7 @@ func (m *EntityDefinition) validate(all bool) error {
 				case interface{ Validate() error }:
 					if err := v.Validate(); err != nil {
 						errors = append(errors, EntityDefinitionValidationError{
-							field:  fmt.Sprintf("Actions[%v]", key),
+							field:  fmt.Sprintf("Permissions[%v]", key),
 							reason: "embedded message failed validation",
 							cause:  err,
 						})
@@ -835,7 +835,7 @@ func (m *EntityDefinition) validate(all bool) error {
 			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return EntityDefinitionValidationError{
-						field:  fmt.Sprintf("Actions[%v]", key),
+						field:  fmt.Sprintf("Permissions[%v]", key),
 						reason: "embedded message failed validation",
 						cause:  err,
 					}
@@ -1087,22 +1087,22 @@ var _ interface {
 
 var _RelationDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
-// Validate checks the field values on ActionDefinition with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *ActionDefinition) Validate() error {
+// Validate checks the field values on PermissionDefinition with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PermissionDefinition) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ActionDefinition with the rules
+// ValidateAll checks the field values on PermissionDefinition with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ActionDefinitionMultiError, or nil if none found.
-func (m *ActionDefinition) ValidateAll() error {
+// PermissionDefinitionMultiError, or nil if none found.
+func (m *PermissionDefinition) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ActionDefinition) validate(all bool) error {
+func (m *PermissionDefinition) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1110,7 +1110,7 @@ func (m *ActionDefinition) validate(all bool) error {
 	var errors []error
 
 	if len(m.GetName()) > 64 {
-		err := ActionDefinitionValidationError{
+		err := PermissionDefinitionValidationError{
 			field:  "Name",
 			reason: "value length must be at most 64 bytes",
 		}
@@ -1120,8 +1120,8 @@ func (m *ActionDefinition) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_ActionDefinition_Name_Pattern.MatchString(m.GetName()) {
-		err := ActionDefinitionValidationError{
+	if !_PermissionDefinition_Name_Pattern.MatchString(m.GetName()) {
+		err := PermissionDefinitionValidationError{
 			field:  "Name",
 			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
 		}
@@ -1135,7 +1135,7 @@ func (m *ActionDefinition) validate(all bool) error {
 		switch v := interface{}(m.GetChild()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ActionDefinitionValidationError{
+				errors = append(errors, PermissionDefinitionValidationError{
 					field:  "Child",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1143,7 +1143,7 @@ func (m *ActionDefinition) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ActionDefinitionValidationError{
+				errors = append(errors, PermissionDefinitionValidationError{
 					field:  "Child",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1152,7 +1152,7 @@ func (m *ActionDefinition) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetChild()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ActionDefinitionValidationError{
+			return PermissionDefinitionValidationError{
 				field:  "Child",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1161,19 +1161,19 @@ func (m *ActionDefinition) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ActionDefinitionMultiError(errors)
+		return PermissionDefinitionMultiError(errors)
 	}
 
 	return nil
 }
 
-// ActionDefinitionMultiError is an error wrapping multiple validation errors
-// returned by ActionDefinition.ValidateAll() if the designated constraints
-// aren't met.
-type ActionDefinitionMultiError []error
+// PermissionDefinitionMultiError is an error wrapping multiple validation
+// errors returned by PermissionDefinition.ValidateAll() if the designated
+// constraints aren't met.
+type PermissionDefinitionMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ActionDefinitionMultiError) Error() string {
+func (m PermissionDefinitionMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1182,11 +1182,11 @@ func (m ActionDefinitionMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ActionDefinitionMultiError) AllErrors() []error { return m }
+func (m PermissionDefinitionMultiError) AllErrors() []error { return m }
 
-// ActionDefinitionValidationError is the validation error returned by
-// ActionDefinition.Validate if the designated constraints aren't met.
-type ActionDefinitionValidationError struct {
+// PermissionDefinitionValidationError is the validation error returned by
+// PermissionDefinition.Validate if the designated constraints aren't met.
+type PermissionDefinitionValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1194,22 +1194,24 @@ type ActionDefinitionValidationError struct {
 }
 
 // Field function returns field value.
-func (e ActionDefinitionValidationError) Field() string { return e.field }
+func (e PermissionDefinitionValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ActionDefinitionValidationError) Reason() string { return e.reason }
+func (e PermissionDefinitionValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ActionDefinitionValidationError) Cause() error { return e.cause }
+func (e PermissionDefinitionValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ActionDefinitionValidationError) Key() bool { return e.key }
+func (e PermissionDefinitionValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ActionDefinitionValidationError) ErrorName() string { return "ActionDefinitionValidationError" }
+func (e PermissionDefinitionValidationError) ErrorName() string {
+	return "PermissionDefinitionValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e ActionDefinitionValidationError) Error() string {
+func (e PermissionDefinitionValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1221,14 +1223,14 @@ func (e ActionDefinitionValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sActionDefinition.%s: %s%s",
+		"invalid %sPermissionDefinition.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ActionDefinitionValidationError{}
+var _ error = PermissionDefinitionValidationError{}
 
 var _ interface {
 	Field() string
@@ -1236,9 +1238,9 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ActionDefinitionValidationError{}
+} = PermissionDefinitionValidationError{}
 
-var _ActionDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionDefinition_Name_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
 
 // Validate checks the field values on RelationReference with the rules defined
 // in the proto definition for this message. If any rules are violated, the

@@ -32,9 +32,9 @@ entity folder {
 	relation creator @user
 	relation collaborator @user
 
-	action read = collaborator
-	action update = collaborator
-	action delete = creator or org.admin
+	permission read = collaborator
+	permission update = collaborator
+	permission delete = creator or org.admin
 }
 
 entity doc {
@@ -42,10 +42,10 @@ entity doc {
 	relation parent @folder
 	relation owner @user
 	
-	action read = (owner or parent.collaborator) or org.admin
-	action update = owner and org.admin
-	action delete = owner or org.admin
-	action share = update and (owner or parent.update)
+	permission read = (owner or parent.collaborator) or org.admin
+	permission update = owner and org.admin
+	permission delete = owner or org.admin
+	permission share = update and (owner or parent.update)
 }
 `
 
@@ -880,7 +880,7 @@ entity doc {
     	relation org @organization
     	relation parent @parent
     
-    	action push   = org.member and not parent.member
+    	permission push   = org.member and not parent.member
 
 	} 
 	`

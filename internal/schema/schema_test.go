@@ -21,10 +21,10 @@ var _ = Describe("schema", func() {
 			entities := make([]*base.EntityDefinition, 0, 1)
 
 			entities = append(entities, &base.EntityDefinition{
-				Name:       "user",
-				Relations:  map[string]*base.RelationDefinition{},
-				Actions:    map[string]*base.ActionDefinition{},
-				References: map[string]base.EntityDefinition_RelationalReference{},
+				Name:        "user",
+				Relations:   map[string]*base.RelationDefinition{},
+				Permissions: map[string]*base.PermissionDefinition{},
+				References:  map[string]base.EntityDefinition_RelationalReference{},
 			})
 
 			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
@@ -38,10 +38,10 @@ var _ = Describe("schema", func() {
 			entities := make([]*base.EntityDefinition, 0, 2)
 
 			entities = append(entities, &base.EntityDefinition{
-				Name:       "user",
-				Relations:  map[string]*base.RelationDefinition{},
-				Actions:    map[string]*base.ActionDefinition{},
-				References: map[string]base.EntityDefinition_RelationalReference{},
+				Name:        "user",
+				Relations:   map[string]*base.RelationDefinition{},
+				Permissions: map[string]*base.PermissionDefinition{},
+				References:  map[string]base.EntityDefinition_RelationalReference{},
 			}, &base.EntityDefinition{
 				Name: "organization",
 				Relations: map[string]*base.RelationDefinition{
@@ -64,7 +64,7 @@ var _ = Describe("schema", func() {
 						},
 					},
 				},
-				Actions: map[string]*base.ActionDefinition{
+				Permissions: map[string]*base.PermissionDefinition{
 					"update": {
 						Name: "update",
 						Child: &base.Child{
@@ -104,7 +104,7 @@ var _ = Describe("schema", func() {
 				},
 				References: map[string]base.EntityDefinition_RelationalReference{
 					"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+					"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 				},
 			})
 
@@ -120,10 +120,10 @@ var _ = Describe("schema", func() {
 			entities := make([]*base.EntityDefinition, 0, 3)
 
 			entities = append(entities, &base.EntityDefinition{
-				Name:       "user",
-				Relations:  map[string]*base.RelationDefinition{},
-				Actions:    map[string]*base.ActionDefinition{},
-				References: map[string]base.EntityDefinition_RelationalReference{},
+				Name:        "user",
+				Relations:   map[string]*base.RelationDefinition{},
+				Permissions: map[string]*base.PermissionDefinition{},
+				References:  map[string]base.EntityDefinition_RelationalReference{},
 			}, &base.EntityDefinition{
 				Name: "organization",
 				Relations: map[string]*base.RelationDefinition{
@@ -146,7 +146,7 @@ var _ = Describe("schema", func() {
 						},
 					},
 				},
-				Actions: map[string]*base.ActionDefinition{
+				Permissions: map[string]*base.PermissionDefinition{
 					"update": {
 						Name: "update",
 						Child: &base.Child{
@@ -186,7 +186,7 @@ var _ = Describe("schema", func() {
 				},
 				References: map[string]base.EntityDefinition_RelationalReference{
 					"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+					"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 				},
 			}, &base.EntityDefinition{
 				Name: "repository",
@@ -223,7 +223,7 @@ var _ = Describe("schema", func() {
 						},
 					},
 				},
-				Actions: map[string]*base.ActionDefinition{
+				Permissions: map[string]*base.PermissionDefinition{
 					"update": {
 						Name: "update",
 						Child: &base.Child{
@@ -311,8 +311,8 @@ var _ = Describe("schema", func() {
 					"parent":     base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 					"maintainer": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 					"owner":      base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"update":     base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
-					"delete":     base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+					"update":     base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					"delete":     base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 				},
 			})
 

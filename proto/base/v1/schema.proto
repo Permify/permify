@@ -49,7 +49,7 @@ message EntityDefinition {
   enum RelationalReference {
     RELATIONAL_REFERENCE_UNSPECIFIED = 0;
     RELATIONAL_REFERENCE_RELATION = 1;
-    RELATIONAL_REFERENCE_ACTION = 2;
+    RELATIONAL_REFERENCE_PERMISSION = 2;
   }
 
   string name = 1 [(validate.rules).string = {
@@ -60,10 +60,10 @@ message EntityDefinition {
   // ["relation_name"] => RelationDefinition
   map<string, RelationDefinition> relations = 2;
 
-  // ["action_name"] => ActionDefinition
-  map<string, ActionDefinition> actions = 3;
+  // ["permission_name"] => PermissionDefinition
+  map<string, PermissionDefinition> permissions = 3;
 
-  // ["relation_name or action_name"] => RelationalReference
+  // ["relation_name or permission_name"] => RelationalReference
   map<string, RelationalReference> references = 4;
 }
 
@@ -77,8 +77,8 @@ message RelationDefinition {
   repeated RelationReference relation_references = 2;
 }
 
-// ActionDefinition
-message ActionDefinition {
+// PermissionDefinition
+message PermissionDefinition {
   string name = 1 [(validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,

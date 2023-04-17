@@ -44,15 +44,15 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 		g.AddEdge(enNode, reNode, nil)
 	}
 
-	for _, action := range entity.GetActions() {
+	for _, permission := range entity.GetPermissions() {
 		acNode := &Node{
-			Type:  "action",
-			ID:    fmt.Sprintf("entity:%s:permission:%s", entity.GetName(), action.GetName()),
-			Label: action.GetName(),
+			Type:  "permission",
+			ID:    fmt.Sprintf("entity:%s:permission:%s", entity.GetName(), permission.GetName()),
+			Label: permission.GetName(),
 		}
 		g.AddNode(acNode)
 		g.AddEdge(enNode, acNode, nil)
-		ag, err := buildActionGraph(entity, acNode, []*base.Child{action.GetChild()})
+		ag, err := buildActionGraph(entity, acNode, []*base.Child{permission.GetChild()})
 		if err != nil {
 			return Graph{}, err
 		}
@@ -62,7 +62,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 	return
 }
 
-// buildActionGraph - creates action graph
+// buildActionGraph - creates permission graph
 func buildActionGraph(entity *base.EntityDefinition, from *Node, children []*base.Child) (g Graph, err error) {
 	for _, child := range children {
 		switch child.GetType().(type) {

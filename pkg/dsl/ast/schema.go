@@ -9,8 +9,8 @@ type Schema struct {
 	Statements []Statement
 	// Map of entity references extracted from the schema
 	entityReferences map[string]struct{}
-	// Map of action references extracted from the schema
-	actionReferences map[string]struct{}
+	// Map of permission references extracted from the schema
+	permissionReferences map[string]struct{}
 	// Map of relation references extracted from the schema
 	relationReferences map[string][]RelationTypeStatement
 	// Map of all relational references extracted from the schema
@@ -25,12 +25,12 @@ func (sch *Schema) SetEntityReferences(r map[string]struct{}) {
 	sch.entityReferences = r
 }
 
-// SetActionReferences sets the action references in the schema
-func (sch *Schema) SetActionReferences(r map[string]struct{}) {
-	if sch.actionReferences == nil {
-		sch.actionReferences = map[string]struct{}{}
+// SetPermissionReferences sets the permission references in the schema
+func (sch *Schema) SetPermissionReferences(r map[string]struct{}) {
+	if sch.permissionReferences == nil {
+		sch.permissionReferences = map[string]struct{}{}
 	}
-	sch.actionReferences = r
+	sch.permissionReferences = r
 }
 
 // SetRelationReferences sets the relation references in the schema

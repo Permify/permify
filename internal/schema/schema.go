@@ -27,7 +27,7 @@ func NewSchemaFromStringDefinitions(validation bool, definitions ...string) (*ba
 // NewSchemaFromEntityDefinitions creates a new `SchemaDefinition` from a list of `EntityDefinition`s.
 // It initializes the `EntityDefinitions` property of the `SchemaDefinition` as an empty map,
 // and then adds each `EntityDefinition` to the map using the entity name as the key.
-// If an `EntityDefinition` doesn't have a `Relations` or `Actions` property, it initializes it as an empty map.
+// If an `EntityDefinition` doesn't have a `Relations` or `Permissions` property, it initializes it as an empty map.
 // Finally, it returns a pointer to the newly created `SchemaDefinition`.
 func NewSchemaFromEntityDefinitions(entities ...*base.EntityDefinition) *base.SchemaDefinition {
 	// Initialize the schema definition
@@ -40,9 +40,9 @@ func NewSchemaFromEntityDefinitions(entities ...*base.EntityDefinition) *base.Sc
 		if entity.Relations == nil {
 			entity.Relations = map[string]*base.RelationDefinition{}
 		}
-		// If the entity definition doesn't have an Actions property, initialize it as an empty map
-		if entity.Actions == nil {
-			entity.Actions = map[string]*base.ActionDefinition{}
+		// If the entity definition doesn't have an Permissions property, initialize it as an empty map
+		if entity.Permissions == nil {
+			entity.Permissions = map[string]*base.PermissionDefinition{}
 		}
 		// Add the entity definition to the schema definition's EntityDefinitions map
 		schema.EntityDefinitions[entity.Name] = entity
@@ -102,17 +102,17 @@ func GetTypeOfRelationalReferenceByNameInEntityDefinition(entityDefinition *base
 	return base.EntityDefinition_RELATIONAL_REFERENCE_UNSPECIFIED, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 }
 
-// GetActionByNameInEntityDefinition retrieves an `ActionDefinition` from an `EntityDefinition` by its name.
-// It returns a pointer to the `ActionDefinition` if it is found in the `EntityDefinition`.
-// If the `ActionDefinition` is not found, it returns an error with error code `ERROR_CODE_ACTION_DEFINITION_NOT_FOUND`.
-func GetActionByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (actionDefinition *base.ActionDefinition, err error) {
-	// Look up the action definition in the entity definition's Actions map
-	if re, ok := entityDefinition.GetActions()[name]; ok {
-		// If the action definition is found, return it and a nil error
+// GetPermissionByNameInEntityDefinition retrieves an `PermissionDefinition` from an `EntityDefinition` by its name.
+// It returns a pointer to the `PermissionDefinition` if it is found in the `EntityDefinition`.
+// If the `PermissionDefinition` is not found, it returns an error with error code `ERROR_CODE_ACTION_DEFINITION_NOT_FOUND`.
+func GetPermissionByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (permissionDefinition *base.PermissionDefinition, err error) {
+	// Look up the permission definition in the entity definition's Permissions map
+	if re, ok := entityDefinition.GetPermissions()[name]; ok {
+		// If the permission definition is found, return it and a nil error
 		return re, nil
 	}
-	// If the action definition is not found, return a nil action definition and an error
-	return nil, errors.New(base.ErrorCode_ERROR_CODE_ACTION_DEFINITION_NOT_FOUND.String())
+	// If the permission definition is not found, return a nil permission definition and an error
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_PERMISSION_DEFINITION_NOT_FOUND.String())
 }
 
 // GetRelationByNameInEntityDefinition retrieves a `RelationDefinition` from an `EntityDefinition` by its name.

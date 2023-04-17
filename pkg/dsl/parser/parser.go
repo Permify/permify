@@ -134,8 +134,8 @@ func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatem
 	return nil // return nil to indicate that there was no error
 }
 
-// setActionReference adds a new action reference to the Parser's actionReferences and relationalReferences maps
-func (p *Parser) setActionReference(key string) error {
+// setPermissionReference adds a new action reference to the Parser's actionReferences and relationalReferences maps
+func (p *Parser) setPermissionReference(key string) error {
 	// if the actionReferences map is nil, initialize it
 	if p.actionReferences == nil {
 		p.actionReferences = map[string]struct{}{}
@@ -152,8 +152,8 @@ func (p *Parser) setActionReference(key string) error {
 	}
 	// add the action type to the actionReferences map
 	p.actionReferences[key] = struct{}{}
-	// add the action type to the relationalReferences map, with a value of ACTION to indicate that it is an action reference
-	p.relationalReferences[key] = ast.ACTION
+	// add the action type to the relationalReferences map, with a value of PERMISSION to indicate that it is an action reference
+	p.relationalReferences[key] = ast.PERMISSION
 	return nil // return nil to indicate that there was no error
 }
 
@@ -236,7 +236,7 @@ func (p *Parser) Parse() (*ast.Schema, error) {
 	// set the schema's references fields to the corresponding maps in the Parser
 	schema.SetEntityReferences(p.entityReferences)
 	schema.SetRelationReferences(p.relationReferences)
-	schema.SetActionReferences(p.actionReferences)
+	schema.SetPermissionReferences(p.actionReferences)
 	schema.SetRelationalReferences(p.relationalReferences)
 
 	// return the parsed schema object and nil to indicate that there were no errors
@@ -284,7 +284,7 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 			p.currentError(token.RBRACE)
 			return nil, p.Error()
 		}
-		// based on the currentToken's type, parse a RelationStatement or ActionStatement and add it to the EntityStatement's corresponding field
+		// based on the currentToken's type, parse a RelationStatement or PermissionStatement and add it to the EntityStatement's corresponding field
 		switch p.currentToken.Type {
 		case token.RELATION:
 			relation, err := p.parseRelationStatement(stmt.Name.Literal)
@@ -292,17 +292,17 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 				return nil, p.Error()
 			}
 			stmt.RelationStatements = append(stmt.RelationStatements, relation)
-		case token.ACTION:
-			action, err := p.parseActionStatement(stmt.Name.Literal)
+		case token.PERMISSION:
+			action, err := p.parsePermissionStatement(stmt.Name.Literal)
 			if err != nil {
 				return nil, p.Error()
 			}
-			stmt.ActionStatements = append(stmt.ActionStatements, action)
+			stmt.PermissionStatements = append(stmt.PermissionStatements, action)
 		default:
 			// if the currentToken is not recognized, check if it is a newline, left brace, or right brace token, and skip it if it is
 			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
 				// if the currentToken is not recognized and not a newline, left brace, or right brace token, raise an error and return nil for both the statement and error values
-				p.currentError(token.RELATION, token.ACTION)
+				p.currentError(token.RELATION, token.PERMISSION)
 				return nil, p.Error()
 			}
 		}
@@ -379,19 +379,19 @@ func (p *Parser) parseRelationTypeStatement() (*ast.RelationTypeStatement, error
 	return stmt, nil
 }
 
-// parseActionStatement method parses an ACTION statement and returns an ActionStatement AST node
-func (p *Parser) parseActionStatement(entityName string) (ast.Statement, error) {
-	// create a new ActionStatement object and set its Action field to the currentToken
-	stmt := &ast.ActionStatement{Action: p.currentToken}
+// parsePermissionStatement method parses an PERMISSION statement and returns an PermissionStatement AST node
+func (p *Parser) parsePermissionStatement(entityName string) (ast.Statement, error) {
+	// create a new PermissionStatement object and set its Permission field to the currentToken
+	stmt := &ast.PermissionStatement{Permission: p.currentToken}
 
-	// expect the next token to be an identifier token, and set the ActionStatement's Name field to the identifier's value
+	// expect the next token to be an identifier token, and set the PermissionStatement's Name field to the identifier's value
 	if !p.expectAndNext(token.IDENT) {
 		return nil, p.Error()
 	}
 	stmt.Name = p.currentToken
 
 	// add the action reference to the Parser's actionReferences and relationalReferences maps
-	err := p.setActionReference(utils.Key(entityName, stmt.Name.Literal))
+	err := p.setPermissionReference(utils.Key(entityName, stmt.Name.Literal))
 	if err != nil {
 		return nil, err
 	}
@@ -403,14 +403,14 @@ func (p *Parser) parseActionStatement(entityName string) (ast.Statement, error) 
 
 	p.next()
 
-	// parse the expression statement and set it as the ActionStatement's ExpressionStatement field
+	// parse the expression statement and set it as the PermissionStatement's ExpressionStatement field
 	ex, err := p.parseExpressionStatement()
 	if err != nil {
 		return nil, p.Error()
 	}
 	stmt.ExpressionStatement = ex
 
-	// return the parsed ActionStatement and nil for the error value
+	// return the parsed PermissionStatement and nil for the error value
 	return stmt, nil
 }
 

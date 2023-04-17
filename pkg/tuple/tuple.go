@@ -177,22 +177,22 @@ func E(e string) (*base.Entity, error) {
 }
 
 type Query struct {
-	Subject *base.Subject
-	Entity  *base.Entity
-	Action  string
+	Subject    *base.Subject
+	Entity     *base.Entity
+	Permission string
 }
 
 // NewQueryFromString sample query: can user:1 push repository:1
 func NewQueryFromString(query string) (*Query, error) {
 	q := strings.Split(strings.TrimSpace(query), " ")
-	if len(q) != 4 {
+	if len(q) != 3 {
 		return nil, ErrInvalidQuery
 	}
-	subject, err := EAR(q[1])
+	subject, err := EAR(q[0])
 	if err != nil {
 		return nil, err
 	}
-	entity, err := E(q[3])
+	entity, err := E(q[2])
 	if err != nil {
 		return nil, err
 	}
@@ -203,6 +203,6 @@ func NewQueryFromString(query string) (*Query, error) {
 			Id:       subject.Entity.Id,
 			Relation: subject.Relation,
 		},
-		Action: q[2],
+		Permission: q[1],
 	}, nil
 }

@@ -108,7 +108,7 @@ function DataFiltering(props) {
                 </Input.Group>
                 <span>which <span className="text-grey">entity</span> <span
                     className="text-grey">subject:id</span> <span>can</span> <span
-                    className="text-grey">permission (action or relation)</span></span>
+                    className="text-grey">permission (permission or relation)</span></span>
                 {result != null ?
                     <>
                         <div className="pt-12">

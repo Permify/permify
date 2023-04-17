@@ -30,9 +30,9 @@ var _ = Describe("expand-engine", func() {
 		relation creator @user
 		relation collaborator @user
 	
-		action read = collaborator
-		action update = collaborator
-		action delete = creator or org.admin
+		permission read = collaborator
+		permission update = collaborator
+		permission delete = creator or org.admin
 	}
 	
 	entity doc {
@@ -40,9 +40,9 @@ var _ = Describe("expand-engine", func() {
 		relation parent @folder
 		relation owner @user
 	
-		action read = (owner or parent.collaborator) or org.admin
-		action update = owner and org.admin
-		action delete = owner or org.admin
+		permission read = (owner or parent.collaborator) or org.admin
+		permission update = owner and org.admin
+		permission delete = owner or org.admin
 	}
 	`
 

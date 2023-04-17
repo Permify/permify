@@ -13,37 +13,29 @@ function Check(props) {
     const [queryIsValid, setQueryIsValid] = useState(false);
 
     const isValid = (value) => {
-        let s = value.split(" ")
-        if (s.length !== 4) {
-            return false
+        if (typeof value !== 'string') {
+            throw new Error('Input must be a string.');
         }
 
-        let sIsValid = false
-        let sb = s[1].split(":")
-        if (sb.length !== 2) {
-            return false
-        } else {
-            if (sb[0] === "" || sb[1] === "") {
-                return false
-            } else {
-                sIsValid = true
-            }
+        let s = value.split(' ');
+        if (s.length !== 3) {
+            return false;
         }
 
-        let oIsValid = false
-        let ent = s[3].split(":")
-        if (ent.length !== 2) {
-            return false
-        } else {
-            if (ent[0] === "" || ent[1] === "") {
-                return false
-            } else {
-                oIsValid = true
+        const isValidSection = (section) => {
+            let splitSection = section.split(':');
+            if (splitSection.length !== 2) {
+                return false;
             }
-        }
+            let [, value] = splitSection;
+            return value !== '';
+        };
+
+        let sIsValid = isValidSection(s[0]);
+        let oIsValid = isValidSection(s[2]);
 
         return sIsValid && oIsValid;
-    }
+    };
 
     const onQueryChange = (e) => {
         setResult(null)
@@ -58,28 +50,50 @@ function Check(props) {
     }
 
     const parseQuery = (value) => {
-        let s = value.split(" ")
-        let sb = s[1].split(":")
-        let userSet = sb[1].split("#")
+        if (typeof value !== 'string') {
+            throw new Error('Input must be a string.');
+        }
+
+        let parts = value.split(' ');
+        if (parts.length !== 3) {
+            throw new Error('Invalid input format.');
+        }
+
+        let [subjectPart, permissionPart, entityPart] = parts;
+
+        let subjectTokens = subjectPart.split(':');
+        if (subjectTokens.length !== 2) {
+            throw new Error('Invalid subject format.');
+        }
+
+        let [subjectType, subjectId] = subjectTokens;
+        let userSet = subjectId.split('#');
         if (userSet.length === 2) {
             setSubject({
-                type: sb[0],
+                type: subjectType,
                 id: userSet[0],
                 relation: userSet[1],
-            })
+            });
         } else {
             setSubject({
-                type: sb[0],
-                id: sb[1],
-            })
+                type: subjectType,
+                id: subjectId,
+            });
         }
-        setPermission(s[2])
-        let ent = s[3].split(":")
+
+        setPermission(permissionPart);
+
+        let entityTokens = entityPart.split(':');
+        if (entityTokens.length !== 2) {
+            throw new Error('Invalid entity format.');
+        }
+
+        let [entityType, entityId] = entityTokens;
         setEntity({
-            type: ent[0],
-            id: ent[1],
-        })
-    }
+            type: entityType,
+            id: entityId,
+        });
+    };
 
     const [result, setResult] = useState(null);
 
@@ -112,7 +126,7 @@ function Check(props) {
                             width: '85%',
                         }}
                         onChange={onQueryChange}
-                        placeholder="can user:1 push repository:1"
+                        placeholder="user:1 push repository:1"
                         className="border-radius-right-none border-right-none"
                         size="large"
                     />
@@ -121,7 +135,7 @@ function Check(props) {
                     }} type="primary" size="large" className="border-radius-left-none" disabled={!queryIsValid}
                             onClick={onCheck}>Check</Button>
                 </Input.Group>
-                <span>can <span className="text-grey">subject:id</span> <span className="text-grey">permission (action or relation)</span> <span
+                <span><span className="text-grey">subject:id</span> <span className="text-grey">permission (permission or relation)</span> <span
                     className="text-grey">entity:id</span></span>
                 {result != null ?
                     <>
@@ -130,11 +144,11 @@ function Check(props) {
                                     status="success"
                                     title={subject.relation ?
                                         <>
-                                            {subject.type}:{subject.id}#{subject.relation} can {permission} {entity.type}:{entity.id}
+                                            {subject.type}:{subject.id}#{subject.relation} {permission} {entity.type}:{entity.id}
                                         </>
                                         :
                                         <>
-                                            {subject.type}:{subject.id} can {permission} {entity.type}:{entity.id}
+                                            {subject.type}:{subject.id} {permission} {entity.type}:{entity.id}
                                         </>
                                     }
                             />
@@ -143,12 +157,12 @@ function Check(props) {
                                     status="error"
                                     title={subject.relation ?
                                         <>
-                                            {subject.type}:{subject.id}#{subject.relation} can
+                                            {subject.type}:{subject.id}#{subject.relation}
                                             not {permission} {entity.type}:{entity.id}
                                         </>
                                         :
                                         <>
-                                            {subject.type}:{subject.id} can not {permission} {entity.type}:{entity.id}
+                                            {subject.type}:{subject.id} not {permission} {entity.type}:{entity.id}
                                         </>
                                     }
                             />
