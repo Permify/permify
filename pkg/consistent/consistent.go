@@ -1,6 +1,7 @@
 package hash
 
 import (
+	"github.com/Permify/permify/pkg/gossip"
 	"sort"
 	"strconv"
 	"sync"
@@ -24,7 +25,7 @@ type (
 	}
 )
 
-func NewConsistentHash(replicas int, fn Func) *ConsistentHash {
+func NewConsistentHash(replicas int, seedNodes []string, fn Func) *ConsistentHash {
 	if replicas < minReplicas {
 		replicas = minReplicas
 	}
@@ -33,16 +34,43 @@ func NewConsistentHash(replicas int, fn Func) *ConsistentHash {
 		fn = Hash
 	}
 
-	return &ConsistentHash{
+	consistent := &ConsistentHash{
 		hashFunc: fn,
 		replicas: replicas,
 		ring:     make(map[uint64]string),
 		nodes:    make(map[string]struct{}),
 	}
+
+	for i := range seedNodes {
+		consistent.Add(seedNodes[i])
+	}
+
+	return consistent
 }
 
 func (h *ConsistentHash) Add(node string) {
 	h.AddWithReplicas(node, h.replicas)
+}
+
+func (h *ConsistentHash) SyncNodes(g *gossip.Engine) {
+	nodes := g.SyncMemberList()
+
+	consistentNodes := h.nodes
+
+	nodeMap := make(map[string]struct{})
+	for _, node := range nodes {
+		nodeMap[node] = struct{}{}
+
+		if _, exists := consistentNodes[node]; !exists {
+			h.AddWithWeight(node, 100)
+		}
+	}
+
+	for nodeName := range consistentNodes {
+		if _, exists := nodeMap[nodeName]; !exists {
+			h.Remove(nodeName)
+		}
+	}
 }
 
 func (h *ConsistentHash) AddWithReplicas(node string, replicas int) {

@@ -6,12 +6,10 @@ import (
 	hash "github.com/Permify/permify/pkg/consistent"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/gossip"
+	"github.com/spf13/viper"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"os/signal"
 	"syscall"
-
-	"go.opentelemetry.io/otel/sdk/metric"
-
-	"github.com/spf13/viper"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -152,8 +150,18 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 			gossipEngine, err := gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Distributed)
 			if err != nil {
+				green := color.New(color.FgGreen)
+				green.Printf("🔗 failed to start distributed mode: %s ", err.Error())
+
 				return err
 			}
+
+			go func() {
+				for {
+					consistencyChecker.SyncNodes(gossipEngine)
+				}
+
+			}()
 
 			defer func() {
 				if err = gossipEngine.Shutdown(); err != nil {
@@ -197,7 +205,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// key managers
-		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, gossipEngine, cfg.Server)
+		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, consistencyChecker, gossipEngine, cfg.Server)
 
 		// engines
 		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))

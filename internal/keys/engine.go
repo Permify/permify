@@ -7,6 +7,7 @@ import (
 	"github.com/Permify/permify/pkg/consistent"
 	"github.com/Permify/permify/pkg/gossip"
 	"github.com/cespare/xxhash/v2"
+	"github.com/hashicorp/memberlist"
 
 	"github.com/Permify/permify/pkg/cache"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -24,12 +25,7 @@ type EngineKeys struct {
 
 // NewCheckEngineKeys creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineKeys(cache cache.Cache, gossip *gossip.Engine, cfg config.Server) EngineKeyManager {
-
-	// Initialize a new instance of ConsistentHash with 100 replicas
-	consistent := hash.NewConsistentHash(100, nil)
-	consistent.Add(cfg.Address + ":" + cfg.HTTP.Port)
-
+func NewCheckEngineKeys(cache cache.Cache, consistent *hash.ConsistentHash, gossip *gossip.Engine, cfg config.Server) EngineKeyManager {
 	// Return a new instance of EngineKeys with the provided cache
 	return &EngineKeys{
 		localNodeAddress: cfg.Address + ":" + cfg.HTTP.Port,
@@ -186,3 +182,8 @@ func (c *NoopEngineKeys) SetCheckKey(*base.PermissionCheckRequest, *base.Permiss
 func (c *NoopEngineKeys) GetCheckKey(*base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
 	return nil, false
 }
+
+// SyncPeers is a no-op method that implements the SyncPeers method for the
+// EngineKeyManager interface. It does nothing, as it performs no actual caching
+// or operations.
+func (c *NoopEngineKeys) SyncPeers(*memberlist.Memberlist) {}

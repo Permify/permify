@@ -386,7 +386,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringArray("distributed-advertise-port", conf.Distributed.SeedNodes, "memberlist port to advertise")
+	flags.String("distributed-advertise-port", conf.Distributed.AdvertisePort, "memberlist port to advertise")
 	if err = viper.BindPFlag("distributed.advertise_port", flags.Lookup("distributed-advertise-port")); err != nil {
 		panic(err)
 	}
