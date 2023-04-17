@@ -1,9 +1,10 @@
 package flags
 
 import (
-	"github.com/Permify/permify/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/Permify/permify/internal/config"
 )
 
 // RegisterServeFlags - Define and registers permify CLI flags
@@ -323,7 +324,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindPFlag("database.garbage_collection.enable", flags.Lookup("database-garbage-collection-enable")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("database.garbage_collection.enable", "PERMIFY_DATABASE_AUTO_MIGRATE"); err != nil {
+	if err = viper.BindEnv("database.garbage_collection.enable", "PERMIFY_DATABASE_GARBAGE_ENABLE"); err != nil {
 		panic(err)
 	}
 
