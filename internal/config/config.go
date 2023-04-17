@@ -146,8 +146,9 @@ type (
 	}
 
 	Distributed struct {
-		Enabled   bool     `mapstructure:"enabled"`
-		SeedNodes []string `mapstructure:"seed_nodes"`
+		Enabled       bool     `mapstructure:"enabled"`
+		SeedNodes     []string `mapstructure:"seed_nodes"`
+		AdvertisePort string   `mapstructure:"advertise_port"`
 	}
 )
 

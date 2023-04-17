@@ -367,4 +367,30 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindEnv("database.garbage_collection.number_of_threads", "PERMIFY_DATABASE_GARBAGE_COLLECTION_NUMBER_OF_THREADS"); err != nil {
 		panic(err)
 	}
+
+	// Distributed
+	flags.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed mode")
+	if err = viper.BindPFlag("distributed.enabled", flags.Lookup("distributed-enabled")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.enabled", "PERMIFY_DISTRIBUTED_ENABLED"); err != nil {
+		panic(err)
+	}
+
+	flags.StringArray("distributed-seed-nodes", conf.Distributed.SeedNodes, "list of peers")
+	if err = viper.BindPFlag("distributed.seed_nodes", flags.Lookup("distributed-seed-nodes")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.seed_nodes", "PERMIFY_DISTRIBUTED_SEED_NODES"); err != nil {
+		panic(err)
+	}
+
+	flags.StringArray("distributed-advertise-port", conf.Distributed.SeedNodes, "memberlist port to advertise")
+	if err = viper.BindPFlag("distributed.advertise_port", flags.Lookup("distributed-advertise-port")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.advertise_port", "PERMIFY_DISTRIBUTED_ADVERTISE_PORT"); err != nil {
+		panic(err)
+	}
+
 }
