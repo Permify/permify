@@ -104,7 +104,7 @@ function GraphOptions() {
                 shape: "dot",
                 size: 20,
             },
-            action: {
+            permission: {
                 borderRadius: "1px",
                 color: { background: "#5bcc63", border: "#5bcc63" },
                 shapeProperties: { borderDashes: false },
