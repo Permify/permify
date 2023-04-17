@@ -51,7 +51,7 @@ func NewCheckEngine(km keys.EngineKeyManager, sr repositories.SchemaReader, rr r
 }
 
 // Run executes a permission check based on the provided request.
-// The permission field in the request can either be a relation or an action.
+// The permission field in the request can either be a relation or an permission.
 // This function performs various checks and returns the permission check response
 // along with any errors that may have occurred.
 func (engine *CheckEngine) Run(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
@@ -106,8 +106,8 @@ func (engine *CheckEngine) Run(ctx context.Context, request *base.PermissionChec
 		return emptyResp, err
 	}
 
-	// If permission field is not an action, try getting cached check result
-	if tor != base.EntityDefinition_RELATIONAL_REFERENCE_ACTION {
+	// If permission field is not an permission, try getting cached check result
+	if tor != base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
 		res, found := engine.engineKeyManager.GetCheckKey(request)
 		if found {
 			if request.GetMetadata().GetExclusion() {
@@ -130,8 +130,8 @@ func (engine *CheckEngine) Run(ctx context.Context, request *base.PermissionChec
 		return emptyResp, err
 	}
 
-	// Handle caching and exclusion logic for non-action permissions
-	if tor != base.EntityDefinition_RELATIONAL_REFERENCE_ACTION {
+	// Handle caching and exclusion logic for non-permission permissions
+	if tor != base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
 		res.Metadata = increaseCheckCount(res.Metadata)
 		engine.engineKeyManager.SetCheckKey(request, &base.PermissionCheckResponse{
 			Can:      res.GetCan(),
@@ -181,14 +181,14 @@ func (engine *CheckEngine) run(ctx context.Context, request *base.PermissionChec
 func (engine *CheckEngine) check(ctx context.Context, request *base.PermissionCheckRequest, tor base.EntityDefinition_RelationalReference, en *base.EntityDefinition) CheckFunction {
 	var err error
 	var fn CheckFunction
-	if tor == base.EntityDefinition_RELATIONAL_REFERENCE_ACTION {
+	if tor == base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
 		var child *base.Child
-		var action *base.ActionDefinition
-		action, err = schema.GetActionByNameInEntityDefinition(en, request.GetPermission())
+		var permission *base.PermissionDefinition
+		permission, err = schema.GetPermissionByNameInEntityDefinition(en, request.GetPermission())
 		if err != nil {
 			return checkFail(err)
 		}
-		child = action.GetChild()
+		child = permission.GetChild()
 		if child.GetRewrite() != nil {
 			fn = engine.checkRewrite(ctx, request, child.GetRewrite())
 		} else {

@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
-    "version": "v0.3.6",
+    "version": "v0.3.8",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
@@ -163,7 +163,7 @@
     },
     "/v1/tenants/{tenant_id}/permissions/check": {
       "post": {
-        "summary": "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?",
+        "summary": "This method returns a decision about whether user can perform an permission on a certain resource. For example, Can the user 1 push to repository 1?",
         "operationId": "permissions.check",
         "responses": {
           "200": {
@@ -201,7 +201,7 @@
                 },
                 "permission": {
                   "type": "string",
-                  "title": "its can be action or relation"
+                  "title": "its can be permission or relation"
                 },
                 "subject": {
                   "$ref": "#/definitions/Subject"
@@ -678,18 +678,6 @@
     }
   },
   "definitions": {
-    "ActionDefinition": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "child": {
-          "$ref": "#/definitions/Child"
-        }
-      },
-      "title": "ActionDefinition"
-    },
     "Any": {
       "type": "object",
       "properties": {
@@ -756,19 +744,19 @@
           },
           "title": "[\"relation_name\"] =\u003e RelationDefinition"
         },
-        "actions": {
+        "permissions": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/ActionDefinition"
+            "$ref": "#/definitions/PermissionDefinition"
           },
-          "title": "[\"action_name\"] =\u003e ActionDefinition"
+          "title": "[\"permission_name\"] =\u003e PermissionDefinition"
         },
         "references": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/RelationalReference"
           },
-          "title": "[\"relation_name or action_name\"] =\u003e RelationalReference"
+          "title": "[\"relation_name or permission_name\"] =\u003e RelationalReference"
         }
       },
       "title": "EntityDefinition"
@@ -891,6 +879,18 @@
       },
       "title": "CheckResponseMetadata"
     },
+    "PermissionDefinition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "child": {
+          "$ref": "#/definitions/Child"
+        }
+      },
+      "title": "PermissionDefinition"
+    },
     "PermissionExpandRequestMetadata": {
       "type": "object",
       "properties": {
@@ -961,7 +961,7 @@
     "PermissionLookupSchemaResponse": {
       "type": "object",
       "properties": {
-        "action_names": {
+        "permission_names": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1002,7 +1002,7 @@
       "enum": [
         "RELATIONAL_REFERENCE_UNSPECIFIED",
         "RELATIONAL_REFERENCE_RELATION",
-        "RELATIONAL_REFERENCE_ACTION"
+        "RELATIONAL_REFERENCE_PERMISSION"
       ],
       "default": "RELATIONAL_REFERENCE_UNSPECIFIED",
       "title": "RelationalReference"

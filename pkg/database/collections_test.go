@@ -1,10 +1,11 @@
 package database
 
 import (
-	`github.com/stretchr/testify/assert`
-	`testing`
+	"testing"
 
-	base `github.com/Permify/permify/pkg/pb/base/v1`
+	"github.com/stretchr/testify/assert"
+
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 func TestTupleCollection(t *testing.T) {

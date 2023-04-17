@@ -57,10 +57,10 @@ func (t *Compiler) Compile() (sch []*base.EntityDefinition, err error) {
 func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, error) {
 	// Initialize the entity definition
 	entityDefinition := &base.EntityDefinition{
-		Name:       sc.Name.Literal,
-		Relations:  map[string]*base.RelationDefinition{},
-		Actions:    map[string]*base.ActionDefinition{},
-		References: map[string]base.EntityDefinition_RelationalReference{},
+		Name:        sc.Name.Literal,
+		Relations:   map[string]*base.RelationDefinition{},
+		Permissions: map[string]*base.PermissionDefinition{},
+		References:  map[string]base.EntityDefinition_RelationalReference{},
 	}
 
 	// Compile relations
@@ -90,12 +90,12 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 		entityDefinition.References[relationDefinition.GetName()] = base.EntityDefinition_RELATIONAL_REFERENCE_RELATION
 	}
 
-	// Compile actions
-	for _, as := range sc.ActionStatements {
-		// Cast the action statement
-		st, okAs := as.(*ast.ActionStatement)
+	// Compile permissions
+	for _, as := range sc.PermissionStatements {
+		// Cast the permission statement
+		st, okAs := as.(*ast.PermissionStatement)
 		if !okAs {
-			return nil, compileError(st.Action.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(st.Permission.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
 		// Compile the child expression
@@ -104,19 +104,19 @@ func (t *Compiler) compile(sc *ast.EntityStatement) (*base.EntityDefinition, err
 			return nil, err
 		}
 
-		// Initialize the action definition and reference
-		actionDefinition := &base.ActionDefinition{
+		// Initialize the permission definition and reference
+		permissionDefinition := &base.PermissionDefinition{
 			Name:  st.Name.Literal,
 			Child: ch,
 		}
-		entityDefinition.Actions[actionDefinition.GetName()] = actionDefinition
-		entityDefinition.References[actionDefinition.GetName()] = base.EntityDefinition_RELATIONAL_REFERENCE_ACTION
+		entityDefinition.Permissions[permissionDefinition.GetName()] = permissionDefinition
+		entityDefinition.References[permissionDefinition.GetName()] = base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION
 	}
 
 	return entityDefinition, nil
 }
 
-// compileExpressionStatement compiles an ExpressionStatement into a Child node that can be used to construct an ActionDefinition.
+// compileExpressionStatement compiles an ExpressionStatement into a Child node that can be used to construct an PermissionDefinition.
 // It calls compileChildren to compile the expression into Child node(s).
 // entityName is passed as an argument to the function to use it as a reference to the parent entity.
 // Returns a pointer to a Child and an error if the compilation process fails.
@@ -258,7 +258,7 @@ func (t *Compiler) compileComputedUserSetIdentifier(r string) (l *base.Leaf, err
 }
 
 // compileTupleToUserSetIdentifier compiles a tuple to user set identifier to a leaf node in the IR tree.
-// The resulting leaf node is used in the child node of an action definition in the final compiled schema.
+// The resulting leaf node is used in the child node of an permission definition in the final compiled schema.
 // It takes in the parameters p and r, which represent the parent and relation of the tuple, respectively.
 // It returns a pointer to a leaf node and an error.
 func (t *Compiler) compileTupleToUserSetIdentifier(p, r string) (l *base.Leaf, err error) {

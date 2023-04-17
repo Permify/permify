@@ -19,29 +19,29 @@ var _ = Describe("compiler", func() {
 	Context("Schema", func() {
 		It("Case 1", func() {
 			is := Schema(
-				Entity("user", Relations(), Actions()),
+				Entity("user", Relations(), Permissions()),
 			)
 
 			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
 				"user": {
-					Name:       "user",
-					Relations:  map[string]*base.RelationDefinition{},
-					Actions:    map[string]*base.ActionDefinition{},
-					References: map[string]base.EntityDefinition_RelationalReference{},
+					Name:        "user",
+					Relations:   map[string]*base.RelationDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References:  map[string]base.EntityDefinition_RelationalReference{},
 				},
 			}))
 		})
 
 		It("Case 2", func() {
 			is := Schema(
-				Entity("user", Relations(), Actions()),
+				Entity("user", Relations(), Permissions()),
 				Entity("organization",
 					Relations(
 						Relation("owner", Reference("user")),
 						Relation("admin", Reference("user")),
 					),
-					Actions(
-						Action("update",
+					Permissions(
+						Permission("update",
 							Union(
 								ComputedUserSet("owner", false),
 								ComputedUserSet("admin", false),
@@ -53,14 +53,14 @@ var _ = Describe("compiler", func() {
 
 			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
 				"user": {
-					Name:       "user",
-					Relations:  map[string]*base.RelationDefinition{},
-					Actions:    map[string]*base.ActionDefinition{},
-					References: map[string]base.EntityDefinition_RelationalReference{},
+					Name:        "user",
+					Relations:   map[string]*base.RelationDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References:  map[string]base.EntityDefinition_RelationalReference{},
 				},
 				"organization": {
 					Name: "organization",
-					Actions: map[string]*base.ActionDefinition{
+					Permissions: map[string]*base.PermissionDefinition{
 						"update": {
 							Name: "update",
 							Child: &base.Child{
@@ -121,7 +121,7 @@ var _ = Describe("compiler", func() {
 					References: map[string]base.EntityDefinition_RelationalReference{
 						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 					},
 				},
 			}))
@@ -129,14 +129,14 @@ var _ = Describe("compiler", func() {
 
 		It("Case 3", func() {
 			is := Schema(
-				Entity("user", Relations(), Actions()),
+				Entity("user", Relations(), Permissions()),
 				Entity("organization",
 					Relations(
 						Relation("owner", Reference("user")),
 						Relation("admin", Reference("user")),
 					),
-					Actions(
-						Action("update",
+					Permissions(
+						Permission("update",
 							Union(
 								ComputedUserSet("owner", false),
 								Intersection(
@@ -151,14 +151,14 @@ var _ = Describe("compiler", func() {
 
 			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
 				"user": {
-					Name:       "user",
-					Relations:  map[string]*base.RelationDefinition{},
-					Actions:    map[string]*base.ActionDefinition{},
-					References: map[string]base.EntityDefinition_RelationalReference{},
+					Name:        "user",
+					Relations:   map[string]*base.RelationDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References:  map[string]base.EntityDefinition_RelationalReference{},
 				},
 				"organization": {
 					Name: "organization",
-					Actions: map[string]*base.ActionDefinition{
+					Permissions: map[string]*base.PermissionDefinition{
 						"update": {
 							Name: "update",
 							Child: &base.Child{
@@ -240,7 +240,7 @@ var _ = Describe("compiler", func() {
 					References: map[string]base.EntityDefinition_RelationalReference{
 						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 					},
 				},
 			}))
@@ -248,14 +248,14 @@ var _ = Describe("compiler", func() {
 
 		It("Case 4", func() {
 			is := Schema(
-				Entity("user", Relations(), Actions()),
+				Entity("user", Relations(), Permissions()),
 				Entity("organization",
 					Relations(
 						Relation("owner", Reference("user")),
 						Relation("admin", Reference("user")),
 					),
-					Actions(
-						Action("update",
+					Permissions(
+						Permission("update",
 							ComputedUserSet("owner", false),
 						),
 					),
@@ -264,14 +264,14 @@ var _ = Describe("compiler", func() {
 
 			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
 				"user": {
-					Name:       "user",
-					Relations:  map[string]*base.RelationDefinition{},
-					Actions:    map[string]*base.ActionDefinition{},
-					References: map[string]base.EntityDefinition_RelationalReference{},
+					Name:        "user",
+					Relations:   map[string]*base.RelationDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References:  map[string]base.EntityDefinition_RelationalReference{},
 				},
 				"organization": {
 					Name: "organization",
-					Actions: map[string]*base.ActionDefinition{
+					Permissions: map[string]*base.PermissionDefinition{
 						"update": {
 							Name: "update",
 							Child: &base.Child{
@@ -311,7 +311,7 @@ var _ = Describe("compiler", func() {
 					References: map[string]base.EntityDefinition_RelationalReference{
 						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 					},
 				},
 			}))
@@ -319,14 +319,14 @@ var _ = Describe("compiler", func() {
 
 		It("Case 5", func() {
 			is := Schema(
-				Entity("user", Relations(), Actions()),
+				Entity("user", Relations(), Permissions()),
 				Entity("organization",
 					Relations(
 						Relation("owner", Reference("user")),
 						Relation("admin", Reference("user")),
 					),
-					Actions(
-						Action("update",
+					Permissions(
+						Permission("update",
 							ComputedUserSet("owner", false),
 						),
 					),
@@ -336,8 +336,8 @@ var _ = Describe("compiler", func() {
 						Relation("parent", Reference("organization")),
 						Relation("owner", Reference("user"), Reference("organization#admin")),
 					),
-					Actions(
-						Action("delete",
+					Permissions(
+						Permission("delete",
 							Union(
 								ComputedUserSet("owner", false),
 								Union(
@@ -352,14 +352,14 @@ var _ = Describe("compiler", func() {
 
 			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
 				"user": {
-					Name:       "user",
-					Relations:  map[string]*base.RelationDefinition{},
-					Actions:    map[string]*base.ActionDefinition{},
-					References: map[string]base.EntityDefinition_RelationalReference{},
+					Name:        "user",
+					Relations:   map[string]*base.RelationDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References:  map[string]base.EntityDefinition_RelationalReference{},
 				},
 				"organization": {
 					Name: "organization",
-					Actions: map[string]*base.ActionDefinition{
+					Permissions: map[string]*base.PermissionDefinition{
 						"update": {
 							Name: "update",
 							Child: &base.Child{
@@ -399,12 +399,12 @@ var _ = Describe("compiler", func() {
 					References: map[string]base.EntityDefinition_RelationalReference{
 						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 					},
 				},
 				"repository": {
 					Name: "repository",
-					Actions: map[string]*base.ActionDefinition{
+					Permissions: map[string]*base.PermissionDefinition{
 						"delete": {
 							Name: "delete",
 							Child: &base.Child{
@@ -500,7 +500,7 @@ var _ = Describe("compiler", func() {
 					References: map[string]base.EntityDefinition_RelationalReference{
 						"parent": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
 						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"delete": base.EntityDefinition_RELATIONAL_REFERENCE_ACTION,
+						"delete": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 					},
 				},
 			}))

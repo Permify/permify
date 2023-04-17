@@ -188,7 +188,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						Depth:         100,
 					},
 					Entity:     q.Entity,
-					Permission: q.Action,
+					Permission: q.Permission,
 					Subject:    q.Subject,
 				})
 				if err != nil {

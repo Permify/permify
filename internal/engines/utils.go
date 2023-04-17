@@ -6,7 +6,6 @@ import (
 
 	"go.opentelemetry.io/otel"
 
-	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -72,17 +71,8 @@ type ERMap struct {
 	value sync.Map
 }
 
-func (s *ERMap) Add(onr *base.Entity) bool {
-	key := tuple.EntityToString(onr)
+func (s *ERMap) Add(onr *base.EntityAndRelation) bool {
+	key := tuple.EntityAndRelationToString(onr)
 	_, existed := s.value.LoadOrStore(key, struct{}{})
 	return !existed
-}
-
-// LinkedEntityRequest - a struct that holds all the information needed to perform a linked entity check.
-type LinkedEntityRequest struct {
-	Metadata *base.PermissionLookupEntityRequestMetadata
-	TenantID string
-	Target   *base.RelationReference
-	Subject  *base.Subject
-	Entrance schema.LinkedEntrance
 }

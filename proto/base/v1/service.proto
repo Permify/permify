@@ -22,7 +22,7 @@ service Permission {
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "This method returns a decision about whether user can perform an action on a certain resource. For example, Can the user 1 push to repository 1?"
+      summary: "This method returns a decision about whether user can perform an permission on a certain resource. For example, Can the user 1 push to repository 1?"
       tags: [
         "Permission"
       ]
@@ -96,7 +96,7 @@ service Permission {
 // PermissionCheckRequest
 message PermissionCheckRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -105,7 +105,7 @@ message PermissionCheckRequest {
 
   Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
-  // its can be action or relation
+  // its can be permission or relation
   string permission = 4 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
@@ -146,7 +146,7 @@ message PermissionCheckResponseMetadata {
 // PermissionExpandRequest
 message PermissionExpandRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -178,7 +178,7 @@ message PermissionExpandResponse {
 // PermissionLookupSchemaRequest
 message PermissionLookupSchemaRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -201,13 +201,13 @@ message PermissionLookupSchemaRequestMetadata {
 
 // PermissionLookupSchemaResponse
 message PermissionLookupSchemaResponse {
-  repeated string action_names = 1 [json_name = "action_names"];
+  repeated string permission_names = 1 [json_name = "permission_names"];
 }
 
 // PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -245,6 +245,29 @@ message PermissionLookupEntityResponse {
 message PermissionLookupEntityStreamResponse {
   string entity_id = 1 [json_name = "entity_id"];
 }
+
+// PermissionLinkedEntityRequest
+message PermissionLinkedEntityRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  PermissionLinkedEntityRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  RelationReference entity_reference = 3 [json_name = "entity_reference"];
+
+  Subject subject = 4 [json_name = "subject"];
+}
+
+// PermissionLookupEntityRequestMetadata
+message PermissionLinkedEntityRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
+  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
+}
+
 
 // ** SCHEMA SERVICE **
 
@@ -286,7 +309,7 @@ service Schema {
 // SchemaWriteRequest
 message SchemaWriteRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -304,7 +327,7 @@ message SchemaWriteResponse {
 // SchemaReadRequest
 message SchemaReadRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -375,7 +398,7 @@ service Relationship {
 // RelationshipWriteRequest
 message RelationshipWriteRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -406,7 +429,7 @@ message RelationshipWriteResponse {
 // RelationshipReadRequest
 message RelationshipReadRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -437,7 +460,7 @@ message RelationshipReadResponse {
 // RelationshipDeleteRequest
 message RelationshipDeleteRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -501,6 +524,7 @@ service Tenancy {
 // TenantCreateRequest
 message TenantCreateRequest {
   string id = 1 [json_name = "id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
