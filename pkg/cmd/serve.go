@@ -225,7 +225,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			PermissionService:   permissionService,
 			SchemaService:       schemaService,
 			TenancyService:      tenancyService,
-			ConsistentService:   consistencyChecker,
+			CacheService:        engineKeyCache,
 		}
 
 		var g *errgroup.Group
