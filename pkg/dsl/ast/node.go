@@ -55,7 +55,7 @@ type EntityStatement struct {
 	Entity               token.Token // token.ENTITY
 	Name                 token.Token // token.IDENT
 	RelationStatements   []Statement // Statements that define relationships between entities
-	PermissionStatements []Statement // Statements that define actions performed on the entity
+	PermissionStatements []Statement // Statements that define permissions performed on the entity
 }
 
 // statementNode is a dummy method that satisfies the Statement interface.
@@ -78,7 +78,7 @@ func (ls *EntityStatement) String() string {
 
 	sb.WriteString("\n")
 
-	// Iterate over the action statements and add them to the string builder.
+	// Iterate over the permission statements and add them to the string builder.
 	for _, rs := range ls.PermissionStatements {
 		sb.WriteString(rs.String())
 		sb.WriteString("\n")
@@ -145,7 +145,7 @@ func IsDirectEntityReference(s RelationTypeStatement) bool {
 	return s.Relation.Literal == ""
 }
 
-// Identifier represents an expression that identifies an entity, action or relation
+// Identifier represents an expression that identifies an entity, permission or relation
 type Identifier struct {
 	Prefix token.Token   // Prefix is a token that negates the identifier
 	Idents []token.Token // Idents is a slice of tokens that make up the identifier
@@ -184,7 +184,7 @@ func (ls *Identifier) GetType() ExpressionType {
 	return IDENTIFIER
 }
 
-// PermissionStatement represents an action statement, which consists of an action name and an optional expression statement.
+// PermissionStatement represents an permission statement, which consists of an permission name and an optional expression statement.
 // It implements the Statement interface.
 type PermissionStatement struct {
 	Permission          token.Token // token.PERMISSION
@@ -195,11 +195,11 @@ type PermissionStatement struct {
 // statementNode is a marker method used to implement the Statement interface.
 func (ls *PermissionStatement) statementNode() {}
 
-// String returns a string representation of the action statement.
+// String returns a string representation of the permission statement.
 func (ls *PermissionStatement) String() string {
 	var sb strings.Builder
 	sb.WriteString("\t")
-	sb.WriteString("action")
+	sb.WriteString("permission")
 	sb.WriteString(" ")
 	sb.WriteString(ls.Name.Literal)
 	sb.WriteString(" = ")
