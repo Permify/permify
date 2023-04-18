@@ -5190,26 +5190,30 @@ func (m *ConsistentGetRequest) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetKey()) > 64 {
-		err := ConsistentGetRequestValidationError{
-			field:  "Key",
-			reason: "value length must be at most 64 bytes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	if m.GetKey() != "" {
 
-	if !_ConsistentGetRequest_Key_Pattern.MatchString(m.GetKey()) {
-		err := ConsistentGetRequestValidationError{
-			field:  "Key",
-			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+		if len(m.GetKey()) > 64 {
+			err := ConsistentGetRequestValidationError{
+				field:  "Key",
+				reason: "value length must be at most 64 bytes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
+
+		if !_ConsistentGetRequest_Key_Pattern.MatchString(m.GetKey()) {
+			err := ConsistentGetRequestValidationError{
+				field:  "Key",
+				reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		errors = append(errors, err)
+
 	}
 
 	if len(errors) > 0 {
@@ -5318,6 +5322,46 @@ func (m *ConsistentGetResponse) validate(all bool) error {
 
 	// no validation rules for Value
 
+	if m.GetPermissionCheckResponse() == nil {
+		err := ConsistentGetResponseValidationError{
+			field:  "PermissionCheckResponse",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPermissionCheckResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ConsistentGetResponseValidationError{
+					field:  "PermissionCheckResponse",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ConsistentGetResponseValidationError{
+					field:  "PermissionCheckResponse",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPermissionCheckResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConsistentGetResponseValidationError{
+				field:  "PermissionCheckResponse",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return ConsistentGetResponseMultiError(errors)
 	}
@@ -5420,10 +5464,36 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetKey()) > 64 {
+	if m.GetKey() != "" {
+
+		if len(m.GetKey()) > 64 {
+			err := ConsistentSetRequestValidationError{
+				field:  "Key",
+				reason: "value length must be at most 64 bytes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_ConsistentSetRequest_Key_Pattern.MatchString(m.GetKey()) {
+			err := ConsistentSetRequestValidationError{
+				field:  "Key",
+				reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetPermissionCheckRequest() == nil {
 		err := ConsistentSetRequestValidationError{
-			field:  "Key",
-			reason: "value length must be at most 64 bytes",
+			field:  "PermissionCheckRequest",
+			reason: "value is required",
 		}
 		if !all {
 			return err
@@ -5431,15 +5501,33 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_ConsistentSetRequest_Key_Pattern.MatchString(m.GetKey()) {
-		err := ConsistentSetRequestValidationError{
-			field:  "Key",
-			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+	if all {
+		switch v := interface{}(m.GetPermissionCheckRequest()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ConsistentSetRequestValidationError{
+					field:  "PermissionCheckRequest",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ConsistentSetRequestValidationError{
+					field:  "PermissionCheckRequest",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetPermissionCheckRequest()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConsistentSetRequestValidationError{
+				field:  "PermissionCheckRequest",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {

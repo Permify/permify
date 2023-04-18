@@ -2,9 +2,13 @@ package servers
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Permify/permify/pkg/cache"
+	"github.com/Permify/permify/pkg/tuple"
+	"github.com/cespare/xxhash/v2"
 	"google.golang.org/grpc/status"
 
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 
@@ -44,7 +48,7 @@ func (r *ConsistentServer) Get(ctx context.Context, request *v1.ConsistentGetReq
 	}
 
 	return &v1.ConsistentGetResponse{
-		Value: response.(string),
+		PermissionCheckResponse: response.(*base.PermissionCheckResponse),
 	}, nil
 }
 
@@ -53,7 +57,21 @@ func (r *ConsistentServer) Set(ctx context.Context, request *v1.ConsistentSetReq
 	ctx, span := tracer.Start(ctx, "consistent.set")
 	defer span.End()
 
-	r.cacheService.Set(request.GetKey(), 100, 1)
+	checkKey := fmt.Sprintf("check_%s_%s:%s:%s@%s", request.PermissionCheckRequest.GetTenantId(), request.PermissionCheckRequest.GetMetadata().GetSchemaVersion(), request.PermissionCheckRequest.GetMetadata().GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
+		Entity:   request.PermissionCheckRequest.GetEntity(),
+		Relation: request.PermissionCheckRequest.GetPermission(),
+	}), tuple.SubjectToString(request.PermissionCheckRequest.GetSubject()))
+
+	h := xxhash.New()
+
+	// Write the checkKey string to the hash object
+	size, err := h.Write([]byte(checkKey))
+	if err != nil {
+		// If there's an error, return false
+		return nil, nil
+	}
+
+	r.cacheService.Set(request.GetKey(), request.PermissionCheckRequest, int64(size))
 
 	return &v1.ConsistentSetResponse{
 		Value: "OK",

@@ -122,6 +122,74 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "permission_check_request.tenant_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permission_check_request.metadata.schema_version",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permission_check_request.metadata.snap_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permission_check_request.metadata.exclusion",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "permission_check_request.metadata.depth",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "permission_check_request.entity.type",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permission_check_request.entity.id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permission_check_request.permission",
+            "description": "its can be permission or relation",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permission_check_request.subject.type",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permission_check_request.subject.id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permission_check_request.subject.relation",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -778,6 +846,9 @@
       "properties": {
         "value": {
           "type": "string"
+        },
+        "permission_check_response": {
+          "$ref": "#/definitions/PermissionCheckResponse"
         }
       },
       "title": "ConsistentGetResponse"
@@ -910,6 +981,28 @@
         }
       },
       "title": "Leaf"
+    },
+    "PermissionCheckRequest": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckRequestMetadata"
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity"
+        },
+        "permission": {
+          "type": "string",
+          "title": "its can be permission or relation"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject"
+        }
+      },
+      "title": "PermissionCheckRequest"
     },
     "PermissionCheckRequestMetadata": {
       "type": "object",

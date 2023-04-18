@@ -638,13 +638,14 @@ message ConsistentGetRequest {
   string key = 1 [json_name = "key", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
-    ignore_empty: false,
+    ignore_empty: true,
   }];
 }
 
 // ConsistentGetResponse
 message ConsistentGetResponse {
   string value = 1 [json_name = "value"];
+  PermissionCheckResponse permission_check_response = 6 [json_name = "permission_check_response", (validate.rules).message.required = true];
 }
 
 // ConsistentGetRequest
@@ -652,8 +653,9 @@ message ConsistentSetRequest {
   string key = 1 [json_name = "key", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
-    ignore_empty: false,
+    ignore_empty: true,
   }];
+  PermissionCheckRequest permission_check_request = 6 [json_name = "permission_check_request", (validate.rules).message.required = true];
 }
 
 // ConsistentGetResponse
