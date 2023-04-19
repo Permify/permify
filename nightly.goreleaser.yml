@@ -1,7 +1,4 @@
 ---
-project_name: permify
-universal_binaries:
-  - replace: true
 builds:
   -
     env:
@@ -11,35 +8,10 @@ builds:
       - arm64
     goos:
       - linux
-      - windows
-      - darwin
     ldflags:
       - "-s -w"
     main: ./cmd/permify
     mod_timestamp: "{{ .CommitTimestamp }}"
-brews:
-  -
-    dependencies:
-      -
-        name: go
-        type: build
-    description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
-    download_strategy: CurlDownloadStrategy
-    folder: Formula
-    homepage: "https://github.com/Permify/permify"
-    license: "Apache-2.0"
-    custom_block: |
-      head "https://github.com/Permify/permify.git", :branch => "master"
-    install: |-
-        bin.install "permify"
-    tap:
-      name: homebrew-tap
-      owner: permify
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    commit_author:
-      name: permify-bot
-      email: hello@permify.co
-    url_template: "https://github.com/Permify/permify/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
 docker_manifests:
   -
     image_templates:
@@ -67,6 +39,7 @@ dockers:
       - "--platform=linux/arm64"
     dockerfile: Dockerfile.release
     goarch: arm64
+    goos: linux
     image_templates:
       - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
       - "permify/permify:v{{ .Version }}-arm64"
@@ -76,34 +49,14 @@ dockers:
       - "--platform=linux/amd64"
     dockerfile: Dockerfile.release
     goarch: amd64
+    goos: linux
     image_templates:
       - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
       - "permify/permify:v{{ .Version }}-amd64"
     use: buildx
-nfpms:
-  -
-    description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
-    formats:
-      - deb
-      - rpm
-      - apk
-    homepage: "https://permify.co"
-    license: "Apache-2.0"
-    maintainer: "permify <help@permify.co>"
-    vendor: "permify inc."
+checksum:
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-checksum:
-  name_template: checksums.txt
-release:
-  draft: true
-  mode: replace
-  prerelease: auto
-  footer: |
-    This version can be found as Docker images at permify/permify:v{{ .Version }} and ghcr.io/permify/permify:v{{ .Version }}.
+nightly:
+  name_template: "{{ incpatch .Version }}-{{ .ShortCommit }}"
