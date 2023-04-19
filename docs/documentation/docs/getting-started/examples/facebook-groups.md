@@ -522,13 +522,13 @@ assertions:
 
 After cloning [Permify](https://github.com/Permify/permify), open up a new file and copy the **schema yaml file** content inside. Then, build and run Permify instance using the command `make run`.
 
-![Running Permify](https://user-images.githubusercontent.com/34595361/232312254-5a6558fa-f085-4aac-9c83-e62447daef7d.png)
+![Running Permify](https://user-images.githubusercontent.com/34595361/233155326-e1d2daf6-2406-4139-b0b3-5f7b54880593.png)
 
 Then run `permify validate {path of your schema validation file}` to start the test process. 
 
 The validation result according to our example schema validation file:
 
-![Screen Shot 2023-04-16 at 15 53 06](https://user-images.githubusercontent.com/34595361/232312760-99267b62-609d-405c-945a-e35f0ec58ee8.png)
+![Screen Shot 2023-04-16 at 15 53 06](https://user-images.githubusercontent.com/34595361/233152003-1fbaf2af-d208-4290-af1f-359870b0de49.png)
 
 ## Need any help ?
 
