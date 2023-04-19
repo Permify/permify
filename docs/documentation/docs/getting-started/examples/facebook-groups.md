@@ -249,6 +249,8 @@ In this example, a comment belongs to a post which is part of a group. Since the
 
 ## Relationships
 
+Based on our schema, let's create some sample relationships to test both our schema and our authorization logic.
+
 ```perm
 //group relationships
 group:1#member@user:1
@@ -522,7 +524,7 @@ After cloning [Permify](https://github.com/Permify/permify), open up a new file 
 
 ![Running Permify](https://user-images.githubusercontent.com/34595361/232312254-5a6558fa-f085-4aac-9c83-e62447daef7d.png)
 
-Then run `permify validate {path of your schema validation file}` with pointing the above schema. 
+Then run `permify validate {path of your schema validation file}` to start the test process. 
 
 The validation result according to our example schema validation file:
 
