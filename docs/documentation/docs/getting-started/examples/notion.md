@@ -213,12 +213,12 @@ workspace:sales_team#guest@user:frank
 workspace:sales_team#admin@user:david
 
 // Connect pages, databases, and templates to workspaces:
-workspace:engineering_team#page@page:project_plan
-workspace:engineering_team#database@database:task_list
-workspace:engineering_team#page@page:product_spec
-workspace:sales_team#template@template:weekly_report
-workspace:sales_team#database@database:customer_list
-workspace:sales_team#template@template:marketing_campaign
+page:project_plan#workspace@workspace:engineering_team
+page:product_spec#workspace@workspace:engineering_team
+database:task_list#workspace@workspace:engineering_team
+template:weekly_report#workspace@workspace:sales_team
+database:customer_list#workspace@workspace:sales_team
+template:marketing_campaign#workspace@workspace:sales_team
 
 // Set permissions for pages, databases, and templates:
 page:project_plan#writer@user:frank
@@ -288,7 +288,7 @@ Since we have our schema and the sample relation tuples, let's check some permis
 According to what we have defined for the **'write'** permission, users who are either; 
 
 * The editor in task list database (`database:task_list`)
-* Have a write permission in the engineering team workspace, which is the only workspace that task list is associated (`workspace:engineering_team#database@database:task_list`)
+* Have a write permission in the engineering team workspace, which is the only workspace that task list is associated (`database:task_list#workspace@workspace:engineering_team`)
 
 can edit the task list database (`database:task_list`)
 
@@ -314,7 +314,7 @@ entity workspace {
 }
 ```
 
-And as we mentioned the engineering team workspace is the only workspace that task list is associated (`workspace:engineering_team#database@database:task_list`). Therefore, the `user:alice write database:task_list` check request should yield a **'true'** response.
+And as we mentioned the engineering team workspace is the only workspace that task list is associated (`database:task_list#workspace@workspace:engineering_team`). Therefore, the `user:alice write database:task_list` check request should yield a **'true'** response.
 
 </p>
 </details>
@@ -482,12 +482,12 @@ relationships:
     - workspace:sales_team#member@user:eve
     - workspace:sales_team#guest@user:frank
     - workspace:sales_team#admin@user:david
-    - workspace:engineering_team#page@page:project_plan
-    - workspace:engineering_team#database@database:task_list
-    - workspace:engineering_team#page@page:product_spec
-    - workspace:sales_team#template@template:weekly_report
-    - workspace:sales_team#database@database:customer_list
-    - workspace:sales_team#template@template:marketing_campaign
+    - page:project_plan#workspace@workspace:engineering_team
+    - page:product_spec#workspace@workspace:engineering_team
+    - database:task_list#workspace@workspace:engineering_team
+    - template:weekly_report#workspace@workspace:sales_team
+    - database:customer_list#workspace@workspace:sales_team
+    - template:marketing_campaign#workspace@workspace:sales_team
     - page:project_plan#writer@user:frank
     - page:project_plan#reader@user:bob
     - database:task_list#editor@user:alice
@@ -524,13 +524,13 @@ assertions:
 
 After cloning [Permify](https://github.com/Permify/permify), open up a new file and copy the **schema yaml file** content inside. Then, build and run Permify instance using the command `make run`.
 
-![Running Permify](https://user-images.githubusercontent.com/34595361/232312254-5a6558fa-f085-4aac-9c83-e62447daef7d.png)
+![Running Permify](https://user-images.githubusercontent.com/34595361/233155326-e1d2daf6-2406-4139-b0b3-5f7b54880593.png)
 
 Then run `permify validate {path of your schema validation file}` to start the test process. 
 
 The validation result according to our example schema validation file:
 
-![Screen Shot 2023-04-16 at 15 53 06](https://user-images.githubusercontent.com/34595361/232312760-99267b62-609d-405c-945a-e35f0ec58ee8.png)
+![Screen Shot 2023-04-16 at 15 53 06](https://user-images.githubusercontent.com/34595361/233154924-c31a76f4-86f5-4ed3-a1ec-750b642927e6.png)
 
 ## Need any help ?
 
