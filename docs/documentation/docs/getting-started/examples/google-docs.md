@@ -126,6 +126,8 @@ The organization entity has two actions defined:
 
 ## Relationships
 
+Based on our schema, let's create some sample relationships to test both our schema and our authorization logic.
+
 ```perm
 // Assign users to different groups
 group:tech#manager@user:ashley
@@ -160,12 +162,6 @@ resource:marketing_materials#viewer@group:marketing#member
 resource:hr_documents#manager@group:hr#manager
 resource:hr_documents#viewer@group:hr#member
 ```
-
-<!-- ## See on the Playground
-
-Here is the visualization of the relationships of the schema, also you can see and play around with this example in our playground using this .
-
-![visualization](https://user-images.githubusercontent.com/34595361/231216456-1430d952-856a-4dad-996b-968a1a59fc04.png) -->
 
 ## Test & Validation
 
@@ -297,7 +293,7 @@ After cloning [Permify](https://github.com/Permify/permify), open up a new file 
 
 ![Running Permify](https://user-images.githubusercontent.com/34595361/232312254-5a6558fa-f085-4aac-9c83-e62447daef7d.png)
 
-Then run `permify validate {path of your schema validation file}` with pointing the above schema.
+Then run `permify validate {path of your schema validation file}` to start the test process. 
 
 The validation result according to our example schema validation file:
 

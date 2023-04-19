@@ -2,7 +2,7 @@
 
 This is a schema definition of the authorization model for Notion, a popular productivity and organization tool.
 
-### Schema | [Open in playground](https://play.permify.co/?s=XNEAs8dr0AINwCuSMcxHI)
+### Schema | [Open in playground](https://play.permify.co/?s=BsCvLmd4g81sB20XJZI5p)
 
 ```perm
 entity user {}
