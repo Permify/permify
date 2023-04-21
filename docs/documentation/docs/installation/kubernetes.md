@@ -128,8 +128,7 @@ spec:
             args:
             - "serve"
             - "--database-engine=postgres"
-            - "--database-name=demo"
-            - "--database-uri=postgres://postgres:nOcodeSTIAnLAba@permify-test.ceuo5kqsxyea.us-east-1.rds.amazonaws.com:5432"
+            - "--database-uri=postgres://postgres:nOcodeSTIAnLAba@permify-test.ceuo5kqsxyea.us-east-1.rds.amazonaws.com:5432/demo"
             - "--database-max-open-connections=20"
             ports:
                 - containerPort: 3476
