@@ -16,6 +16,17 @@ const config = {
   projectName: 'permify', // Usually your repo name.
   trailingSlash: false,
 
+  onBrokenLinks: 'warn',
+
+  plugins: [
+    [
+      require.resolve("@cmfcmf/docusaurus-search-local"),
+      {
+        indexDocs: true,
+      },
+    ],
+  ],
+
   presets: [
     [
       '@docusaurus/preset-classic',
