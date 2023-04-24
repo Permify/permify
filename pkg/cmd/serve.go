@@ -134,7 +134,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		var gossipEngine *gossip.Engine
-		var consistencyChecker *hash.ConsistentHash
+		var consistencyChecker hash.ConsistentEngine
 		if cfg.Distributed.Enabled {
 			l.Info("🔗 starting distributed mode...")
 
@@ -160,7 +160,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				for {
 					consistencyChecker.SyncNodes(gossipEngine)
 				}
-
 			}()
 
 			defer func() {
@@ -205,7 +204,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// key managers
-		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, consistencyChecker, gossipEngine, cfg.Server)
+		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, consistencyChecker, gossipEngine, cfg.Server, l, cfg.Distributed.Enabled)
 
 		// engines
 		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))

@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+type GossipEngine interface {
+	SyncMemberList() (nodes []string)
+	Shutdown() error
+}
+
 type Engine struct {
 	Enabled    bool
 	memberList *memberlist.Memberlist

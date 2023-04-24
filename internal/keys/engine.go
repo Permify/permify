@@ -1,37 +1,47 @@
 package keys
 
 import (
+	"bytes"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/consistent"
 	"github.com/Permify/permify/pkg/gossip"
-	"github.com/cespare/xxhash/v2"
-	"github.com/hashicorp/memberlist"
-
-	"github.com/Permify/permify/pkg/cache"
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
+	"github.com/cespare/xxhash/v2"
+	"github.com/hashicorp/memberlist"
+	"net"
+	"net/http"
+	"time"
 )
 
 // EngineKeys is a struct that holds an instance of a cache.Cache for managing engine keys.
 type EngineKeys struct {
+	distribution     bool
 	keys             []uint64
 	cache            cache.Cache
 	gossip           *gossip.Engine
-	consistent       *hash.ConsistentHash
+	consistent       hash.ConsistentEngine
 	localNodeAddress string
+	l                *logger.Logger
 }
 
 // NewCheckEngineKeys creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineKeys(cache cache.Cache, consistent *hash.ConsistentHash, gossip *gossip.Engine, cfg config.Server) EngineKeyManager {
+func NewCheckEngineKeys(cache cache.Cache, consistent hash.ConsistentEngine, gossip *gossip.Engine, cfg config.Server, l *logger.Logger, distributed bool) *EngineKeys {
 	// Return a new instance of EngineKeys with the provided cache
 	return &EngineKeys{
-		localNodeAddress: cfg.Address + ":" + cfg.HTTP.Port,
+		localNodeAddress: ExternalIP() + ":" + cfg.HTTP.Port,
 		gossip:           gossip,
 		consistent:       consistent,
 		cache:            cache,
+		distribution:     distributed,
+		l:                l,
 	}
 }
 
@@ -55,6 +65,7 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 	// Write the checkKey string to the hash object
 	size, err := h.Write([]byte(checkKey))
 	if err != nil {
+		c.l.Error("error writing to hash object: %v", err)
 		// If there's an error, return false
 		return false
 	}
@@ -62,21 +73,37 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 	// Generate the final cache key by encoding the hash object's sum as a hexadecimal string
 	k := hex.EncodeToString(h.Sum(nil))
 
-	if c.gossip.Enabled {
+	if c.distribution {
+
+		ok := c.consistent.AddKey(k)
+		if !ok {
+			c.l.Error("error adding key %s to consistent hash", k)
+			// If there's an error, return false
+			return false
+		}
+		c.l.Info("added key %s to consistent hash", k)
 
 		// Use Consistent Hashing to find the responsible node for the given key
-		node, found := c.consistent.Get(checkKey)
+		node, found := c.consistent.Get(k)
 		if !found {
+			c.l.Error("node not found for key %s", k)
 			// If the responsible node is not found, return false
 			return false
 		}
+		c.l.Info("node %s found for key %s", node, k)
 
 		// Check if the node is the local node
 		if node == c.localNodeAddress {
 			// Set the cache key with the given value and size, then return the result
 			return c.cache.Set(k, value.Can, int64(size))
 		} else {
-			// if node is not local, forward the request to the responsible node
+			_, err := c.forwardRequestSetToNode(node, k, value)
+			if err != nil {
+				c.l.Error("error forwarding request to node %s: %s", node, err.Error())
+				return false
+			}
+
+			c.l.Info("forwarded request to node %s , %s", node, k)
 			return true
 		}
 	} else {
@@ -113,13 +140,16 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 	// Generate the final cache key by encoding the hash object's sum as a hexadecimal string
 	k := hex.EncodeToString(h.Sum(nil))
 
-	if c.gossip.Enabled {
+	if c.distribution {
 		// Find the responsible node for the given key
 		node, ok := c.consistent.Get(k)
 		if !ok {
+			c.l.Error("node not found for key %s", k)
 			// If the node is not found, return nil and false
 			return nil, false
 		}
+
+		c.l.Info("node %s found for key %s", node, k)
 
 		// Check if the responsible node is the local node
 		if node == c.localNodeAddress {
@@ -137,7 +167,15 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 				}, true
 			}
 		} else {
-			// if node is not local, forward the request to the responsible node
+			toNode, err := c.forwardRequestGetToNode(node, k)
+			if err != nil {
+				c.l.Error("error forwarding request to node %s: %s", node, err)
+				return nil, false
+			}
+
+			c.l.Info("forwarded Get request to node %s , %s", node, k)
+
+			return toNode.PermissionCheckResponse, true
 		}
 	} else {
 		// Get the value from the cache using the generated cache key
@@ -156,6 +194,105 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 	}
 
 	return nil, false
+}
+
+func (c *EngineKeys) forwardRequestSetToNode(node string, checkKey string, value *base.PermissionCheckResponse) (bool, error) {
+	// Create a new HTTP client with a timeout
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	// Prepare the payload to be sent in the request body
+	payload := struct {
+		CheckKey string                        `json:"key"`
+		Value    *base.PermissionCheckResponse `json:"value"`
+	}{
+		CheckKey: checkKey,
+		Value:    value,
+	}
+
+	// Encode the payload as JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+
+		return false, err
+	}
+
+	// Create a new HTTP request to the responsible node
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/consistent/set", node), bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		c.l.Error("failed to set check key on the responsible node: %s", err.Error())
+		return false, err
+	}
+
+	// Set the request content type to JSON
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request to the responsible node
+	resp, err := client.Do(req)
+	if err != nil {
+		c.l.Error("failed to set check key on the responsible node: %s", err.Error())
+		return false, err
+	}
+
+	// Close the response body when the function returns
+	defer resp.Body.Close()
+
+	// Check if the response status code is 200 OK
+	if resp.StatusCode == http.StatusOK {
+		return true, nil
+	} else {
+		return false, errors.New("failed to set check key on the responsible node")
+	}
+}
+
+func (c *EngineKeys) forwardRequestGetToNode(node string, checkKey string) (*base.ConsistentGetResponse, error) {
+	// Create a new HTTP client with a timeout
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	// Prepare the payload to be sent in the request body
+	payload := struct {
+		CheckKey string `json:"key"`
+	}{
+		CheckKey: checkKey,
+	}
+
+	// Create a new HTTP request to the responsible node
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s/v1/consistent/get?key=%s", node, payload.CheckKey), nil)
+	if err != nil {
+		c.l.Error("failed to set check key on the responsible node: %s", err.Error())
+		return nil, err
+	}
+
+	// Set the request content type to JSON
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request to the responsible node
+	resp, err := client.Do(req)
+	if err != nil {
+		c.l.Error("failed to set check key on the responsible node: %s", err.Error())
+		return nil, err
+	}
+
+	// unmarshall body
+	var body base.ConsistentGetResponse
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		c.l.Error("failed to set check key on the responsible node: %s", err.Error())
+		return nil, err
+	}
+
+	// Close the response body when the function returns
+	defer resp.Body.Close()
+
+	// Check if the response status code is 200 OK
+	if resp.StatusCode == http.StatusOK {
+		return &body, nil
+	} else {
+		return nil, errors.New("failed to set check key on the responsible node")
+	}
 }
 
 // NoopEngineKeys is an empty struct that implements the EngineKeyManager interface
@@ -187,3 +324,40 @@ func (c *NoopEngineKeys) GetCheckKey(*base.PermissionCheckRequest) (*base.Permis
 // EngineKeyManager interface. It does nothing, as it performs no actual caching
 // or operations.
 func (c *NoopEngineKeys) SyncPeers(*memberlist.Memberlist) {}
+
+func ExternalIP() string {
+	faces, err := net.Interfaces()
+	if err != nil {
+		return ""
+	}
+	for _, iface := range faces {
+		if iface.Flags&net.FlagUp == 0 {
+			continue // interface down
+		}
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue // loopback interface
+		}
+		address, err := iface.Addrs()
+		if err != nil {
+			return ""
+		}
+		for _, addr := range address {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() {
+				continue
+			}
+			ip = ip.To4()
+			if ip == nil {
+				continue // not an ipv4 address
+			}
+			return ip.String()
+		}
+	}
+	return ""
+}

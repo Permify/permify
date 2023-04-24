@@ -53,7 +53,7 @@ func (r *ConsistentServer) Get(ctx context.Context, request *v1.ConsistentGetReq
 }
 
 // Set - Set created Key
-func (r *ConsistentServer) Set(ctx context.Context, request *v1.ConsistentSetRequest) (*v1.ConsistentSetResponse, error) {
+func (r *ConsistentServer) Set(ctx context.Context, request *v1.ConsistentPostRequest) (*v1.ConsistentPostResponse, error) {
 	ctx, span := tracer.Start(ctx, "consistent.set")
 	defer span.End()
 
@@ -73,7 +73,7 @@ func (r *ConsistentServer) Set(ctx context.Context, request *v1.ConsistentSetReq
 
 	r.cacheService.Set(request.GetKey(), request.PermissionCheckRequest, int64(size))
 
-	return &v1.ConsistentSetResponse{
+	return &v1.ConsistentPostResponse{
 		Value: "OK",
 	}, nil
 }

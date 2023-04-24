@@ -2,6 +2,7 @@ package hash
 
 import (
 	"github.com/Permify/permify/pkg/gossip"
+	"log"
 	"sort"
 	"strconv"
 	"sync"
@@ -11,6 +12,16 @@ const (
 	TopWeight   = 100
 	minReplicas = 100
 )
+
+type ConsistentEngine interface {
+	Add(node string)
+	SyncNodes(g *gossip.Engine)
+	AddWithReplicas(node string, replicas int)
+	AddWithWeight(node string, weight int)
+	Get(v string) (string, bool)
+	Remove(node string)
+	AddKey(key string) bool
+}
 
 type (
 	Func func(data []byte) uint64
@@ -25,7 +36,7 @@ type (
 	}
 )
 
-func NewConsistentHash(replicas int, seedNodes []string, fn Func) *ConsistentHash {
+func NewConsistentHash(replicas int, seedNodes []string, fn Func) ConsistentEngine {
 	if replicas < minReplicas {
 		replicas = minReplicas
 	}
@@ -108,6 +119,7 @@ func (h *ConsistentHash) Get(v string) (string, bool) {
 	defer h.lock.RUnlock()
 
 	if len(h.ring) == 0 {
+		log.Printf("ring is empty")
 		return "", false
 	}
 
@@ -148,6 +160,22 @@ func (h *ConsistentHash) Remove(node string) {
 	}
 
 	h.removeNode(node)
+}
+
+func (h *ConsistentHash) AddKey(key string) bool {
+	node, ok := h.Get(key)
+	if !ok {
+		return false
+	}
+	hash := h.hashFunc([]byte(key))
+	h.keys = append(h.keys, hash)
+	h.ring[hash] = node
+
+	sort.Slice(h.keys, func(i, j int) bool {
+		return h.keys[i] < h.keys[j]
+	})
+
+	return true
 }
 
 func (h *ConsistentHash) addNode(node string) {
