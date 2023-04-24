@@ -607,7 +607,7 @@ message welcomeResponse {
 service Consistent {
   rpc Get(ConsistentGetRequest) returns (ConsistentGetResponse) {
     option (google.api.http) = {
-      get: "/v1/consistent/get/{key}"
+      get: "/v1/consistent/get"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -618,9 +618,10 @@ service Consistent {
       operation_id: "consistent.get"
     };
   }
-  rpc Post(ConsistentSetRequest) returns (ConsistentSetResponse) {
+  rpc Post(ConsistentPostRequest) returns (ConsistentPostResponse) {
     option (google.api.http) = {
-      post: "/v1/consistent/set/{key}"
+      post: "/v1/consistent/set"
+      body: "*"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -649,7 +650,7 @@ message ConsistentGetResponse {
 }
 
 // ConsistentGetRequest
-message ConsistentSetRequest {
+message ConsistentPostRequest {
   string key = 1 [json_name = "key", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
@@ -659,6 +660,6 @@ message ConsistentSetRequest {
 }
 
 // ConsistentGetResponse
-message ConsistentSetResponse {
+message ConsistentPostResponse {
   string value = 1 [json_name = "value"];
 }

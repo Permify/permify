@@ -5442,22 +5442,22 @@ var _ interface {
 	ErrorName() string
 } = ConsistentGetResponseValidationError{}
 
-// Validate checks the field values on ConsistentSetRequest with the rules
+// Validate checks the field values on ConsistentPostRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ConsistentSetRequest) Validate() error {
+func (m *ConsistentPostRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ConsistentSetRequest with the rules
+// ValidateAll checks the field values on ConsistentPostRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ConsistentSetRequestMultiError, or nil if none found.
-func (m *ConsistentSetRequest) ValidateAll() error {
+// ConsistentPostRequestMultiError, or nil if none found.
+func (m *ConsistentPostRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ConsistentSetRequest) validate(all bool) error {
+func (m *ConsistentPostRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -5467,7 +5467,7 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 	if m.GetKey() != "" {
 
 		if len(m.GetKey()) > 64 {
-			err := ConsistentSetRequestValidationError{
+			err := ConsistentPostRequestValidationError{
 				field:  "Key",
 				reason: "value length must be at most 64 bytes",
 			}
@@ -5477,8 +5477,8 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 
-		if !_ConsistentSetRequest_Key_Pattern.MatchString(m.GetKey()) {
-			err := ConsistentSetRequestValidationError{
+		if !_ConsistentPostRequest_Key_Pattern.MatchString(m.GetKey()) {
+			err := ConsistentPostRequestValidationError{
 				field:  "Key",
 				reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
 			}
@@ -5491,7 +5491,7 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 	}
 
 	if m.GetPermissionCheckRequest() == nil {
-		err := ConsistentSetRequestValidationError{
+		err := ConsistentPostRequestValidationError{
 			field:  "PermissionCheckRequest",
 			reason: "value is required",
 		}
@@ -5505,7 +5505,7 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 		switch v := interface{}(m.GetPermissionCheckRequest()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ConsistentSetRequestValidationError{
+				errors = append(errors, ConsistentPostRequestValidationError{
 					field:  "PermissionCheckRequest",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5513,7 +5513,7 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ConsistentSetRequestValidationError{
+				errors = append(errors, ConsistentPostRequestValidationError{
 					field:  "PermissionCheckRequest",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5522,7 +5522,7 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetPermissionCheckRequest()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ConsistentSetRequestValidationError{
+			return ConsistentPostRequestValidationError{
 				field:  "PermissionCheckRequest",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -5531,19 +5531,19 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ConsistentSetRequestMultiError(errors)
+		return ConsistentPostRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// ConsistentSetRequestMultiError is an error wrapping multiple validation
-// errors returned by ConsistentSetRequest.ValidateAll() if the designated
+// ConsistentPostRequestMultiError is an error wrapping multiple validation
+// errors returned by ConsistentPostRequest.ValidateAll() if the designated
 // constraints aren't met.
-type ConsistentSetRequestMultiError []error
+type ConsistentPostRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ConsistentSetRequestMultiError) Error() string {
+func (m ConsistentPostRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5552,11 +5552,11 @@ func (m ConsistentSetRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ConsistentSetRequestMultiError) AllErrors() []error { return m }
+func (m ConsistentPostRequestMultiError) AllErrors() []error { return m }
 
-// ConsistentSetRequestValidationError is the validation error returned by
-// ConsistentSetRequest.Validate if the designated constraints aren't met.
-type ConsistentSetRequestValidationError struct {
+// ConsistentPostRequestValidationError is the validation error returned by
+// ConsistentPostRequest.Validate if the designated constraints aren't met.
+type ConsistentPostRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5564,24 +5564,24 @@ type ConsistentSetRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e ConsistentSetRequestValidationError) Field() string { return e.field }
+func (e ConsistentPostRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ConsistentSetRequestValidationError) Reason() string { return e.reason }
+func (e ConsistentPostRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ConsistentSetRequestValidationError) Cause() error { return e.cause }
+func (e ConsistentPostRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ConsistentSetRequestValidationError) Key() bool { return e.key }
+func (e ConsistentPostRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ConsistentSetRequestValidationError) ErrorName() string {
-	return "ConsistentSetRequestValidationError"
+func (e ConsistentPostRequestValidationError) ErrorName() string {
+	return "ConsistentPostRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ConsistentSetRequestValidationError) Error() string {
+func (e ConsistentPostRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5593,14 +5593,14 @@ func (e ConsistentSetRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sConsistentSetRequest.%s: %s%s",
+		"invalid %sConsistentPostRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ConsistentSetRequestValidationError{}
+var _ error = ConsistentPostRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -5608,26 +5608,26 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ConsistentSetRequestValidationError{}
+} = ConsistentPostRequestValidationError{}
 
-var _ConsistentSetRequest_Key_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
+var _ConsistentPostRequest_Key_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
-// Validate checks the field values on ConsistentSetResponse with the rules
+// Validate checks the field values on ConsistentPostResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ConsistentSetResponse) Validate() error {
+func (m *ConsistentPostResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ConsistentSetResponse with the rules
+// ValidateAll checks the field values on ConsistentPostResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ConsistentSetResponseMultiError, or nil if none found.
-func (m *ConsistentSetResponse) ValidateAll() error {
+// ConsistentPostResponseMultiError, or nil if none found.
+func (m *ConsistentPostResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ConsistentSetResponse) validate(all bool) error {
+func (m *ConsistentPostResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -5637,19 +5637,19 @@ func (m *ConsistentSetResponse) validate(all bool) error {
 	// no validation rules for Value
 
 	if len(errors) > 0 {
-		return ConsistentSetResponseMultiError(errors)
+		return ConsistentPostResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// ConsistentSetResponseMultiError is an error wrapping multiple validation
-// errors returned by ConsistentSetResponse.ValidateAll() if the designated
+// ConsistentPostResponseMultiError is an error wrapping multiple validation
+// errors returned by ConsistentPostResponse.ValidateAll() if the designated
 // constraints aren't met.
-type ConsistentSetResponseMultiError []error
+type ConsistentPostResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ConsistentSetResponseMultiError) Error() string {
+func (m ConsistentPostResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5658,11 +5658,11 @@ func (m ConsistentSetResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ConsistentSetResponseMultiError) AllErrors() []error { return m }
+func (m ConsistentPostResponseMultiError) AllErrors() []error { return m }
 
-// ConsistentSetResponseValidationError is the validation error returned by
-// ConsistentSetResponse.Validate if the designated constraints aren't met.
-type ConsistentSetResponseValidationError struct {
+// ConsistentPostResponseValidationError is the validation error returned by
+// ConsistentPostResponse.Validate if the designated constraints aren't met.
+type ConsistentPostResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5670,24 +5670,24 @@ type ConsistentSetResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e ConsistentSetResponseValidationError) Field() string { return e.field }
+func (e ConsistentPostResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ConsistentSetResponseValidationError) Reason() string { return e.reason }
+func (e ConsistentPostResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ConsistentSetResponseValidationError) Cause() error { return e.cause }
+func (e ConsistentPostResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ConsistentSetResponseValidationError) Key() bool { return e.key }
+func (e ConsistentPostResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ConsistentSetResponseValidationError) ErrorName() string {
-	return "ConsistentSetResponseValidationError"
+func (e ConsistentPostResponseValidationError) ErrorName() string {
+	return "ConsistentPostResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ConsistentSetResponseValidationError) Error() string {
+func (e ConsistentPostResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5699,14 +5699,14 @@ func (e ConsistentSetResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sConsistentSetResponse.%s: %s%s",
+		"invalid %sConsistentPostResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ConsistentSetResponseValidationError{}
+var _ error = ConsistentPostResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -5714,7 +5714,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ConsistentSetResponseValidationError{}
+} = ConsistentPostResponseValidationError{}
 
 // Validate checks the field values on WelcomeResponse_Sources with the rules
 // defined in the proto definition for this message. If any rules are

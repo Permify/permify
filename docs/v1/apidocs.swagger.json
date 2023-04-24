@@ -67,7 +67,7 @@
         ]
       }
     },
-    "/v1/consistent/get/{key}": {
+    "/v1/consistent/get": {
       "get": {
         "summary": "get consistent key",
         "operationId": "consistent.get",
@@ -88,8 +88,8 @@
         "parameters": [
           {
             "name": "key",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -98,7 +98,7 @@
         ]
       }
     },
-    "/v1/consistent/set/{key}": {
+    "/v1/consistent/set": {
       "post": {
         "summary": "Set consistent key",
         "operationId": "consistent.set",
@@ -106,7 +106,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/ConsistentSetResponse"
+              "$ref": "#/definitions/ConsistentPostResponse"
             }
           },
           "default": {
@@ -118,78 +118,12 @@
         },
         "parameters": [
           {
-            "name": "key",
-            "in": "path",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.tenant_id",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.metadata.schema_version",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.metadata.snap_token",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.metadata.exclusion",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "permission_check_request.metadata.depth",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "permission_check_request.entity.type",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.entity.id",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.permission",
-            "description": "its can be permission or relation",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.subject.type",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.subject.id",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "permission_check_request.subject.relation",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "schema": {
+              "$ref": "#/definitions/ConsistentPostRequest"
+            }
           }
         ],
         "tags": [
@@ -853,7 +787,19 @@
       },
       "title": "ConsistentGetResponse"
     },
-    "ConsistentSetResponse": {
+    "ConsistentPostRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "permission_check_request": {
+          "$ref": "#/definitions/PermissionCheckRequest"
+        }
+      },
+      "title": "ConsistentGetRequest"
+    },
+    "ConsistentPostResponse": {
       "type": "object",
       "properties": {
         "value": {
