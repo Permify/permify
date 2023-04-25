@@ -7027,10 +7027,10 @@ rc-resize-observer@^1.0.0:
     rc-util "^5.27.0"
     resize-observer-polyfill "^1.5.1"
 
-rc-tabs@12.5.7:
-  version "12.5.7"
-  resolved "https://registry.yarnpkg.com/rc-tabs/-/rc-tabs-12.5.7.tgz#9175f5e27341416d3f572c8d9a40e300d0e2de6b"
-  integrity sha512-i9gY2TcwCNmBM+bXCDDTvb6mnRYIDkkNm+UGoIqrLOFnRRbAqjsSf+tgyvzhBvbK8XcSrMhzKKLaOMbGyND8YA==
+rc-tabs@12.5.10:
+  version "12.5.10"
+  resolved "https://registry.yarnpkg.com/rc-tabs/-/rc-tabs-12.5.10.tgz#0e41c723fac66c4f0bcad3271429fff6653b0721"
+  integrity sha512-Ay0l0jtd4eXepFH9vWBvinBjqOpqzcsJTerBGwJy435P2S90Uu38q8U/mvc1sxUEVOXX5ZCFbxcWPnfG3dH+tQ==
   dependencies:
     "@babel/runtime" "^7.11.2"
     classnames "2.x"
