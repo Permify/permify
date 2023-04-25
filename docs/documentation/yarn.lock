@@ -7304,10 +7304,10 @@ react-masonry-component@^6.3.0:
     masonry-layout "^4.2.0"
     prop-types "^15.5.8"
 
-react-parallax-component@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/react-parallax-component/-/react-parallax-component-1.0.6.tgz#da2ce22e4910eac759cb4a0bc3dc25062d3ddcdf"
-  integrity sha512-ZU+hHzsmAhqiaICaGgMd4r6+FCpVmA4v4LakNYxzxNEcDI14aGBDH/SnnI3vxUMOB+TxvZMOfpFP84q1IpYRqg==
+react-parallax-component@^1.0.33:
+  version "1.0.33"
+  resolved "https://registry.yarnpkg.com/react-parallax-component/-/react-parallax-component-1.0.33.tgz#0b85fb43e5f0b743bb59e1fb6bc2101554fafeca"
+  integrity sha512-Kssx6EABy9RVXcM72Q0AZi0HMLWlnns9XrPCi9k+rHgExoqNMovdgwur6t/LFN7GhkMnkrYC/ODvs7qxLeegRA==
   dependencies:
     react "^0.14.2"
 
