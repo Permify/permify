@@ -824,18 +824,15 @@ func local_request_Welcome_Hello_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-var (
-	filter_Consistent_Get_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_Consistent_Get_0(ctx context.Context, marshaler runtime.Marshaler, client ConsistentClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ConsistentGetRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Consistent_Get_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -848,10 +845,11 @@ func local_request_Consistent_Get_0(ctx context.Context, marshaler runtime.Marsh
 	var protoReq ConsistentGetRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Consistent_Get_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -860,8 +858,8 @@ func local_request_Consistent_Get_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
-func request_Consistent_Post_0(ctx context.Context, marshaler runtime.Marshaler, client ConsistentClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConsistentPostRequest
+func request_Consistent_Set_0(ctx context.Context, marshaler runtime.Marshaler, client ConsistentClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ConsistentSetRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -872,13 +870,13 @@ func request_Consistent_Post_0(ctx context.Context, marshaler runtime.Marshaler,
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.Post(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.Set(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Consistent_Post_0(ctx context.Context, marshaler runtime.Marshaler, server ConsistentServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConsistentPostRequest
+func local_request_Consistent_Set_0(ctx context.Context, marshaler runtime.Marshaler, server ConsistentServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ConsistentSetRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -889,7 +887,7 @@ func local_request_Consistent_Post_0(ctx context.Context, marshaler runtime.Mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.Post(ctx, &protoReq)
+	msg, err := server.Set(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -1264,7 +1262,7 @@ func RegisterWelcomeHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterConsistentHandlerFromEndpoint instead.
 func RegisterConsistentHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ConsistentServer) error {
 
-	mux.Handle("GET", pattern_Consistent_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Consistent_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -1288,19 +1286,19 @@ func RegisterConsistentHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 
 	})
 
-	mux.Handle("POST", pattern_Consistent_Post_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Consistent_Set_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/base.v1.Consistent/Post", runtime.WithHTTPPathPattern("/v1/consistent/set"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/base.v1.Consistent/Set", runtime.WithHTTPPathPattern("/v1/consistent/set"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Consistent_Post_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Consistent_Set_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1308,7 +1306,7 @@ func RegisterConsistentHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			return
 		}
 
-		forward_Consistent_Post_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Consistent_Set_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1928,7 +1926,7 @@ func RegisterConsistentHandler(ctx context.Context, mux *runtime.ServeMux, conn 
 // "ConsistentClient" to call the correct interceptors.
 func RegisterConsistentHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ConsistentClient) error {
 
-	mux.Handle("GET", pattern_Consistent_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Consistent_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1949,24 +1947,24 @@ func RegisterConsistentHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 
 	})
 
-	mux.Handle("POST", pattern_Consistent_Post_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Consistent_Set_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/base.v1.Consistent/Post", runtime.WithHTTPPathPattern("/v1/consistent/set"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/base.v1.Consistent/Set", runtime.WithHTTPPathPattern("/v1/consistent/set"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Consistent_Post_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Consistent_Set_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Consistent_Post_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Consistent_Set_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1976,11 +1974,11 @@ func RegisterConsistentHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 var (
 	pattern_Consistent_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "consistent", "get"}, ""))
 
-	pattern_Consistent_Post_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "consistent", "set"}, ""))
+	pattern_Consistent_Set_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "consistent", "set"}, ""))
 )
 
 var (
 	forward_Consistent_Get_0 = runtime.ForwardResponseMessage
 
-	forward_Consistent_Post_0 = runtime.ForwardResponseMessage
+	forward_Consistent_Set_0 = runtime.ForwardResponseMessage
 )

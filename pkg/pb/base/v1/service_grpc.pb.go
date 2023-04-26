@@ -806,7 +806,7 @@ var Welcome_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ConsistentClient interface {
 	Get(ctx context.Context, in *ConsistentGetRequest, opts ...grpc.CallOption) (*ConsistentGetResponse, error)
-	Post(ctx context.Context, in *ConsistentPostRequest, opts ...grpc.CallOption) (*ConsistentPostResponse, error)
+	Set(ctx context.Context, in *ConsistentSetRequest, opts ...grpc.CallOption) (*ConsistentSetResponse, error)
 }
 
 type consistentClient struct {
@@ -826,9 +826,9 @@ func (c *consistentClient) Get(ctx context.Context, in *ConsistentGetRequest, op
 	return out, nil
 }
 
-func (c *consistentClient) Post(ctx context.Context, in *ConsistentPostRequest, opts ...grpc.CallOption) (*ConsistentPostResponse, error) {
-	out := new(ConsistentPostResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.Consistent/Post", in, out, opts...)
+func (c *consistentClient) Set(ctx context.Context, in *ConsistentSetRequest, opts ...grpc.CallOption) (*ConsistentSetResponse, error) {
+	out := new(ConsistentSetResponse)
+	err := c.cc.Invoke(ctx, "/base.v1.Consistent/Set", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -840,7 +840,7 @@ func (c *consistentClient) Post(ctx context.Context, in *ConsistentPostRequest, 
 // for forward compatibility
 type ConsistentServer interface {
 	Get(context.Context, *ConsistentGetRequest) (*ConsistentGetResponse, error)
-	Post(context.Context, *ConsistentPostRequest) (*ConsistentPostResponse, error)
+	Set(context.Context, *ConsistentSetRequest) (*ConsistentSetResponse, error)
 	mustEmbedUnimplementedConsistentServer()
 }
 
@@ -851,8 +851,8 @@ type UnimplementedConsistentServer struct {
 func (UnimplementedConsistentServer) Get(context.Context, *ConsistentGetRequest) (*ConsistentGetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedConsistentServer) Post(context.Context, *ConsistentPostRequest) (*ConsistentPostResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Post not implemented")
+func (UnimplementedConsistentServer) Set(context.Context, *ConsistentSetRequest) (*ConsistentSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
 func (UnimplementedConsistentServer) mustEmbedUnimplementedConsistentServer() {}
 
@@ -885,20 +885,20 @@ func _Consistent_Get_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Consistent_Post_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConsistentPostRequest)
+func _Consistent_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConsistentSetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ConsistentServer).Post(ctx, in)
+		return srv.(ConsistentServer).Set(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/base.v1.Consistent/Post",
+		FullMethod: "/base.v1.Consistent/Set",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConsistentServer).Post(ctx, req.(*ConsistentPostRequest))
+		return srv.(ConsistentServer).Set(ctx, req.(*ConsistentSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -915,8 +915,8 @@ var Consistent_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Consistent_Get_Handler,
 		},
 		{
-			MethodName: "Post",
-			Handler:    _Consistent_Post_Handler,
+			MethodName: "Set",
+			Handler:    _Consistent_Set_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

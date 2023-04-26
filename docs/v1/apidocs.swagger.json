@@ -68,7 +68,7 @@
       }
     },
     "/v1/consistent/get": {
-      "get": {
+      "post": {
         "summary": "get consistent key",
         "operationId": "consistent.get",
         "responses": {
@@ -87,10 +87,12 @@
         },
         "parameters": [
           {
-            "name": "key",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ConsistentGetRequest"
+            }
           }
         ],
         "tags": [
@@ -106,7 +108,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/ConsistentPostResponse"
+              "$ref": "#/definitions/ConsistentSetResponse"
             }
           },
           "default": {
@@ -122,7 +124,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/ConsistentPostRequest"
+              "$ref": "#/definitions/ConsistentSetRequest"
             }
           }
         ],
@@ -775,11 +777,20 @@
       },
       "title": "ComputedUserSet"
     },
+    "ConsistentGetRequest": {
+      "type": "object",
+      "properties": {
+        "permission_check_request": {
+          "$ref": "#/definitions/PermissionCheckRequest"
+        }
+      },
+      "title": "ConsistentGetRequest"
+    },
     "ConsistentGetResponse": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
+        "permission_check_request": {
+          "$ref": "#/definitions/PermissionCheckRequest"
         },
         "permission_check_response": {
           "$ref": "#/definitions/PermissionCheckResponse"
@@ -787,19 +798,19 @@
       },
       "title": "ConsistentGetResponse"
     },
-    "ConsistentPostRequest": {
+    "ConsistentSetRequest": {
       "type": "object",
       "properties": {
-        "key": {
-          "type": "string"
-        },
         "permission_check_request": {
           "$ref": "#/definitions/PermissionCheckRequest"
+        },
+        "permission_check_response": {
+          "$ref": "#/definitions/PermissionCheckResponse"
         }
       },
       "title": "ConsistentGetRequest"
     },
-    "ConsistentPostResponse": {
+    "ConsistentSetResponse": {
       "type": "object",
       "properties": {
         "value": {

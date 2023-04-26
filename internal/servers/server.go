@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Permify/permify/pkg/cache"
+	"github.com/Permify/permify/internal/keys"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -43,7 +43,7 @@ type ServiceContainer struct {
 	PermissionService   services.IPermissionService
 	SchemaService       services.ISchemaService
 	TenancyService      services.ITenancyService
-	CacheService        cache.Cache
+	CacheService        keys.EngineKeyManager
 }
 
 // Run -
@@ -196,9 +196,6 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 			return err
 		}
 		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {
-			return err
-		}
-		if err = grpcV1.RegisterConsistentHandler(ctx, mux, conn); err != nil {
 			return err
 		}
 		if err = grpcV1.RegisterConsistentHandler(ctx, mux, conn); err != nil {
