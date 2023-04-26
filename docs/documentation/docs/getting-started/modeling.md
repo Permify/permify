@@ -51,7 +51,7 @@ entity repository {}
 Entities has 2 different attributes. These are;
 
 - **relations**
-- **actions**
+- **actions (or permissions)**
 
 ### Defining Relations
 
@@ -135,16 +135,41 @@ When we look at the maintainer relation, it indicates that the maintainer can be
 
 :::info
 You can use **#** to reach entities relation. When we look at the `@team#member` it specifies that if the user has a relation with the team, this relation can only be the `member`. We called that feature locking, because it basically locks the relation type according to the prefixed entity.
-:::
 
+Actual purpose of feature locking is to giving ability to specify the sets of users that can be assigned. 
+
+For example:
+
+```perm
+    relation viewer @user
+```
+
+When you define it like this, you can only add users directly as tuples (you can find out what relation tuples is in next section):
+
+* organization:1#viewer@user:U1
+* organization:1#viewer@user:U2
+
+However, if you define it as:
+
+```perm
+    relation viewer @user @organization#member 
+```
+
+You will then be able to specify not only individual users but also members of an organization:
+* organization:1#viewer@user:U1
+* organization:1#viewer@user:U2
+* organization:1#viewer@organization:O1#member
+
+You can think of these definitions as a precaution taken against creating undesired user set relationships.
+:::
 
 Defining multiple relation types totally optional. The goal behind it to improve validation and reasonability. And for complex models, it allows you to model your entities in a more structured way.
 
-### Defining Actions
+### Defining Actions and Permissions
 
-Actions describe what relations, or relation’s relation can do. Think of actions as permissions of the entity it belongs. So actions defines who can perform a specific action on a resource in which circumstances. So, the basic form of authorization check in Permify is **_Can the user U perform action X on a resource Y ?_**.
+Actions describe what relations, or relation’s relation can do. Think of actions as permissions of the entity it belongs. So actions defines who can perform a specific action on a resource in which circumstances. So, the basic form of authorization check in Permify is **_Can the user U perform action X on a resource Y ?_**. 
 
-Permify Schema supports `and`, `or`, `and not` and `or not` operators to define actions. Keyword **_action_** need to used with these operators to form an action.
+The Permify Schema supports `and`, `or`, `and not` and `or not` operators for defining actions. The keywords  **_action_** or **_permission_**  can be used with those operators to form rules for your authorization logic.
 
 Lets get back to our github example and create some actions on repository entity,
 
@@ -166,6 +191,24 @@ entity repository {
 
 → `action push = owner or maintainer` indicates only the repository owner or maintainers can push to
 repository.
+
+:::info
+The same `push` can also be defined using the **permission** keyword, as follows: 
+
+```perm
+permission push = owner
+```
+
+Using action or permission will yield the same result for defining permissions in your authorization logic.
+
+The reason we have two keywords (`action` and `permission`)  for defining permissions is that while most permissions are based on actions (such as view, read, edit, etc.), there are still cases where we need to define permissions based on roles or user types, such as admin or member. 
+
+Additionally, there may be permissions that need to be inherited by child entities. Using the `permission` keyword in these cases is more convenient and provides better reasoning of the schema.
+
+See Real World Examples Section for examining the contextualize difference between using permission and action keyword. You can start with observing [Google Docs Simplified](./examples/google-docs.md) example.
+:::
+
+For this tutorial we'll continue with `action` keyword,
 
 ```perm
 entity repository {
@@ -219,7 +262,7 @@ entity team {
     relation parent  @organization
     relation member  @user
 
-    action edit_team = member or parent.admin
+    action edit = member or parent.admin
 
 }
 
@@ -230,7 +273,6 @@ entity repository {
     relation owner @user
     relation maintainer @user @team#member
 
-
     action push   = owner or maintainer
     action read   = (owner or maintainer or parent.member) and parent.admin
     action delete = parent.admin or owner
@@ -238,6 +280,8 @@ entity repository {
 }
 ```
 
-## Common Use Cases
+## Real World Examples
 
-This example shows almost all aspects of the Permify Schema. You can check out more schema examples from the [Common Use Cases](../use-cases) section with their detailed examination.
+This example shows almost all aspects of the Permify Schema. 
+
+You can check out more schema examples from the [Real World Examples](./examples) section with their detailed examination.
