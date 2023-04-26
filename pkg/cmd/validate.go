@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	`sort`
 	"strings"
 
 	"github.com/spf13/viper"
@@ -48,8 +49,7 @@ func (l *ErrList) Add(message string) {
 
 // Print - print error list
 func (l *ErrList) Print() {
-	fmt.Println("")
-	fmt.Println("fails:")
+	color.Danger.Println("fails:")
 	for _, m := range l.Errors {
 		// print error message with color danger
 		color.Danger.Println(strings.ToLower("fail: " + validationError(strings.Replace(strings.Replace(m, "ERROR_CODE_", "", -1), "_", " ", -1))))
@@ -111,7 +111,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		// if debug is true, print schema is creating with color blue
 		if debug {
-			color.Blue.Println("schema is creating... 🚀")
+			color.Notice.Println("schema is creating... 🚀")
 		}
 
 		// write the schema
@@ -120,7 +120,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			list.Add(err.Error())
 			if debug {
-				color.Danger.Printf("fail:       %s\n", validationError(err.Error()))
+				color.Danger.Printf("fail: %s\n", validationError(err.Error()))
 			}
 			if len(list.Errors) != 0 {
 				list.Print()
@@ -130,12 +130,12 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		// if there are no errors and debug is true, print success with color success
 		if len(list.Errors) == 0 && debug {
-			color.Success.Println("success")
+			color.Success.Println("  success")
 		}
 
 		// if debug is true, print relationships are creating with color blue
 		if debug {
-			color.Blue.Println("relationships are creating... 🚀")
+			color.Notice.Println("relationships are creating... 🚀")
 		}
 
 		// write relationships
@@ -144,77 +144,148 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			tup, err = tuple.Tuple(t)
 			if err != nil {
 				list.Add(err.Error())
+				continue
 			}
 
 			_, err = devContainer.R.WriteRelationships(ctx, "t1", []*base.Tuple{
 				tup,
 			}, version)
 			if err != nil {
-				list.Add(fmt.Sprintf("fail: %s failed %s", t, err.Error()))
+				list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
 				if debug {
-					color.Danger.Println(fmt.Sprintf("fail:       %s failed %s", t, validationError(err.Error())))
+					color.Danger.Println(fmt.Sprintf("fail: %s failed %s", t, validationError(err.Error())))
 				}
 				continue
 			}
 
 			if debug {
-				color.Success.Println(fmt.Sprintf("success:    %s ", t))
+				color.Success.Println(fmt.Sprintf("  success: %s ", t))
 			}
 		}
 
 		// if debug is true, print checking assertions with color blue
 		if debug {
-			color.Blue.Println("checking assertions... 🚀")
+			color.Notice.Println("checking scenarios... 🚀")
 		}
 
 		// Check Assertions
-		for i, assertion := range s.Assertions {
-			for query, expected := range assertion {
-				query = strings.TrimLeft(query, "can ")
-				exp := base.PermissionCheckResponse_RESULT_ALLOWED
-				if !expected {
-					exp = base.PermissionCheckResponse_RESULT_DENIED
-				}
+		for sn, scenario := range s.Scenarios {
+			color.Notice.Printf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description)
+			color.Notice.Println("  checks:")
 
-				q, err := tuple.NewQueryFromString(query)
+			for _, check := range scenario.Checks {
+				entity, err := tuple.E(check.Entity)
 				if err != nil {
 					list.Add(err.Error())
+					continue
 				}
 
-				res, err := devContainer.P.CheckPermissions(ctx, &base.PermissionCheckRequest{
-					TenantId: "t1",
-					Metadata: &base.PermissionCheckRequestMetadata{
-						SchemaVersion: version,
-						SnapToken:     token.NewNoopToken().Encode().String(),
-						Depth:         100,
-					},
-					Entity:     q.Entity,
-					Permission: q.Permission,
-					Subject:    q.Subject,
-				})
+				ear, err := tuple.EAR(check.Subject)
 				if err != nil {
 					list.Add(err.Error())
+					continue
 				}
 
-				if res.Can == exp {
-					if debug {
-						color.Success.Print("success:    ")
-						fmt.Printf("%v. %s ? passed \n", i+1, query)
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, expected := range check.Assertions {
+					exp := base.PermissionCheckResponse_RESULT_ALLOWED
+					if !expected {
+						exp = base.PermissionCheckResponse_RESULT_DENIED
 					}
-				} else {
-					if debug {
-						color.Danger.Printf("fail:       %v. %s ? failed ", i+1, query)
+
+					res, err := devContainer.P.CheckPermissions(ctx, &base.PermissionCheckRequest{
+						TenantId: "t1",
+						Metadata: &base.PermissionCheckRequestMetadata{
+							Exclusion:     false,
+							SchemaVersion: version,
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							Depth:         100,
+						},
+						Entity:     entity,
+						Permission: permission,
+						Subject:    subject,
+					})
+					if err != nil {
+						list.Add(err.Error())
+						continue
 					}
-					if res.Can == base.PermissionCheckResponse_RESULT_ALLOWED {
+
+					query := tuple.SubjectToString(subject) + " " + permission + " " + tuple.EntityToString(entity)
+
+					if res.Can == exp {
 						if debug {
-							color.Danger.Println("expected: DENIED actual: ALLOWED ")
+							color.Success.Print("    success:")
+							fmt.Printf(" %s \n", query)
 						}
-						list.Add(fmt.Sprintf("fail: %s ? failed expected: DENIED actual: ALLOWED ", query))
 					} else {
 						if debug {
-							color.Danger.Println("expected: ALLOWED actual: DENIED ")
+							color.Danger.Printf("    fail: %s ->", query)
 						}
-						list.Add(fmt.Sprintf("fail: %s ? failed expected: ALLOWED actual: DENIED ", query))
+						if res.Can == base.PermissionCheckResponse_RESULT_ALLOWED {
+							if debug {
+								color.Danger.Println("  expected: DENIED actual: ALLOWED ")
+							}
+							list.Add(fmt.Sprintf("%s -> expected: DENIED actual: ALLOWED ", query))
+						} else {
+							if debug {
+								color.Danger.Println("  expected: ALLOWED actual: DENIED ")
+							}
+							list.Add(fmt.Sprintf("%s -> expected: ALLOWED actual: DENIED ", query))
+						}
+					}
+				}
+			}
+
+			color.Notice.Println("  entity_filters:")
+
+			for _, filter := range scenario.EntityFilters {
+
+				ear, err := tuple.EAR(filter.Subject)
+				if err != nil {
+					list.Add(err.Error())
+					continue
+				}
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, expected := range filter.Assertions {
+					res, err := devContainer.P.LookupEntity(ctx, &base.PermissionLookupEntityRequest{
+						TenantId: "t1",
+						Metadata: &base.PermissionLookupEntityRequestMetadata{
+							SchemaVersion: version,
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							Depth:         100,
+						},
+						EntityType: filter.EntityType,
+						Permission: permission,
+						Subject:    subject,
+					})
+					if err != nil {
+						list.Add(err.Error())
+						continue
+					}
+
+					query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
+
+					if isSameArray(res.GetEntityIds(), expected) {
+						if debug {
+							color.Success.Print("    success:")
+							fmt.Printf(" %v\n", query)
+						}
+					} else {
+						if debug {
+							color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetEntityIds())
+						}
+						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetEntityIds()))
 					}
 				}
 			}
@@ -235,10 +306,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		}
 
 		if debug {
-			color.Blue.Println("schema successfully created")
-			color.Blue.Println("relationships successfully created")
-			color.Blue.Println("assertions successfully passed")
-
+			color.Notice.Println("schema successfully created")
+			color.Notice.Println("relationships successfully created")
+			color.Notice.Println("assertions successfully passed")
 			color.Success.Println("SUCCESS")
 		}
 
@@ -249,4 +319,27 @@ func validate() func(cmd *cobra.Command, args []string) error {
 // validationError - validation error
 func validationError(message string) string {
 	return strings.ToLower(strings.Replace(strings.Replace(message, "ERROR_CODE_", "", -1), "_", " ", -1))
+}
+
+// isSameArray - check if two arrays are the same
+func isSameArray(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	sortedA := make([]string, len(a))
+	copy(sortedA, a)
+	sort.Strings(sortedA)
+
+	sortedB := make([]string, len(b))
+	copy(sortedB, b)
+	sort.Strings(sortedB)
+
+	for i := range sortedA {
+		if sortedA[i] != sortedB[i] {
+			return false
+		}
+	}
+
+	return true
 }

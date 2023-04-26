@@ -175,34 +175,3 @@ func E(e string) (*base.Entity, error) {
 		Id:   s[1],
 	}, nil
 }
-
-type Query struct {
-	Subject    *base.Subject
-	Entity     *base.Entity
-	Permission string
-}
-
-// NewQueryFromString sample query: can user:1 push repository:1
-func NewQueryFromString(query string) (*Query, error) {
-	q := strings.Split(strings.TrimSpace(query), " ")
-	if len(q) != 3 {
-		return nil, ErrInvalidQuery
-	}
-	subject, err := EAR(q[0])
-	if err != nil {
-		return nil, err
-	}
-	entity, err := E(q[2])
-	if err != nil {
-		return nil, err
-	}
-	return &Query{
-		Entity: entity,
-		Subject: &base.Subject{
-			Type:     subject.Entity.Type,
-			Id:       subject.Entity.Id,
-			Relation: subject.Relation,
-		},
-		Permission: q[1],
-	}, nil
-}
