@@ -43,7 +43,7 @@ entity post {
     action edit_post = owner or group.admin
     action delete_post = owner or group.admin
 
-    action group_member = group.member
+    permission group_member = group.member
 }
 
 // Represents a comment on a post in a Facebook group
@@ -213,7 +213,7 @@ entity post {
     
     ..
     ..
-    action group_member = group.member
+    permission group_member = group.member
 }
 
 // Represents a comment on a post in a Facebook group
@@ -240,12 +240,12 @@ entity comment {
 The `post.group_member` refers to the members of the group to which the post belongs. We defined it as action in **post** entity as,
 
 ```perm
-action group_member = group.member
+permission group_member = group.member
 ```
 
-This is a special usage of action keyword where the action can be inherited as relations in other entities. This allows to form nested hierarchical relationships between entities. 
+Permissions can be inherited as relations in other entities. This allows to form nested hierarchical relationships between entities. 
 
-In this example, a comment belongs to a post which is part of a group. Since there is a **'member'** relation defined for the group entity, we can use the **'group_member'** action to inherit the **member** relation from the group in the post and then use it in the comment.
+In this example, a comment belongs to a post which is part of a group. Since there is a **'member'** relation defined for the group entity, we can use the **'group_member'** permission to inherit the **member** relation from the group in the post and then use it in the comment.
 
 ## Relationships
 
@@ -342,7 +342,7 @@ entity post {
     
     ..
     ..
-    action group_member = group.member
+    permission group_member = group.member
 }
 
 // Represents a comment on a post in a Facebook group
@@ -412,7 +412,7 @@ schema: >-
         action edit_post = owner or group.admin
         action delete_post = owner or group.admin
 
-        action group_member = group.member
+        permission group_member = group.member
     }
 
     entity comment {

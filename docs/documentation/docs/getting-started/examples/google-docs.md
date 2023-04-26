@@ -27,9 +27,8 @@ entity organization {
     relation administrator @user @group#member @group#manager
     relation direct_member @user
    
-
-    action admin = administrator
-    action member = direct_member or administrator or group.member
+    permission admin = administrator
+    permission member = direct_member or administrator or group.member
 }
 ```
 
@@ -99,8 +98,8 @@ entity organization {
     relation administrator @user @group#member @group#manager
     relation direct_member @user
    
-    action admin = administrator
-    action member = direct_member or administrator or group.member
+    permission admin = administrator
+    permission member = direct_member or administrator or group.member
 }
 ```
 
@@ -116,13 +115,13 @@ Represents an organization that can contain groups, users, and resources. The or
 
 **resource:** A relationship between the organization and its resources. This relationship is defined by the `@resource` annotation on the end corresponding to the resource entity.
 
-The organization entity has two actions defined:
+The organization entity has two permissions defined:
 
-#### Actions 
+#### Permissions 
 
-**admin:** An action that can be performed by users who are authorized to manage the organization, as determined by the administrator relationship.
+**admin:** An permission that can be performed by users who are authorized to manage the organization, as determined by the administrator relationship.
 
-**member:** An action that can be performed by users who are directly members of the organization, or who have administrator relationship, or who are members of groups that are part of the organization, 
+**member:** An permission that can be performed by users who are directly members of the organization, or who have administrator relationship, or who are members of groups that are part of the organization, 
 
 ## Relationships
 
@@ -253,9 +252,8 @@ schema: >-
         relation administrator @user @group#member @group#manager
         relation direct_member @user
     
-
-        action admin = administrator
-        action member = direct_member or administrator or group.member
+        permission admin = administrator
+        permission member = direct_member or administrator or group.member
     }
 
 relationships:
