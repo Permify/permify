@@ -80,7 +80,6 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 			// If there's an error, return false
 			return false
 		}
-		c.l.Info("added key %s to consistent hash", k)
 
 		// Use Consistent Hashing to find the responsible node for the given key
 		node, found := c.consistent.Get(k)
@@ -89,7 +88,6 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 			// If the responsible node is not found, return false
 			return false
 		}
-		c.l.Info("node %s found for key %s", node, k)
 
 		// Check if the node is the local node
 		if node == c.localNodeAddress {
@@ -101,8 +99,6 @@ func (c *EngineKeys) SetCheckKey(key *base.PermissionCheckRequest, value *base.P
 				c.l.Error("error forwarding request to node %s: %s", node, err.Error())
 				return false
 			}
-
-			c.l.Info("forwarded request to node %s , %s", node, k)
 
 			return true
 		}
@@ -149,8 +145,6 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 			return nil, false
 		}
 
-		c.l.Info("node %s found for key %s", node, k)
-
 		// Check if the responsible node is the local node
 		if node == c.localNodeAddress {
 			// Get the value from the cache using the generated cache key
@@ -172,8 +166,6 @@ func (c *EngineKeys) GetCheckKey(key *base.PermissionCheckRequest) (*base.Permis
 				c.l.Error("error forwarding request to node %s: %s", node, err)
 				return nil, false
 			}
-
-			c.l.Info("forwarded Get request to node %s , %s", node, k)
 
 			return toNode.PermissionCheckResponse, true
 		}
@@ -337,9 +329,9 @@ func (c *EngineKeys) forwardRequestGetToNode(node string, checkKey *base.Permiss
 	}
 
 	// Create a new HTTP request to the responsible node
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s/v1/consistent/get", node), bytes.NewBuffer(payloadBytes))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/consistent/get", node), bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		c.l.Error("failed to set check key on the responsible node: %s", err.Error())
+		c.l.Error("failed to get check key on the responsible node: %s", err.Error())
 		return nil, err
 	}
 
@@ -349,7 +341,7 @@ func (c *EngineKeys) forwardRequestGetToNode(node string, checkKey *base.Permiss
 	// Send the request to the responsible node
 	resp, err := client.Do(req)
 	if err != nil {
-		c.l.Error("failed to set check key on the responsible node: %s", err.Error())
+		c.l.Error("failed to get check key on the responsible node: %s", err.Error())
 		return nil, err
 	}
 
@@ -408,7 +400,7 @@ func (c *NoopEngineKeys) GetKey(*base.PermissionCheckRequest) (*base.PermissionC
 // SyncPeers is a no-op method that implements the SyncPeers method for the
 // EngineKeyManager interface. It does nothing, as it performs no actual caching
 // or operations.
-func (c *NoopEngineKeys) SyncPeers(*memberlist.Memberlist) {}
+func (c *NoopEngineKeys) SyncPeers(_ *memberlist.Memberlist) {}
 
 func ExternalIP() string {
 	faces, err := net.Interfaces()
