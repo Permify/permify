@@ -54,8 +54,6 @@ func (r *ConsistentServer) Set(ctx context.Context, request *v1.ConsistentSetReq
 	ctx, span := tracer.Start(ctx, "consistent.set")
 	defer span.End()
 
-	r.logger.Info(request.PermissionCheckRequest.String())
-
 	ok := r.cacheService.SetKey(request.PermissionCheckRequest, request.PermissionCheckResponse)
 	if !ok {
 		err := errors.New("key not set" + request.PermissionCheckRequest.TenantId)
