@@ -643,13 +643,13 @@ message ConsistentGetRequest {
 
 // ConsistentGetResponse
 message ConsistentGetResponse {
-  PermissionCheckRequest permission_check_request = 1 [json_name = "permission_check_request", (validate.rules).message.required = false];
+  PermissionCheckRequest permission_check_request = 1 [json_name = "permission_check_request", (validate.rules).message.required = true];
   PermissionCheckResponse permission_check_response = 2 [json_name = "permission_check_response", (validate.rules).message.required = true];
 }
 
 // ConsistentGetRequest
 message ConsistentSetRequest {
-  PermissionCheckRequest permission_check_request = 1 [json_name = "permission_check_request", (validate.rules).message.required = false];
+  PermissionCheckRequest permission_check_request = 1 [json_name = "permission_check_request", (validate.rules).message.required = true];
   PermissionCheckResponse permission_check_response = 2 [json_name = "permission_check_response", (validate.rules).message.required = false];
 }
 

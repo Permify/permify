@@ -5321,6 +5321,17 @@ func (m *ConsistentGetResponse) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetPermissionCheckRequest() == nil {
+		err := ConsistentGetResponseValidationError{
+			field:  "PermissionCheckRequest",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetPermissionCheckRequest()).(type) {
 		case interface{ ValidateAll() error }:
@@ -5491,6 +5502,17 @@ func (m *ConsistentSetRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetPermissionCheckRequest() == nil {
+		err := ConsistentSetRequestValidationError{
+			field:  "PermissionCheckRequest",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetPermissionCheckRequest()).(type) {

@@ -36,7 +36,7 @@ type (
 	}
 )
 
-func NewConsistentHash(replicas int, seedNodes []string, fn Func) ConsistentEngine {
+func NewConsistentHash(replicas int, seedNodes []string, fn Func) *ConsistentHash {
 	if replicas < minReplicas {
 		replicas = minReplicas
 	}

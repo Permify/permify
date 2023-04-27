@@ -7,6 +7,7 @@ import (
 )
 
 func TestConsistentHash_Updated(t *testing.T) {
+
 	ch := hash.NewConsistentHash(100, []string{"node1", "node2", "node3", "node5"}, nil)
 
 	keys := []string{"key1", "key2", "key3", "key4", "key5", "key6", "key7", "key8", "key9", "key10"}

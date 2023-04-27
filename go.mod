@@ -22,7 +22,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/hashicorp/logutils v1.0.0
 	github.com/hashicorp/memberlist v0.5.0
 	github.com/jackc/pgio v1.0.0
 	github.com/jackc/pgtype v1.14.0

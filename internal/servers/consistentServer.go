@@ -34,7 +34,7 @@ func (r *ConsistentServer) Get(ctx context.Context, request *v1.ConsistentGetReq
 	defer span.End()
 
 	var err error
-	response, ok := r.cacheService.GetCheckKey(request.PermissionCheckRequest)
+	response, ok := r.cacheService.GetKey(request.PermissionCheckRequest)
 	if !ok {
 		err = errors.New("key not found" + request.PermissionCheckRequest.TenantId)
 		span.RecordError(err)
@@ -54,7 +54,9 @@ func (r *ConsistentServer) Set(ctx context.Context, request *v1.ConsistentSetReq
 	ctx, span := tracer.Start(ctx, "consistent.set")
 	defer span.End()
 
-	ok := r.cacheService.SetCheckKey(request.PermissionCheckRequest, request.PermissionCheckResponse)
+	r.logger.Info(request.PermissionCheckRequest.String())
+
+	ok := r.cacheService.SetKey(request.PermissionCheckRequest, request.PermissionCheckResponse)
 	if !ok {
 		err := errors.New("key not set" + request.PermissionCheckRequest.TenantId)
 		span.RecordError(err)

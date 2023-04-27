@@ -134,11 +134,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		var gossipEngine *gossip.Engine
-		var consistencyChecker hash.ConsistentEngine
+		var consistencyChecker *hash.ConsistentHash
 		if cfg.Distributed.Enabled {
 			l.Info("🔗 starting distributed mode...")
 
-			consistencyChecker := hash.NewConsistentHash(100, cfg.Distributed.SeedNodes, nil)
+			consistencyChecker = hash.NewConsistentHash(100, cfg.Distributed.SeedNodes, nil)
 
 			externalIP, err := gossip.ExternalIP()
 			if err != nil {
@@ -148,7 +148,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 			consistencyChecker.Add(externalIP + ":" + cfg.HTTP.Port)
 
-			gossipEngine, err := gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Distributed)
+			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Distributed)
 			if err != nil {
 				green := color.New(color.FgGreen)
 				green.Printf("🔗 failed to start distributed mode: %s ", err.Error())

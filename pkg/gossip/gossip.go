@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type GossipEngine interface {
+type IGossip interface {
 	SyncMemberList() (nodes []string)
 	Shutdown() error
 }
