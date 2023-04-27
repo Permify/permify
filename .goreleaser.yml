@@ -92,7 +92,7 @@ nfpms:
     maintainer: "permify <help@permify.co>"
     vendor: "permify inc."
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
@@ -101,7 +101,9 @@ changelog:
       - "^test:"
 checksum:
   name_template: checksums.txt
-# sboms:
-#   - artifacts: archive
 release:
-  prerelease: true
+  draft: true
+  mode: replace
+  prerelease: auto
+  footer: |
+    This version can be found as Docker images at permify/permify:v{{ .Version }} and ghcr.io/permify/permify:v{{ .Version }}.

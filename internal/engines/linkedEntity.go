@@ -75,7 +75,6 @@ func (engine *LinkedEntityEngine) Run(
 			Depth:         request.GetMetadata().GetDepth(),
 			Exclusion:     false,
 		}, base.PermissionCheckResponse_RESULT_UNKNOWN)
-		return nil
 	}
 
 	// Retrieve entity definition

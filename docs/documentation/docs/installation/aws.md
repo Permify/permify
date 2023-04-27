@@ -138,13 +138,12 @@ Then we need to define command under the environment section. So, in order to st
 For using properly we need a few other. Here’s the commands we need.
 
 ```yaml
-serve, --database-engine=postgres, --database-name=<db_name>, --database-uri=postgres://<user_name>:<password>@<db_endpoint>:<db_port>, --database-pool-max=20
+serve, --database-engine=postgres, --database-uri=postgres://<user_name>:<password>@<db_endpoint>:<db_port>/<db_name>, --database-pool-max=20
 ```
 
 - `serve` ⇒ for starting the Permify.
 - `--database-engine=postgres` ⇒ for defining the db we use.
-- `--database-name=<database_name>` ⇒ name of the database you use.
-- `--database-uri=postgres://<user_name>:password@<db_endpoint>:<db_port>` ⇒ for connecting your database with URI.
+- `--database-uri=postgres://<user_name>:password@<db_endpoint>:<db_port>/<db_name>` ⇒ for connecting your database with URI.
 - `--database-pool-max=20` ⇒ the depth for running in graph.
 
 We’re nice and clear, add the container and then just create your task definition. We’ll use this definition to run in our cluster.

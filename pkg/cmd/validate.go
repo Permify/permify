@@ -170,6 +170,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		// Check Assertions
 		for i, assertion := range s.Assertions {
 			for query, expected := range assertion {
+				query = strings.TrimLeft(query, "can ")
 				exp := base.PermissionCheckResponse_RESULT_ALLOWED
 				if !expected {
 					exp = base.PermissionCheckResponse_RESULT_DENIED

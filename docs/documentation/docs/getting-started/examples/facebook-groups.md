@@ -43,7 +43,7 @@ entity post {
     action edit_post = owner or group.admin
     action delete_post = owner or group.admin
 
-    action group_member = group.member
+    permission group_member = group.member
 }
 
 // Represents a comment on a post in a Facebook group
@@ -213,7 +213,7 @@ entity post {
     
     ..
     ..
-    action group_member = group.member
+    permission group_member = group.member
 }
 
 // Represents a comment on a post in a Facebook group
@@ -240,14 +240,16 @@ entity comment {
 The `post.group_member` refers to the members of the group to which the post belongs. We defined it as action in **post** entity as,
 
 ```perm
-action group_member = group.member
+permission group_member = group.member
 ```
 
-This is a special usage of action keyword where the action can be inherited as relations in other entities. This allows to form nested hierarchical relationships between entities. 
+Permissions can be inherited as relations in other entities. This allows to form nested hierarchical relationships between entities. 
 
-In this example, a comment belongs to a post which is part of a group. Since there is a **'member'** relation defined for the group entity, we can use the **'group_member'** action to inherit the **member** relation from the group in the post and then use it in the comment.
+In this example, a comment belongs to a post which is part of a group. Since there is a **'member'** relation defined for the group entity, we can use the **'group_member'** permission to inherit the **member** relation from the group in the post and then use it in the comment.
 
 ## Relationships
+
+Based on our schema, let's create some sample relationships to test both our schema and our authorization logic.
 
 ```perm
 //group relationships
@@ -340,7 +342,7 @@ entity post {
     
     ..
     ..
-    action group_member = group.member
+    permission group_member = group.member
 }
 
 // Represents a comment on a post in a Facebook group
@@ -410,7 +412,7 @@ schema: >-
         action edit_post = owner or group.admin
         action delete_post = owner or group.admin
 
-        action group_member = group.member
+        permission group_member = group.member
     }
 
     entity comment {
@@ -520,13 +522,13 @@ assertions:
 
 After cloning [Permify](https://github.com/Permify/permify), open up a new file and copy the **schema yaml file** content inside. Then, build and run Permify instance using the command `make run`.
 
-![Running Permify](https://user-images.githubusercontent.com/34595361/232312254-5a6558fa-f085-4aac-9c83-e62447daef7d.png)
+![Running Permify](https://user-images.githubusercontent.com/34595361/233155326-e1d2daf6-2406-4139-b0b3-5f7b54880593.png)
 
-Then run `permify validate {path of your schema validation file}` with pointing the above schema. 
+Then run `permify validate {path of your schema validation file}` to start the test process. 
 
 The validation result according to our example schema validation file:
 
-![Screen Shot 2023-04-16 at 15 53 06](https://user-images.githubusercontent.com/34595361/232312760-99267b62-609d-405c-945a-e35f0ec58ee8.png)
+![Screen Shot 2023-04-16 at 15 53 06](https://user-images.githubusercontent.com/34595361/233152003-1fbaf2af-d208-4290-af1f-359870b0de49.png)
 
 ## Need any help ?
 

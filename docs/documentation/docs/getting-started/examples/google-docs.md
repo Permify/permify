@@ -27,9 +27,8 @@ entity organization {
     relation administrator @user @group#member @group#manager
     relation direct_member @user
    
-
-    action admin = administrator
-    action member = direct_member or administrator or group.member
+    permission admin = administrator
+    permission member = direct_member or administrator or group.member
 }
 ```
 
@@ -99,8 +98,8 @@ entity organization {
     relation administrator @user @group#member @group#manager
     relation direct_member @user
    
-    action admin = administrator
-    action member = direct_member or administrator or group.member
+    permission admin = administrator
+    permission member = direct_member or administrator or group.member
 }
 ```
 
@@ -116,15 +115,17 @@ Represents an organization that can contain groups, users, and resources. The or
 
 **resource:** A relationship between the organization and its resources. This relationship is defined by the `@resource` annotation on the end corresponding to the resource entity.
 
-The organization entity has two actions defined:
+The organization entity has two permissions defined:
 
-#### Actions 
+#### Permissions 
 
-**admin:** An action that can be performed by users who are authorized to manage the organization, as determined by the administrator relationship.
+**admin:** An permission that can be performed by users who are authorized to manage the organization, as determined by the administrator relationship.
 
-**member:** An action that can be performed by users who are directly members of the organization, or who have administrator relationship, or who are members of groups that are part of the organization, 
+**member:** An permission that can be performed by users who are directly members of the organization, or who have administrator relationship, or who are members of groups that are part of the organization, 
 
 ## Relationships
+
+Based on our schema, let's create some sample relationships to test both our schema and our authorization logic.
 
 ```perm
 // Assign users to different groups
@@ -160,12 +161,6 @@ resource:marketing_materials#viewer@group:marketing#member
 resource:hr_documents#manager@group:hr#manager
 resource:hr_documents#viewer@group:hr#member
 ```
-
-<!-- ## See on the Playground
-
-Here is the visualization of the relationships of the schema, also you can see and play around with this example in our playground using this .
-
-![visualization](https://user-images.githubusercontent.com/34595361/231216456-1430d952-856a-4dad-996b-968a1a59fc04.png) -->
 
 ## Test & Validation
 
@@ -257,9 +252,8 @@ schema: >-
         relation administrator @user @group#member @group#manager
         relation direct_member @user
     
-
-        action admin = administrator
-        action member = direct_member or administrator or group.member
+        permission admin = administrator
+        permission member = direct_member or administrator or group.member
     }
 
 relationships:
@@ -295,13 +289,13 @@ assertions:
 
 After cloning [Permify](https://github.com/Permify/permify), open up a new file and copy the **schema yaml file** content inside. Then, build and run Permify instance using the command `make run`.
 
-![Running Permify](https://user-images.githubusercontent.com/34595361/232312254-5a6558fa-f085-4aac-9c83-e62447daef7d.png)
+![Running Permify](https://user-images.githubusercontent.com/34595361/233155326-e1d2daf6-2406-4139-b0b3-5f7b54880593.png)
 
-Then run `permify validate {path of your schema validation file}` with pointing the above schema.
+Then run `permify validate {path of your schema validation file}` to start the test process. 
 
 The validation result according to our example schema validation file:
 
-![tuple](https://user-images.githubusercontent.com/34595361/231486033-57913b62-6274-408c-b485-f033c692f638.png)
+![test-result](https://user-images.githubusercontent.com/34595361/233152224-e46850f2-8f92-4bd3-811d-54232d79a777.png)
 
 ## Need any help ?
 

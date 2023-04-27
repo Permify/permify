@@ -173,7 +173,7 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 	if !_PermissionCheckRequest_Permission_Pattern.MatchString(m.GetPermission()) {
 		err := PermissionCheckRequestValidationError{
 			field:  "Permission",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
+			reason: "value does not match regex pattern \"^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$\"",
 		}
 		if !all {
 			return err
@@ -303,7 +303,7 @@ var _ interface {
 
 var _PermissionCheckRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
-var _PermissionCheckRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionCheckRequest_Permission_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$")
 
 // Validate checks the field values on PermissionCheckRequestMetadata with the
 // rules defined in the proto definition for this message. If any rules are
@@ -803,7 +803,7 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 		if !_PermissionExpandRequest_Permission_Pattern.MatchString(m.GetPermission()) {
 			err := PermissionExpandRequestValidationError{
 				field:  "Permission",
-				reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
+				reason: "value does not match regex pattern \"^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$\"",
 			}
 			if !all {
 				return err
@@ -895,7 +895,7 @@ var _ interface {
 
 var _PermissionExpandRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
-var _PermissionExpandRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionExpandRequest_Permission_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$")
 
 // Validate checks the field values on PermissionExpandRequestMetadata with the
 // rules defined in the proto definition for this message. If any rules are
@@ -1634,7 +1634,7 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 	if !_PermissionLookupEntityRequest_EntityType_Pattern.MatchString(m.GetEntityType()) {
 		err := PermissionLookupEntityRequestValidationError{
 			field:  "EntityType",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
+			reason: "value does not match regex pattern \"^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$\"",
 		}
 		if !all {
 			return err
@@ -1656,7 +1656,7 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 	if !_PermissionLookupEntityRequest_Permission_Pattern.MatchString(m.GetPermission()) {
 		err := PermissionLookupEntityRequestValidationError{
 			field:  "Permission",
-			reason: "value does not match regex pattern \"^([a-z][a-z0-9_]{1,62}[a-z0-9])$\"",
+			reason: "value does not match regex pattern \"^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$\"",
 		}
 		if !all {
 			return err
@@ -1787,9 +1787,9 @@ var _ interface {
 
 var _PermissionLookupEntityRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
 
-var _PermissionLookupEntityRequest_EntityType_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionLookupEntityRequest_EntityType_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$")
 
-var _PermissionLookupEntityRequest_Permission_Pattern = regexp.MustCompile("^([a-z][a-z0-9_]{1,62}[a-z0-9])$")
+var _PermissionLookupEntityRequest_Permission_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$")
 
 // Validate checks the field values on PermissionLookupEntityRequestMetadata
 // with the rules defined in the proto definition for this message. If any
