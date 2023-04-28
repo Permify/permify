@@ -18,7 +18,7 @@ import (
 
 // Requests for Permify Playground
 
-var dev *development.Container
+var dev *development.Development
 
 // check - Permission check request
 func check() js.Func {
@@ -29,7 +29,7 @@ func check() js.Func {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
 		var result *v1.PermissionCheckResponse
-		result, err = development.Check(context.Background(), dev.P, params.Subject, params.Permission, params.Entity, string(args[1].String()), "")
+		result, err = dev.Check(context.Background(), params.Subject, params.Permission, params.Entity)
 		if err != nil {
 			return js.ValueOf([]interface{}{false, err.Error()})
 		}
@@ -49,7 +49,7 @@ func lookupEntity() js.Func {
 			return js.ValueOf([]interface{}{[]string{}, err.Error()})
 		}
 		var result *v1.PermissionLookupEntityResponse
-		result, err = development.LookupEntity(context.Background(), dev.P, params.Subject, params.Permission, params.EntityType, string(args[1].String()), "")
+		result, err = dev.LookupEntity(context.Background(), params.Subject, params.Permission, params.EntityType)
 		if err != nil {
 			return js.ValueOf([]interface{}{[]string{}, err.Error()})
 		}
@@ -64,11 +64,11 @@ func lookupEntity() js.Func {
 // writeSchema - Writes schema
 func writeSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		version, err := development.WriteSchema(context.Background(), dev.S, string(args[0].String()))
+		err := dev.WriteSchema(context.Background(), string(args[0].String()))
 		if err != nil {
-			return js.ValueOf([]interface{}{"", err.Error()})
+			return js.ValueOf([]interface{}{err.Error()})
 		}
-		return js.ValueOf([]interface{}{version, nil})
+		return js.ValueOf([]interface{}{nil})
 	})
 }
 
@@ -80,7 +80,7 @@ func writeTuple() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
-		_, err = development.WriteTuple(context.Background(), dev.R, []*v1.Tuple{t}, string(args[1].String()))
+		err = dev.WriteTuple(context.Background(), []*v1.Tuple{t})
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
@@ -96,7 +96,7 @@ func deleteTuple() js.Func {
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
-		_, err = development.DeleteTuple(context.Background(), dev.R, &v1.TupleFilter{
+		_, err = dev.DeleteTuple(context.Background(), &v1.TupleFilter{
 			Entity: &v1.EntityFilter{
 				Type: t.GetEntity().GetType(),
 				Ids:  []string{t.GetEntity().GetId()},
@@ -118,7 +118,7 @@ func deleteTuple() js.Func {
 // readSchema - Read Permify Schema
 func readSchema() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		sch, err := development.ReadSchema(context.Background(), dev.S, string(args[0].String()))
+		sch, err := dev.ReadSchema(context.Background())
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
@@ -133,13 +133,13 @@ func readSchema() js.Func {
 // readTuple - Read, filter relation tuples
 func readTuple() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		params := &v1.TupleFilter{}
-		err := protojson.Unmarshal([]byte(string(args[0].String())), params)
+		filter := &v1.TupleFilter{}
+		err := protojson.Unmarshal([]byte(string(args[0].String())), filter)
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
 		var collection *database.TupleCollection
-		collection, _, err = development.ReadTuple(context.Background(), dev.R, params, "")
+		collection, _, err = dev.ReadTuple(context.Background(), filter)
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
@@ -158,7 +158,7 @@ func readTuple() js.Func {
 // readSchemaGraph - read schema graph
 func readSchemaGraph() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		sch, err := development.ReadSchema(context.Background(), dev.S, string(args[0].String()))
+		sch, err := dev.ReadSchema(context.Background())
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}

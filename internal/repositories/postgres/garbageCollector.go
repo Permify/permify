@@ -3,16 +3,18 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"time"
+
+	"go.opentelemetry.io/otel/codes"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
+
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"go.opentelemetry.io/otel/codes"
-	"golang.org/x/sync/errgroup"
-	"golang.org/x/sync/semaphore"
-	"time"
 )
 
 // GarbageCollector - Structure for GarbageCollector
@@ -65,7 +67,7 @@ func (c *GarbageCollector) Start() error {
 		defer span.End()
 
 		ticker := time.NewTicker(c.interval)
-		for _ = range ticker.C {
+		for range ticker.C {
 			select {
 			case <-ctx.Done():
 				c.logger.Info("garbage collector stopped due to timeout")
@@ -109,7 +111,6 @@ func (c *GarbageCollector) Start() error {
 		// wait for all remaining semaphore resources to be released
 		if err := sem.Acquire(c.ctx, int64(c.concurrencyLimit)); err != nil {
 			return err
-
 		}
 		return nil
 	})
@@ -137,7 +138,6 @@ func (c *GarbageCollector) getTenants(ctx context.Context) ([]*base.Tenant, erro
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-
 		return nil, err
 	}
 
@@ -172,7 +172,6 @@ func (c *GarbageCollector) executeCollector(ctx context.Context, tenantID string
 
 	garbageSQL, garbageQueryArgs, err := garbageQuery.ToSql()
 	if err != nil {
-
 		return err
 	}
 

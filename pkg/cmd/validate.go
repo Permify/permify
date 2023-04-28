@@ -6,17 +6,24 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	`sort`
+	"sort"
 	"strings"
 
+	"github.com/rs/xid"
 	"github.com/spf13/viper"
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
+	"github.com/Permify/permify/internal/repositories"
+	server_validation "github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/cmd/flags"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/development/validation"
+	"github.com/Permify/permify/pkg/dsl/ast"
+	"github.com/Permify/permify/pkg/dsl/compiler"
+	"github.com/Permify/permify/pkg/dsl/parser"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
@@ -86,7 +93,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
 
 		// create a new development container
-		devContainer := development.NewContainer()
+		dev := development.NewContainer()
 
 		// parse the url from the first argument
 		u, err := url.Parse(args[0])
@@ -114,9 +121,30 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			color.Notice.Println("schema is creating... 🚀")
 		}
 
+		sch, err := parser.NewParser(s.Schema).Parse()
+		if err != nil {
+			return err
+		}
+
+		_, err = compiler.NewCompiler(false, sch).Compile()
+		if err != nil {
+			return err
+		}
+
+		version := xid.New().String()
+
+		cnf := make([]repositories.SchemaDefinition, 0, len(sch.Statements))
+		for _, st := range sch.Statements {
+			cnf = append(cnf, repositories.SchemaDefinition{
+				TenantID:             "t1",
+				Version:              version,
+				EntityType:           st.(*ast.EntityStatement).Name.Literal,
+				SerializedDefinition: []byte(st.String()),
+			})
+		}
+
 		// write the schema
-		var version string
-		version, err = devContainer.S.WriteSchema(ctx, "t1", s.Schema)
+		err = dev.Container.SW.WriteSchema(ctx, cnf)
 		if err != nil {
 			list.Add(err.Error())
 			if debug {
@@ -147,9 +175,23 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				continue
 			}
 
-			_, err = devContainer.R.WriteRelationships(ctx, "t1", []*base.Tuple{
-				tup,
-			}, version)
+			subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
+
+			definition, _, err := dev.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+			if err != nil {
+				return err
+			}
+
+			err = server_validation.ValidateTuple(definition, tup)
+			if err != nil {
+				return err
+			}
+
+			_, err = dev.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(&base.Tuple{
+				Entity:   tup.GetEntity(),
+				Relation: tup.GetRelation(),
+				Subject:  subject,
+			}))
 			if err != nil {
 				list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
 				if debug {
@@ -198,7 +240,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						exp = base.PermissionCheckResponse_RESULT_DENIED
 					}
 
-					res, err := devContainer.P.CheckPermissions(ctx, &base.PermissionCheckRequest{
+					res, err := dev.Container.Invoker.InvokeCheck(ctx, &base.PermissionCheckRequest{
 						TenantId: "t1",
 						Metadata: &base.PermissionCheckRequestMetadata{
 							Exclusion:     false,
@@ -258,7 +300,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 
 				for permission, expected := range filter.Assertions {
-					res, err := devContainer.P.LookupEntity(ctx, &base.PermissionLookupEntityRequest{
+					res, err := dev.Container.Invoker.InvokeLookupEntity(ctx, &base.PermissionLookupEntityRequest{
 						TenantId: "t1",
 						Metadata: &base.PermissionLookupEntityRequestMetadata{
 							SchemaVersion: version,

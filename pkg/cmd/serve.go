@@ -2,10 +2,13 @@ package cmd
 
 import (
 	"context"
-	"github.com/Permify/permify/internal/repositories/postgres"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"fmt"
 	"os/signal"
 	"syscall"
+
+	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/internal/repositories/postgres"
+	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
 	"go.opentelemetry.io/otel/sdk/metric"
 
@@ -24,10 +27,8 @@ import (
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/servers"
-	"github.com/Permify/permify/internal/services"
 	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
-	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/telemetry/meterexporters"
@@ -53,38 +54,44 @@ func NewServeCommand() *cobra.Command {
 // It returns an error if there is an issue with any of the components or if any goroutine fails.
 func serve() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		// Load configuration
 		cfg, err := config.NewConfig()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create new config: %w", err)
 		}
 
 		if err = viper.Unmarshal(cfg); err != nil {
-			return err
+			return fmt.Errorf("failed to unmarshal config: %w", err)
 		}
 
+		// Print banner and initialize logger
 		red := color.New(color.FgGreen)
 		_, _ = red.Printf(internal.Banner, internal.Version)
-
 		l := logger.New(cfg.Log.Level)
-
 		l.Info("🚀 starting permify service...")
 
+		// Set up context and signal handling
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
 
+		// Run database migration if enabled
 		if cfg.AutoMigrate {
 			err = repositories.Migrate(cfg.Database, l)
 			if err != nil {
-				l.Fatal(err)
+				l.Fatal("failed to migrate database: %w", err)
 			}
 		}
 
-		var db database.Database
-		db, err = factories.DatabaseFactory(cfg.Database)
+		// Initialize database
+		db, err := factories.DatabaseFactory(cfg.Database)
 		if err != nil {
-			l.Fatal(err)
+			l.Fatal("failed to initialize database: %w", err)
 		}
-		defer db.Close()
+		defer func() {
+			if err = db.Close(); err != nil {
+				l.Fatal("failed to close database: %v", err)
+			}
+		}()
 
 		// Tracing
 		if cfg.Tracer.Enabled {
@@ -147,7 +154,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			l.Fatal(err)
 		}
 
-		// Repositories
+		// Initialize the repositories with factory methods
 		relationshipReader := factories.RelationshipReaderFactory(db, l)
 		relationshipWriter := factories.RelationshipWriterFactory(db, l)
 		schemaReader := factories.SchemaReaderFactory(db, l)
@@ -155,48 +162,56 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		tenantReader := factories.TenantReaderFactory(db, l)
 		tenantWriter := factories.TenantWriterFactory(db, l)
 
-		// decorators
+		// Add caching to the schema reader using a decorator
 		schemaReader = decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
 
-		// Service
+		// Check if circuit breaker should be enabled for services
 		if cfg.Service.CircuitBreaker {
+			// Add circuit breaker to the relationship reader and writer using decorators
 			relationshipWriter = decorators.NewRelationshipWriterWithCircuitBreaker(relationshipWriter)
 			relationshipReader = decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
 
+			// Add circuit breaker to the schema reader and writer using decorators
 			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
 			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
 		}
 
-		// key managers
+		// Initialize the key manager for the check engine
 		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache)
 
-		// engines
+		// Initialize the engines using the key manager, schema reader, and relationship reader
 		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
 		linkedEntityEngine := engines.NewLinkedEntityEngine(schemaReader, relationshipReader)
 		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, linkedEntityEngine, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
 		schemaLookupEngine := engines.NewLookupSchemaEngine(schemaReader)
 
-		// Services
-		relationshipService := services.NewRelationshipService(relationshipReader, relationshipWriter, schemaReader)
-		permissionService := services.NewPermissionService(checkEngine, expandEngine, schemaLookupEngine, lookupEntityEngine)
-		schemaService := services.NewSchemaService(schemaWriter, schemaReader)
-		tenancyService := services.NewTenancyService(tenantWriter, tenantReader)
+		// Create the container with engines, repositories, and other dependencies
+		container := servers.NewContainer(
+			invoke.NewDirectInvoker(
+				checkEngine,
+				expandEngine,
+				schemaLookupEngine,
+				lookupEntityEngine,
+			),
+			relationshipReader,
+			relationshipWriter,
+			schemaReader,
+			schemaWriter,
+			tenantReader,
+			tenantWriter,
+		)
 
-		container := servers.ServiceContainer{
-			RelationshipService: relationshipService,
-			PermissionService:   permissionService,
-			SchemaService:       schemaService,
-			TenancyService:      tenancyService,
-		}
-
+		// Create an error group with the provided context
 		var g *errgroup.Group
 		g, ctx = errgroup.WithContext(ctx)
 
+		// Add the container.Run function to the error group
 		g.Go(func() error {
 			return container.Run(ctx, &cfg.Server, &cfg.Authn, &cfg.Profiler, l)
 		})
 
+		// Wait for the error group to finish and log any errors
 		if err = g.Wait(); err != nil {
 			l.Error(err)
 		}
