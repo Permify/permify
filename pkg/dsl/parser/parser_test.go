@@ -20,12 +20,12 @@ var _ = Describe("parser", func() {
 		It("Case 1", func() {
 			pr := NewParser(`
 			entity repository {
-
+		
 			relation parent @organization
 			relation owner  @user
-
+		
 			action read = owner and (parent.admin and not parent.member)
-
+		
 			}`)
 
 			schema, err := pr.Parse()
@@ -61,9 +61,9 @@ var _ = Describe("parser", func() {
 		It("Case 2", func() {
 			pr := NewParser(`
 			entity repository {
-				relation parent   @organization 
-				relation owner  @user 
-
+				relation parent   @organization
+				relation owner  @user
+		
 				action read = (owner and parent.admin) and parent.member
 			}`)
 
@@ -152,10 +152,10 @@ var _ = Describe("parser", func() {
 		It("Case 5", func() {
 			pr := NewParser(`
 			entity repository {
-
-				relation parent  @organization 
+		
+				relation parent  @organization
 				relation owner  @user @organization#member
-
+		
 				action view = owner
 				action read = view and (parent.admin and parent.member)
 			}
@@ -217,11 +217,11 @@ var _ = Describe("parser", func() {
     			relation parent @organization
     
     			// actions
-    			action read = (owner and (parent.admin and not parent.member))
+    			permission read = (owner and (parent.admin and not parent.member)) or owner
     
     			// parent.create_repository means user should be
     			// organization admin or organization member
-    			action delete = (owner or (parent.create_repository))
+    			permission delete = (owner or (parent.create_repository))
 			}
 			`)
 
@@ -278,9 +278,10 @@ var _ = Describe("parser", func() {
 
 			res1 := ra1.ExpressionStatement.(*ast.ExpressionStatement)
 
-			Expect(res1.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
-			Expect(res1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
-			Expect(res1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not parent.member"))
+			Expect(res1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
+			Expect(res1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
+			Expect(res1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not parent.member"))
+			Expect(res1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))
 
 			ra2 := repositorySt.PermissionStatements[1].(*ast.PermissionStatement)
 			Expect(ra2.Name.Literal).Should(Equal("delete"))

@@ -16,15 +16,15 @@ const (
 
 	// LOWEST precedence level for lowest precedence
 	LOWEST
-	// LOGIC precedence level for logical operators (AND, OR)
-	LOGIC
+	// AND_OR precedence level for logical operators (AND, OR)
+	AND_OR
 	// PREFIX precedence level for prefix operators (NOT)
 	PREFIX
 )
 
 var precedences = map[token.Type]int{ // a map that assigns precedence levels to different token types
-	token.AND: LOGIC,
-	token.OR:  LOGIC,
+	token.AND: AND_OR,
+	token.OR:  AND_OR,
 }
 
 // Parser is a struct that contains information and functions related to parsing
@@ -425,14 +425,6 @@ func (p *Parser) parseExpressionStatement() (*ast.ExpressionStatement, error) {
 		return nil, p.Error()
 	}
 
-	// if the next token is a right parenthesis, skip over any additional right parenthesis tokens
-	if p.peekTokenIs(token.RPAREN) {
-		p.next()
-		for p.currentTokenIs(token.RPAREN) {
-			p.next()
-		}
-	}
-
 	// return the parsed ExpressionStatement and nil for the error value
 	return stmt, nil
 }
@@ -462,23 +454,33 @@ func (p *Parser) expect(t token.Type) bool {
 
 // parseExpression method parses an expression with a given precedence level and returns the parsed expression as an AST node. It takes an integer value indicating the precedence level.
 func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
-	// if the current token is a left parenthesis, parse the inner expression enclosed in parentheses
+	var exp ast.Expression
+	var err error
+
 	if p.currentTokenIs(token.LPAREN) {
-		p.next()
-		return p.parseInnerParen()
-	}
+		p.next() // Consume the left parenthesis.
+		exp, err = p.parseExpression(LOWEST)
+		if err != nil {
+			return nil, err
+		}
 
-	// get the prefix parsing function for the current token type
-	prefix := p.prefixParseFns[p.currentToken.Type]
-	if prefix == nil {
-		p.noPrefixParseFnError(p.currentToken.Type)
-		return nil, p.Error()
-	}
+		if !p.expect(token.RPAREN) {
+			return nil, p.Error()
+		}
+		p.next() // Consume the right parenthesis.
+	} else {
+		// get the prefix parsing function for the current token type
+		prefix := p.prefixParseFns[p.currentToken.Type]
+		if prefix == nil {
+			p.noPrefixParseFnError(p.currentToken.Type)
+			return nil, p.Error()
+		}
 
-	// parse the prefix expression
-	exp, err := prefix()
-	if err != nil {
-		return nil, p.Error()
+		// parse the prefix expression
+		exp, err = prefix()
+		if err != nil {
+			return nil, p.Error()
+		}
 	}
 
 	// continue parsing the expression while the next token has a higher precedence level than the current precedence level
@@ -497,51 +499,6 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	}
 
 	// return the parsed expression and nil for the error value
-	return exp, nil
-}
-
-// parseInnerParen parses the expression inside a pair of parentheses, returning the resulting
-// expression and any error encountered.
-func (p *Parser) parseInnerParen() (ast.Expression, error) {
-	// If the current token is a left parenthesis, parse the expression inside the parentheses.
-	if p.currentTokenIs(token.LPAREN) {
-		return p.parseExpression(LOWEST)
-	}
-
-	// If the current token is not a left parenthesis, it should be the start of an expression.
-	// Look up the parsing function for the token type and use it to parse the expression.
-	prefix := p.prefixParseFns[p.currentToken.Type]
-	if prefix == nil {
-		// If there is no parsing function for the token type, report an error.
-		p.noPrefixParseFnError(p.currentToken.Type)
-		return nil, p.Error()
-	}
-	exp, err := prefix()
-	if err != nil {
-		return nil, p.Error()
-	}
-
-	// Continue parsing the expression until a right parenthesis is encountered.
-	for !p.currentTokenIs(token.RPAREN) {
-		// If the next token is a right parenthesis, consume it and continue parsing.
-		if p.peekTokenIs(token.RPAREN) {
-			p.next()
-		}
-		// Otherwise, the next token should be an infix operator. Look up the parsing function for
-		// the token type and use it to parse the expression.
-		infix := p.infixParseFunc[p.peekToken.Type]
-		if infix == nil {
-			// If there is no parsing function for the token type, return the current expression.
-			return exp, nil
-		}
-		p.next()
-		exp, err = infix(exp)
-		if err != nil {
-			return nil, p.Error()
-		}
-	}
-
-	// If a right parenthesis was encountered, return the parsed expression.
 	return exp, nil
 }
 
