@@ -1,14 +1,14 @@
 package servers
 
 import (
-	"errors"
-
 	"google.golang.org/grpc/status"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 
-	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/validation"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -18,15 +18,24 @@ import (
 type RelationshipServer struct {
 	v1.UnimplementedRelationshipServer
 
-	relationshipService services.IRelationshipService
-	logger              logger.Interface
+	sr     repositories.SchemaReader
+	rr     repositories.RelationshipReader
+	rw     repositories.RelationshipWriter
+	logger logger.Interface
 }
 
 // NewRelationshipServer - Creates new Relationship Server
-func NewRelationshipServer(r services.IRelationshipService, l logger.Interface) *RelationshipServer {
+func NewRelationshipServer(
+	rr repositories.RelationshipReader,
+	rw repositories.RelationshipWriter,
+	sr repositories.SchemaReader,
+	l logger.Interface,
+) *RelationshipServer {
 	return &RelationshipServer{
-		relationshipService: r,
-		logger:              l,
+		rr:     rr,
+		rw:     rw,
+		sr:     sr,
+		logger: l,
 	}
 }
 
@@ -40,7 +49,25 @@ func (r *RelationshipServer) Read(ctx context.Context, request *v1.RelationshipR
 		return nil, v
 	}
 
-	collection, ct, err := r.relationshipService.ReadRelationships(ctx, request.GetTenantId(), request.GetFilter(), request.GetMetadata().GetSnapToken(), request.GetPageSize(), request.GetContinuousToken())
+	snap := request.GetMetadata().GetSnapToken()
+	if snap == "" {
+		st, err := r.rr.HeadSnapshot(ctx, request.GetTenantId())
+		if err != nil {
+			return nil, err
+		}
+		snap = st.Encode().String()
+	}
+
+	collection, ct, err := r.rr.ReadRelationships(
+		ctx,
+		request.GetTenantId(),
+		request.GetFilter(),
+		snap,
+		database.NewPagination(
+			database.Size(request.GetPageSize()),
+			database.Token(request.GetContinuousToken()),
+		),
+	)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -64,15 +91,45 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 		return nil, v
 	}
 
-	for _, tup := range request.GetTuples() {
-		if tuple.IsSubjectUser(tup.GetSubject()) {
-			if tup.GetSubject().GetRelation() != "" {
-				return nil, errors.New(v1.ErrorCode_ERROR_CODE_SUBJECT_RELATION_MUST_BE_EMPTY.String())
-			}
+	version := request.GetMetadata().GetSchemaVersion()
+	if version == "" {
+		v, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, err
 		}
+		version = v
 	}
 
-	snap, err := r.relationshipService.WriteRelationships(ctx, request.GetTenantId(), request.GetTuples(), request.GetMetadata().GetSchemaVersion())
+	relationships := make([]*v1.Tuple, 0, len(request.GetTuples()))
+
+	for _, tup := range request.GetTuples() {
+
+		subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
+
+		definition, _, err := r.sr.ReadSchemaDefinition(ctx, request.GetTenantId(), tup.GetEntity().GetType(), version)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, err
+		}
+
+		err = validation.ValidateTuple(definition, tup)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, err
+		}
+
+		relationships = append(relationships, &v1.Tuple{
+			Entity:   tup.GetEntity(),
+			Relation: tup.GetRelation(),
+			Subject:  subject,
+		})
+	}
+
+	snap, err := r.rw.WriteRelationships(ctx, request.GetTenantId(), database.NewTupleCollection(relationships...))
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -95,7 +152,7 @@ func (r *RelationshipServer) Delete(ctx context.Context, request *v1.Relationshi
 		return nil, v
 	}
 
-	snap, err := r.relationshipService.DeleteRelationships(ctx, request.GetTenantId(), request.GetFilter())
+	snap, err := r.rw.DeleteRelationships(ctx, request.GetTenantId(), request.GetFilter())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

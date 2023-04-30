@@ -28,29 +28,39 @@ func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 }
 
 // Compile compiles the schema into a list of entity definitions.
-func (t *Compiler) Compile() (sch []*base.EntityDefinition, err error) {
+// Returns a slice of EntityDefinition pointers and an error, if any.
+func (t *Compiler) Compile() ([]*base.EntityDefinition, error) {
+	// If withoutReferenceValidation is not set to true, validate the schema for reference errors.
 	if !t.withoutReferenceValidation {
-		err = t.schema.Validate()
+		err := t.schema.Validate()
 		if err != nil {
 			return nil, err
 		}
 	}
 
+	// Create an empty slice to hold the entity definitions.
 	entities := make([]*base.EntityDefinition, 0, len(t.schema.Statements))
-	for _, sc := range t.schema.Statements {
-		var en *base.EntityDefinition
-		es, ok := sc.(*ast.EntityStatement)
+
+	// Loop through each statement in the schema.
+	for _, statement := range t.schema.Statements {
+		// Check if the statement is an EntityStatement.
+		entityStatement, ok := statement.(*ast.EntityStatement)
 		if !ok {
-			return nil, compileError(es.Entity.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			// If the statement is not an EntityStatement, return a compile error.
+			return nil, compileError(entityStatement.Entity.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
-		en, err = t.compile(es)
+
+		// Compile the EntityStatement into an EntityDefinition.
+		entityDef, err := t.compile(entityStatement)
 		if err != nil {
 			return nil, err
 		}
-		entities = append(entities, en)
+
+		// Append the EntityDefinition to the slice of entity definitions.
+		entities = append(entities, entityDef)
 	}
 
-	return entities, err
+	return entities, nil
 }
 
 // compile - compiles an EntityStatement into an EntityDefinition
