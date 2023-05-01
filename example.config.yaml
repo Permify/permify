@@ -2,6 +2,7 @@
 # including whether or not TLS is enabled and the certificate and
 # key file locations.
 server:
+  address: localhost
   http:
     enabled: true
     port: 3476
@@ -81,3 +82,8 @@ database:
     timeout: 3m
     window: 30d
     number_of_threads: 1
+
+distributed:
+  enabled: false
+  #seed_nodes: ["permify-1:3480", "permify-2:3480", "permify-3:3480"]
+  #advertise_port: 3480

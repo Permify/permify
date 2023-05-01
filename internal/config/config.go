@@ -12,20 +12,22 @@ import (
 type (
 	// Config is the main configuration structure containing various sections for different aspects of the application.
 	Config struct {
-		Server   `mapstructure:"server"`   // Server configuration for both HTTP and gRPC
-		Log      `mapstructure:"logger"`   // Logging configuration
-		Profiler `mapstructure:"profiler"` // Profiler configuration
-		Authn    `mapstructure:"authn"`    // Authentication configuration
-		Tracer   `mapstructure:"tracer"`   // Tracing configuration
-		Meter    `mapstructure:"meter"`    // Metrics configuration
-		Service  `mapstructure:"service"`  // Service configuration
-		Database `mapstructure:"database"` // Database configuration
+		Server      `mapstructure:"server"`      // Server configuration for both HTTP and gRPC
+		Log         `mapstructure:"logger"`      // Logging configuration
+		Profiler    `mapstructure:"profiler"`    // Profiler configuration
+		Authn       `mapstructure:"authn"`       // Authentication configuration
+		Tracer      `mapstructure:"tracer"`      // Tracing configuration
+		Meter       `mapstructure:"meter"`       // Metrics configuration
+		Service     `mapstructure:"service"`     // Service configuration
+		Database    `mapstructure:"database"`    // Database configuration
+		Distributed `mapstructure:"distributed"` // Distributed configuration
 	}
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		HTTP `mapstructure:"http"` // HTTP server configuration
-		GRPC `mapstructure:"grpc"` // gRPC server configuration
+		Address string                `mapstructure:"address"` // Address for the server
+		HTTP    `mapstructure:"http"` // HTTP server configuration
+		GRPC    `mapstructure:"grpc"` // gRPC server configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.
@@ -142,6 +144,12 @@ type (
 		Window          time.Duration `mapstructure:"window"`
 		NumberOfThreads int           `mapstructure:"number_of_threads"`
 	}
+
+	Distributed struct {
+		Enabled       bool     `mapstructure:"enabled"`
+		SeedNodes     []string `mapstructure:"seed_nodes"`
+		AdvertisePort string   `mapstructure:"advertise_port"`
+	}
 )
 
 // NewConfig initializes and returns a new Config object by reading and unmarshalling
@@ -184,6 +192,7 @@ func NewConfig() (*Config, error) {
 func DefaultConfig() *Config {
 	return &Config{
 		Server: Server{
+			Address: "localhost",
 			HTTP: HTTP{
 				Enabled: true,
 				Port:    "3476",
@@ -243,6 +252,10 @@ func DefaultConfig() *Config {
 			DatabaseGarbageCollection: DatabaseGarbageCollection{
 				Enable: false,
 			},
+		},
+		Distributed: Distributed{
+			Enabled:   false,
+			SeedNodes: nil,
 		},
 	}
 }

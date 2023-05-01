@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Permify/permify/internal/keys"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -150,6 +151,7 @@ func (s *Container) Run(
 	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
+	grpcV1.RegisterConsistentServer(grpcServer, NewConsistentServer(s.CacheService, l))
 	reflection.Register(grpcServer)
 
 	// Start the profiler server if enabled.
@@ -250,6 +252,9 @@ func (s *Container) Run(
 			return err
 		}
 		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {
+			return err
+		}
+		if err = grpcV1.RegisterConsistentHandler(ctx, mux, conn); err != nil {
 			return err
 		}
 

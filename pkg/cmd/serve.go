@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+
 	"fmt"
 	"os/signal"
 	"syscall"
@@ -9,9 +10,10 @@ import (
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/repositories/postgres"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+  hash "github.com/Permify/permify/pkg/consistent"
 
 	"go.opentelemetry.io/otel/sdk/metric"
-
+  "github.com/Permify/permify/pkg/gossip"
 	"github.com/spf13/viper"
 
 	"github.com/fatih/color"
@@ -140,6 +142,42 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
+		var gossipEngine *gossip.Engine
+		var consistencyChecker *hash.ConsistentHash
+		if cfg.Distributed.Enabled {
+			l.Info("🔗 starting distributed mode...")
+
+			consistencyChecker = hash.NewConsistentHash(100, cfg.Distributed.SeedNodes, nil)
+
+			externalIP, err := gossip.ExternalIP()
+			if err != nil {
+				l.Fatal(err)
+			}
+			l.Info("🔗 external IP: " + externalIP)
+
+			consistencyChecker.Add(externalIP + ":" + cfg.HTTP.Port)
+
+			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Distributed)
+			if err != nil {
+				green := color.New(color.FgGreen)
+				green.Printf("🔗 failed to start distributed mode: %s ", err.Error())
+
+				return err
+			}
+
+			go func() {
+				for {
+					consistencyChecker.SyncNodes(gossipEngine)
+				}
+			}()
+
+			defer func() {
+				if err = gossipEngine.Shutdown(); err != nil {
+					l.Fatal(err)
+				}
+			}()
+		}
+
 		// schema cache
 		var schemaCache cache.Cache
 		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Schema.Cache.MaxCost))
@@ -176,8 +214,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
 		}
 
-		// Initialize the key manager for the check engine
-		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache)
+		// key managers
+		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, consistencyChecker, gossipEngine, cfg.Server, l, cfg.Distributed.Enabled)
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader
 		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))

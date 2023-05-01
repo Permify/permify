@@ -16,4 +16,8 @@ type EngineKeyManager interface {
 	// PermissionCheckRequest as the key and returns the corresponding PermissionCheckResponse
 	// if the key is found, along with a boolean value indicating whether the key was found or not.
 	GetCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool)
+
+	SetKey(key *base.PermissionCheckRequest, decision *base.PermissionCheckResponse) bool
+
+	GetKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool)
 }
