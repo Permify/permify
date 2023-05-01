@@ -3,6 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	`strings`
 
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/lexer"
@@ -16,15 +17,15 @@ const (
 
 	// LOWEST precedence level for lowest precedence
 	LOWEST
-	// LOGIC precedence level for logical operators (AND, OR)
-	LOGIC
+	// AND_OR precedence level for logical operators (AND, OR)
+	AND_OR
 	// PREFIX precedence level for prefix operators (NOT)
 	PREFIX
 )
 
 var precedences = map[token.Type]int{ // a map that assigns precedence levels to different token types
-	token.AND: LOGIC,
-	token.OR:  LOGIC,
+	token.AND: AND_OR,
+	token.OR:  AND_OR,
 }
 
 // Parser is a struct that contains information and functions related to parsing
@@ -92,69 +93,96 @@ func NewParser(str string) (p *Parser) {
 	p.registerInfix(token.AND, p.parseInfixExpression)   // associate the parseInfixExpression function with the AND token type
 	p.registerInfix(token.OR, p.parseInfixExpression)    // associate the parseInfixExpression function with the OR token type
 
-	return // return the newly created Parser object
+	return p // return the newly created Parser object and no error
 }
 
 // setEntityReference adds a new entity reference to the Parser's entityReferences map
 func (p *Parser) setEntityReference(key string) error {
-	// if the entityReferences map is nil, initialize it
+	// Check if the key string is empty
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+
+	// If the entityReferences map is nil, initialize it
 	if p.entityReferences == nil {
 		p.entityReferences = map[string]struct{}{}
 	}
-	// check if the entity type has already been referenced, and return an error if it has
+
+	// Check if the entity type has already been referenced, and return an error if it has
 	if _, ok := p.entityReferences[key]; ok {
-		p.duplicationError(key) // generate an error message indicating a duplication error
-		return p.Error()        // return the error message
+		p.duplicationError(key) // Generate an error message indicating a duplication error
+		return p.Error()        // Return the error message
 	}
-	// add the entity type to the entityReferences map
+
+	// Add the entity type to the entityReferences map
 	p.entityReferences[key] = struct{}{}
-	return nil // return nil to indicate that there was no error
+	return nil // Return nil to indicate that there was no error
 }
 
 // setRelationReference adds a new relation reference to the Parser's relationReferences and relationalReferences maps
 func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatement) error {
-	// if the relationReferences map is nil, initialize it
+	// Check if the key string is empty
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+
+	// If the relationReferences map is nil, initialize it
 	if p.relationReferences == nil {
 		p.relationReferences = map[string][]ast.RelationTypeStatement{}
 	}
-	// check if the relation type has already been referenced, and return an error if it has
+
+	// Check if the relation type has already been referenced, and return an error if it has
 	if _, ok := p.relationReferences[key]; ok {
-		p.duplicationError(key) // generate an error message indicating a duplication error
-		return p.Error()        // return the error message
+		p.duplicationError(key) // Generate an error message indicating a duplication error
+		return p.Error()        // Return the error message
 	}
-	// check if the relation type has already been added to the relationalReferences map, and return an error if it has
+
+	// Check if the relation type has already been added to the relationalReferences map, and return an error if it has
 	if _, ok := p.relationalReferences[key]; ok {
-		p.duplicationError(key) // generate an error message indicating a duplication error
-		return p.Error()        // return the error message
+		p.duplicationError(key) // Generate an error message indicating a duplication error
+		return p.Error()        // Return the error message
 	}
-	// add the relation type and its associated RelationTypeStatements to the relationReferences map
+
+	// Add the relation type and its associated RelationTypeStatements to the relationReferences map
 	p.relationReferences[key] = types
-	// add the relation type to the relationalReferences map, with a value of RELATION to indicate that it is a relation reference
+
+	// Add the relation type to the relationalReferences map, with a value of RELATION to indicate that it is a relation reference
 	p.relationalReferences[key] = ast.RELATION
-	return nil // return nil to indicate that there was no error
+
+	return nil // Return nil to indicate that there was no error
 }
 
 // setPermissionReference adds a new action reference to the Parser's actionReferences and relationalReferences maps
 func (p *Parser) setPermissionReference(key string) error {
-	// if the actionReferences map is nil, initialize it
+	// Check if the key string is empty
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+
+	// If the actionReferences map is nil, initialize it
 	if p.actionReferences == nil {
 		p.actionReferences = map[string]struct{}{}
 	}
-	// check if the action type has already been referenced, and return an error if it has
+
+	// Check if the action type has already been referenced, and return an error if it has
 	if _, ok := p.actionReferences[key]; ok {
-		p.duplicationError(key) // generate an error message indicating a duplication error
-		return p.Error()        // return the error message
+		p.duplicationError(key) // Generate an error message indicating a duplication error
+		return p.Error()        // Return the error message
 	}
-	// check if the action type has already been added to the relationalReferences map, and return an error if it has
+
+	// Check if the action type has already been added to the relationalReferences map, and return an error if it has
 	if _, ok := p.relationalReferences[key]; ok {
-		p.duplicationError(key) // generate an error message indicating a duplication error
-		return p.Error()        // return the error message
+		p.duplicationError(key) // Generate an error message indicating a duplication error
+		return p.Error()        // Return the error message
 	}
-	// add the action type to the actionReferences map
+
+	// Add the action type to the actionReferences map
 	p.actionReferences[key] = struct{}{}
-	// add the action type to the relationalReferences map, with a value of PERMISSION to indicate that it is an action reference
+
+	// Add the action type to the relationalReferences map, with a value of PERMISSION to indicate that it is an action reference
 	p.relationalReferences[key] = ast.PERMISSION
-	return nil // return nil to indicate that there was no error
+
+	return nil // Return nil to indicate that there was no error
 }
 
 // next retrieves the next non-ignored token from the Parser's lexer and updates the Parser's currentToken and peekToken fields
@@ -425,14 +453,6 @@ func (p *Parser) parseExpressionStatement() (*ast.ExpressionStatement, error) {
 		return nil, p.Error()
 	}
 
-	// if the next token is a right parenthesis, skip over any additional right parenthesis tokens
-	if p.peekTokenIs(token.RPAREN) {
-		p.next()
-		for p.currentTokenIs(token.RPAREN) {
-			p.next()
-		}
-	}
-
 	// return the parsed ExpressionStatement and nil for the error value
 	return stmt, nil
 }
@@ -462,23 +482,33 @@ func (p *Parser) expect(t token.Type) bool {
 
 // parseExpression method parses an expression with a given precedence level and returns the parsed expression as an AST node. It takes an integer value indicating the precedence level.
 func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
-	// if the current token is a left parenthesis, parse the inner expression enclosed in parentheses
+	var exp ast.Expression
+	var err error
+
 	if p.currentTokenIs(token.LPAREN) {
-		p.next()
-		return p.parseInnerParen()
-	}
+		p.next() // Consume the left parenthesis.
+		exp, err = p.parseExpression(LOWEST)
+		if err != nil {
+			return nil, err
+		}
 
-	// get the prefix parsing function for the current token type
-	prefix := p.prefixParseFns[p.currentToken.Type]
-	if prefix == nil {
-		p.noPrefixParseFnError(p.currentToken.Type)
-		return nil, p.Error()
-	}
+		if !p.expect(token.RPAREN) {
+			return nil, p.Error()
+		}
+		p.next() // Consume the right parenthesis.
+	} else {
+		// get the prefix parsing function for the current token type
+		prefix := p.prefixParseFns[p.currentToken.Type]
+		if prefix == nil {
+			p.noPrefixParseFnError(p.currentToken.Type)
+			return nil, p.Error()
+		}
 
-	// parse the prefix expression
-	exp, err := prefix()
-	if err != nil {
-		return nil, p.Error()
+		// parse the prefix expression
+		exp, err = prefix()
+		if err != nil {
+			return nil, p.Error()
+		}
 	}
 
 	// continue parsing the expression while the next token has a higher precedence level than the current precedence level
@@ -500,70 +530,53 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	return exp, nil
 }
 
-// parseInnerParen parses the expression inside a pair of parentheses, returning the resulting
-// expression and any error encountered.
-func (p *Parser) parseInnerParen() (ast.Expression, error) {
-	// If the current token is a left parenthesis, parse the expression inside the parentheses.
-	if p.currentTokenIs(token.LPAREN) {
-		return p.parseExpression(LOWEST)
-	}
-
-	// If the current token is not a left parenthesis, it should be the start of an expression.
-	// Look up the parsing function for the token type and use it to parse the expression.
-	prefix := p.prefixParseFns[p.currentToken.Type]
-	if prefix == nil {
-		// If there is no parsing function for the token type, report an error.
-		p.noPrefixParseFnError(p.currentToken.Type)
-		return nil, p.Error()
-	}
-	exp, err := prefix()
-	if err != nil {
-		return nil, p.Error()
-	}
-
-	// Continue parsing the expression until a right parenthesis is encountered.
-	for !p.currentTokenIs(token.RPAREN) {
-		// If the next token is a right parenthesis, consume it and continue parsing.
-		if p.peekTokenIs(token.RPAREN) {
-			p.next()
-		}
-		// Otherwise, the next token should be an infix operator. Look up the parsing function for
-		// the token type and use it to parse the expression.
-		infix := p.infixParseFunc[p.peekToken.Type]
-		if infix == nil {
-			// If there is no parsing function for the token type, return the current expression.
-			return exp, nil
-		}
-		p.next()
-		exp, err = infix(exp)
-		if err != nil {
-			return nil, p.Error()
-		}
-	}
-
-	// If a right parenthesis was encountered, return the parsed expression.
-	return exp, nil
-}
-
 // parsePrefixExpression parses a prefix expression that starts with an identifier, possibly
 // followed by a sequence of dot-separated identifiers, such as "foo.bar.baz".
 // It returns the resulting identifier expression and any error encountered.
 func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
+	// Ensure the current token is a valid prefix before proceeding.
+	if !p.isValidPrefix(p.currentToken.Type) {
+		p.currentError(token.NOT)
+		return nil, p.Error()
+	}
+
 	// Create a new Identifier expression with the first token as the prefix.
 	ident := &ast.Identifier{
 		Prefix: p.currentToken,
 	}
+
 	// Consume the current token and add it to the list of identifiers.
 	p.next()
+
+	// Ensure the next token is a valid identifier.
+	if !p.currentTokenIs(token.IDENT) {
+		p.currentError(token.IDENT)
+		return nil, p.Error()
+	}
+
 	ident.Idents = append(ident.Idents, p.currentToken)
+
 	// If the next token is a dot, consume it and continue parsing the next identifier.
 	for p.peekTokenIs(token.DOT) {
-		p.next()
-		p.next()
+		p.next() // Consume the dot token
+
+		// Check if the next token after the dot is a valid identifier
+		if !p.peekTokenIs(token.IDENT) {
+			p.peekError(token.IDENT)
+			return nil, p.Error()
+		}
+
+		p.next() // Consume the identifier token
 		ident.Idents = append(ident.Idents, p.currentToken)
 	}
+
 	// Return the resulting Identifier expression.
 	return ident, nil
+}
+
+// parseInfixExpression parses an infix expression that has a left operand and an operator followed by
+func (p *Parser) isValidPrefix(tokenType token.Type) bool {
+	return tokenType == token.NOT
 }
 
 // parseInfixExpression parses an infix expression that has a left operand and an operator followed by
@@ -573,23 +586,43 @@ func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
 // expression tree.
 // It returns the resulting InfixExpression and any error encountered.
 func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, error) {
+	// Ensure the current token is a valid infix operator before proceeding.
+	if !p.isInfixOperator(p.currentToken.Type) {
+		p.currentError(token.AND, token.OR) // Replace with your actual valid infix token types
+		return nil, p.Error()
+	}
+
 	// Create a new InfixExpression with the left operand and the current operator.
 	expression := &ast.InfixExpression{
 		Op:       p.currentToken,
 		Left:     left,
 		Operator: ast.Operator(p.currentToken.Literal),
 	}
+
 	// Get the precedence of the current operator and consume the operator token.
 	precedence := p.currentPrecedence()
 	p.next()
+
 	// Parse the right operand with a higher precedence to construct the final expression tree.
-	ex, err := p.parseExpression(precedence)
+	right, err := p.parseExpression(precedence)
 	if err != nil {
+		return nil, err
+	}
+
+	// Ensure the right operand is not nil.
+	if right == nil {
+		p.currentError(token.IDENT, token.NOT, token.LPAREN) // Replace with your actual valid right operand token types
 		return nil, p.Error()
 	}
+
 	// Set the right operand of the InfixExpression and return it.
-	expression.Right = ex
+	expression.Right = right
 	return expression, nil
+}
+
+// parseIntegerLiteral parses an integer literal and returns the resulting IntegerLiteral expression.
+func (p *Parser) isInfixOperator(tokenType token.Type) bool {
+	return tokenType == token.AND || tokenType == token.OR
 }
 
 // peekPrecedence returns the precedence of the next token in the input, if it is a known
@@ -615,29 +648,62 @@ func (p *Parser) currentPrecedence() int {
 // It constructs a new Identifier expression with the first token as the prefix and subsequent
 // tokens as identifiers, and returns the resulting expression and any error encountered.
 func (p *Parser) parseIdentifier() (ast.Expression, error) {
+	// Ensure the current token is a valid identifier before proceeding.
+	if !p.currentTokenIs(token.IDENT) {
+		return nil, fmt.Errorf("unexpected token type for identifier expression: %s", p.currentToken.Type)
+	}
+
 	// Create a new Identifier expression with the first token as the prefix.
 	ident := &ast.Identifier{Idents: []token.Token{p.currentToken}}
+
 	// If the next token is a dot, consume it and continue parsing the next identifier.
 	for p.peekTokenIs(token.DOT) {
-		p.next()
-		p.next()
+		p.next() // Consume the dot token
+
+		// Check if the next token after the dot is a valid identifier
+		if !p.peekTokenIs(token.IDENT) {
+			return nil, fmt.Errorf("expected identifier after dot, got %s", p.peekToken.Type)
+		}
+
+		p.next() // Consume the identifier token
 		ident.Idents = append(ident.Idents, p.currentToken)
 	}
+
 	// Return the resulting Identifier expression.
 	return ident, nil
 }
 
-// registerPrefix registers a parsing function for a prefix token type in the parser's prefixParseFns map.
+// registerPrefix safely registers a parsing function for a prefix token type in the parser's prefixParseFns map.
 // It takes a token type and a prefix parsing function as arguments, and stores the function in the map
 // under the given token type key.
 func (p *Parser) registerPrefix(tokenType token.Type, fn prefixParseFn) {
+	if fn == nil {
+		p.duplicationError(fmt.Sprintf("registerPrefix: nil function for token type %s", tokenType))
+		return
+	}
+
+	if _, exists := p.prefixParseFns[tokenType]; exists {
+		p.duplicationError(fmt.Sprintf("registerPrefix: token type %s already registered", tokenType))
+		return
+	}
+
 	p.prefixParseFns[tokenType] = fn
 }
 
-// registerInfix registers a parsing function for an infix token type in the parser's infixParseFunc map.
+// registerInfix safely registers a parsing function for an infix token type in the parser's infixParseFunc map.
 // It takes a token type and an infix parsing function as arguments, and stores the function in the map
 // under the given token type key.
 func (p *Parser) registerInfix(tokenType token.Type, fn infixParseFn) {
+	if fn == nil {
+		p.duplicationError(fmt.Sprintf("registerInfix: nil function for token type %s", tokenType))
+		return
+	}
+
+	if _, exists := p.infixParseFunc[tokenType]; exists {
+		p.duplicationError(fmt.Sprintf("registerInfix: token type %s already registered", tokenType))
+		return
+	}
+
 	p.infixParseFunc[tokenType] = fn
 }
 
@@ -660,7 +726,8 @@ func (p *Parser) noPrefixParseFnError(t token.Type) {
 // did not match the expected type(s).
 // It takes one or more token types as arguments that indicate the expected types.
 func (p *Parser) peekError(t ...token.Type) {
-	msg := fmt.Sprintf("%v:%v:expected next token to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), t, p.peekToken.Type)
+	expected := strings.Join(tokenTypesToStrings(t), ", ")
+	msg := fmt.Sprintf("%v:%v:expected next token to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), expected, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
 }
 
@@ -668,6 +735,17 @@ func (p *Parser) peekError(t ...token.Type) {
 // did not match the expected type(s).
 // It takes one or more token types as arguments that indicate the expected types.
 func (p *Parser) currentError(t ...token.Type) {
-	msg := fmt.Sprintf("%v:%v:expected token to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), t, p.currentToken.Type)
+	expected := strings.Join(tokenTypesToStrings(t), ", ")
+	msg := fmt.Sprintf("%v:%v:expected token to be %s, got %s instead", p.l.GetLinePosition(),
+		p.l.GetColumnPosition(), expected, p.currentToken.Type)
 	p.errors = append(p.errors, msg)
+}
+
+// tokenTypesToStrings converts a slice of token types to a slice of their string representations.
+func tokenTypesToStrings(types []token.Type) []string {
+	strs := make([]string, len(types))
+	for i, t := range types {
+		strs[i] = t.String()
+	}
+	return strs
 }
