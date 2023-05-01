@@ -5168,6 +5168,594 @@ var _ interface {
 	ErrorName() string
 } = WelcomeResponseValidationError{}
 
+// Validate checks the field values on ConsistentGetRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ConsistentGetRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ConsistentGetRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ConsistentGetRequestMultiError, or nil if none found.
+func (m *ConsistentGetRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ConsistentGetRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPermissionCheckRequest()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ConsistentGetRequestValidationError{
+					field:  "PermissionCheckRequest",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ConsistentGetRequestValidationError{
+					field:  "PermissionCheckRequest",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPermissionCheckRequest()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConsistentGetRequestValidationError{
+				field:  "PermissionCheckRequest",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ConsistentGetRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ConsistentGetRequestMultiError is an error wrapping multiple validation
+// errors returned by ConsistentGetRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ConsistentGetRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ConsistentGetRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ConsistentGetRequestMultiError) AllErrors() []error { return m }
+
+// ConsistentGetRequestValidationError is the validation error returned by
+// ConsistentGetRequest.Validate if the designated constraints aren't met.
+type ConsistentGetRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ConsistentGetRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ConsistentGetRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ConsistentGetRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ConsistentGetRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ConsistentGetRequestValidationError) ErrorName() string {
+	return "ConsistentGetRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ConsistentGetRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sConsistentGetRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ConsistentGetRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ConsistentGetRequestValidationError{}
+
+// Validate checks the field values on ConsistentGetResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ConsistentGetResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ConsistentGetResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ConsistentGetResponseMultiError, or nil if none found.
+func (m *ConsistentGetResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ConsistentGetResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetPermissionCheckRequest() == nil {
+		err := ConsistentGetResponseValidationError{
+			field:  "PermissionCheckRequest",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPermissionCheckRequest()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ConsistentGetResponseValidationError{
+					field:  "PermissionCheckRequest",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ConsistentGetResponseValidationError{
+					field:  "PermissionCheckRequest",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPermissionCheckRequest()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConsistentGetResponseValidationError{
+				field:  "PermissionCheckRequest",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetPermissionCheckResponse() == nil {
+		err := ConsistentGetResponseValidationError{
+			field:  "PermissionCheckResponse",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPermissionCheckResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ConsistentGetResponseValidationError{
+					field:  "PermissionCheckResponse",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ConsistentGetResponseValidationError{
+					field:  "PermissionCheckResponse",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPermissionCheckResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConsistentGetResponseValidationError{
+				field:  "PermissionCheckResponse",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ConsistentGetResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ConsistentGetResponseMultiError is an error wrapping multiple validation
+// errors returned by ConsistentGetResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ConsistentGetResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ConsistentGetResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ConsistentGetResponseMultiError) AllErrors() []error { return m }
+
+// ConsistentGetResponseValidationError is the validation error returned by
+// ConsistentGetResponse.Validate if the designated constraints aren't met.
+type ConsistentGetResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ConsistentGetResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ConsistentGetResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ConsistentGetResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ConsistentGetResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ConsistentGetResponseValidationError) ErrorName() string {
+	return "ConsistentGetResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ConsistentGetResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sConsistentGetResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ConsistentGetResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ConsistentGetResponseValidationError{}
+
+// Validate checks the field values on ConsistentSetRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ConsistentSetRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ConsistentSetRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ConsistentSetRequestMultiError, or nil if none found.
+func (m *ConsistentSetRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ConsistentSetRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetPermissionCheckRequest() == nil {
+		err := ConsistentSetRequestValidationError{
+			field:  "PermissionCheckRequest",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPermissionCheckRequest()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ConsistentSetRequestValidationError{
+					field:  "PermissionCheckRequest",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ConsistentSetRequestValidationError{
+					field:  "PermissionCheckRequest",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPermissionCheckRequest()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConsistentSetRequestValidationError{
+				field:  "PermissionCheckRequest",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPermissionCheckResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ConsistentSetRequestValidationError{
+					field:  "PermissionCheckResponse",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ConsistentSetRequestValidationError{
+					field:  "PermissionCheckResponse",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPermissionCheckResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConsistentSetRequestValidationError{
+				field:  "PermissionCheckResponse",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ConsistentSetRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ConsistentSetRequestMultiError is an error wrapping multiple validation
+// errors returned by ConsistentSetRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ConsistentSetRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ConsistentSetRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ConsistentSetRequestMultiError) AllErrors() []error { return m }
+
+// ConsistentSetRequestValidationError is the validation error returned by
+// ConsistentSetRequest.Validate if the designated constraints aren't met.
+type ConsistentSetRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ConsistentSetRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ConsistentSetRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ConsistentSetRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ConsistentSetRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ConsistentSetRequestValidationError) ErrorName() string {
+	return "ConsistentSetRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ConsistentSetRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sConsistentSetRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ConsistentSetRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ConsistentSetRequestValidationError{}
+
+// Validate checks the field values on ConsistentSetResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ConsistentSetResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ConsistentSetResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ConsistentSetResponseMultiError, or nil if none found.
+func (m *ConsistentSetResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ConsistentSetResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return ConsistentSetResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ConsistentSetResponseMultiError is an error wrapping multiple validation
+// errors returned by ConsistentSetResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ConsistentSetResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ConsistentSetResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ConsistentSetResponseMultiError) AllErrors() []error { return m }
+
+// ConsistentSetResponseValidationError is the validation error returned by
+// ConsistentSetResponse.Validate if the designated constraints aren't met.
+type ConsistentSetResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ConsistentSetResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ConsistentSetResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ConsistentSetResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ConsistentSetResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ConsistentSetResponseValidationError) ErrorName() string {
+	return "ConsistentSetResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ConsistentSetResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sConsistentSetResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ConsistentSetResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ConsistentSetResponseValidationError{}
+
 // Validate checks the field values on WelcomeResponse_Sources with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

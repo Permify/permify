@@ -601,3 +601,59 @@ message welcomeResponse {
   Sources sources = 2;
   Socials socials = 3;
 }
+
+// ** Consistent SERVICE **
+
+service Consistent {
+  rpc Get(ConsistentGetRequest) returns (ConsistentGetResponse) {
+    option (google.api.http) = {
+      post: "/v1/consistent/get"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "get consistent key"
+      tags: [
+        "Consistent"
+      ]
+      operation_id: "consistent.get"
+    };
+  }
+
+  rpc Set(ConsistentSetRequest) returns (ConsistentSetResponse) {
+    option (google.api.http) = {
+      post: "/v1/consistent/set"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Set consistent key"
+      tags: [
+        "Consistent"
+      ]
+      operation_id: "consistent.set"
+    };
+  }
+}
+
+// ConsistentGetRequest
+message ConsistentGetRequest {
+  PermissionCheckRequest permission_check_request = 1 [json_name = "permission_check_request", (validate.rules).message.required = false];
+}
+
+// ConsistentGetResponse
+message ConsistentGetResponse {
+  PermissionCheckRequest permission_check_request = 1 [json_name = "permission_check_request", (validate.rules).message.required = true];
+  PermissionCheckResponse permission_check_response = 2 [json_name = "permission_check_response", (validate.rules).message.required = true];
+}
+
+// ConsistentGetRequest
+message ConsistentSetRequest {
+  PermissionCheckRequest permission_check_request = 1 [json_name = "permission_check_request", (validate.rules).message.required = true];
+  PermissionCheckResponse permission_check_response = 2 [json_name = "permission_check_response", (validate.rules).message.required = false];
+}
+
+// ConsistentGetResponse
+message ConsistentSetResponse {
+  string value = 1 [json_name = "value"];
+}

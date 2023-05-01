@@ -29,6 +29,9 @@
     },
     {
       "name": "Welcome"
+    },
+    {
+      "name": "Consistent"
     }
   ],
   "schemes": [
@@ -61,6 +64,72 @@
         },
         "tags": [
           "Welcome"
+        ]
+      }
+    },
+    "/v1/consistent/get": {
+      "post": {
+        "summary": "get consistent key",
+        "operationId": "consistent.get",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ConsistentGetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ConsistentGetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Consistent"
+        ]
+      }
+    },
+    "/v1/consistent/set": {
+      "post": {
+        "summary": "Set consistent key",
+        "operationId": "consistent.set",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ConsistentSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ConsistentSetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Consistent"
         ]
       }
     },
@@ -708,6 +777,48 @@
       },
       "title": "ComputedUserSet"
     },
+    "ConsistentGetRequest": {
+      "type": "object",
+      "properties": {
+        "permission_check_request": {
+          "$ref": "#/definitions/PermissionCheckRequest"
+        }
+      },
+      "title": "ConsistentGetRequest"
+    },
+    "ConsistentGetResponse": {
+      "type": "object",
+      "properties": {
+        "permission_check_request": {
+          "$ref": "#/definitions/PermissionCheckRequest"
+        },
+        "permission_check_response": {
+          "$ref": "#/definitions/PermissionCheckResponse"
+        }
+      },
+      "title": "ConsistentGetResponse"
+    },
+    "ConsistentSetRequest": {
+      "type": "object",
+      "properties": {
+        "permission_check_request": {
+          "$ref": "#/definitions/PermissionCheckRequest"
+        },
+        "permission_check_response": {
+          "$ref": "#/definitions/PermissionCheckResponse"
+        }
+      },
+      "title": "ConsistentGetRequest"
+    },
+    "ConsistentSetResponse": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      },
+      "title": "ConsistentGetResponse"
+    },
     "Entity": {
       "type": "object",
       "properties": {
@@ -827,6 +938,28 @@
         }
       },
       "title": "Leaf"
+    },
+    "PermissionCheckRequest": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckRequestMetadata"
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity"
+        },
+        "permission": {
+          "type": "string",
+          "title": "its can be permission or relation"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject"
+        }
+      },
+      "title": "PermissionCheckRequest"
     },
     "PermissionCheckRequestMetadata": {
       "type": "object",

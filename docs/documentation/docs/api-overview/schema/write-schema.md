@@ -19,7 +19,7 @@ Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for conf
 
 ## Request
 
-**POST** "/v1/tenants/{tenant_id}/schemas/write"**
+**POST** /v1/tenants/{tenant_id}/schemas/write
 
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
@@ -72,6 +72,22 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/wr
 
 ![permify-schema](https://user-images.githubusercontent.com/34595361/197405641-d8197728-2080-4bc3-95cb-123e274c58ce.png)
 
+
+## Suggested Workflow For Schema Changes
+
+It's expected that your initial schema will eventually change as your product or system evolves
+
+As an example when a new feature arise and related permissions created you need to change the schema (rewrite it with adding new permission) then configure it using this Write Schema API. Afterwards, you can use the preferred version of the schema in your API requests with **schema_version**. If you do not prefer to use **schema_version** params in API calls Permify automatically gets the latest schema on API calls.
+
+A potential caveat of changing or creating schemas too often is the creation of many idle relation tuples. In Permify, created relation tuples are not removed from the stored database (your writeDB) unless you delete them with the [delete API](../relationship/delete-relationships.md). For this case, we have a [garbage collector](https://github.com/Permify/permify/pull/381) which you can use to clear expired or idle relation tuples.
+
+We recommend applying the following pattern to safely handle schema changes:
+
+-  Set up a central git repository that includes the schema.
+-  Teams or individuals who need to update the schema should add new permissions or relations to this repository.
+-  Centrally check and approve every change before deploying it via CI pipeline that utilizes the **Write Schema API**. We recommend adding our [schema validator](https://github.com/Permify/permify-validate-action) to the pipeline to ensure that any changes are automatically validated.
+- After successful deployment, you can use the newly created schema on further API calls by either specifying its schema ID or by not providing any schema ID, which will automatically retrieve the latest schema on API calls.
+
 ## Need any help ?
 
-Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+Depending on the frequency and the type of the changes that you made on the schemas, this method may not be optimal for you - In such cases, we are open to exploring alternative solutions. Please feel free to [schedule a call with one of our engineers](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).

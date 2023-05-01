@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Permify/permify/internal/keys"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -28,24 +29,68 @@ import (
 	"github.com/Permify/permify/internal/authn/oidc"
 	"github.com/Permify/permify/internal/authn/preshared"
 	"github.com/Permify/permify/internal/config"
-	"github.com/Permify/permify/internal/servers/middleware"
-	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/internal/middleware"
+	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/logger"
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 var tracer = otel.Tracer("servers")
 
-// ServiceContainer -
-type ServiceContainer struct {
-	RelationshipService services.IRelationshipService
-	PermissionService   services.IPermissionService
-	SchemaService       services.ISchemaService
-	TenancyService      services.ITenancyService
+// Container is a struct that holds the invoker and various storage repositories
+// for permission-related operations. It serves as a central point of access
+// for interacting with the underlying data and services.
+type Container struct {
+	// Invoker for performing permission-related operations
+	Invoker invoke.Invoker
+	// RelationshipReader for reading relationships from storage
+	RR repositories.RelationshipReader
+	// RelationshipWriter for writing relationships to storage
+	RW repositories.RelationshipWriter
+	// SchemaReader for reading schemas from storage
+	SR repositories.SchemaReader
+	// SchemaWriter for writing schemas to storage
+	SW repositories.SchemaWriter
+	// TenantReader for reading tenant information from storage
+	TR repositories.TenantReader
+	// TenantWriter for writing tenant information to storage
+	TW repositories.TenantWriter
 }
 
-// Run -
-func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authentication *config.Authn, profiler *config.Profiler, l *logger.Logger) error {
+// NewContainer is a constructor for the Container struct.
+// It takes an Invoker, RelationshipReader, RelationshipWriter, SchemaReader, SchemaWriter,
+// TenantReader, and TenantWriter as arguments, and returns a pointer to a Container instance.
+func NewContainer(
+	invoker invoke.Invoker,
+	rr repositories.RelationshipReader,
+	rw repositories.RelationshipWriter,
+	sr repositories.SchemaReader,
+	sw repositories.SchemaWriter,
+	tr repositories.TenantReader,
+	tw repositories.TenantWriter,
+) *Container {
+	return &Container{
+		Invoker: invoker,
+		RR:      rr,
+		RW:      rw,
+		SR:      sr,
+		SW:      sw,
+		TR:      tr,
+		TW:      tw,
+	}
+}
+
+// Run is a method that starts the Container and its services, including the gRPC server,
+// an optional HTTP server, and an optional profiler server. It also sets up authentication,
+// TLS configurations, and interceptors as needed.
+func (s *Container) Run(
+	ctx context.Context,
+	cfg *config.Server,
+	authentication *config.Authn,
+	profiler *config.Profiler,
+	l *logger.Logger,
+) error {
 	var err error
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
@@ -58,6 +103,8 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		grpcRecovery.StreamServerInterceptor(),
 	}
 
+	// Configure authentication based on the provided method ("preshared" or "oidc").
+	// Add the appropriate interceptors to the unary and streaming interceptors.
 	if authentication != nil && authentication.Enabled {
 		switch authentication.Method {
 		case "preshared":
@@ -95,15 +142,19 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		opts = append(opts, grpc.Creds(c))
 	}
 
+	// Create a new gRPC server with the configured interceptors and optional TLS credentials.
+	// Register the various service implementations.
 	grpcServer := grpc.NewServer(opts...)
-	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.PermissionService, l))
-	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SchemaService, l))
-	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RelationshipService, l))
-	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TenancyService, l))
+	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.Invoker, l))
+	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR, l))
+	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RR, s.RW, s.SR, l))
+	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
+	grpcV1.RegisterConsistentServer(grpcServer, NewConsistentServer(s.CacheService, l))
 	reflection.Register(grpcServer)
 
+	// Start the profiler server if enabled.
 	if profiler.Enabled {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/debug/pprof/", pprof.Index)
@@ -129,6 +180,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		return err
 	}
 
+	// Start the gRPC server.
 	go func() {
 		if err = grpcServer.Serve(lis); err != nil {
 			l.Error("failed to start grpc server", err)
@@ -138,6 +190,9 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 	l.Info(fmt.Sprintf("🚀 grpc server successfully started: %s", cfg.GRPC.Port))
 
 	var httpServer *http.Server
+
+	// Start the optional HTTP server with CORS and optional TLS configurations.
+	// Connect to the gRPC server and register the HTTP handlers for each service.
 	if cfg.HTTP.Enabled {
 		options := []grpc.DialOption{
 			grpc.WithBlock(),
@@ -160,7 +215,11 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		if err != nil {
 			return err
 		}
-		defer conn.Close()
+		defer func() {
+			if err = conn.Close(); err != nil {
+				l.Fatal("Failed to close gRPC connection: %v", err)
+			}
+		}()
 
 		healthClient := health.NewHealthClient(conn)
 		muxOpts := []runtime.ServeMuxOption{
@@ -195,6 +254,9 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {
 			return err
 		}
+		if err = grpcV1.RegisterConsistentHandler(ctx, mux, conn); err != nil {
+			return err
+		}
 
 		httpServer = &http.Server{
 			Addr: ":" + cfg.HTTP.Port,
@@ -210,6 +272,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 
+		// Start the HTTP server with TLS if enabled, otherwise without TLS.
 		go func() {
 			var err error
 			if cfg.HTTP.TLSConfig.Enabled {
@@ -225,8 +288,10 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		l.Info(fmt.Sprintf("🚀 http server successfully started: %s", cfg.HTTP.Port))
 	}
 
+	// Wait for the context to be canceled (e.g., due to a signal).
 	<-ctx.Done()
 
+	// Shutdown the servers gracefully.
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -237,6 +302,7 @@ func (s *ServiceContainer) Run(ctx context.Context, cfg *config.Server, authenti
 		}
 	}
 
+	// Gracefully stop the gRPC server.
 	grpcServer.GracefulStop()
 
 	l.Info("gracefully shutting down")

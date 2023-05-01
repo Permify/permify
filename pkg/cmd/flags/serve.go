@@ -15,6 +15,15 @@ func RegisterServeFlags(cmd *cobra.Command) {
 
 	flags := cmd.Flags()
 
+	// Server
+	flags.String("server-address", conf.Server.Address, "address that server run on")
+	if err = viper.BindPFlag("server.address", flags.Lookup("server-address")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.address", "PERMIFY_ADDRESS"); err != nil {
+		panic(err)
+	}
+
 	// GRPC Server
 	flags.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
 	if err = viper.BindPFlag("server.grpc.port", flags.Lookup("grpc-port")); err != nil {
@@ -359,4 +368,30 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindEnv("database.garbage_collection.number_of_threads", "PERMIFY_DATABASE_GARBAGE_COLLECTION_NUMBER_OF_THREADS"); err != nil {
 		panic(err)
 	}
+
+	// Distributed
+	flags.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed mode")
+	if err = viper.BindPFlag("distributed.enabled", flags.Lookup("distributed-enabled")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.enabled", "PERMIFY_DISTRIBUTED_ENABLED"); err != nil {
+		panic(err)
+	}
+
+	flags.StringArray("distributed-seed-nodes", conf.Distributed.SeedNodes, "list of peers")
+	if err = viper.BindPFlag("distributed.seed_nodes", flags.Lookup("distributed-seed-nodes")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.seed_nodes", "PERMIFY_DISTRIBUTED_SEED_NODES"); err != nil {
+		panic(err)
+	}
+
+	flags.String("distributed-advertise-port", conf.Distributed.AdvertisePort, "memberlist port to advertise")
+	if err = viper.BindPFlag("distributed.advertise_port", flags.Lookup("distributed-advertise-port")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.advertise_port", "PERMIFY_DISTRIBUTED_ADVERTISE_PORT"); err != nil {
+		panic(err)
+	}
+
 }
