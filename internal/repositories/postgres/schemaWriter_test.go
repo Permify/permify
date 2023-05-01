@@ -1,14 +1,10 @@
-//go:build !integration
-// +build !integration
-
-package postgres_test
+package postgres
 
 import (
 	"context"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Masterminds/squirrel"
 	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/postgres"
 	PQRepository "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/stretchr/testify/require"
@@ -29,7 +25,7 @@ func TestWriteSchema_Test(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create SchemaWriter
-	writer := postgres.NewSchemaWriter(pg, log)
+	writer := NewSchemaWriter(pg, log)
 
 	ctx := context.Background()
 

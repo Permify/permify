@@ -1,11 +1,10 @@
 //go:build integration
 
-package postgres_test
+package postgres
 
 import (
 	"context"
 	"github.com/Permify/permify/internal/repositories"
-	pg "github.com/Permify/permify/internal/repositories/postgres"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
@@ -34,7 +33,7 @@ func TestTenantWriter(t *testing.T) {
 	defer db.Close()
 
 	// Create a TenantWriter instance
-	tenantWriter := pg.NewTenantWriter(db.(*PQDatabase.Postgres), l)
+	tenantWriter := NewTenantWriter(db.(*PQDatabase.Postgres), l)
 
 	// Test the CreateTenant method
 	createdTenant, err := tenantWriter.CreateTenant(ctx, "4", "Test Tenant")

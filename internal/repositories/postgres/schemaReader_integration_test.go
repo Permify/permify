@@ -1,11 +1,10 @@
 //go:build integration
 
-package postgres_test
+package postgres
 
 import (
 	"context"
 	"github.com/Permify/permify/internal/repositories"
-	pg "github.com/Permify/permify/internal/repositories/postgres"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
@@ -37,8 +36,8 @@ func TestSchemaReaderHeadVersion_Integration(t *testing.T) {
 	defer db.Close()
 
 	// Create a TenantWriter instance
-	schemaWriter := pg.NewSchemaWriter(db.(*PQDatabase.Postgres), l)
-	schemaReader := pg.NewSchemaReader(db.(*PQDatabase.Postgres), l)
+	schemaWriter := NewSchemaWriter(db.(*PQDatabase.Postgres), l)
+	schemaReader := NewSchemaReader(db.(*PQDatabase.Postgres), l)
 
 	v := xid.New().String()
 	schemas := []repositories.SchemaDefinition{

@@ -1,13 +1,9 @@
-//go:build !integration
-// +build !integration
-
-package postgres_test
+package postgres
 
 import (
 	"context"
 	"github.com/Masterminds/squirrel"
-	postgres2 "github.com/Permify/permify/internal/repositories/postgres"
-	"github.com/Permify/permify/pkg/database/postgres"
+	pg "github.com/Permify/permify/pkg/database/postgres"
 	"testing"
 	"time"
 
@@ -17,19 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestListTenantWriter_Test(t *testing.T) {
+func TestTenantReader_ListTenants(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 	defer db.Close()
 
-	pg := &postgres.Postgres{
+	pg := &pg.Postgres{
 		DB:      db,
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
 	// Create Fileds for Create Tenant
 	log := logger.New("debug")
-	writer := postgres2.NewTenantWriter(pg, log)
+	writer := NewTenantWriter(pg, log)
+	//reader := NewTenantReader(pg, log)
 	ctx := context.Background()
 
 	id := "2"
@@ -44,4 +41,5 @@ func TestListTenantWriter_Test(t *testing.T) {
 	assert.NotNil(t, tenant)
 	assert.Equal(t, id, tenant.Id)
 	assert.Equal(t, name, tenant.Name)
+
 }

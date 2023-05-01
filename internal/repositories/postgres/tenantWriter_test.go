@@ -1,11 +1,8 @@
-//go:build !integration
-
-package postgres_test
+package postgres
 
 import (
 	"context"
 	"github.com/Masterminds/squirrel"
-	"github.com/Permify/permify/internal/repositories/postgres"
 	PQRepository "github.com/Permify/permify/pkg/database/postgres"
 	"testing"
 	"time"
@@ -16,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateTenant_Test(t *testing.T) {
+func TestTenantWriter_CreateTenant(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 	defer db.Close()
@@ -30,7 +27,7 @@ func TestCreateTenant_Test(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create TenantWriter
-	writer := postgres.NewTenantWriter(pg, log)
+	writer := NewTenantWriter(pg, log)
 
 	ctx := context.Background()
 
@@ -50,7 +47,7 @@ func TestCreateTenant_Test(t *testing.T) {
 	assert.Equal(t, name, tenant.Name)
 }
 
-func TestDeleteTenant_Test(t *testing.T) {
+func TestTenantWriter_DeleteTenant(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 	defer db.Close()
@@ -64,7 +61,7 @@ func TestDeleteTenant_Test(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create TenantWriter
-	writer := postgres.NewTenantWriter(pg, log)
+	writer := NewTenantWriter(pg, log)
 
 	ctx := context.Background()
 
