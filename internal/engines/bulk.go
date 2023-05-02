@@ -66,7 +66,7 @@ func (c *BulkChecker) Start() {
 			c.g.Go(func() error {
 				defer sem.Release(1)
 				if req.Result == base.PermissionCheckResponse_RESULT_UNKNOWN {
-					result, err := c.checkEngine.Run(c.ctx, req.Request)
+					result, err := c.checkEngine.Check(c.ctx, req.Request)
 					if err != nil {
 						return err
 					}

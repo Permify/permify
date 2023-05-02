@@ -393,5 +393,4 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindEnv("distributed.advertise_port", "PERMIFY_DISTRIBUTED_ADVERTISE_PORT"); err != nil {
 		panic(err)
 	}
-
 }

@@ -2,10 +2,11 @@ package postgres
 
 import (
 	"context"
-	"github.com/Masterminds/squirrel"
-	PQRepository "github.com/Permify/permify/pkg/database/postgres"
 	"testing"
 	"time"
+
+	"github.com/Masterminds/squirrel"
+	PQRepository "github.com/Permify/permify/pkg/database/postgres"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Permify/permify/pkg/logger"
@@ -83,5 +84,4 @@ func TestTenantWriter_DeleteTenant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, deletedTenant)
 	assert.Equal(t, id, deletedTenant.Id)
-
 }

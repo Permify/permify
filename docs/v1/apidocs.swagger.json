@@ -26,12 +26,6 @@
     },
     {
       "name": "Tenancy"
-    },
-    {
-      "name": "Welcome"
-    },
-    {
-      "name": "Consistent"
     }
   ],
   "schemes": [
@@ -44,95 +38,6 @@
     "application/json"
   ],
   "paths": {
-    "/": {
-      "get": {
-        "summary": "welcome to permify",
-        "operationId": "welcome.hello",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/welcomeResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "tags": [
-          "Welcome"
-        ]
-      }
-    },
-    "/v1/consistent/get": {
-      "post": {
-        "summary": "get consistent key",
-        "operationId": "consistent.get",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ConsistentGetResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/ConsistentGetRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Consistent"
-        ]
-      }
-    },
-    "/v1/consistent/set": {
-      "post": {
-        "summary": "Set consistent key",
-        "operationId": "consistent.set",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ConsistentSetResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/ConsistentSetRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Consistent"
-        ]
-      }
-    },
     "/v1/tenants/create": {
       "post": {
         "summary": "create new tenant",
@@ -451,59 +356,6 @@
         ]
       }
     },
-    "/v1/tenants/{tenant_id}/permissions/lookup-schema": {
-      "post": {
-        "operationId": "permissions.lookupSchema",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/PermissionLookupSchemaResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "tenant_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionLookupSchemaRequestMetadata"
-                },
-                "entity_type": {
-                  "type": "string"
-                },
-                "relation_names": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "title": "PermissionLookupSchemaRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Permission"
-        ]
-      }
-    },
     "/v1/tenants/{tenant_id}/relationships/delete": {
       "post": {
         "summary": "delete relation tuple",
@@ -777,48 +629,6 @@
       },
       "title": "ComputedUserSet"
     },
-    "ConsistentGetRequest": {
-      "type": "object",
-      "properties": {
-        "permission_check_request": {
-          "$ref": "#/definitions/PermissionCheckRequest"
-        }
-      },
-      "title": "ConsistentGetRequest"
-    },
-    "ConsistentGetResponse": {
-      "type": "object",
-      "properties": {
-        "permission_check_request": {
-          "$ref": "#/definitions/PermissionCheckRequest"
-        },
-        "permission_check_response": {
-          "$ref": "#/definitions/PermissionCheckResponse"
-        }
-      },
-      "title": "ConsistentGetResponse"
-    },
-    "ConsistentSetRequest": {
-      "type": "object",
-      "properties": {
-        "permission_check_request": {
-          "$ref": "#/definitions/PermissionCheckRequest"
-        },
-        "permission_check_response": {
-          "$ref": "#/definitions/PermissionCheckResponse"
-        }
-      },
-      "title": "ConsistentGetRequest"
-    },
-    "ConsistentSetResponse": {
-      "type": "object",
-      "properties": {
-        "value": {
-          "type": "string"
-        }
-      },
-      "title": "ConsistentGetResponse"
-    },
     "Entity": {
       "type": "object",
       "properties": {
@@ -938,28 +748,6 @@
         }
       },
       "title": "Leaf"
-    },
-    "PermissionCheckRequest": {
-      "type": "object",
-      "properties": {
-        "tenant_id": {
-          "type": "string"
-        },
-        "metadata": {
-          "$ref": "#/definitions/PermissionCheckRequestMetadata"
-        },
-        "entity": {
-          "$ref": "#/definitions/Entity"
-        },
-        "permission": {
-          "type": "string",
-          "title": "its can be permission or relation"
-        },
-        "subject": {
-          "$ref": "#/definitions/Subject"
-        }
-      },
-      "title": "PermissionCheckRequest"
     },
     "PermissionCheckRequestMetadata": {
       "type": "object",
@@ -1081,27 +869,6 @@
         }
       },
       "title": "PermissionLookupEntityStreamResponse"
-    },
-    "PermissionLookupSchemaRequestMetadata": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        }
-      },
-      "title": "PermissionLookupSchemaRequestMetadata"
-    },
-    "PermissionLookupSchemaResponse": {
-      "type": "object",
-      "properties": {
-        "permission_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "title": "PermissionLookupSchemaResponse"
     },
     "RelationDefinition": {
       "type": "object",
@@ -1254,34 +1021,6 @@
         }
       },
       "title": "SchemaWriteResponse"
-    },
-    "Socials": {
-      "type": "object",
-      "properties": {
-        "discord": {
-          "type": "string"
-        },
-        "twitter": {
-          "type": "string"
-        },
-        "linkedin": {
-          "type": "string"
-        }
-      }
-    },
-    "Sources": {
-      "type": "object",
-      "properties": {
-        "docs": {
-          "type": "string"
-        },
-        "gitHub": {
-          "type": "string"
-        },
-        "blog": {
-          "type": "string"
-        }
-      }
     },
     "Status": {
       "type": "object",
@@ -1476,21 +1215,6 @@
         }
       },
       "title": "Result"
-    },
-    "welcomeResponse": {
-      "type": "object",
-      "properties": {
-        "permify": {
-          "type": "string"
-        },
-        "sources": {
-          "$ref": "#/definitions/Sources"
-        },
-        "socials": {
-          "$ref": "#/definitions/Socials"
-        }
-      },
-      "title": "WelcomeResponse"
     }
   },
   "securityDefinitions": {

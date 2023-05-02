@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -25,7 +24,6 @@ const _ = grpc.SupportPackageIsVersion7
 type PermissionClient interface {
 	Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResponse, error)
 	Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error)
-	LookupSchema(ctx context.Context, in *PermissionLookupSchemaRequest, opts ...grpc.CallOption) (*PermissionLookupSchemaResponse, error)
 	LookupEntity(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (*PermissionLookupEntityResponse, error)
 	LookupEntityStream(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (Permission_LookupEntityStreamClient, error)
 }
@@ -50,15 +48,6 @@ func (c *permissionClient) Check(ctx context.Context, in *PermissionCheckRequest
 func (c *permissionClient) Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error) {
 	out := new(PermissionExpandResponse)
 	err := c.cc.Invoke(ctx, "/base.v1.Permission/Expand", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *permissionClient) LookupSchema(ctx context.Context, in *PermissionLookupSchemaRequest, opts ...grpc.CallOption) (*PermissionLookupSchemaResponse, error) {
-	out := new(PermissionLookupSchemaResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.Permission/LookupSchema", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +101,6 @@ func (x *permissionLookupEntityStreamClient) Recv() (*PermissionLookupEntityStre
 type PermissionServer interface {
 	Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResponse, error)
 	Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error)
-	LookupSchema(context.Context, *PermissionLookupSchemaRequest) (*PermissionLookupSchemaResponse, error)
 	LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error)
 	LookupEntityStream(*PermissionLookupEntityRequest, Permission_LookupEntityStreamServer) error
 	mustEmbedUnimplementedPermissionServer()
@@ -127,9 +115,6 @@ func (UnimplementedPermissionServer) Check(context.Context, *PermissionCheckRequ
 }
 func (UnimplementedPermissionServer) Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Expand not implemented")
-}
-func (UnimplementedPermissionServer) LookupSchema(context.Context, *PermissionLookupSchemaRequest) (*PermissionLookupSchemaResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LookupSchema not implemented")
 }
 func (UnimplementedPermissionServer) LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupEntity not implemented")
@@ -182,24 +167,6 @@ func _Permission_Expand_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PermissionServer).Expand(ctx, req.(*PermissionExpandRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Permission_LookupSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PermissionLookupSchemaRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PermissionServer).LookupSchema(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/base.v1.Permission/LookupSchema",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PermissionServer).LookupSchema(ctx, req.(*PermissionLookupSchemaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -257,10 +224,6 @@ var Permission_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Expand",
 			Handler:    _Permission_Expand_Handler,
-		},
-		{
-			MethodName: "LookupSchema",
-			Handler:    _Permission_LookupSchema_Handler,
 		},
 		{
 			MethodName: "LookupEntity",
@@ -709,214 +672,6 @@ var Tenancy_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _Tenancy_List_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "base/v1/service.proto",
-}
-
-// WelcomeClient is the client API for Welcome service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type WelcomeClient interface {
-	Hello(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*WelcomeResponse, error)
-}
-
-type welcomeClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewWelcomeClient(cc grpc.ClientConnInterface) WelcomeClient {
-	return &welcomeClient{cc}
-}
-
-func (c *welcomeClient) Hello(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*WelcomeResponse, error) {
-	out := new(WelcomeResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.Welcome/Hello", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// WelcomeServer is the server API for Welcome service.
-// All implementations must embed UnimplementedWelcomeServer
-// for forward compatibility
-type WelcomeServer interface {
-	Hello(context.Context, *emptypb.Empty) (*WelcomeResponse, error)
-	mustEmbedUnimplementedWelcomeServer()
-}
-
-// UnimplementedWelcomeServer must be embedded to have forward compatible implementations.
-type UnimplementedWelcomeServer struct {
-}
-
-func (UnimplementedWelcomeServer) Hello(context.Context, *emptypb.Empty) (*WelcomeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
-}
-func (UnimplementedWelcomeServer) mustEmbedUnimplementedWelcomeServer() {}
-
-// UnsafeWelcomeServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to WelcomeServer will
-// result in compilation errors.
-type UnsafeWelcomeServer interface {
-	mustEmbedUnimplementedWelcomeServer()
-}
-
-func RegisterWelcomeServer(s grpc.ServiceRegistrar, srv WelcomeServer) {
-	s.RegisterService(&Welcome_ServiceDesc, srv)
-}
-
-func _Welcome_Hello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WelcomeServer).Hello(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/base.v1.Welcome/Hello",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WelcomeServer).Hello(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Welcome_ServiceDesc is the grpc.ServiceDesc for Welcome service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Welcome_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "base.v1.Welcome",
-	HandlerType: (*WelcomeServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Hello",
-			Handler:    _Welcome_Hello_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "base/v1/service.proto",
-}
-
-// ConsistentClient is the client API for Consistent service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ConsistentClient interface {
-	Get(ctx context.Context, in *ConsistentGetRequest, opts ...grpc.CallOption) (*ConsistentGetResponse, error)
-	Set(ctx context.Context, in *ConsistentSetRequest, opts ...grpc.CallOption) (*ConsistentSetResponse, error)
-}
-
-type consistentClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewConsistentClient(cc grpc.ClientConnInterface) ConsistentClient {
-	return &consistentClient{cc}
-}
-
-func (c *consistentClient) Get(ctx context.Context, in *ConsistentGetRequest, opts ...grpc.CallOption) (*ConsistentGetResponse, error) {
-	out := new(ConsistentGetResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.Consistent/Get", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *consistentClient) Set(ctx context.Context, in *ConsistentSetRequest, opts ...grpc.CallOption) (*ConsistentSetResponse, error) {
-	out := new(ConsistentSetResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.Consistent/Set", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// ConsistentServer is the server API for Consistent service.
-// All implementations must embed UnimplementedConsistentServer
-// for forward compatibility
-type ConsistentServer interface {
-	Get(context.Context, *ConsistentGetRequest) (*ConsistentGetResponse, error)
-	Set(context.Context, *ConsistentSetRequest) (*ConsistentSetResponse, error)
-	mustEmbedUnimplementedConsistentServer()
-}
-
-// UnimplementedConsistentServer must be embedded to have forward compatible implementations.
-type UnimplementedConsistentServer struct {
-}
-
-func (UnimplementedConsistentServer) Get(context.Context, *ConsistentGetRequest) (*ConsistentGetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
-}
-func (UnimplementedConsistentServer) Set(context.Context, *ConsistentSetRequest) (*ConsistentSetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
-}
-func (UnimplementedConsistentServer) mustEmbedUnimplementedConsistentServer() {}
-
-// UnsafeConsistentServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ConsistentServer will
-// result in compilation errors.
-type UnsafeConsistentServer interface {
-	mustEmbedUnimplementedConsistentServer()
-}
-
-func RegisterConsistentServer(s grpc.ServiceRegistrar, srv ConsistentServer) {
-	s.RegisterService(&Consistent_ServiceDesc, srv)
-}
-
-func _Consistent_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConsistentGetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ConsistentServer).Get(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/base.v1.Consistent/Get",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConsistentServer).Get(ctx, req.(*ConsistentGetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Consistent_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConsistentSetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ConsistentServer).Set(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/base.v1.Consistent/Set",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConsistentServer).Set(ctx, req.(*ConsistentSetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Consistent_ServiceDesc is the grpc.ServiceDesc for Consistent service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Consistent_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "base.v1.Consistent",
-	HandlerType: (*ConsistentServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Get",
-			Handler:    _Consistent_Get_Handler,
-		},
-		{
-			MethodName: "Set",
-			Handler:    _Consistent_Set_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -2,10 +2,11 @@ package postgres
 
 import (
 	"context"
-	"github.com/Masterminds/squirrel"
-	pg "github.com/Permify/permify/pkg/database/postgres"
 	"testing"
 	"time"
+
+	"github.com/Masterminds/squirrel"
+	pg "github.com/Permify/permify/pkg/database/postgres"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Permify/permify/pkg/logger"
@@ -26,7 +27,7 @@ func TestTenantReader_ListTenants(t *testing.T) {
 	// Create Fileds for Create Tenant
 	log := logger.New("debug")
 	writer := NewTenantWriter(pg, log)
-	//reader := NewTenantReader(pg, log)
+	// reader := NewTenantReader(pg, log)
 	ctx := context.Background()
 
 	id := "2"
@@ -41,5 +42,4 @@ func TestTenantReader_ListTenants(t *testing.T) {
 	assert.NotNil(t, tenant)
 	assert.Equal(t, id, tenant.Id)
 	assert.Equal(t, name, tenant.Name)
-
 }

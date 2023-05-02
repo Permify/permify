@@ -2,19 +2,21 @@ package cmd
 
 import (
 	"context"
-
 	"fmt"
 	"os/signal"
 	"syscall"
 
+	"github.com/Permify/permify/internal/engines/consistent"
+	"github.com/Permify/permify/internal/engines/keys"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/repositories/postgres"
+	hash "github.com/Permify/permify/pkg/consistent"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
-  hash "github.com/Permify/permify/pkg/consistent"
 
-	"go.opentelemetry.io/otel/sdk/metric"
-  "github.com/Permify/permify/pkg/gossip"
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/otel/sdk/metric"
+
+	"github.com/Permify/permify/pkg/gossip"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -25,7 +27,6 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/factories"
-	"github.com/Permify/permify/internal/keys"
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/servers"
@@ -159,9 +160,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Distributed)
 			if err != nil {
-				green := color.New(color.FgGreen)
-				green.Printf("🔗 failed to start distributed mode: %s ", err.Error())
-
+				l.Info("🔗 failed to start distributed mode: %s ", err.Error())
 				return err
 			}
 
@@ -214,24 +213,49 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
 		}
 
-		// key managers
-		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache, consistencyChecker, gossipEngine, cfg.Server, l, cfg.Distributed.Enabled)
-
 		// Initialize the engines using the key manager, schema reader, and relationship reader
-		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		checkEngine := engines.NewCheckEngine(schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
 		linkedEntityEngine := engines.NewLinkedEntityEngine(schemaReader, relationshipReader)
 		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, linkedEntityEngine, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
-		schemaLookupEngine := engines.NewLookupSchemaEngine(schemaReader)
+
+		var check invoke.Check
+		if cfg.Distributed.Enabled {
+			check, err = consistent.NewCheckEngineWithHashring(
+				keys.NewCheckEngineWithKeys(
+					checkEngine,
+					engineKeyCache,
+					l,
+				),
+				consistencyChecker,
+				gossipEngine,
+				cfg.Server.GRPC.Port,
+				l,
+			)
+			if err != nil {
+				return err
+			}
+		} else {
+			check = keys.NewCheckEngineWithKeys(
+				checkEngine,
+				engineKeyCache,
+				l,
+			)
+		}
+
+		invoker := invoke.NewDirectInvoker(
+			schemaReader,
+			relationshipReader,
+			check,
+			expandEngine,
+			lookupEntityEngine,
+		)
+
+		checkEngine.SetInvoker(invoker)
 
 		// Create the container with engines, repositories, and other dependencies
 		container := servers.NewContainer(
-			invoke.NewDirectInvoker(
-				checkEngine,
-				expandEngine,
-				schemaLookupEngine,
-				lookupEntityEngine,
-			),
+			invoker,
 			relationshipReader,
 			relationshipWriter,
 			schemaReader,

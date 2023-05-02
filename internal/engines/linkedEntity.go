@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 
-	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -30,36 +28,13 @@ func NewLinkedEntityEngine(schemaReader repositories.SchemaReader, relationshipR
 	}
 }
 
-// Run is a method of the LinkedEntityEngine struct. It executes a permission request for linked entities.
-func (engine *LinkedEntityEngine) Run(
+// LinkedEntity is a method of the LinkedEntityEngine struct. It executes a permission request for linked entities.
+func (engine *LinkedEntityEngine) LinkedEntity(
 	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
 ) (err error) { // Returns an error if one occurs during execution.
-	ctx, span := tracer.Start(ctx, "permissions.linked-entity.execute") // Start a new span for tracing purposes.
-	defer span.End()
-
-	// Set SnapToken if not provided
-	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
-		var st token.SnapToken
-		st, err = engine.relationshipReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
-		if err != nil {
-			return err
-		}
-		request.Metadata.SnapToken = st.Encode().String() // Set the SnapToken in the request metadata.
-	}
-
-	// Set SchemaVersion if not provided
-	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
-		request.Metadata.SchemaVersion, err = engine.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-			return err
-		}
-	}
-
 	// Check if direct result
 	if request.GetEntityReference().GetType() == request.GetSubject().GetType() && request.GetEntityReference().GetRelation() == request.GetSubject().GetRelation() {
 		// TODO: Implement direct result and exclusion logic.
@@ -82,8 +57,6 @@ func (engine *LinkedEntityEngine) Run(
 	var sc *base.SchemaDefinition
 	sc, err = engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
 		return err
 	}
 
@@ -118,7 +91,7 @@ func (engine *LinkedEntityEngine) Run(
 				return err
 			}
 		case schema.ComputedUserSetLinkedEntrance: // If the linked entrance is a computed user set entrance.
-			err = engine.run(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
+			err = engine.l(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
 				Entity: &base.Entity{
 					Type: entrance.TargetEntrance.GetType(),
 					Id:   request.GetSubject().GetId(),
@@ -169,7 +142,7 @@ func (engine *LinkedEntityEngine) relationEntrance(
 	for it.HasNext() { // Loop over each relationship.
 		current := it.GetNext()
 		g.Go(func() error {
-			return engine.run(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
+			return engine.l(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
 				Entity: &base.Entity{
 					Type: current.GetEntity().GetType(),
 					Id:   current.GetEntity().GetId(),
@@ -216,7 +189,7 @@ func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
 		for it.HasNext() { // Loop over each relationship.
 			current := it.GetNext()
 			g.Go(func() error {
-				return engine.run(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
+				return engine.l(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
 					Entity: &base.Entity{
 						Type: entrance.TargetEntrance.GetType(),
 						Id:   current.GetEntity().GetId(),
@@ -230,7 +203,7 @@ func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
 }
 
 // run is a method of the LinkedEntityEngine struct. It executes the linked entity engine for a given request.
-func (engine *LinkedEntityEngine) run(
+func (engine *LinkedEntityEngine) l(
 	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
 	found *base.EntityAndRelation, // An entity and relation that was previously found.
@@ -276,7 +249,7 @@ func (engine *LinkedEntityEngine) run(
 	}
 
 	g.Go(func() error {
-		return engine.Run(ctx, &base.PermissionLinkedEntityRequest{ // Call the Run method recursively with a new permission request.
+		return engine.LinkedEntity(ctx, &base.PermissionLinkedEntityRequest{ // Call the Run method recursively with a new permission request.
 			TenantId:        request.GetTenantId(),
 			EntityReference: request.GetEntityReference(),
 			Subject: &base.Subject{

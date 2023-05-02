@@ -4,13 +4,10 @@ import (
 	"context"
 	"errors"
 
-	otelCodes "go.opentelemetry.io/otel/codes"
-
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -18,7 +15,9 @@ import (
 // which is a repositories.SchemaReader object, and relationshipReader, which is a repositories.RelationshipReader object.
 // The ExpandEngine type is used to expand permission scopes based on a given user ID and a set of permission requirements.
 type ExpandEngine struct {
-	schemaReader       repositories.SchemaReader
+	// schemaReader is responsible for reading schema information
+	schemaReader repositories.SchemaReader
+	// relationshipReader is responsible for reading relationship information
 	relationshipReader repositories.RelationshipReader
 }
 
@@ -32,7 +31,7 @@ func NewExpandEngine(sr repositories.SchemaReader, rr repositories.RelationshipR
 	}
 }
 
-// Run - This is the Run function of the ExpandEngine type, which takes a context, a PermissionExpandRequest,
+// Expand - This is the Run function of the ExpandEngine type, which takes a context, a PermissionExpandRequest,
 // and returns a PermissionExpandResponse and an error.
 // The function begins by starting a new OpenTelemetry span, with the name "permissions.expand.execute".
 // It then checks if a snap token and schema version are included in the request. If not, it retrieves the head
@@ -41,30 +40,10 @@ func NewExpandEngine(sr repositories.SchemaReader, rr repositories.RelationshipR
 // Finally, the function calls the expand function of the ExpandEngine type with the context, PermissionExpandRequest,
 // and false value, and returns the resulting PermissionExpandResponse and error. If there is an error, the span records
 // the error and sets the status to indicate an error.
-func (command *ExpandEngine) Run(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error) {
-	ctx, span := tracer.Start(ctx, "permissions.expand.execute")
-	defer span.End()
-
-	if request.GetMetadata().GetSnapToken() == "" {
-		var st token.SnapToken
-		st, err = command.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
-		if err != nil {
-			return response, err
-		}
-		request.Metadata.SnapToken = st.Encode().String()
-	}
-
-	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = command.schemaReader.HeadVersion(ctx, request.GetTenantId())
-		if err != nil {
-			return response, err
-		}
-	}
-
-	resp := command.expand(ctx, request, false)
+func (engine *ExpandEngine) Expand(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error) {
+	resp := engine.e(ctx, request, false)
 	if resp.Err != nil {
-		span.RecordError(resp.Err)
-		span.SetStatus(otelCodes.Error, resp.Err.Error())
+		return nil, resp.Err
 	}
 	return resp.Response, resp.Err
 }
@@ -88,8 +67,8 @@ type ExpandCombiner func(ctx context.Context, functions []ExpandFunction) Expand
 // expand is a helper function that determines the type of relational reference being requested in the expand request
 // and selects the appropriate expand function to execute on it. It returns an ExpandResponse that contains the result of
 // the selected expand function.
-func (command *ExpandEngine) expand(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandResponse {
-	en, _, err := command.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+func (engine *ExpandEngine) e(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandResponse {
+	en, _, err := engine.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return ExpandResponse{Err: err}
 	}
@@ -110,12 +89,12 @@ func (command *ExpandEngine) expand(ctx context.Context, request *base.Permissio
 		}
 		child = permission.GetChild()
 		if child.GetRewrite() != nil {
-			fn = command.expandRewrite(ctx, request, child.GetRewrite())
+			fn = engine.expandRewrite(ctx, request, child.GetRewrite())
 		} else {
-			fn = command.expandLeaf(ctx, request, child.GetLeaf())
+			fn = engine.expandLeaf(ctx, request, child.GetLeaf())
 		}
 	} else {
-		fn = command.expandDirect(ctx, request, exclusion)
+		fn = engine.expandDirect(ctx, request, exclusion)
 	}
 
 	if fn == nil {
@@ -128,12 +107,12 @@ func (command *ExpandEngine) expand(ctx context.Context, request *base.Permissio
 // expandRewrite is a function that returns an ExpandFunction. It takes the current context, a PermissionExpandRequest, and a Rewrite as input parameters.
 // It selects the appropriate expansion function based on the given operation of the Rewrite, and returns that expansion function as an ExpandFunction.
 // If the operation is not recognized, it returns an ExpandFunction that indicates an error.
-func (command *ExpandEngine) expandRewrite(ctx context.Context, request *base.PermissionExpandRequest, rewrite *base.Rewrite) ExpandFunction {
+func (engine *ExpandEngine) expandRewrite(ctx context.Context, request *base.PermissionExpandRequest, rewrite *base.Rewrite) ExpandFunction {
 	switch rewrite.GetRewriteOperation() {
 	case *base.Rewrite_OPERATION_UNION.Enum():
-		return command.setChild(ctx, request, rewrite.GetChildren(), expandUnion)
+		return engine.setChild(ctx, request, rewrite.GetChildren(), expandUnion)
 	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
-		return command.setChild(ctx, request, rewrite.GetChildren(), expandIntersection)
+		return engine.setChild(ctx, request, rewrite.GetChildren(), expandIntersection)
 	default:
 		return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
@@ -142,12 +121,12 @@ func (command *ExpandEngine) expandRewrite(ctx context.Context, request *base.Pe
 // expandLeaf takes in the context, the expand request and a leaf and returns an ExpandFunction.
 // It determines the type of the leaf and returns the appropriate function to expand it. If the leaf is undefined,
 // it returns an error using expandFail.
-func (command *ExpandEngine) expandLeaf(ctx context.Context, request *base.PermissionExpandRequest, leaf *base.Leaf) ExpandFunction {
+func (engine *ExpandEngine) expandLeaf(ctx context.Context, request *base.PermissionExpandRequest, leaf *base.Leaf) ExpandFunction {
 	switch op := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
-		return command.expandTupleToUserSet(ctx, request, op.TupleToUserSet, leaf.GetExclusion())
+		return engine.expandTupleToUserSet(ctx, request, op.TupleToUserSet, leaf.GetExclusion())
 	case *base.Leaf_ComputedUserSet:
-		return command.expandComputedUserSet(ctx, request, op.ComputedUserSet, leaf.GetExclusion())
+		return engine.expandComputedUserSet(ctx, request, op.ComputedUserSet, leaf.GetExclusion())
 	default:
 		return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
@@ -160,14 +139,14 @@ func (command *ExpandEngine) expandLeaf(ctx context.Context, request *base.Permi
 // a permission by evaluating the permission's children.
 //
 // If a Child object with an undefined type is encountered, expandFail is used to create an error response.
-func (command *ExpandEngine) setChild(ctx context.Context, request *base.PermissionExpandRequest, children []*base.Child, combiner ExpandCombiner) ExpandFunction {
+func (engine *ExpandEngine) setChild(ctx context.Context, request *base.PermissionExpandRequest, children []*base.Child, combiner ExpandCombiner) ExpandFunction {
 	var functions []ExpandFunction
 	for _, child := range children {
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
-			functions = append(functions, command.expandRewrite(ctx, request, child.GetRewrite()))
+			functions = append(functions, engine.expandRewrite(ctx, request, child.GetRewrite()))
 		case *base.Child_Leaf:
-			functions = append(functions, command.expandLeaf(ctx, request, child.GetLeaf()))
+			functions = append(functions, engine.expandLeaf(ctx, request, child.GetLeaf()))
 		default:
 			return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 		}
@@ -185,11 +164,9 @@ func (command *ExpandEngine) setChild(ctx context.Context, request *base.Permiss
 // subjects. If there are matching relationships, it computes the union of the results of calling Expand on each matching
 // relationship's subject entity and relation, and attaches the resulting expand nodes as children of a union node in
 // the expand tree. Finally, it returns the top-level expand node.
-func (command *ExpandEngine) expandDirect(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandFunction {
+func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.PermissionExpandRequest, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
-		var err error
-		var it *database.TupleIterator
-		it, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -209,7 +186,7 @@ func (command *ExpandEngine) expandDirect(ctx context.Context, request *base.Per
 			subject := it.GetNext().GetSubject()
 			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
 				expandFunctions = append(expandFunctions, func(ctx context.Context, resultChan chan<- ExpandResponse) {
-					result := command.expand(ctx, &base.PermissionExpandRequest{
+					result := engine.e(ctx, &base.PermissionExpandRequest{
 						TenantId: request.GetTenantId(),
 						Entity: &base.Entity{
 							Type: subject.GetType(),
@@ -283,12 +260,12 @@ func (command *ExpandEngine) expandDirect(ctx context.Context, request *base.Per
 //
 // Returns:
 //   - ExpandFunction that sends the expanded user set to the provided channel
-func (command *ExpandEngine) expandTupleToUserSet(ctx context.Context, request *base.PermissionExpandRequest, ttu *base.TupleToUserSet, exclusion bool) ExpandFunction {
+func (engine *ExpandEngine) expandTupleToUserSet(ctx context.Context, request *base.PermissionExpandRequest, ttu *base.TupleToUserSet, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
 		var err error
 
 		var it *database.TupleIterator
-		it, err = command.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		it, err = engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -303,7 +280,7 @@ func (command *ExpandEngine) expandTupleToUserSet(ctx context.Context, request *
 		for it.HasNext() {
 			subject := it.GetNext().GetSubject()
 			if subject.GetRelation() == tuple.ELLIPSIS {
-				expandFunctions = append(expandFunctions, command.expandComputedUserSet(ctx, &base.PermissionExpandRequest{
+				expandFunctions = append(expandFunctions, engine.expandComputedUserSet(ctx, &base.PermissionExpandRequest{
 					TenantId: request.GetTenantId(),
 					Entity: &base.Entity{
 						Type: subject.GetType(),
@@ -333,9 +310,9 @@ func (command *ExpandEngine) expandTupleToUserSet(ctx context.Context, request *
 //
 // Returns:
 //   - ExpandFunction that sends the expanded user set to the provided channel
-func (command *ExpandEngine) expandComputedUserSet(ctx context.Context, request *base.PermissionExpandRequest, cu *base.ComputedUserSet, exclusion bool) ExpandFunction {
+func (engine *ExpandEngine) expandComputedUserSet(ctx context.Context, request *base.PermissionExpandRequest, cu *base.ComputedUserSet, exclusion bool) ExpandFunction {
 	return func(ctx context.Context, resultChan chan<- ExpandResponse) {
-		result := command.expand(ctx, &base.PermissionExpandRequest{
+		result := engine.e(ctx, &base.PermissionExpandRequest{
 			TenantId: request.GetTenantId(),
 			Entity: &base.Entity{
 				Type: request.GetEntity().GetType(),

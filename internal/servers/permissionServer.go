@@ -36,7 +36,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 		return nil, v
 	}
 
-	response, err := r.invoker.InvokeCheck(ctx, request)
+	response, err := r.invoker.Check(ctx, request)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -57,28 +57,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 		return nil, v
 	}
 
-	response, err := r.invoker.InvokeExpand(ctx, request)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
-		return nil, status.Error(GetStatus(err), err.Error())
-	}
-
-	return response, nil
-}
-
-// LookupSchema -
-func (r *PermissionServer) LookupSchema(ctx context.Context, request *v1.PermissionLookupSchemaRequest) (*v1.PermissionLookupSchemaResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookup-schema")
-	defer span.End()
-
-	v := request.Validate()
-	if v != nil {
-		return nil, v
-	}
-
-	response, err := r.invoker.InvokeLookupSchema(ctx, request)
+	response, err := r.invoker.Expand(ctx, request)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -99,7 +78,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 		return nil, v
 	}
 
-	response, err := r.invoker.InvokeLookupEntity(ctx, request)
+	response, err := r.invoker.LookupEntity(ctx, request)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -120,7 +99,7 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 		return v
 	}
 
-	err := r.invoker.InvokeLookupEntityStream(ctx, request, server)
+	err := r.invoker.LookupEntityStream(ctx, request, server)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

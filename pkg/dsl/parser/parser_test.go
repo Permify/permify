@@ -510,6 +510,5 @@ var _ = Describe("parser", func() {
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("5:25:duplication found for organization#delete"))
 		})
-
 	})
 })

@@ -2,10 +2,11 @@ package utils_test
 
 import (
 	"fmt"
-	"github.com/Masterminds/squirrel"
-	"github.com/Permify/permify/internal/repositories/postgres/utils"
 	"testing"
 	"time"
+
+	"github.com/Masterminds/squirrel"
+	"github.com/Permify/permify/internal/repositories/postgres/utils"
 
 	"github.com/stretchr/testify/assert"
 )

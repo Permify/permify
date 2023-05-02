@@ -208,10 +208,8 @@ var _ = Describe("expand-engine", func() {
 			}
 
 			var response *base.PermissionExpandResponse
-			response, err = expandEngine.Run(context.Background(), req)
+			response, err = expandEngine.Expand(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-
-			// fmt.Println(response.GetTree())
 
 			Expect(&base.Expand{
 				Node: &base.Expand_Expand{

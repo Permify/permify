@@ -3,13 +3,15 @@ package gossip
 import (
 	"errors"
 	"fmt"
-	"github.com/Permify/permify/internal/config"
-	"github.com/hashicorp/memberlist"
 	"io"
 	"log"
 	"net"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/memberlist"
+
+	"github.com/Permify/permify/internal/config"
 )
 
 type IGossip interface {
@@ -22,6 +24,7 @@ type Engine struct {
 	memberList *memberlist.Memberlist
 }
 
+// InitMemberList initializes a memberlist instance with the provided seed nodes and config.
 func InitMemberList(seedNodes []string, cfg config.Distributed) (*Engine, error) {
 	conf := memberlist.DefaultLocalConfig()
 
@@ -61,6 +64,7 @@ func InitMemberList(seedNodes []string, cfg config.Distributed) (*Engine, error)
 	}, nil
 }
 
+// SyncMemberList returns a list of all nodes in the cluster.
 func (g *Engine) SyncMemberList() (nodes []string) {
 	members := g.memberList.Members()
 	for _, member := range members {
@@ -70,27 +74,35 @@ func (g *Engine) SyncMemberList() (nodes []string) {
 	return
 }
 
+// Shutdown gracefully shuts down the memberlist instance.
 func (g *Engine) Shutdown() error {
 	return errors.Join(g.memberList.Leave(time.Second), g.memberList.Shutdown())
 }
 
+// ExternalIP returns the first non-loopback IPv4 address
 func ExternalIP() (string, error) {
-	faces, err := net.Interfaces()
+	// Get a list of network interfaces.
+	interfaces, err := net.Interfaces()
 	if err != nil {
 		return "", err
 	}
-	for _, iface := range faces {
-		if iface.Flags&net.FlagUp == 0 {
-			continue // interface down
+
+	// Iterate over the network interfaces.
+	for _, iface := range interfaces {
+		// Skip the interface if it's down or a loopback interface.
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
 		}
-		if iface.Flags&net.FlagLoopback != 0 {
-			continue // loopback interface
-		}
-		address, err := iface.Addrs()
+
+		// Get a list of addresses associated with the interface.
+		addresses, err := iface.Addrs()
 		if err != nil {
 			return "", err
 		}
-		for _, addr := range address {
+
+		// Iterate over the addresses.
+		for _, addr := range addresses {
+			// Extract the IP address from the address.
 			var ip net.IP
 			switch v := addr.(type) {
 			case *net.IPNet:
@@ -98,15 +110,17 @@ func ExternalIP() (string, error) {
 			case *net.IPAddr:
 				ip = v.IP
 			}
-			if ip == nil || ip.IsLoopback() {
+
+			// Skip the address if it's a loopback address or not IPv4.
+			if ip == nil || ip.IsLoopback() || ip.To4() == nil {
 				continue
 			}
-			ip = ip.To4()
-			if ip == nil {
-				continue // not an ipv4 address
-			}
+
+			// Return the IPv4 address as a string.
 			return ip.String(), nil
 		}
 	}
-	return "", errors.New("are you connected to the network?")
+
+	// Return an empty string if no external IPv4 address is found.
+	return "", errors.New("network error")
 }
