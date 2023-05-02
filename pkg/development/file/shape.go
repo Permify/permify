@@ -1,4 +1,4 @@
-package validation
+package file
 
 // Shape is a struct that represents an authorization configuration.
 type Shape struct {
