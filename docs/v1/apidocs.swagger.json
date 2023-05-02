@@ -494,6 +494,7 @@
                 "tuples": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/Tuple"
                   }
                 }
@@ -718,6 +719,7 @@
         "children": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Expand"
           }
         }
@@ -879,6 +881,7 @@
         "relationReferences": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/RelationReference"
           }
         }
@@ -931,6 +934,7 @@
         "tuples": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Tuple"
           }
         },
@@ -967,6 +971,7 @@
         "children": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Child"
           }
         }
@@ -1035,6 +1040,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Any"
           }
         }
@@ -1138,6 +1144,7 @@
         "tenants": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Tenant"
           }
         },
@@ -1210,6 +1217,7 @@
         "subjects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Subject"
           }
         }
