@@ -30,25 +30,26 @@ type EntityCoverageInfo struct {
 // SchemaCoverage
 //
 // schema:
-//    entity user {}
 //
-//    entity organization {
-//        // organizational roles
-//        relation admin @user
-//        relation member @user
-//    }
+//	entity user {}
 //
-//    entity repository {
-//        // represents repositories parent organization
-//        relation parent @organization
+//	entity organization {
+//	    // organizational roles
+//	    relation admin @user
+//	    relation member @user
+//	}
 //
-//        // represents owner of this repository
-//        relation owner  @user @organization#admin
+//	entity repository {
+//	    // represents repositories parent organization
+//	    relation parent @organization
 //
-//        // permissions
-//        permission edit   = parent.admin or owner
-//        permission delete = owner
-//    }
+//	    // represents owner of this repository
+//	    relation owner  @user @organization#admin
+//
+//	    // permissions
+//	    permission edit   = parent.admin or owner
+//	    permission delete = owner
+//	}
 //
 // - relationships coverage
 //
@@ -106,8 +107,10 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 			}
 		}
 
-		relationshipsCoveragePercent := calculateCoveragePercent(ref.Relationships, entityCoverageInfo.UncoveredRelationships)
-		entityCoverageInfo.CoverageRelationshipsPercent = relationshipsCoveragePercent
+		entityCoverageInfo.CoverageRelationshipsPercent = calculateCoveragePercent(
+			ref.Relationships,
+			entityCoverageInfo.UncoveredRelationships,
+		)
 
 		// Calculate assertions coverage for each scenario
 		for _, s := range shape.Scenarios {
@@ -119,8 +122,10 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 				}
 			}
 
-			assertionsCoveragePercent := calculateCoveragePercent(ref.Assertions, entityCoverageInfo.UncoveredAssertions[s.Name])
-			entityCoverageInfo.CoverageAssertionsPercent[s.Name] = assertionsCoveragePercent
+			entityCoverageInfo.CoverageAssertionsPercent[s.Name] = calculateCoveragePercent(
+				ref.Assertions,
+				entityCoverageInfo.UncoveredAssertions[s.Name],
+			)
 		}
 
 		schemaCoverageInfo.EntityCoverageInfo = append(schemaCoverageInfo.EntityCoverageInfo, entityCoverageInfo)
