@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"time"
 
-	v1 "github.com/Permify/permify-go/generated/base/v1"
-	client "github.com/Permify/permify-go/v1"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/Permify/permify/internal/invoke"
 	hash "github.com/Permify/permify/pkg/consistent"
@@ -96,39 +95,19 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 
 // forwardRequestGetToNode forwards a request to the responsible node
 func (c *Hashring) forwardRequestToNode(ctx context.Context, node string, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
-	// generate new client
-	p, err := client.NewClient(
-		client.Config{
-			Endpoint: node,
-		},
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(node, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
 
-	var res *v1.PermissionCheckResponse
-	res, err = p.Permission.Check(ctx, &v1.PermissionCheckRequest{
-		TenantId: request.GetTenantId(),
-		Metadata: &v1.PermissionCheckRequestMetadata{
-			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-			SnapToken:     request.GetMetadata().GetSnapToken(),
-			Exclusion:     request.GetMetadata().GetExclusion(),
-			Depth:         request.GetMetadata().GetDepth(),
-		},
-		Entity: &v1.Entity{
-			Type: request.GetEntity().GetType(),
-			Id:   request.GetEntity().GetId(),
-		},
-		Permission: request.GetPermission(),
-		Subject: &v1.Subject{
-			Type:     request.GetSubject().GetType(),
-			Id:       request.GetSubject().GetId(),
-			Relation: request.GetSubject().GetRelation(),
-		},
-	})
+	// Create a PermissionClient using the connection.
+	client := base.NewPermissionClient(conn)
 
-	return &base.PermissionCheckResponse{
-		Can: base.PermissionCheckResponse_Result(res.GetCan()),
-		Metadata: &base.PermissionCheckResponseMetadata{
-			CheckCount: res.GetMetadata().GetCheckCount(),
-		},
-	}, err
+	// Prepare a context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	return client.Check(ctx, request)
 }

@@ -356,59 +356,6 @@
         ]
       }
     },
-    "/v1/tenants/{tenant_id}/permissions/lookup-schema": {
-      "post": {
-        "operationId": "permissions.lookupSchema",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/PermissionLookupSchemaResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "tenant_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionLookupSchemaRequestMetadata"
-                },
-                "entity_type": {
-                  "type": "string"
-                },
-                "relation_names": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "title": "PermissionLookupSchemaRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Permission"
-        ]
-      }
-    },
     "/v1/tenants/{tenant_id}/relationships/delete": {
       "post": {
         "summary": "delete relation tuple",
@@ -922,27 +869,6 @@
         }
       },
       "title": "PermissionLookupEntityStreamResponse"
-    },
-    "PermissionLookupSchemaRequestMetadata": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        }
-      },
-      "title": "PermissionLookupSchemaRequestMetadata"
-    },
-    "PermissionLookupSchemaResponse": {
-      "type": "object",
-      "properties": {
-        "permission_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "title": "PermissionLookupSchemaResponse"
     },
     "RelationDefinition": {
       "type": "object",

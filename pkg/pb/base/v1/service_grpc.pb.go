@@ -24,7 +24,6 @@ const _ = grpc.SupportPackageIsVersion7
 type PermissionClient interface {
 	Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResponse, error)
 	Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error)
-	LookupSchema(ctx context.Context, in *PermissionLookupSchemaRequest, opts ...grpc.CallOption) (*PermissionLookupSchemaResponse, error)
 	LookupEntity(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (*PermissionLookupEntityResponse, error)
 	LookupEntityStream(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (Permission_LookupEntityStreamClient, error)
 }
@@ -49,15 +48,6 @@ func (c *permissionClient) Check(ctx context.Context, in *PermissionCheckRequest
 func (c *permissionClient) Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error) {
 	out := new(PermissionExpandResponse)
 	err := c.cc.Invoke(ctx, "/base.v1.Permission/Expand", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *permissionClient) LookupSchema(ctx context.Context, in *PermissionLookupSchemaRequest, opts ...grpc.CallOption) (*PermissionLookupSchemaResponse, error) {
-	out := new(PermissionLookupSchemaResponse)
-	err := c.cc.Invoke(ctx, "/base.v1.Permission/LookupSchema", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +101,6 @@ func (x *permissionLookupEntityStreamClient) Recv() (*PermissionLookupEntityStre
 type PermissionServer interface {
 	Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResponse, error)
 	Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error)
-	LookupSchema(context.Context, *PermissionLookupSchemaRequest) (*PermissionLookupSchemaResponse, error)
 	LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error)
 	LookupEntityStream(*PermissionLookupEntityRequest, Permission_LookupEntityStreamServer) error
 	mustEmbedUnimplementedPermissionServer()
@@ -126,9 +115,6 @@ func (UnimplementedPermissionServer) Check(context.Context, *PermissionCheckRequ
 }
 func (UnimplementedPermissionServer) Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Expand not implemented")
-}
-func (UnimplementedPermissionServer) LookupSchema(context.Context, *PermissionLookupSchemaRequest) (*PermissionLookupSchemaResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LookupSchema not implemented")
 }
 func (UnimplementedPermissionServer) LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupEntity not implemented")
@@ -181,24 +167,6 @@ func _Permission_Expand_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PermissionServer).Expand(ctx, req.(*PermissionExpandRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Permission_LookupSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PermissionLookupSchemaRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PermissionServer).LookupSchema(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/base.v1.Permission/LookupSchema",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PermissionServer).LookupSchema(ctx, req.(*PermissionLookupSchemaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -256,10 +224,6 @@ var Permission_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Expand",
 			Handler:    _Permission_Expand_Handler,
-		},
-		{
-			MethodName: "LookupSchema",
-			Handler:    _Permission_LookupSchema_Handler,
 		},
 		{
 			MethodName: "LookupEntity",

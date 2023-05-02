@@ -45,21 +45,6 @@ service Permission {
     };
   }
 
-  rpc LookupSchema(PermissionLookupSchemaRequest) returns (PermissionLookupSchemaResponse) {
-    option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/permissions/lookup-schema"
-      body: "*"
-    };
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: ""
-      tags: [
-        "Permission"
-      ]
-      operation_id: "permissions.lookupSchema"
-    };
-  }
-
   rpc LookupEntity(PermissionLookupEntityRequest) returns (PermissionLookupEntityResponse) {
     option (google.api.http) = {
       post: "/v1/tenants/{tenant_id}/permissions/lookup-entity"
@@ -174,35 +159,6 @@ message PermissionExpandResponse {
 }
 
 //LOOKUP
-
-// PermissionLookupSchemaRequest
-message PermissionLookupSchemaRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  PermissionLookupSchemaRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
-
-  string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  repeated string relation_names = 4 [json_name = "relation_names"];
-}
-
-// PermissionLookupSchemaRequestMetadata
-message PermissionLookupSchemaRequestMetadata {
-  string schema_version = 1 [json_name = "schema_version"];
-}
-
-// PermissionLookupSchemaResponse
-message PermissionLookupSchemaResponse {
-  repeated string permission_names = 1 [json_name = "permission_names"];
-}
 
 // PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
