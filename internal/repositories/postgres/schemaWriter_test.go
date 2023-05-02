@@ -2,13 +2,14 @@ package postgres
 
 import (
 	"context"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Masterminds/squirrel"
 	"github.com/Permify/permify/internal/repositories"
 	PQRepository "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestWriteSchema_Test(t *testing.T) {

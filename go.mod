@@ -67,6 +67,7 @@ require (
 	github.com/Eun/go-convert v1.2.12 // indirect
 	github.com/Eun/go-doppelgangerreader v0.0.0-20190911075941-30f1527f16b2 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
+	github.com/Permify/permify-go v0.3.3 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/containerd/containerd v1.6.19 // indirect

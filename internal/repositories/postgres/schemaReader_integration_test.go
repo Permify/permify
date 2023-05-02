@@ -4,13 +4,14 @@ package postgres
 
 import (
 	"context"
+	"testing"
+
 	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSchemaReaderHeadVersion_Integration(t *testing.T) {

@@ -5,12 +5,13 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"github.com/Permify/permify/internal/config"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/Permify/permify/internal/config"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 var (
@@ -31,8 +32,8 @@ func TestMain(m *testing.M) {
 
 	os.Exit(exitCode)
 }
-func GetPostgres() string {
 
+func GetPostgres() string {
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:14-alpine",
@@ -85,7 +86,6 @@ func GetPostgres() string {
 }
 
 func TeardownPostgreSQL() {
-
 	if postgres != nil {
 		postgres.Terminate(context.Background())
 	}

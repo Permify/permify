@@ -4,13 +4,9 @@ import (
 	"errors"
 	"sync"
 
-	"go.opentelemetry.io/otel"
-
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
-
-var tracer = otel.Tracer("engines")
 
 const (
 	_defaultConcurrencyLimit = 100

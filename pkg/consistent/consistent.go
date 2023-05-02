@@ -1,11 +1,12 @@
 package hash
 
 import (
-	"github.com/Permify/permify/pkg/gossip"
 	"log"
 	"sort"
 	"strconv"
 	"sync"
+
+	"github.com/Permify/permify/pkg/gossip"
 )
 
 const (
@@ -13,7 +14,7 @@ const (
 	minReplicas = 100
 )
 
-type ConsistentEngine interface {
+type Consistent interface {
 	Add(node string)
 	SyncNodes(g *gossip.Engine)
 	AddWithReplicas(node string, replicas int)

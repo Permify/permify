@@ -240,7 +240,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						exp = base.PermissionCheckResponse_RESULT_DENIED
 					}
 
-					res, err := dev.Container.Invoker.InvokeCheck(ctx, &base.PermissionCheckRequest{
+					res, err := dev.Container.Invoker.Check(ctx, &base.PermissionCheckRequest{
 						TenantId: "t1",
 						Metadata: &base.PermissionCheckRequestMetadata{
 							Exclusion:     false,
@@ -300,7 +300,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 
 				for permission, expected := range filter.Assertions {
-					res, err := dev.Container.Invoker.InvokeLookupEntity(ctx, &base.PermissionLookupEntityRequest{
+					res, err := dev.Container.Invoker.LookupEntity(ctx, &base.PermissionLookupEntityRequest{
 						TenantId: "t1",
 						Metadata: &base.PermissionLookupEntityRequestMetadata{
 							SchemaVersion: version,

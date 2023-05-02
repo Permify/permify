@@ -1,9 +1,10 @@
 package validation
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"testing"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -16,7 +17,6 @@ func TestValidation(t *testing.T) {
 
 var _ = Describe("validation", func() {
 	Context("Statement", func() {
-
 		It("Case 1", func() {
 			// Create a test entity definition
 			entityDef := &base.EntityDefinition{
@@ -89,7 +89,6 @@ var _ = Describe("validation", func() {
 		})
 
 		It("Case 2", func() {
-
 			// Create a test entity definition
 			entityDef := &base.EntityDefinition{
 				Name: "organization",
@@ -164,11 +163,9 @@ var _ = Describe("validation", func() {
 			// Test the function with an invalid tuple with relation not defined in entity definition
 			err = ValidateTuple(entityDef, invalidTuple2)
 			Expect(err).ShouldNot(BeNil())
-
 		})
 
 		It("Case 3", func() {
-
 			// Create a test entity definition
 			entityDef := &base.EntityDefinition{
 				Name: "organization",
@@ -306,7 +303,6 @@ var _ = Describe("validation", func() {
 			// Test the function with an invalid tuple with relation not defined in entity definition
 			err = ValidateTuple(entityDef, invalidTuple2)
 			Expect(err).ShouldNot(BeNil())
-
 		})
 	})
 })

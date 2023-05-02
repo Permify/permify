@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Masterminds/squirrel"
 	"github.com/Permify/permify/internal/repositories"
@@ -10,12 +12,9 @@ import (
 	"github.com/Permify/permify/pkg/logger"
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
-var (
-	schemaExample = "entity user {}\\n\\nentity organization {\\n\\n    // relations\\n    relation admin @user\\n    relation member @user\\n\\n    // actions\\n    action create_repository = (admin or member)\\n    action delete = admin\\n}\\n\\nentity repository {\\n\\n    // relations\\n    relation owner @user @organization#member\\n    relation parent @organization\\n\\n    // actions\\n    action push = owner\\n    action read = (owner and (parent.admin and not parent.member))\\n    \\n    // parent.create_repository means user should be\\n    // organization admin or organization member\\n    action delete = (owner or (parent.create_repository))\\n}"
-)
+var schemaExample = "entity user {}\\n\\nentity organization {\\n\\n    // relations\\n    relation admin @user\\n    relation member @user\\n\\n    // actions\\n    action create_repository = (admin or member)\\n    action delete = admin\\n}\\n\\nentity repository {\\n\\n    // relations\\n    relation owner @user @organization#member\\n    relation parent @organization\\n\\n    // actions\\n    action push = owner\\n    action read = (owner and (parent.admin and not parent.member))\\n    \\n    // parent.create_repository means user should be\\n    // organization admin or organization member\\n    action delete = (owner or (parent.create_repository))\\n}"
 
 func TestHeadVersion_Test(t *testing.T) {
 	db, mock, err := sqlmock.New()
