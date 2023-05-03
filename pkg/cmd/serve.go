@@ -57,14 +57,28 @@ func NewServeCommand() *cobra.Command {
 // It returns an error if there is an issue with any of the components or if any goroutine fails.
 func serve() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		// Load configuration
-		cfg, err := config.NewConfig()
-		if err != nil {
-			return fmt.Errorf("failed to create new config: %w", err)
-		}
+		var cfg *config.Config
+		var err error
+		cfgFile := viper.GetString("config.file")
+		if cfgFile != "" {
+			cfg, err = config.NewConfigWithFile(cfgFile)
+			if err != nil {
+				return fmt.Errorf("failed to create new config: %w", err)
+			}
 
-		if err = viper.Unmarshal(cfg); err != nil {
-			return fmt.Errorf("failed to unmarshal config: %w", err)
+			if err = viper.Unmarshal(cfg); err != nil {
+				return fmt.Errorf("failed to unmarshal config: %w", err)
+			}
+		} else {
+			// Load configuration
+			cfg, err = config.NewConfig()
+			if err != nil {
+				return fmt.Errorf("failed to create new config: %w", err)
+			}
+
+			if err = viper.Unmarshal(cfg); err != nil {
+				return fmt.Errorf("failed to unmarshal config: %w", err)
+			}
 		}
 
 		// Print banner and initialize logger

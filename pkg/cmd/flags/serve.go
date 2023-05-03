@@ -15,6 +15,12 @@ func RegisterServeFlags(cmd *cobra.Command) {
 
 	flags := cmd.Flags()
 
+	// Config File
+	flags.StringP("config", "c", "", "config file (default is $HOME/.permify.yaml)")
+	if err = viper.BindPFlag("config.file", flags.Lookup("config")); err != nil {
+		panic(err)
+	}
+
 	// Server
 	flags.String("server-address", conf.Server.Address, "address that server run on")
 	if err = viper.BindPFlag("server.address", flags.Lookup("server-address")); err != nil {
