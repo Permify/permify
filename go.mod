@@ -15,7 +15,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.0.0
 	github.com/fatih/color v1.15.0
 	github.com/go-jose/go-jose/v3 v3.0.0
-	github.com/go-sql-driver/mysql v1.7.0
+	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gookit/color v1.5.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
