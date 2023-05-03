@@ -31,10 +31,14 @@ func NewCheckEngineWithKeys(checker invoke.Check, cache cache.Cache, l *logger.L
 	}
 }
 
-// Check invokes the permission check on the engine with the given
+// Check performs a permission check for a given request, using the cached results if available.
 func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+	// Try to get the cached result for the given request.
 	res, found := c.getCheckKey(request)
+
+	// If a cached result is found, handle exclusion and return the result.
 	if found {
+		// If the request has the exclusion flag set, reverse the result.
 		if request.GetMetadata().GetExclusion() {
 			if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
 				return &base.PermissionCheckResponse{
@@ -51,13 +55,17 @@ func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.Permissio
 				},
 			}, nil
 		}
+		// If the request doesn't have the exclusion flag set, return the cached result.
 		return &base.PermissionCheckResponse{
 			Can:      res.GetCan(),
 			Metadata: &base.PermissionCheckResponseMetadata{},
 		}, nil
 	}
 
+	// Perform the actual permission check using the provided request.
 	res, err = c.checker.Check(ctx, request)
+
+	// Check if there's an error or the response is nil, and return the result.
 	if err != nil {
 		return &base.PermissionCheckResponse{
 			Can: base.PermissionCheckResponse_RESULT_ALLOWED,
@@ -67,11 +75,13 @@ func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.Permissio
 		}, err
 	}
 
+	// Cache the result of the permission check for future use.
 	c.setCheckKey(request, &base.PermissionCheckResponse{
 		Can:      res.GetCan(),
 		Metadata: &base.PermissionCheckResponseMetadata{},
 	})
 
+	// Return the result of the permission check.
 	return res, err
 }
 
