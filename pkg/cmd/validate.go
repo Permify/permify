@@ -15,7 +15,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/storage"
 	server_validation "github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/cmd/flags"
 	"github.com/Permify/permify/pkg/database"
@@ -133,9 +133,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		version := xid.New().String()
 
-		cnf := make([]repositories.SchemaDefinition, 0, len(sch.Statements))
+		cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
 		for _, st := range sch.Statements {
-			cnf = append(cnf, repositories.SchemaDefinition{
+			cnf = append(cnf, storage.SchemaDefinition{
 				TenantID:             "t1",
 				Version:              version,
 				EntityType:           st.(*ast.EntityStatement).Name.Literal,

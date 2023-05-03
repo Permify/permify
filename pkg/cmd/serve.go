@@ -9,7 +9,7 @@ import (
 	"github.com/Permify/permify/internal/engines/consistent"
 	"github.com/Permify/permify/internal/engines/keys"
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/repositories/postgres"
+	"github.com/Permify/permify/internal/storage/postgres"
 	hash "github.com/Permify/permify/pkg/consistent"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
@@ -27,9 +27,9 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/factories"
-	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/servers"
+	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/decorators"
 	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/logger"
@@ -79,7 +79,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// Run database migration if enabled
 		if cfg.AutoMigrate {
-			err = repositories.Migrate(cfg.Database, l)
+			err = storage.Migrate(cfg.Database, l)
 			if err != nil {
 				l.Fatal("failed to migrate database: %w", err)
 			}
@@ -191,7 +191,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			l.Fatal(err)
 		}
 
-		// Initialize the repositories with factory methods
+		// Initialize the storage with factory methods
 		relationshipReader := factories.RelationshipReaderFactory(db, l)
 		relationshipWriter := factories.RelationshipWriterFactory(db, l)
 		schemaReader := factories.SchemaReaderFactory(db, l)
@@ -253,7 +253,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		checkEngine.SetInvoker(invoker)
 
-		// Create the container with engines, repositories, and other dependencies
+		// Create the container with engines, storage, and other dependencies
 		container := servers.NewContainer(
 			invoker,
 			relationshipReader,

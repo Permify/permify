@@ -4,27 +4,27 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 // ExpandEngine - This comment is describing a type called ExpandEngine. The ExpandEngine type contains two fields: schemaReader,
-// which is a repositories.SchemaReader object, and relationshipReader, which is a repositories.RelationshipReader object.
+// which is a storage.SchemaReader object, and relationshipReader, which is a storage.RelationshipReader object.
 // The ExpandEngine type is used to expand permission scopes based on a given user ID and a set of permission requirements.
 type ExpandEngine struct {
 	// schemaReader is responsible for reading schema information
-	schemaReader repositories.SchemaReader
+	schemaReader storage.SchemaReader
 	// relationshipReader is responsible for reading relationship information
-	relationshipReader repositories.RelationshipReader
+	relationshipReader storage.RelationshipReader
 }
 
 // NewExpandEngine - This function creates a new instance of ExpandEngine by taking a SchemaReader and a RelationshipReader as
 // parameters and returning a pointer to the created instance. The SchemaReader is used to read schema definitions, while the
 // RelationshipReader is used to read relationship definitions.
-func NewExpandEngine(sr repositories.SchemaReader, rr repositories.RelationshipReader) *ExpandEngine {
+func NewExpandEngine(sr storage.SchemaReader, rr storage.RelationshipReader) *ExpandEngine {
 	return &ExpandEngine{
 		schemaReader:       sr,
 		relationshipReader: rr,

@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -20,9 +20,9 @@ type CheckEngine struct {
 	// delegate is responsible for performing permission checks
 	invoker invoke.Check
 	// schemaReader is responsible for reading schema information
-	schemaReader repositories.SchemaReader
+	schemaReader storage.SchemaReader
 	// relationshipReader is responsible for reading relationship information
-	relationshipReader repositories.RelationshipReader
+	relationshipReader storage.RelationshipReader
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
 }
@@ -30,7 +30,7 @@ type CheckEngine struct {
 // NewCheckEngine creates a new CheckEngine instance for performing permission checks.
 // It takes a key manager, schema reader, and relationship reader as parameters.
 // Additionally, it allows for optional configuration through CheckOption function arguments.
-func NewCheckEngine(sr repositories.SchemaReader, rr repositories.RelationshipReader, opts ...CheckOption) *CheckEngine {
+func NewCheckEngine(sr storage.SchemaReader, rr storage.RelationshipReader, opts ...CheckOption) *CheckEngine {
 	// Initialize a CheckEngine with default concurrency limit and provided parameters
 	engine := &CheckEngine{
 		schemaReader:       sr,
