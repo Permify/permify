@@ -195,12 +195,8 @@ func NewConfigWithFile(dir string) (*Config, error) {
 	// Start with the default configuration values
 	cfg := DefaultConfig()
 
-	// Set the name and type of the config file to be read
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
+	viper.SetConfigFile(dir)
 
-	// Add the path where the config file is located
-	viper.AddConfigPath(dir)
 	// Read the config file
 	err := viper.ReadInConfig()
 	// If there's an error during reading the config file
