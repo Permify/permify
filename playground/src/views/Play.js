@@ -40,7 +40,7 @@ function Play(props) {
                 navigate('/404')
             });
         } else {
-            window.location = window.location.href.split('?')[0] + `?s=p`
+            window.location = window.location.href.split('?')[0] + `?s=organizations-hierarchies`
         }
     }, []);
 

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {Button, Card, List, Typography, Tooltip} from 'antd';
-import {DeleteOutlined} from "@ant-design/icons";
+import {DeleteOutlined, FullscreenExitOutlined, ExpandOutlined} from "@ant-design/icons";
 import CreateTuple from "../components/Modals/CreateTuple";
 import {shallowEqual, useSelector} from "react-redux";
 import TupleToHumanLanguage, {Tuple, TupleObjectToTupleString} from "../../utility/helpers/tuple";
@@ -15,10 +15,21 @@ function AuthorizationData(props) {
 
     // CreateTuple Modal
     const [createModalVisibility, setCreateModalVisibility] = React.useState(false);
+    const [allotmentStatus, setAllotmentStatus] = React.useState("default");
 
     const toggleCreateModalVisibility = () => {
         setCreateModalVisibility(!createModalVisibility);
         readTuples()
+    };
+
+    const open = () => {
+        setAllotmentStatus("open")
+        props.open()
+    };
+
+    const reset = () => {
+        setAllotmentStatus("default")
+        props.reset()
     };
 
     const [model, setModel] = useState({entityDefinitions: {}});
@@ -80,8 +91,15 @@ function AuthorizationData(props) {
 
             <Card title={props.title} className="h-screen"
                   extra={<>
+                      { allotmentStatus === "default" ?
+                          <Button className="ml-auto mr-8" icon={<ExpandOutlined />} onClick={open}/>
+                          :
+                          <Button className="ml-auto mr-8" icon={<FullscreenExitOutlined />} onClick={reset}/>
+                      }
                       <Button className="ml-auto" type="primary" onClick={toggleCreateModalVisibility}>New</Button>
-                  </>} style={{display: props.hidden && 'none'}}>
+                  </>} style={{display: props.hidden && 'none'}}
+
+            >
                 <div className="px-12 pb-12 pt-12">
                     <List
                         className="scroll"

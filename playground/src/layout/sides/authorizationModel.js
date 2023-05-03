@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react'
+import {useSearchParams} from "react-router-dom";
 import {Button, Card, Space} from 'antd';
 import {CopyOutlined, SaveOutlined} from "@ant-design/icons";
 import Editor from "../../pkg/Editor";
@@ -8,6 +9,8 @@ import {WriteSchema} from "../../services/schema";
 import {setSchema} from "../../redux/shape/actions";
 
 function AuthorizationModel(props) {
+
+    const [searchParams] = useSearchParams();
 
     const modelChangeTrigger = useSelector((state) => state.common.model_change_toggle, shallowEqual);
 
@@ -67,6 +70,18 @@ function AuthorizationModel(props) {
 
     return (
         <Card title={props.title} extra={<Space>
+
+            { searchParams.get('s') === "google-docs-simplified" &&
+                <Button type="secondary" href="https://docs.permify.co/docs/getting-started/examples/google-docs" target="_blank" icon={<CopyOutlined/>}>See In Docs</Button>
+            }
+
+            { searchParams.get('s') === "facebook-groups" &&
+                <Button type="secondary" href="https://docs.permify.co/docs/getting-started/examples/facebook-groups" target="_blank" icon={<CopyOutlined/>}>See In Docs</Button>
+            }
+
+            { searchParams.get('s') === "notion" &&
+                <Button type="secondary" href="https://docs.permify.co/docs/getting-started/examples/notion" target="_blank" icon={<CopyOutlined/>}>See In Docs</Button>
+            }
 
             <Button type="secondary" onClick={() => {
                 copyModel(model)

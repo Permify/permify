@@ -9,19 +9,27 @@ import {Spin, Tooltip} from "antd";
 import {InfoCircleOutlined} from "@ant-design/icons";
 
 function PlayOutput(props) {
-    const ref = React.useRef(null);
-
     const [isModelReady, setIsModelReady] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+
 
     function isReady(value) {
         setIsModelReady(value)
+    }
+
+    function open() {
+        setIsOpen(true)
+    }
+
+    function reset() {
+        setIsOpen(false)
     }
 
     return (
         <Allotment defaultSizes={[130, 100]}>
             <Allotment.Pane>
                 <Allotment vertical defaultSizes={[180, 120]}>
-                    <Allotment.Pane snap>
+                    <Allotment.Pane snap visible={!isOpen}>
                         <Spin spinning={props.loading}>
                             <div style={{marginRight: "10px", marginBottom: "10px"}}>
                                 <AuthorizationModel title={
@@ -39,7 +47,7 @@ function PlayOutput(props) {
                     <Allotment.Pane snap>
                         <Spin spinning={props.loading}>
                             <div style={{marginRight: "12px", marginTop: "12px"}}>
-                                <AuthorizationData title={
+                                <AuthorizationData open={open} reset={reset} title={
                                     <div>
                                         <span className="mr-8">Authorization Data</span>
                                         <Tooltip placement="right" color="black"
@@ -53,8 +61,9 @@ function PlayOutput(props) {
                     </Allotment.Pane>
                 </Allotment>
             </Allotment.Pane>
-            <Allotment.Pane snap>
-                <Allotment vertical defaultSizes={[180, 120]} ref={ref}>
+            <Allotment.Pane snap visible={!isOpen}>
+                <Allotment vertical defaultSizes={[180, 120]}>
+
                     <Allotment.Pane snap>
                         <Spin spinning={props.loading}>
                             <div style={{marginLeft: "12px"}}>
@@ -62,11 +71,13 @@ function PlayOutput(props) {
                             </div>
                         </Spin>
                     </Allotment.Pane>
+
                     <Allotment.Pane snap>
                         <div style={{marginLeft: "12px", marginTop: "12px"}}>
                             <Enforcement title={""} hidden={false}/>
                         </div>
                     </Allotment.Pane>
+
                 </Allotment>
             </Allotment.Pane>
         </Allotment>
