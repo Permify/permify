@@ -60,12 +60,6 @@ func (engine *CheckEngine) Check(ctx context.Context, request *base.PermissionCh
 		CheckCount: 0,
 	})
 
-	// Validate depth of request
-	err = checkDepth(request)
-	if err != nil {
-		return emptyResp, err
-	}
-
 	// Retrieve entity definition
 	var en *base.EntityDefinition
 	en, _, err = engine.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
@@ -87,15 +81,11 @@ func (engine *CheckEngine) Check(ctx context.Context, request *base.PermissionCh
 		return emptyResp, err
 	}
 
-	// Handle caching and exclusion logic for non-permission permissions
-	if tor != base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
-		res.Metadata = increaseCheckCount(res.Metadata)
-		if request.GetMetadata().GetExclusion() {
-			if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-				return denied(res.Metadata), nil
-			}
-			return allowed(res.Metadata), nil
+	if request.GetMetadata().GetExclusion() {
+		if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
+			return denied(res.Metadata), nil
 		}
+		return allowed(res.Metadata), nil
 	}
 
 	return &base.PermissionCheckResponse{
@@ -253,12 +243,7 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 					},
 					Permission: subject.GetRelation(),
 					Subject:    request.GetSubject(),
-					Metadata: &base.PermissionCheckRequestMetadata{
-						SchemaVersion: request.Metadata.GetSchemaVersion(),
-						Exclusion:     request.Metadata.GetExclusion(),
-						SnapToken:     request.Metadata.GetSnapToken(),
-						Depth:         request.Metadata.Depth - 1,
-					},
+					Metadata:   request.GetMetadata(),
 				}))
 			}
 		}
@@ -330,7 +315,7 @@ func (engine *CheckEngine) checkComputedUserSet(ctx context.Context, request *ba
 			SchemaVersion: request.Metadata.GetSchemaVersion(),
 			Exclusion:     exclusion,
 			SnapToken:     request.Metadata.GetSnapToken(),
-			Depth:         request.Metadata.Depth - 1,
+			Depth:         request.Metadata.GetDepth(),
 		},
 	})
 }
@@ -362,7 +347,6 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 	}
 
 	decisionChan := make(chan CheckResponse, len(functions))
-
 	cancelCtx, cancel := context.WithCancel(ctx)
 
 	clean := run(cancelCtx, functions, decisionChan, limit)
