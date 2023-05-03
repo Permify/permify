@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/pkg/errors"
@@ -197,12 +198,21 @@ func NewConfigWithFile(dir string) (*Config, error) {
 
 	viper.SetConfigFile(dir)
 
+	err := isYAML(dir)
+	if err != nil {
+		return nil, err
+	}
+
 	// Read the config file
-	err := viper.ReadInConfig()
+	err = viper.ReadInConfig()
 	// If there's an error during reading the config file
 	if err != nil {
 		// Check if the error is because of the config file not being found
 		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok {
+			// If it's not a "file not found" error, return the error with a message
+			return nil, fmt.Errorf("failed to load server config: %w", err)
+		}
+		if ok := errors.As(err, &viper.ConfigMarshalError{}); !ok {
 			// If it's not a "file not found" error, return the error with a message
 			return nil, fmt.Errorf("failed to load server config: %w", err)
 		}
@@ -289,4 +299,14 @@ func DefaultConfig() *Config {
 			SeedNodes: nil,
 		},
 	}
+}
+
+func isYAML(file string) error {
+
+	ext := filepath.Ext(file)
+	if ext != "yaml" {
+		return errors.New("file is not yaml")
+	}
+	return nil
+
 }
