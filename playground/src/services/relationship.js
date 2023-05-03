@@ -1,6 +1,6 @@
 export function WriteTuple(tuple) {
     return new Promise((resolve) => {
-        let res = window.writeTuple(JSON.stringify(tuple), "")
+        let res = window.writeTuple(JSON.stringify(tuple))
         resolve(res);
     });
 }

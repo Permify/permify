@@ -18,7 +18,7 @@ function PlayOutput(props) {
     }
 
     return (
-        <Allotment defaultSizes={[130, 120]}>
+        <Allotment defaultSizes={[130, 100]}>
             <Allotment.Pane>
                 <Allotment vertical defaultSizes={[180, 120]}>
                     <Allotment.Pane snap>

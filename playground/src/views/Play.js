@@ -1,5 +1,5 @@
 import React, {Suspense, useEffect, useState} from 'react'
-import {useLocation, useNavigate, useParams} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import yaml from "js-yaml";
 import axios from "axios";
 import {shallowEqual, useDispatch, useSelector} from "react-redux";
