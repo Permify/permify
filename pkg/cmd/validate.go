@@ -20,7 +20,7 @@ import (
 	"github.com/Permify/permify/pkg/cmd/flags"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
-	"github.com/Permify/permify/pkg/development/validation"
+	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
@@ -102,13 +102,13 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// create a new decoder from the url
-		decoder, err := validation.NewDecoderFromURL(u)
+		decoder, err := file.NewDecoderFromURL(u)
 		if err != nil {
 			return err
 		}
 
 		// create a new shape
-		s := &validation.Shape{}
+		s := &file.Shape{}
 
 		// decode the schema from the decoder
 		err = decoder.Decode(s)
