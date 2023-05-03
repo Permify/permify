@@ -10,8 +10,8 @@ import (
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/servers"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/ast"
@@ -40,7 +40,7 @@ func NewContainer() *Development {
 	// Create a new logger instance
 	l := logger.New("debug")
 
-	// Create instances of repositories using the factories package
+	// Create instances of storage using the factories package
 	relationshipReader := factories.RelationshipReaderFactory(db, l)
 	relationshipWriter := factories.RelationshipWriterFactory(db, l)
 	schemaReader := factories.SchemaReaderFactory(db, l)
@@ -64,7 +64,7 @@ func NewContainer() *Development {
 
 	checkEngine.SetInvoker(invoker)
 
-	// Create a new container instance with engines, repositories, and other dependencies
+	// Create a new container instance with engines, storage, and other dependencies
 	return &Development{
 		Container: servers.NewContainer(
 			invoker,
@@ -194,11 +194,11 @@ func (c *Development) WriteSchema(ctx context.Context, schema string) (err error
 	version := xid.New().String()
 
 	// Create a new slice to hold the schema definitions
-	cnf := make([]repositories.SchemaDefinition, 0, len(sch.Statements))
+	cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
 
 	// Convert each statement in the AST into a schema definition and append it to the cnf slice
 	for _, st := range sch.Statements {
-		cnf = append(cnf, repositories.SchemaDefinition{
+		cnf = append(cnf, storage.SchemaDefinition{
 			TenantID:             "t1",
 			Version:              version,
 			EntityType:           st.(*ast.EntityStatement).Name.Literal,

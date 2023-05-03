@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/internal/storage/mocks"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"

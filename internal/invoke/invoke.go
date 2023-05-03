@@ -5,7 +5,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 )
@@ -46,9 +46,9 @@ type LookupEntity interface {
 // It holds references to various engines needed for permission-related operations.
 type DirectInvoker struct {
 	// schemaReader is responsible for reading schema information
-	schemaReader repositories.SchemaReader
+	schemaReader storage.SchemaReader
 	// relationshipReader is responsible for reading relationship information
-	relationshipReader repositories.RelationshipReader
+	relationshipReader storage.RelationshipReader
 	// Check engine for permission checks
 	cc Check
 	// Expand engine for expanding permissions
@@ -61,8 +61,8 @@ type DirectInvoker struct {
 // It takes pointers to CheckEngine, ExpandEngine, LookupSchemaEngine, and LookupEntityEngine as arguments
 // and returns an Invoker instance.
 func NewDirectInvoker(
-	schemaReader repositories.SchemaReader,
-	relationshipReader repositories.RelationshipReader,
+	schemaReader storage.SchemaReader,
+	relationshipReader storage.RelationshipReader,
 	cc Check,
 	ec Expand,
 	le LookupEntity,

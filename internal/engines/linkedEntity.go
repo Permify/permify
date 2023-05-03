@@ -7,8 +7,8 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -16,15 +16,15 @@ import (
 // LinkedEntityEngine is responsible for executing linked entity operations
 type LinkedEntityEngine struct {
 	// schemaReader is responsible for reading schema information
-	schemaReader repositories.SchemaReader
+	schemaReader storage.SchemaReader
 	// relationshipReader is responsible for reading relationship information
-	relationshipReader repositories.RelationshipReader
+	relationshipReader storage.RelationshipReader
 	// schemaMap is a map that keeps track of schema versions
 	schemaMap sync.Map
 }
 
 // NewLinkedEntityEngine creates a new LinkedEntity engine
-func NewLinkedEntityEngine(schemaReader repositories.SchemaReader, relationshipReader repositories.RelationshipReader) *LinkedEntityEngine {
+func NewLinkedEntityEngine(schemaReader storage.SchemaReader, relationshipReader storage.RelationshipReader) *LinkedEntityEngine {
 	return &LinkedEntityEngine{
 		schemaReader:       schemaReader,
 		relationshipReader: relationshipReader,
@@ -34,10 +34,10 @@ func NewLinkedEntityEngine(schemaReader repositories.SchemaReader, relationshipR
 
 // LinkedEntity is a method of the LinkedEntityEngine struct. It executes a permission request for linked entities.
 func (engine *LinkedEntityEngine) LinkedEntity(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) (err error) { // Returns an error if one occurs during execution.
 	// Check if direct result
 	if request.GetEntityReference().GetType() == request.GetSubject().GetType() && request.GetEntityReference().GetRelation() == request.GetSubject().GetRelation() {
@@ -120,12 +120,12 @@ func (engine *LinkedEntityEngine) LinkedEntity(
 
 // relationEntrance is a method of the LinkedEntityEngine struct. It handles relation entrances.
 func (engine *LinkedEntityEngine) relationEntrance(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
-	entrance *schema.LinkedEntrance, // A linked entrance.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	entrance *schema.LinkedEntrance,             // A linked entrance.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group,                           // An errgroup used for executing goroutines.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
 	it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 		Entity: &base.EntityFilter{
@@ -160,17 +160,17 @@ func (engine *LinkedEntityEngine) relationEntrance(
 
 // tupleToUserSetEntrance is a method of the LinkedEntityEngine struct. It handles tuple to user set entrances.
 func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
-	// A context used for tracing and cancellation.
+// A context used for tracing and cancellation.
 	ctx context.Context,
-	// A permission request for linked entities.
+// A permission request for linked entities.
 	request *base.PermissionLinkedEntityRequest,
-	// A linked entrance.
+// A linked entrance.
 	entrance *schema.LinkedEntrance,
-	// A map that keeps track of visited entities to avoid infinite loops.
+// A map that keeps track of visited entities to avoid infinite loops.
 	visits *ERMap,
-	// An errgroup used for executing goroutines.
+// An errgroup used for executing goroutines.
 	g *errgroup.Group,
-	// A custom publisher that publishes results in bulk.
+// A custom publisher that publishes results in bulk.
 	publisher *BulkPublisher,
 ) error { // Returns an error if one occurs during execution.
 	for _, relation := range []string{tuple.ELLIPSIS, request.GetSubject().GetRelation()} {
@@ -208,12 +208,12 @@ func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
 
 // run is a method of the LinkedEntityEngine struct. It executes the linked entity engine for a given request.
 func (engine *LinkedEntityEngine) l(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
-	found *base.EntityAndRelation, // An entity and relation that was previously found.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	found *base.EntityAndRelation,               // An entity and relation that was previously found.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group,                           // An errgroup used for executing goroutines.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
 
 	if !visits.Add(found) { // If the entity and relation has already been visited.
