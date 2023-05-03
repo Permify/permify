@@ -80,10 +80,22 @@ func NewDirectInvoker(
 // It calls the Run method of the CheckEngine with the provided context and PermissionCheckRequest,
 // and returns a PermissionCheckResponse and an error if any.
 func (invoker *DirectInvoker) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+	// Start a new tracing span to measure the performance of the Check function.
 	ctx, span := tracer.Start(ctx, "permissions.check")
 	defer span.End()
 
-	// Set SnapToken if not provided
+	// Validate the depth of the request.
+	err = checkDepth(request)
+	if err != nil {
+		return &base.PermissionCheckResponse{
+			Can: base.PermissionCheckResponse_RESULT_DENIED,
+			Metadata: &base.PermissionCheckResponseMetadata{
+				CheckCount: 0,
+			},
+		}, err
+	}
+
+	// Set the SnapToken if it's not provided in the request.
 	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
@@ -98,7 +110,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		request.Metadata.SnapToken = st.Encode().String()
 	}
 
-	// Set SchemaVersion if not provided
+	// Set the SchemaVersion if it's not provided in the request.
 	if request.GetMetadata().GetSchemaVersion() == "" {
 		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
@@ -111,7 +123,23 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		}
 	}
 
-	return invoker.cc.Check(ctx, request)
+	// Decrease the depth of the request metadata.
+	request.Metadata = decreaseDepth(request.GetMetadata())
+
+	// Perform the actual permission check using the provided request.
+	response, err = invoker.cc.Check(ctx, request)
+	if err != nil {
+		return &base.PermissionCheckResponse{
+			Can: base.PermissionCheckResponse_RESULT_DENIED,
+			Metadata: &base.PermissionCheckResponseMetadata{
+				CheckCount: 0,
+			},
+		}, err
+	}
+
+	// Increase the check count in the response metadata.
+	response.Metadata = increaseCheckCount(response.Metadata)
+	return
 }
 
 // Expand is a method that implements the Expand interface.
