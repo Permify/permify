@@ -28,7 +28,7 @@ type Hashring struct {
 
 // NewCheckEngineWithHashring creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.ConsistentHash, g *gossip.Engine, port string, l *logger.Logger) (invoke.Check, error) {
+func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.ConsistentHash, g *gossip.Gossip, port string, l *logger.Logger) (invoke.Check, error) {
 	// Return a new instance of EngineKeys with the provided cache
 
 	ip, err := gossip.ExternalIP()

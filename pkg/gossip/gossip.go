@@ -6,12 +6,9 @@ import (
 	"io"
 	"log"
 	"net"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/memberlist"
-
-	"github.com/Permify/permify/internal/config"
 )
 
 type IGossip interface {
@@ -19,53 +16,48 @@ type IGossip interface {
 	Shutdown() error
 }
 
-type Engine struct {
+type Gossip struct {
 	Enabled    bool
 	memberList *memberlist.Memberlist
 }
 
 // InitMemberList initializes a memberlist instance with the provided seed nodes and config.
-func InitMemberList(seedNodes []string, cfg config.Distributed) (*Engine, error) {
+func InitMemberList(nodes []string, grpcPort int) (*Gossip, error) {
 	conf := memberlist.DefaultLocalConfig()
 
 	conf.Logger = log.New(io.Discard, "", 0)
 
-	conf.BindAddr = "0.0.0.0"
-	port, err := strconv.Atoi(cfg.AdvertisePort)
-	if err != nil {
-		return nil, fmt.Errorf("port convert error: %v", err)
-	}
-	conf.BindPort = port
+	//conf.BindAddr = "0.0.0.0"
+	//conf.BindPort = gossipPort
 
 	ip, err := ExternalIP()
 	if err != nil {
 		return nil, fmt.Errorf("external ip error: %v", err)
 	}
 
-	// config.AdvertiseAddr and config.AdvertisePort are used to tell other nodes how to reach this node.
 	conf.AdvertiseAddr = ip
-	conf.AdvertisePort = port
+	conf.AdvertisePort = grpcPort
 
 	list, err := memberlist.Create(conf)
 	if err != nil {
 		return nil, fmt.Errorf("memberlist Create Error %v", err)
 	}
 
-	if len(seedNodes) > 0 {
-		_, err := list.Join(seedNodes)
+	if len(nodes) > 0 {
+		_, err := list.Join(nodes)
 		if err != nil {
 			return nil, fmt.Errorf("starter ring join error: %v", err)
 		}
 	}
 
-	return &Engine{
+	return &Gossip{
 		Enabled:    true,
 		memberList: list,
 	}, nil
 }
 
 // SyncMemberList returns a list of all nodes in the cluster.
-func (g *Engine) SyncMemberList() (nodes []string) {
+func (g *Gossip) SyncMemberList() (nodes []string) {
 	members := g.memberList.Members()
 	for _, member := range members {
 		nodes = append(nodes, member.Address())
@@ -75,7 +67,7 @@ func (g *Engine) SyncMemberList() (nodes []string) {
 }
 
 // Shutdown gracefully shuts down the memberlist instance.
-func (g *Engine) Shutdown() error {
+func (g *Gossip) Shutdown() error {
 	return errors.Join(g.memberList.Leave(time.Second), g.memberList.Shutdown())
 }
 

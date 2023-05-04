@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/signal"
+	`strconv`
 	"syscall"
 
 	"github.com/Permify/permify/internal/engines/consistent"
@@ -157,12 +158,12 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		var gossipEngine *gossip.Engine
+		var gossipEngine *gossip.Gossip
 		var consistencyChecker *hash.ConsistentHash
 		if cfg.Distributed.Enabled {
 			l.Info("🔗 starting distributed mode...")
 
-			consistencyChecker = hash.NewConsistentHash(100, cfg.Distributed.SeedNodes, nil)
+			consistencyChecker = hash.NewConsistentHash(100, cfg.Distributed.Nodes, nil)
 
 			externalIP, err := gossip.ExternalIP()
 			if err != nil {
@@ -172,7 +173,12 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 			consistencyChecker.Add(externalIP + ":" + cfg.HTTP.Port)
 
-			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.SeedNodes, cfg.Distributed)
+			grpcPort, err := strconv.Atoi(cfg.Server.GRPC.Port)
+			if err != nil {
+				return err
+			}
+
+			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.Nodes, grpcPort)
 			if err != nil {
 				l.Info("🔗 failed to start distributed mode: %s ", err.Error())
 				return err

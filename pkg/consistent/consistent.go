@@ -16,7 +16,7 @@ const (
 
 type Consistent interface {
 	Add(node string)
-	SyncNodes(g *gossip.Engine)
+	SyncNodes(g *gossip.Gossip)
 	AddWithReplicas(node string, replicas int)
 	AddWithWeight(node string, weight int)
 	Get(v string) (string, bool)
@@ -37,7 +37,7 @@ type (
 	}
 )
 
-func NewConsistentHash(replicas int, seedNodes []string, fn Func) *ConsistentHash {
+func NewConsistentHash(replicas int, nodes []string, fn Func) *ConsistentHash {
 	if replicas < minReplicas {
 		replicas = minReplicas
 	}
@@ -53,8 +53,8 @@ func NewConsistentHash(replicas int, seedNodes []string, fn Func) *ConsistentHas
 		nodes:    make(map[string]struct{}),
 	}
 
-	for i := range seedNodes {
-		consistent.Add(seedNodes[i])
+	for i := range nodes {
+		consistent.Add(nodes[i])
 	}
 
 	return consistent
@@ -64,7 +64,7 @@ func (h *ConsistentHash) Add(node string) {
 	h.AddWithReplicas(node, h.replicas)
 }
 
-func (h *ConsistentHash) SyncNodes(g *gossip.Engine) {
+func (h *ConsistentHash) SyncNodes(g *gossip.Gossip) {
 	nodes := g.SyncMemberList()
 
 	consistentNodes := h.nodes
