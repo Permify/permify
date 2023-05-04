@@ -1,7 +1,6 @@
 package internal
 
 /*
-
 ✨ OneLiner: Open-source authorization service inspired by Google Zanzibar
 
 📚 Docs: https://docs.permify.co
@@ -11,7 +10,6 @@ package internal
 💬 Discord: https://discord.gg/MJbUjwskdH
 🐦 Twitter: https://twitter.com/GetPermify
 💼 LinkedIn: https://www.linkedin.com/company/permifyco
-
 */
 const (
 	// Version is the last release of the Permify (e.g. v0.1.0)
