@@ -11,11 +11,27 @@ import (
 	"github.com/hashicorp/memberlist"
 )
 
+// IGossip is an interface that represents the basic operations
+// of a gossip-based membership protocol. Implementations of this
+// interface should provide mechanisms for synchronizing cluster
+// membership and managing the lifecycle of the gossip protocol.
 type IGossip interface {
+	// SyncMemberList retrieves the current list of nodes in the
+	// gossip cluster and returns them as a slice of strings.
 	SyncMemberList() (nodes []string)
+
+	// Shutdown gracefully stops the gossip protocol and performs
+	// any necessary cleanup. It returns an error if the shutdown
+	// process encounters any issues.
 	Shutdown() error
 }
 
+// Gossip is a struct that represents a gossip-based membership
+// protocol implementation using the Memberlist library. It contains
+// the following fields:
+//   - Enabled: a boolean that indicates if the gossip protocol is enabled.
+//   - memberList: a pointer to the memberlist.Memberlist instance, which
+//     manages the cluster membership and communication between nodes.
 type Gossip struct {
 	Enabled    bool
 	memberList *memberlist.Memberlist
@@ -23,26 +39,29 @@ type Gossip struct {
 
 // InitMemberList initializes a memberlist instance with the provided seed nodes and config.
 func InitMemberList(nodes []string, grpcPort int) (*Gossip, error) {
+	// Set up the default configuration for the memberlist.
 	conf := memberlist.DefaultLocalConfig()
 
+	// Discard logging to avoid cluttering the console.
 	conf.Logger = log.New(io.Discard, "", 0)
 
-	//conf.BindAddr = "0.0.0.0"
-	//conf.BindPort = gossipPort
-
+	// Get the external IP address of the local machine.
 	ip, err := ExternalIP()
 	if err != nil {
 		return nil, fmt.Errorf("external ip error: %v", err)
 	}
 
+	// Set the IP and port that the memberlist will advertise to other nodes.
 	conf.AdvertiseAddr = ip
 	conf.AdvertisePort = grpcPort
 
+	// Create a new memberlist instance with the provided configuration.
 	list, err := memberlist.Create(conf)
 	if err != nil {
 		return nil, fmt.Errorf("memberlist Create Error %v", err)
 	}
 
+	// If seed nodes are provided, attempt to join them.
 	if len(nodes) > 0 {
 		_, err := list.Join(nodes)
 		if err != nil {
@@ -50,6 +69,7 @@ func InitMemberList(nodes []string, grpcPort int) (*Gossip, error) {
 		}
 	}
 
+	// Return a new Gossip instance with the initialized memberlist.
 	return &Gossip{
 		Enabled:    true,
 		memberList: list,
