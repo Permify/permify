@@ -2,11 +2,19 @@
     Prism.languages.perm = Prism.languages.extend('clike', {
         'class-name': [
             {
+                pattern: /\\B@\\w+#?\\w+/,
+                lookbehind: true
+            },
+            {
                 pattern: /(\b(?:entity)\s+)(\w+\/)?\w*(?=\s*\{)/,
                 lookbehind: true
             },
             {
                 pattern: /(\b(?:action)\s+)\w+(?=\s*\=)/,
+                lookbehind: true
+            },
+            {
+                pattern: /(\b(?:permission)\s+)\w+(?=\s*\=)/,
                 lookbehind: true
             },
             {
@@ -26,6 +34,6 @@
                 lookbehind: true
             },
         ],
-        'keyword': /\b(?:entity|relation|action|or|not|and)\b(?!\s*=\s*\d)/,
+        'keyword': /\b(?:entity|permission|relation|action|or|not|and)\b(?!\s*=\s*\d)/,
     });
 }(Prism));

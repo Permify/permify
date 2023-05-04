@@ -515,9 +515,18 @@ relationships:
     - comment:task_list_2_comment_2#block@block:task_list_2
     - comment:task_list_2_comment_2#author@user:charlie
 
-assertions:
-    - "can user:alice write database:task_list": true
-    - "user:charlie write page:product_spec": false
+scenarios:
+  - name: "scenario 1"
+    description: "test description"
+    checks:
+      - entity: "database:task_list"
+        subject: "user:alice"
+        assertions:
+          write : true
+      - entity: "page:product_spec"
+        subject: "user:charlie"
+        assertions:
+          write : false
 ```
 
 ### Using Schema Validator in Local

@@ -513,9 +513,18 @@ relationships:
     - event:1#owner@user:3
     - event:1#group@group:1
 
-assertions:
-    - "can user:4 RSVP_to_event event:1": false
-    - "can user:5 view_comment comment:1": true
+scenarios:
+  - name: "scenario 1"
+    description: "test description"
+    checks:
+      - entity: "event:1"
+        subject: "user:4"
+        assertions:
+          RSVP_to_event : false
+      - entity: "comment:1"
+        subject: "user:5"
+        assertions:
+          view_comment : true
 ```
 
 ### Using Schema Validator in Local
