@@ -85,5 +85,4 @@ database:
 
 distributed:
   enabled: false
-  #seed_nodes: ["permify-1:3480", "permify-2:3480", "permify-3:3480"]
-  #advertise_port: 3480
+  nodes: ["permify-1:3480", "permify-2:3480", "permify-3:3480"]
