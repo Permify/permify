@@ -12,7 +12,7 @@
     <a href="https://github.com/Permify/permify/pkgs/container/permify" target="_blank"><img src="https://img.shields.io/github/v/release/permify/permify?include_prereleases&style=for-the-badge" alt="Permify Release" /></a>&nbsp;
     <a href="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge" alt="Permify Commit Activity" /></a>&nbsp;
     <a href="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" alt="GitHub Workflow Status" /></a>&nbsp;
-    <a href="https://play.permify.co" target="_blank"><img src="https://img.shields.io/badge/Try-Permify%20Playground-blueviolet?style=for-the-badge" alt="Try Permify" /></a>
+    <a href="https://scrutinizer-ci.com/g/Permify/permify/?branch=master" target="_blank"><img src="https://img.shields.io/scrutinizer/quality/g/Permify/permify/master?style=for-the-badge" alt="Scrutinizer code quality (GitHub/Bitbucket)" /></a>&nbsp;
 </p>
 
 <p align="center">
@@ -27,6 +27,10 @@ With Permify you can easily structure your authorization model, store authorizat
 Permify's data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
 **Looking for Permify Managed Service?** See our [pricing plans](https://permify.co/pricing/1).
+
+<br>
+<a href="https://docs.permify.co" target="_blank"><img src="https://img.shields.io/badge/view%20documentation-blue?style=for-the-badge" alt="View Documentation" /></a>&nbsp;
+<a href="https://play.permify.co" target="_blank"><img src="https://img.shields.io/badge/try%20playground-blueviolet?style=for-the-badge" alt="Try Playground" /></a>&nbsp;
 
 ## Key Features
 

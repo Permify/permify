@@ -16,7 +16,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
       email: "hello@permify.co";
     };
     license: {
-      name: "GNU Affero General Public License v3.0";
+      name: "Apache-2.0 license";
       url: "https://github.com/Permify/permify/blob/master/LICENSE";
     }
   };

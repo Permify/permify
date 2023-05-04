@@ -26,9 +26,9 @@ type (
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		Address string                `mapstructure:"address"` // Address for the server
-		HTTP    `mapstructure:"http"` // HTTP server configuration
-		GRPC    `mapstructure:"grpc"` // gRPC server configuration
+		Address string `mapstructure:"address"` // Address for the server
+		HTTP    `mapstructure:"http"`           // HTTP server configuration
+		GRPC    `mapstructure:"grpc"`           // gRPC server configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.
@@ -147,9 +147,8 @@ type (
 	}
 
 	Distributed struct {
-		Enabled       bool     `mapstructure:"enabled"`
-		SeedNodes     []string `mapstructure:"seed_nodes"`
-		AdvertisePort string   `mapstructure:"advertise_port"`
+		Enabled bool     `mapstructure:"enabled"`
+		Nodes   []string `mapstructure:"nodes"`
 	}
 )
 
@@ -295,8 +294,8 @@ func DefaultConfig() *Config {
 			},
 		},
 		Distributed: Distributed{
-			Enabled:   false,
-			SeedNodes: nil,
+			Enabled: false,
+			Nodes:   []string{},
 		},
 	}
 }
