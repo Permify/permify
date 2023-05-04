@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 services:
   permify:
     image: "ghcr.io/permify/permify:latest"
@@ -17,3 +17,15 @@ services:
     environment:
       - "POSTGRES_PASSWORD=secret"
       - "POSTGRES_DB=permify"
+
+  integration:
+    build:
+      context: .
+      dockerfile: integration-test/Dockerfile
+    container_name: integration
+    image: integration
+    depends_on:
+      - permify
+
+volumes:
+  pg-data:

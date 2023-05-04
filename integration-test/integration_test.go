@@ -17,7 +17,7 @@ const (
 	attempts   = 20
 
 	// HTTP REST
-	// basePath = "http://" + host + "/v1"
+	basePath = "http://" + host + "/v1"
 )
 
 func TestMain(m *testing.M) {
@@ -49,4 +49,46 @@ func healthCheck(attempts int) error {
 	}
 
 	return err
+}
+
+// HTTP POST: /translation/do-translate.
+func TestHTTPCheckRequest(t *testing.T) {
+
+	body := `{
+    	"schema": "entity user {} \n\nentity account {\n    // roles \n    relation admin @user    \n    relation member @user    \n    relation parent_account @account\n\n    action add_member = admin or parent_account.add_member\n    action delete_member = admin\n\n}"
+	}`
+
+	Test(t,
+		Description("Create Schema"),
+		Post(basePath+"/tenants/t1/schemas/write"),
+		Send().Headers("Content-Type").Add("application/json"),
+		Send().Body().String(body),
+		Expect().Status().Equal(http.StatusOK),
+	)
+
+	body = `{
+    	"metadata": {
+        	"snap_token": "",
+        	"schema_version": "",
+        	"depth": 100
+    	},
+    	"entity": {
+        	"type": "account",
+        	"id": "r1"
+    	},
+    	"permission": "add_member",
+    	"subject": {
+        	"type": "user",
+        	"id": "u1"
+    	}
+	}`
+	Test(t,
+		Description("Check"),
+		Post(basePath+"/tenants/t1/permissions/check"),
+		Send().Headers("Content-Type").Add("application/json"),
+		Send().Body().String(body),
+		Expect().Status().Equal(http.StatusOK),
+		Expect().Body().JSON().JQ(".can").Equal("RESULT_DENIED"),
+	)
+
 }
