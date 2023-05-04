@@ -53,7 +53,6 @@ func healthCheck(attempts int) error {
 
 // HTTP POST: /translation/do-translate.
 func TestHTTPCheckRequest(t *testing.T) {
-
 	body := `{
     	"schema": "entity user {} \n\nentity account {\n    // roles \n    relation admin @user    \n    relation member @user    \n    relation parent_account @account\n\n    action add_member = admin or parent_account.add_member\n    action delete_member = admin\n\n}"
 	}`
@@ -90,5 +89,4 @@ func TestHTTPCheckRequest(t *testing.T) {
 		Expect().Status().Equal(http.StatusOK),
 		Expect().Body().JSON().JQ(".can").Equal("RESULT_DENIED"),
 	)
-
 }

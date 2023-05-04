@@ -19,29 +19,30 @@ import (
 
 // Hashring is a wrapper around the consistent hash implementation that
 type Hashring struct {
-	checker          invoke.Check
-	gossip           gossip.IGossip
-	consistent       hash.Consistent
-	localNodeAddress string
-	l                *logger.Logger
+	checker           invoke.Check
+	gossip            gossip.IGossip
+	consistent        hash.Consistent
+	localNodeAddress  string
+	connectionOptions []grpc.DialOption
+	l                 *logger.Logger
 }
 
 // NewCheckEngineWithHashring creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.ConsistentHash, g *gossip.Gossip, port string, l *logger.Logger) (invoke.Check, error) {
+func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.ConsistentHash, g *gossip.Gossip, port string, l *logger.Logger, options ...grpc.DialOption) (invoke.Check, error) {
 	// Return a new instance of EngineKeys with the provided cache
-
 	ip, err := gossip.ExternalIP()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Hashring{
-		checker:          checker,
-		localNodeAddress: ip + ":" + port,
-		gossip:           g,
-		consistent:       consistent,
-		l:                l,
+		checker:           checker,
+		localNodeAddress:  ip + ":" + port,
+		gossip:            g,
+		consistent:        consistent,
+		connectionOptions: options,
+		l:                 l,
 	}, nil
 }
 
@@ -96,7 +97,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 // forwardRequestGetToNode forwards a request to the responsible node
 func (c *Hashring) forwardRequestToNode(ctx context.Context, node string, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(node, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.DialContext(ctx, node, c.connectionOptions...)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
