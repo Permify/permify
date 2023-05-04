@@ -26,9 +26,9 @@ type (
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		Address string `mapstructure:"address"` // Address for the server
-		HTTP    `mapstructure:"http"`           // HTTP server configuration
-		GRPC    `mapstructure:"grpc"`           // gRPC server configuration
+		Address string                `mapstructure:"address"` // Address for the server
+		HTTP    `mapstructure:"http"` // HTTP server configuration
+		GRPC    `mapstructure:"grpc"` // gRPC server configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.
@@ -301,11 +301,9 @@ func DefaultConfig() *Config {
 }
 
 func isYAML(file string) error {
-
 	ext := filepath.Ext(file)
 	if ext != "yaml" {
 		return errors.New("file is not yaml")
 	}
 	return nil
-
 }
