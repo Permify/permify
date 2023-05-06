@@ -32,6 +32,20 @@ permify serve --help
 In addition to CLI flags, Permify also supports configuration via environment variables. You can replace any flags' argument with an environment variable by converting dashes into underscores and prefixing with PERMIFY_ (e.g. **--log-level** becomes **PERMIFY_LOG_LEVEL**). 
 :::
 
+### Configure With Using Config File
+
+You can also configure Permify Service with using a configuration file.
+
+```shell
+ permify serve -c=config.yaml
+```
+
+or 
+
+```shell
+ permify serve --config=config.yaml
+```
+
 ### Test your connection.
 
 You can test your connection with creating an HTTP GET request,
