@@ -33,7 +33,7 @@ function Share(props) {
             bordered={true}
             footer={null}
         >
-            <div style={{display: "flex", gap: "8px", marginBottom: "15px"}}>
+            <div style={{display: "flex", gap: "8px", marginBottom: "15px", marginTop: "20px"}}>
                 <Input
                     defaultValue={`https://play.permify.co/?s=${props.id}`}
                 />
