@@ -1,7 +1,8 @@
 import React, {useState} from 'react'
-import {Alert, Button, Input, Result, Spin} from "antd";
-import {InfoCircleOutlined} from "@ant-design/icons";
+import {Alert, Button, Input, Result, Spin, Typography} from "antd";
 import {CheckPermission} from "../../../services/permission";
+
+const {Paragraph} = Typography;
 
 function Check(props) {
 
@@ -106,9 +107,9 @@ function Check(props) {
         setError("")
         setLoading(true)
         CheckPermission(entity, permission, subject).then(res => {
-            if (res[1] != null) {
-                setError(res[1].replaceAll('_', ' '))
-            }
+            // if (res[1] != null) {
+            //     setError(res[1].replaceAll('_', ' '))
+            // }
             setResult(res[0])
             setLoading(false)
         })
@@ -126,7 +127,7 @@ function Check(props) {
                             width: '85%',
                         }}
                         onChange={onQueryChange}
-                        placeholder="user:1 push repository:1"
+                        placeholder="user:1 edit document:2"
                         className="border-radius-right-none border-right-none"
                         size="large"
                     />
@@ -135,44 +136,22 @@ function Check(props) {
                     }} type="primary" size="large" className="border-radius-left-none" disabled={!queryIsValid}
                             onClick={onCheck}>Check</Button>
                 </Input.Group>
-                <span><span className="text-grey">subject:id</span> <span className="text-grey">permission (permission or relation)</span> <span
-                    className="text-grey">entity:id</span></span>
                 {result != null ?
                     <>
                         {result ?
-                            <Result className="pt-12"
+                            <Result className="pt-20"
                                     status="success"
-                                    title={subject.relation ?
-                                        <>
-                                            {subject.type}:{subject.id}#{subject.relation} {permission} {entity.type}:{entity.id}
-                                        </>
-                                        :
-                                        <>
-                                            {subject.type}:{subject.id} {permission} {entity.type}:{entity.id}
-                                        </>
-                                    }
+                                    title={"ALLOWED"}
                             />
                             :
-                            <Result className="pt-12"
+                            <Result className="pt-20"
                                     status="error"
-                                    title={subject.relation ?
-                                        <>
-                                            {subject.type}:{subject.id}#{subject.relation}
-                                            not {permission} {entity.type}:{entity.id}
-                                        </>
-                                        :
-                                        <>
-                                            {subject.type}:{subject.id} not {permission} {entity.type}:{entity.id}
-                                        </>
-                                    }
+                                    title={"DENIED"}
                             />
                         }
                     </>
                     :
-                    <Result className="pt-12"
-                            icon={<InfoCircleOutlined/>}
-                            title="Perform your access checks"
-                    />
+                    <Paragraph className="pt-6 pl-2"><blockquote> simple resource based access check takes form of Can the subject U perform action X on a resource Y ?. A real world example would be: <span className="text-grey">user:1 edit document:2</span> where the right side of the ":" represents identifier of the entity.</blockquote></Paragraph>
                 }
             </div>
         </Spin>)

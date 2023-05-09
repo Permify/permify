@@ -17,12 +17,8 @@ function PlayOutput(props) {
         setIsModelReady(value)
     }
 
-    function open() {
-        setIsOpen(true)
-    }
-
-    function reset() {
-        setIsOpen(false)
+    function toggle() {
+        setIsOpen(!isOpen)
     }
 
     return (
@@ -47,7 +43,7 @@ function PlayOutput(props) {
                     <Allotment.Pane snap>
                         <Spin spinning={props.loading}>
                             <div style={{marginRight: "12px", marginTop: "12px"}}>
-                                <AuthorizationData open={open} reset={reset} title={
+                                <AuthorizationData toggle={toggle} title={
                                     <div>
                                         <span className="mr-8">Authorization Data</span>
                                         <Tooltip placement="right" color="black"

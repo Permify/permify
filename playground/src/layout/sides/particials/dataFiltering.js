@@ -1,7 +1,9 @@
 import React, {useState} from 'react'
-import {Alert, Button, Input, Result, Spin} from "antd";
+import {Alert, Button, Input, Result, Spin, Typography} from "antd";
 import {InfoCircleOutlined} from "@ant-design/icons";
 import {FilterData} from "../../../services/permission";
+
+const {Paragraph} = Typography;
 
 function DataFiltering(props) {
 
@@ -14,12 +16,12 @@ function DataFiltering(props) {
 
     const isValid = (value) => {
         let s = value.split(" ")
-        if (s.length !== 5) {
+        if (s.length !== 3) {
             return false
         }
 
         let sIsValid = false
-        let sb = s[2].split(":")
+        let sb = s[1].split(":")
         if (sb.length !== 2) {
             return false
         } else {
@@ -47,9 +49,9 @@ function DataFiltering(props) {
 
     const parseQuery = (value) => {
         let s = value.split(" ")
-        setEntityType(s[1])
+        setEntityType(s[0])
 
-        let sb = s[2].split(":")
+        let sb = s[1].split(":")
         let userSet = sb[1].split("#")
         if (userSet.length === 2) {
             setSubject({
@@ -63,7 +65,7 @@ function DataFiltering(props) {
                 id: sb[1],
             })
         }
-        setPermission(s[4])
+        setPermission(s[2])
     }
 
     const [result, setResult] = useState(null);
@@ -97,32 +99,27 @@ function DataFiltering(props) {
                             width: '85%',
                         }}
                         onChange={onQueryChange}
-                        placeholder="which repository user:1 can edit"
+                        placeholder="document user:1 edit"
                         className="border-radius-right-none border-right-none"
                         size="large"
                     />
                     <Button style={{
                         width: '15%',
                     }} type="primary" size="large" className="border-radius-left-none" disabled={!queryIsValid}
-                            onClick={onQuery}>Run</Button>
+                            onClick={onQuery}>Filter</Button>
                 </Input.Group>
-                <span>which <span className="text-grey">entity</span> <span
-                    className="text-grey">subject:id</span> <span>can</span> <span
-                    className="text-grey">permission (permission or relation)</span></span>
                 {result != null ?
                     <>
                         <div className="pt-12">
                             <span className="text-grey">Result:</span>
-                            <p className="text-primary font-w-600">
+                            <Paragraph className="pt-6 pl-2 text-primary font-w-600">
                                 [{result.join(', ')}]
-                            </p>
+                            </Paragraph>
                         </div>
+                        {/*repository user:1 edit*/}
                     </>
                     :
-                    <Result className="pt-12"
-                            icon={<InfoCircleOutlined/>}
-                            title="Get filtered response"
-                    />
+                    <Paragraph className="pt-6 pl-2"><blockquote>subject based access check takes form of Which resources does subject U perform an action X ? This option is best for filtering data or bulk permission checks. A real world example would be: <span className="text-grey font-w-600">document user:1 edit</span></blockquote></Paragraph>
                 }
             </div>
         </Spin>)

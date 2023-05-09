@@ -24,12 +24,12 @@ function AuthorizationData(props) {
 
     const open = () => {
         setAllotmentStatus("open")
-        props.open()
+        props.toggle()
     };
 
     const reset = () => {
         setAllotmentStatus("default")
-        props.reset()
+        props.toggle()
     };
 
     const [model, setModel] = useState({entityDefinitions: {}});

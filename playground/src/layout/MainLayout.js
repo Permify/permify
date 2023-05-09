@@ -72,7 +72,7 @@ const MainLayout = ({children, ...rest}) => {
                                 <Option key="notion" value="notion">Notion</Option>
                             </OptGroup>
                         </Select>
-                        <Button type="secondary" onClick={() => {
+                        <Button onClick={() => {
                             share()
                         }} icon={<ShareAltOutlined/>}>Share</Button>
                     </div>
@@ -81,7 +81,7 @@ const MainLayout = ({children, ...rest}) => {
                                 href="https://www.permify.co/change-log/permify-playground">
                             How to use playground?
                         </Button>
-                        <Button className="mr-8" type="secondary" target="_blank" icon={<GithubOutlined/>}
+                        <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}
                                 href="https://github.com/Permify/permify">
                             Get Started
                         </Button>

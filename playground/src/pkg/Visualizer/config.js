@@ -6,13 +6,16 @@ function GraphOptions() {
         width: '100%',
         layout: {
             hierarchical: {
-                enabled: false,
+                enabled: true,
                 direction: "UD",
-                sortMethod: "hubsize",
+                sortMethod: "directed",
                 shakeTowards: "roots",
                 levelSeparation: 150,
                 nodeSpacing: 150,
-                treeSpacing: 200
+                treeSpacing: 150,
+                blockShifting: true,
+                edgeMinimization: true,
+                parentCentralization: true,
             }
         },
         interaction: {
@@ -21,24 +24,24 @@ function GraphOptions() {
             keyboard: false,
             hover: true,
             multiselect: true,
-            hoverConnectedEdges: false
+            hoverConnectedEdges: true
         },
         physics: {
-            forceAtlas2Based: {
-                gravitationalConstant: -26,
+            repulsion: {
+                gravitationalConstant: -2000,
                 centralGravity: 0.005,
                 springLength: 250,
                 springConstant: 0.18,
                 avoidOverlap: 1.5
             },
             maxVelocity: 30,
-            solver: "forceAtlas2Based",
-            timestep: 0.25,
+            solver: "repulsion",
+            timestep: 0.5,
             stabilization: {
                 enabled: true,
                 iterations: 1000,
                 updateInterval: 25
-            }
+            },
         },
         nodes: {
             fixed: {
@@ -69,6 +72,7 @@ function GraphOptions() {
         },
         edges: {
             hoverWidth: 1,
+            type: 'continuous',
             arrows: {
                 to: {
                     enabled: true,
@@ -88,7 +92,7 @@ function GraphOptions() {
                 strokeWidth: 6,
                 strokeColor: "#141517"
             },
-            width: 3,
+            width: 2,
             smooth: true
         },
         groups: {
@@ -105,23 +109,22 @@ function GraphOptions() {
                 size: 20,
             },
             permission: {
-                borderRadius: "1px",
                 color: { background: "#5bcc63", border: "#5bcc63" },
-                shapeProperties: { borderDashes: false },
-                shape: "box",
+                scaling: { min: 10 },
+                shape: "dot",
                 size: 20,
             },
-            logic: {
+            operation: {
                 color: { background: "#e53472", border: "#e53472" },
                 shapeProperties: { borderDashes: false },
                 shape: "icon",
                 icon: {
                     face: "FontAwesome",
                     code: "\uf286",
-                    size: 50,
+                    size: 40,
                     color: "#e53472"
                 },
-                size: 15,
+                size: 10,
             },
         },
     };

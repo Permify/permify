@@ -11,7 +11,7 @@ function Visualizer(props) {
         return new Promise((resolve) => {
             let nodes = []
             for (const index in props.graph.nodes) {
-                if (props.graph.nodes[index].type === "logic") {
+                if (props.graph.nodes[index].type === "operation") {
                     nodes.push({
                         id: props.graph.nodes[index].id,
                         label: props.graph.nodes[index].label === "OPERATION_UNION" ? "or" : "and",
@@ -38,7 +38,7 @@ function Visualizer(props) {
                         edges.push({
                             from: props.graph.edges[index].from.id,
                             to: props.graph.edges[index].to.id,
-                            color: {color: 'rgba(99,24,255,0.6)', inherit: false},
+                            color: {color: 'rgba(99,24,255,0.4)', inherit: false},
                             dashes: false,
                             arrows: {
                                 to: {
@@ -51,25 +51,25 @@ function Visualizer(props) {
                         edges.push({
                             from: props.graph.edges[index].from.id,
                             to: props.graph.edges[index].to.id,
-                            color: {color: 'rgba(147,241,238,0.6)', inherit: false},
+                            color: {color: 'rgba(147,241,238,0.4)', inherit: false},
                             dashes: false
                         })
                         break
-                    case "action":
+                    case "permission":
                         edges.push({
                             from: props.graph.edges[index].from.id,
                             to: props.graph.edges[index].to.id,
-                            color: {color: '#5bcc63', inherit: false},
+                            color: {color: 'rgba(91,204,99,0.4)', inherit: false},
                             dashes: false
                         })
                         break
-                    case "logic":
+                    case "operation":
                         if (props.graph.edges[index].from.label === "OPERATION_UNION") {
                             edges.push({
                                 from: props.graph.edges[index].from.id,
                                 to: props.graph.edges[index].to.id,
                                 label: props.graph.edges[index].extra ? "not" : "",
-                                color: {color: 'rgba(229,52,114,0.6)', inherit: false},
+                                color: {color: 'rgba(229,52,114,0.4)', inherit: false},
                                 dashes: true,
                             })
                         } else {
@@ -77,7 +77,7 @@ function Visualizer(props) {
                                 from: props.graph.edges[index].from.id,
                                 to: props.graph.edges[index].to.id,
                                 label: props.graph.edges[index].extra ? "not" : "",
-                                color: {color: 'rgba(229,52,114,0.6)', inherit: false},
+                                color: {color: 'rgba(229,52,114,0.4)', inherit: false},
                                 dashes: false,
                             })
                         }
