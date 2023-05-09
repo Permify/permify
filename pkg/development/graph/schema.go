@@ -1,14 +1,15 @@
 package graph
 
 import (
-	`errors`
+	"errors"
 	"fmt"
-	"github.com/rs/xid"
-	`strings`
+	"strings"
 
-	`github.com/Permify/permify/internal/schema`
+	"github.com/rs/xid"
+
+	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	`github.com/Permify/permify/pkg/tuple`
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // SchemaToGraph takes a schema definition and converts it into a graph
