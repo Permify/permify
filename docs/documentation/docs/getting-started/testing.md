@@ -78,12 +78,44 @@ relationships:
     - "organization:1#member@user:43"
     - "repository:1#owner@user:43"
 
-assertions:
-    - "can user:1 push repository:1": true
-    - "can user:1 push repository:2": false
-    - "can user:1 push repository:3": false
-    - "can user:43 edit repository:1": false
+scenarios:
+  - name: "scenario 1"
+    description: "test description"
+    checks:
+      - entity: "repository:1"
+        subject: "user:1"
+        assertions:
+          push : true
+          owner : true
+      - entity: "repository:2"
+        subject: "user:1"
+        assertions:
+          push : false
+      - entity: "repository:3"
+        subject: "user:1"
+        assertions:
+          push : false
+      - entity: "repository:1"
+        subject: "user:43"
+        assertions:
+          edit : false
+    entity_filters:
+      - entity_type: "repository"
+        subject: "user:1"
+        assertions:
+          push : ["1"]
+          edit : []
+
 ```
+
+## Coverage Analysis
+
+By using the command `permify coverage {path of your schema validation file}`, you can measure the coverage for your schema. 
+The coverage is calculated by analyzing the relationships and assertions in your created model, identifying any missing elements. 
+The output of the example provided above is as follows.
+
+![schema-coverage](https://user-images.githubusercontent.com/39353278/236303688-15cc2673-05e6-42d3-9ad4-0c538f546fb0.png)
+
 
 ## Testing in Local
 
@@ -93,7 +125,7 @@ For that open up a new file and add a schema yaml file inside. Then build your p
 
 If we use the above example schema validation file, after running `./permify validate {path of your schema validation file}` it gives a result on the terminal as:
 
-![schema-validation](https://user-images.githubusercontent.com/34595361/207110538-9837b09d-26b4-409a-a309-a21f66e6677a.png)
+![schema-validation](https://user-images.githubusercontent.com/39353278/236303542-930de83f-ebdd-4b0a-a09e-5c069744cc5c.png)
 
 [permify-validate-action]: https://github.com/Permify/permify-validate-action
 

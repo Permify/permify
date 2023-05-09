@@ -1609,9 +1609,18 @@ func (m *Expand) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Node.(type) {
-
+	switch v := m.Node.(type) {
 	case *Expand_Expand:
+		if v == nil {
+			err := ExpandValidationError{
+				field:  "Node",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetExpand()).(type) {
@@ -1643,6 +1652,16 @@ func (m *Expand) validate(all bool) error {
 		}
 
 	case *Expand_Leaf:
+		if v == nil {
+			err := ExpandValidationError{
+				field:  "Node",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetLeaf()).(type) {
@@ -1673,6 +1692,8 @@ func (m *Expand) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

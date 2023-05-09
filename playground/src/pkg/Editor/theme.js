@@ -11,7 +11,7 @@ function Theme() {
             {token: 'type', foreground: '93F1EE'},
         ],
         colors: {
-            "editor.background": '#141517'
+            "editor.background": '#141517',
         }
     }
 }

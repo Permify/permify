@@ -56,9 +56,20 @@ func (m *Child) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Type.(type) {
-
+	oneofTypePresent := false
+	switch v := m.Type.(type) {
 	case *Child_Leaf:
+		if v == nil {
+			err := ChildValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
 
 		if m.GetLeaf() == nil {
 			err := ChildValidationError{
@@ -101,6 +112,17 @@ func (m *Child) validate(all bool) error {
 		}
 
 	case *Child_Rewrite:
+		if v == nil {
+			err := ChildValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
 
 		if m.GetRewrite() == nil {
 			err := ChildValidationError{
@@ -143,6 +165,9 @@ func (m *Child) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTypePresent {
 		err := ChildValidationError{
 			field:  "Type",
 			reason: "value is required",
@@ -151,7 +176,6 @@ func (m *Child) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
@@ -254,9 +278,20 @@ func (m *Leaf) validate(all bool) error {
 
 	// no validation rules for Exclusion
 
-	switch m.Type.(type) {
-
+	oneofTypePresent := false
+	switch v := m.Type.(type) {
 	case *Leaf_ComputedUserSet:
+		if v == nil {
+			err := LeafValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
 
 		if m.GetComputedUserSet() == nil {
 			err := LeafValidationError{
@@ -299,6 +334,17 @@ func (m *Leaf) validate(all bool) error {
 		}
 
 	case *Leaf_TupleToUserSet:
+		if v == nil {
+			err := LeafValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
 
 		if m.GetTupleToUserSet() == nil {
 			err := LeafValidationError{
@@ -341,6 +387,9 @@ func (m *Leaf) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTypePresent {
 		err := LeafValidationError{
 			field:  "Type",
 			reason: "value is required",
@@ -349,7 +398,6 @@ func (m *Leaf) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

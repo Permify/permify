@@ -3,7 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
-	`strings`
+	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/lexer"

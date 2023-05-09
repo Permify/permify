@@ -72,7 +72,7 @@ entity document {
 
 Which has a directed graph as follows:
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193418063-af33fe81-95ed-4615-9d86-b50d4094ad8e.png)
+![relational-tuples](https://github.com/Permify/permify/assets/39353278/cec9936c-f907-42c0-a419-032ebb45454e)
 
 As we can see above: only users with an admin role in an organization, which `document:12` belongs, and owners of the `document:12` can edit. Permify runs two concurrent queries for **parent.admin** and **owner**:
 

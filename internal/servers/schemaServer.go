@@ -7,7 +7,7 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
@@ -19,13 +19,13 @@ import (
 type SchemaServer struct {
 	v1.UnimplementedSchemaServer
 
-	sw     repositories.SchemaWriter
-	sr     repositories.SchemaReader
+	sw     storage.SchemaWriter
+	sr     storage.SchemaReader
 	logger logger.Interface
 }
 
 // NewSchemaServer - Creates new Schema Server
-func NewSchemaServer(sw repositories.SchemaWriter, sr repositories.SchemaReader, l logger.Interface) *SchemaServer {
+func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader, l logger.Interface) *SchemaServer {
 	return &SchemaServer{
 		sw:     sw,
 		sr:     sr,
@@ -54,9 +54,9 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 
 	version := xid.New().String()
 
-	cnf := make([]repositories.SchemaDefinition, 0, len(sch.Statements))
+	cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
 	for _, st := range sch.Statements {
-		cnf = append(cnf, repositories.SchemaDefinition{
+		cnf = append(cnf, storage.SchemaDefinition{
 			TenantID:             request.GetTenantId(),
 			Version:              version,
 			EntityType:           st.(*ast.EntityStatement).Name.Literal,

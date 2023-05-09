@@ -1,16 +1,11 @@
 package engines
 
 import (
-	"errors"
 	"sync"
-
-	"go.opentelemetry.io/otel"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
-
-var tracer = otel.Tracer("engines")
 
 const (
 	_defaultConcurrencyLimit = 100
@@ -45,25 +40,10 @@ func joinResponseMetas(meta ...*base.PermissionCheckResponseMetadata) *base.Perm
 	return response
 }
 
-// increaseCheckCount - a helper function that increments the check count in a PermissionCheckResponseMetadata struct.
-func increaseCheckCount(metadata *base.PermissionCheckResponseMetadata) *base.PermissionCheckResponseMetadata {
-	return &base.PermissionCheckResponseMetadata{
-		CheckCount: metadata.CheckCount + 1,
-	}
-}
-
 // CheckResponse - a struct that holds a PermissionCheckResponse and an error for a single check function.
 type CheckResponse struct {
 	resp *base.PermissionCheckResponse
 	err  error
-}
-
-// checkDepth - a helper function that returns an error if the depth in a PermissionCheckRequest is zero.
-func checkDepth(request *base.PermissionCheckRequest) error {
-	if request.GetMetadata().Depth == 0 {
-		return errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String())
-	}
-	return nil
 }
 
 // ERMap - a thread-safe map of ENR records.

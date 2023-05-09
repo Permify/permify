@@ -3,14 +3,14 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
-    "version": "v0.3.9",
+    "version": "v0.4.0",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
       "email": "hello@permify.co"
     },
     "license": {
-      "name": "GNU Affero General Public License v3.0",
+      "name": "Apache-2.0 license",
       "url": "https://github.com/Permify/permify/blob/master/LICENSE"
     }
   },
@@ -26,9 +26,6 @@
     },
     {
       "name": "Tenancy"
-    },
-    {
-      "name": "Welcome"
     }
   ],
   "schemes": [
@@ -41,29 +38,6 @@
     "application/json"
   ],
   "paths": {
-    "/": {
-      "get": {
-        "summary": "welcome to permify",
-        "operationId": "welcome.hello",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/welcomeResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "tags": [
-          "Welcome"
-        ]
-      }
-    },
     "/v1/tenants/create": {
       "post": {
         "summary": "create new tenant",
@@ -382,59 +356,6 @@
         ]
       }
     },
-    "/v1/tenants/{tenant_id}/permissions/lookup-schema": {
-      "post": {
-        "operationId": "permissions.lookupSchema",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/PermissionLookupSchemaResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "tenant_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionLookupSchemaRequestMetadata"
-                },
-                "entity_type": {
-                  "type": "string"
-                },
-                "relation_names": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "title": "PermissionLookupSchemaRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Permission"
-        ]
-      }
-    },
     "/v1/tenants/{tenant_id}/relationships/delete": {
       "post": {
         "summary": "delete relation tuple",
@@ -573,6 +494,7 @@
                 "tuples": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/Tuple"
                   }
                 }
@@ -797,6 +719,7 @@
         "children": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Expand"
           }
         }
@@ -949,27 +872,6 @@
       },
       "title": "PermissionLookupEntityStreamResponse"
     },
-    "PermissionLookupSchemaRequestMetadata": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        }
-      },
-      "title": "PermissionLookupSchemaRequestMetadata"
-    },
-    "PermissionLookupSchemaResponse": {
-      "type": "object",
-      "properties": {
-        "permission_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "title": "PermissionLookupSchemaResponse"
-    },
     "RelationDefinition": {
       "type": "object",
       "properties": {
@@ -979,6 +881,7 @@
         "relationReferences": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/RelationReference"
           }
         }
@@ -1031,6 +934,7 @@
         "tuples": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Tuple"
           }
         },
@@ -1067,6 +971,7 @@
         "children": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Child"
           }
         }
@@ -1122,34 +1027,6 @@
       },
       "title": "SchemaWriteResponse"
     },
-    "Socials": {
-      "type": "object",
-      "properties": {
-        "discord": {
-          "type": "string"
-        },
-        "twitter": {
-          "type": "string"
-        },
-        "linkedin": {
-          "type": "string"
-        }
-      }
-    },
-    "Sources": {
-      "type": "object",
-      "properties": {
-        "docs": {
-          "type": "string"
-        },
-        "gitHub": {
-          "type": "string"
-        },
-        "blog": {
-          "type": "string"
-        }
-      }
-    },
     "Status": {
       "type": "object",
       "properties": {
@@ -1163,6 +1040,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Any"
           }
         }
@@ -1266,6 +1144,7 @@
         "tenants": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Tenant"
           }
         },
@@ -1338,26 +1217,12 @@
         "subjects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Subject"
           }
         }
       },
       "title": "Result"
-    },
-    "welcomeResponse": {
-      "type": "object",
-      "properties": {
-        "permify": {
-          "type": "string"
-        },
-        "sources": {
-          "$ref": "#/definitions/Sources"
-        },
-        "socials": {
-          "$ref": "#/definitions/Socials"
-        }
-      },
-      "title": "WelcomeResponse"
     }
   },
   "securityDefinitions": {

@@ -279,10 +279,22 @@ relationships:
     - resource:hr_documents#manager@group:hr#manager
     - resource:hr_documents#viewer@group:hr#member
 
-assertions:
-    - "can user:ashley edit resource:product_database": true
-    - "can user:joe view resource:hr_documents": true
-    - "can user:david view resource:marketing_materials": false
+scenarios:
+  - name: "scenario 1"
+    description: "test description"
+    checks:
+      - entity: "resource:product_database"
+        subject: "user:ashley"
+        assertions:
+          edit : true
+      - entity: "resource:hr_documents"
+        subject: "user:joe"
+        assertions:
+          view : true
+      - entity: "resource:marketing_materials"
+        subject: "user:david"
+        assertions:
+          view : false
 ```
 
 ### Using Schema Validator in Local 

@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/repositories/mocks"
 	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/internal/storage/mocks"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
@@ -208,10 +208,8 @@ var _ = Describe("expand-engine", func() {
 			}
 
 			var response *base.PermissionExpandResponse
-			response, err = expandEngine.Run(context.Background(), req)
+			response, err = expandEngine.Expand(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
-
-			// fmt.Println(response.GetTree())
 
 			Expect(&base.Expand{
 				Node: &base.Expand_Expand{

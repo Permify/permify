@@ -30,31 +30,31 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/middleware"
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/logger"
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 var tracer = otel.Tracer("servers")
 
-// Container is a struct that holds the invoker and various storage repositories
+// Container is a struct that holds the invoker and various storage storage
 // for permission-related operations. It serves as a central point of access
 // for interacting with the underlying data and services.
 type Container struct {
 	// Invoker for performing permission-related operations
 	Invoker invoke.Invoker
 	// RelationshipReader for reading relationships from storage
-	RR repositories.RelationshipReader
+	RR storage.RelationshipReader
 	// RelationshipWriter for writing relationships to storage
-	RW repositories.RelationshipWriter
+	RW storage.RelationshipWriter
 	// SchemaReader for reading schemas from storage
-	SR repositories.SchemaReader
+	SR storage.SchemaReader
 	// SchemaWriter for writing schemas to storage
-	SW repositories.SchemaWriter
+	SW storage.SchemaWriter
 	// TenantReader for reading tenant information from storage
-	TR repositories.TenantReader
+	TR storage.TenantReader
 	// TenantWriter for writing tenant information to storage
-	TW repositories.TenantWriter
+	TW storage.TenantWriter
 }
 
 // NewContainer is a constructor for the Container struct.
@@ -62,12 +62,12 @@ type Container struct {
 // TenantReader, and TenantWriter as arguments, and returns a pointer to a Container instance.
 func NewContainer(
 	invoker invoke.Invoker,
-	rr repositories.RelationshipReader,
-	rw repositories.RelationshipWriter,
-	sr repositories.SchemaReader,
-	sw repositories.SchemaWriter,
-	tr repositories.TenantReader,
-	tw repositories.TenantWriter,
+	rr storage.RelationshipReader,
+	rw storage.RelationshipWriter,
+	sr storage.SchemaReader,
+	sw storage.SchemaWriter,
+	tr storage.TenantReader,
+	tw storage.TenantWriter,
 ) *Container {
 	return &Container{
 		Invoker: invoker,
@@ -149,7 +149,6 @@ func (s *Container) Run(
 	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RR, s.RW, s.SR, l))
 	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
-	grpcV1.RegisterWelcomeServer(grpcServer, NewWelcomeServer())
 	reflection.Register(grpcServer)
 
 	// Start the profiler server if enabled.
@@ -247,9 +246,6 @@ func (s *Container) Run(
 			return err
 		}
 		if err = grpcV1.RegisterTenancyHandler(ctx, mux, conn); err != nil {
-			return err
-		}
-		if err = grpcV1.RegisterWelcomeHandler(ctx, mux, conn); err != nil {
 			return err
 		}
 
