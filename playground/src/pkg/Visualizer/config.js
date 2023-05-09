@@ -27,13 +27,6 @@ function GraphOptions() {
             hoverConnectedEdges: true
         },
         physics: {
-            repulsion: {
-                gravitationalConstant: -2000,
-                centralGravity: 0.005,
-                springLength: 250,
-                springConstant: 0.18,
-                avoidOverlap: 1.5
-            },
             maxVelocity: 30,
             solver: "repulsion",
             timestep: 0.5,
@@ -72,7 +65,6 @@ function GraphOptions() {
         },
         edges: {
             hoverWidth: 1,
-            type: 'continuous',
             arrows: {
                 to: {
                     enabled: true,
