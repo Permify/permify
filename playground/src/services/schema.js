@@ -7,14 +7,14 @@ export function WriteSchema(schema) {
 
 export function ReadSchema() {
     return new Promise((resolve) => {
-        let res = window.readSchema("")
+        let res = window.readSchema()
         resolve(res);
     });
 }
 
 export function ReadSchemaGraph() {
     return new Promise((resolve) => {
-        let res = window.readSchemaGraph("")
+        let res = window.readSchemaGraph()
         resolve(res);
     });
 }

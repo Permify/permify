@@ -15,6 +15,21 @@ func RegisterServeFlags(cmd *cobra.Command) {
 
 	flags := cmd.Flags()
 
+	// Config File
+	flags.StringP("config", "c", "", "config file (default is $HOME/.permify.yaml)")
+	if err = viper.BindPFlag("config.file", flags.Lookup("config")); err != nil {
+		panic(err)
+	}
+
+	// Server
+	flags.String("server-address", conf.Server.Address, "address that server run on")
+	if err = viper.BindPFlag("server.address", flags.Lookup("server-address")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.address", "PERMIFY_ADDRESS"); err != nil {
+		panic(err)
+	}
+
 	// GRPC Server
 	flags.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
 	if err = viper.BindPFlag("server.grpc.port", flags.Lookup("grpc-port")); err != nil {
@@ -357,6 +372,23 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	if err = viper.BindEnv("database.garbage_collection.number_of_threads", "PERMIFY_DATABASE_GARBAGE_COLLECTION_NUMBER_OF_THREADS"); err != nil {
+		panic(err)
+	}
+
+	// Distributed
+	flags.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed")
+	if err = viper.BindPFlag("distributed.enabled", flags.Lookup("distributed-enabled")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.enabled", "PERMIFY_DISTRIBUTED_ENABLED"); err != nil {
+		panic(err)
+	}
+
+	flags.StringArray("distributed-nodes", conf.Distributed.Nodes, "list of peers")
+	if err = viper.BindPFlag("distributed.nodes", flags.Lookup("distributed-nodes")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.nodes", "PERMIFY_DISTRIBUTED_NODES"); err != nil {
 		panic(err)
 	}
 }

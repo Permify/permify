@@ -36,12 +36,9 @@ func NewLookupEntityEngine(check *CheckEngine, linked *LinkedEntityEngine, opts 
 	return engine
 }
 
-// Run performs a permission check on a set of entities and returns a response
+// LookupEntity performs a permission check on a set of entities and returns a response
 // containing the IDs of the entities that have the requested permission.
-func (engine *LookupEntityEngine) Run(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookup-entity.execute")
-	defer span.End()
-
+func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
 	// Mutex and slice for storing allowed entity IDs
 	var mu sync.Mutex
 	var entityIDs []string
@@ -64,7 +61,7 @@ func (engine *LookupEntityEngine) Run(ctx context.Context, request *base.Permiss
 	visits := &ERMap{}
 
 	// Get unique entity IDs by entity type
-	err = engine.linkedEntityEngine.Run(ctx, &base.PermissionLinkedEntityRequest{
+	err = engine.linkedEntityEngine.LinkedEntity(ctx, &base.PermissionLinkedEntityRequest{
 		TenantId: request.GetTenantId(),
 		Metadata: &base.PermissionLinkedEntityRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
@@ -94,12 +91,9 @@ func (engine *LookupEntityEngine) Run(ctx context.Context, request *base.Permiss
 	}, nil
 }
 
-// Stream performs a permission check on a set of entities and streams the results
+// LookupEntityStream performs a permission check on a set of entities and streams the results
 // containing the IDs of the entities that have the requested permission.
-func (engine *LookupEntityEngine) Stream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookup-entity.stream")
-	defer span.End()
-
+func (engine *LookupEntityEngine) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
 	// Define callback function for handling permission check results
 	callback := func(entityID string, result base.PermissionCheckResponse_Result) {
 		if result == base.PermissionCheckResponse_RESULT_ALLOWED {
@@ -123,7 +117,7 @@ func (engine *LookupEntityEngine) Stream(ctx context.Context, request *base.Perm
 	visits := &ERMap{}
 
 	// Get unique entity IDs by entity type
-	err = engine.linkedEntityEngine.Run(ctx, &base.PermissionLinkedEntityRequest{
+	err = engine.linkedEntityEngine.LinkedEntity(ctx, &base.PermissionLinkedEntityRequest{
 		TenantId: request.GetTenantId(),
 		Metadata: &base.PermissionLinkedEntityRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),

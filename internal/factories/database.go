@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Permify/permify/internal/config"
-	"github.com/Permify/permify/internal/repositories/memory/migrations"
+	"github.com/Permify/permify/internal/storage/memory/migrations"
 	"github.com/Permify/permify/pkg/database"
 	IMDatabase "github.com/Permify/permify/pkg/database/memory"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"

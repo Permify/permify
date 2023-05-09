@@ -17,6 +17,9 @@ func main() {
 	validate := cmd.NewValidateCommand()
 	root.AddCommand(validate)
 
+	coverage := cmd.NewCoverageCommand()
+	root.AddCommand(coverage)
+
 	migrate := cmd.NewMigrateCommand()
 	root.AddCommand(migrate)
 

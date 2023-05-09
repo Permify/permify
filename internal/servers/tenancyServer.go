@@ -6,7 +6,7 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -16,13 +16,13 @@ import (
 type TenancyServer struct {
 	v1.UnimplementedTenancyServer
 
-	tr     repositories.TenantReader
-	tw     repositories.TenantWriter
+	tr     storage.TenantReader
+	tw     storage.TenantWriter
 	logger logger.Interface
 }
 
 // NewTenancyServer - Creates new Tenancy Server
-func NewTenancyServer(tr repositories.TenantReader, tw repositories.TenantWriter, l logger.Interface) *TenancyServer {
+func NewTenancyServer(tr storage.TenantReader, tw storage.TenantWriter, l logger.Interface) *TenancyServer {
 	return &TenancyServer{
 		tr:     tr,
 		tw:     tw,

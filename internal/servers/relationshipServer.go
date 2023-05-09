@@ -6,7 +6,7 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
@@ -18,17 +18,17 @@ import (
 type RelationshipServer struct {
 	v1.UnimplementedRelationshipServer
 
-	sr     repositories.SchemaReader
-	rr     repositories.RelationshipReader
-	rw     repositories.RelationshipWriter
+	sr     storage.SchemaReader
+	rr     storage.RelationshipReader
+	rw     storage.RelationshipWriter
 	logger logger.Interface
 }
 
 // NewRelationshipServer - Creates new Relationship Server
 func NewRelationshipServer(
-	rr repositories.RelationshipReader,
-	rw repositories.RelationshipWriter,
-	sr repositories.SchemaReader,
+	rr storage.RelationshipReader,
+	rw storage.RelationshipWriter,
+	sr storage.SchemaReader,
 	l logger.Interface,
 ) *RelationshipServer {
 	return &RelationshipServer{

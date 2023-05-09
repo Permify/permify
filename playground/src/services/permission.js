@@ -5,7 +5,7 @@ export function CheckPermission(entity, permission, subject){
             permission: permission,
             subject: subject,
         })
-        let res = window.check(q, "")
+        let res = window.check(q)
         resolve(res);
     });
 }
@@ -17,7 +17,7 @@ export function FilterData(entityType, permission, subject) {
             permission: permission,
             subject: subject,
         })
-        let res = window.lookupEntity(q, "")
+        let res = window.lookupEntity(q)
         resolve(res);
     });
 }

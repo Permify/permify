@@ -4,15 +4,24 @@ import (
 	"context"
 	"fmt"
 	"os/signal"
+	"strconv"
 	"syscall"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/Permify/permify/internal/engines/consistent"
+	"github.com/Permify/permify/internal/engines/keys"
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/repositories/postgres"
+	"github.com/Permify/permify/internal/storage/postgres"
+	hash "github.com/Permify/permify/pkg/consistent"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
+	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel/sdk/metric"
 
-	"github.com/spf13/viper"
+	"github.com/Permify/permify/pkg/gossip"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -23,10 +32,9 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/factories"
-	"github.com/Permify/permify/internal/keys"
-	"github.com/Permify/permify/internal/repositories"
-	"github.com/Permify/permify/internal/repositories/decorators"
 	"github.com/Permify/permify/internal/servers"
+	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/decorators"
 	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/logger"
@@ -54,14 +62,28 @@ func NewServeCommand() *cobra.Command {
 // It returns an error if there is an issue with any of the components or if any goroutine fails.
 func serve() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		// Load configuration
-		cfg, err := config.NewConfig()
-		if err != nil {
-			return fmt.Errorf("failed to create new config: %w", err)
-		}
+		var cfg *config.Config
+		var err error
+		cfgFile := viper.GetString("config.file")
+		if cfgFile != "" {
+			cfg, err = config.NewConfigWithFile(cfgFile)
+			if err != nil {
+				return fmt.Errorf("failed to create new config: %w", err)
+			}
 
-		if err = viper.Unmarshal(cfg); err != nil {
-			return fmt.Errorf("failed to unmarshal config: %w", err)
+			if err = viper.Unmarshal(cfg); err != nil {
+				return fmt.Errorf("failed to unmarshal config: %w", err)
+			}
+		} else {
+			// Load configuration
+			cfg, err = config.NewConfig()
+			if err != nil {
+				return fmt.Errorf("failed to create new config: %w", err)
+			}
+
+			if err = viper.Unmarshal(cfg); err != nil {
+				return fmt.Errorf("failed to unmarshal config: %w", err)
+			}
 		}
 
 		// Print banner and initialize logger
@@ -76,7 +98,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// Run database migration if enabled
 		if cfg.AutoMigrate {
-			err = repositories.Migrate(cfg.Database, l)
+			err = storage.Migrate(cfg.Database, l)
 			if err != nil {
 				l.Fatal("failed to migrate database: %w", err)
 			}
@@ -140,6 +162,45 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
+		var gossipEngine *gossip.Gossip
+		var consistencyChecker *hash.ConsistentHash
+		if cfg.Distributed.Enabled {
+			l.Info("🔗 starting distributed mode...")
+
+			consistencyChecker = hash.NewConsistentHash(100, cfg.Distributed.Nodes, nil)
+
+			externalIP, err := gossip.ExternalIP()
+			if err != nil {
+				l.Fatal(err)
+			}
+			l.Info("🔗 external IP: " + externalIP)
+
+			consistencyChecker.Add(externalIP + ":" + cfg.HTTP.Port)
+
+			grpcPort, err := strconv.Atoi(cfg.Server.GRPC.Port)
+			if err != nil {
+				return err
+			}
+
+			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.Nodes, grpcPort)
+			if err != nil {
+				l.Info("🔗 failed to start distributed mode: %s ", err.Error())
+				return err
+			}
+
+			go func() {
+				for {
+					consistencyChecker.SyncNodes(gossipEngine)
+				}
+			}()
+
+			defer func() {
+				if err = gossipEngine.Shutdown(); err != nil {
+					l.Fatal(err)
+				}
+			}()
+		}
+
 		// schema cache
 		var schemaCache cache.Cache
 		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Schema.Cache.MaxCost))
@@ -154,7 +215,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			l.Fatal(err)
 		}
 
-		// Initialize the repositories with factory methods
+		// Initialize the storage with factory methods
 		relationshipReader := factories.RelationshipReaderFactory(db, l)
 		relationshipWriter := factories.RelationshipWriterFactory(db, l)
 		schemaReader := factories.SchemaReaderFactory(db, l)
@@ -176,24 +237,64 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
 		}
 
-		// Initialize the key manager for the check engine
-		checkKeyManager := keys.NewCheckEngineKeys(engineKeyCache)
-
 		// Initialize the engines using the key manager, schema reader, and relationship reader
-		checkEngine := engines.NewCheckEngine(checkKeyManager, schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		checkEngine := engines.NewCheckEngine(schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
 		linkedEntityEngine := engines.NewLinkedEntityEngine(schemaReader, relationshipReader)
 		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, linkedEntityEngine, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
-		schemaLookupEngine := engines.NewLookupSchemaEngine(schemaReader)
 
-		// Create the container with engines, repositories, and other dependencies
-		container := servers.NewContainer(
-			invoke.NewDirectInvoker(
+		var check invoke.Check
+		if cfg.Distributed.Enabled {
+
+			options := []grpc.DialOption{
+				grpc.WithBlock(),
+			}
+			if cfg.GRPC.TLSConfig.Enabled {
+				c, err := credentials.NewClientTLSFromFile(cfg.GRPC.TLSConfig.CertPath, "")
+				if err != nil {
+					return err
+				}
+				options = append(options, grpc.WithTransportCredentials(c))
+			} else {
+				options = append(options, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			}
+
+			check, err = consistent.NewCheckEngineWithHashring(
+				keys.NewCheckEngineWithKeys(
+					checkEngine,
+					engineKeyCache,
+					l,
+				),
+				consistencyChecker,
+				gossipEngine,
+				cfg.Server.GRPC.Port,
+				l,
+				options...,
+			)
+			if err != nil {
+				return err
+			}
+		} else {
+			check = keys.NewCheckEngineWithKeys(
 				checkEngine,
-				expandEngine,
-				schemaLookupEngine,
-				lookupEntityEngine,
-			),
+				engineKeyCache,
+				l,
+			)
+		}
+
+		invoker := invoke.NewDirectInvoker(
+			schemaReader,
+			relationshipReader,
+			check,
+			expandEngine,
+			lookupEntityEngine,
+		)
+
+		checkEngine.SetInvoker(invoker)
+
+		// Create the container with engines, storage, and other dependencies
+		container := servers.NewContainer(
+			invoker,
 			relationshipReader,
 			relationshipWriter,
 			schemaReader,

@@ -142,7 +142,7 @@ function CreateTuple(props) {
             </Button>
         ]}>
             <Form name="tuple-creation-form" form={form} onFinish={onFinish} labelCol={{span: 4}}
-                  wrapperCol={{span: 20}}>
+                  wrapperCol={{span: 20}} className="mt-36">
                 {error !== "" &&
                     <Alert message={error} type="error" showIcon className="mb-12"/>
                 }

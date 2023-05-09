@@ -10,9 +10,8 @@ import (
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/keys"
-	"github.com/Permify/permify/internal/repositories"
 	"github.com/Permify/permify/internal/servers"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/ast"
@@ -41,7 +40,7 @@ func NewContainer() *Development {
 	// Create a new logger instance
 	l := logger.New("debug")
 
-	// Create instances of repositories using the factories package
+	// Create instances of storage using the factories package
 	relationshipReader := factories.RelationshipReaderFactory(db, l)
 	relationshipWriter := factories.RelationshipWriterFactory(db, l)
 	schemaReader := factories.SchemaReaderFactory(db, l)
@@ -50,21 +49,25 @@ func NewContainer() *Development {
 	tenantWriter := factories.TenantWriterFactory(db, l)
 
 	// Create instances of engines
-	checkEngine := engines.NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+	checkEngine := engines.NewCheckEngine(schemaReader, relationshipReader)
 	expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
-	lookupSchemaEngine := engines.NewLookupSchemaEngine(schemaReader)
 	linkedEntityEngine := engines.NewLinkedEntityEngine(schemaReader, relationshipReader)
 	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, linkedEntityEngine)
 
-	// Create a new container instance with engines, repositories, and other dependencies
+	invoker := invoke.NewDirectInvoker(
+		schemaReader,
+		relationshipReader,
+		checkEngine,
+		expandEngine,
+		lookupEntityEngine,
+	)
+
+	checkEngine.SetInvoker(invoker)
+
+	// Create a new container instance with engines, storage, and other dependencies
 	return &Development{
 		Container: servers.NewContainer(
-			invoke.NewDirectInvoker(
-				checkEngine,
-				expandEngine,
-				lookupSchemaEngine,
-				lookupEntityEngine,
-			),
+			invoker,
 			relationshipReader,
 			relationshipWriter,
 			schemaReader,
@@ -77,18 +80,6 @@ func NewContainer() *Development {
 
 // Check - Creates new permission check request
 func (c *Development) Check(ctx context.Context, subject *v1.Subject, action string, entity *v1.Entity) (*v1.PermissionCheckResponse, error) {
-	// Get the head version of the "t1" schema from the schema repository
-	version, err := c.Container.SR.HeadVersion(ctx, "t1")
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the head snapshot of the "t1" schema from the schema repository
-	snap, err := c.Container.RR.HeadSnapshot(ctx, "t1")
-	if err != nil {
-		return nil, err
-	}
-
 	// Create a new permission check request with the given subject, action, entity, and metadata
 	req := &v1.PermissionCheckRequest{
 		TenantId:   "t1",
@@ -96,31 +87,19 @@ func (c *Development) Check(ctx context.Context, subject *v1.Subject, action str
 		Subject:    subject,
 		Permission: action,
 		Metadata: &v1.PermissionCheckRequestMetadata{
-			SchemaVersion: version,
-			SnapToken:     snap.Encode().String(),
+			SchemaVersion: "",
+			SnapToken:     "",
 			Depth:         20,
 			Exclusion:     false,
 		},
 	}
 
 	// Invoke the permission check using the container's invoker and return the response
-	return c.Container.Invoker.InvokeCheck(ctx, req)
+	return c.Container.Invoker.Check(ctx, req)
 }
 
 // LookupEntity - Looks up an entity's permissions for a given subject and permission
 func (c *Development) LookupEntity(ctx context.Context, subject *v1.Subject, permission, entityType string) (res *v1.PermissionLookupEntityResponse, err error) {
-	// Get the head version of the "t1" schema from the schema repository
-	version, err := c.Container.SR.HeadVersion(ctx, "t1")
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the head snapshot of the "t1" schema from the schema repository
-	snap, err := c.Container.RR.HeadSnapshot(ctx, "t1")
-	if err != nil {
-		return nil, err
-	}
-
 	// Create a new permission lookup entity request with the given subject, permission, entity type, and metadata
 	req := &v1.PermissionLookupEntityRequest{
 		TenantId:   "t1",
@@ -128,14 +107,14 @@ func (c *Development) LookupEntity(ctx context.Context, subject *v1.Subject, per
 		Subject:    subject,
 		Permission: permission,
 		Metadata: &v1.PermissionLookupEntityRequestMetadata{
-			SchemaVersion: version,
-			SnapToken:     snap.Encode().String(),
+			SchemaVersion: "",
+			SnapToken:     "",
 			Depth:         20,
 		},
 	}
 
 	// Invoke the permission lookup entity using the container's invoker and return the response
-	return c.Container.Invoker.InvokeLookupEntity(ctx, req)
+	return c.Container.Invoker.LookupEntity(ctx, req)
 }
 
 // ReadTuple - Creates new read API request
@@ -215,11 +194,11 @@ func (c *Development) WriteSchema(ctx context.Context, schema string) (err error
 	version := xid.New().String()
 
 	// Create a new slice to hold the schema definitions
-	cnf := make([]repositories.SchemaDefinition, 0, len(sch.Statements))
+	cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
 
 	// Convert each statement in the AST into a schema definition and append it to the cnf slice
 	for _, st := range sch.Statements {
-		cnf = append(cnf, repositories.SchemaDefinition{
+		cnf = append(cnf, storage.SchemaDefinition{
 			TenantID:             "t1",
 			Version:              version,
 			EntityType:           st.(*ast.EntityStatement).Name.Literal,

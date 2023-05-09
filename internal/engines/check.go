@@ -5,14 +5,11 @@ import (
 	"errors"
 	"sync"
 
-	otelCodes "go.opentelemetry.io/otel/codes"
-
-	"github.com/Permify/permify/internal/keys"
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -20,12 +17,12 @@ import (
 // It reads schema and relationship information, and uses the engine key manager
 // to validate permission requests.
 type CheckEngine struct {
+	// delegate is responsible for performing permission checks
+	invoker invoke.Check
 	// schemaReader is responsible for reading schema information
-	schemaReader repositories.SchemaReader
+	schemaReader storage.SchemaReader
 	// relationshipReader is responsible for reading relationship information
-	relationshipReader repositories.RelationshipReader
-	// engineKeyManager manages keys for the permission check engine
-	engineKeyManager keys.EngineKeyManager
+	relationshipReader storage.RelationshipReader
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
 }
@@ -33,11 +30,10 @@ type CheckEngine struct {
 // NewCheckEngine creates a new CheckEngine instance for performing permission checks.
 // It takes a key manager, schema reader, and relationship reader as parameters.
 // Additionally, it allows for optional configuration through CheckOption function arguments.
-func NewCheckEngine(km keys.EngineKeyManager, sr repositories.SchemaReader, rr repositories.RelationshipReader, opts ...CheckOption) *CheckEngine {
+func NewCheckEngine(sr storage.SchemaReader, rr storage.RelationshipReader, opts ...CheckOption) *CheckEngine {
 	// Initialize a CheckEngine with default concurrency limit and provided parameters
 	engine := &CheckEngine{
 		schemaReader:       sr,
-		engineKeyManager:   km,
 		relationshipReader: rr,
 		concurrencyLimit:   _defaultConcurrencyLimit,
 	}
@@ -50,50 +46,24 @@ func NewCheckEngine(km keys.EngineKeyManager, sr repositories.SchemaReader, rr r
 	return engine
 }
 
-// Run executes a permission check based on the provided request.
+// SetInvoker sets the delegate for the CheckEngine.
+func (engine *CheckEngine) SetInvoker(invoker invoke.Check) {
+	engine.invoker = invoker
+}
+
+// Check executes a permission check based on the provided request.
 // The permission field in the request can either be a relation or an permission.
 // This function performs various checks and returns the permission check response
 // along with any errors that may have occurred.
-func (engine *CheckEngine) Run(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-	ctx, span := tracer.Start(ctx, "permissions.check.execute")
-	defer span.End()
-
+func (engine *CheckEngine) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
 	emptyResp := denied(&base.PermissionCheckResponseMetadata{
 		CheckCount: 0,
 	})
-
-	// Set SnapToken if not provided
-	if request.GetMetadata().GetSnapToken() == "" {
-		var st token.SnapToken
-		st, err = engine.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
-		if err != nil {
-			return emptyResp, err
-		}
-		request.Metadata.SnapToken = st.Encode().String()
-	}
-
-	// Set SchemaVersion if not provided
-	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = engine.schemaReader.HeadVersion(ctx, request.GetTenantId())
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-			return emptyResp, err
-		}
-	}
-
-	// Validate depth of request
-	err = checkDepth(request)
-	if err != nil {
-		return emptyResp, err
-	}
 
 	// Retrieve entity definition
 	var en *base.EntityDefinition
 	en, _, err = engine.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
 		return emptyResp, err
 	}
 
@@ -101,26 +71,7 @@ func (engine *CheckEngine) Run(ctx context.Context, request *base.PermissionChec
 	var tor base.EntityDefinition_RelationalReference
 	tor, err = schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
 		return emptyResp, err
-	}
-
-	// If permission field is not an permission, try getting cached check result
-	if tor != base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
-		res, found := engine.engineKeyManager.GetCheckKey(request)
-		if found {
-			if request.GetMetadata().GetExclusion() {
-				if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-					return denied(&base.PermissionCheckResponseMetadata{}), nil
-				}
-				return allowed(&base.PermissionCheckResponseMetadata{}), nil
-			}
-			return &base.PermissionCheckResponse{
-				Can:      res.GetCan(),
-				Metadata: &base.PermissionCheckResponseMetadata{},
-			}, nil
-		}
 	}
 
 	// Perform permission check
@@ -130,19 +81,11 @@ func (engine *CheckEngine) Run(ctx context.Context, request *base.PermissionChec
 		return emptyResp, err
 	}
 
-	// Handle caching and exclusion logic for non-permission permissions
-	if tor != base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
-		res.Metadata = increaseCheckCount(res.Metadata)
-		engine.engineKeyManager.SetCheckKey(request, &base.PermissionCheckResponse{
-			Can:      res.GetCan(),
-			Metadata: &base.PermissionCheckResponseMetadata{},
-		})
-		if request.GetMetadata().GetExclusion() {
-			if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-				return denied(res.Metadata), nil
-			}
-			return allowed(res.Metadata), nil
+	if request.GetMetadata().GetExclusion() {
+		if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
+			return denied(res.Metadata), nil
 		}
+		return allowed(res.Metadata), nil
 	}
 
 	return &base.PermissionCheckResponse{
@@ -166,9 +109,9 @@ type CheckCombiner func(ctx context.Context, functions []CheckFunction, limit in
 // and returns a CheckFunction. The returned CheckFunction, when called with
 // a context, executes the Run method of the CheckEngine with the given
 // request, and returns the resulting PermissionCheckResponse and error.
-func (engine *CheckEngine) run(ctx context.Context, request *base.PermissionCheckRequest) CheckFunction {
+func (engine *CheckEngine) invoke(ctx context.Context, request *base.PermissionCheckRequest) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		return engine.Run(ctx, request)
+		return engine.invoker.Check(ctx, request)
 	}
 }
 
@@ -289,12 +232,10 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 		for it.HasNext() {
 			subject := it.GetNext().GetSubject()
 			if tuple.AreSubjectsEqual(subject, request.GetSubject()) {
-				result = allowed(&base.PermissionCheckResponseMetadata{})
-				engine.engineKeyManager.SetCheckKey(request, result)
-				return result, nil
+				return allowed(&base.PermissionCheckResponseMetadata{}), nil
 			}
 			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
-				checkFunctions = append(checkFunctions, engine.run(ctx, &base.PermissionCheckRequest{
+				checkFunctions = append(checkFunctions, engine.invoke(ctx, &base.PermissionCheckRequest{
 					TenantId: request.GetTenantId(),
 					Entity: &base.Entity{
 						Type: subject.GetType(),
@@ -302,12 +243,7 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 					},
 					Permission: subject.GetRelation(),
 					Subject:    request.GetSubject(),
-					Metadata: &base.PermissionCheckRequestMetadata{
-						SchemaVersion: request.Metadata.GetSchemaVersion(),
-						Exclusion:     request.Metadata.GetExclusion(),
-						SnapToken:     request.Metadata.GetSnapToken(),
-						Depth:         request.Metadata.Depth - 1,
-					},
+					Metadata:   request.GetMetadata(),
 				}))
 			}
 		}
@@ -316,9 +252,7 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 			return checkUnion(ctx, checkFunctions, engine.concurrencyLimit)
 		}
 
-		result = denied(&base.PermissionCheckResponseMetadata{})
-		engine.engineKeyManager.SetCheckKey(request, result)
-		return
+		return denied(&base.PermissionCheckResponseMetadata{}), nil
 	}
 }
 
@@ -369,7 +303,7 @@ func (engine *CheckEngine) checkTupleToUserSet(ctx context.Context, request *bas
 // and the adjusted depth. The exclusion flag is passed through to the new request's
 // metadata to determine if the computed user set should be excluded from the result.
 func (engine *CheckEngine) checkComputedUserSet(ctx context.Context, request *base.PermissionCheckRequest, cu *base.ComputedUserSet, exclusion bool) CheckFunction {
-	return engine.run(ctx, &base.PermissionCheckRequest{
+	return engine.invoke(ctx, &base.PermissionCheckRequest{
 		TenantId: request.GetTenantId(),
 		Entity: &base.Entity{
 			Type: request.GetEntity().GetType(),
@@ -381,7 +315,7 @@ func (engine *CheckEngine) checkComputedUserSet(ctx context.Context, request *ba
 			SchemaVersion: request.Metadata.GetSchemaVersion(),
 			Exclusion:     exclusion,
 			SnapToken:     request.Metadata.GetSnapToken(),
-			Depth:         request.Metadata.Depth - 1,
+			Depth:         request.Metadata.GetDepth(),
 		},
 	})
 }
@@ -413,7 +347,6 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 	}
 
 	decisionChan := make(chan CheckResponse, len(functions))
-
 	cancelCtx, cancel := context.WithCancel(ctx)
 
 	clean := run(cancelCtx, functions, decisionChan, limit)

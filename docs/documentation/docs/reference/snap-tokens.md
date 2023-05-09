@@ -46,5 +46,4 @@ Then this snap token can be used in endpoints. For example it can be used in acc
 
 - [Write API](../api-overview/relationship/write-relationships) 
 - [Check API](../api-overview/permission/check-api)
-- [Expand API](../api-overview/permission/expand-api) 
-- [Schema Lookup](../api-overview/permission/schema-lookup)
+- [Expand API](../api-overview/permission/expand-api)

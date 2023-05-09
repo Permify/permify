@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/pkg/errors"
@@ -12,20 +13,22 @@ import (
 type (
 	// Config is the main configuration structure containing various sections for different aspects of the application.
 	Config struct {
-		Server   `mapstructure:"server"`   // Server configuration for both HTTP and gRPC
-		Log      `mapstructure:"logger"`   // Logging configuration
-		Profiler `mapstructure:"profiler"` // Profiler configuration
-		Authn    `mapstructure:"authn"`    // Authentication configuration
-		Tracer   `mapstructure:"tracer"`   // Tracing configuration
-		Meter    `mapstructure:"meter"`    // Metrics configuration
-		Service  `mapstructure:"service"`  // Service configuration
-		Database `mapstructure:"database"` // Database configuration
+		Server      `mapstructure:"server"`      // Server configuration for both HTTP and gRPC
+		Log         `mapstructure:"logger"`      // Logging configuration
+		Profiler    `mapstructure:"profiler"`    // Profiler configuration
+		Authn       `mapstructure:"authn"`       // Authentication configuration
+		Tracer      `mapstructure:"tracer"`      // Tracing configuration
+		Meter       `mapstructure:"meter"`       // Metrics configuration
+		Service     `mapstructure:"service"`     // Service configuration
+		Database    `mapstructure:"database"`    // Database configuration
+		Distributed `mapstructure:"distributed"` // Distributed configuration
 	}
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		HTTP `mapstructure:"http"` // HTTP server configuration
-		GRPC `mapstructure:"grpc"` // gRPC server configuration
+		Address string                `mapstructure:"address"` // Address for the server
+		HTTP    `mapstructure:"http"` // HTTP server configuration
+		GRPC    `mapstructure:"grpc"` // gRPC server configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.
@@ -142,6 +145,11 @@ type (
 		Window          time.Duration `mapstructure:"window"`
 		NumberOfThreads int           `mapstructure:"number_of_threads"`
 	}
+
+	Distributed struct {
+		Enabled bool     `mapstructure:"enabled"`
+		Nodes   []string `mapstructure:"nodes"`
+	}
 )
 
 // NewConfig initializes and returns a new Config object by reading and unmarshalling
@@ -180,10 +188,51 @@ func NewConfig() (*Config, error) {
 	return cfg, nil
 }
 
+// NewConfigWithFile initializes and returns a new Config object by reading and unmarshalling
+// the configuration file from the given path. It falls back to the DefaultConfig if the
+// file is not found. If there's an error during the process, it returns the error.
+func NewConfigWithFile(dir string) (*Config, error) {
+	// Start with the default configuration values
+	cfg := DefaultConfig()
+
+	viper.SetConfigFile(dir)
+
+	err := isYAML(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	// Read the config file
+	err = viper.ReadInConfig()
+	// If there's an error during reading the config file
+	if err != nil {
+		// Check if the error is because of the config file not being found
+		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok {
+			// If it's not a "file not found" error, return the error with a message
+			return nil, fmt.Errorf("failed to load server config: %w", err)
+		}
+		if ok := errors.As(err, &viper.ConfigMarshalError{}); !ok {
+			// If it's not a "file not found" error, return the error with a message
+			return nil, fmt.Errorf("failed to load server config: %w", err)
+		}
+		// If it's a "file not found" error, the code will continue and use the default config
+	}
+
+	// Unmarshal the configuration data into the Config struct
+	if err = viper.Unmarshal(cfg); err != nil {
+		// If there's an error during unmarshalling, return the error with a message
+		return nil, fmt.Errorf("failed to unmarshal server config: %w", err)
+	}
+
+	// Return the populated Config object
+	return cfg, nil
+}
+
 // DefaultConfig - Creates default config.
 func DefaultConfig() *Config {
 	return &Config{
 		Server: Server{
+			Address: "localhost",
 			HTTP: HTTP{
 				Enabled: true,
 				Port:    "3476",
@@ -244,5 +293,17 @@ func DefaultConfig() *Config {
 				Enable: false,
 			},
 		},
+		Distributed: Distributed{
+			Enabled: false,
+			Nodes:   []string{},
+		},
 	}
+}
+
+func isYAML(file string) error {
+	ext := filepath.Ext(file)
+	if ext != "yaml" {
+		return errors.New("file is not yaml")
+	}
+	return nil
 }

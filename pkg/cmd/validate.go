@@ -15,12 +15,12 @@ import (
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
-	"github.com/Permify/permify/internal/repositories"
+	"github.com/Permify/permify/internal/storage"
 	server_validation "github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/cmd/flags"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
-	"github.com/Permify/permify/pkg/development/validation"
+	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
@@ -102,13 +102,13 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// create a new decoder from the url
-		decoder, err := validation.NewDecoderFromURL(u)
+		decoder, err := file.NewDecoderFromURL(u)
 		if err != nil {
 			return err
 		}
 
 		// create a new shape
-		s := &validation.Shape{}
+		s := &file.Shape{}
 
 		// decode the schema from the decoder
 		err = decoder.Decode(s)
@@ -133,9 +133,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		version := xid.New().String()
 
-		cnf := make([]repositories.SchemaDefinition, 0, len(sch.Statements))
+		cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
 		for _, st := range sch.Statements {
-			cnf = append(cnf, repositories.SchemaDefinition{
+			cnf = append(cnf, storage.SchemaDefinition{
 				TenantID:             "t1",
 				Version:              version,
 				EntityType:           st.(*ast.EntityStatement).Name.Literal,
@@ -240,7 +240,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						exp = base.PermissionCheckResponse_RESULT_DENIED
 					}
 
-					res, err := dev.Container.Invoker.InvokeCheck(ctx, &base.PermissionCheckRequest{
+					res, err := dev.Container.Invoker.Check(ctx, &base.PermissionCheckRequest{
 						TenantId: "t1",
 						Metadata: &base.PermissionCheckRequestMetadata{
 							Exclusion:     false,
@@ -300,7 +300,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 
 				for permission, expected := range filter.Assertions {
-					res, err := dev.Container.Invoker.InvokeLookupEntity(ctx, &base.PermissionLookupEntityRequest{
+					res, err := dev.Container.Invoker.LookupEntity(ctx, &base.PermissionLookupEntityRequest{
 						TenantId: "t1",
 						Metadata: &base.PermissionLookupEntityRequestMetadata{
 							SchemaVersion: version,

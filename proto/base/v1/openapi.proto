@@ -9,14 +9,14 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
     title: "Permify API";
     description: "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.";
-    version: "v0.3.9";
+    version: "v0.4.0";
     contact: {
       name: "API Support";
       url: "https://github.com/Permify/permify/issues";
       email: "hello@permify.co";
     };
     license: {
-      name: "GNU Affero General Public License v3.0";
+      name: "Apache-2.0 license";
       url: "https://github.com/Permify/permify/blob/master/LICENSE";
     }
   };

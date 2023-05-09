@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/keys"
-	"github.com/Permify/permify/internal/repositories/mocks"
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/internal/storage/mocks"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
@@ -17,6 +17,8 @@ import (
 
 var _ = Describe("check-engine", func() {
 	var checkEngine *CheckEngine
+
+	// var cache = keys.NewCheckEngine()
 
 	// DRIVE SAMPLE
 
@@ -198,7 +200,17 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -214,7 +226,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Run(context.Background(), req)
+			response, err = checkEngine.Check(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
 		})
@@ -313,7 +325,17 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -329,7 +351,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Run(context.Background(), req)
+			response, err = checkEngine.Check(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
@@ -482,7 +504,17 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -498,7 +530,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Run(context.Background(), req)
+			response, err = checkEngine.Check(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
@@ -575,7 +607,17 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -591,7 +633,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Run(context.Background(), req)
+			response, err = checkEngine.Check(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
@@ -709,7 +751,17 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -725,7 +777,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Run(context.Background(), req)
+			response, err = checkEngine.Check(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
 		})
@@ -840,7 +892,17 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -856,7 +918,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Run(context.Background(), req)
+			response, err = checkEngine.Check(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
 		})
@@ -1013,7 +1075,17 @@ entity doc {
 				},
 			}...), nil).Times(1)
 
-			checkEngine = NewCheckEngine(keys.NewNoopCheckEngineKeys(), schemaReader, relationshipReader)
+			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
 
 			req := &base.PermissionCheckRequest{
 				TenantId:   "t1",
@@ -1029,7 +1101,7 @@ entity doc {
 			}
 
 			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Run(context.Background(), req)
+			response, err = checkEngine.Check(context.Background(), req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
 		})
