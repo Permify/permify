@@ -2,23 +2,20 @@ package engines
 
 import (
 	"context"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	`github.com/Permify/permify/internal/config`
+	`github.com/Permify/permify/internal/factories`
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/schema"
-	"github.com/Permify/permify/internal/storage/mocks"
-	"github.com/Permify/permify/pkg/database"
+	`github.com/Permify/permify/pkg/database`
+	`github.com/Permify/permify/pkg/logger`
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("check-engine", func() {
-	var checkEngine *CheckEngine
-
-	// var cache = keys.NewCheckEngine()
 
 	// DRIVE SAMPLE
 
@@ -53,154 +50,57 @@ entity doc {
 
 	Context("Drive Sample: Check", func() {
 		It("Drive Sample: Case 1", func() {
-			var err error
 
-			// SCHEMA
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
 
-			schemaReader := new(mocks.SchemaReader)
-
-			var sch *base.SchemaDefinition
-			sch, err = schema.NewSchemaFromStringDefinitions(true, driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var doc *base.EntityDefinition
-			doc, err = schema.GetEntityByName(sch, "doc")
+			conf, err := newSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var folder *base.EntityDefinition
-			folder, err = schema.GetEntityByName(sch, "folder")
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
 
-			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(doc, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "t1", "folder", "noop").Return(folder, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(1)
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:1#folder@user:3",
+					"folder:1#collaborator@user:1",
+					"folder:1#collaborator@user:3",
+					"organization:1#admin@user:1",
+					"doc:1#org@organization:1#...",
+				},
+				checks: []check{
+					{
+						entity:  "doc:1",
+						subject: "user:1",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"read": base.PermissionCheckResponse_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
 
-			// RELATIONSHIPS
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
-			relationshipReader := new(mocks.RelationshipReader)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "parent",
-					Subject: &base.Subject{
-						Type:     "folder",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "folder",
-					Ids:  []string{"1"},
-				},
-				Relation: "collaborator",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "folder",
-						Id:   "1",
-					},
-					Relation: "collaborator",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-				{
-					Entity: &base.Entity{
-						Type: "folder",
-						Id:   "1",
-					},
-					Relation: "collaborator",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "3",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "org",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "org",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"1"},
-				},
-				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "1",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -208,124 +108,104 @@ entity doc {
 				checkEngine,
 				nil,
 				nil,
+				nil,
 			)
 
 			checkEngine.SetInvoker(invoker)
 
-			req := &base.PermissionCheckRequest{
-				TenantId:   "t1",
-				Entity:     &base.Entity{Type: "doc", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "read",
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
 			}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Check(context.Background(), req)
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Exclusion:     false,
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
 		})
 
 		It("Drive Sample: Case 2", func() {
-			var err error
 
-			// SCHEMA
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
 
-			schemaReader := new(mocks.SchemaReader)
-
-			var sch *base.SchemaDefinition
-			sch, err = schema.NewSchemaFromStringDefinitions(true, driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var doc *base.EntityDefinition
-			doc, err = schema.GetEntityByName(sch, "doc")
+			conf, err := newSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var folder *base.EntityDefinition
-			folder, err = schema.GetEntityByName(sch, "folder")
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
 
-			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(doc, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "t1", "folder", "noop").Return(folder, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(1)
-
-			// RELATIONSHIPS
-
-			relationshipReader := new(mocks.RelationshipReader)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:1#org@organization:1#...",
+					"organization:1#admin@user:1",
 				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
+				checks: []check{
+					{
+						entity:  "doc:1",
+						subject: "user:1",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"update": base.PermissionCheckResponse_RESULT_DENIED,
+						},
 					},
 				},
-			}...), nil).Times(1)
+			}
 
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "org",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "org",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"1"},
-				},
-				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "1",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -333,178 +213,106 @@ entity doc {
 				checkEngine,
 				nil,
 				nil,
+				nil,
 			)
 
 			checkEngine.SetInvoker(invoker)
 
-			req := &base.PermissionCheckRequest{
-				TenantId:   "t1",
-				Entity:     &base.Entity{Type: "doc", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "update",
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
 			}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Check(context.Background(), req)
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Exclusion:     false,
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
 		})
 
 		It("Drive Sample: Case 3", func() {
-			var err error
 
-			// SCHEMA
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
 
-			schemaReader := new(mocks.SchemaReader)
-
-			var sch *base.SchemaDefinition
-			sch, err = schema.NewSchemaFromStringDefinitions(true, driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var doc *base.EntityDefinition
-			doc, err = schema.GetEntityByName(sch, "doc")
+			conf, err := newSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var folder *base.EntityDefinition
-			folder, err = schema.GetEntityByName(sch, "folder")
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
 
-			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(doc, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "t1", "folder", "noop").Return(folder, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(1)
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:1#parent@folder:1#...",
+					"folder:1#collaborator@user:7",
+					"folder:1#collaborator@user:3",
+					"doc:1#org@organization:1#...",
+					"organization:1#admin@user:7",
+				},
+				checks: []check{
+					{
+						entity:  "doc:1",
+						subject: "user:1",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"read": base.PermissionCheckResponse_RESULT_DENIED,
+						},
+					},
+				},
+			}
 
-			// RELATIONSHIPS
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
-			relationshipReader := new(mocks.RelationshipReader)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "parent",
-					Subject: &base.Subject{
-						Type:     "folder",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "folder",
-					Ids:  []string{"1"},
-				},
-				Relation: "collaborator",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "folder",
-						Id:   "1",
-					},
-					Relation: "collaborator",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "7",
-						Relation: "",
-					},
-				},
-				{
-					Entity: &base.Entity{
-						Type: "folder",
-						Id:   "1",
-					},
-					Relation: "collaborator",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "3",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "org",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "org",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"1"},
-				},
-				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "1",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "7",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -512,102 +320,127 @@ entity doc {
 				checkEngine,
 				nil,
 				nil,
+				nil,
 			)
 
 			checkEngine.SetInvoker(invoker)
 
-			req := &base.PermissionCheckRequest{
-				TenantId:   "t1",
-				Entity:     &base.Entity{Type: "doc", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "read",
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
 			}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Check(context.Background(), req)
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Exclusion:     false,
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+
 		})
 	})
 
 	// GITHUB SAMPLE
 
 	githubSchema := `
-	entity user {}
+entity user {}
 	
-	entity organization {
-		relation admin @user
-		relation member @user
+entity organization {
+	relation admin @user
+	relation member @user
 	
-		action create_repository = admin or member
-		action delete = admin
-	}
+	action create_repository = admin or member
+	action delete = admin
+}
 	
-	entity repository {
-		relation parent @organization
-		relation owner @user
+entity repository {
+	relation parent @organization
+	relation owner @user
 	
-		action push   = owner
-	 action read   = owner and (parent.admin or parent.member)
-	 action delete = parent.member and (parent.admin or owner)
-	}
-	`
+	action push   = owner
+	action read   = owner and (parent.admin or parent.member)
+	action delete = parent.member and (parent.admin or owner)
+}
+`
 
 	Context("Github Sample: Check", func() {
 		It("Github Sample: Case 1", func() {
-			var err error
 
-			// SCHEMA
-
-			schemaReader := new(mocks.SchemaReader)
-
-			var sch *base.SchemaDefinition
-			sch, err = schema.NewSchemaFromStringDefinitions(true, githubSchema)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			var repository *base.EntityDefinition
-			repository, err = schema.GetEntityByName(sch, "repository")
-			Expect(err).ShouldNot(HaveOccurred())
-
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
-
-			schemaReader.On("ReadSchemaDefinition", "t1", "repository", "noop").Return(repository, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(2)
-
-			// RELATIONSHIPS
-
-			relationshipReader := new(mocks.RelationshipReader)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repository",
-					Ids:  []string{"1"},
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
 				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "repository",
-						Id:   "1",
-					},
-					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(githubSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
+
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"repository:1#owner@user:2",
+				},
+				checks: []check{
+					{
+						entity:  "repository:1",
+						subject: "user:1",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"push": base.PermissionCheckResponse_RESULT_DENIED,
+						},
 					},
 				},
-			}...), nil).Times(1)
+			}
 
-			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -615,143 +448,106 @@ entity doc {
 				checkEngine,
 				nil,
 				nil,
+				nil,
 			)
 
 			checkEngine.SetInvoker(invoker)
 
-			req := &base.PermissionCheckRequest{
-				TenantId:   "t1",
-				Entity:     &base.Entity{Type: "repository", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "push",
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
 			}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Check(context.Background(), req)
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Exclusion:     false,
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+
 		})
 
 		It("Github Sample: Case 2", func() {
-			var err error
 
-			// SCHEMA
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
 
-			schemaReader := new(mocks.SchemaReader)
-
-			var sch *base.SchemaDefinition
-			sch, err = schema.NewSchemaFromStringDefinitions(true, githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var repository *base.EntityDefinition
-			repository, err = schema.GetEntityByName(sch, "repository")
+			conf, err := newSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "t1", "repository", "noop").Return(repository, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(2)
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
 
-			// RELATIONSHIPS
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"repository:1#owner@organization:2#admin",
+					"organization:2#admin@organization:3#member",
+					"organization:2#admin@user:3",
+					"organization:2#admin@user:8",
+					"organization:3#member@user:1",
+				},
+				checks: []check{
+					{
+						entity:  "repository:1",
+						subject: "user:1",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"push": base.PermissionCheckResponse_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
 
-			relationshipReader := new(mocks.RelationshipReader)
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repository",
-					Ids:  []string{"1"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "repository",
-						Id:   "1",
-					},
-					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "2",
-						Relation: "admin",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"2"},
-				},
-				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "2",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "3",
-						Relation: "member",
-					},
-				},
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "2",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "3",
-						Relation: "",
-					},
-				},
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "2",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "8",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"3"},
-				},
-				Relation: "member",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "3",
-					},
-					Relation: "member",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -759,140 +555,105 @@ entity doc {
 				checkEngine,
 				nil,
 				nil,
+				nil,
 			)
 
 			checkEngine.SetInvoker(invoker)
 
-			req := &base.PermissionCheckRequest{
-				TenantId:   "t1",
-				Entity:     &base.Entity{Type: "repository", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "push",
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
 			}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Check(context.Background(), req)
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Exclusion:     false,
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+
 		})
 
 		It("Github Sample: Case 3", func() {
-			var err error
 
-			// SCHEMA
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
 
-			schemaReader := new(mocks.SchemaReader)
-
-			var sch *base.SchemaDefinition
-			sch, err = schema.NewSchemaFromStringDefinitions(true, githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var repository *base.EntityDefinition
-			repository, err = schema.GetEntityByName(sch, "repository")
+			conf, err := newSchema(githubSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaReader.On("ReadSchemaDefinition", "t1", "repository", "noop").Return(repository, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(2)
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
 
-			// RELATIONSHIPS
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"repository:1#parent@organization:8#...",
+					"organization:8#member@user:1",
+					"organization:8#admin@user:2",
+					"repository:1#owner@user:7",
+				},
+				checks: []check{
+					{
+						entity:  "repository:1",
+						subject: "user:1",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"delete": base.PermissionCheckResponse_RESULT_DENIED,
+						},
+					},
+				},
+			}
 
-			relationshipReader := new(mocks.RelationshipReader)
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repository",
-					Ids:  []string{"1"},
-				},
-				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "repository",
-						Id:   "1",
-					},
-					Relation: "parent",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "8",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(2)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"8"},
-				},
-				Relation: "member",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "8",
-					},
-					Relation: "member",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"8"},
-				},
-				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "8",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repository",
-					Ids:  []string{"1"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "repository",
-						Id:   "1",
-					},
-					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "7",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -900,182 +661,129 @@ entity doc {
 				checkEngine,
 				nil,
 				nil,
+				nil,
 			)
 
 			checkEngine.SetInvoker(invoker)
 
-			req := &base.PermissionCheckRequest{
-				TenantId:   "t1",
-				Entity:     &base.Entity{Type: "repository", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "1"},
-				Permission: "delete",
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
 			}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Check(context.Background(), req)
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_DENIED).Should(Equal(response.GetCan()))
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Exclusion:     false,
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+
 		})
 	})
 
 	// EXCLUSION SAMPLE
 
 	exclusionSchema := `
-	entity user {}
-        
-	entity organization {
-    	relation member @user
-	}
-
-	entity parent {
-    	relation member @user
-	}
-
-	entity repo {
-
-    	relation org @organization
-    	relation parent @parent
-    
-    	permission push   = org.member and not parent.member
-
-	} 
-	`
+entity user {}
+	
+entity organization {
+	relation member @user
+}
+	
+entity parent {
+	relation member @user
+}
+	
+entity repo {	
+	relation org @organization
+	relation parent @parent
+	
+	permission push   = org.member and not parent.member
+}
+`
 
 	Context("Exclusion Sample: Check", func() {
 		It("Exclusion Sample: Case 1", func() {
-			var err error
 
-			// SCHEMA
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
 
-			schemaReader := new(mocks.SchemaReader)
-
-			var sch *base.SchemaDefinition
-			sch, err = schema.NewSchemaFromStringDefinitions(true, exclusionSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var repo *base.EntityDefinition
-			repo, err = schema.GetEntityByName(sch, "repo")
+			conf, err := newSchema(exclusionSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var parent *base.EntityDefinition
-			parent, err = schema.GetEntityByName(sch, "parent")
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
 
-			schemaReader.On("ReadSchemaDefinition", "t1", "repo", "noop").Return(repo, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "t1", "parent", "noop").Return(parent, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(1)
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"organization:1#member@user:2",
+					"parent:1#member@user:1",
+					"repo:1#org@organization:1#...",
+					"repo:1#parent@parent:1#...",
+				},
+				checks: []check{
+					{
+						entity:  "repo:1",
+						subject: "user:2",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"push": base.PermissionCheckResponse_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
 
-			// RELATIONSHIPS
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
-			relationshipReader := new(mocks.RelationshipReader)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"1"},
-				},
-				Relation: "member",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "1",
-					},
-					Relation: "member",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "1",
-					},
-					Relation: "member",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "parent",
-					Ids:  []string{"1"},
-				},
-				Relation: "member",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "parent",
-						Id:   "1",
-					},
-					Relation: "member",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repo",
-					Ids:  []string{"1"},
-				},
-				Relation: "org",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "repo",
-						Id:   "1",
-					},
-					Relation: "org",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "repo",
-					Ids:  []string{"1"},
-				},
-				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "repo",
-						Id:   "1",
-					},
-					Relation: "parent",
-					Subject: &base.Subject{
-						Type:     "parent",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
-
-			checkEngine = NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1083,27 +791,54 @@ entity doc {
 				checkEngine,
 				nil,
 				nil,
+				nil,
 			)
 
 			checkEngine.SetInvoker(invoker)
 
-			req := &base.PermissionCheckRequest{
-				TenantId:   "t1",
-				Entity:     &base.Entity{Type: "repo", Id: "1"},
-				Subject:    &base.Subject{Type: tuple.USER, Id: "2"},
-				Permission: "push",
-				Metadata: &base.PermissionCheckRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-					Exclusion:     false,
-					Depth:         20,
-				},
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
 			}
 
-			var response *base.PermissionCheckResponse
-			response, err = checkEngine.Check(context.Background(), req)
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(base.PermissionCheckResponse_RESULT_ALLOWED).Should(Equal(response.GetCan()))
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Exclusion:     false,
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+
 		})
 	})
 })
