@@ -19,11 +19,6 @@ import (
 	"github.com/Permify/permify/internal"
 )
 
-// NewNoopMeter - Creates new noop meter
-func NewNoopMeter() omt.Meter {
-	return omt.NewNoopMeter()
-}
-
 // NewMeter - Creates new meter
 func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 	hostName, err := os.Hostname()
