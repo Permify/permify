@@ -1,17 +1,18 @@
 package engines
 
 import (
-	`github.com/rs/xid`
-	`sort`
+	"sort"
 	"testing"
+
+	"github.com/rs/xid"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/storage`
-	`github.com/Permify/permify/pkg/dsl/ast`
-	`github.com/Permify/permify/pkg/dsl/compiler`
-	`github.com/Permify/permify/pkg/dsl/parser`
+	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/pkg/dsl/ast"
+	"github.com/Permify/permify/pkg/dsl/compiler"
+	"github.com/Permify/permify/pkg/dsl/parser"
 )
 
 // This is the entry point for the test suite for the "engine" package.

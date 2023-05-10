@@ -2,21 +2,21 @@ package engines
 
 import (
 	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	`github.com/Permify/permify/internal/config`
-	`github.com/Permify/permify/internal/factories`
+	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
-	`github.com/Permify/permify/pkg/database`
-	`github.com/Permify/permify/pkg/logger`
+	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("check-engine", func() {
-
 	// DRIVE SAMPLE
 
 	driveSchema := `
@@ -50,7 +50,6 @@ entity doc {
 
 	Context("Drive Sample: Check", func() {
 		It("Drive Sample: Case 1", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -158,7 +157,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 2", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -263,7 +261,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 3", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -367,7 +364,6 @@ entity doc {
 					Expect(res).Should(Equal(response.GetCan()))
 				}
 			}
-
 		})
 	})
 
@@ -396,7 +392,6 @@ entity repository {
 
 	Context("Github Sample: Check", func() {
 		It("Github Sample: Case 1", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -495,11 +490,9 @@ entity repository {
 					Expect(res).Should(Equal(response.GetCan()))
 				}
 			}
-
 		})
 
 		It("Github Sample: Case 2", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -602,11 +595,9 @@ entity repository {
 					Expect(res).Should(Equal(response.GetCan()))
 				}
 			}
-
 		})
 
 		It("Github Sample: Case 3", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -708,7 +699,6 @@ entity repository {
 					Expect(res).Should(Equal(response.GetCan()))
 				}
 			}
-
 		})
 	})
 
@@ -735,7 +725,6 @@ entity repo {
 
 	Context("Exclusion Sample: Check", func() {
 		It("Exclusion Sample: Case 1", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -838,7 +827,6 @@ entity repo {
 					Expect(res).Should(Equal(response.GetCan()))
 				}
 			}
-
 		})
 	})
 })
