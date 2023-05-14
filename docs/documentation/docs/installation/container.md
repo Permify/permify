@@ -16,7 +16,10 @@ This will start an API server with the configuration options that pointed out on
 
 ### Configure With a YAML file
 
-This config path - `{YOUR-CONFIG-PATH}:/config` - addresses the [config yaml file](../reference/configuration.md), where you can configure running options of the Permify Server as well as define the ***database*** to store your authorization related data. 
+This config path - `{YOUR-CONFIG-PATH}` - addresses the [config yaml file](../reference/configuration.md), where you can configure running options of the Permify Server as well as define the ***database*** to store your authorization related data.
+
+As an example if you had a "config.yaml" file at your Desktop, the path `{YOUR-CONFIG-PATH}:/config` would look like:
+`Users/your_user_name/Desktop:/config`.
 
 :::info Talk to an Permify Engineer
 By default, the container is configured to listen on ports 3476 (HTTP) and 3478 (gRPC) and store the authorization data in memory rather than an actual database.
