@@ -239,9 +239,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader
 		checkEngine := engines.NewCheckEngine(schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
-		linkedEntityEngine := engines.NewEntityFilterEngine(schemaReader, relationshipReader)
-		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, linkedEntityEngine, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
-		lookupSubjectEngine := engines.NewLookupSubjectEngine(schemaReader, relationshipReader, engines.LookupSubjectConcurrencyLimit(cfg.Permission.BulkLimit))
+		entityFilterEngine := engines.NewEntityFilterEngine(schemaReader, relationshipReader)
+		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, entityFilterEngine, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
+		subjectFilterEngine := engines.NewSubjectFilterEngine(schemaReader, relationshipReader)
+		lookupSubjectEngine := engines.NewLookupSubjectEngine(subjectFilterEngine)
 		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
 
 		var check invoke.Check

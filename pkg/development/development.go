@@ -51,8 +51,8 @@ func NewContainer() *Development {
 	// Create instances of engines
 	checkEngine := engines.NewCheckEngine(schemaReader, relationshipReader)
 	expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
-	linkedEntityEngine := engines.NewLinkedEntityEngine(schemaReader, relationshipReader)
-	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+	entityFilterEngine := engines.NewEntityFilterEngine(schemaReader, relationshipReader)
+	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 	invoker := invoke.NewDirectInvoker(
 		schemaReader,
@@ -60,6 +60,7 @@ func NewContainer() *Development {
 		checkEngine,
 		expandEngine,
 		lookupEntityEngine,
+		nil,
 	)
 
 	checkEngine.SetInvoker(invoker)
