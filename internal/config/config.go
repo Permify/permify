@@ -302,7 +302,7 @@ func DefaultConfig() *Config {
 
 func isYAML(file string) error {
 	ext := filepath.Ext(file)
-	if ext != "yaml" {
+	if ext != ".yaml" {
 		return errors.New("file is not yaml")
 	}
 	return nil
