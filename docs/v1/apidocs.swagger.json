@@ -356,6 +356,123 @@
         ]
       }
     },
+    "/v1/tenants/{tenant_id}/permissions/lookup-subject": {
+      "post": {
+        "operationId": "permissions.lookupSubject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PermissionLookupSubjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/PermissionLookupSubjectRequestMetadata"
+                },
+                "entity": {
+                  "$ref": "#/definitions/Entity"
+                },
+                "permission": {
+                  "type": "string",
+                  "title": "its can be permission or relation"
+                },
+                "subject_reference": {
+                  "$ref": "#/definitions/RelationReference"
+                }
+              },
+              "title": "PermissionLookupSubjectRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/permissions/lookup-subject-stream": {
+      "post": {
+        "operationId": "permissions.lookupSubjectStream",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/PermissionLookupSubjectStreamResponse"
+                },
+                "error": {
+                  "$ref": "#/definitions/Status"
+                }
+              },
+              "title": "Stream result of PermissionLookupSubjectStreamResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/PermissionLookupSubjectRequestMetadata"
+                },
+                "entity": {
+                  "$ref": "#/definitions/Entity"
+                },
+                "permission": {
+                  "type": "string",
+                  "title": "its can be permission or relation"
+                },
+                "subject_reference": {
+                  "$ref": "#/definitions/RelationReference"
+                }
+              },
+              "title": "PermissionLookupSubjectRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ]
+      }
+    },
     "/v1/tenants/{tenant_id}/relationships/delete": {
       "post": {
         "summary": "delete relation tuple",
@@ -612,6 +729,9 @@
     "Child": {
       "type": "object",
       "properties": {
+        "exclusion": {
+          "type": "boolean"
+        },
         "leaf": {
           "$ref": "#/definitions/Leaf"
         },
@@ -701,11 +821,17 @@
     "Expand": {
       "type": "object",
       "properties": {
+        "target": {
+          "$ref": "#/definitions/EntityAndRelation"
+        },
+        "exclusion": {
+          "type": "boolean"
+        },
         "expand": {
           "$ref": "#/definitions/ExpandTreeNode"
         },
         "leaf": {
-          "$ref": "#/definitions/v1.Result"
+          "$ref": "#/definitions/Subjects"
         }
       },
       "title": "Expand"
@@ -739,9 +865,6 @@
     "Leaf": {
       "type": "object",
       "properties": {
-        "exclusion": {
-          "type": "boolean"
-        },
         "computedUserSet": {
           "$ref": "#/definitions/ComputedUserSet"
         },
@@ -774,23 +897,13 @@
       "type": "object",
       "properties": {
         "can": {
-          "$ref": "#/definitions/PermissionCheckResponse.Result"
+          "$ref": "#/definitions/Result"
         },
         "metadata": {
           "$ref": "#/definitions/PermissionCheckResponseMetadata"
         }
       },
       "title": "PermissionCheckResponse"
-    },
-    "PermissionCheckResponse.Result": {
-      "type": "string",
-      "enum": [
-        "RESULT_UNKNOWN",
-        "RESULT_ALLOWED",
-        "RESULT_DENIED"
-      ],
-      "default": "RESULT_UNKNOWN",
-      "title": "Result"
     },
     "PermissionCheckResponseMetadata": {
       "type": "object",
@@ -822,6 +935,9 @@
         },
         "snap_token": {
           "type": "string"
+        },
+        "exclusion": {
+          "type": "boolean"
         }
       },
       "title": "PermissionExpandRequestMetadata"
@@ -871,6 +987,42 @@
         }
       },
       "title": "PermissionLookupEntityStreamResponse"
+    },
+    "PermissionLookupSubjectRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        },
+        "exclusion": {
+          "type": "boolean"
+        }
+      },
+      "title": "PermissionLookupSubjectRequestMetadata"
+    },
+    "PermissionLookupSubjectResponse": {
+      "type": "object",
+      "properties": {
+        "subject_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "PermissionLookupSubjectResponse"
+    },
+    "PermissionLookupSubjectStreamResponse": {
+      "type": "object",
+      "properties": {
+        "subject_id": {
+          "type": "string"
+        }
+      },
+      "title": "PermissionLookupSubjectStreamResponse"
     },
     "RelationDefinition": {
       "type": "object",
@@ -961,6 +1113,16 @@
         }
       },
       "title": "RelationshipWriteResponse"
+    },
+    "Result": {
+      "type": "string",
+      "enum": [
+        "RESULT_UNKNOWN",
+        "RESULT_ALLOWED",
+        "RESULT_DENIED"
+      ],
+      "default": "RESULT_UNKNOWN",
+      "title": "Result"
     },
     "Rewrite": {
       "type": "object",
@@ -1078,6 +1240,19 @@
         }
       },
       "title": "SubjectFilter is used to filter subjects"
+    },
+    "Subjects": {
+      "type": "object",
+      "properties": {
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Subject"
+          }
+        }
+      },
+      "title": "Result"
     },
     "Tenant": {
       "type": "object",
@@ -1204,25 +1379,6 @@
         }
       },
       "title": "TupleToUserSet"
-    },
-    "v1.Result": {
-      "type": "object",
-      "properties": {
-        "target": {
-          "$ref": "#/definitions/EntityAndRelation"
-        },
-        "exclusion": {
-          "type": "boolean"
-        },
-        "subjects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/Subject"
-          }
-        }
-      },
-      "title": "Result"
     }
   },
   "securityDefinitions": {

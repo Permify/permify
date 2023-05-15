@@ -101,7 +101,7 @@ entity doc {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
+			linkedEntityEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
 			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
 
 			invoker := invoke.NewDirectInvoker(
@@ -217,8 +217,8 @@ entity doc {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -330,8 +330,8 @@ entity doc {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -443,8 +443,8 @@ entity doc {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -559,8 +559,8 @@ entity doc {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -681,8 +681,8 @@ entity doc {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -856,8 +856,8 @@ entity doc {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1138,8 +1138,8 @@ entity event {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1337,8 +1337,8 @@ entity event {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1516,8 +1516,8 @@ entity organization {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1693,8 +1693,8 @@ entity organization {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1802,8 +1802,8 @@ entity organization {
 			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewLinkedEntityEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,

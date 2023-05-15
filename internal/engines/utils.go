@@ -31,6 +31,16 @@ func LookupEntityConcurrencyLimit(limit int) LookupEntityOption {
 	}
 }
 
+// LookupSubjectOption - a functional option type for configuring the LookupSubjectEngine.
+type LookupSubjectOption func(engine *LookupSubjectEngine)
+
+// LookupSubjectConcurrencyLimit - a functional option that sets the concurrency limit for the LookupSubjectEngine.
+func LookupSubjectConcurrencyLimit(limit int) LookupSubjectOption {
+	return func(c *LookupSubjectEngine) {
+		c.concurrencyLimit = limit
+	}
+}
+
 // joinResponseMetas - a helper function that merges multiple PermissionCheckResponseMetadata structs into one.
 func joinResponseMetas(meta ...*base.PermissionCheckResponseMetadata) *base.PermissionCheckResponseMetadata {
 	response := &base.PermissionCheckResponseMetadata{}

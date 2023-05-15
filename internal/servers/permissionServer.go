@@ -109,3 +109,45 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 
 	return nil
 }
+
+// LookupSubject -
+func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.PermissionLookupSubjectRequest) (*v1.PermissionLookupSubjectResponse, error) {
+	ctx, span := tracer.Start(ctx, "permissions.lookup-subject")
+	defer span.End()
+
+	v := request.Validate()
+	if v != nil {
+		return nil, v
+	}
+
+	response, err := r.invoker.LookupSubject(ctx, request)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		r.logger.Error(err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	return response, nil
+}
+
+// LookupSubjectStream -
+func (r *PermissionServer) LookupSubjectStream(request *v1.PermissionLookupSubjectRequest, server v1.Permission_LookupSubjectStreamServer) error {
+	ctx, span := tracer.Start(context.Background(), "permissions.lookup-subject-stream")
+	defer span.End()
+
+	v := request.Validate()
+	if v != nil {
+		return v
+	}
+
+	err := r.invoker.LookupSubjectStream(ctx, request, server)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		r.logger.Error(err.Error())
+		return status.Error(GetStatus(err), err.Error())
+	}
+
+	return nil
+}

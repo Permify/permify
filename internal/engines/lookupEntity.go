@@ -13,7 +13,7 @@ type LookupEntityEngine struct {
 	// checkEngine is responsible for performing permission checks
 	checkEngine *CheckEngine
 	// linkedEntityEngine is responsible for retrieving linked entities
-	linkedEntityEngine *LinkedEntityEngine
+	entityFilterEngine *EntityFilterEngine
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
 }
@@ -21,10 +21,10 @@ type LookupEntityEngine struct {
 // NewLookupEntityEngine creates a new LookupEntityEngine instance.
 // engine: the CheckEngine to use for permission checks
 // reader: the RelationshipReader to retrieve entity relationships
-func NewLookupEntityEngine(check *CheckEngine, linked *LinkedEntityEngine, opts ...LookupEntityOption) *LookupEntityEngine {
+func NewLookupEntityEngine(check *CheckEngine, filter *EntityFilterEngine, opts ...LookupEntityOption) *LookupEntityEngine {
 	engine := &LookupEntityEngine{
 		checkEngine:        check,
-		linkedEntityEngine: linked,
+		entityFilterEngine: filter,
 		concurrencyLimit:   _defaultConcurrencyLimit,
 	}
 
@@ -61,9 +61,9 @@ func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *bas
 	visits := &ERMap{}
 
 	// Get unique entity IDs by entity type
-	err = engine.linkedEntityEngine.LinkedEntity(ctx, &base.PermissionLinkedEntityRequest{
+	err = engine.entityFilterEngine.EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 		TenantId: request.GetTenantId(),
-		Metadata: &base.PermissionLinkedEntityRequestMetadata{
+		Metadata: &base.PermissionEntityFilterRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
@@ -117,9 +117,9 @@ func (engine *LookupEntityEngine) LookupEntityStream(ctx context.Context, reques
 	visits := &ERMap{}
 
 	// Get unique entity IDs by entity type
-	err = engine.linkedEntityEngine.LinkedEntity(ctx, &base.PermissionLinkedEntityRequest{
+	err = engine.entityFilterEngine.EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 		TenantId: request.GetTenantId(),
-		Metadata: &base.PermissionLinkedEntityRequestMetadata{
+		Metadata: &base.PermissionEntityFilterRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
