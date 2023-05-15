@@ -227,7 +227,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 			return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
-		leaf.Exclusion = ident.IsPrefix()
+		child.Exclusion = ident.IsPrefix()
 		child.Type = &base.Child_Leaf{Leaf: leaf}
 		return child, nil
 	}
@@ -249,7 +249,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 			return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
-		leaf.Exclusion = ident.IsPrefix()
+		child.Exclusion = ident.IsPrefix()
 		child.Type = &base.Child_Leaf{Leaf: leaf}
 		return child, nil
 	}

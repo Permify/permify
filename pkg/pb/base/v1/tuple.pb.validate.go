@@ -1609,6 +1609,37 @@ func (m *Expand) validate(all bool) error {
 
 	var errors []error
 
+	if all {
+		switch v := interface{}(m.GetTarget()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ExpandValidationError{
+					field:  "Target",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ExpandValidationError{
+					field:  "Target",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTarget()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ExpandValidationError{
+				field:  "Target",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Exclusion
+
 	switch v := m.Node.(type) {
 	case *Expand_Expand:
 		if v == nil {
@@ -1773,57 +1804,27 @@ var _ interface {
 	ErrorName() string
 } = ExpandValidationError{}
 
-// Validate checks the field values on Result with the rules defined in the
+// Validate checks the field values on Subjects with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *Result) Validate() error {
+func (m *Subjects) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Result with the rules defined in the
-// proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in ResultMultiError, or nil if none found.
-func (m *Result) ValidateAll() error {
+// ValidateAll checks the field values on Subjects with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SubjectsMultiError, or nil
+// if none found.
+func (m *Subjects) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Result) validate(all bool) error {
+func (m *Subjects) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
-
-	if all {
-		switch v := interface{}(m.GetTarget()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ResultValidationError{
-					field:  "Target",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ResultValidationError{
-					field:  "Target",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetTarget()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ResultValidationError{
-				field:  "Target",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	// no validation rules for Exclusion
 
 	for idx, item := range m.GetSubjects() {
 		_, _ = idx, item
@@ -1832,7 +1833,7 @@ func (m *Result) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ResultValidationError{
+					errors = append(errors, SubjectsValidationError{
 						field:  fmt.Sprintf("Subjects[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -1840,7 +1841,7 @@ func (m *Result) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, ResultValidationError{
+					errors = append(errors, SubjectsValidationError{
 						field:  fmt.Sprintf("Subjects[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -1849,7 +1850,7 @@ func (m *Result) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return ResultValidationError{
+				return SubjectsValidationError{
 					field:  fmt.Sprintf("Subjects[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1860,18 +1861,18 @@ func (m *Result) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ResultMultiError(errors)
+		return SubjectsMultiError(errors)
 	}
 
 	return nil
 }
 
-// ResultMultiError is an error wrapping multiple validation errors returned by
-// Result.ValidateAll() if the designated constraints aren't met.
-type ResultMultiError []error
+// SubjectsMultiError is an error wrapping multiple validation errors returned
+// by Subjects.ValidateAll() if the designated constraints aren't met.
+type SubjectsMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ResultMultiError) Error() string {
+func (m SubjectsMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1880,11 +1881,11 @@ func (m ResultMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ResultMultiError) AllErrors() []error { return m }
+func (m SubjectsMultiError) AllErrors() []error { return m }
 
-// ResultValidationError is the validation error returned by Result.Validate if
-// the designated constraints aren't met.
-type ResultValidationError struct {
+// SubjectsValidationError is the validation error returned by
+// Subjects.Validate if the designated constraints aren't met.
+type SubjectsValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1892,22 +1893,22 @@ type ResultValidationError struct {
 }
 
 // Field function returns field value.
-func (e ResultValidationError) Field() string { return e.field }
+func (e SubjectsValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ResultValidationError) Reason() string { return e.reason }
+func (e SubjectsValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ResultValidationError) Cause() error { return e.cause }
+func (e SubjectsValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ResultValidationError) Key() bool { return e.key }
+func (e SubjectsValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ResultValidationError) ErrorName() string { return "ResultValidationError" }
+func (e SubjectsValidationError) ErrorName() string { return "SubjectsValidationError" }
 
 // Error satisfies the builtin error interface
-func (e ResultValidationError) Error() string {
+func (e SubjectsValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1919,14 +1920,14 @@ func (e ResultValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sResult.%s: %s%s",
+		"invalid %sSubjects.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ResultValidationError{}
+var _ error = SubjectsValidationError{}
 
 var _ interface {
 	Field() string
@@ -1934,7 +1935,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ResultValidationError{}
+} = SubjectsValidationError{}
 
 // Validate checks the field values on Tenant with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

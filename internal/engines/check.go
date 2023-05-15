@@ -67,25 +67,11 @@ func (engine *CheckEngine) Check(ctx context.Context, request *base.PermissionCh
 		return emptyResp, err
 	}
 
-	// Determine type of relational reference for the permission field
-	var tor base.EntityDefinition_RelationalReference
-	tor, err = schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
-	if err != nil {
-		return emptyResp, err
-	}
-
 	// Perform permission check
 	var res *base.PermissionCheckResponse
-	res, err = engine.check(ctx, request, tor, en)(ctx)
+	res, err = engine.check(ctx, request, en)(ctx)
 	if err != nil {
 		return emptyResp, err
-	}
-
-	if request.GetMetadata().GetExclusion() {
-		if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-			return denied(res.Metadata), nil
-		}
-		return allowed(res.Metadata), nil
 	}
 
 	return &base.PermissionCheckResponse{
@@ -121,21 +107,43 @@ func (engine *CheckEngine) invoke(ctx context.Context, request *base.PermissionC
 // CheckFunction. The returned CheckFunction, when called with a context,
 // executes the appropriate checking method and returns the resulting
 // PermissionCheckResponse and error.
-func (engine *CheckEngine) check(ctx context.Context, request *base.PermissionCheckRequest, tor base.EntityDefinition_RelationalReference, en *base.EntityDefinition) CheckFunction {
-	var err error
+func (engine *CheckEngine) check(
+	ctx context.Context,
+	request *base.PermissionCheckRequest,
+	en *base.EntityDefinition,
+) CheckFunction {
+	// Determine type of relational reference for the permission field
+	tor, err := schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
+	if err != nil {
+		return checkFail(err)
+	}
+
 	var fn CheckFunction
 	if tor == base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
 		var child *base.Child
-		var permission *base.PermissionDefinition
-		permission, err = schema.GetPermissionByNameInEntityDefinition(en, request.GetPermission())
+		permission, err := schema.GetPermissionByNameInEntityDefinition(en, request.GetPermission())
 		if err != nil {
 			return checkFail(err)
 		}
 		child = permission.GetChild()
+
+		req := &base.PermissionCheckRequest{
+			TenantId:   request.GetTenantId(),
+			Entity:     request.GetEntity(),
+			Subject:    request.GetSubject(),
+			Permission: request.GetPermission(),
+			Metadata: &base.PermissionCheckRequestMetadata{
+				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+				SnapToken:     request.GetMetadata().GetSnapToken(),
+				Exclusion:     request.GetMetadata().GetExclusion() != child.GetExclusion(),
+				Depth:         request.GetMetadata().GetDepth(),
+			},
+		}
+
 		if child.GetRewrite() != nil {
-			fn = engine.checkRewrite(ctx, request, child.GetRewrite())
+			fn = engine.checkRewrite(ctx, req, child.GetRewrite())
 		} else {
-			fn = engine.checkLeaf(ctx, request, child.GetLeaf())
+			fn = engine.checkLeaf(ctx, req, child.GetLeaf())
 		}
 	} else {
 		fn = engine.checkDirect(ctx, request)
@@ -158,9 +166,17 @@ func (engine *CheckEngine) check(ctx context.Context, request *base.PermissionCh
 func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.PermissionCheckRequest, rewrite *base.Rewrite) CheckFunction {
 	switch rewrite.GetRewriteOperation() {
 	case *base.Rewrite_OPERATION_UNION.Enum():
-		return engine.setChild(ctx, request, rewrite.GetChildren(), checkUnion)
+		checkFunc := checkUnion
+		if request.GetMetadata().GetExclusion() {
+			checkFunc = checkIntersection
+		}
+		return engine.setChild(ctx, request, rewrite.GetChildren(), checkFunc)
 	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
-		return engine.setChild(ctx, request, rewrite.GetChildren(), checkIntersection)
+		checkFunc := checkIntersection
+		if request.GetMetadata().GetExclusion() {
+			checkFunc = checkUnion
+		}
+		return engine.setChild(ctx, request, rewrite.GetChildren(), checkFunc)
 	default:
 		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
@@ -174,9 +190,9 @@ func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.Permi
 func (engine *CheckEngine) checkLeaf(ctx context.Context, request *base.PermissionCheckRequest, leaf *base.Leaf) CheckFunction {
 	switch op := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
-		return engine.checkTupleToUserSet(ctx, request, op.TupleToUserSet, leaf.GetExclusion())
+		return engine.checkTupleToUserSet(ctx, request, op.TupleToUserSet)
 	case *base.Leaf_ComputedUserSet:
-		return engine.checkComputedUserSet(ctx, request, op.ComputedUserSet, leaf.GetExclusion())
+		return engine.checkComputedUserSet(ctx, request, op.ComputedUserSet)
 	default:
 		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
@@ -188,14 +204,32 @@ func (engine *CheckEngine) checkLeaf(ctx context.Context, request *base.Permissi
 // and returns a new CheckFunction that, when called with a context, combines
 // the results of the child functions using the provided CheckCombiner function,
 // returning the resulting PermissionCheckResponse and error.
-func (engine *CheckEngine) setChild(ctx context.Context, request *base.PermissionCheckRequest, children []*base.Child, combiner CheckCombiner) CheckFunction {
+func (engine *CheckEngine) setChild(
+	ctx context.Context,
+	request *base.PermissionCheckRequest,
+	children []*base.Child,
+	combiner CheckCombiner,
+) CheckFunction {
 	var functions []CheckFunction
 	for _, child := range children {
+		req := &base.PermissionCheckRequest{
+			TenantId:   request.GetTenantId(),
+			Entity:     request.GetEntity(),
+			Subject:    request.GetSubject(),
+			Permission: request.GetPermission(),
+			Metadata: &base.PermissionCheckRequestMetadata{
+				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+				SnapToken:     request.GetMetadata().GetSnapToken(),
+				Exclusion:     request.GetMetadata().GetExclusion() != child.GetExclusion(),
+				Depth:         request.GetMetadata().GetDepth(),
+			},
+		}
+		request.Metadata.Exclusion = request.GetMetadata().GetExclusion() != child.GetExclusion()
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
-			functions = append(functions, engine.checkRewrite(ctx, request, child.GetRewrite()))
+			functions = append(functions, engine.checkRewrite(ctx, req, child.GetRewrite()))
 		case *base.Child_Leaf:
-			functions = append(functions, engine.checkLeaf(ctx, request, child.GetLeaf()))
+			functions = append(functions, engine.checkLeaf(ctx, req, child.GetLeaf()))
 		default:
 			return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 		}
@@ -232,6 +266,9 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 		for it.HasNext() {
 			subject := it.GetNext().GetSubject()
 			if tuple.AreSubjectsEqual(subject, request.GetSubject()) {
+				if request.GetMetadata().GetExclusion() {
+					return denied(&base.PermissionCheckResponseMetadata{}), nil
+				}
 				return allowed(&base.PermissionCheckResponseMetadata{}), nil
 			}
 			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
@@ -252,6 +289,9 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 			return checkUnion(ctx, checkFunctions, engine.concurrencyLimit)
 		}
 
+		if request.GetMetadata().GetExclusion() {
+			return allowed(&base.PermissionCheckResponseMetadata{}), nil
+		}
 		return denied(&base.PermissionCheckResponseMetadata{}), nil
 	}
 }
@@ -262,11 +302,13 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 // based on the TupleToUserSet. For each tuple found, it adds a check function for
 // the computed user set to a list of CheckFunctions. The final result is determined
 // by combining the check results using the checkUnion function.
-func (engine *CheckEngine) checkTupleToUserSet(ctx context.Context, request *base.PermissionCheckRequest, ttu *base.TupleToUserSet, exclusion bool) CheckFunction {
+func (engine *CheckEngine) checkTupleToUserSet(
+	ctx context.Context,
+	request *base.PermissionCheckRequest,
+	ttu *base.TupleToUserSet,
+) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		var err error
-		var it *database.TupleIterator
-		it, err = engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
@@ -289,7 +331,7 @@ func (engine *CheckEngine) checkTupleToUserSet(ctx context.Context, request *bas
 				Permission: subject.GetRelation(),
 				Subject:    request.GetSubject(),
 				Metadata:   request.GetMetadata(),
-			}, ttu.GetComputed(), exclusion))
+			}, ttu.GetComputed()))
 		}
 
 		return checkUnion(ctx, checkFunctions, engine.concurrencyLimit)
@@ -302,7 +344,11 @@ func (engine *CheckEngine) checkTupleToUserSet(ctx context.Context, request *bas
 // by creating a new PermissionCheckRequest with the relation from the ComputedUserSet
 // and the adjusted depth. The exclusion flag is passed through to the new request's
 // metadata to determine if the computed user set should be excluded from the result.
-func (engine *CheckEngine) checkComputedUserSet(ctx context.Context, request *base.PermissionCheckRequest, cu *base.ComputedUserSet, exclusion bool) CheckFunction {
+func (engine *CheckEngine) checkComputedUserSet(
+	ctx context.Context,
+	request *base.PermissionCheckRequest,
+	cu *base.ComputedUserSet,
+) CheckFunction {
 	return engine.invoke(ctx, &base.PermissionCheckRequest{
 		TenantId: request.GetTenantId(),
 		Entity: &base.Entity{
@@ -311,12 +357,7 @@ func (engine *CheckEngine) checkComputedUserSet(ctx context.Context, request *ba
 		},
 		Permission: cu.GetRelation(),
 		Subject:    request.GetSubject(),
-		Metadata: &base.PermissionCheckRequestMetadata{
-			SchemaVersion: request.Metadata.GetSchemaVersion(),
-			Exclusion:     exclusion,
-			SnapToken:     request.Metadata.GetSnapToken(),
-			Depth:         request.Metadata.GetDepth(),
-		},
+		Metadata:   request.GetMetadata(),
 	})
 }
 
