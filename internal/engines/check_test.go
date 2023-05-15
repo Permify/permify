@@ -727,6 +727,7 @@ entity repo {
 	permission update = (org.member and not parent.member) and member
 	permission view = member or not update
 	permission manage = not update
+	permission admin = not manage
 }
 `
 
@@ -1192,6 +1193,111 @@ entity repo {
 						subject: "user:2",
 						assertions: map[string]base.PermissionCheckResponse_Result{
 							"view": base.PermissionCheckResponse_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Exclusion:     false,
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+		})
+
+		It("Exclusion Sample: Case 6", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(exclusionSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
+
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"parent:1#admin@user:2",
+					"parent:1#member@user:1",
+					"parent:1#member@parent:1#admin",
+					"repo:1#org@organization:1#...",
+					"repo:1#parent@parent:1#...",
+				},
+				checks: []check{
+					{
+						entity:  "repo:1",
+						subject: "user:2",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"admin": base.PermissionCheckResponse_RESULT_DENIED,
 						},
 					},
 				},
