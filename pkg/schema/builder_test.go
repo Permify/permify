@@ -69,9 +69,9 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
+												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -81,9 +81,9 @@ var _ = Describe("compiler", func() {
 												},
 											},
 											{
+												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "admin",
@@ -167,9 +167,9 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
+												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -184,9 +184,9 @@ var _ = Describe("compiler", func() {
 														RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
 														Children: []*base.Child{
 															{
+																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: false,
 																		Type: &base.Leaf_ComputedUserSet{
 																			ComputedUserSet: &base.ComputedUserSet{
 																				Relation: "admin",
@@ -196,9 +196,9 @@ var _ = Describe("compiler", func() {
 																},
 															},
 															{
+																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: false,
 																		Type: &base.Leaf_ComputedUserSet{
 																			ComputedUserSet: &base.ComputedUserSet{
 																				Relation: "owner",
@@ -275,9 +275,9 @@ var _ = Describe("compiler", func() {
 						"update": {
 							Name: "update",
 							Child: &base.Child{
+								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
-										Exclusion: false,
 										Type: &base.Leaf_ComputedUserSet{
 											ComputedUserSet: &base.ComputedUserSet{
 												Relation: "owner",
@@ -363,9 +363,9 @@ var _ = Describe("compiler", func() {
 						"update": {
 							Name: "update",
 							Child: &base.Child{
+								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
-										Exclusion: false,
 										Type: &base.Leaf_ComputedUserSet{
 											ComputedUserSet: &base.ComputedUserSet{
 												Relation: "owner",
@@ -413,9 +413,9 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
+												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -430,9 +430,9 @@ var _ = Describe("compiler", func() {
 														RewriteOperation: base.Rewrite_OPERATION_UNION,
 														Children: []*base.Child{
 															{
+																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: false,
 																		Type: &base.Leaf_TupleToUserSet{
 																			TupleToUserSet: &base.TupleToUserSet{
 																				TupleSet: &base.TupleSet{
@@ -447,9 +447,9 @@ var _ = Describe("compiler", func() {
 																},
 															},
 															{
+																Exclusion: true,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: true,
 																		Type: &base.Leaf_TupleToUserSet{
 																			TupleToUserSet: &base.TupleToUserSet{
 																				TupleSet: &base.TupleSet{

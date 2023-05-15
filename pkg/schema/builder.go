@@ -105,9 +105,9 @@ func Permissions(defs ...*base.PermissionDefinition) []*base.PermissionDefinitio
 // exclusion: a boolean indicating if the computed set should exclude or include the users in the set
 func ComputedUserSet(relation string, exclusion bool) *base.Child {
 	return &base.Child{
+		Exclusion: exclusion,
 		Type: &base.Child_Leaf{
 			Leaf: &base.Leaf{
-				Exclusion: exclusion,
 				Type: &base.Leaf_ComputedUserSet{
 					ComputedUserSet: &base.ComputedUserSet{
 						Relation: relation,
@@ -128,9 +128,9 @@ func ComputedUserSet(relation string, exclusion bool) *base.Child {
 // Returns a pointer to a base.Child struct.
 func TupleToUserSet(reference, relation string, exclusion bool) *base.Child {
 	return &base.Child{
+		Exclusion: exclusion,
 		Type: &base.Child_Leaf{
 			Leaf: &base.Leaf{
-				Exclusion: exclusion,
 				Type: &base.Leaf_TupleToUserSet{
 					TupleToUserSet: &base.TupleToUserSet{
 						TupleSet: &base.TupleSet{
