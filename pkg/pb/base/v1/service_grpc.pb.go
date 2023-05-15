@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Permission_Check_FullMethodName              = "/base.v1.Permission/Check"
-	Permission_Expand_FullMethodName             = "/base.v1.Permission/Expand"
-	Permission_LookupEntity_FullMethodName       = "/base.v1.Permission/LookupEntity"
-	Permission_LookupEntityStream_FullMethodName = "/base.v1.Permission/LookupEntityStream"
+	Permission_Check_FullMethodName               = "/base.v1.Permission/Check"
+	Permission_Expand_FullMethodName              = "/base.v1.Permission/Expand"
+	Permission_LookupEntity_FullMethodName        = "/base.v1.Permission/LookupEntity"
+	Permission_LookupEntityStream_FullMethodName  = "/base.v1.Permission/LookupEntityStream"
+	Permission_LookupSubject_FullMethodName       = "/base.v1.Permission/LookupSubject"
+	Permission_LookupSubjectStream_FullMethodName = "/base.v1.Permission/LookupSubjectStream"
 )
 
 // PermissionClient is the client API for Permission service.
@@ -33,6 +35,8 @@ type PermissionClient interface {
 	Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error)
 	LookupEntity(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (*PermissionLookupEntityResponse, error)
 	LookupEntityStream(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (Permission_LookupEntityStreamClient, error)
+	LookupSubject(ctx context.Context, in *PermissionLookupSubjectRequest, opts ...grpc.CallOption) (*PermissionLookupSubjectResponse, error)
+	LookupSubjectStream(ctx context.Context, in *PermissionLookupSubjectRequest, opts ...grpc.CallOption) (Permission_LookupSubjectStreamClient, error)
 }
 
 type permissionClient struct {
@@ -102,6 +106,47 @@ func (x *permissionLookupEntityStreamClient) Recv() (*PermissionLookupEntityStre
 	return m, nil
 }
 
+func (c *permissionClient) LookupSubject(ctx context.Context, in *PermissionLookupSubjectRequest, opts ...grpc.CallOption) (*PermissionLookupSubjectResponse, error) {
+	out := new(PermissionLookupSubjectResponse)
+	err := c.cc.Invoke(ctx, Permission_LookupSubject_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *permissionClient) LookupSubjectStream(ctx context.Context, in *PermissionLookupSubjectRequest, opts ...grpc.CallOption) (Permission_LookupSubjectStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Permission_ServiceDesc.Streams[1], Permission_LookupSubjectStream_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &permissionLookupSubjectStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Permission_LookupSubjectStreamClient interface {
+	Recv() (*PermissionLookupSubjectStreamResponse, error)
+	grpc.ClientStream
+}
+
+type permissionLookupSubjectStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *permissionLookupSubjectStreamClient) Recv() (*PermissionLookupSubjectStreamResponse, error) {
+	m := new(PermissionLookupSubjectStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // PermissionServer is the server API for Permission service.
 // All implementations must embed UnimplementedPermissionServer
 // for forward compatibility
@@ -110,6 +155,8 @@ type PermissionServer interface {
 	Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error)
 	LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error)
 	LookupEntityStream(*PermissionLookupEntityRequest, Permission_LookupEntityStreamServer) error
+	LookupSubject(context.Context, *PermissionLookupSubjectRequest) (*PermissionLookupSubjectResponse, error)
+	LookupSubjectStream(*PermissionLookupSubjectRequest, Permission_LookupSubjectStreamServer) error
 	mustEmbedUnimplementedPermissionServer()
 }
 
@@ -128,6 +175,12 @@ func (UnimplementedPermissionServer) LookupEntity(context.Context, *PermissionLo
 }
 func (UnimplementedPermissionServer) LookupEntityStream(*PermissionLookupEntityRequest, Permission_LookupEntityStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method LookupEntityStream not implemented")
+}
+func (UnimplementedPermissionServer) LookupSubject(context.Context, *PermissionLookupSubjectRequest) (*PermissionLookupSubjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LookupSubject not implemented")
+}
+func (UnimplementedPermissionServer) LookupSubjectStream(*PermissionLookupSubjectRequest, Permission_LookupSubjectStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method LookupSubjectStream not implemented")
 }
 func (UnimplementedPermissionServer) mustEmbedUnimplementedPermissionServer() {}
 
@@ -217,6 +270,45 @@ func (x *permissionLookupEntityStreamServer) Send(m *PermissionLookupEntityStrea
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Permission_LookupSubject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermissionLookupSubjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionServer).LookupSubject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Permission_LookupSubject_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionServer).LookupSubject(ctx, req.(*PermissionLookupSubjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Permission_LookupSubjectStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(PermissionLookupSubjectRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(PermissionServer).LookupSubjectStream(m, &permissionLookupSubjectStreamServer{stream})
+}
+
+type Permission_LookupSubjectStreamServer interface {
+	Send(*PermissionLookupSubjectStreamResponse) error
+	grpc.ServerStream
+}
+
+type permissionLookupSubjectStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *permissionLookupSubjectStreamServer) Send(m *PermissionLookupSubjectStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Permission_ServiceDesc is the grpc.ServiceDesc for Permission service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -236,11 +328,20 @@ var Permission_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "LookupEntity",
 			Handler:    _Permission_LookupEntity_Handler,
 		},
+		{
+			MethodName: "LookupSubject",
+			Handler:    _Permission_LookupSubject_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "LookupEntityStream",
 			Handler:       _Permission_LookupEntityStream_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "LookupSubjectStream",
+			Handler:       _Permission_LookupSubjectStream_Handler,
 			ServerStreams: true,
 		},
 	},

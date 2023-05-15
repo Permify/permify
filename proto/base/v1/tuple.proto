@@ -126,17 +126,17 @@ message ExpandTreeNode {
 
 // Expand
 message Expand {
+  EntityAndRelation target = 1;
+  bool exclusion = 2;
   oneof node {
-    ExpandTreeNode expand = 1;
-    Result leaf = 2;
+    ExpandTreeNode expand = 3;
+    Subjects leaf = 4;
   }
 }
 
 // Result
-message Result {
-  EntityAndRelation target = 1;
-  bool exclusion = 2;
-  repeated Subject subjects = 3;
+message Subjects {
+  repeated Subject subjects = 2;
 }
 
 // Tenant

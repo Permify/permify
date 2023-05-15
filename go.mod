@@ -39,12 +39,12 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/testcontainers/testcontainers-go v0.19.0
 	github.com/zitadel/oidc v1.13.4
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0
-	go.opentelemetry.io/contrib/instrumentation/host v0.40.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.41.1
+	go.opentelemetry.io/contrib/instrumentation/host v0.41.1
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.41.1
 	go.opentelemetry.io/otel v1.15.1
 	go.opentelemetry.io/otel/exporters/jaeger v1.15.1
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.37.0
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.38.1
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.15.1
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.14.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.15.1
@@ -131,7 +131,8 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
-	github.com/shirou/gopsutil/v3 v3.23.1 // indirect
+	github.com/shirou/gopsutil/v3 v3.23.3 // indirect
+	github.com/shoenig/go-m1cpu v0.1.4 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
@@ -146,7 +147,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.15.1 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.37.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.38.1 // indirect
 	go.opentelemetry.io/otel/trace v1.15.1 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect

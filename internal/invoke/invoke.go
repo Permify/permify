@@ -18,6 +18,7 @@ type Invoker interface {
 	Check
 	Expand
 	LookupEntity
+	LookupSubject
 }
 
 // Check is an interface that defines a method for checking permissions.
@@ -42,6 +43,12 @@ type LookupEntity interface {
 	LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error)
 }
 
+// LookupSubject -
+type LookupSubject interface {
+	LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error)
+	LookupSubjectStream(ctx context.Context, request *base.PermissionLookupSubjectRequest, server base.Permission_LookupSubjectStreamServer) (err error)
+}
+
 // DirectInvoker is a struct that implements the Invoker interface.
 // It holds references to various engines needed for permission-related operations.
 type DirectInvoker struct {
@@ -55,6 +62,8 @@ type DirectInvoker struct {
 	ec Expand
 	// LookupEntity engine for looking up entities with permissions
 	le LookupEntity
+	// LookupSubject
+	ls LookupSubject
 }
 
 // NewDirectInvoker is a constructor for DirectInvoker.
@@ -66,6 +75,7 @@ func NewDirectInvoker(
 	cc Check,
 	ec Expand,
 	le LookupEntity,
+	ls LookupSubject,
 ) *DirectInvoker {
 	return &DirectInvoker{
 		schemaReader:       schemaReader,
@@ -73,6 +83,7 @@ func NewDirectInvoker(
 		cc:                 cc,
 		ec:                 ec,
 		le:                 le,
+		ls:                 ls,
 	}
 }
 
@@ -222,4 +233,54 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 	}
 
 	return invoker.le.LookupEntityStream(ctx, request, server)
+}
+
+func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error) {
+	ctx, span := tracer.Start(ctx, "permissions.lookup-subject")
+	defer span.End()
+
+	// Set SnapToken if not provided
+	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
+		var st token.SnapToken
+		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
+		if err != nil {
+			return nil, err
+		}
+		request.Metadata.SnapToken = st.Encode().String() // Set the SnapToken in the request metadata.
+	}
+
+	// Set SchemaVersion if not provided
+	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
+		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return invoker.ls.LookupSubject(ctx, request)
+}
+
+func (invoker *DirectInvoker) LookupSubjectStream(ctx context.Context, request *base.PermissionLookupSubjectRequest, server base.Permission_LookupSubjectStreamServer) (err error) {
+	ctx, span := tracer.Start(ctx, "permissions.lookup-subject-stream")
+	defer span.End()
+
+	// Set SnapToken if not provided
+	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
+		var st token.SnapToken
+		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
+		if err != nil {
+			return err
+		}
+		request.Metadata.SnapToken = st.Encode().String() // Set the SnapToken in the request metadata.
+	}
+
+	// Set SchemaVersion if not provided
+	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
+		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
+		if err != nil {
+			return err
+		}
+	}
+
+	return invoker.ls.LookupSubjectStream(ctx, request, server)
 }

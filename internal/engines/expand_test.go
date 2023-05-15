@@ -6,263 +6,243 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/schema"
-	"github.com/Permify/permify/internal/storage/mocks"
+	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/internal/factories"
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("expand-engine", func() {
-	var expandEngine *ExpandEngine
-
 	// DRIVE SAMPLE
 	driveSchema := `
 	entity user {}
-	
+
 	entity organization {
 		relation admin @user
 	}
-	
+
 	entity folder {
 		relation org @organization
 		relation creator @user
 		relation collaborator @user
-	
+
 		permission read = collaborator
 		permission update = collaborator
 		permission delete = creator or org.admin
 	}
-	
+
 	entity doc {
 		relation org @organization
 		relation parent @folder
-		relation owner @user
-	
+		relation owner @user @folder#creator
+
 		permission read = (owner or parent.collaborator) or org.admin
-		permission update = owner and org.admin
-		permission delete = owner or org.admin
+		permission update = owner and not org.admin
+		permission delete = owner or not update
+		permission view = owner and not read
 	}
 	`
 
 	Context("Drive Sample: Expand", func() {
 		It("Drive Sample: Case 1", func() {
-			var err error
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
 
 			// SCHEMA
 
-			schemaReader := new(mocks.SchemaReader)
-
-			var sch *base.SchemaDefinition
-			sch, err = schema.NewSchemaFromStringDefinitions(true, driveSchema)
+			conf, err := newSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var doc *base.EntityDefinition
-			doc, err = schema.GetEntityByName(sch, "doc")
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
 			Expect(err).ShouldNot(HaveOccurred())
-
-			var folder *base.EntityDefinition
-			folder, err = schema.GetEntityByName(sch, "folder")
-			Expect(err).ShouldNot(HaveOccurred())
-
-			var organization *base.EntityDefinition
-			organization, err = schema.GetEntityByName(sch, "organization")
-			Expect(err).ShouldNot(HaveOccurred())
-
-			schemaReader.On("ReadSchemaDefinition", "t1", "doc", "noop").Return(doc, "noop", nil).Times(2)
-			schemaReader.On("ReadSchemaDefinition", "t1", "folder", "noop").Return(folder, "noop", nil).Times(1)
-			schemaReader.On("ReadSchemaDefinition", "t1", "organization", "noop").Return(organization, "noop", nil).Times(1)
 
 			// RELATIONSHIPS
 
-			relationshipReader := new(mocks.RelationshipReader)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "owner",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "owner",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "2",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "parent",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "parent",
-					Subject: &base.Subject{
-						Type:     "folder",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "folder",
-					Ids:  []string{"1"},
-				},
-				Relation: "collaborator",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "folder",
-						Id:   "1",
-					},
-					Relation: "collaborator",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-				{
-					Entity: &base.Entity{
-						Type: "folder",
-						Id:   "1",
-					},
-					Relation: "collaborator",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "3",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "doc",
-					Ids:  []string{"1"},
-				},
-				Relation: "org",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "org",
-					Subject: &base.Subject{
-						Type:     "organization",
-						Id:       "1",
-						Relation: tuple.ELLIPSIS,
-					},
-				},
-			}...), nil).Times(1)
-
-			relationshipReader.On("QueryRelationships", "t1", &base.TupleFilter{
-				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"1"},
-				},
-				Relation: "admin",
-			}, token.NewNoopToken().Encode().String()).Return(database.NewTupleIterator([]*base.Tuple{
-				{
-					Entity: &base.Entity{
-						Type: "organization",
-						Id:   "1",
-					},
-					Relation: "admin",
-					Subject: &base.Subject{
-						Type:     tuple.USER,
-						Id:       "1",
-						Relation: "",
-					},
-				},
-			}...), nil).Times(1)
-
-			expandEngine = NewExpandEngine(schemaReader, relationshipReader)
-
-			req := &base.PermissionExpandRequest{
-				TenantId:   "t1",
-				Entity:     &base.Entity{Type: "doc", Id: "1"},
-				Permission: "read",
-				Metadata: &base.PermissionExpandRequestMetadata{
-					SnapToken:     token.NewNoopToken().Encode().String(),
-					SchemaVersion: "noop",
-				},
+			type expand struct {
+				entity     string
+				assertions map[string]*base.Expand
 			}
 
-			var response *base.PermissionExpandResponse
-			response, err = expandEngine.Expand(context.Background(), req)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(&base.Expand{
-				Node: &base.Expand_Expand{
-					Expand: &base.ExpandTreeNode{
-						Operation: base.ExpandTreeNode_OPERATION_UNION,
-						Children: []*base.Expand{
-							{
+			tests := struct {
+				relationships []string
+				expands       []expand
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:1#parent@folder:1#...",
+					"folder:1#collaborator@user:1",
+					"folder:1#collaborator@user:3",
+					"doc:1#org@organization:1#...",
+					"organization:1#admin@user:1",
+					"folder:2#creator@user:89",
+					"doc:1#owner@folder:2#creator",
+				},
+				expands: []expand{
+					{
+						entity: "doc:1",
+						assertions: map[string]*base.Expand{
+							"read": {
+								Target: &base.EntityAndRelation{
+									Entity: &base.Entity{
+										Type: "doc",
+										Id:   "1",
+									},
+									Relation: "read",
+								},
 								Node: &base.Expand_Expand{
 									Expand: &base.ExpandTreeNode{
 										Operation: base.ExpandTreeNode_OPERATION_UNION,
 										Children: []*base.Expand{
 											{
-												Node: &base.Expand_Leaf{
-													Leaf: &base.Result{
-														Target: &base.EntityAndRelation{
-															Entity: &base.Entity{
-																Type: "doc",
-																Id:   "1",
-															},
-															Relation: "owner",
-														},
-														Subjects: []*base.Subject{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "doc",
+														Id:   "1",
+													},
+													Relation: "read",
+												},
+												Node: &base.Expand_Expand{
+													Expand: &base.ExpandTreeNode{
+														Operation: base.ExpandTreeNode_OPERATION_UNION,
+														Children: []*base.Expand{
 															{
-																Type: tuple.USER,
-																Id:   "2",
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "owner",
+																},
+																Node: &base.Expand_Expand{
+																	Expand: &base.ExpandTreeNode{
+																		Operation: base.ExpandTreeNode_OPERATION_UNION,
+																		Children: []*base.Expand{
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "folder",
+																						Id:   "2",
+																					},
+																					Relation: "creator",
+																				},
+																				Node: &base.Expand_Leaf{
+																					Leaf: &base.Subjects{
+																						Subjects: []*base.Subject{
+																							{
+																								Type: "user",
+																								Id:   "89",
+																							},
+																						},
+																					},
+																				},
+																			},
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "doc",
+																						Id:   "1",
+																					},
+																					Relation: "owner",
+																				},
+																				Node: &base.Expand_Leaf{
+																					Leaf: &base.Subjects{
+																						Subjects: []*base.Subject{
+																							{
+																								Type: "user",
+																								Id:   "2",
+																							},
+																							{
+																								Type:     "folder",
+																								Id:       "2",
+																								Relation: "creator",
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "read",
+																},
+																Node: &base.Expand_Expand{
+																	Expand: &base.ExpandTreeNode{
+																		Operation: base.ExpandTreeNode_OPERATION_UNION,
+																		Children: []*base.Expand{
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "folder",
+																						Id:   "1",
+																					},
+																					Relation: "collaborator",
+																				},
+																				Node: &base.Expand_Leaf{
+																					Leaf: &base.Subjects{
+																						Subjects: []*base.Subject{
+																							{
+																								Type: "user",
+																								Id:   "1",
+																							},
+																							{
+																								Type: "user",
+																								Id:   "3",
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
 															},
 														},
 													},
 												},
 											},
 											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "doc",
+														Id:   "1",
+													},
+													Relation: "read",
+												},
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_UNION,
 														Children: []*base.Expand{
 															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "organization",
+																		Id:   "1",
+																	},
+																	Relation: "admin",
+																},
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Result{
-																		Target: &base.EntityAndRelation{
-																			Entity: &base.Entity{
-																				Type: "folder",
-																				Id:   "1",
-																			},
-																			Relation: "collaborator",
-																		},
+																	Leaf: &base.Subjects{
 																		Subjects: []*base.Subject{
 																			{
-																				Type: tuple.USER,
+																				Type: "user",
 																				Id:   "1",
-																			},
-																			{
-																				Type: tuple.USER,
-																				Id:   "3",
 																			},
 																		},
 																	},
@@ -276,25 +256,438 @@ var _ = Describe("expand-engine", func() {
 									},
 								},
 							},
-							{
+						},
+					},
+					{
+						entity: "doc:1",
+						assertions: map[string]*base.Expand{
+							"delete": {
+								Target: &base.EntityAndRelation{
+									Entity: &base.Entity{
+										Type: "doc",
+										Id:   "1",
+									},
+									Relation: "delete",
+								},
 								Node: &base.Expand_Expand{
 									Expand: &base.ExpandTreeNode{
 										Operation: base.ExpandTreeNode_OPERATION_UNION,
 										Children: []*base.Expand{
 											{
-												Node: &base.Expand_Leaf{
-													Leaf: &base.Result{
-														Target: &base.EntityAndRelation{
-															Entity: &base.Entity{
-																Type: "organization",
-																Id:   "1",
-															},
-															Relation: "admin",
-														},
-														Subjects: []*base.Subject{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "doc",
+														Id:   "1",
+													},
+													Relation: "owner",
+												},
+												Node: &base.Expand_Expand{
+													Expand: &base.ExpandTreeNode{
+														Operation: base.ExpandTreeNode_OPERATION_UNION,
+														Children: []*base.Expand{
 															{
-																Type: tuple.USER,
-																Id:   "1",
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "folder",
+																		Id:   "2",
+																	},
+																	Relation: "creator",
+																},
+																Node: &base.Expand_Leaf{
+																	Leaf: &base.Subjects{
+																		Subjects: []*base.Subject{
+																			{
+																				Type: "user",
+																				Id:   "89",
+																			},
+																		},
+																	},
+																},
+															},
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "owner",
+																},
+																Node: &base.Expand_Leaf{
+																	Leaf: &base.Subjects{
+																		Subjects: []*base.Subject{
+																			{
+																				Type: "user",
+																				Id:   "2",
+																			},
+																			{
+																				Type:     "folder",
+																				Id:       "2",
+																				Relation: "creator",
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "doc",
+														Id:   "1",
+													},
+													Relation: "update",
+												},
+												Node: &base.Expand_Expand{
+													Expand: &base.ExpandTreeNode{
+														Operation: base.ExpandTreeNode_OPERATION_UNION,
+														Children: []*base.Expand{
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "owner",
+																},
+																Node: &base.Expand_Expand{
+																	Expand: &base.ExpandTreeNode{
+																		Operation: base.ExpandTreeNode_OPERATION_UNION,
+																		Children: []*base.Expand{
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "folder",
+																						Id:   "2",
+																					},
+																					Relation: "creator",
+																				},
+																				Exclusion: true,
+																				Node: &base.Expand_Leaf{
+																					Leaf: &base.Subjects{
+																						Subjects: []*base.Subject{
+																							{
+																								Type: "user",
+																								Id:   "89",
+																							},
+																						},
+																					},
+																				},
+																			},
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "doc",
+																						Id:   "1",
+																					},
+																					Relation: "owner",
+																				},
+																				Exclusion: true,
+																				Node: &base.Expand_Leaf{
+																					Leaf: &base.Subjects{
+																						Subjects: []*base.Subject{
+																							{
+																								Type: "user",
+																								Id:   "2",
+																							},
+																							{
+																								Type:     "folder",
+																								Id:       "2",
+																								Relation: "creator",
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "update",
+																},
+																Node: &base.Expand_Expand{
+																	Expand: &base.ExpandTreeNode{
+																		Operation: base.ExpandTreeNode_OPERATION_UNION,
+																		Children: []*base.Expand{
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "organization",
+																						Id:   "1",
+																					},
+																					Relation: "admin",
+																				},
+																				Node: &base.Expand_Leaf{
+																					Leaf: &base.Subjects{
+																						Subjects: []*base.Subject{
+																							{
+																								Type: "user",
+																								Id:   "1",
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						entity: "doc:1",
+						assertions: map[string]*base.Expand{
+							"view": {
+								Target: &base.EntityAndRelation{
+									Entity: &base.Entity{
+										Type: "doc",
+										Id:   "1",
+									},
+									Relation: "view",
+								},
+								Node: &base.Expand_Expand{
+									Expand: &base.ExpandTreeNode{
+										Operation: base.ExpandTreeNode_OPERATION_INTERSECTION,
+										Children: []*base.Expand{
+											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "doc",
+														Id:   "1",
+													},
+													Relation: "owner",
+												},
+												Node: &base.Expand_Expand{
+													Expand: &base.ExpandTreeNode{
+														Operation: base.ExpandTreeNode_OPERATION_UNION,
+														Children: []*base.Expand{
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "folder",
+																		Id:   "2",
+																	},
+																	Relation: "creator",
+																},
+																Node: &base.Expand_Leaf{
+																	Leaf: &base.Subjects{
+																		Subjects: []*base.Subject{
+																			{
+																				Type: "user",
+																				Id:   "89",
+																			},
+																		},
+																	},
+																},
+															},
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "owner",
+																},
+																Node: &base.Expand_Leaf{
+																	Leaf: &base.Subjects{
+																		Subjects: []*base.Subject{
+																			{
+																				Type: "user",
+																				Id:   "2",
+																			},
+																			{
+																				Type:     "folder",
+																				Id:       "2",
+																				Relation: "creator",
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "doc",
+														Id:   "1",
+													},
+													Relation: "read",
+												},
+												Node: &base.Expand_Expand{
+													Expand: &base.ExpandTreeNode{
+														Operation: base.ExpandTreeNode_OPERATION_INTERSECTION,
+														Children: []*base.Expand{
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "read",
+																},
+																Node: &base.Expand_Expand{
+																	Expand: &base.ExpandTreeNode{
+																		Operation: base.ExpandTreeNode_OPERATION_INTERSECTION,
+																		Children: []*base.Expand{
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "doc",
+																						Id:   "1",
+																					},
+																					Relation: "owner",
+																				},
+																				Node: &base.Expand_Expand{
+																					Expand: &base.ExpandTreeNode{
+																						Operation: base.ExpandTreeNode_OPERATION_UNION,
+																						Children: []*base.Expand{
+																							{
+																								Target: &base.EntityAndRelation{
+																									Entity: &base.Entity{
+																										Type: "folder",
+																										Id:   "2",
+																									},
+																									Relation: "creator",
+																								},
+																								Exclusion: true,
+																								Node: &base.Expand_Leaf{
+																									Leaf: &base.Subjects{
+																										Subjects: []*base.Subject{
+																											{
+																												Type: "user",
+																												Id:   "89",
+																											},
+																										},
+																									},
+																								},
+																							},
+																							{
+																								Target: &base.EntityAndRelation{
+																									Entity: &base.Entity{
+																										Type: "doc",
+																										Id:   "1",
+																									},
+																									Relation: "owner",
+																								},
+																								Exclusion: true,
+																								Node: &base.Expand_Leaf{
+																									Leaf: &base.Subjects{
+																										Subjects: []*base.Subject{
+																											{
+																												Type: "user",
+																												Id:   "2",
+																											},
+																											{
+																												Type:     "folder",
+																												Id:       "2",
+																												Relation: "creator",
+																											},
+																										},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "doc",
+																						Id:   "1",
+																					},
+																					Relation: "read",
+																				},
+																				Node: &base.Expand_Expand{
+																					Expand: &base.ExpandTreeNode{
+																						Operation: base.ExpandTreeNode_OPERATION_UNION,
+																						Children: []*base.Expand{
+																							{
+																								Target: &base.EntityAndRelation{
+																									Entity: &base.Entity{
+																										Type: "folder",
+																										Id:   "1",
+																									},
+																									Relation: "collaborator",
+																								},
+																								Exclusion: true,
+																								Node: &base.Expand_Leaf{
+																									Leaf: &base.Subjects{
+																										Subjects: []*base.Subject{
+																											{
+																												Type: "user",
+																												Id:   "1",
+																											},
+																											{
+																												Type: "user",
+																												Id:   "3",
+																											},
+																										},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+															{
+																Target: &base.EntityAndRelation{
+																	Entity: &base.Entity{
+																		Type: "doc",
+																		Id:   "1",
+																	},
+																	Relation: "read",
+																},
+																Node: &base.Expand_Expand{
+																	Expand: &base.ExpandTreeNode{
+																		Operation: base.ExpandTreeNode_OPERATION_UNION,
+																		Children: []*base.Expand{
+																			{
+																				Target: &base.EntityAndRelation{
+																					Entity: &base.Entity{
+																						Type: "organization",
+																						Id:   "1",
+																					},
+																					Relation: "admin",
+																				},
+																				Exclusion: true,
+																				Node: &base.Expand_Leaf{
+																					Leaf: &base.Subjects{
+																						Subjects: []*base.Subject{
+																							{
+																								Type: "user",
+																								Id:   "1",
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
 															},
 														},
 													},
@@ -307,7 +700,54 @@ var _ = Describe("expand-engine", func() {
 						},
 					},
 				},
-			}).Should(Equal(response.Tree))
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+
+			expandEngine := NewExpandEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				nil,
+				expandEngine,
+				nil,
+				nil,
+			)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, expand := range tests.expands {
+				entity, err := tuple.E(expand.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range expand.assertions {
+					var response *base.PermissionExpandResponse
+					response, err = invoker.Expand(context.Background(), &base.PermissionExpandRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Permission: permission,
+						Metadata: &base.PermissionExpandRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(response.Tree).Should(Equal(res))
+				}
+			}
 		})
 	})
 })

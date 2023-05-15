@@ -73,9 +73,9 @@ var _ = Describe("schema", func() {
 									RewriteOperation: base.Rewrite_OPERATION_UNION,
 									Children: []*base.Child{
 										{
+											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
-													Exclusion: false,
 													Type: &base.Leaf_ComputedUserSet{
 														ComputedUserSet: &base.ComputedUserSet{
 															Relation: "owner",
@@ -85,9 +85,9 @@ var _ = Describe("schema", func() {
 											},
 										},
 										{
+											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
-													Exclusion: false,
 													Type: &base.Leaf_ComputedUserSet{
 														ComputedUserSet: &base.ComputedUserSet{
 															Relation: "admin",
@@ -155,9 +155,9 @@ var _ = Describe("schema", func() {
 									RewriteOperation: base.Rewrite_OPERATION_UNION,
 									Children: []*base.Child{
 										{
+											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
-													Exclusion: false,
 													Type: &base.Leaf_ComputedUserSet{
 														ComputedUserSet: &base.ComputedUserSet{
 															Relation: "owner",
@@ -167,9 +167,9 @@ var _ = Describe("schema", func() {
 											},
 										},
 										{
+											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
-													Exclusion: false,
 													Type: &base.Leaf_ComputedUserSet{
 														ComputedUserSet: &base.ComputedUserSet{
 															Relation: "admin",
@@ -232,9 +232,9 @@ var _ = Describe("schema", func() {
 									RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
 									Children: []*base.Child{
 										{
+											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
-													Exclusion: false,
 													Type: &base.Leaf_ComputedUserSet{
 														ComputedUserSet: &base.ComputedUserSet{
 															Relation: "owner",
@@ -249,9 +249,9 @@ var _ = Describe("schema", func() {
 													RewriteOperation: base.Rewrite_OPERATION_UNION,
 													Children: []*base.Child{
 														{
+															Exclusion: false,
 															Type: &base.Child_Leaf{
 																Leaf: &base.Leaf{
-																	Exclusion: false,
 																	Type: &base.Leaf_ComputedUserSet{
 																		ComputedUserSet: &base.ComputedUserSet{
 																			Relation: "maintainer",
@@ -261,9 +261,9 @@ var _ = Describe("schema", func() {
 															},
 														},
 														{
+															Exclusion: false,
 															Type: &base.Child_Leaf{
 																Leaf: &base.Leaf{
-																	Exclusion: false,
 																	Type: &base.Leaf_TupleToUserSet{
 																		TupleToUserSet: &base.TupleToUserSet{
 																			TupleSet: &base.TupleSet{
@@ -289,9 +289,9 @@ var _ = Describe("schema", func() {
 					"delete": {
 						Name: "delete",
 						Child: &base.Child{
+							Exclusion: false,
 							Type: &base.Child_Leaf{
 								Leaf: &base.Leaf{
-									Exclusion: false,
 									Type: &base.Leaf_TupleToUserSet{
 										TupleToUserSet: &base.TupleToUserSet{
 											TupleSet: &base.TupleSet{

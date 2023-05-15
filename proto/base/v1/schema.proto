@@ -7,20 +7,20 @@ import "validate/validate.proto";
 
 // Child
 message Child {
+  bool exclusion = 1;
   oneof type {
     option (validate.required) = true;
-    Leaf leaf = 1 [(validate.rules).message.required = true];
-    Rewrite rewrite = 2 [(validate.rules).message.required = true];
+    Leaf leaf = 2 [(validate.rules).message.required = true];
+    Rewrite rewrite = 3 [(validate.rules).message.required = true];
   }
 }
 
 // Leaf
 message Leaf {
-  bool exclusion = 1;
   oneof type {
     option (validate.required) = true;
-    ComputedUserSet computed_user_set = 2 [(validate.rules).message.required = true];
-    TupleToUserSet tuple_to_user_set = 3 [(validate.rules).message.required = true];
+    ComputedUserSet computed_user_set = 1 [(validate.rules).message.required = true];
+    TupleToUserSet tuple_to_user_set = 2 [(validate.rules).message.required = true];
   }
 }
 

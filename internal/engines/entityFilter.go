@@ -13,8 +13,8 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// LinkedEntityEngine is responsible for executing linked entity operations
-type LinkedEntityEngine struct {
+// EntityFilterEngine is responsible for executing linked entity operations
+type EntityFilterEngine struct {
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
 	// relationshipReader is responsible for reading relationship information
@@ -23,19 +23,19 @@ type LinkedEntityEngine struct {
 	schemaMap sync.Map
 }
 
-// NewLinkedEntityEngine creates a new LinkedEntity engine
-func NewLinkedEntityEngine(schemaReader storage.SchemaReader, relationshipReader storage.RelationshipReader) *LinkedEntityEngine {
-	return &LinkedEntityEngine{
+// NewEntityFilterEngine creates a new EntityFilter engine
+func NewEntityFilterEngine(schemaReader storage.SchemaReader, relationshipReader storage.RelationshipReader) *EntityFilterEngine {
+	return &EntityFilterEngine{
 		schemaReader:       schemaReader,
 		relationshipReader: relationshipReader,
 		schemaMap:          sync.Map{},
 	}
 }
 
-// LinkedEntity is a method of the LinkedEntityEngine struct. It executes a permission request for linked entities.
-func (engine *LinkedEntityEngine) LinkedEntity(
+// EntityFilter is a method of the EntityFilterEngine struct. It executes a permission request for linked entities.
+func (engine *EntityFilterEngine) EntityFilter(
 	ctx context.Context, // A context used for tracing and cancellation.
-	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
+	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
 ) (err error) { // Returns an error if one occurs during execution.
@@ -118,10 +118,10 @@ func (engine *LinkedEntityEngine) LinkedEntity(
 	return g.Wait() // Wait for all goroutines in the errgroup to complete and return any errors that occur.
 }
 
-// relationEntrance is a method of the LinkedEntityEngine struct. It handles relation entrances.
-func (engine *LinkedEntityEngine) relationEntrance(
+// relationEntrance is a method of the EntityFilterEngine struct. It handles relation entrances.
+func (engine *EntityFilterEngine) relationEntrance(
 	ctx context.Context, // A context used for tracing and cancellation.
-	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
+	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	entrance *schema.LinkedEntrance, // A linked entrance.
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
@@ -158,12 +158,12 @@ func (engine *LinkedEntityEngine) relationEntrance(
 	return nil
 }
 
-// tupleToUserSetEntrance is a method of the LinkedEntityEngine struct. It handles tuple to user set entrances.
-func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
+// tupleToUserSetEntrance is a method of the EntityFilterEngine struct. It handles tuple to user set entrances.
+func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 	// A context used for tracing and cancellation.
 	ctx context.Context,
 	// A permission request for linked entities.
-	request *base.PermissionLinkedEntityRequest,
+	request *base.PermissionEntityFilterRequest,
 	// A linked entrance.
 	entrance *schema.LinkedEntrance,
 	// A map that keeps track of visited entities to avoid infinite loops.
@@ -206,10 +206,10 @@ func (engine *LinkedEntityEngine) tupleToUserSetEntrance(
 	return nil
 }
 
-// run is a method of the LinkedEntityEngine struct. It executes the linked entity engine for a given request.
-func (engine *LinkedEntityEngine) l(
+// run is a method of the EntityFilterEngine struct. It executes the linked entity engine for a given request.
+func (engine *EntityFilterEngine) l(
 	ctx context.Context, // A context used for tracing and cancellation.
-	request *base.PermissionLinkedEntityRequest, // A permission request for linked entities.
+	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	found *base.EntityAndRelation, // An entity and relation that was previously found.
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
@@ -254,7 +254,7 @@ func (engine *LinkedEntityEngine) l(
 	}
 
 	g.Go(func() error {
-		return engine.LinkedEntity(ctx, &base.PermissionLinkedEntityRequest{ // Call the Run method recursively with a new permission request.
+		return engine.EntityFilter(ctx, &base.PermissionEntityFilterRequest{ // Call the Run method recursively with a new permission request.
 			TenantId:        request.GetTenantId(),
 			EntityReference: request.GetEntityReference(),
 			Subject: &base.Subject{
@@ -268,8 +268,8 @@ func (engine *LinkedEntityEngine) l(
 	return nil
 }
 
-// getSchema is a method of the LinkedEntityEngine struct. It retrieves the schema for a given tenant and schema version.
-func (engine *LinkedEntityEngine) readSchema(ctx context.Context, tenantID string, schemaVersion string) (*base.SchemaDefinition, error) {
+// getSchema is a method of the EntityFilterEngine struct. It retrieves the schema for a given tenant and schema version.
+func (engine *EntityFilterEngine) readSchema(ctx context.Context, tenantID string, schemaVersion string) (*base.SchemaDefinition, error) {
 	// Create a cache key by concatenating the tenantID and schemaVersion with a separator.
 	cacheKey := tenantID + "|" + schemaVersion
 

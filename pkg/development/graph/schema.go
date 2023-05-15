@@ -136,7 +136,7 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 					Type:  "relation",
 					ID:    fmt.Sprintf("%s#%s", GetTupleSetReferenceReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
 					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
-				}, leaf.GetExclusion())
+				}, child.GetExclusion())
 
 			case *base.Leaf_ComputedUserSet:
 				// Add an edge between the parent node and the computed user set relation node
@@ -144,7 +144,7 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 					Type:  "relation",
 					ID:    fmt.Sprintf("%s#%s", entity.GetName(), leaf.GetComputedUserSet().GetRelation()),
 					Label: leaf.GetComputedUserSet().GetRelation(),
-				}, leaf.GetExclusion())
+				}, child.GetExclusion())
 			default:
 				break
 			}

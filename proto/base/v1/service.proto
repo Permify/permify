@@ -74,6 +74,36 @@ service Permission {
       operation_id: "permissions.lookupEntityStream"
     };
   }
+
+  rpc LookupSubject(PermissionLookupSubjectRequest) returns (PermissionLookupSubjectResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/permissions/lookup-subject"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: ""
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.lookupSubject"
+    };
+  }
+
+  rpc LookupSubjectStream(PermissionLookupSubjectRequest) returns (stream PermissionLookupSubjectStreamResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/permissions/lookup-subject-stream"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: ""
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.lookupSubjectStream"
+    };
+  }
 }
 
 // CHECK
@@ -151,6 +181,7 @@ message PermissionExpandRequest {
 message PermissionExpandRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
+  bool exclusion = 3 [json_name = "exclusion"];
 }
 
 // PermissionExpandResponse
@@ -202,15 +233,15 @@ message PermissionLookupEntityStreamResponse {
   string entity_id = 1 [json_name = "entity_id"];
 }
 
-// PermissionLinkedEntityRequest
-message PermissionLinkedEntityRequest {
+// PermissionEntityFilterRequest
+message PermissionEntityFilterRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  PermissionLinkedEntityRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+  PermissionEntityFilterRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
   RelationReference entity_reference = 3 [json_name = "entity_reference"];
 
@@ -218,12 +249,78 @@ message PermissionLinkedEntityRequest {
 }
 
 // PermissionLookupEntityRequestMetadata
-message PermissionLinkedEntityRequestMetadata {
+message PermissionEntityFilterRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
   int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
+// PermissionLookupSubjectRequest
+message PermissionLookupSubjectRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  PermissionLookupSubjectRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+
+  // its can be permission or relation
+  string permission = 4 [json_name = "permission", (validate.rules).string = {
+    pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  RelationReference subject_reference = 5 [json_name = "subject_reference"];
+}
+
+// PermissionLookupSubjectRequestMetadata
+message PermissionLookupSubjectRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
+  bool exclusion = 3 [json_name = "exclusion"];
+}
+
+// PermissionLookupSubjectResponse
+message PermissionLookupSubjectResponse {
+  repeated string subject_ids = 1 [json_name = "subject_ids"];
+}
+
+// PermissionLookupSubjectStreamResponse
+message PermissionLookupSubjectStreamResponse {
+  string subject_id = 1 [json_name = "subject_id"];
+}
+
+// PermissionSubjectFilterRequest
+message PermissionSubjectFilterRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  PermissionSubjectFilterRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  RelationReference subject_reference = 3 [json_name = "subject_reference"];
+
+  string permission = 4 [json_name = "permission", (validate.rules).string = {
+    pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  Entity entity = 5 [json_name = "entity"];
+}
+
+// PermissionLookupEntityRequestMetadata
+message PermissionSubjectFilterRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
+  bool exclusion = 3 [json_name = "exclusion"];
+}
 
 // ** SCHEMA SERVICE **
 

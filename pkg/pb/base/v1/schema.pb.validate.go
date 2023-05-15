@@ -56,6 +56,8 @@ func (m *Child) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Exclusion
+
 	oneofTypePresent := false
 	switch v := m.Type.(type) {
 	case *Child_Leaf:
@@ -275,8 +277,6 @@ func (m *Leaf) validate(all bool) error {
 	}
 
 	var errors []error
-
-	// no validation rules for Exclusion
 
 	oneofTypePresent := false
 	switch v := m.Type.(type) {
