@@ -68,7 +68,7 @@ func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.Permissio
 	// Check if there's an error or the response is nil, and return the result.
 	if err != nil {
 		return &base.PermissionCheckResponse{
-			Can: base.PermissionCheckResponse_RESULT_ALLOWED,
+			Can: base.PermissionCheckResponse_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
