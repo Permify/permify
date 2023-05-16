@@ -59,6 +59,7 @@ function Visualizer(props) {
                         edges.push({
                             from: props.graph.edges[index].from.id,
                             to: props.graph.edges[index].to.id,
+                            label: props.graph.edges[index].extra ? "not" : "",
                             color: {color: 'rgba(91,204,99,0.4)', inherit: false},
                             dashes: false
                         })

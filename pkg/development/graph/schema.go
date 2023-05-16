@@ -110,7 +110,7 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 
 			// Add the rewrite node to the graph and connect it to the parent node
 			g.AddNode(rw)
-			g.AddEdge(from, rw, nil)
+			g.AddEdge(from, rw, child.GetExclusion())
 			// Recursively process the children of the rewrite node
 			ag, err := buildPermissionGraph(entity, rw, child.GetRewrite().GetChildren())
 			if err != nil {
