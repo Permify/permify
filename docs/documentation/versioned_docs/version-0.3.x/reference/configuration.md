@@ -69,7 +69,7 @@ database:
     enable: true
     interval: 3m
     timeout: 3m
-    window: 30d
+    window: 720h
     number_of_threads: 1
 ```
 
@@ -261,7 +261,7 @@ Configurations for the database that points out where your want to store your au
 |       ├──enable: true
 |       ├──interval: 3m
 |       ├──timeout: 3m
-|       ├──window: 30d
+|       ├──window: 720h
 |       ├──number_of_threads: 1
 ```
 
@@ -279,7 +279,7 @@ Configurations for the database that points out where your want to store your au
 | [ ]   | enable (for garbage collection) | false   | Switch option for garbage collection.  
 | [ ]   | interval                        | 3m      | Determines the run period of a Garbage Collection operation. 
 | [ ]   | timeout                         | 3m      | Sets the duration of the Garbage Collection timeout.
-| [ ]   | window                          | 30d     | Determines how much backward cleaning the Garbage Collection process will perform.
+| [ ]   | window                          | 720h    | Determines how much backward cleaning the Garbage Collection process will perform.
 | [ ]   | number_of_threads               | 1       | Limits how many threads Garbage Collection processes concurrently with.
 
 </p>

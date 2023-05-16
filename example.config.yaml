@@ -80,7 +80,7 @@ database:
     enable: true
     interval: 3m
     timeout: 3m
-    window: 30d
+    window: 720h
     number_of_threads: 1
 
 distributed:
