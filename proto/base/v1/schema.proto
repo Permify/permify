@@ -7,7 +7,6 @@ import "validate/validate.proto";
 
 // Child
 message Child {
-  bool exclusion = 1;
   oneof type {
     option (validate.required) = true;
     Leaf leaf = 2 [(validate.rules).message.required = true];
@@ -31,6 +30,7 @@ message Rewrite {
     OPERATION_UNSPECIFIED = 0;
     OPERATION_UNION = 1;
     OPERATION_INTERSECTION = 2;
+    OPERATION_EXCLUSION = 3;
   }
 
   Operation rewrite_operation = 1;
@@ -97,6 +97,7 @@ message RelationReference {
   string relation = 2 [(validate.rules).string = {
     pattern : "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
     max_bytes : 64,
+    ignore_empty: true,
   }];
 }
 

@@ -24,7 +24,7 @@ var _ = Describe("parser", func() {
 			relation parent @organization
 			relation owner  @user
 		
-			action read = owner and (parent.admin and not parent.member)
+			action read = owner and (parent.admin not parent.member)
 		
 			}`)
 
@@ -55,7 +55,7 @@ var _ = Describe("parser", func() {
 
 			Expect(es.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
-			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not parent.member"))
+			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
 		})
 
 		It("Case 2 - Repository with parent and owner relations and read action", func() {
@@ -126,7 +126,7 @@ var _ = Describe("parser", func() {
 		})
 
 		It("Case 4: Organization with owner relation and delete action", func() {
-			pr := NewParser("entity organization {\n\nrelation owner @user\n\naction delete = not owner\n\n\n}\n\n")
+			pr := NewParser("entity organization {\n\nrelation owner @user\n\naction delete = owner\n\n\n}\n\n")
 			schema, err := pr.Parse()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -146,7 +146,7 @@ var _ = Describe("parser", func() {
 
 			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
 
-			Expect(es.Expression.(*ast.Identifier).String()).Should(Equal("not owner"))
+			Expect(es.Expression.(*ast.Identifier).String()).Should(Equal("owner"))
 		})
 
 		It("Case 5 - Repository view and read actions with ownership and parent organization", func() {
@@ -217,7 +217,7 @@ var _ = Describe("parser", func() {
     			relation parent @organization
     
     			// actions
-    			permission read = (owner and (parent.admin and not parent.member)) or owner
+    			permission read = (owner and (parent.admin not parent.member)) or owner
     
     			// parent.create_repository means user should be
     			// organization admin or organization member
@@ -280,7 +280,7 @@ var _ = Describe("parser", func() {
 
 			Expect(res1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
 			Expect(res1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
-			Expect(res1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not parent.member"))
+			Expect(res1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
 			Expect(res1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))
 
 			ra2 := repositorySt.PermissionStatements[1].(*ast.PermissionStatement)
@@ -355,7 +355,7 @@ var _ = Describe("parser", func() {
 		relation member @user
 
 		// actions
-		action manage_organization = ((admin and not member) or (member and not admin))
+		action manage_organization = ((admin not member) or (member not admin))
 	}
 
 	entity team {
@@ -364,7 +364,7 @@ var _ = Describe("parser", func() {
 		relation member @user
 
 		// actions
-		permission manage_team = ((leader and parent.manage_organization) or (member and not parent.manage_organization))
+		permission manage_team = ((leader and parent.manage_organization) or (member not parent.manage_organization))
 	}
 	`)
 
@@ -384,9 +384,9 @@ var _ = Describe("parser", func() {
 
 			oes1 := oa1.ExpressionStatement.(*ast.ExpressionStatement)
 			Expect(oes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("admin"))
-			Expect(oes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not member"))
+			Expect(oes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("member"))
 			Expect(oes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("member"))
-			Expect(oes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not admin"))
+			Expect(oes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("admin"))
 
 			// TEAM
 			teamSt := schema.Statements[2].(*ast.EntityStatement)
@@ -399,7 +399,7 @@ var _ = Describe("parser", func() {
 			Expect(tes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("leader"))
 			Expect(tes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.manage_organization"))
 			Expect(tes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("member"))
-			Expect(tes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not parent.manage_organization"))
+			Expect(tes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.manage_organization"))
 		})
 
 		It("Case 9 - More complex nested expressions", func() {
@@ -412,7 +412,7 @@ var _ = Describe("parser", func() {
 		relation member @user
 
 		// actions
-		action manage_organization = (((admin and not member) or member) and (not admin and not member))
+		action manage_organization = (((admin not member) or member) not (admin and member))
 	}
 
 	entity project {
@@ -421,7 +421,7 @@ var _ = Describe("parser", func() {
 		relation contributor @user
 
 		// actions
-		permission manage_project = ((owner and (parent.admin or parent.member)) or (contributor and not parent.manage_organization and (not parent.admin and not parent.member)))
+		permission manage_project = ((owner and (parent.admin or parent.member)) or (contributor not parent.manage_organization not (parent.admin and parent.member)))
 	}
 	`)
 
@@ -441,10 +441,10 @@ var _ = Describe("parser", func() {
 
 			oes1 := oa1.ExpressionStatement.(*ast.ExpressionStatement)
 			Expect(oes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("admin"))
-			Expect(oes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not member"))
+			Expect(oes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("member"))
 			Expect(oes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("member"))
-			Expect(oes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("not admin"))
-			Expect(oes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not member"))
+			Expect(oes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("admin"))
+			Expect(oes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("member"))
 
 			// PROJECT
 			projectSt := schema.Statements[2].(*ast.EntityStatement)
@@ -458,9 +458,9 @@ var _ = Describe("parser", func() {
 			Expect(eps1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(eps1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
 			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("contributor"))
-			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("not parent.admin"))
-			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("not parent.admin"))
-			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("not parent.member"))
+			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
+			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
+			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
 		})
 
 		It("Case 10 - Duplicate entity", func() {

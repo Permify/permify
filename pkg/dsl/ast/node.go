@@ -26,6 +26,7 @@ const (
 
 	AND Operator = "and"
 	OR  Operator = "or"
+	NOT Operator = "not"
 
 	PERMISSION RelationalReferenceType = "permission"
 	RELATION   RelationalReferenceType = "relation"
@@ -147,7 +148,6 @@ func IsDirectEntityReference(s RelationTypeStatement) bool {
 
 // Identifier represents an expression that identifies an entity, permission or relation
 type Identifier struct {
-	Prefix token.Token   // Prefix is a token that negates the identifier
 	Idents []token.Token // Idents is a slice of tokens that make up the identifier
 }
 
@@ -157,21 +157,12 @@ func (ls *Identifier) expressionNode() {}
 // String returns a string representation of the identifier expression
 func (ls *Identifier) String() string {
 	var sb strings.Builder
-	if ls.Prefix.Literal != "" {
-		sb.WriteString("not")
-		sb.WriteString(" ")
-	}
 	for _, ident := range ls.Idents[:len(ls.Idents)-1] {
 		sb.WriteString(ident.Literal)
 		sb.WriteString(".")
 	}
 	sb.WriteString(ls.Idents[len(ls.Idents)-1].Literal)
 	return sb.String()
-}
-
-// IsPrefix returns true if the identifier has a negating prefix
-func (ls *Identifier) IsPrefix() bool {
-	return ls.Prefix.Literal != ""
 }
 
 // IsInfix returns false since an identifier is not an infix expression
@@ -228,7 +219,7 @@ func (es *ExpressionStatement) String() string {
 
 // InfixExpression represents an expression with an operator between two sub-expressions.
 type InfixExpression struct {
-	Op       token.Token // The operator token, e.g. and, or.
+	Op       token.Token // The operator token, e.g. and, or, not.
 	Left     Expression  // The left-hand side sub-expression.
 	Operator Operator    // The operator as a string.
 	Right    Expression  // The right-hand side sub-expression.

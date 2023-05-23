@@ -145,7 +145,6 @@ var _ = Describe("check-engine", func() {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -249,7 +248,6 @@ var _ = Describe("check-engine", func() {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -355,7 +353,6 @@ var _ = Describe("check-engine", func() {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -481,7 +478,6 @@ var _ = Describe("check-engine", func() {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -586,7 +582,6 @@ var _ = Describe("check-engine", func() {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -690,7 +685,6 @@ var _ = Describe("check-engine", func() {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -721,13 +715,13 @@ entity repo {
 	relation parent @parent
 	relation member @user
 	
-	permission push   = org.member and not parent.member
-	permission delete = not push
+	permission push   = org.member not parent.member
+	permission delete = push
 
-	permission update = (org.member and not parent.member) and member
-	permission view = member or not update
-	permission manage = not update
-	permission admin = not manage
+	permission update = (org.member not parent.member) and member
+	permission view = member not update
+	permission manage = update
+	permission admin = manage
 }
 `
 
@@ -826,7 +820,6 @@ entity repo {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -933,7 +926,6 @@ entity repo {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -971,9 +963,10 @@ entity repo {
 			}{
 				relationships: []string{
 					"organization:1#member@user:1",
+					"organization:1#member@user:2",
 					"parent:1#admin@user:2",
 					"parent:1#member@user:1",
-					"parent:1#member@parent:1#admin",
+					"parent:1#member@user:2",
 					"repo:1#org@organization:1#...",
 					"repo:1#parent@parent:1#...",
 				},
@@ -982,7 +975,7 @@ entity repo {
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.PermissionCheckResponse_Result{
-							"delete": base.PermissionCheckResponse_RESULT_ALLOWED,
+							"delete": base.PermissionCheckResponse_RESULT_DENIED,
 						},
 					},
 				},
@@ -1038,7 +1031,6 @@ entity repo {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -1076,13 +1068,23 @@ entity repo {
 			}{
 				relationships: []string{
 					"organization:1#member@user:1",
+
 					"parent:1#admin@user:2",
 					"parent:1#member@user:1",
 					"parent:1#member@parent:1#admin",
+
 					"repo:1#org@organization:1#...",
 					"repo:1#parent@parent:1#...",
+					"repo:1#member@user:2",
 				},
 				checks: []check{
+					{
+						entity:  "repo:1",
+						subject: "user:2",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"update": base.PermissionCheckResponse_RESULT_DENIED,
+						},
+					},
 					{
 						entity:  "repo:1",
 						subject: "user:2",
@@ -1143,7 +1145,6 @@ entity repo {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -1192,7 +1193,7 @@ entity repo {
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.PermissionCheckResponse_Result{
-							"view": base.PermissionCheckResponse_RESULT_ALLOWED,
+							"view": base.PermissionCheckResponse_RESULT_DENIED,
 						},
 					},
 				},
@@ -1248,7 +1249,6 @@ entity repo {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})
@@ -1353,7 +1353,6 @@ entity repo {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
-							Exclusion:     false,
 							Depth:         20,
 						},
 					})

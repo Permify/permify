@@ -87,22 +87,10 @@ func (engine *ExpandEngine) expand(ctx context.Context, request *base.Permission
 		}
 
 		child := permission.GetChild()
-
-		req := &base.PermissionExpandRequest{
-			TenantId:   request.GetTenantId(),
-			Entity:     request.GetEntity(),
-			Permission: request.GetPermission(),
-			Metadata: &base.PermissionExpandRequestMetadata{
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				Exclusion:     request.GetMetadata().GetExclusion() != child.GetExclusion(),
-			},
-		}
-
 		if child.GetRewrite() != nil {
-			fn = engine.expandRewrite(ctx, req, child.GetRewrite())
+			fn = engine.expandRewrite(ctx, request, child.GetRewrite())
 		} else {
-			fn = engine.expandLeaf(ctx, req, child.GetLeaf())
+			fn = engine.expandLeaf(ctx, request, child.GetLeaf())
 		}
 	} else {
 		fn = engine.expandDirect(ctx, request)
@@ -121,17 +109,11 @@ func (engine *ExpandEngine) expand(ctx context.Context, request *base.Permission
 func (engine *ExpandEngine) expandRewrite(ctx context.Context, request *base.PermissionExpandRequest, rewrite *base.Rewrite) ExpandFunction {
 	switch rewrite.GetRewriteOperation() {
 	case *base.Rewrite_OPERATION_UNION.Enum():
-		expandFunc := expandUnion
-		if request.GetMetadata().GetExclusion() {
-			expandFunc = expandIntersection
-		}
-		return engine.setChild(ctx, request, rewrite.GetChildren(), expandFunc)
+		return engine.setChild(ctx, request, rewrite.GetChildren(), expandUnion)
 	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
-		expandFunc := expandIntersection
-		if request.GetMetadata().GetExclusion() {
-			expandFunc = expandUnion
-		}
-		return engine.setChild(ctx, request, rewrite.GetChildren(), expandFunc)
+		return engine.setChild(ctx, request, rewrite.GetChildren(), expandIntersection)
+	case *base.Rewrite_OPERATION_EXCLUSION.Enum():
+		return engine.setChild(ctx, request, rewrite.GetChildren(), expandExclusion)
 	default:
 		return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
@@ -170,23 +152,11 @@ func (engine *ExpandEngine) setChild(
 ) ExpandFunction {
 	var functions []ExpandFunction
 	for _, child := range children {
-
-		req := &base.PermissionExpandRequest{
-			TenantId:   request.GetTenantId(),
-			Entity:     request.GetEntity(),
-			Permission: request.GetPermission(),
-			Metadata: &base.PermissionExpandRequestMetadata{
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				Exclusion:     request.GetMetadata().GetExclusion() != child.GetExclusion(),
-			},
-		}
-
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
-			functions = append(functions, engine.expandRewrite(ctx, req, child.GetRewrite()))
+			functions = append(functions, engine.expandRewrite(ctx, request, child.GetRewrite()))
 		case *base.Child_Leaf:
-			functions = append(functions, engine.expandLeaf(ctx, req, child.GetLeaf()))
+			functions = append(functions, engine.expandLeaf(ctx, request, child.GetLeaf()))
 		default:
 			return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 		}
@@ -249,8 +219,7 @@ func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.Perm
 			expandChan <- ExpandResponse{
 				Response: &base.PermissionExpandResponse{
 					Tree: &base.Expand{
-						Target:    target,
-						Exclusion: request.GetMetadata().GetExclusion(),
+						Target: target,
 						Node: &base.Expand_Leaf{
 							Leaf: &base.Subjects{
 								// Combine both user sets into one slice.
@@ -300,8 +269,7 @@ func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.Perm
 
 		// Add a new child to the Expand field.
 		expand.Children = append(expand.Children, &base.Expand{
-			Exclusion: request.GetMetadata().GetExclusion(),
-			Target:    target,
+			Target: target,
 			Node: &base.Expand_Leaf{
 				Leaf: &base.Subjects{
 					// Combine both user sets into one slice.
@@ -530,6 +498,23 @@ func expandUnion(ctx context.Context, target *base.EntityAndRelation, functions 
 //   - ExpandResponse containing the intersection of the expanded user sets, or an error if any of the ExpandFunctions failed
 func expandIntersection(ctx context.Context, target *base.EntityAndRelation, functions []ExpandFunction) ExpandResponse {
 	return expandOperation(ctx, target, functions, base.ExpandTreeNode_OPERATION_INTERSECTION)
+}
+
+// expandExclusion is a helper function that executes multiple ExpandFunctions in parallel and returns an ExpandResponse
+// containing the expanded user set that results from the exclusion operation. The function delegates to expandOperation
+// with the EXCLUSION operation. If any of the ExpandFunctions return an error, the function returns an ExpandResponse
+// with the error. If the context is cancelled before all ExpandFunctions complete, the function returns an ExpandResponse
+// with an error indicating that the operation was cancelled.
+//
+// Parameters:
+//   - ctx: context.Context for the request
+//   - target: EntityAndRelation containing the entity and its relation for which the exclusion is calculated
+//   - functions: slice of ExpandFunctions to execute in parallel
+//
+// Returns:
+//   - ExpandResponse containing the expanded user sets from the exclusion operation, or an error if any of the ExpandFunctions failed
+func expandExclusion(ctx context.Context, target *base.EntityAndRelation, functions []ExpandFunction) ExpandResponse {
+	return expandOperation(ctx, target, functions, base.ExpandTreeNode_OPERATION_EXCLUSION)
 }
 
 // expandFail is a helper function that returns an ExpandFunction that immediately sends an ExpandResponse with the specified error

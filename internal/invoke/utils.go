@@ -26,7 +26,6 @@ func decreaseDepth(metadata *base.PermissionCheckRequestMetadata) *base.Permissi
 	return &base.PermissionCheckRequestMetadata{
 		SchemaVersion: metadata.GetSchemaVersion(),
 		SnapToken:     metadata.GetSnapToken(),
-		Exclusion:     metadata.GetExclusion(),
 		Depth:         metadata.Depth - 1,
 	}
 }

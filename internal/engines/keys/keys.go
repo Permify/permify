@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cespare/xxhash/v2"
 
 	"github.com/Permify/permify/internal/invoke"
@@ -37,23 +38,6 @@ func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.Permissio
 
 	// If a cached result is found, handle exclusion and return the result.
 	if found {
-		// If the request has the exclusion flag set, reverse the result.
-		if request.GetMetadata().GetExclusion() {
-			if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-				return &base.PermissionCheckResponse{
-					Can: base.PermissionCheckResponse_RESULT_DENIED,
-					Metadata: &base.PermissionCheckResponseMetadata{
-						CheckCount: 0,
-					},
-				}, nil
-			}
-			return &base.PermissionCheckResponse{
-				Can: base.PermissionCheckResponse_RESULT_ALLOWED,
-				Metadata: &base.PermissionCheckResponseMetadata{
-					CheckCount: 0,
-				},
-			}, nil
-		}
 		// If the request doesn't have the exclusion flag set, return the cached result.
 		return &base.PermissionCheckResponse{
 			Can:      res.GetCan(),
@@ -74,25 +58,10 @@ func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.Permissio
 		}, err
 	}
 
-	if request.GetMetadata().GetExclusion() {
-		if res.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
-			c.setCheckKey(request, &base.PermissionCheckResponse{
-				Can:      base.PermissionCheckResponse_RESULT_DENIED,
-				Metadata: &base.PermissionCheckResponseMetadata{},
-			})
-		} else {
-			c.setCheckKey(request, &base.PermissionCheckResponse{
-				Can:      base.PermissionCheckResponse_RESULT_ALLOWED,
-				Metadata: &base.PermissionCheckResponseMetadata{},
-			})
-		}
-	} else {
-		// Cache the result of the permission check for future use.
-		c.setCheckKey(request, &base.PermissionCheckResponse{
-			Can:      res.GetCan(),
-			Metadata: &base.PermissionCheckResponseMetadata{},
-		})
-	}
+	c.setCheckKey(request, &base.PermissionCheckResponse{
+		Can:      res.GetCan(),
+		Metadata: &base.PermissionCheckResponseMetadata{},
+	})
 
 	// Return the result of the permission check.
 	return res, err

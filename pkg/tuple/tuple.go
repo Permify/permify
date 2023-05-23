@@ -176,6 +176,26 @@ func E(e string) (*base.Entity, error) {
 	}, nil
 }
 
+// RelationReference - parses a relation reference string and returns a RelationReference object
+func RelationReference(ref string) *base.RelationReference {
+	sp := strings.Split(ref, "#")
+	if len(sp) > 1 {
+		return &base.RelationReference{
+			Type:     sp[0],
+			Relation: sp[1],
+		}
+	}
+	return &base.RelationReference{
+		Type:     sp[0],
+		Relation: "",
+	}
+}
+
+// AreRelationReferencesEqual checks if two relation references are equal or not
+func AreRelationReferencesEqual(s1, s2 *base.RelationReference) bool {
+	return s1.GetRelation() == s2.GetRelation() && s1.GetType() == s2.GetType()
+}
+
 // SetSubjectRelationToEllipsisIfNonUserAndNoRelation sets the relation of a subject to an ellipsis if the subject is not of type "user" and the relation is empty
 func SetSubjectRelationToEllipsisIfNonUserAndNoRelation(subject *base.Subject) *base.Subject {
 	if !IsSubjectUser(subject) && subject.GetRelation() == "" {
