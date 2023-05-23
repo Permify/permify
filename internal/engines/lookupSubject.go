@@ -279,10 +279,10 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 // setChild generates a LookupSubjectFunction by applying a LookupSubjectCombiner
 // to a set of child permission lookups, given a request and a list of Child objects.
 func (engine *LookupSubjectEngine) setChild(
-	ctx context.Context, // The context for carrying out the operation
+	ctx context.Context,                          // The context for carrying out the operation
 	request *base.PermissionLookupSubjectRequest, // The request containing parameters for lookup
-	children []*base.Child, // The children of a particular node in the permission schema
-	combiner LookupSubjectCombiner, // A function to combine the results from multiple lookup functions
+	children []*base.Child,                       // The children of a particular node in the permission schema
+	combiner LookupSubjectCombiner,               // A function to combine the results from multiple lookup functions
 ) LookupSubjectFunction {
 	var functions []LookupSubjectFunction // Array of functions to store lookup functions for each child
 
@@ -499,22 +499,31 @@ func lookupSubjectIntersection(ctx context.Context, functions []LookupSubjectFun
 	return res, nil
 }
 
+// lookupSubjectExclusion is a function that checks for a subject's exclusion
+// among different lookup subject functions and returns the subjects not found
+// in the excluded list.
 func lookupSubjectExclusion(ctx context.Context, functions []LookupSubjectFunction, limit int) (*base.PermissionLookupSubjectResponse, error) {
-	// Check if there are at least 2 functions, otherwise return an error indicating that exclusion requires more than one function
+
+	// If there are not more than one lookup functions, it returns an error because
+	// exclusion requires at least two functions for comparison.
 	if len(functions) <= 1 {
 		return lookupSubjectEmpty(), errors.New(base.ErrorCode_ERROR_CODE_EXCLUSION_REQUIRES_MORE_THAN_ONE_FUNCTION.String())
 	}
 
+	// Create channels to handle asynchronous responses from lookup functions.
 	leftDecisionChan := make(chan LookupSubjectResponse, 1)
 	decisionChan := make(chan LookupSubjectResponse, len(functions)-1)
 
+	// Create a cancellable context to be able to stop the function execution prematurely.
 	cancelCtx, cancel := context.WithCancel(ctx)
 
-	// Start the first function in a separate goroutine
+	// Use a WaitGroup to ensure all goroutines have completed.
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
+		// Run the first lookup function in a goroutine.
 		result, err := functions[0](cancelCtx)
+		// Send the result to the channel.
 		leftDecisionChan <- LookupSubjectResponse{
 			resp: result,
 			err:  err,
@@ -522,8 +531,10 @@ func lookupSubjectExclusion(ctx context.Context, functions []LookupSubjectFuncti
 		wg.Done()
 	}()
 
+	// Run the rest of the lookup functions in parallel.
 	clean := lookupSubjectsRun(cancelCtx, functions[1:], decisionChan, limit-1)
 
+	// Defer a function to cancel the context, clean up the resources, close the channels, and wait for all goroutines to finish.
 	defer func() {
 		cancel()
 		clean()
@@ -534,41 +545,51 @@ func lookupSubjectExclusion(ctx context.Context, functions []LookupSubjectFuncti
 
 	var leftIds []string
 
+	// Retrieve the result of the first lookup function.
 	select {
 	case left := <-leftDecisionChan:
-
+		// If there's an error, return it.
 		if left.err != nil {
 			return lookupSubjectEmpty(), left.err
 		}
-
+		// Otherwise, get the list of subject IDs.
 		leftIds = left.resp.GetSubjectIds()
 
+	// If the context is cancelled, return a cancellation error.
 	case <-ctx.Done():
 		return lookupSubjectEmpty(), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 	}
 
+	// Initialize the response.
 	res := &base.PermissionLookupSubjectResponse{}
 
 	var exIds []string
 
+	// Retrieve the results of the remaining lookup functions.
 	for i := 0; i < len(functions)-1; i++ {
 		select {
 		case d := <-decisionChan:
+			// If there's an error, return it.
 			if d.err != nil {
 				return lookupSubjectEmpty(), d.err
 			}
+			// Otherwise, append the IDs to the list of exclusion IDs.
 			exIds = append(exIds, d.resp.GetSubjectIds()...)
+		// If the context is cancelled, return a cancellation error.
 		case <-ctx.Done():
 			return lookupSubjectEmpty(), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
+	// For each ID from the first lookup function, if it's not in the list of exclusion IDs,
+	// add it to the response.
 	for _, id := range leftIds {
 		if !slices.Contains(exIds, id) {
 			res.SubjectIds = append(res.SubjectIds, id)
 		}
 	}
 
+	// Return the response and no error.
 	return res, nil
 }
 
