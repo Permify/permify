@@ -17,15 +17,16 @@ const (
 
 	// LOWEST precedence level for lowest precedence
 	LOWEST
-	// AND_OR precedence level for logical operators (AND, OR)
-	AND_OR
+	// AND_OR_NOT precedence level for logical operators (AND, OR)
+	AND_OR_NOT
 	// PREFIX precedence level for prefix operators (NOT)
 	PREFIX
 )
 
 var precedences = map[token.Type]int{ // a map that assigns precedence levels to different token types
-	token.AND: AND_OR,
-	token.OR:  AND_OR,
+	token.AND: AND_OR_NOT,
+	token.OR:  AND_OR_NOT,
+	token.NOT: AND_OR_NOT,
 }
 
 // Parser is a struct that contains information and functions related to parsing
@@ -86,12 +87,12 @@ func NewParser(str string) (p *Parser) {
 	// register prefix parsing functions for token types IDENT and NOT
 	p.prefixParseFns = make(map[token.Type]prefixParseFn) // initialize an empty map for prefix parsing functions
 	p.registerPrefix(token.IDENT, p.parseIdentifier)      // associate the parseIdentifier function with the IDENT token type
-	p.registerPrefix(token.NOT, p.parsePrefixExpression)  // associate the parsePrefixExpression function with the NOT token type
 
 	// register infix parsing functions for token types AND and OR
 	p.infixParseFunc = make(map[token.Type]infixParseFn) // initialize an empty map for infix parsing functions
 	p.registerInfix(token.AND, p.parseInfixExpression)   // associate the parseInfixExpression function with the AND token type
 	p.registerInfix(token.OR, p.parseInfixExpression)    // associate the parseInfixExpression function with the OR token type
+	p.registerInfix(token.NOT, p.parseInfixExpression)   // associate the parseInfixExpression function with the OR token type
 
 	return p // return the newly created Parser object and no error
 }
@@ -530,50 +531,6 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	return exp, nil
 }
 
-// parsePrefixExpression parses a prefix expression that starts with an identifier, possibly
-// followed by a sequence of dot-separated identifiers, such as "foo.bar.baz".
-// It returns the resulting identifier expression and any error encountered.
-func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
-	// Ensure the current token is a valid prefix before proceeding.
-	if !p.isValidPrefix(p.currentToken.Type) {
-		p.currentError(token.NOT)
-		return nil, p.Error()
-	}
-
-	// Create a new Identifier expression with the first token as the prefix.
-	ident := &ast.Identifier{
-		Prefix: p.currentToken,
-	}
-
-	// Consume the current token and add it to the list of identifiers.
-	p.next()
-
-	// Ensure the next token is a valid identifier.
-	if !p.currentTokenIs(token.IDENT) {
-		p.currentError(token.IDENT)
-		return nil, p.Error()
-	}
-
-	ident.Idents = append(ident.Idents, p.currentToken)
-
-	// If the next token is a dot, consume it and continue parsing the next identifier.
-	for p.peekTokenIs(token.DOT) {
-		p.next() // Consume the dot token
-
-		// Check if the next token after the dot is a valid identifier
-		if !p.peekTokenIs(token.IDENT) {
-			p.peekError(token.IDENT)
-			return nil, p.Error()
-		}
-
-		p.next() // Consume the identifier token
-		ident.Idents = append(ident.Idents, p.currentToken)
-	}
-
-	// Return the resulting Identifier expression.
-	return ident, nil
-}
-
 // parseInfixExpression parses an infix expression that has a left operand and an operator followed by
 func (p *Parser) isValidPrefix(tokenType token.Type) bool {
 	return tokenType == token.NOT
@@ -588,7 +545,7 @@ func (p *Parser) isValidPrefix(tokenType token.Type) bool {
 func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, error) {
 	// Ensure the current token is a valid infix operator before proceeding.
 	if !p.isInfixOperator(p.currentToken.Type) {
-		p.currentError(token.AND, token.OR) // Replace with your actual valid infix token types
+		p.currentError(token.AND, token.OR, token.NOT) // Replace with your actual valid infix token types
 		return nil, p.Error()
 	}
 
@@ -622,7 +579,7 @@ func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, erro
 
 // parseIntegerLiteral parses an integer literal and returns the resulting IntegerLiteral expression.
 func (p *Parser) isInfixOperator(tokenType token.Type) bool {
-	return tokenType == token.AND || tokenType == token.OR
+	return tokenType == token.AND || tokenType == token.OR || tokenType == token.NOT
 }
 
 // peekPrecedence returns the precedence of the next token in the input, if it is a known

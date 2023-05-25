@@ -12,9 +12,24 @@ function Visualizer(props) {
             let nodes = []
             for (const index in props.graph.nodes) {
                 if (props.graph.nodes[index].type === "operation") {
+
+                    let label = ""
+
+                    if (props.graph.nodes[index].label === "OPERATION_UNION") {
+                        label = "or"
+                    }
+
+                    if (props.graph.nodes[index].label === "OPERATION_INTERSECTION") {
+                        label = "and"
+                    }
+
+                    if (props.graph.nodes[index].label === "OPERATION_EXCLUSION") {
+                        label = "not"
+                    }
+
                     nodes.push({
                         id: props.graph.nodes[index].id,
-                        label: props.graph.nodes[index].label === "OPERATION_UNION" ? "or" : "and",
+                        label: label,
                         group: props.graph.nodes[index].type
                     })
                 } else {
@@ -59,7 +74,6 @@ function Visualizer(props) {
                         edges.push({
                             from: props.graph.edges[index].from.id,
                             to: props.graph.edges[index].to.id,
-                            label: props.graph.edges[index].extra ? "not" : "",
                             color: {color: 'rgba(91,204,99,0.4)', inherit: false},
                             dashes: false
                         })
@@ -69,15 +83,24 @@ function Visualizer(props) {
                             edges.push({
                                 from: props.graph.edges[index].from.id,
                                 to: props.graph.edges[index].to.id,
-                                label: props.graph.edges[index].extra ? "not" : "",
                                 color: {color: 'rgba(229,52,114,0.4)', inherit: false},
                                 dashes: true,
                             })
-                        } else {
+                        }
+
+                        if (props.graph.edges[index].from.label === "OPERATION_INTERSECTION") {
                             edges.push({
                                 from: props.graph.edges[index].from.id,
                                 to: props.graph.edges[index].to.id,
-                                label: props.graph.edges[index].extra ? "not" : "",
+                                color: {color: 'rgba(229,52,114,0.4)', inherit: false},
+                                dashes: false,
+                            })
+                        }
+
+                        if (props.graph.edges[index].from.label === "OPERATION_EXCLUSION") {
+                            edges.push({
+                                from: props.graph.edges[index].from.id,
+                                to: props.graph.edges[index].to.id,
                                 color: {color: 'rgba(229,52,114,0.4)', inherit: false},
                                 dashes: false,
                             })

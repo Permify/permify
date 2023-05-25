@@ -73,7 +73,6 @@ var _ = Describe("schema", func() {
 									RewriteOperation: base.Rewrite_OPERATION_UNION,
 									Children: []*base.Child{
 										{
-											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
 													Type: &base.Leaf_ComputedUserSet{
@@ -85,7 +84,6 @@ var _ = Describe("schema", func() {
 											},
 										},
 										{
-											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
 													Type: &base.Leaf_ComputedUserSet{
@@ -155,7 +153,6 @@ var _ = Describe("schema", func() {
 									RewriteOperation: base.Rewrite_OPERATION_UNION,
 									Children: []*base.Child{
 										{
-											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
 													Type: &base.Leaf_ComputedUserSet{
@@ -167,7 +164,6 @@ var _ = Describe("schema", func() {
 											},
 										},
 										{
-											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
 													Type: &base.Leaf_ComputedUserSet{
@@ -232,7 +228,6 @@ var _ = Describe("schema", func() {
 									RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
 									Children: []*base.Child{
 										{
-											Exclusion: false,
 											Type: &base.Child_Leaf{
 												Leaf: &base.Leaf{
 													Type: &base.Leaf_ComputedUserSet{
@@ -249,7 +244,6 @@ var _ = Describe("schema", func() {
 													RewriteOperation: base.Rewrite_OPERATION_UNION,
 													Children: []*base.Child{
 														{
-															Exclusion: false,
 															Type: &base.Child_Leaf{
 																Leaf: &base.Leaf{
 																	Type: &base.Leaf_ComputedUserSet{
@@ -261,7 +255,6 @@ var _ = Describe("schema", func() {
 															},
 														},
 														{
-															Exclusion: false,
 															Type: &base.Child_Leaf{
 																Leaf: &base.Leaf{
 																	Type: &base.Leaf_TupleToUserSet{
@@ -289,7 +282,6 @@ var _ = Describe("schema", func() {
 					"delete": {
 						Name: "delete",
 						Child: &base.Child{
-							Exclusion: false,
 							Type: &base.Child_Leaf{
 								Leaf: &base.Leaf{
 									Type: &base.Leaf_TupleToUserSet{

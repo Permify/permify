@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
-    "version": "v0.4.1",
+    "version": "v0.4.2",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
@@ -410,69 +410,6 @@
         ]
       }
     },
-    "/v1/tenants/{tenant_id}/permissions/lookup-subject-stream": {
-      "post": {
-        "operationId": "permissions.lookupSubjectStream",
-        "responses": {
-          "200": {
-            "description": "A successful response.(streaming responses)",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/PermissionLookupSubjectStreamResponse"
-                },
-                "error": {
-                  "$ref": "#/definitions/Status"
-                }
-              },
-              "title": "Stream result of PermissionLookupSubjectStreamResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "tenant_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionLookupSubjectRequestMetadata"
-                },
-                "entity": {
-                  "$ref": "#/definitions/Entity"
-                },
-                "permission": {
-                  "type": "string",
-                  "title": "its can be permission or relation"
-                },
-                "subject_reference": {
-                  "$ref": "#/definitions/RelationReference"
-                }
-              },
-              "title": "PermissionLookupSubjectRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Permission"
-        ]
-      }
-    },
     "/v1/tenants/{tenant_id}/relationships/delete": {
       "post": {
         "summary": "delete relation tuple",
@@ -729,9 +666,6 @@
     "Child": {
       "type": "object",
       "properties": {
-        "exclusion": {
-          "type": "boolean"
-        },
         "leaf": {
           "$ref": "#/definitions/Leaf"
         },
@@ -824,9 +758,6 @@
         "target": {
           "$ref": "#/definitions/EntityAndRelation"
         },
-        "exclusion": {
-          "type": "boolean"
-        },
         "expand": {
           "$ref": "#/definitions/ExpandTreeNode"
         },
@@ -857,7 +788,8 @@
       "enum": [
         "OPERATION_UNSPECIFIED",
         "OPERATION_UNION",
-        "OPERATION_INTERSECTION"
+        "OPERATION_INTERSECTION",
+        "OPERATION_EXCLUSION"
       ],
       "default": "OPERATION_UNSPECIFIED",
       "title": "Operation"
@@ -882,9 +814,6 @@
         },
         "snap_token": {
           "type": "string"
-        },
-        "exclusion": {
-          "type": "boolean"
         },
         "depth": {
           "type": "integer",
@@ -935,9 +864,6 @@
         },
         "snap_token": {
           "type": "string"
-        },
-        "exclusion": {
-          "type": "boolean"
         }
       },
       "title": "PermissionExpandRequestMetadata"
@@ -996,9 +922,6 @@
         },
         "snap_token": {
           "type": "string"
-        },
-        "exclusion": {
-          "type": "boolean"
         }
       },
       "title": "PermissionLookupSubjectRequestMetadata"
@@ -1014,15 +937,6 @@
         }
       },
       "title": "PermissionLookupSubjectResponse"
-    },
-    "PermissionLookupSubjectStreamResponse": {
-      "type": "object",
-      "properties": {
-        "subject_id": {
-          "type": "string"
-        }
-      },
-      "title": "PermissionLookupSubjectStreamResponse"
     },
     "RelationDefinition": {
       "type": "object",
@@ -1145,7 +1059,8 @@
       "enum": [
         "OPERATION_UNSPECIFIED",
         "OPERATION_UNION",
-        "OPERATION_INTERSECTION"
+        "OPERATION_INTERSECTION",
+        "OPERATION_EXCLUSION"
       ],
       "default": "OPERATION_UNSPECIFIED",
       "title": "Operation"

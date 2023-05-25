@@ -3,6 +3,7 @@ declare global {
     Go: any;
     check: (query: string)=>any[]
     lookupEntity: (query: string)=>any[]
+    lookupSubject: (query: string)=>any[]
     writeSchema: (schema: string)=>any[]
     readSchema: ()=>any[]
     writeTuple: (tuple: string)=>any[]

@@ -53,7 +53,6 @@ func (engine *EntityFilterEngine) EntityFilter(
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
-			Exclusion:     false,
 		}, base.PermissionCheckResponse_RESULT_UNKNOWN)
 	}
 
@@ -246,7 +245,6 @@ func (engine *EntityFilterEngine) l(
 				SnapToken:     request.GetMetadata().GetSnapToken(),
 				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 				Depth:         request.GetMetadata().GetDepth(),
-				Exclusion:     false,
 			}, base.PermissionCheckResponse_RESULT_UNKNOWN)
 			return nil
 		}

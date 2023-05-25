@@ -25,6 +25,9 @@ type Scenario struct {
 
 	// EntityFilters is a slice of Filter structs that represent the filters to be applied during the checks.
 	EntityFilters []EntityFilter `yaml:"entity_filters"`
+
+	// SubjectFilters is a slice of Filter structs that represent the filters to be applied during the checks.
+	SubjectFilters []SubjectFilter `yaml:"subject_filters"`
 }
 
 // Check is a struct that represents an individual authorization check.
@@ -46,6 +49,18 @@ type EntityFilter struct {
 
 	// Subject is a string that represents the subject of the filter.
 	Subject string `yaml:"subject"`
+
+	// Assertions is a map that contains the filter assertions to be applied.
+	Assertions map[string][]string `yaml:"assertions"`
+}
+
+// SubjectFilter is a struct that represents a filter to be applied during an authorization check.
+type SubjectFilter struct {
+	// EntityType is a string that represents the type of entity the filter applies to.
+	SubjectReference string `yaml:"subject_reference"`
+
+	// Entity is a string that represents the entity type involved in the authorization check.
+	Entity string `yaml:"entity"`
 
 	// Assertions is a map that contains the filter assertions to be applied.
 	Assertions map[string][]string `yaml:"assertions"`

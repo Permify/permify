@@ -27,7 +27,6 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 		Metadata: &base.PermissionCheckRequestMetadata{
 			SchemaVersion: "test_version",
 			SnapToken:     "test_snap_token",
-			Exclusion:     false,
 			Depth:         20,
 		},
 		Entity: &base.Entity{
@@ -80,7 +79,6 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 		Metadata: &base.PermissionCheckRequestMetadata{
 			SchemaVersion: "test_version",
 			SnapToken:     "test_snap_token",
-			Exclusion:     false,
 			Depth:         20,
 		},
 		Entity: &base.Entity{
@@ -133,7 +131,6 @@ func TestEngineKeys_GetCheckKey_KeyNotFound(t *testing.T) {
 		Metadata: &base.PermissionCheckRequestMetadata{
 			SchemaVersion: "test_version",
 			SnapToken:     "test_snap_token",
-			Exclusion:     false,
 			Depth:         20,
 		},
 		Entity: &base.Entity{
@@ -171,7 +168,6 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		Metadata: &base.PermissionCheckRequestMetadata{
 			SchemaVersion: "test_version",
 			SnapToken:     "test_snap_token",
-			Exclusion:     false,
 			Depth:         20,
 		},
 		Entity: &base.Entity{
@@ -196,7 +192,6 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		Metadata: &base.PermissionCheckRequestMetadata{
 			SchemaVersion: "test_version",
 			SnapToken:     "test_snap_token",
-			Exclusion:     false,
 			Depth:         20,
 		},
 		Entity: &base.Entity{
@@ -221,7 +216,6 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		Metadata: &base.PermissionCheckRequestMetadata{
 			SchemaVersion: "test_version",
 			SnapToken:     "test_snap_token",
-			Exclusion:     false,
 			Depth:         20,
 		},
 		Entity: &base.Entity{

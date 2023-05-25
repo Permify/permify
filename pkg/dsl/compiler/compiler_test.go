@@ -80,7 +80,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -92,7 +91,6 @@ var _ = Describe("compiler", func() {
 												},
 											},
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -179,7 +177,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -196,7 +193,6 @@ var _ = Describe("compiler", func() {
 														RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
 														Children: []*base.Child{
 															{
-																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_ComputedUserSet{
@@ -208,7 +204,6 @@ var _ = Describe("compiler", func() {
 																},
 															},
 															{
-																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_ComputedUserSet{
@@ -294,7 +289,6 @@ var _ = Describe("compiler", func() {
 						"update": {
 							Name: "update",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_ComputedUserSet{
@@ -406,7 +400,7 @@ var _ = Describe("compiler", func() {
 				relation parent @organization
 				relation owner @user
 
-				permission delete = owner or (parent.update or not parent.owner)
+				permission delete = owner or (parent.update not parent.owner)
 			}
 
 			`).Parse()
@@ -437,7 +431,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -449,7 +442,6 @@ var _ = Describe("compiler", func() {
 												},
 											},
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -503,7 +495,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -517,10 +508,9 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Rewrite{
 													Rewrite: &base.Rewrite{
-														RewriteOperation: base.Rewrite_OPERATION_UNION,
+														RewriteOperation: base.Rewrite_OPERATION_EXCLUSION,
 														Children: []*base.Child{
 															{
-																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_TupleToUserSet{
@@ -537,7 +527,6 @@ var _ = Describe("compiler", func() {
 																},
 															},
 															{
-																Exclusion: true,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_TupleToUserSet{
@@ -611,7 +600,7 @@ var _ = Describe("compiler", func() {
 				relation parent @organization
 				relation owner @user @organization#admin @organization#owner
 
-				permission delete = owner or (parent.update or not parent.owner)
+				permission delete = owner or (parent.update not parent.owner)
 			}
 
 			`).Parse()
@@ -642,7 +631,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -654,7 +642,6 @@ var _ = Describe("compiler", func() {
 												},
 											},
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -708,7 +695,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -722,10 +708,9 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Rewrite{
 													Rewrite: &base.Rewrite{
-														RewriteOperation: base.Rewrite_OPERATION_UNION,
+														RewriteOperation: base.Rewrite_OPERATION_EXCLUSION,
 														Children: []*base.Child{
 															{
-																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_TupleToUserSet{
@@ -742,7 +727,6 @@ var _ = Describe("compiler", func() {
 																},
 															},
 															{
-																Exclusion: true,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_TupleToUserSet{
@@ -824,7 +808,7 @@ var _ = Describe("compiler", func() {
 				relation parent @organization
 				relation owner @user @organization
 
-				permission delete = owner or (parent.update or not parent.owner)
+				permission delete = owner or (parent.update not parent.owner)
 			}
 
 			`).Parse()
@@ -854,7 +838,7 @@ var _ = Describe("compiler", func() {
 				relation parent @organization
 				relation owner @user @organization#update
 
-				permission delete = owner or (parent.update or not parent.owner)
+				permission delete = owner or (parent.update not parent.owner)
 			}
 
 			`).Parse()
@@ -915,7 +899,6 @@ var _ = Describe("compiler", func() {
 						"read": {
 							Name: "read",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_TupleToUserSet{
@@ -935,7 +918,6 @@ var _ = Describe("compiler", func() {
 						"write": {
 							Name: "write",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_TupleToUserSet{
@@ -998,7 +980,6 @@ var _ = Describe("compiler", func() {
 						"read": {
 							Name: "read",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_ComputedUserSet{
@@ -1013,7 +994,6 @@ var _ = Describe("compiler", func() {
 						"write": {
 							Name: "write",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_ComputedUserSet{
@@ -1085,7 +1065,6 @@ var _ = Describe("compiler", func() {
 						"read": {
 							Name: "read",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_TupleToUserSet{
@@ -1105,7 +1084,6 @@ var _ = Describe("compiler", func() {
 						"write": {
 							Name: "write",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_TupleToUserSet{
@@ -1168,7 +1146,6 @@ var _ = Describe("compiler", func() {
 						"read": {
 							Name: "read",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_ComputedUserSet{
@@ -1183,7 +1160,6 @@ var _ = Describe("compiler", func() {
 						"write": {
 							Name: "write",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_ComputedUserSet{

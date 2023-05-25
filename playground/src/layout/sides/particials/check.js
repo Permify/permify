@@ -107,9 +107,9 @@ function Check(props) {
         setError("")
         setLoading(true)
         CheckPermission(entity, permission, subject).then(res => {
-            // if (res[1] != null) {
-            //     setError(res[1].replaceAll('_', ' '))
-            // }
+            if (res[1] != null) {
+                setError(res[1].replaceAll('_', ' '))
+            }
             setResult(res[0])
             setLoading(false)
         })

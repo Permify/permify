@@ -243,7 +243,6 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					res, err := dev.Container.Invoker.Check(ctx, &base.PermissionCheckRequest{
 						TenantId: "t1",
 						Metadata: &base.PermissionCheckRequestMetadata{
-							Exclusion:     false,
 							SchemaVersion: version,
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							Depth:         100,
@@ -328,6 +327,55 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetEntityIds())
 						}
 						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetEntityIds()))
+					}
+				}
+			}
+
+			color.Notice.Println("  subject_filters:")
+
+			for _, filter := range scenario.SubjectFilters {
+
+				subjectReference := tuple.RelationReference(filter.SubjectReference)
+				if err != nil {
+					list.Add(err.Error())
+					continue
+				}
+
+				var entity *base.Entity
+				entity, err = tuple.E(filter.Entity)
+				if err != nil {
+					list.Add(err.Error())
+					continue
+				}
+
+				for permission, expected := range filter.Assertions {
+					res, err := dev.Container.Invoker.LookupSubject(ctx, &base.PermissionLookupSubjectRequest{
+						TenantId: "t1",
+						Metadata: &base.PermissionLookupSubjectRequestMetadata{
+							SchemaVersion: version,
+							SnapToken:     token.NewNoopToken().Encode().String(),
+						},
+						SubjectReference: subjectReference,
+						Permission:       permission,
+						Entity:           entity,
+					})
+					if err != nil {
+						list.Add(err.Error())
+						continue
+					}
+
+					query := tuple.EntityToString(entity) + " " + permission + " " + tuple.ReferenceToString(filter.SubjectReference)
+
+					if isSameArray(res.GetSubjectIds(), expected) {
+						if debug {
+							color.Success.Print("    success:")
+							fmt.Printf(" %v\n", query)
+						}
+					} else {
+						if debug {
+							color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetSubjectIds())
+						}
+						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetSubjectIds()))
 					}
 				}
 			}

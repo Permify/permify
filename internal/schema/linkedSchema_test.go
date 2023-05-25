@@ -109,7 +109,7 @@ var _ = Describe("connected schema", func() {
 				relation viewer @user
 				relation editor @user
 				relation owner @user
-				action view = viewer and editor and not owner
+				action view = viewer and editor not owner
 			}
 			`).Parse()
 

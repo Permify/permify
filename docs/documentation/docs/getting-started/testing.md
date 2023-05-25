@@ -105,7 +105,12 @@ scenarios:
         assertions:
           push : ["1"]
           edit : []
-
+    subject_filters:
+      - subject_reference: "user"
+        entity: "repository:1"
+        assertions:
+          push : ["1", "43"]
+          edit : []
 ```
 
 ## Coverage Analysis

@@ -56,19 +56,19 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 					Type:  "relation",
 					ID:    fmt.Sprintf("%s#%s", ref.GetType(), ref.GetRelation()),
 					Label: re.Name,
-				}, nil)
+				})
 			} else {
 				g.AddEdge(reNode, &Node{
 					Type:  "entity",
 					ID:    fmt.Sprintf("%s", ref.GetType()),
 					Label: re.Name,
-				}, nil)
+				})
 			}
 		}
 
 		// Add relation node and edge to the graph
 		g.AddNode(reNode)
-		g.AddEdge(enNode, reNode, nil)
+		g.AddEdge(enNode, reNode)
 	}
 
 	// Iterate through the permissions in the entity
@@ -80,7 +80,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 			Label: permission.GetName(),
 		}
 		g.AddNode(acNode)
-		g.AddEdge(enNode, acNode, nil)
+		g.AddEdge(enNode, acNode)
 		// Build permission graph for each permission
 		ag, err := buildPermissionGraph(entity, acNode, []*base.Child{permission.GetChild()})
 		if err != nil {
@@ -110,7 +110,7 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 
 			// Add the rewrite node to the graph and connect it to the parent node
 			g.AddNode(rw)
-			g.AddEdge(from, rw, child.GetExclusion())
+			g.AddEdge(from, rw)
 			// Recursively process the children of the rewrite node
 			ag, err := buildPermissionGraph(entity, rw, child.GetRewrite().GetChildren())
 			if err != nil {
@@ -136,7 +136,7 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 					Type:  "relation",
 					ID:    fmt.Sprintf("%s#%s", GetTupleSetReferenceReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
 					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
-				}, child.GetExclusion())
+				})
 
 			case *base.Leaf_ComputedUserSet:
 				// Add an edge between the parent node and the computed user set relation node
@@ -144,7 +144,7 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 					Type:  "relation",
 					ID:    fmt.Sprintf("%s#%s", entity.GetName(), leaf.GetComputedUserSet().GetRelation()),
 					Label: leaf.GetComputedUserSet().GetRelation(),
-				}, child.GetExclusion())
+				})
 			default:
 				break
 			}

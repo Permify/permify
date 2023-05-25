@@ -161,6 +161,8 @@ func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (
 		rewrite.RewriteOperation = base.Rewrite_OPERATION_UNION
 	case ast.AND:
 		rewrite.RewriteOperation = base.Rewrite_OPERATION_INTERSECTION
+	case ast.NOT:
+		rewrite.RewriteOperation = base.Rewrite_OPERATION_EXCLUSION
 	default:
 		rewrite.RewriteOperation = base.Rewrite_OPERATION_UNSPECIFIED
 	}
@@ -227,7 +229,6 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 			return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
-		child.Exclusion = ident.IsPrefix()
 		child.Type = &base.Child_Leaf{Leaf: leaf}
 		return child, nil
 	}
@@ -249,7 +250,6 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 			return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
-		child.Exclusion = ident.IsPrefix()
 		child.Type = &base.Child_Leaf{Leaf: leaf}
 		return child, nil
 	}

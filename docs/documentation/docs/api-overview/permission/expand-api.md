@@ -17,14 +17,13 @@ It is not designed to use as a check access. Expand request has a high latency w
 <TabItem value="go" label="Go">
 
 ```go
-cr, err: = client.Permission.Expand(context.Background(), & v1.PermissionExpandRequest {
+cr, err: = client.Permission.Expand(context.Background(), &v1.PermissionExpandRequest{
     TenantId: "t1",
-    Metadata: & v1.PermissionExpandRequestMetadata {
-        SnapToken: ""
-        SchemaVersion: ""
-        Depth: 20,
+    Metadata: &v1.PermissionExpandRequestMetadata{
+        SnapToken: "",
+        SchemaVersion: "",
     },
-    Entity: & v1.Entity {
+    Entity: &v1.Entity{
         Type: "repository",
         Id: "1",
     },
@@ -41,8 +40,7 @@ client.permission.expand({
   tenantId: "t1",
   metadata: {
         snapToken: "",
-        schemaVersion: "",
-        depth: 20
+        schemaVersion: ""
     },
     entity: {
         type: "repository",
@@ -213,7 +211,6 @@ We can use expand API to reason the access actions. If we want to reason access 
       },
       "relation": "read"
     },
-    "exclusion": false,
     "expand": {
       "operation": "OPERATION_INTERSECTION",
       "children": [
@@ -225,7 +222,6 @@ We can use expand API to reason the access actions. If we want to reason access 
             },
             "relation": "owner"
           },
-          "exclusion": false,
           "leaf": {
             "subjects": [
               {
@@ -244,7 +240,6 @@ We can use expand API to reason the access actions. If we want to reason access 
             },
             "relation": "read"
           },
-          "exclusion": false,
           "expand": {
             "operation": "OPERATION_UNION",
             "children": [
@@ -256,7 +251,6 @@ We can use expand API to reason the access actions. If we want to reason access 
                   },
                   "relation": "read"
                 },
-                "exclusion": false,
                 "expand": {
                   "operation": "OPERATION_UNION",
                   "children": [
@@ -268,7 +262,6 @@ We can use expand API to reason the access actions. If we want to reason access 
                         },
                         "relation": "admin"
                       },
-                      "exclusion": false,
                       "leaf": {
                         "subjects": [
                           {
@@ -290,7 +283,6 @@ We can use expand API to reason the access actions. If we want to reason access 
                   },
                   "relation": "read"
                 },
-                "exclusion": false,
                 "expand": {
                   "operation": "OPERATION_UNION",
                   "children": [
@@ -302,7 +294,6 @@ We can use expand API to reason the access actions. If we want to reason access 
                         },
                         "relation": "member"
                       },
-                      "exclusion": false,
                       "leaf": {
                         "subjects": []
                       }

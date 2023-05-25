@@ -13,9 +13,8 @@ type Node struct {
 
 // Edge - Edge Structure
 type Edge struct {
-	Extra any   `json:"extra"`
-	From  *Node `json:"from"`
-	To    *Node `json:"to"`
+	From *Node `json:"from"`
+	To   *Node `json:"to"`
 }
 
 // Graph - Graph Structure
@@ -57,12 +56,11 @@ func (g *Graph) AddEdges(e []*Edge) {
 }
 
 // AddEdge - Add edge to graph
-func (g *Graph) AddEdge(from, to *Node, extra any) {
+func (g *Graph) AddEdge(from, to *Node) {
 	g.lock.Lock()
 	g.edges = append(g.edges, &Edge{
-		Extra: extra,
-		From:  from,
-		To:    to,
+		From: from,
+		To:   to,
 	})
 	g.lock.Unlock()
 }

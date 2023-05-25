@@ -123,7 +123,7 @@ entity project {
 
 Actions describe what relations, or relation’s relation can do, think of actions as entities' permissions. Actions defines who can perform a specific action in which circumstances.
 
-Permify Schema supports ***and***, ***or***, ***and not*** and ***or not*** operators to define actions. 
+Permify Schema supports ***and***, ***or*** and ***not*** operators to define actions. 
 
 #### team actions
 

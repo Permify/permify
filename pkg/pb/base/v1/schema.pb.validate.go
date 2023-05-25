@@ -56,8 +56,6 @@ func (m *Child) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Exclusion
-
 	oneofTypePresent := false
 	switch v := m.Type.(type) {
 	case *Child_Leaf:
@@ -1334,26 +1332,30 @@ func (m *RelationReference) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetRelation()) > 64 {
-		err := RelationReferenceValidationError{
-			field:  "Relation",
-			reason: "value length must be at most 64 bytes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	if m.GetRelation() != "" {
 
-	if !_RelationReference_Relation_Pattern.MatchString(m.GetRelation()) {
-		err := RelationReferenceValidationError{
-			field:  "Relation",
-			reason: "value does not match regex pattern \"^[a-z][a-z0-9_]{1,62}[a-z0-9]$\"",
+		if len(m.GetRelation()) > 64 {
+			err := RelationReferenceValidationError{
+				field:  "Relation",
+				reason: "value length must be at most 64 bytes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
+
+		if !_RelationReference_Relation_Pattern.MatchString(m.GetRelation()) {
+			err := RelationReferenceValidationError{
+				field:  "Relation",
+				reason: "value does not match regex pattern \"^[a-z][a-z0-9_]{1,62}[a-z0-9]$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		errors = append(errors, err)
+
 	}
 
 	if len(errors) > 0 {

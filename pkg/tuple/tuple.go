@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	ENTITY   = "%s:%s" // format string for entity in the form of "<type>:<id>"
-	RELATION = "#%s"   // format string for relation in the form of "#<relation>"
+	ENTITY    = "%s:%s" // format string for entity in the form of "<type>:<id>"
+	RELATION  = "#%s"   // format string for relation in the form of "#<relation>"
+	REFERENCE = "%s#%s" // format string for reference in the form of "<type>#<relation>"
 )
 
 const (
@@ -174,6 +175,35 @@ func E(e string) (*base.Entity, error) {
 		Type: s[0],
 		Id:   s[1],
 	}, nil
+}
+
+// ReferenceToString -
+func ReferenceToString(ref string) string {
+	sp := strings.Split(ref, "#")
+	if len(sp) > 1 {
+		return fmt.Sprintf(REFERENCE, sp[0], sp[1])
+	}
+	return ref
+}
+
+// RelationReference - parses a relation reference string and returns a RelationReference object
+func RelationReference(ref string) *base.RelationReference {
+	sp := strings.Split(ref, "#")
+	if len(sp) > 1 {
+		return &base.RelationReference{
+			Type:     sp[0],
+			Relation: sp[1],
+		}
+	}
+	return &base.RelationReference{
+		Type:     sp[0],
+		Relation: "",
+	}
+}
+
+// AreRelationReferencesEqual checks if two relation references are equal or not
+func AreRelationReferencesEqual(s1, s2 *base.RelationReference) bool {
+	return s1.GetRelation() == s2.GetRelation() && s1.GetType() == s2.GetType()
 }
 
 // SetSubjectRelationToEllipsisIfNonUserAndNoRelation sets the relation of a subject to an ellipsis if the subject is not of type "user" and the relation is empty

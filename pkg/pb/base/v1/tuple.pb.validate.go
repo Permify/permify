@@ -1638,8 +1638,6 @@ func (m *Expand) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for Exclusion
-
 	switch v := m.Node.(type) {
 	case *Expand_Expand:
 		if v == nil {

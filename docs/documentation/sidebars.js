@@ -109,6 +109,7 @@ module.exports = {
 					items: [
 						"api-overview/permission/check-api",
 						"api-overview/permission/lookup-entity",
+						"api-overview/permission/lookup-subject",
 						"api-overview/permission/expand-api"
 					],
 				  },
