@@ -1,4 +1,4 @@
-export function CheckPermission(entity, permission, subject){
+export function CheckPermission(entity, permission, subject) {
     return new Promise((resolve) => {
         let q = JSON.stringify({
             entity: entity,
@@ -10,7 +10,7 @@ export function CheckPermission(entity, permission, subject){
     });
 }
 
-export function FilterData(entityType, permission, subject) {
+export function FilterEntity(entityType, permission, subject) {
     return new Promise((resolve) => {
         let q = JSON.stringify({
             entity_type: entityType,
@@ -18,6 +18,18 @@ export function FilterData(entityType, permission, subject) {
             subject: subject,
         })
         let res = window.lookupEntity(q)
+        resolve(res);
+    });
+}
+
+export function FilterSubject(entity, permission, subject_reference) {
+    return new Promise((resolve) => {
+        let q = JSON.stringify({
+            entity: entity,
+            permission: permission,
+            subject_reference: subject_reference,
+        })
+        let res = window.lookupSubject(q)
         resolve(res);
     });
 }

@@ -1,27 +1,37 @@
 export default function TupleToHumanLanguage(tuple) {
-    let rv = ""
-    let p = tuple.split("@")
-    if (p.length !== 2) {
-        return rv
+    const splitChar = '@';
+    const subSplitChar = '#';
+    const continuationIndicator = '...';
+
+    let [entity, subject] = tuple.split(splitChar);
+
+    if (!entity || !subject) {
+        return "";
     }
-    let e = p[0]
-    let s = p[1]
-    let a = s.split("#")
-    if (a.length === 1) {
-        rv += a[0] + " is "
-    } else {
-        if (a[1] === "...") {
-            rv += a[0] + " is "
-        } else {
-            rv += a[1] + " of " + a[0] + " is "
-        }
+
+    let subjectComponents = subject.split(subSplitChar);
+    let entityComponents = entity.split(subSplitChar);
+
+    if (subjectComponents.length === 0 || entityComponents.length !== 2) {
+        return "";
     }
-    let b = e.split("#")
-    if (b.length !== 2) {
-        return rv
+
+    let subjectString = constructSubjectString(subjectComponents, continuationIndicator);
+    let entityString = `${entityComponents[1]} of ${entityComponents[0]}`;
+
+    return `${subjectString}${entityString}`;
+}
+
+function constructSubjectString(subjectComponents, continuationIndicator) {
+    if (subjectComponents.length === 1) {
+        return `${subjectComponents[0]} is `;
     }
-    rv += b[1] + " of " + b[0]
-    return rv
+
+    if (subjectComponents[1] === continuationIndicator) {
+        return `${subjectComponents[0]} is `;
+    }
+
+    return `${subjectComponents[1]} of ${subjectComponents[0]} is `;
 }
 
 export function TupleObjectToTupleString(tuple) {
