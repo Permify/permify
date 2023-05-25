@@ -43,8 +43,8 @@ var _ = Describe("compiler", func() {
 					Permissions(
 						Permission("update",
 							Union(
-								ComputedUserSet("owner", false),
-								ComputedUserSet("admin", false),
+								ComputedUserSet("owner"),
+								ComputedUserSet("admin"),
 							),
 						),
 					),
@@ -69,7 +69,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -81,7 +80,6 @@ var _ = Describe("compiler", func() {
 												},
 											},
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -138,10 +136,10 @@ var _ = Describe("compiler", func() {
 					Permissions(
 						Permission("update",
 							Union(
-								ComputedUserSet("owner", false),
+								ComputedUserSet("owner"),
 								Intersection(
-									ComputedUserSet("admin", false),
-									ComputedUserSet("owner", false),
+									ComputedUserSet("admin"),
+									ComputedUserSet("owner"),
 								),
 							),
 						),
@@ -167,7 +165,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -184,7 +181,6 @@ var _ = Describe("compiler", func() {
 														RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
 														Children: []*base.Child{
 															{
-																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_ComputedUserSet{
@@ -196,7 +192,6 @@ var _ = Describe("compiler", func() {
 																},
 															},
 															{
-																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_ComputedUserSet{
@@ -256,7 +251,7 @@ var _ = Describe("compiler", func() {
 					),
 					Permissions(
 						Permission("update",
-							ComputedUserSet("owner", false),
+							ComputedUserSet("owner"),
 						),
 					),
 				),
@@ -275,7 +270,6 @@ var _ = Describe("compiler", func() {
 						"update": {
 							Name: "update",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_ComputedUserSet{
@@ -327,7 +321,7 @@ var _ = Describe("compiler", func() {
 					),
 					Permissions(
 						Permission("update",
-							ComputedUserSet("owner", false),
+							ComputedUserSet("owner"),
 						),
 					),
 				),
@@ -339,10 +333,10 @@ var _ = Describe("compiler", func() {
 					Permissions(
 						Permission("delete",
 							Union(
-								ComputedUserSet("owner", false),
-								Union(
-									TupleToUserSet("parent", "update", false),
-									TupleToUserSet("parent", "owner", true),
+								ComputedUserSet("owner"),
+								Exclusion(
+									TupleToUserSet("parent", "update"),
+									TupleToUserSet("parent", "owner"),
 								),
 							),
 						),
@@ -363,7 +357,6 @@ var _ = Describe("compiler", func() {
 						"update": {
 							Name: "update",
 							Child: &base.Child{
-								Exclusion: false,
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_ComputedUserSet{
@@ -413,7 +406,6 @@ var _ = Describe("compiler", func() {
 										RewriteOperation: base.Rewrite_OPERATION_UNION,
 										Children: []*base.Child{
 											{
-												Exclusion: false,
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
 														Type: &base.Leaf_ComputedUserSet{
@@ -427,10 +419,9 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Rewrite{
 													Rewrite: &base.Rewrite{
-														RewriteOperation: base.Rewrite_OPERATION_UNION,
+														RewriteOperation: base.Rewrite_OPERATION_EXCLUSION,
 														Children: []*base.Child{
 															{
-																Exclusion: false,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_TupleToUserSet{
@@ -447,7 +438,6 @@ var _ = Describe("compiler", func() {
 																},
 															},
 															{
-																Exclusion: true,
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
 																		Type: &base.Leaf_TupleToUserSet{

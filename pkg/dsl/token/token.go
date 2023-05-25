@@ -91,15 +91,11 @@ const (
 	PERMISSION = "PERMISSION"
 
 	/*
-		Prefix
-	*/
-	NOT = "NOT"
-
-	/*
 		Logical
 	*/
 	AND = "AND"
 	OR  = "OR"
+	NOT = "NOT"
 
 	/*
 		Comments

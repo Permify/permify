@@ -103,9 +103,8 @@ func Permissions(defs ...*base.PermissionDefinition) []*base.PermissionDefinitio
 // ComputedUserSet - returns a Child definition that represents a computed set of users based on a relation
 // relation: the name of the relation on which the computed set is based
 // exclusion: a boolean indicating if the computed set should exclude or include the users in the set
-func ComputedUserSet(relation string, exclusion bool) *base.Child {
+func ComputedUserSet(relation string) *base.Child {
 	return &base.Child{
-		Exclusion: exclusion,
 		Type: &base.Child_Leaf{
 			Leaf: &base.Leaf{
 				Type: &base.Leaf_ComputedUserSet{
@@ -126,9 +125,8 @@ func ComputedUserSet(relation string, exclusion bool) *base.Child {
 // relation: the name of the relation for the computed user set
 // exclusion: a boolean indicating whether to exclude the computed user set
 // Returns a pointer to a base.Child struct.
-func TupleToUserSet(reference, relation string, exclusion bool) *base.Child {
+func TupleToUserSet(reference, relation string) *base.Child {
 	return &base.Child{
-		Exclusion: exclusion,
 		Type: &base.Child_Leaf{
 			Leaf: &base.Leaf{
 				Type: &base.Leaf_TupleToUserSet{
@@ -164,6 +162,18 @@ func Intersection(children ...*base.Child) *base.Child {
 		Type: &base.Child_Rewrite{
 			Rewrite: &base.Rewrite{
 				RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
+				Children:         children,
+			},
+		},
+	}
+}
+
+// Exclusion - Returns a child element that represents the exclusion of the given children. This child element can be used in defining entity relations and actions.
+func Exclusion(children ...*base.Child) *base.Child {
+	return &base.Child{
+		Type: &base.Child_Rewrite{
+			Rewrite: &base.Rewrite{
+				RewriteOperation: base.Rewrite_OPERATION_EXCLUSION,
 				Children:         children,
 			},
 		},

@@ -53,6 +53,7 @@ func NewContainer() *Development {
 	expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
 	entityFilterEngine := engines.NewEntityFilterEngine(schemaReader, relationshipReader)
 	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, entityFilterEngine)
+	lookupSubjectEngine := engines.NewLookupSubjectEngine(schemaReader, relationshipReader)
 
 	invoker := invoke.NewDirectInvoker(
 		schemaReader,
@@ -60,7 +61,7 @@ func NewContainer() *Development {
 		checkEngine,
 		expandEngine,
 		lookupEntityEngine,
-		nil,
+		lookupSubjectEngine,
 	)
 
 	checkEngine.SetInvoker(invoker)
@@ -91,7 +92,6 @@ func (c *Development) Check(ctx context.Context, subject *v1.Subject, action str
 			SchemaVersion: "",
 			SnapToken:     "",
 			Depth:         20,
-			Exclusion:     false,
 		},
 	}
 
@@ -116,6 +116,24 @@ func (c *Development) LookupEntity(ctx context.Context, subject *v1.Subject, per
 
 	// Invoke the permission lookup entity using the container's invoker and return the response
 	return c.Container.Invoker.LookupEntity(ctx, req)
+}
+
+// LookupSubject - Looks up a subject's permissions for a given entıty and permission
+func (c *Development) LookupSubject(ctx context.Context, entity *v1.Entity, permission string, subjectReference *v1.RelationReference) (res *v1.PermissionLookupSubjectResponse, err error) {
+	// Create a new permission lookup entity request with the given subject, permission, entity type, and metadata
+	req := &v1.PermissionLookupSubjectRequest{
+		TenantId:         "t1",
+		Entity:           entity,
+		Permission:       permission,
+		SubjectReference: subjectReference,
+		Metadata: &v1.PermissionLookupSubjectRequestMetadata{
+			SchemaVersion: "",
+			SnapToken:     "",
+		},
+	}
+
+	// Invoke the permission lookup entity using the container's invoker and return the response
+	return c.Container.Invoker.LookupSubject(ctx, req)
 }
 
 // ReadTuple - Creates new read API request
