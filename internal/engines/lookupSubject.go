@@ -63,7 +63,8 @@ type LookupSubjectCombiner func(ctx context.Context, functions []LookupSubjectFu
 func (engine *LookupSubjectEngine) LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error) {
 	// ReadSchemaDefinition method of the SchemaReader interface is used to retrieve the entity's schema definition.
 	// GetTenantId, GetType and GetSchemaVersion methods are used to provide necessary arguments to ReadSchemaDefinition.
-	en, _, err := engine.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	var en *base.EntityDefinition
+	en, _, err = engine.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		// If an error is encountered while reading the schema definition, return an empty response and the error.
 		return lookupSubjectEmpty(), err
@@ -230,7 +231,7 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 				continue
 			}
 
-			if subject.GetRelation() != tuple.ELLIPSIS {
+			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
 				foundedUserSets.Add(subject)
 			}
 		}
@@ -258,10 +259,7 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 				},
 				Permission:       subject.GetRelation(),
 				SubjectReference: request.GetSubjectReference(),
-				Metadata: &base.PermissionLookupSubjectRequestMetadata{
-					SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-					SnapToken:     request.GetMetadata().GetSnapToken(),
-				},
+				Metadata:         request.GetMetadata(),
 			})
 			if err != nil {
 				return lookupSubjectEmpty(), err
@@ -279,10 +277,10 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 // setChild generates a LookupSubjectFunction by applying a LookupSubjectCombiner
 // to a set of child permission lookups, given a request and a list of Child objects.
 func (engine *LookupSubjectEngine) setChild(
-	ctx context.Context,                          // The context for carrying out the operation
+	ctx context.Context, // The context for carrying out the operation
 	request *base.PermissionLookupSubjectRequest, // The request containing parameters for lookup
-	children []*base.Child,                       // The children of a particular node in the permission schema
-	combiner LookupSubjectCombiner,               // A function to combine the results from multiple lookup functions
+	children []*base.Child, // The children of a particular node in the permission schema
+	combiner LookupSubjectCombiner, // A function to combine the results from multiple lookup functions
 ) LookupSubjectFunction {
 	var functions []LookupSubjectFunction // Array of functions to store lookup functions for each child
 
@@ -503,7 +501,6 @@ func lookupSubjectIntersection(ctx context.Context, functions []LookupSubjectFun
 // among different lookup subject functions and returns the subjects not found
 // in the excluded list.
 func lookupSubjectExclusion(ctx context.Context, functions []LookupSubjectFunction, limit int) (*base.PermissionLookupSubjectResponse, error) {
-
 	// If there are not more than one lookup functions, it returns an error because
 	// exclusion requires at least two functions for comparison.
 	if len(functions) <= 1 {
