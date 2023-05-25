@@ -119,7 +119,7 @@ message PermissionCheckRequest {
 message PermissionCheckRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
-  int32 depth = 4 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionCheckResponse
@@ -556,12 +556,12 @@ message TenantDeleteResponse {
 
 // TenantListRequest
 message TenantListRequest {
-  uint32 page_size = 4 [
+  uint32 page_size = 1 [
     json_name = "page_size",
     (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
   ];
 
-  string continuous_token = 5 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
+  string continuous_token = 2 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
 
 // TenantListResponse

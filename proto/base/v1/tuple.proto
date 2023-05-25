@@ -129,14 +129,14 @@ message ExpandTreeNode {
 message Expand {
   EntityAndRelation target = 1;
   oneof node {
-    ExpandTreeNode expand = 3;
-    Subjects leaf = 4;
+    ExpandTreeNode expand = 2;
+    Subjects leaf = 3;
   }
 }
 
 // Result
 message Subjects {
-  repeated Subject subjects = 2;
+  repeated Subject subjects = 1;
 }
 
 // Tenant

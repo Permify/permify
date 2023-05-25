@@ -159,7 +159,6 @@ We can use expand API to reason the access actions. If we want to reason access 
       },
       "relation": "owner"
     },
-    "exclusion": false,
     "leaf": {
       "subjects": [
         {

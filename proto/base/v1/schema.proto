@@ -9,8 +9,8 @@ import "validate/validate.proto";
 message Child {
   oneof type {
     option (validate.required) = true;
-    Leaf leaf = 2 [(validate.rules).message.required = true];
-    Rewrite rewrite = 3 [(validate.rules).message.required = true];
+    Leaf leaf = 1 [(validate.rules).message.required = true];
+    Rewrite rewrite = 2 [(validate.rules).message.required = true];
   }
 }
 
