@@ -22,10 +22,10 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
+| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.|
 | [ ]   | schema_version | string | 8 | Version of the schema |
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
-| [x]   | entity_type | object | - | type of the  entity. Example: repository”.
+| [x]   | entity_type | object | - | type of the  entity. Example: repository”.|
 | [x]   | permission | string | - | the action the user wants to perform on the resource |
 | [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
 
@@ -104,7 +104,7 @@ The difference between this endpoint from direct Lookup Entity is response of th
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
 | [ ]   | schema_version | string | 8 | Version of the schema |
 | [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
-| [x]   | entity_type | object | - | type of the  entity. Example: repository”.
+| [x]   | entity_type | object | - | type of the  entity. Example: repository”.|
 | [x]   | permission | string | - | the action the user wants to perform on the resource |
 | [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
 
@@ -112,15 +112,15 @@ The difference between this endpoint from direct Lookup Entity is response of th
 <TabItem value="go" label="Go">
 
 ```go
-str, err: = client.Permission.LookupEntityStream(context.Background(), & v1.PermissionLookupEntityRequest {
-    Metadata: & v1.PermissionLookupEntityRequestMetadata {
+str, err: = client.Permission.LookupEntityStream(context.Background(), &v1.PermissionLookupEntityRequest {
+    Metadata: &v1.PermissionLookupEntityRequestMetadata {
         SnapToken: "", 
         SchemaVersion: "" 
         Depth: 50,
     },
     EntityType: "document",
     Permission: "view",
-    Subject: & v1.Subject {
+    Subject: &v1.Subject {
         Type: "user",
         Id: "1",
     },

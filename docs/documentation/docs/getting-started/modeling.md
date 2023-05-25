@@ -169,7 +169,7 @@ Defining multiple relation types totally optional. The goal behind it to improve
 
 Actions describe what relations, or relation’s relation can do. Think of actions as permissions of the entity it belongs. So actions defines who can perform a specific action on a resource in which circumstances. So, the basic form of authorization check in Permify is **_Can the user U perform action X on a resource Y ?_**. 
 
-The Permify Schema supports `and`, `or`, `and not` and `or not` operators for defining actions. The keywords  **_action_** or **_permission_**  can be used with those operators to form rules for your authorization logic.
+The Permify Schema supports `and`, `or`and `not` operators for defining actions. The keywords  **_action_** or **_permission_**  can be used with those operators to form rules for your authorization logic.
 
 Lets get back to our github example and create some actions on repository entity,
 

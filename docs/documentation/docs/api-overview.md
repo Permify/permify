@@ -36,6 +36,7 @@ Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/
 - Read relation tuples and filter them with [Read API](./api-overview/relationship/read-api.md)
 - Check access with [Check API](./api-overview/permission/check-api.md)
 - Check entities permissions with [Lookup Entity](./api-overview/permission/lookup-entity.md)
+- Check subject permissions with [Lookup Subject](./api-overview/permission/lookup-subject.md)
 - Delete relation tuples with [Delete Tuple](./api-overview/relationship/delete-relationships.md)
 - Expand schema actions with [Expand API](./api-overview/permission/expand-api.md)
 
