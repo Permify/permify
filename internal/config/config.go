@@ -26,9 +26,9 @@ type (
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		Address string                `mapstructure:"address"` // Address for the server
-		HTTP    `mapstructure:"http"` // HTTP server configuration
-		GRPC    `mapstructure:"grpc"` // gRPC server configuration
+		HTTP      `mapstructure:"http"` // HTTP server configuration
+		GRPC      `mapstructure:"grpc"` // gRPC server configuration
+		RateLimit int64                 `mapstructure:"rate_limit"` // Rate limit configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.
@@ -232,7 +232,6 @@ func NewConfigWithFile(dir string) (*Config, error) {
 func DefaultConfig() *Config {
 	return &Config{
 		Server: Server{
-			Address: "localhost",
 			HTTP: HTTP{
 				Enabled: true,
 				Port:    "3476",
@@ -248,6 +247,7 @@ func DefaultConfig() *Config {
 					Enabled: false,
 				},
 			},
+			RateLimit: 100,
 		},
 		Profiler: Profiler{
 			Enabled: false,
