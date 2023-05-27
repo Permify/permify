@@ -8,6 +8,7 @@ Here is the example configuration YAML file with glossary below. You can also fi
 
 ```yaml
 server:
+  rate_limit: 100
   http:
     enabled: true
     port: 3476
@@ -84,6 +85,7 @@ Server options to run Permify. (`grpc` and `http` available for now.)
 #### Structure
 ```
 ├── server
+    ├── rate_limit
     ├── (`grpc` or `http`)
     │   ├── enabled
     │   ├── port
@@ -95,15 +97,16 @@ Server options to run Permify. (`grpc` and `http` available for now.)
 
 #### Glossary
 
-| Required | Argument | Default | Description |
-|----------|----------|---------|---------|
-| [x]   | [ server_type ] | - | server option type can either be `grpc` or `http`.
-| [ ]   | enabled (for server type) | true | switch option for server.  |
-| [x]   | port | - | port that server run on.
-| [x]   | tls | - | transport layer security options. |
-| [ ]   | enabled (for tls) | false | switch option for tls  |
-| [ ]   | cert | - | tls certificate path.  |
-| [ ]   | key | - | tls key pat  |
+| Required | Argument                     | Default | Description |
+|----------|------------------------------|---------|---------|
+| [ ]   | rate_limit | 100     | the maximum number of requests the server should handle per second  |
+| [x]   | [ server_type ]              | -       | server option type can either be `grpc` or `http`.
+| [ ]   | enabled (for server type)    | true    | switch option for server.  |
+| [x]   | port                         | -       | port that server run on.
+| [x]   | tls                          | -       | transport layer security options. |
+| [ ]   | enabled (for tls)            | false   | switch option for tls  |
+| [ ]   | cert                         | -       | tls certificate path.  |
+| [ ]   | key                          | -       | tls key pat  |
 
 </p>
 </details>
