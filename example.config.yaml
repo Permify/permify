@@ -2,7 +2,7 @@
 # including whether or not TLS is enabled and the certificate and
 # key file locations.
 server:
-  address: localhost
+  rate_limit: 100
   http:
     enabled: true
     port: 3476

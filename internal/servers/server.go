@@ -9,6 +9,8 @@ import (
 	"net/http/pprof"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/ratelimit"
+
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -92,14 +94,18 @@ func (s *Container) Run(
 ) error {
 	var err error
 
+	limiter := middleware.NewRateLimiter(cfg.RateLimit) // for example 1000 req/sec
+
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpcValidator.UnaryServerInterceptor(),
 		grpcRecovery.UnaryServerInterceptor(),
+		ratelimit.UnaryServerInterceptor(limiter),
 	}
 
 	streamingInterceptors := []grpc.StreamServerInterceptor{
 		grpcValidator.StreamServerInterceptor(),
 		grpcRecovery.StreamServerInterceptor(),
+		ratelimit.StreamServerInterceptor(limiter),
 	}
 
 	// Configure authentication based on the provided method ("preshared" or "oidc").

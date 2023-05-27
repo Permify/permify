@@ -22,11 +22,11 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// Server
-	flags.String("server-address", conf.Server.Address, "address that server run on")
-	if err = viper.BindPFlag("server.address", flags.Lookup("server-address")); err != nil {
+	flags.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
+	if err = viper.BindPFlag("server.rate_limit", flags.Lookup("server-rate-limit")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("server.address", "PERMIFY_ADDRESS"); err != nil {
+	if err = viper.BindEnv("server.rate_limit", "PERMIFY_RATE_LIMIT"); err != nil {
 		panic(err)
 	}
 
