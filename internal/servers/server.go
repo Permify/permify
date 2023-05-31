@@ -57,6 +57,8 @@ type Container struct {
 	TR storage.TenantReader
 	// TenantWriter for writing tenant information to storage
 	TW storage.TenantWriter
+
+	W storage.Watcher
 }
 
 // NewContainer is a constructor for the Container struct.
@@ -70,6 +72,7 @@ func NewContainer(
 	sw storage.SchemaWriter,
 	tr storage.TenantReader,
 	tw storage.TenantWriter,
+	w storage.Watcher,
 ) *Container {
 	return &Container{
 		Invoker: invoker,
@@ -79,6 +82,7 @@ func NewContainer(
 		SW:      sw,
 		TR:      tr,
 		TW:      tw,
+		W:       w,
 	}
 }
 
@@ -154,6 +158,7 @@ func (s *Container) Run(
 	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR, l))
 	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RR, s.RW, s.SR, l))
 	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW, l))
+	grpcV1.RegisterWatchServer(grpcServer, NewWatchServer(s.W, s.RR, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	reflection.Register(grpcServer)
 
@@ -289,11 +294,11 @@ func (s *Container) Run(
 	<-ctx.Done()
 
 	// Shutdown the servers gracefully.
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctxShutdown, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	if httpServer != nil {
-		if err := httpServer.Shutdown(ctx); err != nil {
+		if err := httpServer.Shutdown(ctxShutdown); err != nil {
 			l.Error(err)
 			return err
 		}

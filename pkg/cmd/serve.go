@@ -222,6 +222,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		schemaWriter := factories.SchemaWriterFactory(db, l)
 		tenantReader := factories.TenantReaderFactory(db, l)
 		tenantWriter := factories.TenantWriterFactory(db, l)
+		watcher := factories.WatcherFactory(db, l)
 
 		// Add caching to the schema reader using a decorator
 		schemaReader = decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
@@ -303,6 +304,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaWriter,
 			tenantReader,
 			tenantWriter,
+			watcher,
 		)
 
 		// Create an error group with the provided context

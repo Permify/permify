@@ -67,6 +67,26 @@ func SchemaReaderFactory(db database.Database, logger logger.Interface) (repo st
 	}
 }
 
+// WatcherFactory is a factory function that creates and returns a Watcher instance based on the
+// type of the provided database. It supports different types of databases, including PostgreSQL and in-memory databases.
+//
+// db: The database.Database instance for which the Watcher should be created.
+// logger: The logger.Interface instance to be used by the Watcher for logging purposes.
+//
+// The function returns a storage.Watcher instance that can interact with the underlying database based on the chosen
+// Watcher implementation. If the database engine type is not recognized, the function defaults to creating a Watcher for
+// an in-memory database.
+func WatcherFactory(db database.Database, logger logger.Interface) (repo storage.Watcher) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewWatcher(db.(*PQDatabase.Postgres), logger)
+	case "memory":
+		return MMRepository.NewWatcher(db.(*MMDatabase.Memory), logger)
+	default:
+		return MMRepository.NewWatcher(db.(*MMDatabase.Memory), logger)
+	}
+}
+
 // SchemaWriterFactory is a factory function that returns a schema writer instance according to the
 // given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
 //
