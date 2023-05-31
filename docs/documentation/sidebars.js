@@ -136,8 +136,8 @@ module.exports = {
 		},
 		{
 			type: "doc",
-			id: "migrating",
-			label: "Migrating From 0.2.x to 0.3.x",
+			id: "multi-tenancy",
+			label: "Multi Tenancy",
 		},
 		{
 			type: "category",

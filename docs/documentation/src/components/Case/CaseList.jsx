@@ -27,7 +27,7 @@ export const CaseList = () => {
       id:4,
       title:"Multi Tenancy",
       description: "Create custom authorization schema and relation tuples for the different tenants and manage them in a single place.",
-      link:  "./migrating"
+      link:  "./multi-tenancy"
     },
     {
       id:5,
