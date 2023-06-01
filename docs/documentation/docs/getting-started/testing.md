@@ -116,7 +116,9 @@ scenarios:
 ## Coverage Analysis
 
 By using the command `permify coverage {path of your schema validation file}`, you can measure the coverage for your schema. 
+
 The coverage is calculated by analyzing the relationships and assertions in your created model, identifying any missing elements. 
+
 The output of the example provided above is as follows.
 
 ![schema-coverage](https://user-images.githubusercontent.com/39353278/236303688-15cc2673-05e6-42d3-9ad4-0c538f546fb0.png)
@@ -133,6 +135,16 @@ If we use the above example schema validation file, after running `./permify val
 ![schema-validation](https://user-images.githubusercontent.com/39353278/236303542-930de83f-ebdd-4b0a-a09e-5c069744cc5c.png)
 
 [permify-validate-action]: https://github.com/Permify/permify-validate-action
+
+## Unit tests for schema changes
+
+We recommend leveraging Permify's in-memory databases for a simplified and isolated testing environment. These in-memory databases can be easily created and disposed of for each individual unit test, ensuring that your tests do not interfere with each other and each one starts with a clean slate.
+
+For managing permission/relation changes, we suggest storing schema in an abstracted place such as a git repo and centrally checking and approving every change before deploying it via the CI pipeline that utilizes the **Write Schema API**. 
+
+We recommend adding our [schema validator](https://github.com/Permify/permify-validate-action) to the pipeline to ensure that any changes are automatically validated. 
+
+You can find more details about our suggested workflow to handle schema changes in [Write Schema](hhttps://docs.permify.co/docs/api-overview/schema/write-schema#suggested-workflow-for-schema-changes) section.
 
 ## Need any help ?
 

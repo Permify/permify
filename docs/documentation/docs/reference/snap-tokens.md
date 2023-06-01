@@ -47,3 +47,16 @@ Then this snap token can be used in endpoints. For example it can be used in acc
 - [Write API](../api-overview/relationship/write-relationships) 
 - [Check API](../api-overview/permission/check-api)
 - [Expand API](../api-overview/permission/expand-api)
+
+
+## More on Cache Mechanism 
+
+Permify does provide a distributed cache across availability zones (within an AWS region) via **Consistent Hashing**. This would allow for high availability and resilience in the face of individual nodes or even entire availability zone failure, as well as improved performance due to data locality benefits.
+
+Consistent Hashing is a distributed hashing scheme that operates independently of the number of objects in a distributed hash table. You can learn more about it from the following blog post: [Introducing Consistent Hashing](https://itnext.io/introducing-consistent-hashing-9a289769052e)
+
+:::info
+Note, however, that while the consistent hashing approach will distribute keys evenly across the cache nodes, it's up to the application logic to ensure the cache is used effectively (i.e., that it reads from and writes to the cache appropriately).
+:::
+
+Additional to that we’re using a [circuit breaker](https://blog.bitsrc.io/circuit-breaker-pattern-in-microservices-26bf6e5b21ff) pattern to detect and handle failures when the underlying database is unavailable. It prevents unnecessary calls when the database is down and handles the process on the rebooting phase.
