@@ -137,7 +137,7 @@ module.exports = {
 		{
 			type: "doc",
 			id: "multi-tenancy",
-			label: "Multi Tenancy",
+			label: "Multi",
 		},
 		{
 			type: "category",
