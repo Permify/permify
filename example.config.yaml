@@ -53,6 +53,8 @@ meter:
 # and relationship data.
 service:
   circuit_breaker: false
+  watch:
+    enabled: false
   schema:
     cache:
       number_of_counters: 1_000

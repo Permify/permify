@@ -100,9 +100,15 @@ type (
 	// Service contains configuration for various service-level features.
 	Service struct {
 		CircuitBreaker bool         `mapstructure:"circuit_breaker"` // Whether to enable the circuit breaker pattern
+		Watch          Watch        `mapstructure:"watch"`           // Watch service configuration
 		Schema         Schema       `mapstructure:"schema"`          // Schema service configuration
 		Permission     Permission   `mapstructure:"permission"`      // Permission service configuration
 		Relationship   Relationship `mapstructure:"relationship"`    // Relationship service configuration
+	}
+
+	// Watch contains configuration for the watch service.
+	Watch struct {
+		Enabled bool `mapstructure:"enabled"`
 	}
 
 	// Schema contains configuration for the schema service.
@@ -139,7 +145,7 @@ type (
 	}
 
 	DatabaseGarbageCollection struct {
-		Enable          bool          `mapstructure:"enable"`
+		Enabled         bool          `mapstructure:"enabled"`
 		Interval        time.Duration `mapstructure:"interval"`
 		Timeout         time.Duration `mapstructure:"timeout"`
 		Window          time.Duration `mapstructure:"window"`
@@ -265,6 +271,9 @@ func DefaultConfig() *Config {
 		},
 		Service: Service{
 			CircuitBreaker: false,
+			Watch: Watch{
+				Enabled: false,
+			},
 			Schema: Schema{
 				Cache: Cache{
 					NumberOfCounters: 1_000,
@@ -290,7 +299,7 @@ func DefaultConfig() *Config {
 			Engine:      "memory",
 			AutoMigrate: true,
 			DatabaseGarbageCollection: DatabaseGarbageCollection{
-				Enable: false,
+				Enabled: false,
 			},
 		},
 		Distributed: Distributed{

@@ -133,7 +133,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Garbage collection
-		if cfg.DatabaseGarbageCollection.Enable && cfg.Database.Engine != "memory" {
+		if cfg.DatabaseGarbageCollection.Enabled && cfg.Database.Engine != "memory" {
 			l.Info("🗑️ starting database garbage collection...")
 			gc := postgres.NewGarbageCollector(ctx, db.(*PQDatabase.Postgres), l, cfg.DatabaseGarbageCollection)
 
@@ -215,6 +215,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			l.Fatal(err)
 		}
 
+		watcher := storage.NewNoopWatcher()
+		if cfg.Service.Watch.Enabled {
+			watcher = factories.WatcherFactory(db, l)
+		}
+
 		// Initialize the storage with factory methods
 		relationshipReader := factories.RelationshipReaderFactory(db, l)
 		relationshipWriter := factories.RelationshipWriterFactory(db, l)
@@ -222,7 +227,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		schemaWriter := factories.SchemaWriterFactory(db, l)
 		tenantReader := factories.TenantReaderFactory(db, l)
 		tenantWriter := factories.TenantWriterFactory(db, l)
-		watcher := factories.WatcherFactory(db, l)
 
 		// Add caching to the schema reader using a decorator
 		schemaReader = decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
