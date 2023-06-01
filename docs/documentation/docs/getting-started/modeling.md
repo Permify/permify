@@ -226,23 +226,28 @@ entity repository {
     ..
     ..
 
-    action read = (owner or maintainer or org.member) and org.admin
+    action read =  org.admin and (owner or maintainer or org.member)
 
 }
 ```
 
-→ For more fine grained permission let's examine the `read` action rules; user that is `organization admin` and following users can read the repository: `owner` of the repository, or `maintainer`, or `member` of the organization which repository belongs to.
+→ Let's examine the `read` action rules; user that is `organization admin` and following users can read the repository: `owner` of the repository, or `maintainer`, or `member` of the organization which repository belongs to.
 
-:::info
-You can add actions to another action like relations, see below.
+:::info Permission Union 
+
+Permify allows you to set permissions that are effectively the union of multiple permission sets. 
+
+You can define permissions as relations to union all rules that permissions have. Here is an simple demonstration how to achieve permission union in our DSL, you can use actions (or permissions) when defining another action (or permission) like relations,
 
 ```perm
    action edit =  member or manager
    action delete =  edit or org.admin
 ```
 
-delete action can inherit the edit action rules like above. To sum up, only organization administrators and any relation that can perform edit action (member or manager) can perform delete action.
-:::
+The `delete` action inherits the rules from the `edit` action. By doing that, we'll be able to state that only organization administrators and any relation capable of performing the edit action (member or manager) can also perform the delete action.
+
+Permission union is super beneficial in scenarios where a user needs to have varied access across different departments or roles.
+::: 
 
 ### Full Schema
 
