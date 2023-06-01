@@ -4,11 +4,19 @@ sidebar_position: 1
 
 # What is Permify?
 
-[Permify](https://github.com/Permify/permify) is an **open-source authorization service** for creating and maintaining fine-grained authorizations in your applications.
+[Permify](https://github.com/Permify/permify) is a **relationship based authorization service** for creating and maintaining fine-grained authorizations while ensuring least privilege across your organization.
 
-With Permify you can easily structure your authorization model, store authorization data in a database you prefer, and interact with Permify API to handle all authorization queries from any of your applications.
+With Permify, you can easily structure your authorization model, store authorization data in your preferred database, and interact with the Permify API to handle all authorization queries from your applications or services.
 
-Permify is inspired by Google’s consistent, global authorization system, [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
+Permify inspired by Google’s consistent, global authorization system, [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf). 
+
+## A true ReBAC solution to ensure least privilege
+
+Permify has designed and structured as a true ReBAC solution, so besides roles and traditional permissions Permify also supports indirect permission granting through relationships. 
+
+For instance, you can define that a user has certain permissions because of their relation to other entities. An example of this would be granting a manager the same permissions as their subordinates, or giving a user access to a resource because they belong to a certain group. This is facilitated by our relationship-based access control, which allows the definition of complex permission structures based on the relationships between users, roles, and resources.
+
+Our goal is to create a robust, flexible, and easily auditable authorization system that establishes a natural linkage between permissions across the business units, functions, and entities of an organization.
 
 ## Key Features
 
