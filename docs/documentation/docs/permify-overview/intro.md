@@ -38,6 +38,16 @@ Our goal is to create a robust, flexible, and easily auditable authorization sys
 [signoz]: https://signoz.io/
 [zipkin]: https://zipkin.io/
 
+## Features Beyond Zanzibar
+
+We’re trying to make [Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf) available to everyone to use and benefit in their applications and services. So that we utilize Zanzibar features and add new features on top of it to achieve robust permission systems. Here are some additional features that we have, 
+
+- **Multi-Tenancy Support** - It enables users to create a custom authorization model for different applications, all managed within a single Permify instance.
+
+- **Testing Framework - Permify Validate** - This enhances the testability of authorization logic. It includes features like scenario-based validation actions, policy coverage analysis, and IDL parser Integration to achieve end-to-end validation for the desired authorization schema.
+
+- **Data Filtering** - In Zanzibar typical access check has the form of **"Does user U has relation R to object O?”** and yields true or false response. Additional to that, we have data filtering endpoints that let you ask questions in the form of **“Which resources can user:X do action Y?”** or **“Which user(s) can edit doc:Y”**. As a response to this, you’ll get a entity results in the format of a string array or as a streaming response depending on the endpoint you're using.
+
 ## Getting Started
 
 In Permify, authorization divided into 3 core aspects; **modeling**, **storing authorization data** and **access checks**.  
