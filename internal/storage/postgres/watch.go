@@ -28,24 +28,29 @@ type Watch struct {
 	// operations on the relationship data.
 	txOptions sql.TxOptions
 
+	// options
+	bufferSize int
+
 	// logger is an instance of a logger that implements the logger.Interface
 	// and is used to log messages related to the operations performed by
 	// the RelationshipReader.
 	logger logger.Interface
 }
 
+// NewWatcher returns a new instance of the Watch.
 func NewWatcher(database *db.Postgres, logger logger.Interface) *Watch {
 	return &Watch{
-		database:  database,
-		txOptions: sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true},
-		logger:    logger,
+		database:   database,
+		txOptions:  sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true},
+		logger:     logger,
+		bufferSize: _defaultWatchBufferSize,
 	}
 }
 
 // Watch returns a channel that emits a stream of changes to the relationship tuples in the database.
 func (w *Watch) Watch(ctx context.Context, tenantID string, snap string) (<-chan *base.TupleChanges, <-chan error) {
 	// Create channels for changes and errors.
-	changes := make(chan *base.TupleChanges, 100)
+	changes := make(chan *base.TupleChanges, w.bufferSize)
 	errs := make(chan error, 1)
 
 	// Decode the snapshot value.

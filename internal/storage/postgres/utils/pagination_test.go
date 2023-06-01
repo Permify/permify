@@ -24,19 +24,3 @@ func TestContinuousToken(t *testing.T) {
 	// Test Encode and Decode
 	assert.Equal(t, tokenValue, decodedToken.(utils.ContinuousToken).Value)
 }
-
-func TestNoopContinuousToken(t *testing.T) {
-	token := utils.NewNoopContinuousToken()
-
-	// Test Encode
-	encodedToken := token.Encode()
-	assert.Empty(t, encodedToken.String())
-
-	// Test Decode
-	decodedToken, err := encodedToken.Decode()
-	assert.NoError(t, err)
-	assert.Empty(t, decodedToken.(utils.NoopContinuousToken).Value)
-
-	// Test Encode and Decode
-	assert.Empty(t, decodedToken.(utils.NoopContinuousToken).Value)
-}

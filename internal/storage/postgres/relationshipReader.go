@@ -231,7 +231,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 	}
 
 	// Execute the query and retrieve the rows.
@@ -240,7 +240,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	defer rows.Close()
 
@@ -279,7 +279,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 		return database.NewTupleCollection(tuples[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
 	}
 
-	return database.NewTupleCollection(tuples...), utils.NewNoopContinuousToken().Encode(), nil
+	return database.NewTupleCollection(tuples...), database.NewNoopContinuousToken().Encode(), nil
 }
 
 // HeadSnapshot retrieves the latest snapshot token for a given tenant ID.

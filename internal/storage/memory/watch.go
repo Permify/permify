@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"errors"
 
 	db "github.com/Permify/permify/pkg/database/memory"
 	"github.com/Permify/permify/pkg/logger"
@@ -25,8 +24,15 @@ func NewWatcher(database *db.Memory, logger logger.Interface) *Watch {
 }
 
 // Watch - Watches for changes in the repository.
-func (r *Watch) Watch(ctx context.Context, tenantID string, snap string) (<-chan *base.TupleChanges, <-chan error) {
-	errs := make(chan error, 1)
-	errs <- errors.New(base.ErrorCode_ERROR_CODE_NOT_IMPLEMENTED.String())
-	return nil, errs
+func (r *Watch) Watch(_ context.Context, _ string, _ string) (<-chan *base.TupleChanges, <-chan error) {
+	tupleChanges := make(chan *base.TupleChanges)
+	errs := make(chan error)
+
+	r.logger.Info(base.ErrorCode_ERROR_CODE_NOT_IMPLEMENTED.String())
+
+	// Close the channels immediately
+	close(tupleChanges)
+	close(errs)
+
+	return tupleChanges, errs
 }

@@ -94,5 +94,5 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		return tenants[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil
 	}
 
-	return tenants, utils.NewNoopContinuousToken().Encode(), nil
+	return tenants, database.NewNoopContinuousToken().Encode(), nil
 }

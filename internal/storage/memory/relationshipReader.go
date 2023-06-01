@@ -71,11 +71,11 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, utils.NewNoopContinuousToken().Encode(), err
+			return nil, database.NewNoopContinuousToken().Encode(), err
 		}
 		lowerBound, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
 		if err != nil {
-			return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String())
+			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String())
 		}
 	}
 
@@ -84,7 +84,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 	var result memdb.ResultIterator
 	result, err = txn.LowerBound(RelationTuplesTable, index, args...)
 	if err != nil {
-		return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	tup := make([]storage.RelationTuple, 0, 10)
@@ -92,7 +92,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.RelationTuple)
 		if !ok {
-			return nil, utils.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
 		tup = append(tup, t)
 	}
@@ -112,7 +112,7 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 		}
 	}
 
-	return database.NewTupleCollection(tuples...), utils.NewNoopContinuousToken().Encode(), nil
+	return database.NewTupleCollection(tuples...), database.NewNoopContinuousToken().Encode(), nil
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.

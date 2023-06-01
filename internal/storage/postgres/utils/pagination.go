@@ -46,38 +46,3 @@ func (t EncodedContinuousToken) Decode() (database.ContinuousToken, error) {
 func (t EncodedContinuousToken) String() string {
 	return t.Value
 }
-
-type (
-	NoopContinuousToken struct {
-		Value string
-	}
-	NoopEncodedContinuousToken struct {
-		Value string
-	}
-)
-
-// NewNoopContinuousToken - Creates a new continuous token
-func NewNoopContinuousToken() database.ContinuousToken {
-	return &NoopContinuousToken{
-		Value: "",
-	}
-}
-
-// Encode - Encodes the token to a string
-func (t NoopContinuousToken) Encode() database.EncodedContinuousToken {
-	return NoopEncodedContinuousToken{
-		Value: "",
-	}
-}
-
-// Decode decodes the token from a string
-func (t NoopEncodedContinuousToken) Decode() (database.ContinuousToken, error) {
-	return NoopContinuousToken{
-		Value: "",
-	}, nil
-}
-
-// Decode decodes the token from a string
-func (t NoopEncodedContinuousToken) String() string {
-	return ""
-}

@@ -76,7 +76,7 @@ func NewContainer() *Development {
 			schemaWriter,
 			tenantReader,
 			tenantWriter,
-			nil,
+			storage.NewNoopWatcher(),
 		),
 	}
 }
