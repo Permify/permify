@@ -126,6 +126,18 @@ module.exports = {
 						"api-overview/tenancy/delete-tenant",
 					],
 				  },
+				{
+					type: 'category',
+					label: 'Watch Service',
+					link: {
+						type: "generated-index",
+						title: "Watch Service",
+						slug: "/api-overview/watch",
+					},
+					items: [
+						"api-overview/watch/watch-changes",
+					],
+				},
 			],
 			collapsed: true
 		},
