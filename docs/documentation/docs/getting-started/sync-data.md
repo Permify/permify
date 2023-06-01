@@ -154,15 +154,17 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationsh
 </TabItem>
 </Tabs>
 
-### Snap Tokens:
+### Snap Tokens
 
-In Write Relationships API response you'll get a snap token of the operation. This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting to use snap tokens in production to prevent data inconsistency and optimize the performance. See more on [Snap Tokens](../reference/snap-tokens.md)
+In Write Relationships API response you'll get a snap token of the operation. 
 
 ```json
 {
     "snap_token": "FxHhb4CrLBc="
 }
 ```
+
+This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting to use snap tokens in production to prevent data inconsistency and optimize the performance. See more on [Snap Tokens](../reference/snap-tokens.md)
 
 ## More Relationships
 
@@ -436,9 +438,23 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationsh
 </TabItem>
 </Tabs>
 
-## Test this Example on Playground
+#### Test this Example on [Playground](https://play.permify.co/?s=bCDvst-22ISFR6DV90y8_)
 
-You can test and examine the above schema and relational tuples that we created in our playground using this [link](https://play.permify.co/?s=bCDvst-22ISFR6DV90y8_).
+## Audit Logs For Permission Changes
+
+Permify does support audit logs for permission changes. Leveraging the [MVCC (Multi-Version Concurrency Control)](http://mbukowicz.github.io/databases/2020/05/01/snapshot-isolation-in-postgresql.html) pattern, we maintain a history of all permission data changes. This essentially provides an audit trail, allowing users to track alterations and when they occurred.
+
+In cloud version, our system supports change history auditing. It automatically generates and securely stores logs for all significant actions. These logs detail who made the change, what was changed, and when the change occurred. Furthermore, your system allows for easy searching and analysis of these logs, supporting automated alerting for suspicious activities. This comprehensive approach ensures thorough and effective auditing of all changes
+
+## Permission Baselining (Reviewing)
+
+We have a strong foundation for permission baselining and review, thanks to MVCC.
+
+**Historical Review:** You can review the history of permissions changes as each version is stored. This enables retrospective audits and analysis.
+
+**Current State Review:** You can review the current state of permissions by examining the latest versions of each permission setting.
+
+**Cleanup:** Your system incorporates a garbage collector for managing old relationships, which helps keep your permissions structure clean and optimized.
 
 ## Next 
 
