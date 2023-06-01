@@ -1,13 +1,11 @@
 ---
-title: "Migrating to 0.3.x (Multi Tenancy)"
+title: "Multi Tenancy"
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## Migration overview
-
-This doc guides you through migrating an existing Permify **0.2.x** authorization service to **0.3.x**. With version 0.3.x Permify moved to a tenancy-based infrastructure, which affects almost all of the API operations.
+With version 0.3.x Permify moved to a tenancy-based infrastructure, which affects almost all of the API operations.
 
 ## Multi Tenancy on Permify
 
@@ -17,8 +15,6 @@ This allows the ability to customize the authorization for each tenant's specifi
 
 For the users that don't have/need multi-tenancy in their authorization structure, we created a pre-inserted tenant (id: **t1**) that comes default when you serve a Permify service.
 
-## What have changed ?
-
 Several things changed when we moved to tenant based infrastructure, these are:
 
 * [API endpoints now have Tenant ID field](#api-endpoints-now-have-tenant-id-field)
@@ -27,7 +23,7 @@ Several things changed when we moved to tenant based infrastructure, these are:
 
 ### API endpoints now have Tenant ID field 
 
-All API endpoints that cover in 0.2.x now have a `‍tenant_id` mandatory field. Let's examine a check request below,
+All API endpoints now have a `‍tenant_id` mandatory field. Let's examine a check request below,
 
 #### Check API
 

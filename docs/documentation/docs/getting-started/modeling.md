@@ -28,6 +28,7 @@ We'll follow a simplified version of github access control system. To see comple
 You can start developing Permify Schema on [VSCode]. You can install the extension by searching for **Perm** in the extensions marketplace.
 
 [vscode]: https://marketplace.visualstudio.com/items?itemName=Permify.perm
+
 :::
 
 ### Defining Entities
@@ -136,7 +137,7 @@ When we look at the maintainer relation, it indicates that the maintainer can be
 :::info
 You can use **#** to reach entities relation. When we look at the `@team#member` it specifies that if the user has a relation with the team, this relation can only be the `member`. We called that feature locking, because it basically locks the relation type according to the prefixed entity.
 
-Actual purpose of feature locking is to giving ability to specify the sets of users that can be assigned. 
+Actual purpose of feature locking is to giving ability to specify the sets of users that can be assigned.
 
 For example:
 
@@ -146,19 +147,20 @@ For example:
 
 When you define it like this, you can only add users directly as tuples (you can find out what relation tuples is in next section):
 
-* organization:1#viewer@user:U1
-* organization:1#viewer@user:U2
+- organization:1#viewer@user:U1
+- organization:1#viewer@user:U2
 
 However, if you define it as:
 
 ```perm
-    relation viewer @user @organization#member 
+    relation viewer @user @organization#member
 ```
 
 You will then be able to specify not only individual users but also members of an organization:
-* organization:1#viewer@user:U1
-* organization:1#viewer@user:U2
-* organization:1#viewer@organization:O1#member
+
+- organization:1#viewer@user:U1
+- organization:1#viewer@user:U2
+- organization:1#viewer@organization:O1#member
 
 You can think of these definitions as a precaution taken against creating undesired user set relationships.
 :::
@@ -167,11 +169,13 @@ Defining multiple relation types totally optional. The goal behind it to improve
 
 ### Defining Actions and Permissions
 
-Actions describe what relations, or relation’s relation can do. Think of actions as permissions of the entity it belongs. So actions defines who can perform a specific action on a resource in which circumstances. So, the basic form of authorization check in Permify is **_Can the user U perform action X on a resource Y ?_**. 
+Actions describe what relations, or relation’s relation can do. Think of actions as permissions of the entity it belongs. So actions defines who can perform a specific action on a resource in which circumstances. So, the basic form of authorization check in Permify is **_Can the user U perform action X on a resource Y ?_**.
 
-The Permify Schema supports `and`, `or`and `not` operators for defining actions. The keywords  **_action_** or **_permission_**  can be used with those operators to form rules for your authorization logic.
+#### Intersection and Exclusion
 
-Lets get back to our github example and create some actions on repository entity,
+The Permify Schema supports **`and`**, **`or`** and **`not`** operators to achieve permission **intersection** and **exclusion**. The keywords **_action_** or **_permission_** can be used with those operators to form rules for your authorization logic.
+
+Lets get back to our github example and create some permissions on repository entity,
 
 ```perm
 entity repository {
@@ -193,19 +197,19 @@ entity repository {
 repository.
 
 :::info
-The same `push` can also be defined using the **permission** keyword, as follows: 
+The same `push` can also be defined using the **permission** keyword, as follows:
 
 ```perm
 permission push = owner
 ```
 
-Using action or permission will yield the same result for defining permissions in your authorization logic.
+Using `action` and `permission` will yield the same result for defining permissions in your authorization logic.
 
-The reason we have two keywords (`action` and `permission`)  for defining permissions is that while most permissions are based on actions (such as view, read, edit, etc.), there are still cases where we need to define permissions based on roles or user types, such as admin or member. 
+The reason we have two keywords for defining permissions is that while most permissions are based on actions (such as view, read, edit, etc.), there are still cases where we need to define permissions based on roles or user types, such as admin or member.
 
 Additionally, there may be permissions that need to be inherited by child entities. Using the `permission` keyword in these cases is more convenient and provides better reasoning of the schema.
 
-See Real World Examples Section for examining the contextualize difference between using permission and action keyword. You can start with observing [Google Docs Simplified](./examples/google-docs.md) example.
+See **Real World Examples Section** for examining the contextualize difference between using permission and action keyword. You can start with observing [Google Docs Simplified](./examples/google-docs.md) example.
 :::
 
 For this tutorial we'll continue with `action` keyword,
@@ -233,9 +237,9 @@ entity repository {
 You can add actions to another action like relations, see below.
 
 ```perm
-   action edit =  member or manager 
+   action edit =  member or manager
    action delete =  edit or org.admin
-``` 
+```
 
 delete action can inherit the edit action rules like above. To sum up, only organization administrators and any relation that can perform edit action (member or manager) can perform delete action.
 :::
@@ -280,8 +284,22 @@ entity repository {
 }
 ```
 
+## Permission Capabilities
+
+1. **Permission Union:**
+
+Permify allows you to set permissions that are effectively the union of multiple permission sets. For example, if a user belongs to multiple roles, each with their own permissions, the user’s effective permissions will be the union of all permissions of the roles they belong to. This is beneficial in scenarios where a user needs to have varied access across different departments or roles.
+
+2. **Permission Indirection: (ReBAC)**
+
+Permify supports indirect permission granting through relationships. For instance, you can define that a user has certain permissions because of their relation to other entities.
+
+An example of this would be granting a manager the same permissions as their subordinates, or giving a user access to a resource because they belong to a certain group. This is facilitated by our relationship-based access control, which allows the definition of complex permission structures based on the relationships between users, roles, and resources.
+
+We utilize ReBAC and Google Zanzibar to create natural linkage between business units, functions, and entities of an organization.
+
 ## Real World Examples
 
-This example shows almost all aspects of the Permify Schema. 
+This example shows almost all aspects of the Permify Schema.
 
 You can check out more schema examples from the [Real World Examples](./examples) section with their detailed examination.
