@@ -238,6 +238,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
+	if err = viper.BindPFlag("service.watch.enabled", flags.Lookup("service-watch-enabled")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("service.watch.enabled", "PERMIFY_SERVICE_WATCH_ENABLED"); err != nil {
+		panic(err)
+	}
+
 	flags.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
 	if err = viper.BindPFlag("service.schema.cache.number_of_counters", flags.Lookup("service-schema-cache-number-of-counters")); err != nil {
 		panic(err)
@@ -335,11 +343,11 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("database-garbage-collection-enable", conf.Database.DatabaseGarbageCollection.Enable, "use database garbage collection for expired relation tuples")
-	if err = viper.BindPFlag("database.garbage_collection.enable", flags.Lookup("database-garbage-collection-enable")); err != nil {
+	flags.Bool("database-garbage-collection-enabled", conf.Database.DatabaseGarbageCollection.Enabled, "use database garbage collection for expired relation tuples")
+	if err = viper.BindPFlag("database.garbage_collection.enabled", flags.Lookup("database-garbage-collection-enabled")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("database.garbage_collection.enable", "PERMIFY_DATABASE_GARBAGE_ENABLE"); err != nil {
+	if err = viper.BindEnv("database.garbage_collection.enabled", "PERMIFY_DATABASE_GARBAGE_ENABLED"); err != nil {
 		panic(err)
 	}
 

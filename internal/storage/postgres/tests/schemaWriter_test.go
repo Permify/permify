@@ -1,4 +1,4 @@
-package postgres
+package tests
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/postgres"
 	PQRepository "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 )
@@ -27,7 +28,7 @@ func TestWriteSchema_Test(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create SchemaWriter
-	writer := NewSchemaWriter(pg, log)
+	writer := postgres.NewSchemaWriter(pg, log)
 
 	ctx := context.Background()
 

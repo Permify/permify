@@ -1,6 +1,6 @@
 //go:build integration
 
-package postgres
+package tests
 
 import (
 	"context"
@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Permify/permify/internal/config"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+
+	"github.com/Permify/permify/internal/config"
 )
 
 var (

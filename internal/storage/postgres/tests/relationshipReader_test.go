@@ -1,4 +1,4 @@
-package postgres
+package tests
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	postgres2 "github.com/Permify/permify/internal/storage/postgres"
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
 	"github.com/Permify/permify/internal/storage/postgres/types"
 	"github.com/Permify/permify/pkg/database"
@@ -21,7 +22,7 @@ import (
 )
 
 var _ = Describe("RelationshipReader", func() {
-	var relationshipReader *RelationshipReader
+	var relationshipReader *postgres2.RelationshipReader
 	var mock sqlmock.Sqlmock
 
 	BeforeEach(func() {
@@ -38,7 +39,7 @@ var _ = Describe("RelationshipReader", func() {
 			Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 		}
 
-		relationshipReader = NewRelationshipReader(pg, l)
+		relationshipReader = postgres2.NewRelationshipReader(pg, l)
 	})
 
 	AfterEach(func() {

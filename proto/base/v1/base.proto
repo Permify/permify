@@ -6,6 +6,124 @@ option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 import "validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
+// Child
+message Child {
+  oneof type {
+    option (validate.required) = true;
+    Leaf leaf = 1 [(validate.rules).message.required = true];
+    Rewrite rewrite = 2 [(validate.rules).message.required = true];
+  }
+}
+
+// Leaf
+message Leaf {
+  oneof type {
+    option (validate.required) = true;
+    ComputedUserSet computed_user_set = 1 [(validate.rules).message.required = true];
+    TupleToUserSet tuple_to_user_set = 2 [(validate.rules).message.required = true];
+  }
+}
+
+// Rewrite
+message Rewrite {
+  // Operation
+  enum Operation {
+    OPERATION_UNSPECIFIED = 0;
+    OPERATION_UNION = 1;
+    OPERATION_INTERSECTION = 2;
+    OPERATION_EXCLUSION = 3;
+  }
+
+  Operation rewrite_operation = 1;
+
+  repeated Child children = 2;
+}
+
+// Definition
+message SchemaDefinition {
+  map<string, EntityDefinition> entity_definitions = 1;
+}
+
+// EntityDefinition
+message EntityDefinition {
+  // RelationalReference
+  enum RelationalReference {
+    RELATIONAL_REFERENCE_UNSPECIFIED = 0;
+    RELATIONAL_REFERENCE_RELATION = 1;
+    RELATIONAL_REFERENCE_PERMISSION = 2;
+  }
+
+  string name = 1 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+  }];
+
+  // ["relation_name"] => RelationDefinition
+  map<string, RelationDefinition> relations = 2;
+
+  // ["permission_name"] => PermissionDefinition
+  map<string, PermissionDefinition> permissions = 3;
+
+  // ["relation_name or permission_name"] => RelationalReference
+  map<string, RelationalReference> references = 4;
+}
+
+// RelationDefinition
+message RelationDefinition {
+  string name = 1 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+  }];
+
+  repeated RelationReference relation_references = 2;
+}
+
+// PermissionDefinition
+message PermissionDefinition {
+  string name = 1 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+  }];
+
+  Child child = 2;
+}
+
+// RelationReference
+message RelationReference {
+  string type = 1 [(validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+  }];
+
+  string relation = 2 [(validate.rules).string = {
+    pattern : "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 64,
+    ignore_empty: true,
+  }];
+}
+
+// ComputedUserSet
+message ComputedUserSet {
+  string relation = 1 [(validate.rules).string = {
+    pattern : "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 64,
+  }];
+}
+
+// TupleSet
+message TupleSet {
+  string relation = 1 [(validate.rules).string = {
+    pattern : "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 64,
+  }];
+}
+
+// TupleToUserSet
+message TupleToUserSet {
+  TupleSet tupleSet = 1;
+  ComputedUserSet computed = 2;
+}
+
 // Tuple
 message Tuple {
   Entity entity = 1 [json_name = "entity", (validate.rules).message.required = true];
@@ -144,4 +262,24 @@ message Tenant {
   string id = 1 [json_name = "id"];
   string name = 2 [json_name = "name"];
   google.protobuf.Timestamp created_at = 3 [json_name = "created_at"];
+}
+
+// TupleChanges
+message TupleChanges {
+  string snap_token = 1 [json_name = "snap_token"];
+
+  repeated TupleChange tuple_changes = 2 [json_name = "tuple_changes"];
+}
+
+// TupleChange
+message TupleChange {
+  enum Operation {
+    OPERATION_UNSPECIFIED = 0;
+    OPERATION_CREATE = 1;
+    OPERATION_DELETE = 2;
+  }
+
+  Operation operation = 1 [json_name = "operation"];
+
+  Tuple tuple = 2 [json_name = "tuple"];
 }

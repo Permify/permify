@@ -10,4 +10,5 @@ const (
 const (
 	_defaultMaxTuplesPerWrite = 100
 	_defaultMaxRetries        = 10
+	_defaultWatchBufferSize   = 100
 )

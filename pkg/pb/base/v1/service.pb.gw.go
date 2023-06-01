@@ -345,6 +345,48 @@ func local_request_Permission_LookupSubject_0(ctx context.Context, marshaler run
 
 }
 
+func request_Watch_Watch_0(ctx context.Context, marshaler runtime.Marshaler, client WatchClient, req *http.Request, pathParams map[string]string) (Watch_WatchClient, runtime.ServerMetadata, error) {
+	var protoReq WatchRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["tenant_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tenant_id")
+	}
+
+	protoReq.TenantId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tenant_id", err)
+	}
+
+	stream, err := client.Watch(ctx, &protoReq)
+	if err != nil {
+		return nil, metadata, err
+	}
+	header, err := stream.Header()
+	if err != nil {
+		return nil, metadata, err
+	}
+	metadata.HeaderMD = header
+	return stream, metadata, nil
+
+}
+
 func request_Schema_Write_0(ctx context.Context, marshaler runtime.Marshaler, client SchemaClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq SchemaWriteRequest
 	var metadata runtime.ServerMetadata
@@ -921,6 +963,22 @@ func RegisterPermissionHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 	return nil
 }
 
+// RegisterWatchHandlerServer registers the http handlers for service Watch to "mux".
+// UnaryRPC     :call WatchServer directly.
+// StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterWatchHandlerFromEndpoint instead.
+func RegisterWatchHandlerServer(ctx context.Context, mux *runtime.ServeMux, server WatchServer) error {
+
+	mux.Handle("POST", pattern_Watch_Watch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
+		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+		return
+	})
+
+	return nil
+}
+
 // RegisterSchemaHandlerServer registers the http handlers for service Schema to "mux".
 // UnaryRPC     :call SchemaServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -1321,6 +1379,77 @@ var (
 	forward_Permission_LookupEntityStream_0 = runtime.ForwardResponseStream
 
 	forward_Permission_LookupSubject_0 = runtime.ForwardResponseMessage
+)
+
+// RegisterWatchHandlerFromEndpoint is same as RegisterWatchHandler but
+// automatically dials to "endpoint" and closes the connection when "ctx" gets done.
+func RegisterWatchHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	conn, err := grpc.DialContext(ctx, endpoint, opts...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+			return
+		}
+		go func() {
+			<-ctx.Done()
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+		}()
+	}()
+
+	return RegisterWatchHandler(ctx, mux, conn)
+}
+
+// RegisterWatchHandler registers the http handlers for service Watch to "mux".
+// The handlers forward requests to the grpc endpoint over "conn".
+func RegisterWatchHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterWatchHandlerClient(ctx, mux, NewWatchClient(conn))
+}
+
+// RegisterWatchHandlerClient registers the http handlers for service Watch
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "WatchClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "WatchClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "WatchClient" to call the correct interceptors.
+func RegisterWatchHandlerClient(ctx context.Context, mux *runtime.ServeMux, client WatchClient) error {
+
+	mux.Handle("POST", pattern_Watch_Watch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/base.v1.Watch/Watch", runtime.WithHTTPPathPattern("/v1/tenants/{tenant_id}/watch"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Watch_Watch_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Watch_Watch_0(annotatedContext, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+var (
+	pattern_Watch_Watch_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "tenants", "tenant_id", "watch"}, ""))
+)
+
+var (
+	forward_Watch_Watch_0 = runtime.ForwardResponseStream
 )
 
 // RegisterSchemaHandlerFromEndpoint is same as RegisterSchemaHandler but

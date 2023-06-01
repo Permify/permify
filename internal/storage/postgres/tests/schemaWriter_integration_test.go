@@ -1,21 +1,22 @@
 //go:build integration
 
-package postgres
+package tests
 
 import (
 	"context"
 	"testing"
 
-	"github.com/rs/xid"
+	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/postgres"
+
 	"github.com/stretchr/testify/require"
 
-	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 )
 
-func TestSchemaReaderHeadVersion_Integration(t *testing.T) {
+func TestSchemaWriter_Integration(t *testing.T) {
 	ctx := context.Background()
 
 	l := logger.New("fatal")
@@ -38,19 +39,12 @@ func TestSchemaReaderHeadVersion_Integration(t *testing.T) {
 	defer db.Close()
 
 	// Create a TenantWriter instance
-	schemaWriter := NewSchemaWriter(db.(*PQDatabase.Postgres), l)
-	schemaReader := NewSchemaReader(db.(*PQDatabase.Postgres), l)
+	schemaWriter := postgres.NewSchemaWriter(db.(*PQDatabase.Postgres), l)
 
-	v := xid.New().String()
 	schemas := []storage.SchemaDefinition{
-		{TenantID: "t1", EntityType: "entity2", SerializedDefinition: []byte("def2"), Version: v},
+		{TenantID: "t1", EntityType: "entity3", SerializedDefinition: []byte("def2"), Version: "v3"},
 	}
-
 	// Test the CreateTenant method
 	err = schemaWriter.WriteSchema(ctx, schemas)
 	require.NoError(t, err)
-
-	version, err := schemaReader.HeadVersion(ctx, "t1")
-	require.NoError(t, err)
-	require.Equal(t, v, version)
 }

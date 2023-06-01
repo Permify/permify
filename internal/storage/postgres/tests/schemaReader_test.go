@@ -1,4 +1,4 @@
-package postgres
+package tests
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/postgres"
 
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/require"
@@ -32,8 +33,8 @@ func TestHeadVersion_Test(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create SchemaWriter
-	writer := NewSchemaWriter(pg, log)
-	reader := NewSchemaReader(pg, log)
+	writer := postgres.NewSchemaWriter(pg, log)
+	reader := postgres.NewSchemaReader(pg, log)
 
 	ctx := context.Background()
 
@@ -77,8 +78,8 @@ func TestReadSchema_Test(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create SchemaWriter
-	writer := NewSchemaWriter(pg, log)
-	reader := NewSchemaReader(pg, log)
+	writer := postgres.NewSchemaWriter(pg, log)
+	reader := postgres.NewSchemaReader(pg, log)
 
 	ctx := context.Background()
 
@@ -123,8 +124,8 @@ func TestReadSchemaDefinition_Test(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create SchemaWriter
-	writer := NewSchemaWriter(pg, log)
-	reader := NewSchemaReader(pg, log)
+	writer := postgres.NewSchemaWriter(pg, log)
+	reader := postgres.NewSchemaReader(pg, log)
 
 	ctx := context.Background()
 

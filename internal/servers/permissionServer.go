@@ -91,7 +91,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 
 // LookupEntityStream -
 func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntityRequest, server v1.Permission_LookupEntityStreamServer) error {
-	ctx, span := tracer.Start(context.Background(), "permissions.lookup-entity-stream")
+	ctx, span := tracer.Start(server.Context(), "permissions.lookup-entity-stream")
 	defer span.End()
 
 	v := request.Validate()

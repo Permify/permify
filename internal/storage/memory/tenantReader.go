@@ -62,5 +62,5 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		}
 	}
 
-	return tenants, utils.NewNoopContinuousToken().Encode(), err
+	return tenants, database.NewNoopContinuousToken().Encode(), err
 }

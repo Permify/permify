@@ -1,4 +1,4 @@
-package postgres
+package tests
 
 import (
 	"context"
@@ -6,12 +6,15 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+
+	"github.com/Permify/permify/internal/storage/postgres"
 	PQRepository "github.com/Permify/permify/pkg/database/postgres"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/Permify/permify/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Permify/permify/pkg/logger"
 )
 
 func TestTenantWriter_CreateTenant(t *testing.T) {
@@ -28,7 +31,7 @@ func TestTenantWriter_CreateTenant(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create TenantWriter
-	writer := NewTenantWriter(pg, log)
+	writer := postgres.NewTenantWriter(pg, log)
 
 	ctx := context.Background()
 
@@ -62,7 +65,7 @@ func TestTenantWriter_DeleteTenant(t *testing.T) {
 	log := logger.New("debug")
 
 	// Create TenantWriter
-	writer := NewTenantWriter(pg, log)
+	writer := postgres.NewTenantWriter(pg, log)
 
 	ctx := context.Background()
 

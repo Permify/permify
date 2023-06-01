@@ -1,4 +1,4 @@
-package postgres
+package tests
 
 import (
 	"context"
@@ -6,12 +6,15 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+
+	"github.com/Permify/permify/internal/storage/postgres"
 	pg "github.com/Permify/permify/pkg/database/postgres"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/Permify/permify/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Permify/permify/pkg/logger"
 )
 
 func TestTenantReader_ListTenants(t *testing.T) {
@@ -26,7 +29,7 @@ func TestTenantReader_ListTenants(t *testing.T) {
 
 	// Create Fileds for Create Tenant
 	log := logger.New("debug")
-	writer := NewTenantWriter(pg, log)
+	writer := postgres.NewTenantWriter(pg, log)
 	// reader := NewTenantReader(pg, log)
 	ctx := context.Background()
 

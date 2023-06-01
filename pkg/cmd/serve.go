@@ -133,7 +133,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Garbage collection
-		if cfg.DatabaseGarbageCollection.Enable && cfg.Database.Engine != "memory" {
+		if cfg.DatabaseGarbageCollection.Enabled && cfg.Database.Engine != "memory" {
 			l.Info("🗑️ starting database garbage collection...")
 			gc := postgres.NewGarbageCollector(ctx, db.(*PQDatabase.Postgres), l, cfg.DatabaseGarbageCollection)
 
@@ -213,6 +213,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		engineKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Permission.Cache.MaxCost))
 		if err != nil {
 			l.Fatal(err)
+		}
+
+		watcher := storage.NewNoopWatcher()
+		if cfg.Service.Watch.Enabled {
+			watcher = factories.WatcherFactory(db, l)
 		}
 
 		// Initialize the storage with factory methods
@@ -303,6 +308,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaWriter,
 			tenantReader,
 			tenantWriter,
+			watcher,
 		)
 
 		// Create an error group with the provided context

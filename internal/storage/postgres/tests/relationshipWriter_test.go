@@ -1,6 +1,6 @@
 //go:build !integration
 
-package postgres
+package tests
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	postgres2 "github.com/Permify/permify/internal/storage/postgres"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
@@ -19,7 +20,7 @@ import (
 )
 
 var _ = Describe("RelationshipWriter", func() {
-	var relationshipWriter *RelationshipWriter
+	var relationshipWriter *postgres2.RelationshipWriter
 	var mock sqlmock.Sqlmock
 
 	BeforeEach(func() {
@@ -36,7 +37,7 @@ var _ = Describe("RelationshipWriter", func() {
 			Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 		}
 
-		relationshipWriter = NewRelationshipWriter(pg, l)
+		relationshipWriter = postgres2.NewRelationshipWriter(pg, l)
 	})
 
 	AfterEach(func() {

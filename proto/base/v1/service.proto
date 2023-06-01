@@ -5,8 +5,7 @@ import "google/protobuf/empty.proto";
 
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
-import "base/v1/tuple.proto";
-import "base/v1/schema.proto";
+import "base/v1/base.proto";
 import "validate/validate.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
@@ -269,6 +268,42 @@ message PermissionLookupSubjectRequestMetadata {
 // PermissionLookupSubjectResponse
 message PermissionLookupSubjectResponse {
   repeated string subject_ids = 1 [json_name = "subject_ids"];
+}
+
+// ** WATCH SERVICE **
+
+// Watch
+service Watch {
+  rpc Watch(WatchRequest) returns (stream WatchResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/watch"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: ""
+      tags: [
+        "Watch"
+      ]
+      operation_id: "watch.watch"
+    };
+  }
+}
+
+// WatchRequest
+message WatchRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  string snap_token = 2 [json_name = "snap_token"];
+}
+
+// WatchResponse
+message WatchResponse {
+   TupleChanges changes = 1 [json_name = "changes"];
 }
 
 // ** SCHEMA SERVICE **
