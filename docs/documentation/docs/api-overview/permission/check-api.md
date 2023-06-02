@@ -125,6 +125,10 @@ Answering access checks is accomplished within Permify using a basic graph walki
 
 [access decisions evaluated]: ../../getting-started/enforcement#how-access-decisions-evaluated
 
+## Latency & Performance
+
+With the right architecture we expect **7-12 ms** latency. Depending on your load, cache usage and architecture you can get up to **30ms**.
+
 ## Need any help ?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
