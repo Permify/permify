@@ -22,6 +22,7 @@ type (
 		Service     `mapstructure:"service"`     // Service configuration
 		Database    `mapstructure:"database"`    // Database configuration
 		Distributed `mapstructure:"distributed"` // Distributed configuration
+		Coverage    `mapstructure:"coverage"`    // Coverage configuration
 	}
 
 	// Server contains the configurations for both HTTP and gRPC servers.
@@ -155,6 +156,12 @@ type (
 	Distributed struct {
 		Enabled bool     `mapstructure:"enabled"`
 		Nodes   []string `mapstructure:"nodes"`
+	}
+
+	// Coverage contains configuration for coverage.
+	Coverage struct {
+		Relationships int `mapstructure:"relationships"` // Relationships trashhold
+		Assertions    int `mapstructure:"assertions"`    // Assertions trashhold
 	}
 )
 
@@ -305,6 +312,10 @@ func DefaultConfig() *Config {
 		Distributed: Distributed{
 			Enabled: false,
 			Nodes:   []string{},
+		},
+		Coverage: Coverage{
+			Relationships: 0,
+			Assertions:    0,
 		},
 	}
 }
