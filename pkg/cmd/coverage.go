@@ -3,9 +3,11 @@ package cmd
 import (
 	"fmt"
 	"net/url"
+	"os"
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/Permify/permify/pkg/cmd/flags"
 	cov "github.com/Permify/permify/pkg/development/coverage"
@@ -36,6 +38,14 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
+		// get min coverage from viper
+		coverageRelationships := viper.GetInt("coverage-relationships")
+		coverageAssertions := viper.GetInt("coverage-assertions")
+
+		if err != nil {
+			return err
+		}
+
 		// create a new decoder from the url
 		decoder, err := file.NewDecoderFromURL(u)
 		if err != nil {
@@ -53,7 +63,23 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 
 		color.Notice.Println("initiating coverage analysis... 🚀")
 
-		DisplayCoverageInfo(cov.Run(*s))
+		schemaCoverageInfo := cov.SchemaCoverageInfo(cov.Run(*s))
+
+		DisplayCoverageInfo(schemaCoverageInfo)
+
+		if schemaCoverageInfo.TotalAssertionsCoverage < coverageAssertions {
+			color.Danger.Printf("assertions coverage < %d%%\n", coverageAssertions)
+			// print FAILED with color danger
+			color.Danger.Println("FAILED")
+			os.Exit(1)
+		}
+
+		if schemaCoverageInfo.TotalRelationshipsCoverage < coverageRelationships {
+			color.Danger.Printf("relationships coverage < %d%%\n", coverageRelationships)
+			// print FAILED with color danger
+			color.Danger.Println("FAILED")
+			os.Exit(1)
+		}
 
 		return nil
 	}

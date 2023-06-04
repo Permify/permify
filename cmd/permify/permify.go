@@ -18,6 +18,7 @@ func main() {
 	root.AddCommand(validate)
 
 	coverage := cmd.NewCoverageCommand()
+	flags.RegisterCoverageFlags(coverage)
 	root.AddCommand(coverage)
 
 	migrate := cmd.NewMigrateCommand()

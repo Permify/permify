@@ -14,7 +14,9 @@ import (
 
 // SchemaCoverageInfo - Schema coverage info
 type SchemaCoverageInfo struct {
-	EntityCoverageInfo []EntityCoverageInfo
+	EntityCoverageInfo         []EntityCoverageInfo
+	TotalRelationshipsCoverage int
+	TotalAssertionsCoverage    int
 }
 
 // EntityCoverageInfo - Entity coverage info
@@ -131,6 +133,11 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		schemaCoverageInfo.EntityCoverageInfo = append(schemaCoverageInfo.EntityCoverageInfo, entityCoverageInfo)
 	}
 
+	// Calculate and assign the total relationships and assertions coverage to the schemaCoverageInfo
+	relationshipsCoverage, assertionsCoverage := calculateTotalCoverage(schemaCoverageInfo.EntityCoverageInfo)
+	schemaCoverageInfo.TotalRelationshipsCoverage = relationshipsCoverage
+	schemaCoverageInfo.TotalAssertionsCoverage = assertionsCoverage
+
 	return schemaCoverageInfo
 }
 
@@ -145,6 +152,31 @@ func calculateCoveragePercent(totalElements []string, uncoveredElements []string
 	}
 
 	return coveragePercent
+}
+
+func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int) {
+	totalRelationships := 0
+	totalCoveredRelationships := 0
+	totalAssertions := 0
+	totalCoveredAssertions := 0
+
+	// Iterate over each entity in the list
+	for _, entity := range entities {
+		totalRelationships++
+		totalCoveredRelationships += entity.CoverageRelationshipsPercent
+
+		for _, assertionsPercent := range entity.CoverageAssertionsPercent {
+			totalAssertions++
+			totalCoveredAssertions += assertionsPercent
+		}
+	}
+
+	// Calculate the coverage percentages
+	totalRelationshipsCoverage := int(totalCoveredRelationships) / int(totalRelationships)
+	totalAssertionsCoverage := int(totalCoveredAssertions) / int(totalAssertions)
+
+	// Return the coverage percentages
+	return totalRelationshipsCoverage, totalAssertionsCoverage
 }
 
 // References - Get references for a given entity
