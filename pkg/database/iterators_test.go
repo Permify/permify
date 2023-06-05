@@ -168,37 +168,43 @@ func TestUniqueTupleIterator(t *testing.T) {
 	if !uniqueIterator.HasNext() {
 		t.Error("Expected true for HasNext(), but got false")
 	}
-	if uniqueIterator.GetNext() != tuple1 {
+	i, _ := uniqueIterator.GetNext()
+	if i != tuple1 {
 		t.Error("Expected tuple1 for GetNext(), but got something else")
 	}
 	if !uniqueIterator.HasNext() {
 		t.Error("Expected true for HasNext(), but got false")
 	}
-	if uniqueIterator.GetNext() != tuple2 {
+	i, _ = uniqueIterator.GetNext()
+	if i != tuple2 {
 		t.Error("Expected tuple2 for GetNext(), but got something else")
 	}
 	if !uniqueIterator.HasNext() {
 		t.Error("Expected true for HasNext(), but got false")
 	}
-	if uniqueIterator.GetNext() != tuple3 {
+	i, _ = uniqueIterator.GetNext()
+	if i != tuple3 {
 		t.Error("Expected tuple3 for GetNext(), but got something else")
 	}
 	if !uniqueIterator.HasNext() {
 		t.Error("Expected false for HasNext(), but got true")
 	}
-	if uniqueIterator.GetNext() != tuple6 {
+	i, _ = uniqueIterator.GetNext()
+	if i != tuple6 {
 		t.Error("Expected tuple6 for GetNext(), but got something else")
 	}
 	if !uniqueIterator.HasNext() {
 		t.Error("Expected false for HasNext(), but got true")
 	}
-	if uniqueIterator.GetNext() != tuple4 {
+	i, _ = uniqueIterator.GetNext()
+	if i != tuple4 {
 		t.Error("Expected tuple4 for GetNext(), but got something else")
 	}
 	if !uniqueIterator.HasNext() {
 		t.Error("Expected false for HasNext(), but got true")
 	}
-	if uniqueIterator.GetNext() != tuple5 {
+	i, _ = uniqueIterator.GetNext()
+	if i != tuple5 {
 		t.Error("Expected tuple5 for GetNext(), but got something else")
 	}
 	if uniqueIterator.HasNext() {
