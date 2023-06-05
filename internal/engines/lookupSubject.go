@@ -199,18 +199,34 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 	// Then it separates the subjects into foundedUsers and foundedUserSets depending on the relation and exclusion flag.
 	// Finally, it adds the ids of all foundedUsers and foundedUserSets to the response.
 	return func(ctx context.Context) (result *base.PermissionLookupSubjectResponse, err error) {
-		// Query the relationships of the entity in the request.
-		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		filter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
 			},
 			Relation: request.GetPermission(),
-		}, request.GetMetadata().GetSnapToken())
+		}
+
+		// Use the filter to query for relationships in the given context.
+		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
+		// QueryRelationships() then uses the filter to find and return matching relationships.
+		var cti *database.TupleIterator
+		cti, err = storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
 		if err != nil {
-			// If an error occurs during querying, an empty response with the error is returned.
 			return lookupSubjectEmpty(), err
 		}
+
+		// Query the relationships for the entity in the request.
+		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
+		var rit *database.TupleIterator
+		rit, err = engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		if err != nil {
+			return lookupSubjectEmpty(), err
+		}
+
+		// Create a new UniqueTupleIterator from the two TupleIterators.
+		// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
+		it := database.NewUniqueTupleIterator(rit, cti)
 
 		// Initialize the collections for storing found user sets and users.
 		foundedUserSets := database.NewSubjectCollection()
@@ -218,7 +234,13 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 
 		for it.HasNext() {
 			// For each subject in the relationships, categorize it into foundedUsers or foundedUserSets.
-			subject := it.GetNext().GetSubject()
+			// Get the next tuple's subject.
+			next, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			subject := next.GetSubject()
+
 			if tuple.AreRelationReferencesEqual(
 				&base.RelationReference{
 					Type:     subject.GetType(),
@@ -260,6 +282,7 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 				Permission:       subject.GetRelation(),
 				SubjectReference: request.GetSubjectReference(),
 				Metadata:         request.GetMetadata(),
+				ContextualTuples: request.GetContextualTuples(),
 			})
 			if err != nil {
 				return lookupSubjectEmpty(), err
@@ -277,10 +300,10 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 // setChild generates a LookupSubjectFunction by applying a LookupSubjectCombiner
 // to a set of child permission lookups, given a request and a list of Child objects.
 func (engine *LookupSubjectEngine) setChild(
-	ctx context.Context, // The context for carrying out the operation
+	ctx context.Context,                          // The context for carrying out the operation
 	request *base.PermissionLookupSubjectRequest, // The request containing parameters for lookup
-	children []*base.Child, // The children of a particular node in the permission schema
-	combiner LookupSubjectCombiner, // A function to combine the results from multiple lookup functions
+	children []*base.Child,                       // The children of a particular node in the permission schema
+	combiner LookupSubjectCombiner,               // A function to combine the results from multiple lookup functions
 ) LookupSubjectFunction {
 	var functions []LookupSubjectFunction // Array of functions to store lookup functions for each child
 
@@ -334,6 +357,9 @@ func (engine *LookupSubjectEngine) lookupSubjectComputedUserSet(
 
 			// The metadata is preserved from the original request.
 			Metadata: request.GetMetadata(),
+
+			// The contextual tuples are preserved from the original request.
+			ContextualTuples: request.GetContextualTuples(),
 		})
 	}
 }
@@ -349,24 +375,49 @@ func (engine *LookupSubjectEngine) lookupSubjectTupleToUserSet(
 	// For each subject in the relationships, it generates a LookupSubjectFunction by treating it as a ComputedUserSet.
 	// Finally, it combines all these functions into a single response.
 	return func(ctx context.Context) (*base.PermissionLookupSubjectResponse, error) {
-		// Query the relationships of the entity in the request.
-		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		// Define a TupleFilter. This specifies which tuples we're interested in.
+		// We want tuples that match the entity type and ID from the request, and have a specific relation.
+		filter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
 			},
 			Relation: ttu.GetTupleSet().GetRelation(),
-		}, request.GetMetadata().GetSnapToken())
+		}
+
+		// Use the filter to query for relationships in the given context.
+		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
+		// QueryRelationships() then uses the filter to find and return matching relationships.
+		cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
 		if err != nil {
 			// If an error occurs during querying, an empty response with the error is returned.
 			return lookupSubjectEmpty(), err
 		}
 
+		// Query the relationships for the entity in the request.
+		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
+		var rit *database.TupleIterator
+		rit, err = engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		if err != nil {
+			// If an error occurs during querying, an empty response with the error is returned.
+			return lookupSubjectEmpty(), err
+		}
+
+		// Create a new UniqueTupleIterator from the two TupleIterators.
+		// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
+		it := database.NewUniqueTupleIterator(rit, cti)
+
 		// Initialize the slice for storing LookupSubjectFunction instances.
 		var lookupSubjectFunctions []LookupSubjectFunction
 		for it.HasNext() {
 			// For each subject in the relationships, create a LookupSubjectFunction by treating it as a ComputedUserSet.
-			subject := it.GetNext().GetSubject()
+			// Get the next tuple's subject.
+			next, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			subject := next.GetSubject()
+
 			lookupSubjectFunctions = append(lookupSubjectFunctions, engine.lookupSubjectComputedUserSet(ctx, &base.PermissionLookupSubjectRequest{
 				TenantId: request.GetTenantId(),
 				Entity: &base.Entity{
@@ -376,6 +427,7 @@ func (engine *LookupSubjectEngine) lookupSubjectTupleToUserSet(
 				Permission:       subject.GetRelation(),
 				SubjectReference: request.GetSubjectReference(),
 				Metadata:         request.GetMetadata(),
+				ContextualTuples: request.GetContextualTuples(),
 			}, ttu.GetComputed()))
 		}
 

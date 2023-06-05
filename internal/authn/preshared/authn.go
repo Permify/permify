@@ -21,7 +21,7 @@ type KeyAuthn struct {
 }
 
 // NewKeyAuthn - Create New Authenticated Keys
-func NewKeyAuthn(ctx context.Context, cfg config.Preshared) (*KeyAuthn, error) {
+func NewKeyAuthn(_ context.Context, cfg config.Preshared) (*KeyAuthn, error) {
 	if len(cfg.Keys) < 1 {
 		return nil, errors.New("pre shared key authn must have at least one key")
 	}

@@ -532,11 +532,6 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 }
 
 // parseInfixExpression parses an infix expression that has a left operand and an operator followed by
-func (p *Parser) isValidPrefix(tokenType token.Type) bool {
-	return tokenType == token.NOT
-}
-
-// parseInfixExpression parses an infix expression that has a left operand and an operator followed by
 // a right operand, such as "a or b" or "x and y".
 // It takes the left operand as an argument, constructs an InfixExpression with the current operator
 // and left operand, and parses the right operand with a higher precedence to construct the final

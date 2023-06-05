@@ -9,6 +9,7 @@ import (
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -34,15 +35,13 @@ func NewEntityFilterEngine(schemaReader storage.SchemaReader, relationshipReader
 
 // EntityFilter is a method of the EntityFilterEngine struct. It executes a permission request for linked entities.
 func (engine *EntityFilterEngine) EntityFilter(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) (err error) { // Returns an error if one occurs during execution.
 	// Check if direct result
 	if request.GetEntityReference().GetType() == request.GetSubject().GetType() && request.GetEntityReference().GetRelation() == request.GetSubject().GetRelation() {
-		// TODO: Implement direct result and exclusion logic.
-
 		found := &base.Entity{
 			Type: request.GetSubject().GetType(),
 			Id:   request.GetSubject().GetId(),
@@ -53,7 +52,7 @@ func (engine *EntityFilterEngine) EntityFilter(
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
-		}, base.PermissionCheckResponse_RESULT_UNKNOWN)
+		}, request.GetContextualTuples(), base.PermissionCheckResponse_RESULT_UNKNOWN)
 	}
 
 	// Retrieve entity definition
@@ -119,14 +118,17 @@ func (engine *EntityFilterEngine) EntityFilter(
 
 // relationEntrance is a method of the EntityFilterEngine struct. It handles relation entrances.
 func (engine *EntityFilterEngine) relationEntrance(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
-	entrance *schema.LinkedEntrance, // A linked entrance.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	entrance *schema.LinkedEntrance,             // A linked entrance.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group,                           // An errgroup used for executing goroutines.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
-	it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+
+	// Define a TupleFilter. This specifies which tuples we're interested in.
+	// We want tuples that match the entity type and ID from the request, and have a specific relation.
+	filter := &base.TupleFilter{
 		Entity: &base.EntityFilter{
 			Type: entrance.TargetEntrance.GetType(),
 			Ids:  []string{},
@@ -137,13 +139,33 @@ func (engine *EntityFilterEngine) relationEntrance(
 			Ids:      []string{request.GetSubject().GetId()},
 			Relation: request.GetSubject().GetRelation(),
 		},
-	}, request.GetMetadata().GetSnapToken()) // Query the relationship reader for relationships that match the linked entrance and the request metadata.
+	}
+
+	// Use the filter to query for relationships in the given context.
+	// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
+	// QueryRelationships() then uses the filter to find and return matching relationships.
+	cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
 	if err != nil {
 		return err
 	}
 
+	// Query the relationships for the entity in the request.
+	// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
+	rit, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+	if err != nil {
+		return err
+	}
+
+	// Create a new UniqueTupleIterator from the two TupleIterators.
+	// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
+	it := database.NewUniqueTupleIterator(rit, cti)
+
 	for it.HasNext() { // Loop over each relationship.
-		current := it.GetNext()
+		// Get the next tuple's subject.
+		current, ok := it.GetNext()
+		if !ok {
+			break
+		}
 		g.Go(func() error {
 			return engine.l(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
 				Entity: &base.Entity{
@@ -159,21 +181,24 @@ func (engine *EntityFilterEngine) relationEntrance(
 
 // tupleToUserSetEntrance is a method of the EntityFilterEngine struct. It handles tuple to user set entrances.
 func (engine *EntityFilterEngine) tupleToUserSetEntrance(
-	// A context used for tracing and cancellation.
+// A context used for tracing and cancellation.
 	ctx context.Context,
-	// A permission request for linked entities.
+// A permission request for linked entities.
 	request *base.PermissionEntityFilterRequest,
-	// A linked entrance.
+// A linked entrance.
 	entrance *schema.LinkedEntrance,
-	// A map that keeps track of visited entities to avoid infinite loops.
+// A map that keeps track of visited entities to avoid infinite loops.
 	visits *ERMap,
-	// An errgroup used for executing goroutines.
+// An errgroup used for executing goroutines.
 	g *errgroup.Group,
-	// A custom publisher that publishes results in bulk.
+// A custom publisher that publishes results in bulk.
 	publisher *BulkPublisher,
 ) error { // Returns an error if one occurs during execution.
 	for _, relation := range []string{tuple.ELLIPSIS, request.GetSubject().GetRelation()} {
-		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+
+		// Define a TupleFilter. This specifies which tuples we're interested in.
+		// We want tuples that match the entity type and ID from the request, and have a specific relation.
+		filter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: entrance.TargetEntrance.GetType(),
 				Ids:  []string{},
@@ -184,13 +209,33 @@ func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 				Ids:      []string{request.GetSubject().GetId()},
 				Relation: relation,
 			},
-		}, request.GetMetadata().GetSnapToken())
+		}
+
+		// Use the filter to query for relationships in the given context.
+		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
+		// QueryRelationships() then uses the filter to find and return matching relationships.
+		cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
 		if err != nil {
 			return err
 		}
 
+		// Use the filter to query for relationships in the database.
+		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
+		rit, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		if err != nil {
+			return err
+		}
+
+		// Create a new UniqueTupleIterator from the two TupleIterators.
+		// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
+		it := database.NewUniqueTupleIterator(rit, cti)
+
 		for it.HasNext() { // Loop over each relationship.
-			current := it.GetNext()
+			// Get the next tuple's subject.
+			current, ok := it.GetNext()
+			if !ok {
+				break
+			}
 			g.Go(func() error {
 				return engine.l(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
 					Entity: &base.Entity{
@@ -207,14 +252,13 @@ func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 
 // run is a method of the EntityFilterEngine struct. It executes the linked entity engine for a given request.
 func (engine *EntityFilterEngine) l(
-	ctx context.Context, // A context used for tracing and cancellation.
+	ctx context.Context,                         // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
-	found *base.EntityAndRelation, // An entity and relation that was previously found.
-	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
-) error { // Returns an error if one occurs during execution.
-
+	found *base.EntityAndRelation,               // An entity and relation that was previously found.
+	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group,                           // An errgroup used for executing goroutines.
+	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
+) error {                   // Returns an error if one occurs during execution.
 	if !visits.Add(found) { // If the entity and relation has already been visited.
 		return nil
 	}
@@ -238,6 +282,9 @@ func (engine *EntityFilterEngine) l(
 			Relation: request.GetSubject().GetRelation(),
 		},
 	) // Retrieve the linked entrances for the request.
+	if err != nil {
+		return err
+	}
 
 	if entrances == nil { // If there are no linked entrances for the request.
 		if found.GetEntity().GetType() == request.GetEntityReference().GetType() && found.GetRelation() == request.GetEntityReference().GetRelation() { // Check if the found entity matches the requested entity reference.
@@ -245,7 +292,7 @@ func (engine *EntityFilterEngine) l(
 				SnapToken:     request.GetMetadata().GetSnapToken(),
 				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 				Depth:         request.GetMetadata().GetDepth(),
-			}, base.PermissionCheckResponse_RESULT_UNKNOWN)
+			}, request.GetContextualTuples(), base.PermissionCheckResponse_RESULT_UNKNOWN)
 			return nil
 		}
 		return nil // Otherwise, return without publishing any results.
@@ -260,7 +307,8 @@ func (engine *EntityFilterEngine) l(
 				Id:       found.GetEntity().GetId(),
 				Relation: found.GetRelation(),
 			},
-			Metadata: request.GetMetadata(),
+			Metadata:         request.GetMetadata(),
+			ContextualTuples: request.GetContextualTuples(),
 		}, visits, publisher)
 	})
 	return nil

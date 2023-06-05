@@ -76,6 +76,7 @@ var _ = Describe("expand-engine", func() {
 
 			tests := struct {
 				relationships []string
+				contextual    []string
 				expands       []expand
 			}{
 				relationships: []string{
@@ -83,6 +84,8 @@ var _ = Describe("expand-engine", func() {
 					"doc:1#parent@folder:1#...",
 					"folder:1#collaborator@user:1",
 					"folder:1#collaborator@user:3",
+				},
+				contextual: []string{
 					"doc:1#org@organization:1#...",
 					"organization:1#admin@user:1",
 					"folder:2#creator@user:89",
@@ -968,6 +971,13 @@ var _ = Describe("expand-engine", func() {
 			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
 
+			var contextual []*base.Tuple
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				contextual = append(contextual, t)
+			}
+
 			for _, expand := range tests.expands {
 				entity, err := tuple.E(expand.entity)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -982,6 +992,7 @@ var _ = Describe("expand-engine", func() {
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
 						},
+						ContextualTuples: contextual,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())

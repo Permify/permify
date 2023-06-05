@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/Permify/permify/internal/storage/memory/utils"
 )
 
 func TestNewPagination(t *testing.T) {
@@ -68,7 +66,7 @@ func TestPagination(t *testing.T) {
 }
 
 func TestNoopContinuousToken(t *testing.T) {
-	token := utils.NewNoopContinuousToken()
+	token := NewNoopContinuousToken()
 
 	// Test Encode
 	encodedToken := token.Encode()
@@ -77,8 +75,8 @@ func TestNoopContinuousToken(t *testing.T) {
 	// Test Decode
 	decodedToken, err := encodedToken.Decode()
 	assert.NoError(t, err)
-	assert.Empty(t, decodedToken.(utils.NoopContinuousToken).Value)
+	assert.Empty(t, decodedToken.(NoopContinuousToken).Value)
 
 	// Test Encode and Decode
-	assert.Empty(t, decodedToken.(utils.NoopContinuousToken).Value)
+	assert.Empty(t, decodedToken.(NoopContinuousToken).Value)
 }

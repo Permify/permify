@@ -72,7 +72,8 @@ func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *bas
 			Type:     request.GetEntityType(),
 			Relation: request.GetPermission(),
 		},
-		Subject: request.GetSubject(),
+		Subject:          request.GetSubject(),
+		ContextualTuples: request.GetContextualTuples(),
 	}, visits, publisher)
 	if err != nil {
 		return nil, err
@@ -128,8 +129,12 @@ func (engine *LookupEntityEngine) LookupEntityStream(ctx context.Context, reques
 			Type:     request.GetEntityType(),
 			Relation: request.GetPermission(),
 		},
-		Subject: request.GetSubject(),
+		Subject:          request.GetSubject(),
+		ContextualTuples: request.GetContextualTuples(),
 	}, visits, publisher)
+	if err != nil {
+		return
+	}
 
 	// Stop input and wait for BulkChecker to finish
 	checker.Stop()

@@ -33,6 +33,11 @@ func NewCheckEngineWithKeys(checker invoke.Check, cache cache.Cache, l *logger.L
 
 // Check performs a permission check for a given request, using the cached results if available.
 func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+	// If contextual tuples are present, keys should not be checked as this could potentially return inaccurate results.
+	if len(request.GetContextualTuples()) > 0 {
+		return c.checker.Check(ctx, request)
+	}
+
 	// Try to get the cached result for the given request.
 	res, found := c.getCheckKey(request)
 

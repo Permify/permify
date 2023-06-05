@@ -411,5 +411,46 @@ var _ = Describe("tuple", func() {
 				}
 			}
 		})
+
+		It("ToString", func() {
+			tests := []struct {
+				target *base.Tuple
+				str    string
+			}{
+				{
+					target: &base.Tuple{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Relation: "member",
+						Subject: &base.Subject{
+							Type: "user",
+							Id:   "1",
+						},
+					},
+					str: "organization:1#member@user:1",
+				},
+				{
+					target: &base.Tuple{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Relation: "member",
+						Subject: &base.Subject{
+							Type:     "organization",
+							Id:       "2",
+							Relation: "admin",
+						},
+					},
+					str: "organization:1#member@organization:2#admin",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(ToString(tt.target)).Should(Equal(tt.str))
+			}
+		})
 	})
 })
