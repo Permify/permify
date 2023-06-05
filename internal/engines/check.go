@@ -231,21 +231,39 @@ func (engine *CheckEngine) setChild(
 func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.PermissionCheckRequest) CheckFunction {
 	// The returned CheckFunction is a closure over the provided context and request
 	return func(ctx context.Context) (result *base.PermissionCheckResponse, err error) {
-		// Query the relationships for the entity in the request.
-		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
-		var it *database.TupleIterator
-		it, err = engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		// Define a TupleFilter. This specifies which tuples we're interested in.
+		// We want tuples that match the entity type and ID from the request, and have a specific relation.
+		filter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
 			},
 			Relation: request.GetPermission(),
-		}, request.GetMetadata().GetSnapToken())
+		}
+
+		// Use the filter to query for relationships in the given context.
+		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
+		// QueryRelationships() then uses the filter to find and return matching relationships.
+		var cti *database.TupleIterator
+		cti, err = storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
+		if err != nil {
+			// If an error occurred while querying, return a "denied" response and the error.
+			return denied(&base.PermissionCheckResponseMetadata{}), err
+		}
+
+		// Query the relationships for the entity in the request.
+		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
+		var rit *database.TupleIterator
+		rit, err = engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
 
 		// If there's an error in querying, return a denied permission response along with the error.
 		if err != nil {
 			return denied(&base.PermissionCheckResponseMetadata{}), err
 		}
+
+		// Create a new UniqueTupleIterator from the two TupleIterators.
+		// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
+		it := database.NewUniqueTupleIterator(rit, cti)
 
 		// Define a slice of CheckFunctions to hold the check functions for each subject.
 		var checkFunctions []CheckFunction
@@ -265,9 +283,10 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 						Type: subject.GetType(),
 						Id:   subject.GetId(),
 					},
-					Permission: subject.GetRelation(),
-					Subject:    request.GetSubject(),
-					Metadata:   request.GetMetadata(),
+					Permission:       subject.GetRelation(),
+					Subject:          request.GetSubject(),
+					Metadata:         request.GetMetadata(),
+					ContextualTuples: request.GetContextualTuples(),
 				}))
 			}
 		}
@@ -291,19 +310,36 @@ func (engine *CheckEngine) checkTupleToUserSet(
 ) CheckFunction {
 	// The returned CheckFunction is a closure over the provided context, request, and ttu.
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		// Query the relationships for the entity in the request
-		// TupleFilter is used to filter out the relationships for a specific entity and a relation.
-		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		// Define a TupleFilter. This specifies which tuples we're interested in.
+		// We want tuples that match the entity type and ID from the request, and have a specific relation.
+		filter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
-				Type: request.GetEntity().GetType(),
-				Ids:  []string{request.GetEntity().GetId()},
+				Type: request.GetEntity().GetType(),         // Filter by entity type from request
+				Ids:  []string{request.GetEntity().GetId()}, // Filter by entity ID from request
 			},
-			Relation: ttu.GetTupleSet().GetRelation(),
-		}, request.GetMetadata().GetSnapToken())
-		// If there's an error in querying, return a denied permission response along with the error.
+			Relation: ttu.GetTupleSet().GetRelation(), // Filter by relation from tuple set
+		}
+
+		// Use the filter to query for relationships in the given context.
+		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
+		// QueryRelationships() then uses the filter to find and return matching relationships.
+		cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
 		if err != nil {
+			// If an error occurred while querying, return a "denied" response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
 		}
+
+		// Use the filter to query for relationships in the database.
+		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
+		rit, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		if err != nil {
+			// If an error occurred while querying, return a "denied" response and the error.
+			return denied(&base.PermissionCheckResponseMetadata{}), err
+		}
+
+		// Create a new UniqueTupleIterator from the two TupleIterators.
+		// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
+		it := database.NewUniqueTupleIterator(rit, cti)
 
 		// Define a slice of CheckFunctions to hold the check functions for each subject.
 		var checkFunctions []CheckFunction
@@ -318,9 +354,10 @@ func (engine *CheckEngine) checkTupleToUserSet(
 					Type: subject.GetType(),
 					Id:   subject.GetId(),
 				},
-				Permission: subject.GetRelation(),
-				Subject:    request.GetSubject(),
-				Metadata:   request.GetMetadata(),
+				Permission:       subject.GetRelation(),
+				Subject:          request.GetSubject(),
+				Metadata:         request.GetMetadata(),
+				ContextualTuples: request.GetContextualTuples(),
 			}, ttu.GetComputed()))
 		}
 
@@ -347,9 +384,10 @@ func (engine *CheckEngine) checkComputedUserSet(
 			Type: request.GetEntity().GetType(),
 			Id:   request.GetEntity().GetId(),
 		},
-		Permission: cu.GetRelation(),      // Permission is set to the relation defined in the computed user set
-		Subject:    request.GetSubject(),  // The subject from the incoming request
-		Metadata:   request.GetMetadata(), // Metadata from the incoming request
+		Permission:       cu.GetRelation(),      // Permission is set to the relation defined in the computed user set
+		Subject:          request.GetSubject(),  // The subject from the incoming request
+		Metadata:         request.GetMetadata(), // Metadata from the incoming request
+		ContextualTuples: request.GetContextualTuples(),
 	})
 }
 

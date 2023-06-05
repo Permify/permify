@@ -534,7 +534,6 @@ var _ = Describe("check-engine", func() {
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
 			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
@@ -556,9 +555,6 @@ var _ = Describe("check-engine", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				tuples = append(tuples, t)
 			}
-
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
-			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
 				entity, err := tuple.E(check.entity)
@@ -584,6 +580,7 @@ var _ = Describe("check-engine", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
+						ContextualTuples: tuples,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -772,7 +769,6 @@ entity repo {
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
 			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
 
 			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
 
@@ -794,9 +790,6 @@ entity repo {
 				Expect(err).ShouldNot(HaveOccurred())
 				tuples = append(tuples, t)
 			}
-
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
-			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
 				entity, err := tuple.E(check.entity)
@@ -822,6 +815,7 @@ entity repo {
 							SchemaVersion: "",
 							Depth:         20,
 						},
+						ContextualTuples: tuples,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())

@@ -48,12 +48,37 @@ func EntityToString(entity *base.Entity) string {
 	return fmt.Sprintf(ENTITY, entity.GetType(), entity.GetId())
 }
 
-// SubjectToString converts a Subject object to string format
+// SubjectToString converts a Subject object to string format.
 func SubjectToString(subject *base.Subject) string {
+	// Convert the subject's type and id to a string in the format of an entity
+	entity := fmt.Sprintf(ENTITY, subject.GetType(), subject.GetId())
+
+	// If the subject is a user, return the entity string
 	if IsSubjectUser(subject) {
-		return fmt.Sprintf(ENTITY, subject.GetType(), subject.GetId())
+		return entity
 	}
-	return fmt.Sprintf("%s"+RELATION, fmt.Sprintf(ENTITY, subject.GetType(), subject.GetId()), subject.GetRelation())
+
+	// If the subject is not a user, add the relation to the string
+	return fmt.Sprintf("%s"+RELATION, entity, subject.GetRelation())
+}
+
+// ToString function converts a Tuple object to a string format.
+func ToString(tup *base.Tuple) string {
+	// Retrieve the individual elements of the tuple
+	entity := tup.GetEntity()
+	relation := tup.GetRelation()
+	subject := tup.GetSubject()
+
+	// Convert the elements to strings
+	strEntity := EntityToString(entity)
+	strRelation := relation
+	strSubject := SubjectToString(subject)
+
+	// Combine the strings with proper formatting
+	result := fmt.Sprintf("%s#%s@%s", strEntity, strRelation, strSubject)
+
+	// Return the formatted string
+	return result
 }
 
 // IsEntityAndSubjectEquals checks if the entity and subject of a Tuple object are equal
@@ -139,38 +164,52 @@ func Tuple(tuple string) (*base.Tuple, error) {
 	}, nil
 }
 
-// EAR parses an EntityAndRelation string and returns an EntityAndRelation object
+// EAR function parses a string to create a base.EntityAndRelation object.
 func EAR(ear string) (*base.EntityAndRelation, error) {
-	s := strings.Split(strings.TrimSpace(ear), "#") // split EntityAndRelation string by "#"
-	if len(s) == 1 {
-		e, err := E(s[0]) // parse entity from the string
-		if err != nil {
-			return nil, err
-		}
-		return &base.EntityAndRelation{
-			Entity:   e,
-			Relation: "",
-		}, nil
-	} else if len(s) == 2 {
-		e, err := E(s[0]) // parse entity from the string
-		if err != nil {
-			return nil, err
-		}
-		return &base.EntityAndRelation{
-			Entity:   e,
-			Relation: s[1],
-		}, nil
-	} else {
-		return nil, ErrInvalidEntityAndRelation // return error if number of "#" is not equal to 1 or 2
+	// Split EntityAndRelation string by "#" and trim spaces
+	s := strings.Split(strings.TrimSpace(ear), "#")
+
+	// Check if there is at least one part (entity) in the string
+	if len(s) < 1 {
+		return nil, ErrInvalidEntityAndRelation
 	}
+
+	// Parse entity from the first part of the string
+	e, err := E(s[0])
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a new EntityAndRelation with the parsed entity
+	entityAndRelation := &base.EntityAndRelation{
+		Entity: e,
+	}
+
+	// If there is a second part (relation), add it to EntityAndRelation
+	if len(s) > 1 {
+		entityAndRelation.Relation = s[1]
+	}
+
+	// Return the created EntityAndRelation
+	return entityAndRelation, nil
 }
 
-// E parses an Entity string and returns an Entity object
+// E function parses an Entity string and returns an Entity object.
 func E(e string) (*base.Entity, error) {
-	s := strings.Split(strings.TrimSpace(e), ":") // split Entity string by ":"
+	// Split Entity string by ":" and trim spaces
+	s := strings.Split(strings.TrimSpace(e), ":")
+
+	// Check if the string has exactly two parts (Type and Id)
 	if len(s) != 2 {
-		return nil, ErrInvalidEntity // return error if number of ":" is not equal to 2
+		return nil, ErrInvalidEntity // Return error if number of ":" is not exactly 2
 	}
+
+	// Check if Type and Id are not empty
+	if s[0] == "" || s[1] == "" {
+		return nil, ErrInvalidEntity // Return error if either Type or Id is empty
+	}
+
+	// Return the created Entity
 	return &base.Entity{
 		Type: s[0],
 		Id:   s[1],
@@ -186,19 +225,23 @@ func ReferenceToString(ref string) string {
 	return ref
 }
 
-// RelationReference - parses a relation reference string and returns a RelationReference object
+// RelationReference parses a relation reference string and returns a RelationReference object.
 func RelationReference(ref string) *base.RelationReference {
+	// Split the reference string by "#"
 	sp := strings.Split(ref, "#")
+
+	// Create a new RelationReference with the parsed Type
+	relationReference := &base.RelationReference{
+		Type: sp[0],
+	}
+
+	// If there is a second part (Relation), add it to RelationReference
 	if len(sp) > 1 {
-		return &base.RelationReference{
-			Type:     sp[0],
-			Relation: sp[1],
-		}
+		relationReference.Relation = sp[1]
 	}
-	return &base.RelationReference{
-		Type:     sp[0],
-		Relation: "",
-	}
+
+	// Return the created RelationReference or an error if any step failed
+	return relationReference
 }
 
 // AreRelationReferencesEqual checks if two relation references are equal or not

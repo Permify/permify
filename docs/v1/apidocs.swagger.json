@@ -182,6 +182,13 @@
                 },
                 "subject": {
                   "$ref": "#/definitions/Subject"
+                },
+                "contextual_tuples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Tuple"
+                  }
                 }
               },
               "title": "PermissionCheckRequest"
@@ -233,6 +240,13 @@
                 },
                 "permission": {
                   "type": "string"
+                },
+                "contextual_tuples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Tuple"
+                  }
                 }
               },
               "title": "PermissionExpandRequest"
@@ -286,6 +300,13 @@
                 },
                 "subject": {
                   "$ref": "#/definitions/Subject"
+                },
+                "contextual_tuples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Tuple"
+                  }
                 }
               },
               "title": "PermissionLookupEntityRequest"
@@ -348,6 +369,13 @@
                 },
                 "subject": {
                   "$ref": "#/definitions/Subject"
+                },
+                "contextual_tuples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Tuple"
+                  }
                 }
               },
               "title": "PermissionLookupEntityRequest"
@@ -402,6 +430,13 @@
                 },
                 "subject_reference": {
                   "$ref": "#/definitions/RelationReference"
+                },
+                "contextual_tuples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Tuple"
+                  }
                 }
               },
               "title": "PermissionLookupSubjectRequest"
@@ -1324,7 +1359,8 @@
         "tuple": {
           "$ref": "#/definitions/Tuple"
         }
-      }
+      },
+      "title": "TupleChange"
     },
     "TupleChange.Operation": {
       "type": "string",

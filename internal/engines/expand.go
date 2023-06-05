@@ -179,17 +179,37 @@ func (engine *ExpandEngine) setChild(
 // the expand tree. Finally, it returns the top-level expand node.
 func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.PermissionExpandRequest) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
-		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		// Define a TupleFilter. This specifies which tuples we're interested in.
+		// We want tuples that match the entity type and ID from the request, and have a specific relation.
+		filter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
 			},
 			Relation: request.GetPermission(),
-		}, request.GetMetadata().GetSnapToken())
+		}
+
+		// Use the filter to query for relationships in the given context.
+		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
+		// QueryRelationships() then uses the filter to find and return matching relationships.
+		cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
+		if err != nil {
+			// If an error occurred while querying, return a "denied" response and the error.
+			expandChan <- expandFailResponse(err)
+		}
+
+		// Query the relationships for the entity in the request.
+		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
+		var rit *database.TupleIterator
+		rit, err = engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 			return
 		}
+
+		// Create a new UniqueTupleIterator from the two TupleIterators.
+		// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
+		it := database.NewUniqueTupleIterator(rit, cti)
 
 		foundedUserSets := database.NewSubjectCollection()
 		foundedUsers := database.NewSubjectCollection()
@@ -249,8 +269,9 @@ func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.Perm
 						Type: sub.GetType(),
 						Id:   sub.GetId(),
 					},
-					Permission: sub.GetRelation(),
-					Metadata:   request.GetMetadata(),
+					Permission:       sub.GetRelation(),
+					Metadata:         request.GetMetadata(),
+					ContextualTuples: request.GetContextualTuples(),
 				})
 			})
 		}
@@ -302,17 +323,34 @@ func (engine *ExpandEngine) expandTupleToUserSet(
 	ttu *base.TupleToUserSet,
 ) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
-		it, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), &base.TupleFilter{
+		filter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
 				Ids:  []string{request.GetEntity().GetId()},
 			},
 			Relation: ttu.GetTupleSet().GetRelation(),
-		}, request.GetMetadata().GetSnapToken())
+		}
+
+		// Use the filter to query for relationships in the given context.
+		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
+		// QueryRelationships() then uses the filter to find and return matching relationships.
+		cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 			return
 		}
+
+		// Use the filter to query for relationships in the database.
+		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
+		rit, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		if err != nil {
+			expandChan <- expandFailResponse(err)
+			return
+		}
+
+		// Create a new UniqueTupleIterator from the two TupleIterators.
+		// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
+		it := database.NewUniqueTupleIterator(rit, cti)
 
 		var expandFunctions []ExpandFunction
 		for it.HasNext() {
@@ -323,8 +361,9 @@ func (engine *ExpandEngine) expandTupleToUserSet(
 					Type: subject.GetType(),
 					Id:   subject.GetId(),
 				},
-				Permission: subject.GetRelation(),
-				Metadata:   request.GetMetadata(),
+				Permission:       subject.GetRelation(),
+				Metadata:         request.GetMetadata(),
+				ContextualTuples: request.GetContextualTuples(),
 			}, ttu.GetComputed()))
 		}
 
@@ -361,8 +400,9 @@ func (engine *ExpandEngine) expandComputedUserSet(
 				Type: request.GetEntity().GetType(),
 				Id:   request.GetEntity().GetId(),
 			},
-			Permission: cu.GetRelation(),
-			Metadata:   request.GetMetadata(),
+			Permission:       cu.GetRelation(),
+			Metadata:         request.GetMetadata(),
+			ContextualTuples: request.GetContextualTuples(),
 		})
 	}
 }

@@ -112,6 +112,8 @@ message PermissionCheckRequest {
   }];
 
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+
+  repeated Tuple contextual_tuples = 6 [json_name = "contextual_tuples"];
 }
 
 // PermissionCheckRequestMetadata
@@ -158,6 +160,8 @@ message PermissionExpandRequest {
     max_bytes : 64,
     ignore_empty: true,
   }];
+
+  repeated Tuple contextual_tuples = 5 [json_name = "contextual_tuples"];
 }
 
 // PermissionExpandRequestMetadata
@@ -196,6 +200,8 @@ message PermissionLookupEntityRequest {
   }];
 
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+
+  repeated Tuple contextual_tuples = 6 [json_name = "contextual_tuples"];
 }
 
 // PermissionLookupEntityRequestMetadata
@@ -228,9 +234,11 @@ message PermissionEntityFilterRequest {
   RelationReference entity_reference = 3 [json_name = "entity_reference"];
 
   Subject subject = 4 [json_name = "subject"];
+
+  repeated Tuple contextual_tuples = 5 [json_name = "contextual_tuples"];
 }
 
-// PermissionLookupEntityRequestMetadata
+// PermissionEntityFilterRequestMetadata
 message PermissionEntityFilterRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
   string snap_token = 2 [json_name = "snap_token"];
@@ -257,6 +265,8 @@ message PermissionLookupSubjectRequest {
   }];
 
   RelationReference subject_reference = 5 [json_name = "subject_reference"];
+
+  repeated Tuple contextual_tuples = 6 [json_name = "contextual_tuples"];
 }
 
 // PermissionLookupSubjectRequestMetadata

@@ -60,7 +60,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 			} else {
 				g.AddEdge(reNode, &Node{
 					Type:  "entity",
-					ID:    fmt.Sprintf("%s", ref.GetType()),
+					ID:    ref.GetType(),
 					Label: re.Name,
 				})
 			}

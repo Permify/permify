@@ -26,7 +26,7 @@ type OidcAuthn struct {
 }
 
 // NewOidcAuthn - Create new Oidc verifier
-func NewOidcAuthn(ctx context.Context, cfg config.Oidc) (*OidcAuthn, error) {
+func NewOidcAuthn(_ context.Context, cfg config.Oidc) (*OidcAuthn, error) {
 	dis, err := client.Discover(cfg.Issuer, http.DefaultClient)
 	if err != nil {
 		return nil, err
@@ -58,10 +58,7 @@ func (t *OidcAuthn) Authenticate(ctx context.Context) error {
 
 // validateOtherClaims - Validate claims that are not validated by the oidc client library
 func (t *OidcAuthn) validateOtherClaims(claims oidc.IDTokenClaims) error {
-	if err := checkNotBefore(claims, t.verifier.Offset()); err != nil {
-		return err
-	}
-	return nil
+	return checkNotBefore(claims, t.verifier.Offset())
 }
 
 // checkNotBefore - Validate current time to be not before the notBefore claim value

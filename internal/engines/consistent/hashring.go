@@ -73,7 +73,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
-		}, errors.New("node not found for key")
+		}, errors.New("node not found to key")
 	}
 
 	if node == c.localNodeAddress {
@@ -107,7 +107,7 @@ func (c *Hashring) forwardRequestToNode(ctx context.Context, node string, reques
 	client := base.NewPermissionClient(conn)
 
 	// Prepare a context with a timeout.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
 	return client.Check(ctx, request)
