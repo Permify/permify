@@ -1731,6 +1731,7 @@ func (x *TupleChanges) GetTupleChanges() []*TupleChange {
 	return nil
 }
 
+// TupleChange
 type TupleChange struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

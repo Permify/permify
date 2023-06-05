@@ -80,10 +80,7 @@ func (c *BulkChecker) Start() {
 			})
 		}
 		// wait for all remaining semaphore resources to be released
-		if err := sem.Acquire(c.ctx, int64(c.concurrencyLimit)); err != nil {
-			return err
-		}
-		return nil
+		return sem.Acquire(c.ctx, int64(c.concurrencyLimit))
 	})
 }
 

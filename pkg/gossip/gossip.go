@@ -48,7 +48,7 @@ func InitMemberList(nodes []string, grpcPort int) (*Gossip, error) {
 	// Get the external IP address of the local machine.
 	ip, err := ExternalIP()
 	if err != nil {
-		return nil, fmt.Errorf("external ip error: %v", err)
+		return nil, fmt.Errorf("external ip error: %w", err)
 	}
 
 	// Set the IP and port that the memberlist will advertise to other nodes.
@@ -58,14 +58,14 @@ func InitMemberList(nodes []string, grpcPort int) (*Gossip, error) {
 	// Create a new memberlist instance with the provided configuration.
 	list, err := memberlist.Create(conf)
 	if err != nil {
-		return nil, fmt.Errorf("memberlist Create Error %v", err)
+		return nil, fmt.Errorf("memberlist Create Error %w", err)
 	}
 
 	// If seed nodes are provided, attempt to join them.
 	if len(nodes) > 0 {
 		_, err := list.Join(nodes)
 		if err != nil {
-			return nil, fmt.Errorf("starter ring join error: %v", err)
+			return nil, fmt.Errorf("starter ring join error: %w", err)
 		}
 	}
 
