@@ -216,7 +216,13 @@ func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.Perm
 
 		// it represents an iterator over some collection of subjects.
 		for it.HasNext() {
-			subject := it.GetNext().GetSubject()
+			// Get the next tuple's subject.
+			next, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			subject := next.GetSubject()
+
 			if tuple.IsSubjectUser(subject) {
 				foundedUsers.Add(subject)
 				continue
@@ -354,7 +360,13 @@ func (engine *ExpandEngine) expandTupleToUserSet(
 
 		var expandFunctions []ExpandFunction
 		for it.HasNext() {
-			subject := it.GetNext().GetSubject()
+			// Get the next tuple's subject.
+			next, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			subject := next.GetSubject()
+
 			expandFunctions = append(expandFunctions, engine.expandComputedUserSet(ctx, &base.PermissionExpandRequest{
 				TenantId: request.GetTenantId(),
 				Entity: &base.Entity{

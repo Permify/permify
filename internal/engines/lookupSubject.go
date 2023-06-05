@@ -234,7 +234,13 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 
 		for it.HasNext() {
 			// For each subject in the relationships, categorize it into foundedUsers or foundedUserSets.
-			subject := it.GetNext().GetSubject()
+			// Get the next tuple's subject.
+			next, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			subject := next.GetSubject()
+
 			if tuple.AreRelationReferencesEqual(
 				&base.RelationReference{
 					Type:     subject.GetType(),
@@ -294,10 +300,10 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 // setChild generates a LookupSubjectFunction by applying a LookupSubjectCombiner
 // to a set of child permission lookups, given a request and a list of Child objects.
 func (engine *LookupSubjectEngine) setChild(
-	ctx context.Context, // The context for carrying out the operation
+	ctx context.Context,                          // The context for carrying out the operation
 	request *base.PermissionLookupSubjectRequest, // The request containing parameters for lookup
-	children []*base.Child, // The children of a particular node in the permission schema
-	combiner LookupSubjectCombiner, // A function to combine the results from multiple lookup functions
+	children []*base.Child,                       // The children of a particular node in the permission schema
+	combiner LookupSubjectCombiner,               // A function to combine the results from multiple lookup functions
 ) LookupSubjectFunction {
 	var functions []LookupSubjectFunction // Array of functions to store lookup functions for each child
 
@@ -405,7 +411,13 @@ func (engine *LookupSubjectEngine) lookupSubjectTupleToUserSet(
 		var lookupSubjectFunctions []LookupSubjectFunction
 		for it.HasNext() {
 			// For each subject in the relationships, create a LookupSubjectFunction by treating it as a ComputedUserSet.
-			subject := it.GetNext().GetSubject()
+			// Get the next tuple's subject.
+			next, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			subject := next.GetSubject()
+
 			lookupSubjectFunctions = append(lookupSubjectFunctions, engine.lookupSubjectComputedUserSet(ctx, &base.PermissionLookupSubjectRequest{
 				TenantId: request.GetTenantId(),
 				Entity: &base.Entity{

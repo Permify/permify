@@ -117,14 +117,15 @@ func NewBulkPublisher(ctx context.Context, request *base.PermissionLookupEntityR
 }
 
 // Publish publishes a permission check request to the BulkChecker.
-func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, result base.PermissionCheckResponse_Result) {
+func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, contextual []*base.Tuple, result base.PermissionCheckResponse_Result) {
 	s.bulkChecker.RequestChan <- BulkCheckerRequest{
 		Request: &base.PermissionCheckRequest{
-			TenantId:   s.request.GetTenantId(),
-			Metadata:   metadata,
-			Entity:     entity,
-			Permission: s.request.GetPermission(),
-			Subject:    s.request.GetSubject(),
+			TenantId:         s.request.GetTenantId(),
+			Metadata:         metadata,
+			Entity:           entity,
+			Permission:       s.request.GetPermission(),
+			Subject:          s.request.GetSubject(),
+			ContextualTuples: contextual,
 		},
 		Result: result,
 	}

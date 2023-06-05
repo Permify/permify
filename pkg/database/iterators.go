@@ -59,7 +59,7 @@ func (i *UniqueTupleIterator) HasNext() bool {
 }
 
 // GetNext returns the next unique Tuple from the two TupleIterators.
-func (i *UniqueTupleIterator) GetNext() *base.Tuple {
+func (i *UniqueTupleIterator) GetNext() (*base.Tuple, bool) {
 	// Check the first iterator for any next Tuples
 	for i.iterator1.HasNext() {
 		tup := i.iterator1.GetNext() // Get the next Tuple
@@ -67,7 +67,7 @@ func (i *UniqueTupleIterator) GetNext() *base.Tuple {
 		// If the Tuple hasn't been visited yet, mark it as visited and return it
 		if _, found := i.visited[key]; !found {
 			i.visited[key] = true
-			return tup
+			return tup, true
 		}
 	}
 
@@ -78,12 +78,12 @@ func (i *UniqueTupleIterator) GetNext() *base.Tuple {
 		// If the Tuple hasn't been visited yet, mark it as visited and return it
 		if _, found := i.visited[key]; !found {
 			i.visited[key] = true
-			return tup
+			return tup, true
 		}
 	}
 
 	// If no more unique Tuples are in either of the iterators, return nil
-	return nil
+	return &base.Tuple{}, false
 }
 
 // SUBJECT

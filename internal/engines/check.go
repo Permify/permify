@@ -270,7 +270,12 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 		// Iterate over all tuples returned by the iterator.
 		for it.HasNext() {
 			// Get the next tuple's subject.
-			subject := it.GetNext().GetSubject()
+			next, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			subject := next.GetSubject()
+
 			// If the subject of the tuple is the same as the subject in the request, permission is allowed.
 			if tuple.AreSubjectsEqual(subject, request.GetSubject()) {
 				return allowed(&base.PermissionCheckResponseMetadata{}), nil
@@ -346,7 +351,12 @@ func (engine *CheckEngine) checkTupleToUserSet(
 		// Iterate over all tuples returned by the iterator.
 		for it.HasNext() {
 			// Get the next tuple's subject.
-			subject := it.GetNext().GetSubject()
+			next, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			subject := next.GetSubject()
+
 			// For each subject, generate a check function for its computed user set and append it to the list.
 			checkFunctions = append(checkFunctions, engine.checkComputedUserSet(ctx, &base.PermissionCheckRequest{
 				TenantId: request.GetTenantId(),
@@ -371,9 +381,9 @@ func (engine *CheckEngine) checkTupleToUserSet(
 // checkComputedUserSet is a method of CheckEngine that checks permissions using the
 // ComputedUserSet data structure. It returns a CheckFunction closure that performs the check.
 func (engine *CheckEngine) checkComputedUserSet(
-	ctx context.Context, // The context carrying deadline and cancellation signal
+	ctx context.Context,                  // The context carrying deadline and cancellation signal
 	request *base.PermissionCheckRequest, // The request containing details about the permission to be checked
-	cu *base.ComputedUserSet, // The computed user set containing user set information
+	cu *base.ComputedUserSet,             // The computed user set containing user set information
 ) CheckFunction {
 	// The returned CheckFunction invokes a permission check with a new request that is almost the same
 	// as the incoming request, but changes the Permission to be the relation defined in the computed user set.

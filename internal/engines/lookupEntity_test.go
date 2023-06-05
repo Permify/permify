@@ -3,7 +3,6 @@ package engines
 import (
 	"context"
 	"fmt"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -75,12 +74,15 @@ entity doc {
 
 			tests := struct {
 				relationships []string
+				contextual    []string
 				filters       []filter
 			}{
 				relationships: []string{
 					"doc:1#owner@user:2",
 					"doc:1#folder@user:3",
 					"folder:1#collaborator@user:1",
+				},
+				contextual: []string{
 					"folder:1#collaborator@user:3",
 					"organization:1#admin@user:1",
 					"doc:1#org@organization:1#...",
@@ -126,6 +128,14 @@ entity doc {
 			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
 
+			var contextual []*base.Tuple
+
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				contextual = append(contextual, t)
+			}
+
 			for _, filter := range tests.filters {
 				ear, err := tuple.EAR(filter.subject)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -147,6 +157,7 @@ entity doc {
 							SchemaVersion: "",
 							Depth:         100,
 						},
+						ContextualTuples: contextual,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -638,6 +649,7 @@ entity doc {
 
 			tests := struct {
 				relationships []string
+				contextual    []string
 				filters       []filter
 			}{
 				relationships: []string{
@@ -650,6 +662,8 @@ entity doc {
 					"doc:1#parent@folder:1#...",
 					"doc:2#parent@folder:1#...",
 					"doc:3#parent@folder:1#...",
+				},
+				contextual: []string{
 					"doc:4#parent@folder:1#...",
 					"doc:5#parent@folder:1#...",
 					"doc:6#parent@folder:1#...",
@@ -706,6 +720,14 @@ entity doc {
 			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
 
+			var contextual []*base.Tuple
+
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				contextual = append(contextual, t)
+			}
+
 			for _, filter := range tests.filters {
 				ear, err := tuple.EAR(filter.subject)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -727,6 +749,7 @@ entity doc {
 							SchemaVersion: "",
 							Depth:         100,
 						},
+						ContextualTuples: contextual,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -1217,6 +1240,7 @@ entity event {
 
 			tests := struct {
 				relationships []string
+				contextual    []string
 				filters       []filter
 			}{
 				relationships: []string{
@@ -1254,6 +1278,17 @@ entity event {
 					"file:1#owner@user:7",
 					"file:2#owner@user:8",
 					"file:3#owner@user:9",
+					"file:1#group@group:1#...",
+					"file:2#group@group:1#...",
+					"file:3#group@group:1#...",
+					"event:1#owner@user:10",
+					"event:2#owner@user:11",
+					"event:3#owner@user:12",
+					"event:1#group@group:1#...",
+					"event:2#group@group:1#...",
+					"event:3#group@group:1#...",
+				},
+				contextual: []string{
 					"file:1#group@group:1#...",
 					"file:2#group@group:1#...",
 					"file:3#group@group:1#...",
@@ -1362,6 +1397,14 @@ entity event {
 			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
 
+			var contextual []*base.Tuple
+
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				contextual = append(contextual, t)
+			}
+
 			for _, filter := range tests.filters {
 				ear, err := tuple.EAR(filter.subject)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -1383,6 +1426,7 @@ entity event {
 							SchemaVersion: "",
 							Depth:         100,
 						},
+						ContextualTuples: contextual,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())

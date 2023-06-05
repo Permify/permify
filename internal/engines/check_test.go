@@ -848,6 +848,7 @@ entity repo {
 
 			tests := struct {
 				relationships []string
+				contextual    []string
 				checks        []check
 			}{
 				relationships: []string{
@@ -855,6 +856,11 @@ entity repo {
 					"organization:1#member@user:2",
 					"parent:1#admin@user:2",
 					"parent:1#member@user:1",
+					"parent:1#member@parent:1#admin",
+					"repo:1#org@organization:1#...",
+					"repo:1#parent@parent:1#...",
+				},
+				contextual: []string{
 					"parent:1#member@parent:1#admin",
 					"repo:1#org@organization:1#...",
 					"repo:1#parent@parent:1#...",
@@ -898,6 +904,14 @@ entity repo {
 			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
 			Expect(err).ShouldNot(HaveOccurred())
 
+			var contextual []*base.Tuple
+
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				contextual = append(contextual, t)
+			}
+
 			for _, check := range tests.checks {
 				entity, err := tuple.E(check.entity)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -922,6 +936,7 @@ entity repo {
 							SchemaVersion: "",
 							Depth:         20,
 						},
+						ContextualTuples: contextual,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
