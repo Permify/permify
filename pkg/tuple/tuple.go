@@ -217,12 +217,11 @@ func E(e string) (*base.Entity, error) {
 }
 
 // ReferenceToString -
-func ReferenceToString(ref string) string {
-	sp := strings.Split(ref, "#")
-	if len(sp) > 1 {
-		return fmt.Sprintf(REFERENCE, sp[0], sp[1])
+func ReferenceToString(ref *base.RelationReference) string {
+	if ref.GetRelation() != "" {
+		return fmt.Sprintf(REFERENCE, ref.GetType(), ref.GetRelation())
 	}
-	return ref
+	return ref.GetType()
 }
 
 // RelationReference parses a relation reference string and returns a RelationReference object.

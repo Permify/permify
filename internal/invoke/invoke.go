@@ -3,11 +3,16 @@ package invoke
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/attribute"
+	otelCodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+
 	"go.opentelemetry.io/otel"
 
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var tracer = otel.Tracer("invoke")
@@ -90,13 +95,20 @@ func NewDirectInvoker(
 // It calls the Run method of the CheckEngine with the provided context and PermissionCheckRequest,
 // and returns a PermissionCheckResponse and an error if any.
 func (invoker *DirectInvoker) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-	// Start a new tracing span to measure the performance of the Check function.
-	ctx, span := tracer.Start(ctx, "permissions.check")
+	ctx, span := tracer.Start(ctx, "check", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
+		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
+		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
+	))
 	defer span.End()
 
 	// Validate the depth of the request.
 	err = checkDepth(request)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.PermissionCheckResponse_RESULT_DENIED.String())})
 		return &base.PermissionCheckResponse{
 			Can: base.PermissionCheckResponse_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
@@ -110,6 +122,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		var st token.SnapToken
 		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.PermissionCheckResponse_RESULT_DENIED.String())})
 			return &base.PermissionCheckResponse{
 				Can: base.PermissionCheckResponse_RESULT_DENIED,
 				Metadata: &base.PermissionCheckResponseMetadata{
@@ -124,6 +139,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	if request.GetMetadata().GetSchemaVersion() == "" {
 		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.PermissionCheckResponse_RESULT_DENIED.String())})
 			return &base.PermissionCheckResponse{
 				Can: base.PermissionCheckResponse_RESULT_DENIED,
 				Metadata: &base.PermissionCheckResponseMetadata{
@@ -139,6 +157,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	// Perform the actual permission check using the provided request.
 	response, err = invoker.cc.Check(ctx, request)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.PermissionCheckResponse_RESULT_DENIED.String())})
 		return &base.PermissionCheckResponse{
 			Can: base.PermissionCheckResponse_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
@@ -149,6 +170,8 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 
 	// Increase the check count in the response metadata.
 	response.Metadata = increaseCheckCount(response.Metadata)
+
+	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.Can.String())})
 	return
 }
 
@@ -156,13 +179,19 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 // It calls the Run method of the ExpandEngine with the provided context and PermissionExpandRequest,
 // and returns a PermissionExpandResponse and an error if any.
 func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error) {
-	ctx, span := tracer.Start(ctx, "permissions.expand")
+	ctx, span := tracer.Start(ctx, "expand", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
+		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
+	))
 	defer span.End()
 
 	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
 		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return response, err
 		}
 		request.Metadata.SnapToken = st.Encode().String()
@@ -171,6 +200,8 @@ func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.Permissi
 	if request.GetMetadata().GetSchemaVersion() == "" {
 		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return response, err
 		}
 	}
@@ -182,7 +213,12 @@ func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.Permissi
 // It calls the Run method of the LookupEntityEngine with the provided context and PermissionLookupEntityRequest,
 // and returns a PermissionLookupEntityResponse and an error if any.
 func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookup-entity")
+	ctx, span := tracer.Start(ctx, "lookup-entity", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
+		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
+		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
+	))
 	defer span.End()
 
 	// Set SnapToken if not provided
@@ -190,6 +226,8 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 		var st token.SnapToken
 		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return response, err
 		}
 		request.Metadata.SnapToken = st.Encode().String() // Set the SnapToken in the request metadata.
@@ -199,6 +237,8 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
 		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return response, err
 		}
 	}
@@ -210,7 +250,12 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 // It calls the Stream method of the LookupEntityEngine with the provided context, PermissionLookupEntityRequest, and Permission_LookupEntityStreamServer,
 // and returns an error if any.
 func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookup-entity-stream")
+	ctx, span := tracer.Start(ctx, "lookup-entity-stream", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
+		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
+		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
+	))
 	defer span.End()
 
 	// Set SnapToken if not provided
@@ -218,6 +263,8 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 		var st token.SnapToken
 		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return err
 		}
 		request.Metadata.SnapToken = st.Encode().String() // Set the SnapToken in the request metadata.
@@ -227,6 +274,8 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
 		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return err
 		}
 	}
@@ -237,7 +286,12 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 // LookupSubject is a method of the DirectInvoker structure. It handles the task of looking up subjects
 // and returning the results in a response.
 func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookup-subject")
+	ctx, span := tracer.Start(ctx, "lookup-subject", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
+		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
+		attribute.KeyValue{Key: "subject_reference", Value: attribute.StringValue(tuple.ReferenceToString(request.GetSubjectReference()))},
+	))
 	defer span.End()
 
 	// Check if the request has a SnapToken. If not, a SnapToken is set.
@@ -248,6 +302,8 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
 		// If there's an error retrieving the snapshot, return the response and the error
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return response, err
 		}
 		// Set the SnapToken in the request metadata
@@ -260,6 +316,8 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		// If there's an error retrieving the schema version, return the response and the error
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
 			return response, err
 		}
 	}
