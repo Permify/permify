@@ -1,7 +1,7 @@
 
 <h1 align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
-    Permify - Open Source Authorization Service
+    Permify - Relationship Based Authorization Service
 </h1>
 
 <p align="center">
@@ -20,11 +20,12 @@
 </p>
 
 ## What is Permify?
-[Permify](https://github.com/Permify/permify) is an **open-source authorization service** for creating and maintaining fine-grained authorizations in your applications.
 
-With Permify you can easily structure your authorization model, store authorization data in your own servers securely, and interact with Permify API to handle all authorization questions from any of your applications.
+[Permify](https://github.com/Permify/permify) is a open-source relationship based authorization service for creating and maintaining fine-grained authorizations while ensuring least privilege across your organization.
 
-Permify's data model is inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
+With Permify, you can easily structure your authorization model, store authorization data in your preferred database, and interact with the Permify API to handle all authorization queries from your applications or services.
+
+Permify inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
 
 **Looking for Permify Managed Service?** See our [pricing plans](https://permify.co/pricing/1).
 
