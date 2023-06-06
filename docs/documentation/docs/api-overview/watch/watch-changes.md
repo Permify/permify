@@ -3,7 +3,7 @@ import TabItem from '@theme/TabItem';
 
 # Watch
 
-Permify Watch API acts as a real-time broadcaster, publishing changes to these relational tuples promptly.
+The Permify Watch API acts as a real-time broadcaster that shows changes in the relation tuples.
 
 The Watch API exclusively supports gRPC and works with PostgreSQL, given the track_commit_timestamp option is enabled. Please note, it doesn't support in-memory databases or HTTP communication.
 
