@@ -35,10 +35,10 @@ func NewEntityFilterEngine(schemaReader storage.SchemaReader, relationshipReader
 
 // EntityFilter is a method of the EntityFilterEngine struct. It executes a permission request for linked entities.
 func (engine *EntityFilterEngine) EntityFilter(
-	ctx context.Context,                         // A context used for tracing and cancellation.
+	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
-	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
-	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
+	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
+	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
 ) (err error) { // Returns an error if one occurs during execution.
 	// Check if direct result
 	if request.GetEntityReference().GetType() == request.GetSubject().GetType() && request.GetEntityReference().GetRelation() == request.GetSubject().GetRelation() {
@@ -118,12 +118,12 @@ func (engine *EntityFilterEngine) EntityFilter(
 
 // relationEntrance is a method of the EntityFilterEngine struct. It handles relation entrances.
 func (engine *EntityFilterEngine) relationEntrance(
-	ctx context.Context,                         // A context used for tracing and cancellation.
+	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
-	entrance *schema.LinkedEntrance,             // A linked entrance.
-	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group,                           // An errgroup used for executing goroutines.
-	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
+	entrance *schema.LinkedEntrance, // A linked entrance.
+	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group, // An errgroup used for executing goroutines.
+	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
 
 	// Define a TupleFilter. This specifies which tuples we're interested in.
@@ -181,17 +181,17 @@ func (engine *EntityFilterEngine) relationEntrance(
 
 // tupleToUserSetEntrance is a method of the EntityFilterEngine struct. It handles tuple to user set entrances.
 func (engine *EntityFilterEngine) tupleToUserSetEntrance(
-// A context used for tracing and cancellation.
+	// A context used for tracing and cancellation.
 	ctx context.Context,
-// A permission request for linked entities.
+	// A permission request for linked entities.
 	request *base.PermissionEntityFilterRequest,
-// A linked entrance.
+	// A linked entrance.
 	entrance *schema.LinkedEntrance,
-// A map that keeps track of visited entities to avoid infinite loops.
+	// A map that keeps track of visited entities to avoid infinite loops.
 	visits *ERMap,
-// An errgroup used for executing goroutines.
+	// An errgroup used for executing goroutines.
 	g *errgroup.Group,
-// A custom publisher that publishes results in bulk.
+	// A custom publisher that publishes results in bulk.
 	publisher *BulkPublisher,
 ) error { // Returns an error if one occurs during execution.
 	for _, relation := range []string{tuple.ELLIPSIS, request.GetSubject().GetRelation()} {
@@ -252,13 +252,13 @@ func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 
 // run is a method of the EntityFilterEngine struct. It executes the linked entity engine for a given request.
 func (engine *EntityFilterEngine) l(
-	ctx context.Context,                         // A context used for tracing and cancellation.
+	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
-	found *base.EntityAndRelation,               // An entity and relation that was previously found.
-	visits *ERMap,                               // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group,                           // An errgroup used for executing goroutines.
-	publisher *BulkPublisher,                    // A custom publisher that publishes results in bulk.
-) error {                   // Returns an error if one occurs during execution.
+	found *base.EntityAndRelation, // An entity and relation that was previously found.
+	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
+	g *errgroup.Group, // An errgroup used for executing goroutines.
+	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+) error { // Returns an error if one occurs during execution.
 	if !visits.Add(found) { // If the entity and relation has already been visited.
 		return nil
 	}

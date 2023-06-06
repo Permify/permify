@@ -364,7 +364,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						continue
 					}
 
-					query := tuple.EntityToString(entity) + " " + permission + " " + tuple.ReferenceToString(filter.SubjectReference)
+					query := tuple.EntityToString(entity) + " " + permission + " " + filter.SubjectReference
 
 					if isSameArray(res.GetSubjectIds(), expected) {
 						if debug {
