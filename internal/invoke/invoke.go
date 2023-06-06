@@ -95,7 +95,7 @@ func NewDirectInvoker(
 // It calls the Run method of the CheckEngine with the provided context and PermissionCheckRequest,
 // and returns a PermissionCheckResponse and an error if any.
 func (invoker *DirectInvoker) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-	ctx, span := tracer.Start(ctx, "invoke.check", trace.WithAttributes(
+	ctx, span := tracer.Start(ctx, "check", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -179,7 +179,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 // It calls the Run method of the ExpandEngine with the provided context and PermissionExpandRequest,
 // and returns a PermissionExpandResponse and an error if any.
 func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error) {
-	ctx, span := tracer.Start(ctx, "invoke.expand", trace.WithAttributes(
+	ctx, span := tracer.Start(ctx, "expand", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -213,7 +213,7 @@ func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.Permissi
 // It calls the Run method of the LookupEntityEngine with the provided context and PermissionLookupEntityRequest,
 // and returns a PermissionLookupEntityResponse and an error if any.
 func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
-	ctx, span := tracer.Start(ctx, "invoke.lookup-entity", trace.WithAttributes(
+	ctx, span := tracer.Start(ctx, "lookup-entity", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -250,7 +250,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 // It calls the Stream method of the LookupEntityEngine with the provided context, PermissionLookupEntityRequest, and Permission_LookupEntityStreamServer,
 // and returns an error if any.
 func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
-	ctx, span := tracer.Start(ctx, "invoke.lookup-entity-stream", trace.WithAttributes(
+	ctx, span := tracer.Start(ctx, "lookup-entity-stream", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -286,7 +286,7 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 // LookupSubject is a method of the DirectInvoker structure. It handles the task of looking up subjects
 // and returning the results in a response.
 func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error) {
-	ctx, span := tracer.Start(ctx, "invoke.lookup-subject", trace.WithAttributes(
+	ctx, span := tracer.Start(ctx, "lookup-subject", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
