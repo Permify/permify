@@ -149,7 +149,7 @@ module.exports = {
 		{
 			type: "doc",
 			id: "multi-tenancy",
-			label: "Multi",
+			label: "Multi Tenancy",
 		},
 		{
 			type: "category",
