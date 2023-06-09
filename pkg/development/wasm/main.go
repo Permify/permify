@@ -293,6 +293,31 @@ func readSchemaGraph() js.Func {
 	})
 }
 
+func validate() js.Func {
+	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+
+		t := map[string]interface{}{}
+
+		err := json.Unmarshal([]byte(string(args[0].String())), t)
+
+		if err != nil {
+			return js.ValueOf([]interface{}{err.Error()})
+		}
+
+		progresses := dev.Validate(context.Background(), t)
+		if err != nil {
+			return js.ValueOf([]interface{}{err.Error()})
+		}
+
+		result, err := json.Marshal(progresses)
+		if err != nil {
+			return js.ValueOf([]interface{}{err.Error()})
+		}
+
+		return js.ValueOf([]interface{}{string(result)})
+	})
+}
+
 func main() {
 	ch := make(chan struct{}, 0)
 	dev = development.NewContainer()
@@ -305,5 +330,6 @@ func main() {
 	js.Global().Set("readTuple", readTuple())
 	js.Global().Set("deleteTuple", deleteTuple())
 	js.Global().Set("readSchemaGraph", readSchemaGraph())
+	js.Global().Set("validate", validate())
 	<-ch
 }
