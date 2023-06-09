@@ -1,8 +1,9 @@
 # Configuration File
 
-Permify offers various options for configuring your Permify API Server. 
+Permify offers various options for configuring your Permify API Server.
 
-Here is the example configuration YAML file with glossary below. You can also find this [example config file](https://github.com/Permify/permify/blob/master/example.config.yaml) in Permify repo.
+Here is the example configuration YAML file with glossary below. You can also find
+this [example config file](https://github.com/Permify/permify/blob/master/example.config.yaml) in Permify repo.
 
 ***Example config.yaml file***
 
@@ -33,7 +34,7 @@ profiler:
 authn:
   method: preshared
   enabled: false
-  keys: []
+  keys: [ ]
 
 tracer:
   exporter: 'zipkin'
@@ -82,9 +83,11 @@ database:
 <p>
 
 #### Definition
+
 Server options to run Permify. (`grpc` and `http` available for now.)
 
 #### Structure
+
 ```
 ├── server
     ├── rate_limit
@@ -99,16 +102,32 @@ Server options to run Permify. (`grpc` and `http` available for now.)
 
 #### Glossary
 
-| Required | Argument                  | Default           | Description                                                         |
-|----------|---------------------------|-------------------|---------------------------------------------------------------------|
-| [ ]      | rate_limit                | 100               | the maximum number of requests the server should handle per second. |
-| [x]      | [ server_type ]           | -                 | server option type can either be `grpc` or `http`.                  |
-| [ ]      | enabled (for server type) | true              | switch option for server.                                           |
-| [x]      | port                      | -                 | port that server run on.                                            |
-| [x]      | tls                       | -                 | transport layer security options.                                   |
-| [ ]      | enabled (for tls)         | false             | switch option for tls                                               |
-| [ ]      | cert                      | -                 | tls certificate path.                                               |
-| [ ]      | key                       | -                 | tls key pat                                                         |
+| Required | Argument                  | Default | Description                                                         |
+|----------|---------------------------|---------|---------------------------------------------------------------------|
+| [ ]      | rate_limit                | 100     | the maximum number of requests the server should handle per second. |
+| [x]      | [ server_type ]           | -       | server option type can either be `grpc` or `http`.                  |
+| [ ]      | enabled (for server type) | true    | switch option for server.                                           |
+| [x]      | port                      | -       | port that server run on.                                            |
+| [x]      | tls                       | -       | transport layer security options.                                   |
+| [ ]      | enabled (for tls)         | false   | switch option for tls                                               |
+| [ ]      | cert                      | -       | tls certificate path.                                               |
+| [ ]      | key                       | -       | tls key pat                                                         |
+
+#### ENV
+
+| Argument                  | ENV                               | Type         |
+|---------------------------|-----------------------------------|--------------|
+| rate_limit                | PERMIFY_RATE_LIMIT                | int          |
+| grpc-port                 | PERMIFY_GRPC_PORT                 | string       |
+| grpc-tls-enabled          | PERMIFY_GRPC_TLS_ENABLED          | boolean      |
+| grpc-tls-key-path         | PERMIFY_GRPC_TLS_KEY_PATH         | string       |
+| grpc-tls-cert-path        | PERMIFY_GRPC_TLS_CERT_PATH        | string       |
+| http-enabled              | PERMIFY_HTTP_ENABLED              | boolean      |
+| http-port                 | PERMIFY_HTTP_PORT                 | string       |
+| http-tls-key-path         | PERMIFY_HTTP_TLS_KEY_PATH         | string       |
+| http-tls-cert-path        | PERMIFY_HTTP_TLS_CERT_PATH        | string       |
+| http-cors-allowed-origins | PERMIFY_HTTP_CORS_ALLOWED_ORIGINS | string array |
+| http-cors-allowed-headers | PERMIFY_HTTP_CORS_ALLOWED_HEADERS | string array |
 
 </p>
 </details>
@@ -117,11 +136,13 @@ Server options to run Permify. (`grpc` and `http` available for now.)
 <p>
 
 #### Definition
+
 Real time logs of authorization. Permify uses [zerolog] as a logger.
 
 [zerolog]: https://github.com/rs/zerolog
 
 #### Structure
+
 ```
 ├── logger
     ├── level
@@ -133,6 +154,12 @@ Real time logs of authorization. Permify uses [zerolog] as a logger.
 |----------|----------|---------|--------------------------------------------------|
 | [x]      | level    | info    | logger levels: `error`, `warn`, `info` , `debug` |
 
+#### ENV
+
+| Argument                  | ENV                             | Type   |
+|---------------------------|---------------------------------|--------|
+| log-level                 | PERMIFY_LOG_LEVEL               | string |
+
 </p>
 </details>
 
@@ -143,7 +170,7 @@ Real time logs of authorization. Permify uses [zerolog] as a logger.
 
 You can choose to authenticate users to interact with Permify API.
 
-There are 2 authentication method you can choose: 
+There are 2 authentication method you can choose:
 
 * [Pre Shared Keys](#pre-shared-keys)
 * [OpenID Connect](#openid-connect)
@@ -153,6 +180,7 @@ There are 2 authentication method you can choose:
 On this method, you must provide a pre shared keys in order to identify yourself.
 
 #### Structure
+
 ```
 ├── authn
 |   ├── method
@@ -168,13 +196,26 @@ On this method, you must provide a pre shared keys in order to identify yourself
 | [ ]      | enabled  | true    | switch option authentication config                                                                                  |
 | [x]      | keys     | -       | Private key/keys for server authentication. Permify does not provide this key, so it must be generated by the users. |
 
+#### ENV
+
+| Argument              | ENV                           | Type         |
+|-----------------------|-------------------------------|--------------|
+| authn-enabled         | PERMIFY_AUTHN_ENABLED         | boolean      |
+| authn-method          | PERMIFY_AUTHN_METHOD          | string       |
+| authn-preshared-keys  | PERMIFY_AUTHN_PRESHARED_KEYS  | string array |
+
+
 #### OpenID Connect
 
-Permify supports OpenID Connect (OIDC). OIDC provides an identity layer on top of OAuth 2.0 to address the shortcomings of using OAuth 2.0 for establishing identity. 
+Permify supports OpenID Connect (OIDC). OIDC provides an identity layer on top of OAuth 2.0 to address the shortcomings
+of using OAuth 2.0 for establishing identity.
 
-With this authentication method, you be able to integrate your existing Identity Provider (IDP) to validate JSON Web Tokens (JWTs) using JSON Web Keys (JWKs). By doing so, only trusted tokens from the IDP will be accepted for authentication.
+With this authentication method, you be able to integrate your existing Identity Provider (IDP) to validate JSON Web
+Tokens (JWTs) using JSON Web Keys (JWKs). By doing so, only trusted tokens from the IDP will be accepted for
+authentication.
 
 #### Structure
+
 ```
 ├── authn
 |   ├── method
@@ -192,6 +233,14 @@ With this authentication method, you be able to integrate your existing Identity
 | [x]      | client_id | -       | This is the client ID of the application you're developing. It is a unique identifier that is assigned to your application by the OpenID Connect provider, and it should be included in the JWTs that are issued by the provider. |
 | [x]      | issuer    | -       | This is the URL of the provider that is responsible for authenticating users. You will use this URL to discover information about the provider in step 1 of the authentication process.                                           |
 
+#### ENV
+
+| Argument              | ENV                           | Type         |
+|-----------------------|-------------------------------|--------------|
+| authn-enabled         | PERMIFY_AUTHN_ENABLED         | boolean      |
+| authn-method          | PERMIFY_AUTHN_METHOD          | string       |
+| authn-oidc-issuer     | PERMIFY_AUTHN_OIDC_ISSUER     | string       |
+| authn-oidc-client-id  | PERMIFY_AUTHN_OIDC_CLIENT_ID  | string       |
 
 </p>
 </details>
@@ -201,8 +250,12 @@ With this authentication method, you be able to integrate your existing Identity
 <p>
 
 #### Definition
-Permify integrated with [jaeger] , [signoz] and [zipkin] tacing tools to analyze performance and behavior of your authorization when using Permify.
+
+Permify integrated with [jaeger] , [signoz] and [zipkin] tacing tools to analyze performance and behavior of your
+authorization when using Permify.
+
 #### Structure
+
 ```
 ├── tracer
 |   ├── exporter
@@ -212,11 +265,19 @@ Permify integrated with [jaeger] , [signoz] and [zipkin] tacing tools to analyze
 
 #### Glossary
 
-| Required | Argument  | Default  | Description                                                      |
-|----------|-----------|----------|------------------------------------------------------------------|
-| [x]      | exporter  | -        | Tracer exporter, the options are `jaeger`, `signoz` and `zipkin` |
-| [x]      | endpoint  | -        | export uri for tracing data.                                     |
-| [ ]      | enabled   | false    | switch option for tracing.                                       |
+| Required | Argument | Default | Description                                                      |
+|----------|----------|---------|------------------------------------------------------------------|
+| [x]      | exporter | -       | Tracer exporter, the options are `jaeger`, `signoz` and `zipkin` |
+| [x]      | endpoint | -       | export uri for tracing data.                                     |
+| [ ]      | enabled  | false   | switch option for tracing.                                       |
+
+#### ENV
+
+| Argument             | ENV                           | Type         |
+|----------------------|-------------------------------|--------------|
+| tracer-enabled       | PERMIFY_TRACER_ENABLED        | boolean      |
+| tracer-exporter      | PERMIFY_TRACER_EXPORTER       | string       |
+| tracer-endpoint      | PERMIFY_TRACER_ENDPOINT       | string       |
 
 </p>
 </details>
@@ -225,9 +286,12 @@ Permify integrated with [jaeger] , [signoz] and [zipkin] tacing tools to analyze
 <p>
 
 #### Definition
-Configuration for observing metrics; check count, cache check count and session information; Permify version, hostname, os, arch. 
+
+Configuration for observing metrics; check count, cache check count and session information; Permify version, hostname,
+os, arch.
 
 #### Structure
+
 ```
 ├── meter
 |   ├── exporter
@@ -237,11 +301,19 @@ Configuration for observing metrics; check count, cache check count and session 
 
 #### Glossary
 
-| Required | Argument  | Default | Description                                                  |
-|----------|-----------|---------|--------------------------------------------------------------|
-| [x]      | exporter  | -       | [otpl](https://opentelemetry.io/docs/collector/) is default. |
-| [x]      | endpoint  | -       | export uri for metric observation                            |
-| [ ]      | enabled   | true    | switch option for meter tracing.                             |
+| Required | Argument | Default | Description                                                  |
+|----------|----------|---------|--------------------------------------------------------------|
+| [x]      | exporter | -       | [otpl](https://opentelemetry.io/docs/collector/) is default. |
+| [x]      | endpoint | -       | export uri for metric observation                            |
+| [ ]      | enabled  | true    | switch option for meter tracing.                             |
+
+#### ENV
+
+| Argument           | ENV                     | Type         |
+|--------------------|-------------------------|--------------|
+| meter-enabled      | PERMIFY_METER_ENABLED   | boolean      |
+| meter-exporter     | PERMIFY_METER_EXPORTER  | string       |
+| meter-endpoint     | PERMIFY_METER_ENDPOINT  | string       |
 
 </p>
 </details>
@@ -250,9 +322,12 @@ Configuration for observing metrics; check count, cache check count and session 
 <p>
 
 #### Definition
-Configurations for the database that points out where your want to store your authorization data (relation tuples, audits, decision logs, authorization model) 
+
+Configurations for the database that points out where your want to store your authorization data (relation tuples,
+audits, decision logs, authorization model)
 
 #### Structure
+
 ```
 ├── database
 |   ├── engine
@@ -287,6 +362,23 @@ Configurations for the database that points out where your want to store your au
 | [ ]      | window                          | 720h    | Determines how much backward cleaning the Garbage Collection process will perform.                                |            
 | [ ]      | number_of_threads               | 1       | Limits how many threads Garbage Collection processes concurrently with.                                           |           
 
+#### ENV
+
+| Argument                                      | ENV                                                    | Type     |
+|-----------------------------------------------|--------------------------------------------------------|----------|
+| database-engine                               | PERMIFY_DATABASE_ENGINE                                | string   |
+| database-uri                                  | PERMIFY_DATABASE_URI                                   | string   |
+| database-auto-migrate                         | PERMIFY_DATABASE_AUTO_MIGRATE                          | boolean  |
+| database-max-open-connections                 | PERMIFY_DATABASE_MAX_OPEN_CONNECTIONS                  | int      |
+| database-max-idle-connections                 | PERMIFY_DATABASE_MAX_IDLE_CONNECTIONS                  | int      |
+| database-max-connection-lifetime              | PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME               | duration |
+| database-max-connection-idle-time             | PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME              | duration |
+| database-garbage-collection-enabled           | PERMIFY_DATABASE_GARBAGE_ENABLED                       | boolean  |
+| database-garbage-collection-interval          | PERMIFY_DATABASE_GARBAGE_COLLECTION_INTERVAL           | duration |
+| database-garbage-collection-timeout           | PERMIFY_DATABASE_GARBAGE_COLLECTION_TIMEOUT            | duration |
+| database-garbage-collection-window            | PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW             | duration |
+| database-garbage-collection-number-of-threads | PERMIFY_DATABASE_GARBAGE_COLLECTION_NUMBER_OF_THREADS  | int      |
+
 </p>
 </details>
 
@@ -294,24 +386,69 @@ Configurations for the database that points out where your want to store your au
 <p>
 
 #### Definition
-pprof is a performance profiler for Go programs. It allows developers to analyze and understand the performance characteristics of their code by generating detailed profiles of program execution
+
+pprof is a performance profiler for Go programs. It allows developers to analyze and understand the performance
+characteristics of their code by generating detailed profiles of program execution
+
 #### Structure
+
 ```
-├── meter
+├── profiler
 |   ├── enabled
 |   ├── port
 ```
 
 #### Glossary
 
-| Required | Argument  | Default | Description                                   |
-|----------|-----------|---------|-----------------------------------------------|
-| [ ]      | enabled   | true    | switch option for profiler.                   |
-| [x]      | port      | -       | port that profiler runs on *(default: 6060)*. |
+| Required | Argument | Default | Description                                   |
+|----------|----------|---------|-----------------------------------------------|
+| [ ]      | enabled  | true    | switch option for profiler.                   |
+| [x]      | port     | -       | port that profiler runs on *(default: 6060)*. |
+
+#### ENV
+
+| Argument         | ENV                        | Type         |
+|------------------|----------------------------|--------------|
+| profiler-enabled | PERMIFY_PROFILER_ENABLED   | boolean      |
+| profiler-port    | PERMIFY_PROFILER_PORT      | string       |
+
+</p>
+</details>
+
+<details><summary>Distributed | Consistent hashing Configurations</summary>
+<p>
+
+#### Definition
+
+A consistent hashing ring ensures data distribution that minimizes reorganization when nodes are added or removed, improving scalability and performance in distributed systems."
+
+#### Structure
+
+```
+├── distributed
+|   ├── enabled
+|   ├── nodes
+```
+
+#### Glossary
+
+| Required | Argument | Default | Description                    |
+|----------|----------|---------|--------------------------------|
+| [ ]      | enabled  | true    | switch option for distributed. |
+| [x]      | nodes    | -       | node list                      |
+
+#### ENV
+
+| Argument            | ENV                         | Type         |
+|---------------------|-----------------------------|--------------|
+| distributed-enabled | PERMIFY_DISTRIBUTED_ENABLED | boolean      |
+| distributed-nodes   | PERMIFY_DISTRIBUTED_NODES   | string array |
 
 </p>
 </details>
 
 [jaeger]: https://www.jaegertracing.io/
+
 [zipkin]: https://zipkin.io/
+
 [signoz]: https://signoz.io/

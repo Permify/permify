@@ -179,6 +179,7 @@ module.exports = {
 			items: [
 				"reference/glossary",
 				"reference/configuration",
+				"reference/contextual-tuples",
 				"reference/snap-tokens",
 				"reference/tracing"
 			],

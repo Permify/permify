@@ -209,7 +209,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindPFlag("meter.enabled", flags.Lookup("meter-enabled")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("meter.enabled", "PERMIFY_METRIC_ENABLED"); err != nil {
+	if err = viper.BindEnv("meter.enabled", "PERMIFY_METER_ENABLED"); err != nil {
 		panic(err)
 	}
 
