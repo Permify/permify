@@ -277,22 +277,24 @@ func (c *Development) ReadSchema(ctx context.Context) (sch *v1.SchemaDefinition,
 	return c.Container.SR.ReadSchema(ctx, "t1", version)
 }
 
-// Validate - Creates new validate request
+// Validate performs validation and compilation of schema definitions. It takes a context and a shape map
+// and returns a Progresses object which includes the results of each validation check.
 func (c *Development) Validate(ctx context.Context, shape map[string]interface{}) *Progresses {
-	// create an empty error list
+	// Initial setup of the Progresses object
 	list := &Progresses{
 		Pass:       true,
 		ErrorCount: 0,
 		Messages:   make([]Progress, 0),
 	}
 
+	// Marshal the shape map into YAML format
 	out, err := yaml.Marshal(shape)
 	if err != nil {
 		list.AddError(err.Error())
 		return list
 	}
 
-	// Create a new validate request with the given shape
+	// Unmarshal the YAML data into a file.Shape object
 	s := &file.Shape{}
 	err = yaml.Unmarshal(out, &s)
 	if err != nil {
@@ -300,22 +302,27 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 		return list
 	}
 
+	// Start parsing the schema
 	list.AddProgress("schema is creating... 🚀")
 
+	// Parse the schema using the parser library
 	sch, err := parser.NewParser(s.Schema).Parse()
 	if err != nil {
 		list.AddError(err.Error())
 		return list
 	}
 
+	// Compile the parsed schema
 	_, err = compiler.NewCompiler(false, sch).Compile()
 	if err != nil {
 		list.AddError(err.Error())
 		return list
 	}
 
+	// Generate a new unique ID for this version of the schema
 	version := xid.New().String()
 
+	// Create a slice of SchemaDefinitions, one for each statement in the schema
 	cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
 	for _, st := range sch.Statements {
 		cnf = append(cnf, storage.SchemaDefinition{
@@ -326,17 +333,20 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 		})
 	}
 
-	// write the schema
+	// Write the schema definitions into the storage
 	err = c.Container.SW.WriteSchema(ctx, cnf)
 	if err != nil {
 		list.AddError(err.Error())
 		return list
 	}
 
+	// Indicate the schema was created successfully
 	list.AddProgress("schema successfully created")
 
+	// Start the process of creating relationships
 	list.AddProgress("relationships are creating... 🚀")
 
+	// Each item in the Relationships slice is processed individually
 	for _, t := range s.Relationships {
 		tup, err := tuple.Tuple(t)
 		if err != nil {
@@ -346,40 +356,41 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 		subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
 
+		// Read the schema definition for this relationship
 		definition, _, err := c.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
 		if err != nil {
 			list.AddError(err.Error())
 			return list
 		}
 
+		// Validate the relationship tuple against the schema definition
 		err = validation.ValidateTuple(definition, tup)
 		if err != nil {
 			list.AddError(err.Error())
 			return list
 		}
 
+		// Write the relationship to the database
 		_, err = c.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(&v1.Tuple{
 			Entity:   tup.GetEntity(),
 			Relation: tup.GetRelation(),
 			Subject:  subject,
 		}))
+		// Continue to the next relationship if an error occurred
 		if err != nil {
 			list.AddError(fmt.Sprintf("%s failed %s", t, err.Error()))
-			continue
-		}
-
-		if err != nil {
-			list.AddProgress(fmt.Sprintf("success: %s", t))
 			continue
 		}
 	}
 
 	list.AddProgress("checking scenarios... 🚀")
 
+	// Each item in the Scenarios slice is processed individually
 	for sn, scenario := range s.Scenarios {
 		list.AddProgress(fmt.Sprintf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description))
 		list.AddProgress("checks:")
 
+		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
 			entity, err := tuple.E(check.Entity)
 			if err != nil {
@@ -399,12 +410,14 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 				Relation: ear.GetRelation(),
 			}
 
+			// Each Assertion in the current check is processed
 			for permission, expected := range check.Assertions {
 				exp := v1.PermissionCheckResponse_RESULT_ALLOWED
 				if !expected {
 					exp = v1.PermissionCheckResponse_RESULT_DENIED
 				}
 
+				// A Permission Check is made for the current entity, permission and subject
 				res, err := c.Container.Invoker.Check(ctx, &v1.PermissionCheckRequest{
 					TenantId: "t1",
 					Metadata: &v1.PermissionCheckRequestMetadata{
@@ -423,14 +436,17 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 				query := tuple.SubjectToString(subject) + " " + permission + " " + tuple.EntityToString(entity)
 
+				// Check if the permission check result matches the expected result
 				if res.Can == exp {
 					list.AddProgress(fmt.Sprintf("success: %s \n", query))
 				} else {
 					list.AddError(fmt.Sprintf("fail: %s ->", query))
 
+					// Handle the case where the permission check result is ALLOWED but the expected result was DENIED
 					if res.Can == v1.PermissionCheckResponse_RESULT_ALLOWED {
 						list.AddError(fmt.Sprintf("fail: %s -> expected: DENIED actual: ALLOWED ", query))
 					} else {
+						// Handle the case where the permission check result is DENIED but the expected result was ALLOWED
 						list.AddError(fmt.Sprintf("fail: %s -> expected: ALLOWED actual: DENIED ", query))
 					}
 				}
@@ -439,6 +455,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 		list.AddProgress("entity_filters:")
 
+		// Each EntityFilter in the current scenario is processed
 		for _, filter := range scenario.EntityFilters {
 
 			ear, err := tuple.EAR(filter.Subject)
@@ -453,7 +470,10 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 				Relation: ear.GetRelation(),
 			}
 
+			// Each Assertion in the current filter is processed
+
 			for permission, expected := range filter.Assertions {
+				// Perform a lookup for the entity with the given subject and permission
 				res, err := c.Container.Invoker.LookupEntity(ctx, &v1.PermissionLookupEntityRequest{
 					TenantId: "t1",
 					Metadata: &v1.PermissionLookupEntityRequestMetadata{
@@ -472,6 +492,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 				query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
 
+				// Check if the actual result of the entity lookup matches the expected result
 				if isSameArray(res.GetEntityIds(), expected) {
 					list.AddProgress(fmt.Sprintf("success: %v\n", query))
 				} else {
@@ -482,6 +503,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 		color.Notice.Println("subject_filters:")
 
+		// Each SubjectFilter in the current scenario is processed
 		for _, filter := range scenario.SubjectFilters {
 
 			subjectReference := tuple.RelationReference(filter.SubjectReference)
@@ -497,7 +519,9 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 				continue
 			}
 
+			// Each Assertion in the current filter is processed
 			for permission, expected := range filter.Assertions {
+				// Perform a lookup for the subject with the given entity and permission
 				res, err := c.Container.Invoker.LookupSubject(ctx, &v1.PermissionLookupSubjectRequest{
 					TenantId: "t1",
 					Metadata: &v1.PermissionLookupSubjectRequestMetadata{
@@ -515,6 +539,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 				query := tuple.EntityToString(entity) + " " + permission + " " + filter.SubjectReference
 
+				// Check if the actual result of the subject lookup matches the expected result
 				if isSameArray(res.GetSubjectIds(), expected) {
 					list.AddProgress(fmt.Sprintf("success: %v\n", query))
 				} else {
@@ -524,6 +549,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 		}
 	}
 
+	// Return the results of all checks and validations
 	return list
 }
 
