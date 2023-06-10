@@ -3,11 +3,14 @@ package preshared
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/pkg/errors"
 
-	"github.com/Permify/permify/internal/authn"
 	"github.com/Permify/permify/internal/config"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // KeyAuthenticator - Interface for key authenticator
@@ -38,10 +41,10 @@ func NewKeyAuthn(_ context.Context, cfg config.Preshared) (*KeyAuthn, error) {
 func (a *KeyAuthn) Authenticate(ctx context.Context) error {
 	key, err := grpcAuth.AuthFromMD(ctx, "Bearer")
 	if err != nil {
-		return authn.MissingBearerTokenError
+		return errors.New(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String())
 	}
 	if _, found := a.keys[key]; found {
 		return nil
 	}
-	return authn.Unauthenticated
+	return status.Error(codes.Unauthenticated, base.ErrorCode_ERROR_CODE_INVALID_KEY.String())
 }

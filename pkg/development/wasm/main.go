@@ -295,11 +295,9 @@ func readSchemaGraph() js.Func {
 
 func validate() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-
 		t := map[string]interface{}{}
 
 		err := json.Unmarshal([]byte(string(args[0].String())), t)
-
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
