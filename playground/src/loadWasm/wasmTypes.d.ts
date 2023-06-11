@@ -10,6 +10,7 @@ declare global {
     readTuple: (filter: string)=>any[]
     deleteTuple: (tuple: string)=>any[]
     readSchemaGraph: ()=>any[]
+    validate: (input: string)=>any[]
   }
 }
 
