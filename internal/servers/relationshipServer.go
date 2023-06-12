@@ -152,6 +152,11 @@ func (r *RelationshipServer) Delete(ctx context.Context, request *v1.Relationshi
 		return nil, v
 	}
 
+	err := validation.ValidateFilter(request.GetFilter())
+	if err != nil {
+		return nil, v
+	}
+
 	snap, err := r.rw.DeleteRelationships(ctx, request.GetTenantId(), request.GetFilter())
 	if err != nil {
 		span.RecordError(err)

@@ -293,25 +293,39 @@ func readSchemaGraph() js.Func {
 	})
 }
 
+// validate is a function that validates the JSON input
+// and checks its progress using dev.Validate function.
 func validate() js.Func {
+	// Returns a new JavaScript function that wraps the Go function.
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		t := map[string]interface{}{}
+		// Create an empty map to hold the JSON content.
+		var t interface{}
 
-		err := json.Unmarshal([]byte(string(args[0].String())), t)
+		// Unmarshal the JSON received from the args into the map t.
+		// args[0].String() is the JSON string.
+		err := json.Unmarshal([]byte(args[0].String()), &t)
+		// If there is an error in unmarshaling, return the error to JavaScript.
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
 
-		progresses := dev.Validate(context.Background(), t)
+		input := t.(map[string]interface{})
+		// Validate the JSON content using the Validate function from the dev package.
+		// The background context is passed to it.
+		progresses := dev.Validate(context.Background(), input)
+		// If there is an error in validation, return the error to JavaScript.
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
 
+		// Marshal the result from the Validate function back into a JSON string.
 		result, err := json.Marshal(progresses)
+		// If there is an error in marshaling, return the error to JavaScript.
 		if err != nil {
 			return js.ValueOf([]interface{}{err.Error()})
 		}
 
+		// If everything goes fine, return the JSON string to JavaScript.
 		return js.ValueOf([]interface{}{string(result)})
 	})
 }

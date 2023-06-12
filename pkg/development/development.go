@@ -387,7 +387,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 	// Each item in the Scenarios slice is processed individually
 	for sn, scenario := range s.Scenarios {
-		list.AddProgress(fmt.Sprintf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description))
+		list.AddProgress(fmt.Sprintf("%v.scenario: %s - %s", sn+1, scenario.Name, scenario.Description))
 		list.AddProgress("checks:")
 
 		// Each Check in the current scenario is processed
@@ -438,7 +438,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 				// Check if the permission check result matches the expected result
 				if res.Can == exp {
-					list.AddProgress(fmt.Sprintf("success: %s \n", query))
+					list.AddProgress(fmt.Sprintf("success: %s", query))
 				} else {
 					list.AddError(fmt.Sprintf("fail: %s ->", query))
 
@@ -494,7 +494,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 				// Check if the actual result of the entity lookup matches the expected result
 				if isSameArray(res.GetEntityIds(), expected) {
-					list.AddProgress(fmt.Sprintf("success: %v\n", query))
+					list.AddProgress(fmt.Sprintf("success: %v", query))
 				} else {
 					list.AddError(fmt.Sprintf("fail: %s -> expected: %+v actual: %+v", query, expected, res.GetEntityIds()))
 				}
@@ -541,7 +541,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 				// Check if the actual result of the subject lookup matches the expected result
 				if isSameArray(res.GetSubjectIds(), expected) {
-					list.AddProgress(fmt.Sprintf("success: %v\n", query))
+					list.AddProgress(fmt.Sprintf("success: %v", query))
 				} else {
 					list.AddError(fmt.Sprintf("fail: %s -> expected: %+v actual: %+v", query, expected, res.GetSubjectIds()))
 				}

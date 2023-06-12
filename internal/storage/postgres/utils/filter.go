@@ -34,6 +34,12 @@ func FilterQueryForSelectBuilder(sl squirrel.SelectBuilder, filter *base.TupleFi
 		eq["subject_relation"] = filter.GetSubject().GetRelation()
 	}
 
+	// If eq is empty, return the original squirrel.UpdateBuilder without attaching a WHERE clause.
+	// This ensures we don't accidentally update every row in the table.
+	if len(eq) == 0 {
+		return sl
+	}
+
 	return sl.Where(eq)
 }
 
@@ -63,6 +69,12 @@ func FilterQueryForUpdateBuilder(sl squirrel.UpdateBuilder, filter *base.TupleFi
 
 	if filter.GetSubject().GetRelation() != "" {
 		eq["subject_relation"] = filter.GetSubject().GetRelation()
+	}
+
+	// If eq is empty, return the original squirrel.UpdateBuilder without attaching a WHERE clause.
+	// This ensures we don't accidentally update every row in the table.
+	if len(eq) == 0 {
+		return sl
 	}
 
 	return sl.Where(eq)
