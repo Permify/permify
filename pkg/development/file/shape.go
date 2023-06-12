@@ -32,6 +32,9 @@ type Scenario struct {
 
 // Check is a struct that represents an individual authorization check.
 type Check struct {
+	// ContextualTuples is a slice of strings that represent the contextual tuples involved in the authorization check.
+	ContextualTuples []string `yaml:"contextual_tuples"`
+
 	// Entity is a string that represents the entity type involved in the authorization check.
 	Entity string `yaml:"entity"`
 
@@ -44,6 +47,9 @@ type Check struct {
 
 // EntityFilter is a struct that represents a filter to be applied during an authorization check.
 type EntityFilter struct {
+	// ContextualTuples is a slice of strings that represent the contextual tuples involved in the authorization check.
+	ContextualTuples []string `yaml:"contextual_tuples"`
+
 	// EntityType is a string that represents the type of entity the filter applies to.
 	EntityType string `yaml:"entity_type"`
 
@@ -56,6 +62,9 @@ type EntityFilter struct {
 
 // SubjectFilter is a struct that represents a filter to be applied during an authorization check.
 type SubjectFilter struct {
+	// ContextualTuples is a slice of strings that represent the contextual tuples involved in the authorization check.
+	ContextualTuples []string `yaml:"contextual_tuples"`
+
 	// EntityType is a string that represents the type of entity the filter applies to.
 	SubjectReference string `yaml:"subject_reference"`
 

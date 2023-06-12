@@ -234,6 +234,22 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					Relation: ear.GetRelation(),
 				}
 
+				var contextTuples []*base.Tuple
+
+				for _, t := range check.ContextualTuples {
+					tup, err := tuple.Tuple(t)
+					if err != nil {
+						list.Add(err.Error())
+						continue
+					}
+
+					contextTuples = append(contextTuples, &base.Tuple{
+						Entity:   tup.GetEntity(),
+						Relation: tup.GetRelation(),
+						Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
+					})
+				}
+
 				for permission, expected := range check.Assertions {
 					exp := base.PermissionCheckResponse_RESULT_ALLOWED
 					if !expected {
@@ -247,9 +263,10 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							Depth:         100,
 						},
-						Entity:     entity,
-						Permission: permission,
-						Subject:    subject,
+						ContextualTuples: contextTuples,
+						Entity:           entity,
+						Permission:       permission,
+						Subject:          subject,
 					})
 					if err != nil {
 						list.Add(err.Error())
@@ -298,6 +315,22 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					Relation: ear.GetRelation(),
 				}
 
+				var contextTuples []*base.Tuple
+
+				for _, t := range filter.ContextualTuples {
+					tup, err := tuple.Tuple(t)
+					if err != nil {
+						list.Add(err.Error())
+						continue
+					}
+
+					contextTuples = append(contextTuples, &base.Tuple{
+						Entity:   tup.GetEntity(),
+						Relation: tup.GetRelation(),
+						Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
+					})
+				}
+
 				for permission, expected := range filter.Assertions {
 					res, err := dev.Container.Invoker.LookupEntity(ctx, &base.PermissionLookupEntityRequest{
 						TenantId: "t1",
@@ -306,9 +339,10 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							Depth:         100,
 						},
-						EntityType: filter.EntityType,
-						Permission: permission,
-						Subject:    subject,
+						ContextualTuples: contextTuples,
+						EntityType:       filter.EntityType,
+						Permission:       permission,
+						Subject:          subject,
 					})
 					if err != nil {
 						list.Add(err.Error())
@@ -344,6 +378,22 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					continue
 				}
 
+				var contextTuples []*base.Tuple
+
+				for _, t := range filter.ContextualTuples {
+					tup, err := tuple.Tuple(t)
+					if err != nil {
+						list.Add(err.Error())
+						continue
+					}
+
+					contextTuples = append(contextTuples, &base.Tuple{
+						Entity:   tup.GetEntity(),
+						Relation: tup.GetRelation(),
+						Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
+					})
+				}
+
 				for permission, expected := range filter.Assertions {
 					res, err := dev.Container.Invoker.LookupSubject(ctx, &base.PermissionLookupSubjectRequest{
 						TenantId: "t1",
@@ -351,6 +401,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							SchemaVersion: version,
 							SnapToken:     token.NewNoopToken().Encode().String(),
 						},
+						ContextualTuples: contextTuples,
 						SubjectReference: subjectReference,
 						Permission:       permission,
 						Entity:           entity,
