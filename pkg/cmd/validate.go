@@ -336,10 +336,6 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			for _, filter := range scenario.SubjectFilters {
 
 				subjectReference := tuple.RelationReference(filter.SubjectReference)
-				if err != nil {
-					list.Add(err.Error())
-					continue
-				}
 
 				var entity *base.Entity
 				entity, err = tuple.E(filter.Entity)
