@@ -53,3 +53,11 @@ func ValidateTuple(definition *base.EntityDefinition, tup *base.Tuple) (err erro
 	// If no errors were encountered, return nil
 	return nil
 }
+
+// ValidateFilter checks if the provided filter conforms to the entity definition
+func ValidateFilter(filter *base.TupleFilter) (err error) {
+	if filter.GetEntity().GetType() == "" {
+		return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_TYPE_REQUIRED.String())
+	}
+	return nil
+}

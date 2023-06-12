@@ -483,7 +483,7 @@ message RelationshipReadRequest {
 
   RelationshipReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
-  TupleFilter filter = 3 [json_name = "filter"];
+  TupleFilter filter = 3 [json_name = "filter", (validate.rules).message.required = true];
 
   uint32 page_size = 4 [
     json_name = "page_size",
@@ -512,7 +512,7 @@ message RelationshipDeleteRequest {
     ignore_empty: false,
   }];
 
-  TupleFilter filter = 2 [json_name = "filter"];
+  TupleFilter filter = 2 [json_name = "filter", (validate.rules).message.required = true];
 }
 
 // RelationshipDeleteResponse

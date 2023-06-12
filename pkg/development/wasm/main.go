@@ -298,7 +298,6 @@ func readSchemaGraph() js.Func {
 func validate() js.Func {
 	// Returns a new JavaScript function that wraps the Go function.
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-
 		// Create an empty map to hold the JSON content.
 		var t interface{}
 

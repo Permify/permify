@@ -138,7 +138,7 @@ message Tuple {
 
 // Tuples
 message Tuples {
-  repeated Tuple tuples = 1;
+  repeated Tuple tuples = 1 [json_name = "tuples"];
 }
 
 // Entity
@@ -155,9 +155,9 @@ message Entity {
 }
 
 message EntityAndRelation {
-  Entity entity = 1 [(validate.rules).message.required = true];
+  Entity entity = 1 [json_name = "entity", (validate.rules).message.required = true];
 
-  string relation = 2 [(validate.rules).string = {
+  string relation = 2 [json_name = "relation", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,64}[a-z0-9])$",
     max_bytes : 64,
   }];
@@ -186,26 +186,15 @@ message Subject {
 
 // TupleFilter is used to filter tuples
 message TupleFilter {
-  EntityFilter entity = 1 [(validate.rules).message.required = true];
+  EntityFilter entity = 1 [json_name = "entity", (validate.rules).message.required = true];
 
-  string relation = 2 [(validate.rules).string = {
+  string relation = 2 [json_name = "relation", (validate.rules).string = {
     pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
 
   SubjectFilter subject = 3 [json_name = "subject"];
-}
-
-// EntityAndRelationFilter is used to filter entities and relations
-message EntityAndRelationFilter {
-  EntityFilter entity = 1 [(validate.rules).message.required = true];
-
-  string relation = 2 [(validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,64}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: true,
-  }];
 }
 
 // EntityFilter is used to filter entities
@@ -221,7 +210,7 @@ message SubjectFilter {
 
   repeated string ids = 2 [json_name = "ids"];
 
-  string relation = 3 [(validate.rules).string = {
+  string relation = 3 [json_name = "relation", (validate.rules).string = {
     pattern : "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
@@ -254,7 +243,7 @@ message Expand {
 
 // Result
 message Subjects {
-  repeated Subject subjects = 1;
+  repeated Subject subjects = 1 [json_name = "subjects"];
 }
 
 // Tenant

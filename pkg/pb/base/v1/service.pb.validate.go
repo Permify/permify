@@ -4110,6 +4110,17 @@ func (m *RelationshipReadRequest) validate(all bool) error {
 		}
 	}
 
+	if m.GetFilter() == nil {
+		err := RelationshipReadRequestValidationError{
+			field:  "Filter",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetFilter()).(type) {
 		case interface{ ValidateAll() error }:
@@ -4520,6 +4531,17 @@ func (m *RelationshipDeleteRequest) validate(all bool) error {
 		err := RelationshipDeleteRequestValidationError{
 			field:  "TenantId",
 			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetFilter() == nil {
+		err := RelationshipDeleteRequestValidationError{
+			field:  "Filter",
+			reason: "value is required",
 		}
 		if !all {
 			return err
