@@ -62,9 +62,7 @@ In Permify, authorization divided into 3 core aspects; **modeling**, **storing a
 
 This document explains how Permify handles these aspects to provide a robust and scalable authorization system for your applications. For the ones that want trying out and examine it instantly, 
 
-**Looking for Permify Managed Service?** See our [pricing plans](https://permify.co/pricing/1).
-
-<div className="getting-started-grid">
+<div className="getting-started-grid" >
     <a href="https://play.permify.co/">
         <div className="btn-thumb">
             <div className="thumbnail">
@@ -90,10 +88,6 @@ This document explains how Permify handles these aspects to provide a robust and
         </div>
     </a>
 </div>
-
-## Roadmap
-
-You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/projects/1)!
 
 ## Community & Support
 
@@ -126,6 +120,10 @@ If you like Permify, please consider giving us a :star:
   <img height="70px" width="70px" alt="permify | Linkedin" src="https://user-images.githubusercontent.com/39353278/187209321-03293a24-6f63-4321-b362-b0fc89fdd879.png" />
 </a>
 </p>
+
+## Roadmap
+
+You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/projects/1)!
 
 ## Need any help on Authorization ?
 
