@@ -35,6 +35,21 @@ var _ = Describe("notion-test", func() {
 						Relation: ear.GetRelation(),
 					}
 
+					var contextTuples []*base.Tuple
+
+					for _, t := range check.ContextualTuples {
+						tup, err := tuple.Tuple(t)
+						if err != nil {
+							Expect(err).ShouldNot(HaveOccurred())
+						}
+
+						contextTuples = append(contextTuples, &base.Tuple{
+							Entity:   tup.GetEntity(),
+							Relation: tup.GetRelation(),
+							Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
+						})
+					}
+
 					for permission, expected := range check.Assertions {
 						exp := base.PermissionCheckResponse_RESULT_ALLOWED
 						if !expected {
@@ -48,9 +63,10 @@ var _ = Describe("notion-test", func() {
 								SnapToken:     initialNotionSnapToken,
 								Depth:         100,
 							},
-							Entity:     entity,
-							Permission: permission,
-							Subject:    subject,
+							ContextualTuples: contextTuples,
+							Entity:           entity,
+							Permission:       permission,
+							Subject:          subject,
 						})
 
 						Expect(err).ShouldNot(HaveOccurred())
@@ -75,6 +91,21 @@ var _ = Describe("notion-test", func() {
 						Relation: ear.GetRelation(),
 					}
 
+					var contextTuples []*base.Tuple
+
+					for _, t := range filter.ContextualTuples {
+						tup, err := tuple.Tuple(t)
+						if err != nil {
+							Expect(err).ShouldNot(HaveOccurred())
+						}
+
+						contextTuples = append(contextTuples, &base.Tuple{
+							Entity:   tup.GetEntity(),
+							Relation: tup.GetRelation(),
+							Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
+						})
+					}
+
 					for permission, expected := range filter.Assertions {
 						res, err := permissionClient.LookupEntity(ctx, &base.PermissionLookupEntityRequest{
 							TenantId: "notion",
@@ -83,9 +114,10 @@ var _ = Describe("notion-test", func() {
 								SnapToken:     initialNotionSnapToken,
 								Depth:         100,
 							},
-							EntityType: filter.EntityType,
-							Permission: permission,
-							Subject:    subject,
+							ContextualTuples: contextTuples,
+							EntityType:       filter.EntityType,
+							Permission:       permission,
+							Subject:          subject,
 						})
 
 						Expect(err).ShouldNot(HaveOccurred())
@@ -105,6 +137,21 @@ var _ = Describe("notion-test", func() {
 						Expect(err).ShouldNot(HaveOccurred())
 					}
 
+					var contextTuples []*base.Tuple
+
+					for _, t := range filter.ContextualTuples {
+						tup, err := tuple.Tuple(t)
+						if err != nil {
+							Expect(err).ShouldNot(HaveOccurred())
+						}
+
+						contextTuples = append(contextTuples, &base.Tuple{
+							Entity:   tup.GetEntity(),
+							Relation: tup.GetRelation(),
+							Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
+						})
+					}
+
 					for permission, expected := range filter.Assertions {
 
 						res, err := permissionClient.LookupSubject(ctx, &base.PermissionLookupSubjectRequest{
@@ -113,6 +160,7 @@ var _ = Describe("notion-test", func() {
 								SchemaVersion: initialNotionSchemaVersion,
 								SnapToken:     initialNotionSnapToken,
 							},
+							ContextualTuples: contextTuples,
 							SubjectReference: subjectReference,
 							Permission:       permission,
 							Entity:           entity,

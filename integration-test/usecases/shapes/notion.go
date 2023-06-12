@@ -176,20 +176,114 @@ entity integration {
 	Scenarios: []file.Scenario{
 		{
 			Name:        "Scenario 1",
-			Description: "Scenario Description",
+			Description: "Alice and bob can read to the project plan page",
 			Checks: []file.Check{
 				{
-					Entity:  "page:project_plan",
-					Subject: "user:alice",
+					ContextualTuples: []string{},
+					Entity:           "page:project_plan",
+					Subject:          "user:alice",
 					Assertions: map[string]bool{
 						"read": true,
 					},
 				},
 				{
-					Entity:  "page:project_plan",
-					Subject: "user:bob",
+					ContextualTuples: []string{},
+					Entity:           "page:project_plan",
+					Subject:          "user:bob",
 					Assertions: map[string]bool{
 						"read": true,
+					},
+				},
+			},
+			EntityFilters: []file.EntityFilter{
+				{
+					ContextualTuples: []string{
+						"page:context#reader@user:bob",
+					},
+					EntityType: "page",
+					Subject:    "user:bob",
+					Assertions: map[string][]string{
+						"read": {"project_plan", "product_spec", "context"},
+					},
+				},
+			},
+			SubjectFilters: []file.SubjectFilter{
+				{
+					ContextualTuples: []string{},
+					Entity:           "page:project_plan",
+					SubjectReference: "user",
+					Assertions: map[string][]string{
+						"read": {"bob", "alice", "charlie"},
+					},
+				},
+			},
+		},
+		{
+			Name:        "Scenario 2",
+			Description: "Check if a user who is a guest in a workspace can edit a database",
+			Checks: []file.Check{
+				{
+					ContextualTuples: []string{},
+					Entity:           "database:task_list",
+					Subject:          "user:frank",
+					Assertions: map[string]bool{
+						"write": false,
+					},
+				},
+			},
+			EntityFilters:  []file.EntityFilter{},
+			SubjectFilters: []file.SubjectFilter{},
+		},
+		{
+			Name:        "Scenario 3",
+			Description: "Ensure that the owner of a workspace can write to all databases in the workspace",
+			Checks:      []file.Check{},
+			EntityFilters: []file.EntityFilter{
+				{
+					ContextualTuples: []string{},
+					EntityType:       "database",
+					Subject:          "user:alice",
+					Assertions: map[string][]string{
+						"write": {"task_list"},
+					},
+				},
+			},
+			SubjectFilters: []file.SubjectFilter{},
+		},
+		{
+			Name:          "Scenario 4",
+			Description:   "Ensure that all members of a workspace can read all pages in the workspace",
+			Checks:        []file.Check{},
+			EntityFilters: []file.EntityFilter{},
+			SubjectFilters: []file.SubjectFilter{
+				{
+					ContextualTuples: []string{},
+					Entity:           "page:project_plan",
+					SubjectReference: "user",
+					Assertions: map[string][]string{
+						"read": {"bob", "alice", "charlie"},
+					},
+				},
+				{
+					ContextualTuples: []string{},
+					Entity:           "page:product_spec",
+					SubjectReference: "user",
+					Assertions: map[string][]string{
+						"read": {"eve", "bob", "alice", "charlie"},
+					},
+				},
+			},
+		},
+		{
+			Name:        "Scenario 5",
+			Description: "Ensure that a user who is not a member of a workspace cannot view the workspace",
+			Checks: []file.Check{
+				{
+					ContextualTuples: []string{},
+					Entity:           "workspace:sales_team",
+					Subject:          "user:charlie",
+					Assertions: map[string]bool{
+						"view_workspace": false,
 					},
 				},
 			},
