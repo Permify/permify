@@ -46,37 +46,37 @@ Below you can examine an example schema validation yaml file. It consists 3 part
 
 ```yaml
 schema: >-
-    entity user {}
+  entity user {}
 
-    entity organization {
+  entity organization {
 
-        relation admin @user
-        relation member @user
+      relation admin @user
+      relation member @user
 
-        action create_repository = (admin or member)
-        action delete = admin
-    }
+      action create_repository = (admin or member)
+      action delete = admin
+  }
 
-    entity repository {
+  entity repository {
 
-        relation owner @user @organization#member
-        relation parent @organization
+      relation owner @user @organization#member
+      relation parent @organization
 
-        action push = owner
-        action read = (owner and (parent.admin and parent.member))
-        action delete = (parent.member and (parent.admin or owner))
-        action edit = parent.member and not owner
-    }
+      action push = owner
+      action read = (owner and (parent.admin and parent.member))
+      action delete = (parent.member and (parent.admin or owner))
+      action edit = parent.member not owner
+  }
 
 relationships:
-    - "organization:1#admin@user:1"
-    - "organization:1#member@user:1"
-    - "repository:1#owner@user:1"
-    - "repository:2#owner@user:2"
-    - "repository:2#owner@user:3"
-    - "repository:1#parent@organization:1#..."
-    - "organization:1#member@user:43"
-    - "repository:1#owner@user:43"
+  - "organization:1#admin@user:1"
+  - "organization:1#member@user:1"
+  - "repository:1#owner@user:1"
+  - "repository:2#owner@user:2"
+  - "repository:2#owner@user:3"
+  - "repository:1#parent@organization:1#..."
+  - "organization:1#member@user:43"
+  - "repository:1#owner@user:43"
 
 scenarios:
   - name: "scenario 1"
@@ -93,8 +93,10 @@ scenarios:
           push : false
       - entity: "repository:3"
         subject: "user:1"
+        contextual_tuples:
+          - "repository:3#owner@user:1"
         assertions:
-          push : false
+          push : true
       - entity: "repository:1"
         subject: "user:43"
         assertions:
@@ -102,15 +104,21 @@ scenarios:
     entity_filters:
       - entity_type: "repository"
         subject: "user:1"
+        contextual_tuples:
+          - "repository:3#owner@user:1"
+          - "repository:4#owner@user:1"
+          - "repository:5#owner@user:1"
         assertions:
-          push : ["1"]
+          push : ["1", "3", "4", "5"]
           edit : []
     subject_filters:
       - subject_reference: "user"
         entity: "repository:1"
+        contextual_tuples:
+          - "organization:1#member@user:58"
         assertions:
           push : ["1", "43"]
-          edit : []
+          edit : ["58"]
 ```
 
 ## Coverage Analysis
