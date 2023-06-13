@@ -2,22 +2,18 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/rs/xid"
-	"github.com/spf13/viper"
-
 	"github.com/gookit/color"
+	"github.com/rs/xid"
 	"github.com/spf13/cobra"
 
 	"github.com/Permify/permify/internal/storage"
 	server_validation "github.com/Permify/permify/internal/validation"
-	"github.com/Permify/permify/pkg/cmd/flags"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/development/file"
@@ -37,9 +33,6 @@ func NewValidateCommand() *cobra.Command {
 		RunE:  validate(),
 		Args:  cobra.ExactArgs(1),
 	}
-
-	// register flags for validation
-	flags.RegisterValidationFlags(command)
 
 	return command
 }
@@ -68,22 +61,6 @@ func (l *ErrList) Print() {
 // validate returns a function that validates authorization model with assertions
 func validate() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		// set debug to false initially
-		debug := false
-
-		// get output format from viper
-		format := viper.GetString("output-format")
-
-		// if output format is not verbose or json, set it to verbose
-		if format != "verbose" && format != "json" {
-			format = "verbose"
-		}
-
-		// if output format is verbose, set debug to true
-		if format == "verbose" {
-			debug = true
-		}
-
 		// create an empty error list
 		list := &ErrList{
 			Errors: []string{},
@@ -117,9 +94,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// if debug is true, print schema is creating with color blue
-		if debug {
-			color.Notice.Println("schema is creating... 🚀")
-		}
+		color.Notice.Println("schema is creating... 🚀")
 
 		sch, err := parser.NewParser(s.Schema).Parse()
 		if err != nil {
@@ -147,9 +122,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		err = dev.Container.SW.WriteSchema(ctx, cnf)
 		if err != nil {
 			list.Add(err.Error())
-			if debug {
-				color.Danger.Printf("fail: %s\n", validationError(err.Error()))
-			}
+			color.Danger.Printf("fail: %s\n", validationError(err.Error()))
 			if len(list.Errors) != 0 {
 				list.Print()
 				os.Exit(1)
@@ -157,14 +130,12 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// if there are no errors and debug is true, print success with color success
-		if len(list.Errors) == 0 && debug {
+		if len(list.Errors) == 0 {
 			color.Success.Println("  success")
 		}
 
 		// if debug is true, print relationships are creating with color blue
-		if debug {
-			color.Notice.Println("relationships are creating... 🚀")
-		}
+		color.Notice.Println("relationships are creating... 🚀")
 
 		// write relationships
 		for _, t := range s.Relationships {
@@ -194,21 +165,15 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			}))
 			if err != nil {
 				list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
-				if debug {
-					color.Danger.Println(fmt.Sprintf("fail: %s failed %s", t, validationError(err.Error())))
-				}
+				color.Danger.Println(fmt.Sprintf("fail: %s failed %s", t, validationError(err.Error())))
 				continue
 			}
 
-			if debug {
-				color.Success.Println(fmt.Sprintf("  success: %s ", t))
-			}
+			color.Success.Println(fmt.Sprintf("  success: %s ", t))
 		}
 
 		// if debug is true, print checking assertions with color blue
-		if debug {
-			color.Notice.Println("checking scenarios... 🚀")
-		}
+		color.Notice.Println("checking scenarios... 🚀")
 
 		// Check Assertions
 		for sn, scenario := range s.Scenarios {
@@ -276,23 +241,15 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					query := tuple.SubjectToString(subject) + " " + permission + " " + tuple.EntityToString(entity)
 
 					if res.Can == exp {
-						if debug {
-							color.Success.Print("    success:")
-							fmt.Printf(" %s \n", query)
-						}
+						color.Success.Print("    success:")
+						fmt.Printf(" %s \n", query)
 					} else {
-						if debug {
-							color.Danger.Printf("    fail: %s ->", query)
-						}
+						color.Danger.Printf("    fail: %s ->", query)
 						if res.Can == base.PermissionCheckResponse_RESULT_ALLOWED {
-							if debug {
-								color.Danger.Println("  expected: DENIED actual: ALLOWED ")
-							}
+							color.Danger.Println("  expected: DENIED actual: ALLOWED ")
 							list.Add(fmt.Sprintf("%s -> expected: DENIED actual: ALLOWED ", query))
 						} else {
-							if debug {
-								color.Danger.Println("  expected: ALLOWED actual: DENIED ")
-							}
+							color.Danger.Println("  expected: ALLOWED actual: DENIED ")
 							list.Add(fmt.Sprintf("%s -> expected: ALLOWED actual: DENIED ", query))
 						}
 					}
@@ -352,14 +309,10 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
 
 					if isSameArray(res.GetEntityIds(), expected) {
-						if debug {
-							color.Success.Print("    success:")
-							fmt.Printf(" %v\n", query)
-						}
+						color.Success.Print("    success:")
+						fmt.Printf(" %v\n", query)
 					} else {
-						if debug {
-							color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetEntityIds())
-						}
+						color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetEntityIds())
 						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetEntityIds()))
 					}
 				}
@@ -414,14 +367,10 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					query := tuple.EntityToString(entity) + " " + permission + " " + filter.SubjectReference
 
 					if isSameArray(res.GetSubjectIds(), expected) {
-						if debug {
-							color.Success.Print("    success:")
-							fmt.Printf(" %v\n", query)
-						}
+						color.Success.Print("    success:")
+						fmt.Printf(" %v\n", query)
 					} else {
-						if debug {
-							color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetSubjectIds())
-						}
+						color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetSubjectIds())
 						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetSubjectIds()))
 					}
 				}
@@ -429,25 +378,14 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		}
 
 		if len(list.Errors) != 0 {
-			if debug {
-				list.Print()
-				os.Exit(1)
-			}
-			var b []byte
-			b, err = json.Marshal(list.Errors)
-			if err != nil {
-				return err
-			}
-			fmt.Println(string(b))
+			list.Print()
 			os.Exit(1)
 		}
 
-		if debug {
-			color.Notice.Println("schema successfully created")
-			color.Notice.Println("relationships successfully created")
-			color.Notice.Println("assertions successfully passed")
-			color.Success.Println("SUCCESS")
-		}
+		color.Notice.Println("schema successfully created")
+		color.Notice.Println("relationships successfully created")
+		color.Notice.Println("assertions successfully passed")
+		color.Success.Println("SUCCESS")
 
 		return nil
 	}
