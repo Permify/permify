@@ -212,8 +212,10 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		// Check Assertions
 		for sn, scenario := range s.Scenarios {
-			color.Notice.Printf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description)
-			color.Notice.Println("  checks:")
+			if debug {
+				color.Notice.Printf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description)
+				color.Notice.Println("  checks:")
+			}
 
 			for _, check := range scenario.Checks {
 				entity, err := tuple.E(check.Entity)
@@ -299,7 +301,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 			}
 
-			color.Notice.Println("  entity_filters:")
+			if debug {
+				color.Notice.Println("  entity_filters:")
+			}
 
 			for _, filter := range scenario.EntityFilters {
 
@@ -365,7 +369,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 			}
 
-			color.Notice.Println("  subject_filters:")
+			if debug {
+				color.Notice.Println("  subject_filters:")
+			}
 
 			for _, filter := range scenario.SubjectFilters {
 
@@ -440,6 +446,8 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			}
 			fmt.Println(string(b))
 			os.Exit(1)
+		} else {
+			fmt.Println("{}")
 		}
 
 		if debug {

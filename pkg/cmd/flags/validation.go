@@ -8,6 +8,7 @@ import (
 // RegisterValidationFlags registers validation flags.
 func RegisterValidationFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
+
 	flags.String("output-format", "", "output format. one of: verbose, json")
 	if err := viper.BindPFlag("output-format", flags.Lookup("output-format")); err != nil {
 		panic(err)
