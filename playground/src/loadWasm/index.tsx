@@ -23,7 +23,7 @@ export const LoadWasm: React.FC<React.PropsWithChildren<{}>> = (props) => {
 
     if (isLoading) {
         return (
-            <div className="spot-background h-screen">
+            <div className="wasm-loader-background h-screen">
                 <div className="center-of-screen">
                     <SVG src={toAbsoluteUrl("/media/svg/rocket.svg")}/>
                 </div>

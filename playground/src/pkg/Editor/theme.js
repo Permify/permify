@@ -1,4 +1,5 @@
 function Theme() {
+    let bg = window.getComputedStyle(document.documentElement).getPropertyValue('--background-base').trim()
     return {
         base: 'vs-dark',
         inherit: true,
@@ -11,7 +12,7 @@ function Theme() {
             {token: 'type', foreground: '93F1EE'},
         ],
         colors: {
-            "editor.background": '#141517',
+            "editor.background": bg,
         }
     }
 }
