@@ -1,6 +1,6 @@
 import React, {useState} from 'react'
 import {Alert, Button, Input, Spin, Typography} from "antd";
-import {FilterEntity, FilterSubject} from "../../../services/permission";
+import {FilterSubject} from "../../../services/permission";
 
 const {Paragraph} = Typography;
 

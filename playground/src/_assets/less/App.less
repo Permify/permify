@@ -444,10 +444,17 @@ code {
   background-color: #141517 !important;
 }
 
-.spot-background {
-  background-color: #141517;
+.wasm-loader-background {
+  background-color: #000000;
   opacity: 1;
-  background-image: radial-gradient(#434343 0.55px, #141517 0.55px);
+  background-image: radial-gradient(#434343 0.55px, #000000 0.55px);
+  background-size: 11px 11px;
+}
+
+.spot-background {
+  background-color: var(--background-base);
+  opacity: 1;
+  background-image: radial-gradient(#434343 0.55px, var(--background-base) 0.55px);
   background-size: 11px 11px;
 }
 
@@ -474,5 +481,9 @@ code {
 }
 
 .ant-radio-wrapper .ant-radio-inner::after{
+  background-color: var(--background-base) !important;
+}
+
+.ant-radio-button-wrapper{
   background-color: var(--background-base) !important;
 }

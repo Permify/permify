@@ -12,7 +12,7 @@ import {shallowEqual, useSelector} from "react-redux";
 import Share from "../../components/Modals/Share";
 
 function FrameOutput(props) {
-    const [selected, setSelected] = useState('schema');
+    const [selected, setSelected] = useState('model');
     const shape = useSelector((state) => state.shape, shallowEqual);
 
     const [shareModalVisibility, setShareModalVisibility] = React.useState(false);
@@ -52,8 +52,8 @@ function FrameOutput(props) {
 
             <div className="ml-12 mr-12">
                 <div className="mt-12 mb-12">
-                    <Radio.Group defaultValue="schema" buttonStyle="solid" onChange={onChange}>
-                        <Radio.Button value="schema">Schema</Radio.Button>
+                    <Radio.Group defaultValue="model" buttonStyle="solid" onChange={onChange}>
+                        <Radio.Button value="model">Model</Radio.Button>
                         <Radio.Button value="data">Data</Radio.Button>
                         <Radio.Button value="visualizer">Visualizer</Radio.Button>
                         <Radio.Button value="enforcement">Enforcement</Radio.Button>
@@ -64,8 +64,8 @@ function FrameOutput(props) {
                 </div>
                 {!props.loading &&
                     <>
-                        <AuthorizationModel title="Authorization Model" hidden={selected !== 'schema'} isReady={isReady} initialValue={props.shape.schema}/>
-                        <AuthorizationData title="Authorization Data" hidden={selected !== 'data'} isModelReady={isModelReady} initialValue={props.shape.relationships}/>
+                        <AuthorizationModel title="Model" hidden={selected !== 'model'} isReady={isReady} initialValue={props.shape.schema}/>
+                        <AuthorizationData title="Data" hidden={selected !== 'data'} isModelReady={isModelReady} initialValue={props.shape.relationships}/>
                         <Visualizer title="Visualizer" hidden={selected !== 'visualizer'}/>
                         <Enforcement title="Enforcement" hidden={selected !== 'enforcement'}/>
                     </>
