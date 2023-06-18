@@ -18,35 +18,34 @@ import (
 
 var _ = Describe("check-engine", func() {
 	// DRIVE SAMPLE
-
 	driveSchema := `
-	entity user {}
+		entity user {}
 	
-	entity organization {
-		relation admin @user
-	}
+		entity organization {
+			relation admin @user
+		}
 	
-	entity folder {
-		relation org @organization
-		relation creator @user
-		relation collaborator @user
+		entity folder {
+			relation org @organization
+			relation creator @user
+			relation collaborator @user
 	
-		permission read = collaborator
-		permission update = collaborator
-		permission delete = creator or org.admin
-	}
+			permission read = collaborator
+			permission update = collaborator
+			permission delete = creator or org.admin
+		}
 	
-	entity doc {
-		relation org @organization
-		relation parent @folder
-		relation owner @user
+		entity doc {
+			relation org @organization
+			relation parent @folder
+			relation owner @user
 	
-		permission read = (owner or parent.collaborator) or org.admin
-		permission update = owner and org.admin
-		permission delete = owner or org.admin
-		permission share = update and (owner or parent.update)
-	}
-	`
+			permission read = (owner or parent.collaborator) or org.admin
+			permission update = owner and org.admin
+			permission delete = owner or org.admin
+			permission share = update and (owner or parent.update)
+		}
+		`
 
 	Context("Drive Sample: Check", func() {
 		It("Drive Sample: Case 1", func() {
@@ -367,25 +366,25 @@ var _ = Describe("check-engine", func() {
 	// GITHUB SAMPLE
 
 	githubSchema := `
-	entity user {}
+		entity user {}
 	
-	entity organization {
-		relation admin @user
-		relation member @user
+		entity organization {
+			relation admin @user
+			relation member @user
 	
-		action create_repository = admin or member
-		action delete = admin
-	}
+			action create_repository = admin or member
+			action delete = admin
+		}
 	
-	entity repository {
-		relation parent @organization
-		relation owner @user
+		entity repository {
+			relation parent @organization
+			relation owner @user
 	
-		action push   = owner
-		action read   = owner and (parent.admin or parent.member)
-		action delete = parent.member and (parent.admin or owner)
-	}
-	`
+			action push   = owner
+			action read   = owner and (parent.admin or parent.member)
+			action delete = parent.member and (parent.admin or owner)
+		}
+		`
 
 	Context("Github Sample: Check", func() {
 		It("Github Sample: Case 1", func() {
@@ -696,31 +695,31 @@ var _ = Describe("check-engine", func() {
 	// EXCLUSION SAMPLE
 
 	exclusionSchema := `
-entity user {}
+	entity user {}
 	
-entity organization {
-	relation member @user
-}
+	entity organization {
+		relation member @user
+	}
 	
-entity parent {
-	relation member @user
-	relation admin @user
-}
+	entity parent {
+		relation member @user
+		relation admin @user
+	}
 	
-entity repo {	
-	relation org @organization
-	relation parent @parent
-	relation member @user
+	entity repo {
+		relation org @organization
+		relation parent @parent
+		relation member @user
 	
-	permission push   = org.member not parent.member
-	permission delete = push
-
-	permission update = (org.member not parent.member) and member
-	permission view = member not update
-	permission manage = update
-	permission admin = manage
-}
-`
+		permission push   = org.member not parent.member
+		permission delete = push
+	
+		permission update = (org.member not parent.member) and member
+		permission view = member not update
+		permission manage = update
+		permission admin = manage
+	}
+	`
 
 	Context("Exclusion Sample: Check", func() {
 		It("Exclusion Sample: Case 1", func() {
@@ -1364,6 +1363,147 @@ entity repo {
 							SchemaVersion: "",
 							Depth:         20,
 						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+		})
+	})
+
+	// POLYMORPHIC RELATIONS SAMPLE
+
+	polymorphicRelationsSchema := `
+	entity googleuser {}
+	
+	entity facebookuser {}
+	
+	entity company {
+	  relation member @googleuser @facebookuser
+	}
+	
+	entity organization {
+		relation member @googleuser @facebookuser
+	
+		action edit = member
+	}
+	
+	entity repo {
+		relation parent @company @organization
+	
+		permission push   = parent.member
+		permission delete = push
+	}
+	`
+
+	Context("Polymorphic Relations Sample: Check", func() {
+		It("Polymorphic Relations Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(polymorphicRelationsSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.PermissionCheckResponse_Result
+			}
+
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"repo:1#parent@organization:1",
+					"repo:1#parent@company:1",
+					"company:1#member@googleuser:2",
+					"organization:1#member@facebookuser:3",
+				},
+				checks: []check{
+					{
+						entity:  "repo:1",
+						subject: "googleuser:2",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"push": base.PermissionCheckResponse_RESULT_ALLOWED,
+						},
+					},
+					{
+						entity:  "repo:1",
+						subject: "facebookuser:3",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"push": base.PermissionCheckResponse_RESULT_ALLOWED,
+						},
+					},
+					{
+						entity:  "organization:1",
+						subject: "facebookuser:3",
+						assertions: map[string]base.PermissionCheckResponse_Result{
+							"edit": base.PermissionCheckResponse_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+
+			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         20,
+						},
+						ContextualTuples: tuples,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())

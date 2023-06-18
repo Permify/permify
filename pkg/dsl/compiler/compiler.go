@@ -219,8 +219,9 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 	// If the identifier has one segment, it is treated as a reference to a relational reference.
 	if len(ident.Idents) == 1 {
 		if !t.withoutReferenceValidation {
-			if !t.schema.IsRelationalReferenceExist(utils.Key(entityName, ident.Idents[0].Literal)) {
-				return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+			err := t.validateComputedUserSetReference(entityName, ident)
+			if err != nil {
+				return nil, err
 			}
 		}
 
@@ -236,12 +237,9 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 	// If the identifier has two segments, it is treated as a reference to a tuple and its corresponding user set.
 	if len(ident.Idents) == 2 {
 		if !t.withoutReferenceValidation {
-			types, exist := t.schema.GetRelationReferenceIfExist(utils.Key(entityName, ident.Idents[0].Literal))
-			if !exist {
-				return nil, compileError(ident.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
-			}
-			if !t.schema.IsRelationalReferenceExist(utils.Key(utils.GetBaseEntityRelationTypeStatement(types).Type.Literal, ident.Idents[1].Literal)) {
-				return nil, compileError(ident.Idents[1].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+			err := t.validateTupleToUserSetReference(entityName, ident)
+			if err != nil {
+				return nil, err
 			}
 		}
 
@@ -284,6 +282,65 @@ func (t *Compiler) compileTupleToUserSetIdentifier(p, r string) (l *base.Leaf, e
 	}
 	leaf.Type = &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet}
 	return leaf, nil
+}
+
+// validateReference checks if the provided identifier refers to a valid relation in the schema.
+func (t *Compiler) validateComputedUserSetReference(entityName string, identifier *ast.Identifier) error {
+	if !t.schema.IsRelationalReferenceExist(utils.Key(entityName, identifier.Idents[0].Literal)) {
+		return compileError(identifier.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+	}
+	return nil
+}
+
+// validateReference checks if the provided identifier refers to a valid relation in the schema.
+func (t *Compiler) validateTupleToUserSetReference(entityName string, identifier *ast.Identifier) error {
+	// Stack to hold the types to be checked.
+	typeCheckStack := make([]ast.RelationTypeStatement, 0)
+
+	// Get initial relation types for the given entity.
+	initialRelationTypes, doesExist := t.schema.GetRelationReferenceIfExist(utils.Key(entityName, identifier.Idents[0].Literal))
+	if !doesExist {
+		// If initial relation does not exist, return an error.
+		return compileError(identifier.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+	}
+
+	// Add the initial relation types to the stack.
+	for _, relationType := range initialRelationTypes {
+		typeCheckStack = append(typeCheckStack, relationType)
+	}
+
+	// While there are types to be checked in the stack...
+	for len(typeCheckStack) > 0 {
+
+		// Pop the last type from the stack.
+		stackSize := len(typeCheckStack) - 1
+		currentType := typeCheckStack[stackSize]
+		typeCheckStack = typeCheckStack[:stackSize]
+
+		if currentType.Relation.Literal == "" {
+			// If the relation type does not exist, check if it is a valid relational reference.
+			if !t.schema.IsRelationalReferenceExist(utils.Key(currentType.Type.Literal, identifier.Idents[1].Literal)) {
+				// If not, return an error.
+				return compileError(identifier.Idents[1].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+			}
+		} else {
+
+			// If the relation type does exist, get the corresponding relation types.
+			relationTypes, doesExist := t.schema.GetRelationReferenceIfExist(utils.Key(currentType.Type.Literal, currentType.Relation.Literal))
+			if !doesExist {
+				// If these types do not exist, return an error.
+				return compileError(identifier.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
+			}
+
+			// Add the newly found relation types to the stack.
+			for _, relationType := range relationTypes {
+				typeCheckStack = append(typeCheckStack, relationType)
+			}
+		}
+	}
+
+	// If the function didn't return until now, the reference is valid.
+	return nil
 }
 
 // compileError creates an error with the given message and position information.

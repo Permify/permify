@@ -61,7 +61,7 @@ var _ = Describe("tuple", func() {
 						},
 						Relation: "admin",
 						Subject: &base.Subject{
-							Type: USER,
+							Type: "user",
 							Id:   "1",
 						},
 					},
@@ -300,7 +300,7 @@ var _ = Describe("tuple", func() {
 				},
 				{
 					target: &base.Subject{
-						Type:     USER,
+						Type:     "user",
 						Id:       "1",
 						Relation: "",
 					},
@@ -308,7 +308,7 @@ var _ = Describe("tuple", func() {
 				},
 				{
 					target: &base.Subject{
-						Type:     USER,
+						Type:     "user",
 						Id:       "1",
 						Relation: "admin",
 					},
@@ -316,7 +316,7 @@ var _ = Describe("tuple", func() {
 				},
 				{
 					target: &base.Subject{
-						Type:     USER,
+						Type:     "user",
 						Id:       "1",
 						Relation: "admin",
 					},

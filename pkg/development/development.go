@@ -198,9 +198,6 @@ func (c *Development) WriteTuple(ctx context.Context, tuples []*v1.Tuple) (err e
 	// Validate each tuple and append it to the relationships slice
 	for _, tup := range tuples {
 
-		// Set the subject relation to ellipsis if the subject is not a user and there is no relation
-		subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
-
 		// Read the schema definition for the tuple's entity type and version from the schema repository
 		definition, _, err := c.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
 		if err != nil {
@@ -214,11 +211,7 @@ func (c *Development) WriteTuple(ctx context.Context, tuples []*v1.Tuple) (err e
 		}
 
 		// Append the validated tuple to the relationships slice
-		relationships = append(relationships, &v1.Tuple{
-			Entity:   tup.GetEntity(),
-			Relation: tup.GetRelation(),
-			Subject:  subject,
-		})
+		relationships = append(relationships, tup)
 	}
 
 	// Write the relationships to the relationship repository and return the encoded snap token
@@ -354,8 +347,6 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 			continue
 		}
 
-		subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
-
 		// Read the schema definition for this relationship
 		definition, _, err := c.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
 		if err != nil {
@@ -371,11 +362,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 		}
 
 		// Write the relationship to the database
-		_, err = c.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(&v1.Tuple{
-			Entity:   tup.GetEntity(),
-			Relation: tup.GetRelation(),
-			Subject:  subject,
-		}))
+		_, err = c.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(tup))
 		// Continue to the next relationship if an error occurred
 		if err != nil {
 			list.AddError(fmt.Sprintf("%s failed %s", t, err.Error()))

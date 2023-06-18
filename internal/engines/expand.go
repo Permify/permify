@@ -223,13 +223,9 @@ func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.Perm
 			}
 			subject := next.GetSubject()
 
-			if tuple.IsSubjectUser(subject) {
+			if tuple.IsDirectSubject(subject) || subject.GetRelation() == tuple.ELLIPSIS {
 				foundedUsers.Add(subject)
-				continue
-			}
-
-			// Classify subjects based on their relation.
-			if subject.GetRelation() != tuple.ELLIPSIS {
+			} else {
 				foundedUserSets.Add(subject)
 			}
 		}

@@ -146,8 +146,6 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				continue
 			}
 
-			subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
-
 			definition, _, err := dev.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
 			if err != nil {
 				return err
@@ -158,11 +156,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			_, err = dev.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(&base.Tuple{
-				Entity:   tup.GetEntity(),
-				Relation: tup.GetRelation(),
-				Subject:  subject,
-			}))
+			_, err = dev.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(tup))
 			if err != nil {
 				list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
 				color.Danger.Println(fmt.Sprintf("fail: %s failed %s", t, validationError(err.Error())))
@@ -208,11 +202,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						continue
 					}
 
-					contextTuples = append(contextTuples, &base.Tuple{
-						Entity:   tup.GetEntity(),
-						Relation: tup.GetRelation(),
-						Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
-					})
+					contextTuples = append(contextTuples, tup)
 				}
 
 				for permission, expected := range check.Assertions {
@@ -281,11 +271,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						continue
 					}
 
-					contextTuples = append(contextTuples, &base.Tuple{
-						Entity:   tup.GetEntity(),
-						Relation: tup.GetRelation(),
-						Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
-					})
+					contextTuples = append(contextTuples, tup)
 				}
 
 				for permission, expected := range filter.Assertions {
@@ -340,11 +326,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						continue
 					}
 
-					contextTuples = append(contextTuples, &base.Tuple{
-						Entity:   tup.GetEntity(),
-						Relation: tup.GetRelation(),
-						Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
-					})
+					contextTuples = append(contextTuples, tup)
 				}
 
 				for permission, expected := range filter.Assertions {

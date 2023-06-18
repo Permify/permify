@@ -253,7 +253,7 @@ func (engine *LookupSubjectEngine) lookupSubjectDirect(
 				continue
 			}
 
-			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
+			if !tuple.IsDirectSubject(subject) && subject.GetRelation() != tuple.ELLIPSIS {
 				foundedUserSets.Add(subject)
 			}
 		}

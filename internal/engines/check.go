@@ -281,7 +281,7 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 				return allowed(&base.PermissionCheckResponseMetadata{}), nil
 			}
 			// If the subject is not a user and the relation is not ELLIPSIS, append a check function to the list.
-			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
+			if !tuple.IsDirectSubject(subject) && subject.GetRelation() != tuple.ELLIPSIS {
 				checkFunctions = append(checkFunctions, engine.invoke(ctx, &base.PermissionCheckRequest{
 					TenantId: request.GetTenantId(),
 					Entity: &base.Entity{
@@ -381,19 +381,16 @@ func (engine *CheckEngine) checkTupleToUserSet(
 // checkComputedUserSet is a method of CheckEngine that checks permissions using the
 // ComputedUserSet data structure. It returns a CheckFunction closure that performs the check.
 func (engine *CheckEngine) checkComputedUserSet(
-	ctx context.Context, // The context carrying deadline and cancellation signal
+	ctx context.Context,                  // The context carrying deadline and cancellation signal
 	request *base.PermissionCheckRequest, // The request containing details about the permission to be checked
-	cu *base.ComputedUserSet, // The computed user set containing user set information
+	cu *base.ComputedUserSet,             // The computed user set containing user set information
 ) CheckFunction {
 	// The returned CheckFunction invokes a permission check with a new request that is almost the same
 	// as the incoming request, but changes the Permission to be the relation defined in the computed user set.
 	// This is how the check "descends" into the computed user set to check permissions there.
 	return engine.invoke(ctx, &base.PermissionCheckRequest{
-		TenantId: request.GetTenantId(), // Tenant ID from the incoming request
-		Entity: &base.Entity{ // The entity from the incoming request
-			Type: request.GetEntity().GetType(),
-			Id:   request.GetEntity().GetId(),
-		},
+		TenantId:         request.GetTenantId(), // Tenant ID from the incoming request
+		Entity:           request.GetEntity(),
 		Permission:       cu.GetRelation(),      // Permission is set to the relation defined in the computed user set
 		Subject:          request.GetSubject(),  // The subject from the incoming request
 		Metadata:         request.GetMetadata(), // Metadata from the incoming request

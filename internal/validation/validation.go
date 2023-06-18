@@ -13,7 +13,7 @@ import (
 // and relation schema provided. It returns an error if the tuple is invalid.
 func ValidateTuple(definition *base.EntityDefinition, tup *base.Tuple) (err error) {
 	// Check if the subject of the tuple is a user
-	if tuple.IsSubjectUser(tup.GetSubject()) {
+	if tuple.IsDirectSubject(tup.GetSubject()) {
 		// If the subject is a user, the relation must be empty
 		if tup.GetSubject().GetRelation() != "" {
 			return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_RELATION_MUST_BE_EMPTY.String())

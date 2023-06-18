@@ -21,21 +21,38 @@ const (
 )
 
 const (
-	USER = "user" // type string for user
-)
-
-const (
 	SEPARATOR = "." // separator string used to concatenate entity and relation
 )
 
-// IsSubjectUser checks if the given subject is of type "user"
-func IsSubjectUser(subject *base.Subject) bool {
-	return subject.Type == USER
+// IsDirectSubject checks if the given subject is of type "user"
+func IsDirectSubject(subject *base.Subject) bool {
+	return subject.GetRelation() == ""
+}
+
+// NormalizeRelation normalizes the relation, treating ellipsis as an empty string
+func NormalizeRelation(relation string) string {
+	if relation == ELLIPSIS {
+		return ""
+	}
+	return relation
 }
 
 // AreSubjectsEqual checks if two subjects are equal
 func AreSubjectsEqual(s1, s2 *base.Subject) bool {
-	return s1.GetRelation() == s2.GetRelation() && s1.GetId() == s2.GetId() && s1.GetType() == s2.GetType()
+	return NormalizeRelation(s1.GetRelation()) == NormalizeRelation(s2.GetRelation()) && s1.GetId() == s2.GetId() && s1.GetType() == s2.GetType()
+}
+
+// EAREqual checks if two subjects are equal
+func EAREqual(s1, s2 *base.EntityAndRelation) bool {
+	return s1.GetRelation() == s2.GetRelation() && s1.GetEntity().GetId() == s2.GetEntity().GetId() && s1.GetEntity().GetType() == s2.GetEntity().GetType()
+}
+
+// SubjectToEAR converts a Subject object to an EntityAndRelation object
+func SubjectToEAR(subject *base.Subject) *base.EntityAndRelation {
+	return &base.EntityAndRelation{
+		Entity:   &base.Entity{Id: subject.GetId(), Type: subject.GetType()},
+		Relation: subject.GetRelation(),
+	}
 }
 
 // EntityAndRelationToString converts an EntityAndRelation object to string format
@@ -54,7 +71,7 @@ func SubjectToString(subject *base.Subject) string {
 	entity := fmt.Sprintf(ENTITY, subject.GetType(), subject.GetId())
 
 	// If the subject is a user, return the entity string
-	if IsSubjectUser(subject) {
+	if IsDirectSubject(subject) {
 		return entity
 	}
 
@@ -94,10 +111,8 @@ func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err err
 
 	key := subject.GetType()
 	if subject.GetRelation() != "" {
-		if !IsSubjectUser(subject) { // if subject is not of type "user"
-			if subject.GetRelation() != ELLIPSIS { // if subject relation is not an ellipsis
-				key += "#" + subject.GetRelation() // append relation to key
-			}
+		if !IsDirectSubject(subject) { // if subject is not of type "user"
+			key += "#" + subject.GetRelation() // append relation to key
 		}
 	}
 
@@ -133,7 +148,7 @@ func IsSubjectValid(subject *base.Subject) bool {
 		return false
 	}
 
-	if IsSubjectUser(subject) {
+	if IsDirectSubject(subject) {
 		return subject.GetRelation() == "" // relation should be empty for user subjects
 	}
 	return subject.GetRelation() != "" // relation should not be empty for non-user subjects
@@ -246,12 +261,4 @@ func RelationReference(ref string) *base.RelationReference {
 // AreRelationReferencesEqual checks if two relation references are equal or not
 func AreRelationReferencesEqual(s1, s2 *base.RelationReference) bool {
 	return s1.GetRelation() == s2.GetRelation() && s1.GetType() == s2.GetType()
-}
-
-// SetSubjectRelationToEllipsisIfNonUserAndNoRelation sets the relation of a subject to an ellipsis if the subject is not of type "user" and the relation is empty
-func SetSubjectRelationToEllipsisIfNonUserAndNoRelation(subject *base.Subject) *base.Subject {
-	if !IsSubjectUser(subject) && subject.GetRelation() == "" {
-		subject.Relation = ELLIPSIS
-	}
-	return subject
 }

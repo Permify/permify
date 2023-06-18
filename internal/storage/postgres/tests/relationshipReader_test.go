@@ -18,7 +18,6 @@ import (
 	"github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("RelationshipReader", func() {
@@ -81,7 +80,7 @@ var _ = Describe("RelationshipReader", func() {
 					},
 					Relation: "admin",
 					Subject: &base.Subject{
-						Type:     tuple.USER,
+						Type:     "user",
 						Id:       "jack",
 						Relation: "",
 					},
@@ -93,7 +92,7 @@ var _ = Describe("RelationshipReader", func() {
 					},
 					Relation: "admin",
 					Subject: &base.Subject{
-						Type:     tuple.USER,
+						Type:     "user",
 						Id:       "john",
 						Relation: "",
 					},

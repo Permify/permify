@@ -9,7 +9,6 @@ import (
 
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 // SchemaToGraph takes a schema definition and converts it into a graph
@@ -131,10 +130,15 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 					return Graph{}, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 				}
 
+				rt, err := GetTupleSetReferenceReference(re)
+				if err != nil {
+					return Graph{}, err
+				}
+
 				// Add an edge between the parent node and the tuple set relation node
 				g.AddEdge(from, &Node{
 					Type:  "relation",
-					ID:    fmt.Sprintf("%s#%s", GetTupleSetReferenceReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
+					ID:    fmt.Sprintf("%s#%s", rt, leaf.GetTupleToUserSet().GetComputed().GetRelation()),
 					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
 				})
 
@@ -156,11 +160,11 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 // GetTupleSetReferenceReference iterates through the relation references
 // and returns the first reference that doesn't contain a "#" symbol.
 // If no such reference is found, it returns the tuple.USER constant.
-func GetTupleSetReferenceReference(definition *base.RelationDefinition) string {
+func GetTupleSetReferenceReference(definition *base.RelationDefinition) (string, error) {
 	for _, ref := range definition.GetRelationReferences() {
 		if !strings.Contains(ref.String(), "#") {
-			return ref.GetType()
+			return ref.GetType(), nil
 		}
 	}
-	return tuple.USER
+	return "", errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_TYPE_NOT_FOUND.String())
 }
