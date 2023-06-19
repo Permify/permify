@@ -45,7 +45,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 		return nil, err
 	}
 
-	_, err = compiler.NewCompiler(false, sch).Compile()
+	_, err = compiler.NewCompiler(true, sch).Compile()
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

@@ -16,14 +16,14 @@ type Compiler struct {
 	// The AST schema to be compiled
 	schema *ast.Schema
 	// Whether to skip reference validation during compilation
-	withoutReferenceValidation bool
+	withReferenceValidation bool
 }
 
 // NewCompiler returns a new Compiler instance with the given schema and reference validation flag.
 func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 	return &Compiler{
-		withoutReferenceValidation: w,
-		schema:                     sch,
+		withReferenceValidation: w,
+		schema:                  sch,
 	}
 }
 
@@ -31,7 +31,7 @@ func NewCompiler(w bool, sch *ast.Schema) *Compiler {
 // Returns a slice of EntityDefinition pointers and an error, if any.
 func (t *Compiler) Compile() ([]*base.EntityDefinition, error) {
 	// If withoutReferenceValidation is not set to true, validate the schema for reference errors.
-	if !t.withoutReferenceValidation {
+	if t.withReferenceValidation {
 		err := t.schema.Validate()
 		if err != nil {
 			return nil, err
@@ -218,7 +218,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 
 	// If the identifier has one segment, it is treated as a reference to a relational reference.
 	if len(ident.Idents) == 1 {
-		if !t.withoutReferenceValidation {
+		if t.withReferenceValidation {
 			err := t.validateComputedUserSetReference(entityName, ident)
 			if err != nil {
 				return nil, err
@@ -236,7 +236,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 
 	// If the identifier has two segments, it is treated as a reference to a tuple and its corresponding user set.
 	if len(ident.Idents) == 2 {
-		if !t.withoutReferenceValidation {
+		if t.withReferenceValidation {
 			err := t.validateTupleToUserSetReference(entityName, ident)
 			if err != nil {
 				return nil, err

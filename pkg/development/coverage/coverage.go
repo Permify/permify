@@ -77,7 +77,7 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		return SchemaCoverageInfo{}
 	}
 
-	definitions, err := compiler.NewCompiler(false, p).Compile()
+	definitions, err := compiler.NewCompiler(true, p).Compile()
 	if err != nil {
 		return SchemaCoverageInfo{}
 	}

@@ -21,7 +21,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, _ := c.Compile()
 
 			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
@@ -60,7 +60,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, _ := c.Compile()
 
 			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
@@ -115,7 +115,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, _ := c.Compile()
 
 			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
@@ -174,7 +174,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, _ := c.Compile()
 
 			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
@@ -238,7 +238,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, _ := c.Compile()
 
 			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
@@ -305,7 +305,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -360,7 +360,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -447,7 +447,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -494,7 +494,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -543,7 +543,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -600,7 +600,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -648,7 +648,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -698,7 +698,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -738,7 +738,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -790,7 +790,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -833,7 +833,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -884,7 +884,7 @@ var _ = Describe("connected schema", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := compiler.NewCompiler(false, sch)
+			c := compiler.NewCompiler(true, sch)
 			a, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 

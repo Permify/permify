@@ -101,7 +101,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		_, err = compiler.NewCompiler(false, sch).Compile()
+		_, err = compiler.NewCompiler(true, sch).Compile()
 		if err != nil {
 			return err
 		}

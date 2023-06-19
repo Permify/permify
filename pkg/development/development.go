@@ -233,7 +233,7 @@ func (c *Development) WriteSchema(ctx context.Context, schema string) (err error
 	}
 
 	// Compile the AST into a set of schema definitions
-	_, err = compiler.NewCompiler(false, sch).Compile()
+	_, err = compiler.NewCompiler(true, sch).Compile()
 	if err != nil {
 		return err
 	}
@@ -306,7 +306,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 	}
 
 	// Compile the parsed schema
-	_, err = compiler.NewCompiler(false, sch).Compile()
+	_, err = compiler.NewCompiler(true, sch).Compile()
 	if err != nil {
 		list.AddError(err.Error())
 		return list

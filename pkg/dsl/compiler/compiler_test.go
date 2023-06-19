@@ -56,7 +56,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -153,7 +153,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -270,7 +270,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -347,7 +347,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			_, err = c.Compile()
 			Expect(err).Should(Equal(errors.New("9:26: undefined relation reference")))
@@ -377,7 +377,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			_, err = c.Compile()
 			Expect(err).Should(Equal(errors.New("18:40: not supported relation walk")))
@@ -407,7 +407,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -607,7 +607,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -815,7 +815,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			_, err = c.Compile()
 			Expect(err.Error()).Should(Equal("15:28: relation reference not found in entity references"))
@@ -844,7 +844,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -1010,7 +1010,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -1176,7 +1176,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -1300,7 +1300,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
 			is, err = c.Compile()
@@ -1474,7 +1474,7 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			_, err = c.Compile()
 			Expect(err.Error()).Should(Equal("15:36: undefined relation reference"))
