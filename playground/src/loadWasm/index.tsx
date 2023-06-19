@@ -8,7 +8,7 @@ import {toAbsoluteUrl} from "../utility/helpers/asset";
 
 async function loadWasm(): Promise<void> {
     const goWasm = new window.Go();
-    const result = await WebAssembly.instantiateStreaming(fetch('main.wasm'), goWasm.importObject);
+    const result = await WebAssembly.instantiateStreaming(fetch('https://s3.amazonaws.com/permify.playground.storage/main.wasm'), goWasm.importObject);
     goWasm.run(result.instance);
 }
 
