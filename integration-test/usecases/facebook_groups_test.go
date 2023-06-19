@@ -43,11 +43,7 @@ var _ = Describe("facebook-groups-test", func() {
 							Expect(err).ShouldNot(HaveOccurred())
 						}
 
-						contextTuples = append(contextTuples, &base.Tuple{
-							Entity:   tup.GetEntity(),
-							Relation: tup.GetRelation(),
-							Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
-						})
+						contextTuples = append(contextTuples, tup)
 					}
 
 					for permission, expected := range check.Assertions {
@@ -99,11 +95,7 @@ var _ = Describe("facebook-groups-test", func() {
 							Expect(err).ShouldNot(HaveOccurred())
 						}
 
-						contextTuples = append(contextTuples, &base.Tuple{
-							Entity:   tup.GetEntity(),
-							Relation: tup.GetRelation(),
-							Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
-						})
+						contextTuples = append(contextTuples, tup)
 					}
 
 					for permission, expected := range filter.Assertions {
@@ -145,11 +137,7 @@ var _ = Describe("facebook-groups-test", func() {
 							Expect(err).ShouldNot(HaveOccurred())
 						}
 
-						contextTuples = append(contextTuples, &base.Tuple{
-							Entity:   tup.GetEntity(),
-							Relation: tup.GetRelation(),
-							Subject:  tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject()),
-						})
+						contextTuples = append(contextTuples, tup)
 					}
 
 					for permission, expected := range filter.Assertions {
