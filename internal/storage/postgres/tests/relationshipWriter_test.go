@@ -51,7 +51,7 @@ var _ = Describe("RelationshipWriter", func() {
 		It("Insert and throws no error", func() {
 			mock.ExpectBegin()
 			mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO relation_tuples (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, tenant_id)
-			VALUES ($1,$2,$3,$4,$5,$6,$7)`)).
+			VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT DO NOTHING`)).
 				WithArgs("organization", "abc", "admin", "subject-1", "sub-id", "admin", "noop").
 				WillReturnRows(
 					sqlmock.NewRows(columns).AddRow("organization", "abc", "admin", "subject-1", "sub-id", "admin", "noop"),

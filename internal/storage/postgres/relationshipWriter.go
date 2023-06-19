@@ -59,7 +59,7 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 			return nil, err
 		}
 
-		insertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, tenant_id")
+		insertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, tenant_id").Suffix("ON CONFLICT DO NOTHING")
 
 		iter := collection.CreateTupleIterator()
 		for iter.HasNext() {
@@ -85,8 +85,6 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 			span.SetStatus(otelCodes.Error, err.Error())
 			if strings.Contains(err.Error(), "could not serialize") {
 				continue
-			} else if strings.Contains(err.Error(), "duplicate key value") {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
 			} else {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
