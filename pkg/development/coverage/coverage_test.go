@@ -42,7 +42,7 @@ var _ = Describe("coverage", func() {
 		}`,
 				Relationships: []string{
 					"organization:1#admin@user:1",
-					"repository:1#parent@organization:1#...",
+					"repository:1#parent@organization:1",
 				},
 				Scenarios: []file.Scenario{
 					{
@@ -236,12 +236,10 @@ var _ = Describe("coverage", func() {
 
 			Expect(sci.EntityCoverageInfo[3].EntityName).Should(Equal("organization"))
 			Expect(isSameArray(sci.EntityCoverageInfo[3].UncoveredRelationships, []string{
-				"organization#group@group#...",
-				"organization#resource@resource#...",
 				"organization#administrator@group#member",
 				"organization#direct_member@user",
 			})).Should(Equal(true))
-			Expect(sci.EntityCoverageInfo[3].CoverageRelationshipsPercent).Should(Equal(33))
+			Expect(sci.EntityCoverageInfo[3].CoverageRelationshipsPercent).Should(Equal(66))
 			Expect(isSameArray(sci.EntityCoverageInfo[3].UncoveredAssertions["scenario 1"], []string{
 				"organization#admin",
 				"organization#member",
@@ -349,7 +347,7 @@ var _ = Describe("coverage", func() {
     entity event {
 
         // Relation to represent the owner of the event
-        relation owner @user
+        relation owner @user @tuser
         // Relation to represent the group that the event belongs to
         relation group @group
 
@@ -359,7 +357,11 @@ var _ = Describe("coverage", func() {
         action edit_event = owner or group.admin
         action delete_event = owner or group.admin
         action RSVP_to_event = owner or group.member
-    }`,
+    }
+
+	entity tuser {}
+
+	`,
 				Relationships: []string{
 					"group:1#member@user:1",
 					"group:1#admin@user:2",
@@ -384,7 +386,6 @@ var _ = Describe("coverage", func() {
 					"poll:2#group@group:1",
 					"file:1#owner@user:1",
 					"file:1#group@group:1",
-					"event:1#owner@user:3",
 					"event:1#group@group:1",
 				},
 				Scenarios: []file.Scenario{
@@ -435,10 +436,8 @@ var _ = Describe("coverage", func() {
 			Expect(sci.EntityCoverageInfo[1].CoverageAssertionsPercent["scenario 1"]).Should(Equal(0))
 
 			Expect(sci.EntityCoverageInfo[2].EntityName).Should(Equal("post"))
-			Expect(sci.EntityCoverageInfo[2].UncoveredRelationships).Should(Equal([]string{
-				"post#group@group#...",
-			}))
-			Expect(sci.EntityCoverageInfo[2].CoverageRelationshipsPercent).Should(Equal(50))
+			Expect(sci.EntityCoverageInfo[2].UncoveredRelationships).Should(Equal([]string{}))
+			Expect(sci.EntityCoverageInfo[2].CoverageRelationshipsPercent).Should(Equal(100))
 			Expect(isSameArray(sci.EntityCoverageInfo[2].UncoveredAssertions["scenario 1"], []string{
 				"post#view_post",
 				"post#edit_post",
@@ -448,10 +447,8 @@ var _ = Describe("coverage", func() {
 			Expect(sci.EntityCoverageInfo[2].CoverageAssertionsPercent["scenario 1"]).Should(Equal(0))
 
 			Expect(sci.EntityCoverageInfo[3].EntityName).Should(Equal("comment"))
-			Expect(sci.EntityCoverageInfo[3].UncoveredRelationships).Should(Equal([]string{
-				"comment#post@post#...",
-			}))
-			Expect(sci.EntityCoverageInfo[3].CoverageRelationshipsPercent).Should(Equal(50))
+			Expect(sci.EntityCoverageInfo[3].UncoveredRelationships).Should(Equal([]string{}))
+			Expect(sci.EntityCoverageInfo[3].CoverageRelationshipsPercent).Should(Equal(100))
 			Expect(isSameArray(sci.EntityCoverageInfo[3].UncoveredAssertions["scenario 1"], []string{
 				"comment#edit_comment",
 				"comment#delete_comment",
@@ -459,10 +456,8 @@ var _ = Describe("coverage", func() {
 			Expect(sci.EntityCoverageInfo[3].CoverageAssertionsPercent["scenario 1"]).Should(Equal(33))
 
 			Expect(sci.EntityCoverageInfo[4].EntityName).Should(Equal("like"))
-			Expect(sci.EntityCoverageInfo[4].UncoveredRelationships).Should(Equal([]string{
-				"like#post@post#...",
-			}))
-			Expect(sci.EntityCoverageInfo[4].CoverageRelationshipsPercent).Should(Equal(50))
+			Expect(sci.EntityCoverageInfo[4].UncoveredRelationships).Should(Equal([]string{}))
+			Expect(sci.EntityCoverageInfo[4].CoverageRelationshipsPercent).Should(Equal(100))
 			Expect(isSameArray(sci.EntityCoverageInfo[4].UncoveredAssertions["scenario 1"], []string{
 				"like#like_post",
 				"like#unlike_post",
@@ -470,10 +465,8 @@ var _ = Describe("coverage", func() {
 			Expect(sci.EntityCoverageInfo[4].CoverageAssertionsPercent["scenario 1"]).Should(Equal(0))
 
 			Expect(sci.EntityCoverageInfo[5].EntityName).Should(Equal("poll"))
-			Expect(sci.EntityCoverageInfo[5].UncoveredRelationships).Should(Equal([]string{
-				"poll#group@group#...",
-			}))
-			Expect(sci.EntityCoverageInfo[5].CoverageRelationshipsPercent).Should(Equal(50))
+			Expect(sci.EntityCoverageInfo[5].UncoveredRelationships).Should(Equal([]string{}))
+			Expect(sci.EntityCoverageInfo[5].CoverageRelationshipsPercent).Should(Equal(100))
 			Expect(isSameArray(sci.EntityCoverageInfo[5].UncoveredAssertions["scenario 1"], []string{
 				"poll#delete_poll",
 				"poll#create_poll",
@@ -483,10 +476,8 @@ var _ = Describe("coverage", func() {
 			Expect(sci.EntityCoverageInfo[5].CoverageAssertionsPercent["scenario 1"]).Should(Equal(0))
 
 			Expect(sci.EntityCoverageInfo[6].EntityName).Should(Equal("file"))
-			Expect(sci.EntityCoverageInfo[6].UncoveredRelationships).Should(Equal([]string{
-				"file#group@group#...",
-			}))
-			Expect(sci.EntityCoverageInfo[6].CoverageRelationshipsPercent).Should(Equal(50))
+			Expect(sci.EntityCoverageInfo[6].UncoveredRelationships).Should(Equal([]string{}))
+			Expect(sci.EntityCoverageInfo[6].CoverageRelationshipsPercent).Should(Equal(100))
 			Expect(isSameArray(sci.EntityCoverageInfo[6].UncoveredAssertions["scenario 1"], []string{
 				"file#upload_file",
 				"file#view_file",
@@ -496,9 +487,10 @@ var _ = Describe("coverage", func() {
 
 			Expect(sci.EntityCoverageInfo[7].EntityName).Should(Equal("event"))
 			Expect(sci.EntityCoverageInfo[7].UncoveredRelationships).Should(Equal([]string{
-				"event#group@group#...",
+				"event#owner@user",
+				"event#owner@tuser",
 			}))
-			Expect(sci.EntityCoverageInfo[7].CoverageRelationshipsPercent).Should(Equal(50))
+			Expect(sci.EntityCoverageInfo[7].CoverageRelationshipsPercent).Should(Equal(33))
 			Expect(isSameArray(sci.EntityCoverageInfo[7].UncoveredAssertions["scenario 1"], []string{
 				"event#create_event",
 				"event#view_event",
@@ -506,6 +498,12 @@ var _ = Describe("coverage", func() {
 				"event#delete_event",
 			})).Should(Equal(true))
 			Expect(sci.EntityCoverageInfo[7].CoverageAssertionsPercent["scenario 1"]).Should(Equal(20))
+
+			Expect(sci.EntityCoverageInfo[8].EntityName).Should(Equal("tuser"))
+			Expect(sci.EntityCoverageInfo[8].UncoveredRelationships).Should(Equal([]string{}))
+			Expect(sci.EntityCoverageInfo[8].CoverageRelationshipsPercent).Should(Equal(100))
+			Expect(isSameArray(sci.EntityCoverageInfo[8].UncoveredAssertions["scenario 1"], []string{})).Should(Equal(true))
+			Expect(sci.EntityCoverageInfo[8].CoverageAssertionsPercent["scenario 1"]).Should(Equal(100))
 		})
 	})
 })
