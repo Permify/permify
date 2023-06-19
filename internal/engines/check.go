@@ -381,9 +381,9 @@ func (engine *CheckEngine) checkTupleToUserSet(
 // checkComputedUserSet is a method of CheckEngine that checks permissions using the
 // ComputedUserSet data structure. It returns a CheckFunction closure that performs the check.
 func (engine *CheckEngine) checkComputedUserSet(
-	ctx context.Context,                  // The context carrying deadline and cancellation signal
+	ctx context.Context, // The context carrying deadline and cancellation signal
 	request *base.PermissionCheckRequest, // The request containing details about the permission to be checked
-	cu *base.ComputedUserSet,             // The computed user set containing user set information
+	cu *base.ComputedUserSet, // The computed user set containing user set information
 ) CheckFunction {
 	// The returned CheckFunction invokes a permission check with a new request that is almost the same
 	// as the incoming request, but changes the Permission to be the relation defined in the computed user set.
