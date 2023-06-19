@@ -312,7 +312,7 @@ var _ = Describe("tuple", func() {
 						Id:       "1",
 						Relation: "admin",
 					},
-					expected: false,
+					expected: true,
 				},
 				{
 					target: &base.Subject{
@@ -320,7 +320,7 @@ var _ = Describe("tuple", func() {
 						Id:       "1",
 						Relation: "admin",
 					},
-					expected: false,
+					expected: true,
 				},
 				{
 					target: &base.Subject{

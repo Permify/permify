@@ -110,10 +110,8 @@ func ValidateSubjectType(subject *base.Subject, relationTypes []string) (err err
 	}
 
 	key := subject.GetType()
-	if subject.GetRelation() != "" {
-		if !IsDirectSubject(subject) { // if subject is not of type "user"
-			key += "#" + subject.GetRelation() // append relation to key
-		}
+	if subject.GetRelation() != "" && subject.GetRelation() != ELLIPSIS {
+		key += "#" + subject.GetRelation() // append relation to key
 	}
 
 	if !slices.Contains(relationTypes, key) { // check if key is in relationTypes
