@@ -148,7 +148,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Meter
-		// meter := telemetry.NewNoopMeter()
+		meter := telemetry.NewNoopMeter()
 		if cfg.Meter.Enabled {
 			var exporter metric.Exporter
 			exporter, err = meterexporters.ExporterFactory(cfg.Meter.Exporter, cfg.Meter.Endpoint)
@@ -156,7 +156,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				l.Fatal(err)
 			}
 
-			_, err = telemetry.NewMeter(exporter)
+			meter, err = telemetry.NewMeter(exporter)
 			if err != nil {
 				l.Fatal(err)
 			}
@@ -294,6 +294,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			expandEngine,
 			lookupEntityEngine,
 			lookupSubjectEngine,
+			meter,
 		)
 
 		checkEngine.SetInvoker(invoker)

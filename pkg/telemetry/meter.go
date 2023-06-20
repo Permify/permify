@@ -5,13 +5,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/rs/xid"
+	"go.opentelemetry.io/otel/metric/noop"
 
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	orn "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/attribute"
 	omt "go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/semconv/v1.10.0"
@@ -31,15 +30,13 @@ func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
-			attribute.String("id", xid.New().String()),
+			attribute.String("id", internal.Identifier),
 			attribute.String("version", internal.Version),
 			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),
 			attribute.String("arch", runtime.GOARCH),
 		)),
 	)
-
-	global.SetMeterProvider(mp)
 
 	if err = orn.Start(
 		orn.WithMinimumReadMemStatsInterval(time.Second),
@@ -53,4 +50,10 @@ func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 	}
 
 	return mp.Meter("permify"), nil
+}
+
+// NewNoopMeter - Creates new noop meter
+func NewNoopMeter() omt.Meter {
+	mp := noop.MeterProvider{}
+	return mp.Meter("permify")
 }

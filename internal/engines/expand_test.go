@@ -12,6 +12,7 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -958,6 +959,7 @@ var _ = Describe("expand-engine", func() {
 				expandEngine,
 				nil,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple
@@ -1212,6 +1214,7 @@ var _ = Describe("expand-engine", func() {
 				expandEngine,
 				nil,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple

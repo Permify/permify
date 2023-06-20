@@ -5,6 +5,7 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
+	api "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 
 	"go.opentelemetry.io/otel"
@@ -68,6 +69,11 @@ type DirectInvoker struct {
 	le LookupEntity
 	// LookupSubject
 	ls LookupSubject
+
+	// Metrics
+	checkCounter         api.Int64Counter
+	lookupEntityCounter  api.Int64Counter
+	lookupSubjectCounter api.Int64Counter
 }
 
 // NewDirectInvoker is a constructor for DirectInvoker.
@@ -80,14 +86,36 @@ func NewDirectInvoker(
 	ec Expand,
 	le LookupEntity,
 	ls LookupSubject,
+	meter api.Meter,
 ) *DirectInvoker {
+	// Define metrics
+	checkCounter, err := meter.Int64Counter("check_count", api.WithDescription("Number of permission checks performed"))
+	if err != nil {
+		panic(err)
+	}
+
+	// Define metrics
+	lookupEntityCounter, err := meter.Int64Counter("lookup_entity_count", api.WithDescription("Number of permission lookup entity performed"))
+	if err != nil {
+		panic(err)
+	}
+
+	// Define metrics
+	lookupSubjectCounter, err := meter.Int64Counter("lookup_subject_count", api.WithDescription("Number of permission lookup subject performed"))
+	if err != nil {
+		panic(err)
+	}
+
 	return &DirectInvoker{
-		schemaReader:       schemaReader,
-		relationshipReader: relationshipReader,
-		cc:                 cc,
-		ec:                 ec,
-		le:                 le,
-		ls:                 ls,
+		schemaReader:         schemaReader,
+		relationshipReader:   relationshipReader,
+		cc:                   cc,
+		ec:                   ec,
+		le:                   le,
+		ls:                   ls,
+		checkCounter:         checkCounter,
+		lookupEntityCounter:  lookupEntityCounter,
+		lookupSubjectCounter: lookupSubjectCounter,
 	}
 }
 
@@ -171,6 +199,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	// Increase the check count in the response metadata.
 	response.Metadata = increaseCheckCount(response.Metadata)
 
+	// Increase the check count in the metrics.
+	invoker.checkCounter.Add(ctx, 1)
+
 	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.Can.String())})
 	return
 }
@@ -243,6 +274,9 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 		}
 	}
 
+	// Increase the lookup entity count in the metrics.
+	invoker.lookupEntityCounter.Add(ctx, 1)
+
 	return invoker.le.LookupEntity(ctx, request)
 }
 
@@ -279,6 +313,9 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 			return err
 		}
 	}
+
+	// Increase the lookup entity count in the metrics.
+	invoker.lookupEntityCounter.Add(ctx, 1)
 
 	return invoker.le.LookupEntityStream(ctx, request, server)
 }
@@ -321,6 +358,9 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 			return response, err
 		}
 	}
+
+	// Increase the lookup subject count in the metrics.
+	invoker.lookupSubjectCounter.Add(ctx, 1)
 
 	// Call the LookupSubject function of the ls field in the invoker, pass the context and request,
 	// and return its response and error
