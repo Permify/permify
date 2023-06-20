@@ -17,6 +17,7 @@ import (
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // RelationshipWriter - Structure for Relationship Writer
@@ -64,7 +65,11 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 		iter := collection.CreateTupleIterator()
 		for iter.HasNext() {
 			t := iter.GetNext()
-			insertBuilder = insertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), t.GetSubject().GetRelation(), tenantID)
+			srelation := t.GetSubject().GetRelation()
+			if srelation == tuple.ELLIPSIS {
+				srelation = ""
+			}
+			insertBuilder = insertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, tenantID)
 		}
 
 		var query string
