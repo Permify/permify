@@ -1,5 +1,12 @@
 package internal
 
+import (
+	"github.com/rs/xid"
+)
+
+// Identifier is the unique identifier for the Permify.
+var Identifier = xid.New().String()
+
 /*
 ✨ OneLiner: Open-source authorization service inspired by Google Zanzibar
 

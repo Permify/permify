@@ -15,6 +15,7 @@ import (
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 type RelationshipWriter struct {
@@ -45,6 +46,10 @@ func (r *RelationshipWriter) WriteRelationships(_ context.Context, tenantID stri
 
 	for iterator.HasNext() {
 		bt := iterator.GetNext()
+		srelation := bt.GetSubject().GetRelation()
+		if srelation == tuple.ELLIPSIS {
+			srelation = ""
+		}
 		t := storage.RelationTuple{
 			ID:              utils.RelationTuplesID.ID(),
 			TenantID:        tenantID,
@@ -53,7 +58,7 @@ func (r *RelationshipWriter) WriteRelationships(_ context.Context, tenantID stri
 			Relation:        bt.GetRelation(),
 			SubjectType:     bt.GetSubject().GetType(),
 			SubjectID:       bt.GetSubject().GetId(),
-			SubjectRelation: bt.GetSubject().GetRelation(),
+			SubjectRelation: srelation,
 		}
 		if err = txn.Insert(RelationTuplesTable, t); err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())

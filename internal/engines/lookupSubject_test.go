@@ -12,6 +12,7 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -106,6 +107,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple
@@ -199,6 +201,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple
@@ -299,6 +302,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple
@@ -389,6 +393,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple
@@ -481,6 +486,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple
@@ -573,6 +579,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple
@@ -670,6 +677,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				telemetry.NewNoopMeter(),
 			)
 
 			var tuples []*base.Tuple

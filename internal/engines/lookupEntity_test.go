@@ -13,6 +13,7 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -114,6 +115,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -239,6 +241,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -352,6 +355,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -465,6 +469,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -581,6 +586,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -706,6 +712,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -890,6 +897,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1172,6 +1180,7 @@ entity event {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1383,6 +1392,7 @@ entity event {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1571,6 +1581,7 @@ entity organization {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1748,6 +1759,7 @@ entity organization {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1857,6 +1869,7 @@ entity organization {
 				nil,
 				lookupEntityEngine,
 				nil,
+				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)

@@ -23,6 +23,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -66,6 +67,7 @@ func NewContainer() *Development {
 		expandEngine,
 		lookupEntityEngine,
 		lookupSubjectEngine,
+		telemetry.NewNoopMeter(),
 	)
 
 	checkEngine.SetInvoker(invoker)
