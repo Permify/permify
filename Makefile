@@ -66,7 +66,12 @@ coverage: ## Generate global code coverage report
 .PHONY: clean
 clean: ## Remove temporary and generated files
 	rm -f ./permify
+	rm -f ./pkg/development/wasm/main.wasm
 	rm -f coverage.out coverage.html
+
+.PHONY: wasm-build
+wasm-build: ## Remove temporary and generated files
+	cd ./pkg/development/wasm && GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o main.wasm
 
 .PHONY: release
 release: format test security-scan clean ## Prepare for release
