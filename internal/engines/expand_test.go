@@ -1001,4 +1001,258 @@ var _ = Describe("expand-engine", func() {
 			}
 		})
 	})
+
+	// POLYMORPHIC RELATIONS SAMPLE
+
+	polymorphicRelationsSchema := `
+	entity googleuser {}
+	
+	entity facebookuser {}
+	
+	entity company {
+	  relation member @googleuser @facebookuser
+	}
+	
+	entity organization {
+		relation member @googleuser @facebookuser
+	
+		action edit = member
+	}
+	
+	entity repo {
+		relation parent @company @organization
+	
+		permission push   = parent.member
+		permission delete = push
+	}
+	`
+
+	Context("Polymorphic Relations Sample: Expand", func() {
+		It("Polymorphic Relations Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// SCHEMA
+
+			conf, err := newSchema(polymorphicRelationsSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// RELATIONSHIPS
+
+			type expand struct {
+				entity     string
+				assertions map[string]*base.Expand
+			}
+
+			tests := struct {
+				relationships []string
+				contextual    []string
+				expands       []expand
+			}{
+				relationships: []string{
+					"repo:1#parent@organization:1",
+					"repo:1#parent@company:1",
+					"company:1#member@googleuser:2",
+					"organization:1#member@facebookuser:3",
+					"organization:1#member@facebookuser:4",
+					"organization:1#member@facebookuser:5",
+				},
+				expands: []expand{
+					{
+						entity: "repo:1",
+						assertions: map[string]*base.Expand{
+							"push": {
+								Target: &base.EntityAndRelation{
+									Entity: &base.Entity{
+										Type: "repo",
+										Id:   "1",
+									},
+									Relation: "push",
+								},
+								Node: &base.Expand_Expand{
+									Expand: &base.ExpandTreeNode{
+										Operation: base.ExpandTreeNode_OPERATION_UNION,
+										Children: []*base.Expand{
+											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "company",
+														Id:   "1",
+													},
+													Relation: "member",
+												},
+												Node: &base.Expand_Leaf{
+													Leaf: &base.Subjects{
+														Subjects: []*base.Subject{
+															{
+																Type: "googleuser",
+																Id:   "2",
+															},
+														},
+													},
+												},
+											},
+											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "organization",
+														Id:   "1",
+													},
+													Relation: "member",
+												},
+												Node: &base.Expand_Leaf{
+													Leaf: &base.Subjects{
+														Subjects: []*base.Subject{
+															{
+																Type: "facebookuser",
+																Id:   "3",
+															},
+															{
+																Type: "facebookuser",
+																Id:   "4",
+															},
+															{
+																Type: "facebookuser",
+																Id:   "5",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+							"delete": {
+								Target: &base.EntityAndRelation{
+									Entity: &base.Entity{
+										Type: "repo",
+										Id:   "1",
+									},
+									Relation: "push",
+								},
+								Node: &base.Expand_Expand{
+									Expand: &base.ExpandTreeNode{
+										Operation: base.ExpandTreeNode_OPERATION_UNION,
+										Children: []*base.Expand{
+											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "company",
+														Id:   "1",
+													},
+													Relation: "member",
+												},
+												Node: &base.Expand_Leaf{
+													Leaf: &base.Subjects{
+														Subjects: []*base.Subject{
+															{
+																Type: "googleuser",
+																Id:   "2",
+															},
+														},
+													},
+												},
+											},
+											{
+												Target: &base.EntityAndRelation{
+													Entity: &base.Entity{
+														Type: "organization",
+														Id:   "1",
+													},
+													Relation: "member",
+												},
+												Node: &base.Expand_Leaf{
+													Leaf: &base.Subjects{
+														Subjects: []*base.Subject{
+															{
+																Type: "facebookuser",
+																Id:   "3",
+															},
+															{
+																Type: "facebookuser",
+																Id:   "4",
+															},
+															{
+																Type: "facebookuser",
+																Id:   "5",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+
+			expandEngine := NewExpandEngine(schemaReader, relationshipReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				relationshipReader,
+				nil,
+				expandEngine,
+				nil,
+				nil,
+			)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			var contextual []*base.Tuple
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				contextual = append(contextual, t)
+			}
+
+			for _, expand := range tests.expands {
+				entity, err := tuple.E(expand.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range expand.assertions {
+					var response *base.PermissionExpandResponse
+					response, err = invoker.Expand(context.Background(), &base.PermissionExpandRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Permission: permission,
+						Metadata: &base.PermissionExpandRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+						},
+						ContextualTuples: contextual,
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(response.Tree).Should(Equal(res))
+				}
+			}
+		})
+	})
 })

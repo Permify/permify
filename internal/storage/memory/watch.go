@@ -24,7 +24,7 @@ func NewWatcher(database *db.Memory, logger logger.Interface) *Watch {
 }
 
 // Watch - Watches for changes in the repository.
-func (r *Watch) Watch(_ context.Context, _ string, _ string) (<-chan *base.TupleChanges, <-chan error) {
+func (r *Watch) Watch(_ context.Context, _, _ string) (<-chan *base.TupleChanges, <-chan error) {
 	tupleChanges := make(chan *base.TupleChanges)
 	errs := make(chan error)
 

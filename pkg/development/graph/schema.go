@@ -3,26 +3,29 @@ package graph
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/rs/xid"
 
 	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
-// SchemaToGraph takes a schema definition and converts it into a graph
-// representation, returning the created graph and an error if any occurs.
-func SchemaToGraph(schema *base.SchemaDefinition) (g Graph, err error) {
-	// Iterate through entity definitions in the schema
-	for _, en := range schema.GetEntityDefinitions() {
-		// Convert each entity into a graph
-		eg, err := EntityToGraph(en)
+type Builder struct {
+	schema *base.SchemaDefinition
+}
+
+// NewBuilder creates a new Builder object.
+func NewBuilder(schema *base.SchemaDefinition) Builder {
+	return Builder{schema: schema}
+}
+
+// SchemaToGraph converts a schema definition into a graph representation.
+func (b Builder) SchemaToGraph() (g Graph, err error) {
+	for _, entity := range b.schema.GetEntityDefinitions() {
+		eg, err := b.EntityToGraph(entity)
 		if err != nil {
-			return Graph{}, err
+			return Graph{}, fmt.Errorf("failed to convert entity to graph: %w", err)
 		}
-		// Add the nodes and edges from the entity graph to the schema graph
 		g.AddNodes(eg.Nodes())
 		g.AddEdges(eg.Edges())
 	}
@@ -31,7 +34,7 @@ func SchemaToGraph(schema *base.SchemaDefinition) (g Graph, err error) {
 
 // EntityToGraph takes an entity definition and converts it into a graph
 // representation, returning the created graph and an error if any occurs.
-func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
+func (b Builder) EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 	// Create a node for the entity
 	enNode := &Node{
 		Type:  "entity",
@@ -46,7 +49,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 		reNode := &Node{
 			Type:  "relation",
 			ID:    fmt.Sprintf("%s#%s", entity.GetName(), re.GetName()),
-			Label: re.Name,
+			Label: re.GetName(),
 		}
 
 		// Iterate through the relation references
@@ -55,13 +58,13 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 				g.AddEdge(reNode, &Node{
 					Type:  "relation",
 					ID:    fmt.Sprintf("%s#%s", ref.GetType(), ref.GetRelation()),
-					Label: re.Name,
+					Label: re.GetName(),
 				})
 			} else {
 				g.AddEdge(reNode, &Node{
 					Type:  "entity",
 					ID:    ref.GetType(),
-					Label: re.Name,
+					Label: re.GetName(),
 				})
 			}
 		}
@@ -82,7 +85,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 		g.AddNode(acNode)
 		g.AddEdge(enNode, acNode)
 		// Build permission graph for each permission
-		ag, err := buildPermissionGraph(entity, acNode, []*base.Child{permission.GetChild()})
+		ag, err := b.buildPermissionGraph(entity, acNode, []*base.Child{permission.GetChild()})
 		if err != nil {
 			return Graph{}, err
 		}
@@ -96,7 +99,7 @@ func EntityToGraph(entity *base.EntityDefinition) (g Graph, err error) {
 // buildActionGraph creates a permission graph for the given entity and node,
 // and recursively processes the children of the node. Returns the created
 // graph and an error if any occurs.
-func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []*base.Child) (g Graph, err error) {
+func (b Builder) buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []*base.Child) (g Graph, err error) {
 	// Iterate through the children
 	for _, child := range children {
 		switch child.GetType().(type) {
@@ -112,7 +115,7 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 			g.AddNode(rw)
 			g.AddEdge(from, rw)
 			// Recursively process the children of the rewrite node
-			ag, err := buildPermissionGraph(entity, rw, child.GetRewrite().GetChildren())
+			ag, err := b.buildPermissionGraph(entity, rw, child.GetRewrite().GetChildren())
 			if err != nil {
 				return Graph{}, err
 			}
@@ -131,13 +134,14 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 					return Graph{}, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 				}
 
-				// Add an edge between the parent node and the tuple set relation node
-				g.AddEdge(from, &Node{
-					Type:  "relation",
-					ID:    fmt.Sprintf("%s#%s", GetTupleSetReferenceReference(re), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
-					Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
-				})
-
+				for _, r := range re.GetRelationReferences() {
+					ag, err := b.addEdgeFromRelation(from, r, leaf)
+					if err != nil {
+						return Graph{}, err
+					}
+					g.AddNodes(ag.Nodes())
+					g.AddEdges(ag.Edges())
+				}
 			case *base.Leaf_ComputedUserSet:
 				// Add an edge between the parent node and the computed user set relation node
 				g.AddEdge(from, &Node{
@@ -153,14 +157,32 @@ func buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []
 	return
 }
 
-// GetTupleSetReferenceReference iterates through the relation references
-// and returns the first reference that doesn't contain a "#" symbol.
-// If no such reference is found, it returns the tuple.USER constant.
-func GetTupleSetReferenceReference(definition *base.RelationDefinition) string {
-	for _, ref := range definition.GetRelationReferences() {
-		if !strings.Contains(ref.String(), "#") {
-			return ref.GetType()
+// AddEdgeFromRelation adds an edge to the graph from the relation information
+func (b Builder) addEdgeFromRelation(from *Node, reference *base.RelationReference, leaf *base.Leaf) (g Graph, err error) {
+	if reference.GetRelation() != "" {
+		upperen, err := schema.GetEntityByName(b.schema, reference.GetType())
+		if err != nil {
+			return Graph{}, err
 		}
+		re, err := schema.GetRelationByNameInEntityDefinition(upperen, leaf.GetTupleToUserSet().GetTupleSet().GetRelation())
+		if err != nil {
+			return Graph{}, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
+		}
+		for _, r := range re.GetRelationReferences() {
+			ag, err := b.addEdgeFromRelation(from, r, leaf)
+			if err != nil {
+				return Graph{}, err
+			}
+			g.AddNodes(ag.Nodes())
+			g.AddEdges(ag.Edges())
+		}
+	} else {
+		// Add an edge between the parent node and the tuple set relation node
+		g.AddEdge(from, &Node{
+			Type:  "relation",
+			ID:    fmt.Sprintf("%s#%s", reference.GetType(), leaf.GetTupleToUserSet().GetComputed().GetRelation()),
+			Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
+		})
 	}
-	return tuple.USER
+	return
 }

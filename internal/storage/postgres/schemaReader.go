@@ -76,7 +76,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 		return nil, err
 	}
 
-	sch, err = schema.NewSchemaFromStringDefinitions(true, definitions...)
+	sch, err = schema.NewSchemaFromStringDefinitions(false, definitions...)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

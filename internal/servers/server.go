@@ -125,7 +125,7 @@ func (s *Container) Run(
 			unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.KeyAuthFunc(authenticator)))
 			streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.KeyAuthFunc(authenticator)))
 		case "oidc":
-			var authenticator *oidc.OidcAuthn
+			var authenticator *oidc.Authn
 			authenticator, err = oidc.NewOidcAuthn(ctx, authentication.Oidc)
 			if err != nil {
 				return err
@@ -174,7 +174,15 @@ func (s *Container) Run(
 		go func() {
 			l.Info(fmt.Sprintf("🚀 profiler server successfully started: %s", profiler.Port))
 
-			if err = http.ListenAndServe(":"+profiler.Port, mux); err != nil {
+			pprofserver := &http.Server{
+				Addr:         ":" + profiler.Port,
+				Handler:      mux,
+				ReadTimeout:  5 * time.Second,
+				WriteTimeout: 5 * time.Second,
+				IdleTimeout:  15 * time.Second,
+			}
+
+			if err = pprofserver.ListenAndServe(); err != nil {
 				if errors.Is(err, http.ErrServerClosed) {
 					l.Fatal("failed to start profiler", err)
 				}

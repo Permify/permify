@@ -69,7 +69,7 @@ type (
 	// Oidc contains configuration for OIDC authentication.
 	Oidc struct {
 		Issuer   string `mapstructure:"issuer"`    // OIDC issuer URL
-		ClientId string `mapstructure:"client_id"` // OIDC client ID
+		ClientID string `mapstructure:"client_id"` // OIDC client ID
 	}
 
 	// Profiler contains configuration for the profiler.

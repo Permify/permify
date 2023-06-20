@@ -95,7 +95,7 @@ type CheckCombiner func(ctx context.Context, functions []CheckFunction, limit in
 // and returns a CheckFunction. The returned CheckFunction, when called with
 // a context, executes the Run method of the CheckEngine with the given
 // request, and returns the resulting PermissionCheckResponse and error.
-func (engine *CheckEngine) invoke(ctx context.Context, request *base.PermissionCheckRequest) CheckFunction {
+func (engine *CheckEngine) invoke(request *base.PermissionCheckRequest) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 		return engine.invoker.Check(ctx, request)
 	}
@@ -132,11 +132,11 @@ func (engine *CheckEngine) check(
 		if child.GetRewrite() != nil {
 			fn = engine.checkRewrite(ctx, request, child.GetRewrite())
 		} else {
-			fn = engine.checkLeaf(ctx, request, child.GetLeaf())
+			fn = engine.checkLeaf(request, child.GetLeaf())
 		}
 	} else {
 		// If the relational reference is not a permission, we directly check the permission.
-		fn = engine.checkDirect(ctx, request)
+		fn = engine.checkDirect(request)
 	}
 
 	// If we could not prepare a CheckFunction, we return a function that always fails with an error indicating undefined child kind.
@@ -175,17 +175,17 @@ func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.Permi
 
 // checkLeaf prepares a CheckFunction according to the provided Leaf operation.
 // It uses a Leaf object that describes how to check a permission request.
-func (engine *CheckEngine) checkLeaf(ctx context.Context, request *base.PermissionCheckRequest, leaf *base.Leaf) CheckFunction {
+func (engine *CheckEngine) checkLeaf(request *base.PermissionCheckRequest, leaf *base.Leaf) CheckFunction {
 	// Switch statement depending on the Leaf type
 	switch op := leaf.GetType().(type) {
 	// In case of TupleToUserSet operation, prepare a CheckFunction that checks
 	// if the request's user is in the UserSet referenced by the tuple.
 	case *base.Leaf_TupleToUserSet:
-		return engine.checkTupleToUserSet(ctx, request, op.TupleToUserSet)
+		return engine.checkTupleToUserSet(request, op.TupleToUserSet)
 	// In case of ComputedUserSet operation, prepare a CheckFunction that checks
 	// if the request's user is in the computed UserSet.
 	case *base.Leaf_ComputedUserSet:
-		return engine.checkComputedUserSet(ctx, request, op.ComputedUserSet)
+		return engine.checkComputedUserSet(request, op.ComputedUserSet)
 	// In case of an undefined type, return a CheckFunction that always fails.
 	default:
 		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
@@ -212,7 +212,7 @@ func (engine *CheckEngine) setChild(
 			functions = append(functions, engine.checkRewrite(ctx, request, child.GetRewrite()))
 		// In case of a Leaf node, create a CheckFunction for the Leaf and append it
 		case *base.Child_Leaf:
-			functions = append(functions, engine.checkLeaf(ctx, request, child.GetLeaf()))
+			functions = append(functions, engine.checkLeaf(request, child.GetLeaf()))
 		// In case of an undefined type, return a CheckFunction that always fails
 		default:
 			return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
@@ -228,7 +228,7 @@ func (engine *CheckEngine) setChild(
 
 // checkDirect is a method of CheckEngine struct that returns a CheckFunction.
 // It's responsible for directly checking the permissions on an entity
-func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.PermissionCheckRequest) CheckFunction {
+func (engine *CheckEngine) checkDirect(request *base.PermissionCheckRequest) CheckFunction {
 	// The returned CheckFunction is a closure over the provided context and request
 	return func(ctx context.Context) (result *base.PermissionCheckResponse, err error) {
 		// Define a TupleFilter. This specifies which tuples we're interested in.
@@ -281,8 +281,8 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 				return allowed(&base.PermissionCheckResponseMetadata{}), nil
 			}
 			// If the subject is not a user and the relation is not ELLIPSIS, append a check function to the list.
-			if !tuple.IsSubjectUser(subject) && subject.GetRelation() != tuple.ELLIPSIS {
-				checkFunctions = append(checkFunctions, engine.invoke(ctx, &base.PermissionCheckRequest{
+			if !tuple.IsDirectSubject(subject) && subject.GetRelation() != tuple.ELLIPSIS {
+				checkFunctions = append(checkFunctions, engine.invoke(&base.PermissionCheckRequest{
 					TenantId: request.GetTenantId(),
 					Entity: &base.Entity{
 						Type: subject.GetType(),
@@ -309,7 +309,6 @@ func (engine *CheckEngine) checkDirect(ctx context.Context, request *base.Permis
 // checkTupleToUserSet is a method of CheckEngine that checks permissions using the
 // TupleToUserSet data structure. It returns a CheckFunction closure that does the check.
 func (engine *CheckEngine) checkTupleToUserSet(
-	ctx context.Context,
 	request *base.PermissionCheckRequest,
 	ttu *base.TupleToUserSet,
 ) CheckFunction {
@@ -358,7 +357,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 			subject := next.GetSubject()
 
 			// For each subject, generate a check function for its computed user set and append it to the list.
-			checkFunctions = append(checkFunctions, engine.checkComputedUserSet(ctx, &base.PermissionCheckRequest{
+			checkFunctions = append(checkFunctions, engine.checkComputedUserSet(&base.PermissionCheckRequest{
 				TenantId: request.GetTenantId(),
 				Entity: &base.Entity{
 					Type: subject.GetType(),
@@ -381,19 +380,15 @@ func (engine *CheckEngine) checkTupleToUserSet(
 // checkComputedUserSet is a method of CheckEngine that checks permissions using the
 // ComputedUserSet data structure. It returns a CheckFunction closure that performs the check.
 func (engine *CheckEngine) checkComputedUserSet(
-	ctx context.Context, // The context carrying deadline and cancellation signal
 	request *base.PermissionCheckRequest, // The request containing details about the permission to be checked
 	cu *base.ComputedUserSet, // The computed user set containing user set information
 ) CheckFunction {
 	// The returned CheckFunction invokes a permission check with a new request that is almost the same
 	// as the incoming request, but changes the Permission to be the relation defined in the computed user set.
 	// This is how the check "descends" into the computed user set to check permissions there.
-	return engine.invoke(ctx, &base.PermissionCheckRequest{
-		TenantId: request.GetTenantId(), // Tenant ID from the incoming request
-		Entity: &base.Entity{ // The entity from the incoming request
-			Type: request.GetEntity().GetType(),
-			Id:   request.GetEntity().GetId(),
-		},
+	return engine.invoke(&base.PermissionCheckRequest{
+		TenantId:         request.GetTenantId(), // Tenant ID from the incoming request
+		Entity:           request.GetEntity(),
 		Permission:       cu.GetRelation(),      // Permission is set to the relation defined in the computed user set
 		Subject:          request.GetSubject(),  // The subject from the incoming request
 		Metadata:         request.GetMetadata(), // Metadata from the incoming request

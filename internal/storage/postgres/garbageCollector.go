@@ -109,10 +109,7 @@ func (c *GarbageCollector) Start() error {
 			}
 		}
 		// wait for all remaining semaphore resources to be released
-		if err := sem.Acquire(c.ctx, int64(c.concurrencyLimit)); err != nil {
-			return err
-		}
-		return nil
+		return sem.Acquire(c.ctx, int64(c.concurrencyLimit))
 	})
 
 	return nil
@@ -126,10 +123,7 @@ func (c *GarbageCollector) Stop() {
 // Wait waits for all goroutines in the errgroup to finish.
 // Returns an error if any of the goroutines encounter an error.
 func (c *GarbageCollector) Wait() error {
-	if err := c.g.Wait(); err != nil {
-		return err
-	}
-	return nil
+	return c.g.Wait()
 }
 
 func (c *GarbageCollector) getTenants(ctx context.Context) ([]*base.Tenant, error) {

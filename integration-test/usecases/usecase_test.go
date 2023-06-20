@@ -49,7 +49,7 @@ var _ = BeforeSuite(func() {
 
 	var err error
 	// Set up a connection to the server.
-	conn, err = grpc.DialContext(ctx, "localhost:3478", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err = grpc.DialContext(ctx, "permify:3478", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	Expect(err).ShouldNot(HaveOccurred())
 
 	// Create a PermissionClient using the connection.
@@ -80,13 +80,7 @@ var _ = BeforeSuite(func() {
 			continue
 		}
 
-		subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
-
-		notionTuples = append(notionTuples, &base.Tuple{
-			Entity:   tup.GetEntity(),
-			Relation: tup.GetRelation(),
-			Subject:  subject,
-		})
+		notionTuples = append(notionTuples, tup)
 	}
 
 	nrw, err := relationshipClient.Write(ctx, &base.RelationshipWriteRequest{
@@ -124,13 +118,7 @@ var _ = BeforeSuite(func() {
 			continue
 		}
 
-		subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
-
-		googleDocsTuples = append(googleDocsTuples, &base.Tuple{
-			Entity:   tup.GetEntity(),
-			Relation: tup.GetRelation(),
-			Subject:  subject,
-		})
+		googleDocsTuples = append(googleDocsTuples, tup)
 	}
 
 	drw, err := relationshipClient.Write(ctx, &base.RelationshipWriteRequest{
@@ -168,13 +156,7 @@ var _ = BeforeSuite(func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		}
 
-		subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
-
-		facebookGroupsTuples = append(facebookGroupsTuples, &base.Tuple{
-			Entity:   tup.GetEntity(),
-			Relation: tup.GetRelation(),
-			Subject:  subject,
-		})
+		facebookGroupsTuples = append(facebookGroupsTuples, tup)
 	}
 
 	frw, err := relationshipClient.Write(ctx, &base.RelationshipWriteRequest{

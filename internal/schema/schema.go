@@ -67,7 +67,7 @@ func NewEntityDefinitionsFromStringDefinitions(validation bool, definitions ...s
 	}
 	// Use the compiler to compile the Schema into a list of EntityDefinitions
 	var s []*base.EntityDefinition
-	s, err = compiler.NewCompiler(!validation, sch).Compile()
+	s, err = compiler.NewCompiler(validation, sch).Compile()
 	if err != nil {
 		// If there's an error, return the error
 		return nil, err

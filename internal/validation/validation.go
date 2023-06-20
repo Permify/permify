@@ -12,14 +12,6 @@ import (
 // ValidateTuple checks if the provided tuple conforms to the entity definition
 // and relation schema provided. It returns an error if the tuple is invalid.
 func ValidateTuple(definition *base.EntityDefinition, tup *base.Tuple) (err error) {
-	// Check if the subject of the tuple is a user
-	if tuple.IsSubjectUser(tup.GetSubject()) {
-		// If the subject is a user, the relation must be empty
-		if tup.GetSubject().GetRelation() != "" {
-			return errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_RELATION_MUST_BE_EMPTY.String())
-		}
-	}
-
 	// Check if the entity and the subject of the tuple are the same
 	if tuple.IsEntityAndSubjectEquals(tup) {
 		return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_AND_SUBJECT_CANNOT_BE_EQUAL.String())

@@ -26,7 +26,7 @@ func NewSchemaReaderWithCache(delegate storage.SchemaReader, cache cache.Cache) 
 }
 
 // ReadSchema  - Read schema from the repository
-func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.SchemaDefinition, err error) {
+func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error) {
 	return r.delegate.ReadSchema(ctx, tenantID, version)
 }
 

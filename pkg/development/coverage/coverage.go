@@ -77,14 +77,14 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		return SchemaCoverageInfo{}
 	}
 
-	definitions, err := compiler.NewCompiler(false, p).Compile()
+	definitions, err := compiler.NewCompiler(true, p).Compile()
 	if err != nil {
 		return SchemaCoverageInfo{}
 	}
 
-	var refs []SchemaCoverage
 	schemaCoverageInfo := SchemaCoverageInfo{}
 
+	var refs []SchemaCoverage
 	for _, en := range definitions {
 		refs = append(refs, references(en))
 	}
@@ -142,7 +142,7 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 }
 
 // calculateCoveragePercent - Calculate coverage percentage based on total and uncovered elements
-func calculateCoveragePercent(totalElements []string, uncoveredElements []string) int {
+func calculateCoveragePercent(totalElements, uncoveredElements []string) int {
 	coveragePercent := 100
 	totalCount := len(totalElements)
 
@@ -172,8 +172,8 @@ func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int) {
 	}
 
 	// Calculate the coverage percentages
-	totalRelationshipsCoverage := int(totalCoveredRelationships) / int(totalRelationships)
-	totalAssertionsCoverage := int(totalCoveredAssertions) / int(totalAssertions)
+	totalRelationshipsCoverage := totalCoveredRelationships / totalRelationships
+	totalAssertionsCoverage := totalCoveredAssertions / totalAssertions
 
 	// Return the coverage percentages
 	return totalRelationshipsCoverage, totalAssertionsCoverage
@@ -187,17 +187,11 @@ func references(entity *base.EntityDefinition) (coverage SchemaCoverage) {
 	for _, relation := range entity.GetRelations() {
 		// Iterate over all references within each relation
 		for _, reference := range relation.GetRelationReferences() {
-			if reference.GetType() != tuple.USER {
-				if reference.GetRelation() != "" {
-					// Format and append the relationship to the coverage struct
-					formattedRelationship := fmt.Sprintf("%s#%s@%s#%s", entity.GetName(), relation.GetName(), reference.GetType(), reference.GetRelation())
-					coverage.Relationships = append(coverage.Relationships, formattedRelationship)
-				} else {
-					formattedRelationship := fmt.Sprintf("%s#%s@%s#...", entity.GetName(), relation.GetName(), reference.GetType())
-					coverage.Relationships = append(coverage.Relationships, formattedRelationship)
-				}
+			if reference.GetRelation() != "" {
+				// Format and append the relationship to the coverage struct
+				formattedRelationship := fmt.Sprintf("%s#%s@%s#%s", entity.GetName(), relation.GetName(), reference.GetType(), reference.GetRelation())
+				coverage.Relationships = append(coverage.Relationships, formattedRelationship)
 			} else {
-				// Format and append the relationship without the relation name to the coverage struct
 				formattedRelationship := fmt.Sprintf("%s#%s@%s", entity.GetName(), relation.GetName(), reference.GetType())
 				coverage.Relationships = append(coverage.Relationships, formattedRelationship)
 			}

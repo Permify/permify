@@ -292,7 +292,7 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntranceRewrite(target *base.RelationReference, source *base.RelationReference, rewrite *base.Rewrite, visited map[string]struct{}) (results []*LinkedEntrance, err error) {
+func (g *LinkedSchemaGraph) findEntranceRewrite(target, source *base.RelationReference, rewrite *base.Rewrite, visited map[string]struct{}) (results []*LinkedEntrance, err error) {
 	var res []*LinkedEntrance
 	for _, child := range rewrite.GetChildren() {
 		switch child.GetType().(type) {

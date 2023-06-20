@@ -63,7 +63,7 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 
 		color.Notice.Println("initiating coverage analysis... 🚀")
 
-		schemaCoverageInfo := cov.SchemaCoverageInfo(cov.Run(*s))
+		schemaCoverageInfo := cov.Run(*s)
 
 		DisplayCoverageInfo(schemaCoverageInfo)
 

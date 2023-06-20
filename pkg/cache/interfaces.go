@@ -13,11 +13,11 @@ type noopCache struct{}
 
 func NewNoopCache() Cache { return &noopCache{} }
 
-func (c *noopCache) Get(key any) (any, bool) {
+func (c *noopCache) Get(_ any) (any, bool) {
 	return nil, false
 }
 
-func (c *noopCache) Set(key, entry any, cost int64) bool {
+func (c *noopCache) Set(_, _ any, _ int64) bool {
 	return false
 }
 

@@ -75,7 +75,7 @@ func Test_AuthenticateWithSigningMethods(t *testing.T) {
 			// create oidc authenticator
 			ctx := context.Background()
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
-				ClientId: clientId,
+				ClientID: clientId,
 				Issuer:   issuerURL,
 			})
 			Expect(err).To(BeNil())
@@ -171,7 +171,7 @@ func Test_AuthenticateClaims(t *testing.T) {
 			// create oidc authenticator
 			ctx := context.Background()
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
-				ClientId: clientId,
+				ClientID: clientId,
 				Issuer:   issuerURL,
 			})
 			Expect(err).To(BeNil())
@@ -260,7 +260,7 @@ func Test_AuthenticateKeyIds(t *testing.T) {
 			// create authenticator
 			ctx := context.Background()
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
-				ClientId: clientId,
+				ClientID: clientId,
 				Issuer:   issuerURL,
 			})
 			Expect(err).To(BeNil())

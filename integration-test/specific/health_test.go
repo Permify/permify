@@ -14,7 +14,7 @@ var _ = Describe("health-test", func() {
 	Context("Health", func() {
 		It("Health: Success", func() {
 			// Set up a connection to the server.
-			conn, err := grpc.DialContext(context.Background(), "localhost:3478", grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn, err := grpc.DialContext(context.Background(), "permify:3478", grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
 				Expect(err).ShouldNot(HaveOccurred())
 			}

@@ -27,7 +27,7 @@ func NewTenantWriter(database *db.Memory, logger logger.Interface) *TenantWriter
 }
 
 // CreateTenant -
-func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (result *base.Tenant, err error) {
+func (w *TenantWriter) CreateTenant(_ context.Context, id, name string) (result *base.Tenant, err error) {
 	tenant := storage.Tenant{
 		ID:        id,
 		Name:      name,
@@ -43,7 +43,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 }
 
 // DeleteTenant -
-func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (result *base.Tenant, err error) {
+func (w *TenantWriter) DeleteTenant(_ context.Context, tenantID string) (result *base.Tenant, err error) {
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
 	var raw interface{}

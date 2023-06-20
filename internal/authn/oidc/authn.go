@@ -19,31 +19,31 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// OidcAuthenticator - Interface for oidc authenticator
-type OidcAuthenticator interface {
+// Authenticator - Interface for oidc authenticator
+type Authenticator interface {
 	Authenticate(ctx context.Context) error
 }
 
-// OidcAuthn - Oidc verifier structure
-type OidcAuthn struct {
+// Authn - Oidc verifier structure
+type Authn struct {
 	verifier rp.IDTokenVerifier
 }
 
 // NewOidcAuthn - Create new Oidc verifier
-func NewOidcAuthn(_ context.Context, cfg config.Oidc) (*OidcAuthn, error) {
+func NewOidcAuthn(_ context.Context, cfg config.Oidc) (*Authn, error) {
 	dis, err := client.Discover(cfg.Issuer, http.DefaultClient)
 	if err != nil {
 		return nil, err
 	}
 	remoteKeySet := rp.NewRemoteKeySet(http.DefaultClient, dis.JwksURI)
-	verifier := rp.NewIDTokenVerifier(dis.Issuer, cfg.ClientId, remoteKeySet,
+	verifier := rp.NewIDTokenVerifier(dis.Issuer, cfg.ClientID, remoteKeySet,
 		rp.WithSupportedSigningAlgorithms(dis.IDTokenSigningAlgValuesSupported...))
 
-	return &OidcAuthn{verifier: verifier}, nil
+	return &Authn{verifier: verifier}, nil
 }
 
 // Authenticate - Checking whether JWT token is signed by the provider and is valid
-func (t *OidcAuthn) Authenticate(ctx context.Context) error {
+func (t *Authn) Authenticate(ctx context.Context) error {
 	rawToken, err := grpcAuth.AuthFromMD(ctx, "Bearer")
 	if err != nil {
 		return errors.New(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String())
@@ -61,7 +61,7 @@ func (t *OidcAuthn) Authenticate(ctx context.Context) error {
 }
 
 // validateOtherClaims - Validate claims that are not validated by the oidc client library
-func (t *OidcAuthn) validateOtherClaims(claims oidc.IDTokenClaims) error {
+func (t *Authn) validateOtherClaims(claims oidc.IDTokenClaims) error {
 	return checkNotBefore(claims, t.verifier.Offset())
 }
 

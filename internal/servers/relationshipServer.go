@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 // RelationshipServer - Structure for Relationship Server
@@ -105,9 +104,6 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 	relationships := make([]*v1.Tuple, 0, len(request.GetTuples()))
 
 	for _, tup := range request.GetTuples() {
-
-		subject := tuple.SetSubjectRelationToEllipsisIfNonUserAndNoRelation(tup.GetSubject())
-
 		definition, _, err := r.sr.ReadSchemaDefinition(ctx, request.GetTenantId(), tup.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)
@@ -122,11 +118,7 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 			return nil, err
 		}
 
-		relationships = append(relationships, &v1.Tuple{
-			Entity:   tup.GetEntity(),
-			Relation: tup.GetRelation(),
-			Subject:  subject,
-		})
+		relationships = append(relationships, tup)
 	}
 
 	snap, err := r.rw.WriteRelationships(ctx, request.GetTenantId(), database.NewTupleCollection(relationships...))

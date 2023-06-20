@@ -47,6 +47,40 @@ integration-test: ### run integration-test
 build: ## Build/compile the Permify service
 	go build -o ./permify ./cmd/permify
 
+.PHONY: format
+format: ## Auto-format the code
+	gofumpt -l -w -extra .
+
+.PHONY: lint-all
+lint-all: linter-golangci linter-hadolint linter-dotenv ## Run all linters
+
+.PHONY: security-scan
+security-scan: ## Scan code for security vulnerabilities using Gosec
+	gosec ./...
+
+.PHONY: coverage
+coverage: ## Generate global code coverage report
+	go test -coverprofile=coverage.out ./internal/...
+	go tool cover -html=coverage.out -o coverage.html
+
+.PHONY: clean
+clean: ## Remove temporary and generated files
+	rm -f ./permify
+	rm -f coverage.out coverage.html
+
+.PHONY: release
+release: format test security-scan clean ## Prepare for release
+
+# Serve
+
 .PHONY: serve
-run: build ## Run the Permify server with memory
+serve: build ## Run the Permify server with memory
 	./permify serve
+
+.PHONY: serve-playground
+serve-playground:
+	cd ./playground && yarn start
+
+.PHONY: serve-docs
+serve-docs:
+	cd ./docs/documentation && yarn start

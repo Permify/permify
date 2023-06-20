@@ -274,7 +274,7 @@ func readSchemaGraph() js.Func {
 			return js.ValueOf([]interface{}{nil, err.Error()})
 		}
 		// Convert the read schema to a graph representation.
-		r, err := graph.SchemaToGraph(sch)
+		r, err := graph.NewBuilder(sch).SchemaToGraph()
 		// If there's an error in converting, return the error.
 		if err != nil {
 			return js.ValueOf([]interface{}{nil, err.Error()})

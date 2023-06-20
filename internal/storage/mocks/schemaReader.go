@@ -13,7 +13,7 @@ type SchemaReader struct {
 }
 
 // ReadSchema - Reads a new schema from repository
-func (_m *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.SchemaDefinition, err error) {
+func (_m *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error) {
 	ret := _m.Called(tenantID, version)
 
 	var r0 *base.SchemaDefinition
@@ -38,7 +38,7 @@ func (_m *SchemaReader) ReadSchema(ctx context.Context, tenantID string, version
 }
 
 // ReadSchemaDefinition - Reads a Schema Definition from repository
-func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID string, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (_m *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	ret := _m.Called(tenantID, entityType, version)
 
 	var r0 *base.EntityDefinition

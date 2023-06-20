@@ -81,9 +81,6 @@ func getDuplicates(s []string) []string {
 	// "duplicates" will keep track of all strings that are duplicated in the slice
 	duplicates := make(map[string]bool)
 
-	// "duplicatesSlice" will eventually hold our results: all strings that are duplicated in the input slice
-	var duplicatesSlice []string
-
 	// Iterate over every string in the input slice
 	for _, str := range s {
 		// If we have seen the string before, then it is a duplicate.
@@ -95,6 +92,9 @@ func getDuplicates(s []string) []string {
 			seen[str] = true
 		}
 	}
+
+	// "duplicatesSlice" will eventually hold our results: all strings that are duplicated in the input slice
+	duplicatesSlice := make([]string, 0, len(duplicates))
 
 	// Now, duplicates map contains all the duplicated strings.
 	// We iterate over it and add each string to our result slice.

@@ -8,7 +8,6 @@ import (
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 func TestEngineKeys_SetCheckKey(t *testing.T) {
@@ -35,7 +34,7 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 		},
 		Permission: "test-permission",
 		Subject: &base.Subject{
-			Type: tuple.USER,
+			Type: "user",
 			Id:   "u1",
 		},
 	}
@@ -87,7 +86,7 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 		},
 		Permission: "test-permission",
 		Subject: &base.Subject{
-			Type: tuple.USER,
+			Type: "user",
 			Id:   "u1",
 		},
 	}
@@ -139,7 +138,7 @@ func TestEngineKeys_GetCheckKey_KeyNotFound(t *testing.T) {
 		},
 		Permission: "test-permission",
 		Subject: &base.Subject{
-			Type: tuple.USER,
+			Type: "user",
 			Id:   "u1",
 		},
 	}
@@ -176,7 +175,7 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		},
 		Permission: "test-permission",
 		Subject: &base.Subject{
-			Type: tuple.USER,
+			Type: "user",
 			Id:   "u1",
 		},
 	}
@@ -200,7 +199,7 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		},
 		Permission: "test-permission",
 		Subject: &base.Subject{
-			Type: tuple.USER,
+			Type: "user",
 			Id:   "u1",
 		},
 	}
@@ -224,7 +223,7 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		},
 		Permission: "test-permission",
 		Subject: &base.Subject{
-			Type: tuple.USER,
+			Type: "user",
 			Id:   "u2",
 		},
 	}
