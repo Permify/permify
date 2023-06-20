@@ -36,7 +36,7 @@ func NewSchemaWriter(database *db.Memory, logger logger.Interface) *SchemaWriter
 }
 
 // WriteSchema - Write Schema to repository
-func (w *SchemaWriter) WriteSchema(ctx context.Context, definitions []storage.SchemaDefinition) error {
+func (w *SchemaWriter) WriteSchema(_ context.Context, definitions []storage.SchemaDefinition) error {
 	var err error
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()

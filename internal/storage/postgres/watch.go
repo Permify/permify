@@ -48,7 +48,7 @@ func NewWatcher(database *db.Postgres, logger logger.Interface) *Watch {
 }
 
 // Watch returns a channel that emits a stream of changes to the relationship tuples in the database.
-func (w *Watch) Watch(ctx context.Context, tenantID string, snap string) (<-chan *base.TupleChanges, <-chan error) {
+func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.TupleChanges, <-chan error) {
 	// Create channels for changes and errors.
 	changes := make(chan *base.TupleChanges, w.bufferSize)
 	errs := make(chan error, 1)

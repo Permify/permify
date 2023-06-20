@@ -35,7 +35,7 @@ func NewRelationshipReader(database *db.Memory, logger logger.Interface) *Relati
 }
 
 // QueryRelationships - Reads relation tuples from the repository.
-func (r *RelationshipReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, _ string) (it *database.TupleIterator, err error) {
+func (r *RelationshipReader) QueryRelationships(_ context.Context, tenantID string, filter *base.TupleFilter, _ string) (it *database.TupleIterator, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -62,7 +62,7 @@ func (r *RelationshipReader) QueryRelationships(ctx context.Context, tenantID st
 }
 
 // ReadRelationships - Gets all relationships for a given filter
-func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, _ string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
+func (r *RelationshipReader) ReadRelationships(_ context.Context, tenantID string, filter *base.TupleFilter, _ string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -116,6 +116,6 @@ func (r *RelationshipReader) ReadRelationships(ctx context.Context, tenantID str
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
-func (r *RelationshipReader) HeadSnapshot(ctx context.Context, _ string) (token.SnapToken, error) {
+func (r *RelationshipReader) HeadSnapshot(_ context.Context, _ string) (token.SnapToken, error) {
 	return snapshot.NewToken(time.Now()), nil
 }

@@ -90,10 +90,10 @@ func (engine *ExpandEngine) expand(ctx context.Context, request *base.Permission
 		if child.GetRewrite() != nil {
 			fn = engine.expandRewrite(ctx, request, child.GetRewrite())
 		} else {
-			fn = engine.expandLeaf(ctx, request, child.GetLeaf())
+			fn = engine.expandLeaf(request, child.GetLeaf())
 		}
 	} else {
-		fn = engine.expandDirect(ctx, request)
+		fn = engine.expandDirect(request)
 	}
 
 	if fn == nil {
@@ -123,15 +123,14 @@ func (engine *ExpandEngine) expandRewrite(ctx context.Context, request *base.Per
 // It determines the type of the leaf and returns the appropriate function to expand it. If the leaf is undefined,
 // it returns an error using expandFail.
 func (engine *ExpandEngine) expandLeaf(
-	ctx context.Context,
 	request *base.PermissionExpandRequest,
 	leaf *base.Leaf,
 ) ExpandFunction {
 	switch op := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
-		return engine.expandTupleToUserSet(ctx, request, op.TupleToUserSet)
+		return engine.expandTupleToUserSet(request, op.TupleToUserSet)
 	case *base.Leaf_ComputedUserSet:
-		return engine.expandComputedUserSet(ctx, request, op.ComputedUserSet)
+		return engine.expandComputedUserSet(request, op.ComputedUserSet)
 	default:
 		return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
@@ -156,7 +155,7 @@ func (engine *ExpandEngine) setChild(
 		case *base.Child_Rewrite:
 			functions = append(functions, engine.expandRewrite(ctx, request, child.GetRewrite()))
 		case *base.Child_Leaf:
-			functions = append(functions, engine.expandLeaf(ctx, request, child.GetLeaf()))
+			functions = append(functions, engine.expandLeaf(request, child.GetLeaf()))
 		default:
 			return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 		}
@@ -177,7 +176,7 @@ func (engine *ExpandEngine) setChild(
 // subjects. If there are matching relationships, it computes the union of the results of calling Expand on each matching
 // relationship's subject entity and relation, and attaches the resulting expand nodes as children of a union node in
 // the expand tree. Finally, it returns the top-level expand node.
-func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.PermissionExpandRequest) ExpandFunction {
+func (engine *ExpandEngine) expandDirect(request *base.PermissionExpandRequest) ExpandFunction {
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) {
 		// Define a TupleFilter. This specifies which tuples we're interested in.
 		// We want tuples that match the entity type and ID from the request, and have a specific relation.
@@ -320,7 +319,6 @@ func (engine *ExpandEngine) expandDirect(ctx context.Context, request *base.Perm
 // Returns:
 //   - ExpandFunction that sends the expanded user set to the provided channel
 func (engine *ExpandEngine) expandTupleToUserSet(
-	ctx context.Context,
 	request *base.PermissionExpandRequest,
 	ttu *base.TupleToUserSet,
 ) ExpandFunction {
@@ -363,7 +361,7 @@ func (engine *ExpandEngine) expandTupleToUserSet(
 			}
 			subject := next.GetSubject()
 
-			expandFunctions = append(expandFunctions, engine.expandComputedUserSet(ctx, &base.PermissionExpandRequest{
+			expandFunctions = append(expandFunctions, engine.expandComputedUserSet(&base.PermissionExpandRequest{
 				TenantId: request.GetTenantId(),
 				Entity: &base.Entity{
 					Type: subject.GetType(),
@@ -397,7 +395,6 @@ func (engine *ExpandEngine) expandTupleToUserSet(
 // Returns:
 //   - ExpandFunction that sends the expanded user set to the provided channel
 func (engine *ExpandEngine) expandComputedUserSet(
-	ctx context.Context,
 	request *base.PermissionExpandRequest,
 	cu *base.ComputedUserSet,
 ) ExpandFunction {

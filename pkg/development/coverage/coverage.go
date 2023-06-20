@@ -82,9 +82,9 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		return SchemaCoverageInfo{}
 	}
 
-	var refs []SchemaCoverage
 	schemaCoverageInfo := SchemaCoverageInfo{}
 
+	var refs []SchemaCoverage
 	for _, en := range definitions {
 		refs = append(refs, references(en))
 	}
@@ -142,7 +142,7 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 }
 
 // calculateCoveragePercent - Calculate coverage percentage based on total and uncovered elements
-func calculateCoveragePercent(totalElements []string, uncoveredElements []string) int {
+func calculateCoveragePercent(totalElements, uncoveredElements []string) int {
 	coveragePercent := 100
 	totalCount := len(totalElements)
 

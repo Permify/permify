@@ -171,7 +171,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("authn-oidc-client-id", conf.Authn.Oidc.ClientId, "client ID which requested the token from OIDC issuer")
+	flags.String("authn-oidc-client-id", conf.Authn.Oidc.ClientID, "client ID which requested the token from OIDC issuer")
 	if err = viper.BindPFlag("authn.oidc.client_id", flags.Lookup("authn-oidc-client-id")); err != nil {
 		panic(err)
 	}

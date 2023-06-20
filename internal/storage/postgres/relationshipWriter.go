@@ -85,9 +85,8 @@ func (w *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 			span.SetStatus(otelCodes.Error, err.Error())
 			if strings.Contains(err.Error(), "could not serialize") {
 				continue
-			} else {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 
 		transaction := w.database.Builder.Insert("transactions").
@@ -158,9 +157,8 @@ func (w *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID s
 			span.SetStatus(otelCodes.Error, err.Error())
 			if strings.Contains(err.Error(), "could not serialize") {
 				continue
-			} else {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 
 		transaction := w.database.Builder.Insert("transactions").

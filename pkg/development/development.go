@@ -197,7 +197,6 @@ func (c *Development) WriteTuple(ctx context.Context, tuples []*v1.Tuple) (err e
 
 	// Validate each tuple and append it to the relationships slice
 	for _, tup := range tuples {
-
 		// Read the schema definition for the tuple's entity type and version from the schema repository
 		definition, _, err := c.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
 		if err != nil {
@@ -444,7 +443,6 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 		// Each EntityFilter in the current scenario is processed
 		for _, filter := range scenario.EntityFilters {
-
 			ear, err := tuple.EAR(filter.Subject)
 			if err != nil {
 				list.AddError(err.Error())

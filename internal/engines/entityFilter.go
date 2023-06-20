@@ -125,7 +125,6 @@ func (engine *EntityFilterEngine) relationEntrance(
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
-
 	// Define a TupleFilter. This specifies which tuples we're interested in.
 	// We want tuples that match the entity type and ID from the request, and have a specific relation.
 	filter := &base.TupleFilter{
@@ -195,7 +194,6 @@ func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 	publisher *BulkPublisher,
 ) error { // Returns an error if one occurs during execution.
 	for _, relation := range []string{tuple.ELLIPSIS, request.GetSubject().GetRelation()} {
-
 		// Define a TupleFilter. This specifies which tuples we're interested in.
 		// We want tuples that match the entity type and ID from the request, and have a specific relation.
 		filter := &base.TupleFilter{
@@ -315,7 +313,7 @@ func (engine *EntityFilterEngine) l(
 }
 
 // getSchema is a method of the EntityFilterEngine struct. It retrieves the schema for a given tenant and schema version.
-func (engine *EntityFilterEngine) readSchema(ctx context.Context, tenantID string, schemaVersion string) (*base.SchemaDefinition, error) {
+func (engine *EntityFilterEngine) readSchema(ctx context.Context, tenantID, schemaVersion string) (*base.SchemaDefinition, error) {
 	// Create a cache key by concatenating the tenantID and schemaVersion with a separator.
 	cacheKey := tenantID + "|" + schemaVersion
 

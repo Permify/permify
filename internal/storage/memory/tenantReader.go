@@ -30,7 +30,7 @@ func NewTenantReader(database *db.Memory, logger logger.Interface) *TenantReader
 }
 
 // ListTenants -
-func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagination) (tenants []*base.Tenant, ct database.EncodedContinuousToken, err error) {
+func (r *TenantReader) ListTenants(_ context.Context, pagination database.Pagination) (tenants []*base.Tenant, ct database.EncodedContinuousToken, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 

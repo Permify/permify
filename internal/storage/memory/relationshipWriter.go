@@ -32,7 +32,7 @@ func NewRelationshipWriter(database *db.Memory, logger logger.Interface) *Relati
 }
 
 // WriteRelationships - Write a Relation to repository
-func (r *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID string, collection *database.TupleCollection) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriter) WriteRelationships(_ context.Context, tenantID string, collection *database.TupleCollection) (token.EncodedSnapToken, error) {
 	var err error
 
 	iterator := collection.CreateTupleIterator()
@@ -65,7 +65,7 @@ func (r *RelationshipWriter) WriteRelationships(ctx context.Context, tenantID st
 }
 
 // DeleteRelationships - Delete relationship from repository
-func (r *RelationshipWriter) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (r *RelationshipWriter) DeleteRelationships(_ context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
 	var err error
 	txn := r.database.DB.Txn(true)
 	defer txn.Abort()

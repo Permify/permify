@@ -114,11 +114,11 @@ func (engine *LookupSubjectEngine) lookupSubject(
 		if child.GetRewrite() != nil {
 			fn = engine.lookupSubjectRewrite(ctx, request, child.GetRewrite())
 		} else {
-			fn = engine.lookupSubjectLeaf(ctx, request, child.GetLeaf())
+			fn = engine.lookupSubjectLeaf(request, child.GetLeaf())
 		}
 	} else {
 		// If the relational reference is not a permission, we directly lookup the subject.
-		return engine.lookupSubjectDirect(ctx, request)
+		return engine.lookupSubjectDirect(request)
 	}
 
 	// If we could not prepare a LookupSubjectFunction, we return a function that always fails with an error indicating undefined child kind.
@@ -141,7 +141,6 @@ func (engine *LookupSubjectEngine) lookupSubjectRewrite(
 ) LookupSubjectFunction {
 	// Check the type of the rewrite operation in the request
 	switch rewrite.GetRewriteOperation() {
-
 	// If the operation type is UNION, we prepare a function using lookupSubjectUnion
 	// If the request has an exclusion, we use lookupSubjectIntersection instead
 	case *base.Rewrite_OPERATION_UNION.Enum():
@@ -168,20 +167,18 @@ func (engine *LookupSubjectEngine) lookupSubjectRewrite(
 // lookupSubjectLeaf is a method for the LookupSubjectEngine struct.
 // It generates a LookupSubjectFunction based on the type of the leaf node in the provided request.
 func (engine *LookupSubjectEngine) lookupSubjectLeaf(
-	ctx context.Context,
 	request *base.PermissionLookupSubjectRequest,
 	leaf *base.Leaf,
 ) LookupSubjectFunction {
 	// Check the type of the leaf node in the request
 	switch op := leaf.GetType().(type) {
-
 	// If the type is TupleToUserSet, we prepare a function using lookupSubjectTupleToUserSet
 	case *base.Leaf_TupleToUserSet:
-		return engine.lookupSubjectTupleToUserSet(ctx, request, op.TupleToUserSet)
+		return engine.lookupSubjectTupleToUserSet(request, op.TupleToUserSet)
 
 	// If the type is ComputedUserSet, we prepare a function using lookupSubjectComputedUserSet
 	case *base.Leaf_ComputedUserSet:
-		return engine.lookupSubjectComputedUserSet(ctx, request, op.ComputedUserSet)
+		return engine.lookupSubjectComputedUserSet(request, op.ComputedUserSet)
 
 	// If the leaf type is not recognized, we return a function that always fails with an error indicating undefined child type.
 	default:
@@ -192,7 +189,6 @@ func (engine *LookupSubjectEngine) lookupSubjectLeaf(
 // lookupSubjectDirect is a method of the LookupSubjectEngine struct.
 // It creates a LookupSubjectFunction for a direct lookup of a subject.
 func (engine *LookupSubjectEngine) lookupSubjectDirect(
-	ctx context.Context,
 	request *base.PermissionLookupSubjectRequest,
 ) LookupSubjectFunction {
 	// The returned LookupSubjectFunction first queries relationships of the entity in the request using the request's permission.
@@ -316,7 +312,7 @@ func (engine *LookupSubjectEngine) setChild(
 			functions = append(functions, engine.lookupSubjectRewrite(ctx, request, child.GetRewrite()))
 		case *base.Child_Leaf:
 			// If child is of type Leaf, generate a lookup function using lookupSubjectLeaf
-			functions = append(functions, engine.lookupSubjectLeaf(ctx, request, child.GetLeaf()))
+			functions = append(functions, engine.lookupSubjectLeaf(request, child.GetLeaf()))
 		default:
 			// If child type is not recognised, return a failed lookup function with error
 			return lookupSubjectFail(errors.New("set child error"))
@@ -332,7 +328,6 @@ func (engine *LookupSubjectEngine) setChild(
 // lookupSubjectComputedUserSet is a method for the LookupSubjectEngine struct.
 // It creates a LookupSubjectFunction for a specific ComputedUserSet.
 func (engine *LookupSubjectEngine) lookupSubjectComputedUserSet(
-	ctx context.Context,
 	request *base.PermissionLookupSubjectRequest,
 	cu *base.ComputedUserSet,
 ) LookupSubjectFunction {
@@ -367,7 +362,6 @@ func (engine *LookupSubjectEngine) lookupSubjectComputedUserSet(
 // lookupSubjectTupleToUserSet is a method of the LookupSubjectEngine struct.
 // It creates a LookupSubjectFunction for a specific TupleToUserSet.
 func (engine *LookupSubjectEngine) lookupSubjectTupleToUserSet(
-	ctx context.Context,
 	request *base.PermissionLookupSubjectRequest,
 	ttu *base.TupleToUserSet,
 ) LookupSubjectFunction {
@@ -418,7 +412,7 @@ func (engine *LookupSubjectEngine) lookupSubjectTupleToUserSet(
 			}
 			subject := next.GetSubject()
 
-			lookupSubjectFunctions = append(lookupSubjectFunctions, engine.lookupSubjectComputedUserSet(ctx, &base.PermissionLookupSubjectRequest{
+			lookupSubjectFunctions = append(lookupSubjectFunctions, engine.lookupSubjectComputedUserSet(&base.PermissionLookupSubjectRequest{
 				TenantId: request.GetTenantId(),
 				Entity: &base.Entity{
 					Type: subject.GetType(),

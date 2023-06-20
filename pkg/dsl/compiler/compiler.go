@@ -305,13 +305,10 @@ func (t *Compiler) validateTupleToUserSetReference(entityName string, identifier
 	}
 
 	// Add the initial relation types to the stack.
-	for _, relationType := range initialRelationTypes {
-		typeCheckStack = append(typeCheckStack, relationType)
-	}
+	typeCheckStack = append(typeCheckStack, initialRelationTypes...)
 
 	// While there are types to be checked in the stack...
 	for len(typeCheckStack) > 0 {
-
 		// Pop the last type from the stack.
 		stackSize := len(typeCheckStack) - 1
 		currentType := typeCheckStack[stackSize]
@@ -324,7 +321,6 @@ func (t *Compiler) validateTupleToUserSetReference(entityName string, identifier
 				return compileError(identifier.Idents[1].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 			}
 		} else {
-
 			// If the relation type does exist, get the corresponding relation types.
 			relationTypes, doesExist := t.schema.GetRelationReferenceIfExist(utils.Key(currentType.Type.Literal, currentType.Relation.Literal))
 			if !doesExist {
@@ -333,9 +329,7 @@ func (t *Compiler) validateTupleToUserSetReference(entityName string, identifier
 			}
 
 			// Add the newly found relation types to the stack.
-			for _, relationType := range relationTypes {
-				typeCheckStack = append(typeCheckStack, relationType)
-			}
+			typeCheckStack = append(typeCheckStack, relationTypes...)
 		}
 	}
 

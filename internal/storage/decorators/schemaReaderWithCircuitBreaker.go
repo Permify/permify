@@ -21,7 +21,7 @@ func NewSchemaReaderWithCircuitBreaker(delegate storage.SchemaReader) *SchemaRea
 }
 
 // ReadSchema - Read schema from repository
-func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, tenantID string, version string) (*base.SchemaDefinition, error) {
+func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, tenantID, version string) (*base.SchemaDefinition, error) {
 	type circuitBreakerResponse struct {
 		Schema *base.SchemaDefinition
 		Error  error

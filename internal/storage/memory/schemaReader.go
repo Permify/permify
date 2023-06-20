@@ -29,7 +29,7 @@ func NewSchemaReader(database *db.Memory, logger logger.Interface) *SchemaReader
 }
 
 // ReadSchema - Reads a new schema from repository
-func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
+func (r *SchemaReader) ReadSchema(_ context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
@@ -52,7 +52,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 }
 
 // ReadSchemaDefinition - Reads a Schema Definition from repository
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadSchemaDefinition(_ context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
@@ -79,7 +79,7 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entit
 }
 
 // HeadVersion - Reads the latest version from the repository.
-func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, error) {
+func (r *SchemaReader) HeadVersion(_ context.Context, tenantID string) (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 

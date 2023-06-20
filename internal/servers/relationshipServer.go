@@ -104,7 +104,6 @@ func (r *RelationshipServer) Write(ctx context.Context, request *v1.Relationship
 	relationships := make([]*v1.Tuple, 0, len(request.GetTuples()))
 
 	for _, tup := range request.GetTuples() {
-
 		definition, _, err := r.sr.ReadSchemaDefinition(ctx, request.GetTenantId(), tup.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)

@@ -7,7 +7,7 @@ import (
 )
 
 // UnaryServerInterceptor -
-func UnaryServerInterceptor(t OidcAuthenticator) grpc.UnaryServerInterceptor {
+func UnaryServerInterceptor(t Authenticator) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		err := t.Authenticate(ctx)
 		if err != nil {
@@ -18,7 +18,7 @@ func UnaryServerInterceptor(t OidcAuthenticator) grpc.UnaryServerInterceptor {
 }
 
 // StreamServerInterceptor -
-func StreamServerInterceptor(t OidcAuthenticator) grpc.StreamServerInterceptor {
+func StreamServerInterceptor(t Authenticator) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		wrapper := &authnWrapper{ServerStream: stream, authenticator: t}
 		return handler(srv, wrapper)
@@ -28,7 +28,7 @@ func StreamServerInterceptor(t OidcAuthenticator) grpc.StreamServerInterceptor {
 // authnWrapper -
 type authnWrapper struct {
 	grpc.ServerStream
-	authenticator OidcAuthenticator
+	authenticator Authenticator
 }
 
 // RecvMsg -

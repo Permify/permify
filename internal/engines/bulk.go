@@ -92,10 +92,7 @@ func (c *BulkChecker) Stop() {
 // Wait waits for all goroutines in the errgroup to finish.
 // Returns an error if any of the goroutines encounter an error.
 func (c *BulkChecker) Wait() error {
-	if err := c.g.Wait(); err != nil {
-		return err
-	}
-	return nil
+	return c.g.Wait()
 }
 
 // BulkPublisher is a struct for streaming permission check results.

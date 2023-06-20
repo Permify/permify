@@ -251,7 +251,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		var check invoke.Check
 		if cfg.Distributed.Enabled {
-
 			options := []grpc.DialOption{
 				grpc.WithBlock(),
 			}

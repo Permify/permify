@@ -61,9 +61,9 @@ func (n *NoopRelationshipWriter) DeleteRelationships(_ context.Context, _ string
 // SchemaReader - Reads schema definitions from the storage.
 type SchemaReader interface {
 	// ReadSchema reads entity config from the storage.
-	ReadSchema(ctx context.Context, tenantID string, version string) (schema *base.SchemaDefinition, err error)
+	ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error)
 	// ReadSchemaDefinition reads entity config from the storage.
-	ReadSchemaDefinition(ctx context.Context, tenantID string, entityType, version string) (definition *base.EntityDefinition, v string, err error)
+	ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error)
 	// HeadVersion reads the latest version of the schema from the storage.
 	HeadVersion(ctx context.Context, tenantID string) (version string, err error)
 }
@@ -74,11 +74,11 @@ func NewNoopSchemaReader() SchemaReader {
 	return &NoopSchemaReader{}
 }
 
-func (n *NoopSchemaReader) ReadSchema(_ context.Context, _ string, _ string) (*base.SchemaDefinition, error) {
+func (n *NoopSchemaReader) ReadSchema(_ context.Context, _, _ string) (*base.SchemaDefinition, error) {
 	return &base.SchemaDefinition{}, nil
 }
 
-func (n *NoopSchemaReader) ReadSchemaDefinition(_ context.Context, _ string, _, _ string) (*base.EntityDefinition, string, error) {
+func (n *NoopSchemaReader) ReadSchemaDefinition(_ context.Context, _, _, _ string) (*base.EntityDefinition, string, error) {
 	return &base.EntityDefinition{}, "", nil
 }
 
@@ -105,7 +105,7 @@ func (n *NoopSchemaWriter) WriteSchema(_ context.Context, _ []SchemaDefinition) 
 // Watcher - Watches relation tuple changes from the storage.
 type Watcher interface {
 	// Watch watches relation tuple changes from the storage.
-	Watch(ctx context.Context, tenantID string, snap string) (<-chan *base.TupleChanges, <-chan error)
+	Watch(ctx context.Context, tenantID, snap string) (<-chan *base.TupleChanges, <-chan error)
 }
 
 type NoopWatcher struct{}
@@ -114,7 +114,7 @@ func NewNoopWatcher() Watcher {
 	return &NoopWatcher{}
 }
 
-func (n *NoopWatcher) Watch(_ context.Context, _ string, _ string) (<-chan *base.TupleChanges, <-chan error) {
+func (n *NoopWatcher) Watch(_ context.Context, _, _ string) (<-chan *base.TupleChanges, <-chan error) {
 	// Create empty channels
 	tupleChanges := make(chan *base.TupleChanges)
 	errs := make(chan error)
