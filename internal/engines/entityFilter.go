@@ -193,7 +193,7 @@ func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 	// A custom publisher that publishes results in bulk.
 	publisher *BulkPublisher,
 ) error { // Returns an error if one occurs during execution.
-	for _, relation := range []string{tuple.ELLIPSIS, request.GetSubject().GetRelation()} {
+	for _, relation := range []string{"", tuple.ELLIPSIS} {
 		// Define a TupleFilter. This specifies which tuples we're interested in.
 		// We want tuples that match the entity type and ID from the request, and have a specific relation.
 		filter := &base.TupleFilter{
