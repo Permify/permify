@@ -3,8 +3,9 @@ package engines
 import (
 	"context"
 	"errors"
-	`golang.org/x/exp/slices`
 	"sync"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
