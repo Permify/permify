@@ -6,6 +6,13 @@ option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 import "validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
+// CheckResult
+enum CheckResult {
+  RESULT_UNKNOWN = 0;
+  RESULT_ALLOWED = 1;
+  RESULT_DENIED = 2;
+}
+
 // Child
 message Child {
   oneof type {

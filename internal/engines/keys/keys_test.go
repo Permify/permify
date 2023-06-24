@@ -40,7 +40,7 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 	}
 
 	checkResp := &base.PermissionCheckResponse{
-		Can: base.PermissionCheckResponse_RESULT_ALLOWED,
+		Can: base.CheckResult_RESULT_ALLOWED,
 		Metadata: &base.PermissionCheckResponseMetadata{
 			CheckCount: 0,
 		},
@@ -92,7 +92,7 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 	}
 
 	checkResp := &base.PermissionCheckResponse{
-		Can: base.PermissionCheckResponse_RESULT_ALLOWED,
+		Can: base.CheckResult_RESULT_ALLOWED,
 		Metadata: &base.PermissionCheckResponseMetadata{
 			CheckCount: 0,
 		},
@@ -180,7 +180,7 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		},
 	}
 	checkResp1 := &base.PermissionCheckResponse{
-		Can: base.PermissionCheckResponse_RESULT_ALLOWED,
+		Can: base.CheckResult_RESULT_ALLOWED,
 		Metadata: &base.PermissionCheckResponseMetadata{
 			CheckCount: 0,
 		},
@@ -204,7 +204,7 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		},
 	}
 	checkResp2 := &base.PermissionCheckResponse{
-		Can: base.PermissionCheckResponse_RESULT_DENIED,
+		Can: base.CheckResult_RESULT_DENIED,
 		Metadata: &base.PermissionCheckResponseMetadata{
 			CheckCount: 0,
 		},
@@ -228,7 +228,7 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		},
 	}
 	checkResp3 := &base.PermissionCheckResponse{
-		Can: base.PermissionCheckResponse_RESULT_DENIED,
+		Can: base.CheckResult_RESULT_DENIED,
 		Metadata: &base.PermissionCheckResponseMetadata{
 			CheckCount: 0,
 		},

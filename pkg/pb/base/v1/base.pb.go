@@ -22,6 +22,56 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// CheckResult
+type CheckResult int32
+
+const (
+	CheckResult_RESULT_UNKNOWN CheckResult = 0
+	CheckResult_RESULT_ALLOWED CheckResult = 1
+	CheckResult_RESULT_DENIED  CheckResult = 2
+)
+
+// Enum value maps for CheckResult.
+var (
+	CheckResult_name = map[int32]string{
+		0: "RESULT_UNKNOWN",
+		1: "RESULT_ALLOWED",
+		2: "RESULT_DENIED",
+	}
+	CheckResult_value = map[string]int32{
+		"RESULT_UNKNOWN": 0,
+		"RESULT_ALLOWED": 1,
+		"RESULT_DENIED":  2,
+	}
+)
+
+func (x CheckResult) Enum() *CheckResult {
+	p := new(CheckResult)
+	*p = x
+	return p
+}
+
+func (x CheckResult) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CheckResult) Descriptor() protoreflect.EnumDescriptor {
+	return file_base_v1_base_proto_enumTypes[0].Descriptor()
+}
+
+func (CheckResult) Type() protoreflect.EnumType {
+	return &file_base_v1_base_proto_enumTypes[0]
+}
+
+func (x CheckResult) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CheckResult.Descriptor instead.
+func (CheckResult) EnumDescriptor() ([]byte, []int) {
+	return file_base_v1_base_proto_rawDescGZIP(), []int{0}
+}
+
 // Operation
 type Rewrite_Operation int32
 
@@ -59,11 +109,11 @@ func (x Rewrite_Operation) String() string {
 }
 
 func (Rewrite_Operation) Descriptor() protoreflect.EnumDescriptor {
-	return file_base_v1_base_proto_enumTypes[0].Descriptor()
+	return file_base_v1_base_proto_enumTypes[1].Descriptor()
 }
 
 func (Rewrite_Operation) Type() protoreflect.EnumType {
-	return &file_base_v1_base_proto_enumTypes[0]
+	return &file_base_v1_base_proto_enumTypes[1]
 }
 
 func (x Rewrite_Operation) Number() protoreflect.EnumNumber {
@@ -109,11 +159,11 @@ func (x EntityDefinition_RelationalReference) String() string {
 }
 
 func (EntityDefinition_RelationalReference) Descriptor() protoreflect.EnumDescriptor {
-	return file_base_v1_base_proto_enumTypes[1].Descriptor()
+	return file_base_v1_base_proto_enumTypes[2].Descriptor()
 }
 
 func (EntityDefinition_RelationalReference) Type() protoreflect.EnumType {
-	return &file_base_v1_base_proto_enumTypes[1]
+	return &file_base_v1_base_proto_enumTypes[2]
 }
 
 func (x EntityDefinition_RelationalReference) Number() protoreflect.EnumNumber {
@@ -162,11 +212,11 @@ func (x ExpandTreeNode_Operation) String() string {
 }
 
 func (ExpandTreeNode_Operation) Descriptor() protoreflect.EnumDescriptor {
-	return file_base_v1_base_proto_enumTypes[2].Descriptor()
+	return file_base_v1_base_proto_enumTypes[3].Descriptor()
 }
 
 func (ExpandTreeNode_Operation) Type() protoreflect.EnumType {
-	return &file_base_v1_base_proto_enumTypes[2]
+	return &file_base_v1_base_proto_enumTypes[3]
 }
 
 func (x ExpandTreeNode_Operation) Number() protoreflect.EnumNumber {
@@ -211,11 +261,11 @@ func (x TupleChange_Operation) String() string {
 }
 
 func (TupleChange_Operation) Descriptor() protoreflect.EnumDescriptor {
-	return file_base_v1_base_proto_enumTypes[3].Descriptor()
+	return file_base_v1_base_proto_enumTypes[4].Descriptor()
 }
 
 func (TupleChange_Operation) Type() protoreflect.EnumType {
-	return &file_base_v1_base_proto_enumTypes[3]
+	return &file_base_v1_base_proto_enumTypes[4]
 }
 
 func (x TupleChange_Operation) Number() protoreflect.EnumNumber {
@@ -2005,16 +2055,20 @@ var file_base_v1_base_proto_rawDesc = []byte{
 	0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x14, 0x0a, 0x10, 0x4f, 0x50, 0x45, 0x52,
 	0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x43, 0x52, 0x45, 0x41, 0x54, 0x45, 0x10, 0x01, 0x12, 0x14,
 	0x0a, 0x10, 0x4f, 0x50, 0x45, 0x52, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x44, 0x45, 0x4c, 0x45,
-	0x54, 0x45, 0x10, 0x02, 0x42, 0x87, 0x01, 0x0a, 0x0b, 0x63, 0x6f, 0x6d, 0x2e, 0x62, 0x61, 0x73,
-	0x65, 0x2e, 0x76, 0x31, 0x42, 0x09, 0x42, 0x61, 0x73, 0x65, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50,
-	0x01, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x50, 0x65,
-	0x72, 0x6d, 0x69, 0x66, 0x79, 0x2f, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x66, 0x79, 0x2f, 0x70, 0x6b,
-	0x67, 0x2f, 0x70, 0x62, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x3b, 0x62, 0x61, 0x73,
-	0x65, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x42, 0x58, 0x58, 0xaa, 0x02, 0x07, 0x42, 0x61, 0x73, 0x65,
-	0x2e, 0x56, 0x31, 0xca, 0x02, 0x07, 0x42, 0x61, 0x73, 0x65, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x13,
-	0x42, 0x61, 0x73, 0x65, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
-	0x61, 0x74, 0x61, 0xea, 0x02, 0x08, 0x42, 0x61, 0x73, 0x65, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x54, 0x45, 0x10, 0x02, 0x2a, 0x48, 0x0a, 0x0b, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73,
+	0x75, 0x6c, 0x74, 0x12, 0x12, 0x0a, 0x0e, 0x52, 0x45, 0x53, 0x55, 0x4c, 0x54, 0x5f, 0x55, 0x4e,
+	0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x12, 0x0a, 0x0e, 0x52, 0x45, 0x53, 0x55, 0x4c,
+	0x54, 0x5f, 0x41, 0x4c, 0x4c, 0x4f, 0x57, 0x45, 0x44, 0x10, 0x01, 0x12, 0x11, 0x0a, 0x0d, 0x52,
+	0x45, 0x53, 0x55, 0x4c, 0x54, 0x5f, 0x44, 0x45, 0x4e, 0x49, 0x45, 0x44, 0x10, 0x02, 0x42, 0x87,
+	0x01, 0x0a, 0x0b, 0x63, 0x6f, 0x6d, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x42, 0x09,
+	0x42, 0x61, 0x73, 0x65, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x30, 0x67, 0x69, 0x74,
+	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x66, 0x79, 0x2f,
+	0x70, 0x65, 0x72, 0x6d, 0x69, 0x66, 0x79, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x62, 0x2f, 0x62,
+	0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x3b, 0x62, 0x61, 0x73, 0x65, 0x76, 0x31, 0xa2, 0x02, 0x03,
+	0x42, 0x58, 0x58, 0xaa, 0x02, 0x07, 0x42, 0x61, 0x73, 0x65, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x07,
+	0x42, 0x61, 0x73, 0x65, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x13, 0x42, 0x61, 0x73, 0x65, 0x5c, 0x56,
+	0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x08,
+	0x42, 0x61, 0x73, 0x65, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2029,79 +2083,80 @@ func file_base_v1_base_proto_rawDescGZIP() []byte {
 	return file_base_v1_base_proto_rawDescData
 }
 
-var file_base_v1_base_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_base_v1_base_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_base_v1_base_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_base_v1_base_proto_goTypes = []interface{}{
-	(Rewrite_Operation)(0),                    // 0: base.v1.Rewrite.Operation
-	(EntityDefinition_RelationalReference)(0), // 1: base.v1.EntityDefinition.RelationalReference
-	(ExpandTreeNode_Operation)(0),             // 2: base.v1.ExpandTreeNode.Operation
-	(TupleChange_Operation)(0),                // 3: base.v1.TupleChange.Operation
-	(*Child)(nil),                             // 4: base.v1.Child
-	(*Leaf)(nil),                              // 5: base.v1.Leaf
-	(*Rewrite)(nil),                           // 6: base.v1.Rewrite
-	(*SchemaDefinition)(nil),                  // 7: base.v1.SchemaDefinition
-	(*EntityDefinition)(nil),                  // 8: base.v1.EntityDefinition
-	(*RelationDefinition)(nil),                // 9: base.v1.RelationDefinition
-	(*PermissionDefinition)(nil),              // 10: base.v1.PermissionDefinition
-	(*RelationReference)(nil),                 // 11: base.v1.RelationReference
-	(*ComputedUserSet)(nil),                   // 12: base.v1.ComputedUserSet
-	(*TupleSet)(nil),                          // 13: base.v1.TupleSet
-	(*TupleToUserSet)(nil),                    // 14: base.v1.TupleToUserSet
-	(*Tuple)(nil),                             // 15: base.v1.Tuple
-	(*Tuples)(nil),                            // 16: base.v1.Tuples
-	(*Entity)(nil),                            // 17: base.v1.Entity
-	(*EntityAndRelation)(nil),                 // 18: base.v1.EntityAndRelation
-	(*Subject)(nil),                           // 19: base.v1.Subject
-	(*TupleFilter)(nil),                       // 20: base.v1.TupleFilter
-	(*EntityFilter)(nil),                      // 21: base.v1.EntityFilter
-	(*SubjectFilter)(nil),                     // 22: base.v1.SubjectFilter
-	(*ExpandTreeNode)(nil),                    // 23: base.v1.ExpandTreeNode
-	(*Expand)(nil),                            // 24: base.v1.Expand
-	(*Subjects)(nil),                          // 25: base.v1.Subjects
-	(*Tenant)(nil),                            // 26: base.v1.Tenant
-	(*TupleChanges)(nil),                      // 27: base.v1.TupleChanges
-	(*TupleChange)(nil),                       // 28: base.v1.TupleChange
-	nil,                                       // 29: base.v1.SchemaDefinition.EntityDefinitionsEntry
-	nil,                                       // 30: base.v1.EntityDefinition.RelationsEntry
-	nil,                                       // 31: base.v1.EntityDefinition.PermissionsEntry
-	nil,                                       // 32: base.v1.EntityDefinition.ReferencesEntry
-	(*timestamppb.Timestamp)(nil),             // 33: google.protobuf.Timestamp
+	(CheckResult)(0),                          // 0: base.v1.CheckResult
+	(Rewrite_Operation)(0),                    // 1: base.v1.Rewrite.Operation
+	(EntityDefinition_RelationalReference)(0), // 2: base.v1.EntityDefinition.RelationalReference
+	(ExpandTreeNode_Operation)(0),             // 3: base.v1.ExpandTreeNode.Operation
+	(TupleChange_Operation)(0),                // 4: base.v1.TupleChange.Operation
+	(*Child)(nil),                             // 5: base.v1.Child
+	(*Leaf)(nil),                              // 6: base.v1.Leaf
+	(*Rewrite)(nil),                           // 7: base.v1.Rewrite
+	(*SchemaDefinition)(nil),                  // 8: base.v1.SchemaDefinition
+	(*EntityDefinition)(nil),                  // 9: base.v1.EntityDefinition
+	(*RelationDefinition)(nil),                // 10: base.v1.RelationDefinition
+	(*PermissionDefinition)(nil),              // 11: base.v1.PermissionDefinition
+	(*RelationReference)(nil),                 // 12: base.v1.RelationReference
+	(*ComputedUserSet)(nil),                   // 13: base.v1.ComputedUserSet
+	(*TupleSet)(nil),                          // 14: base.v1.TupleSet
+	(*TupleToUserSet)(nil),                    // 15: base.v1.TupleToUserSet
+	(*Tuple)(nil),                             // 16: base.v1.Tuple
+	(*Tuples)(nil),                            // 17: base.v1.Tuples
+	(*Entity)(nil),                            // 18: base.v1.Entity
+	(*EntityAndRelation)(nil),                 // 19: base.v1.EntityAndRelation
+	(*Subject)(nil),                           // 20: base.v1.Subject
+	(*TupleFilter)(nil),                       // 21: base.v1.TupleFilter
+	(*EntityFilter)(nil),                      // 22: base.v1.EntityFilter
+	(*SubjectFilter)(nil),                     // 23: base.v1.SubjectFilter
+	(*ExpandTreeNode)(nil),                    // 24: base.v1.ExpandTreeNode
+	(*Expand)(nil),                            // 25: base.v1.Expand
+	(*Subjects)(nil),                          // 26: base.v1.Subjects
+	(*Tenant)(nil),                            // 27: base.v1.Tenant
+	(*TupleChanges)(nil),                      // 28: base.v1.TupleChanges
+	(*TupleChange)(nil),                       // 29: base.v1.TupleChange
+	nil,                                       // 30: base.v1.SchemaDefinition.EntityDefinitionsEntry
+	nil,                                       // 31: base.v1.EntityDefinition.RelationsEntry
+	nil,                                       // 32: base.v1.EntityDefinition.PermissionsEntry
+	nil,                                       // 33: base.v1.EntityDefinition.ReferencesEntry
+	(*timestamppb.Timestamp)(nil),             // 34: google.protobuf.Timestamp
 }
 var file_base_v1_base_proto_depIdxs = []int32{
-	5,  // 0: base.v1.Child.leaf:type_name -> base.v1.Leaf
-	6,  // 1: base.v1.Child.rewrite:type_name -> base.v1.Rewrite
-	12, // 2: base.v1.Leaf.computed_user_set:type_name -> base.v1.ComputedUserSet
-	14, // 3: base.v1.Leaf.tuple_to_user_set:type_name -> base.v1.TupleToUserSet
-	0,  // 4: base.v1.Rewrite.rewrite_operation:type_name -> base.v1.Rewrite.Operation
-	4,  // 5: base.v1.Rewrite.children:type_name -> base.v1.Child
-	29, // 6: base.v1.SchemaDefinition.entity_definitions:type_name -> base.v1.SchemaDefinition.EntityDefinitionsEntry
-	30, // 7: base.v1.EntityDefinition.relations:type_name -> base.v1.EntityDefinition.RelationsEntry
-	31, // 8: base.v1.EntityDefinition.permissions:type_name -> base.v1.EntityDefinition.PermissionsEntry
-	32, // 9: base.v1.EntityDefinition.references:type_name -> base.v1.EntityDefinition.ReferencesEntry
-	11, // 10: base.v1.RelationDefinition.relation_references:type_name -> base.v1.RelationReference
-	4,  // 11: base.v1.PermissionDefinition.child:type_name -> base.v1.Child
-	13, // 12: base.v1.TupleToUserSet.tupleSet:type_name -> base.v1.TupleSet
-	12, // 13: base.v1.TupleToUserSet.computed:type_name -> base.v1.ComputedUserSet
-	17, // 14: base.v1.Tuple.entity:type_name -> base.v1.Entity
-	19, // 15: base.v1.Tuple.subject:type_name -> base.v1.Subject
-	15, // 16: base.v1.Tuples.tuples:type_name -> base.v1.Tuple
-	17, // 17: base.v1.EntityAndRelation.entity:type_name -> base.v1.Entity
-	21, // 18: base.v1.TupleFilter.entity:type_name -> base.v1.EntityFilter
-	22, // 19: base.v1.TupleFilter.subject:type_name -> base.v1.SubjectFilter
-	2,  // 20: base.v1.ExpandTreeNode.operation:type_name -> base.v1.ExpandTreeNode.Operation
-	24, // 21: base.v1.ExpandTreeNode.children:type_name -> base.v1.Expand
-	18, // 22: base.v1.Expand.target:type_name -> base.v1.EntityAndRelation
-	23, // 23: base.v1.Expand.expand:type_name -> base.v1.ExpandTreeNode
-	25, // 24: base.v1.Expand.leaf:type_name -> base.v1.Subjects
-	19, // 25: base.v1.Subjects.subjects:type_name -> base.v1.Subject
-	33, // 26: base.v1.Tenant.created_at:type_name -> google.protobuf.Timestamp
-	28, // 27: base.v1.TupleChanges.tuple_changes:type_name -> base.v1.TupleChange
-	3,  // 28: base.v1.TupleChange.operation:type_name -> base.v1.TupleChange.Operation
-	15, // 29: base.v1.TupleChange.tuple:type_name -> base.v1.Tuple
-	8,  // 30: base.v1.SchemaDefinition.EntityDefinitionsEntry.value:type_name -> base.v1.EntityDefinition
-	9,  // 31: base.v1.EntityDefinition.RelationsEntry.value:type_name -> base.v1.RelationDefinition
-	10, // 32: base.v1.EntityDefinition.PermissionsEntry.value:type_name -> base.v1.PermissionDefinition
-	1,  // 33: base.v1.EntityDefinition.ReferencesEntry.value:type_name -> base.v1.EntityDefinition.RelationalReference
+	6,  // 0: base.v1.Child.leaf:type_name -> base.v1.Leaf
+	7,  // 1: base.v1.Child.rewrite:type_name -> base.v1.Rewrite
+	13, // 2: base.v1.Leaf.computed_user_set:type_name -> base.v1.ComputedUserSet
+	15, // 3: base.v1.Leaf.tuple_to_user_set:type_name -> base.v1.TupleToUserSet
+	1,  // 4: base.v1.Rewrite.rewrite_operation:type_name -> base.v1.Rewrite.Operation
+	5,  // 5: base.v1.Rewrite.children:type_name -> base.v1.Child
+	30, // 6: base.v1.SchemaDefinition.entity_definitions:type_name -> base.v1.SchemaDefinition.EntityDefinitionsEntry
+	31, // 7: base.v1.EntityDefinition.relations:type_name -> base.v1.EntityDefinition.RelationsEntry
+	32, // 8: base.v1.EntityDefinition.permissions:type_name -> base.v1.EntityDefinition.PermissionsEntry
+	33, // 9: base.v1.EntityDefinition.references:type_name -> base.v1.EntityDefinition.ReferencesEntry
+	12, // 10: base.v1.RelationDefinition.relation_references:type_name -> base.v1.RelationReference
+	5,  // 11: base.v1.PermissionDefinition.child:type_name -> base.v1.Child
+	14, // 12: base.v1.TupleToUserSet.tupleSet:type_name -> base.v1.TupleSet
+	13, // 13: base.v1.TupleToUserSet.computed:type_name -> base.v1.ComputedUserSet
+	18, // 14: base.v1.Tuple.entity:type_name -> base.v1.Entity
+	20, // 15: base.v1.Tuple.subject:type_name -> base.v1.Subject
+	16, // 16: base.v1.Tuples.tuples:type_name -> base.v1.Tuple
+	18, // 17: base.v1.EntityAndRelation.entity:type_name -> base.v1.Entity
+	22, // 18: base.v1.TupleFilter.entity:type_name -> base.v1.EntityFilter
+	23, // 19: base.v1.TupleFilter.subject:type_name -> base.v1.SubjectFilter
+	3,  // 20: base.v1.ExpandTreeNode.operation:type_name -> base.v1.ExpandTreeNode.Operation
+	25, // 21: base.v1.ExpandTreeNode.children:type_name -> base.v1.Expand
+	19, // 22: base.v1.Expand.target:type_name -> base.v1.EntityAndRelation
+	24, // 23: base.v1.Expand.expand:type_name -> base.v1.ExpandTreeNode
+	26, // 24: base.v1.Expand.leaf:type_name -> base.v1.Subjects
+	20, // 25: base.v1.Subjects.subjects:type_name -> base.v1.Subject
+	34, // 26: base.v1.Tenant.created_at:type_name -> google.protobuf.Timestamp
+	29, // 27: base.v1.TupleChanges.tuple_changes:type_name -> base.v1.TupleChange
+	4,  // 28: base.v1.TupleChange.operation:type_name -> base.v1.TupleChange.Operation
+	16, // 29: base.v1.TupleChange.tuple:type_name -> base.v1.Tuple
+	9,  // 30: base.v1.SchemaDefinition.EntityDefinitionsEntry.value:type_name -> base.v1.EntityDefinition
+	10, // 31: base.v1.EntityDefinition.RelationsEntry.value:type_name -> base.v1.RelationDefinition
+	11, // 32: base.v1.EntityDefinition.PermissionsEntry.value:type_name -> base.v1.PermissionDefinition
+	2,  // 33: base.v1.EntityDefinition.ReferencesEntry.value:type_name -> base.v1.EntityDefinition.RelationalReference
 	34, // [34:34] is the sub-list for method output_type
 	34, // [34:34] is the sub-list for method input_type
 	34, // [34:34] is the sub-list for extension type_name
@@ -2433,7 +2488,7 @@ func file_base_v1_base_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_base_v1_base_proto_rawDesc,
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   0,

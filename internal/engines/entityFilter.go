@@ -52,7 +52,7 @@ func (engine *EntityFilterEngine) EntityFilter(
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
-		}, request.GetContextualTuples(), base.PermissionCheckResponse_RESULT_UNKNOWN)
+		}, request.GetContextualTuples(), base.CheckResult_RESULT_UNKNOWN)
 	}
 
 	// Retrieve entity definition
@@ -290,7 +290,7 @@ func (engine *EntityFilterEngine) l(
 				SnapToken:     request.GetMetadata().GetSnapToken(),
 				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 				Depth:         request.GetMetadata().GetDepth(),
-			}, request.GetContextualTuples(), base.PermissionCheckResponse_RESULT_UNKNOWN)
+			}, request.GetContextualTuples(), base.CheckResult_RESULT_UNKNOWN)
 			return nil
 		}
 		return nil // Otherwise, return without publishing any results.

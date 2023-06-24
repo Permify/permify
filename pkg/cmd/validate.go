@@ -206,9 +206,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				}
 
 				for permission, expected := range check.Assertions {
-					exp := base.PermissionCheckResponse_RESULT_ALLOWED
+					exp := base.CheckResult_RESULT_ALLOWED
 					if !expected {
-						exp = base.PermissionCheckResponse_RESULT_DENIED
+						exp = base.CheckResult_RESULT_DENIED
 					}
 
 					res, err := dev.Container.Invoker.Check(ctx, &base.PermissionCheckRequest{
@@ -235,7 +235,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						fmt.Printf(" %s \n", query)
 					} else {
 						color.Danger.Printf("    fail: %s ->", query)
-						if res.Can == base.PermissionCheckResponse_RESULT_ALLOWED {
+						if res.Can == base.CheckResult_RESULT_ALLOWED {
 							color.Danger.Println("  expected: DENIED actual: ALLOWED ")
 							list.Add(fmt.Sprintf("%s -> expected: DENIED actual: ALLOWED ", query))
 						} else {

@@ -57,7 +57,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 	if !ok {
 		// If there's an error, return false
 		return &base.PermissionCheckResponse{
-			Can: base.PermissionCheckResponse_RESULT_DENIED,
+			Can: base.CheckResult_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
@@ -69,7 +69,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 	if !found {
 		// If the responsible node is not found, return false
 		return &base.PermissionCheckResponse{
-			Can: base.PermissionCheckResponse_RESULT_DENIED,
+			Can: base.CheckResult_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
@@ -84,7 +84,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 	resp, err := c.forwardRequestToNode(ctx, node, request)
 	if err != nil {
 		return &base.PermissionCheckResponse{
-			Can: base.PermissionCheckResponse_RESULT_DENIED,
+			Can: base.CheckResult_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
