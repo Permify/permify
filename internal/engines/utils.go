@@ -41,6 +41,16 @@ func LookupSubjectConcurrencyLimit(limit int) LookupSubjectOption {
 	}
 }
 
+// SubjectPermissionOption - a functional option type for configuring the SubjectPermissionEngine.
+type SubjectPermissionOption func(engine *SubjectPermissionEngine)
+
+// SubjectPermissionConcurrencyLimit - a functional option that sets the concurrency limit for the SubjectPermissionEngine.
+func SubjectPermissionConcurrencyLimit(limit int) SubjectPermissionOption {
+	return func(c *SubjectPermissionEngine) {
+		c.concurrencyLimit = limit
+	}
+}
+
 // joinResponseMetas - a helper function that merges multiple PermissionCheckResponseMetadata structs into one.
 func joinResponseMetas(meta ...*base.PermissionCheckResponseMetadata) *base.PermissionCheckResponseMetadata {
 	response := &base.PermissionCheckResponseMetadata{}
@@ -48,6 +58,13 @@ func joinResponseMetas(meta ...*base.PermissionCheckResponseMetadata) *base.Perm
 		response.CheckCount += m.CheckCount
 	}
 	return response
+}
+
+// SubjectPermissionResponse - a struct that holds a SubjectPermissionResponse and an error for a single subject permission check result.
+type SubjectPermissionResponse struct {
+	permission string
+	result     base.CheckResult
+	err        error
 }
 
 // CheckResponse - a struct that holds a PermissionCheckResponse and an error for a single check function.

@@ -43,8 +43,8 @@ func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *bas
 	var mu sync.Mutex
 	var entityIDs []string
 
-	callback := func(entityID string, result base.PermissionCheckResponse_Result) {
-		if result == base.PermissionCheckResponse_RESULT_ALLOWED {
+	callback := func(entityID string, result base.CheckResult) {
+		if result == base.CheckResult_RESULT_ALLOWED {
 			mu.Lock()
 			defer mu.Unlock()
 			entityIDs = append(entityIDs, entityID)
@@ -96,8 +96,8 @@ func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *bas
 // containing the IDs of the entities that have the requested permission.
 func (engine *LookupEntityEngine) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
 	// Define callback function for handling permission check results
-	callback := func(entityID string, result base.PermissionCheckResponse_Result) {
-		if result == base.PermissionCheckResponse_RESULT_ALLOWED {
+	callback := func(entityID string, result base.CheckResult) {
+		if result == base.CheckResult_RESULT_ALLOWED {
 			err := server.Send(&base.PermissionLookupEntityStreamResponse{
 				EntityId: entityID,
 			})

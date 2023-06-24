@@ -107,6 +107,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -201,6 +202,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -302,6 +304,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -393,6 +396,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -486,6 +490,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -579,6 +584,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -677,6 +683,7 @@ entity doc {
 				nil,
 				nil,
 				lookupSubjectEngine,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 

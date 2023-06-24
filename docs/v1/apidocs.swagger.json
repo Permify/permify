@@ -448,6 +448,62 @@
         ]
       }
     },
+    "/v1/tenants/{tenant_id}/permissions/subject-permission": {
+      "post": {
+        "operationId": "permissions.subjectPermission",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PermissionSubjectPermissionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/PermissionSubjectPermissionRequestMetadata"
+                },
+                "entity": {
+                  "$ref": "#/definitions/Entity"
+                },
+                "subject": {
+                  "$ref": "#/definitions/Subject"
+                },
+                "contextual_tuples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Tuple"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ]
+      }
+    },
     "/v1/tenants/{tenant_id}/relationships/delete": {
       "post": {
         "summary": "delete relation tuple",
@@ -754,6 +810,16 @@
       },
       "additionalProperties": {}
     },
+    "CheckResult": {
+      "type": "string",
+      "enum": [
+        "RESULT_UNKNOWN",
+        "RESULT_ALLOWED",
+        "RESULT_DENIED"
+      ],
+      "default": "RESULT_UNKNOWN",
+      "title": "CheckResult"
+    },
     "Child": {
       "type": "object",
       "properties": {
@@ -917,7 +983,7 @@
       "type": "object",
       "properties": {
         "can": {
-          "$ref": "#/definitions/Result"
+          "$ref": "#/definitions/CheckResult"
         },
         "metadata": {
           "$ref": "#/definitions/PermissionCheckResponseMetadata"
@@ -1029,6 +1095,37 @@
       },
       "title": "PermissionLookupSubjectResponse"
     },
+    "PermissionSubjectPermissionRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "snap_token": {
+          "type": "string"
+        },
+        "only_permission": {
+          "type": "boolean"
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "PermissionCheckRequestMetadata"
+    },
+    "PermissionSubjectPermissionResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/CheckResult"
+          }
+        }
+      },
+      "title": "SubjectPermissionResponse"
+    },
     "RelationDefinition": {
       "type": "object",
       "properties": {
@@ -1118,16 +1215,6 @@
         }
       },
       "title": "RelationshipWriteResponse"
-    },
-    "Result": {
-      "type": "string",
-      "enum": [
-        "RESULT_UNKNOWN",
-        "RESULT_ALLOWED",
-        "RESULT_DENIED"
-      ],
-      "default": "RESULT_UNKNOWN",
-      "title": "Result"
     },
     "Rewrite": {
       "type": "object",

@@ -115,6 +115,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -241,6 +242,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -355,6 +357,7 @@ entity doc {
 				nil,
 				lookupEntityEngine,
 				nil,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -468,6 +471,7 @@ entity doc {
 				checkEngine,
 				nil,
 				lookupEntityEngine,
+				nil,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
@@ -585,6 +589,7 @@ entity doc {
 				checkEngine,
 				nil,
 				lookupEntityEngine,
+				nil,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
@@ -711,6 +716,7 @@ entity doc {
 				checkEngine,
 				nil,
 				lookupEntityEngine,
+				nil,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
@@ -896,6 +902,7 @@ entity doc {
 				checkEngine,
 				nil,
 				lookupEntityEngine,
+				nil,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
@@ -1180,6 +1187,7 @@ entity event {
 				nil,
 				lookupEntityEngine,
 				nil,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1392,6 +1400,7 @@ entity event {
 				nil,
 				lookupEntityEngine,
 				nil,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1581,6 +1590,7 @@ entity organization {
 				nil,
 				lookupEntityEngine,
 				nil,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1759,6 +1769,7 @@ entity organization {
 				nil,
 				lookupEntityEngine,
 				nil,
+				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1868,6 +1879,7 @@ entity organization {
 				checkEngine,
 				nil,
 				lookupEntityEngine,
+				nil,
 				nil,
 				telemetry.NewNoopMeter(),
 			)

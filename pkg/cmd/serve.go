@@ -244,10 +244,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader
 		checkEngine := engines.NewCheckEngine(schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
 		entityFilterEngine := engines.NewEntityFilterEngine(schemaReader, relationshipReader)
 		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, entityFilterEngine, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
 		lookupSubjectEngine := engines.NewLookupSubjectEngine(schemaReader, relationshipReader, engines.LookupSubjectConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
-		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
+		subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
 
 		var check invoke.Check
 		if cfg.Distributed.Enabled {
@@ -294,6 +295,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			expandEngine,
 			lookupEntityEngine,
 			lookupSubjectEngine,
+			subjectPermissionEngine,
 			meter,
 		)
 

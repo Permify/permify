@@ -12,7 +12,7 @@ import (
 // BulkCheckerRequest is a struct for a permission check request and the channel to send the result.
 type BulkCheckerRequest struct {
 	Request *base.PermissionCheckRequest
-	Result  base.PermissionCheckResponse_Result
+	Result  base.CheckResult
 }
 
 // BulkChecker is a struct for checking permissions in bulk.
@@ -27,7 +27,7 @@ type BulkChecker struct {
 	// limit for concurrent permission checks
 	concurrencyLimit int
 	// callback function to handle the result of each permission check
-	callback func(entityID string, result base.PermissionCheckResponse_Result)
+	callback func(entityID string, result base.CheckResult)
 }
 
 // NewBulkChecker creates a new BulkChecker instance.
@@ -35,7 +35,7 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, engine *CheckEngine, callback func(entityID string, result base.PermissionCheckResponse_Result), concurrencyLimit int) *BulkChecker {
+func NewBulkChecker(ctx context.Context, engine *CheckEngine, callback func(entityID string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
 	return &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
 		checkEngine:      engine,
@@ -65,7 +65,7 @@ func (c *BulkChecker) Start() {
 			// run the permission check in a separate goroutine
 			c.g.Go(func() error {
 				defer sem.Release(1)
-				if req.Result == base.PermissionCheckResponse_RESULT_UNKNOWN {
+				if req.Result == base.CheckResult_RESULT_UNKNOWN {
 					result, err := c.checkEngine.Check(c.ctx, req.Request)
 					if err != nil {
 						return err
@@ -114,7 +114,7 @@ func NewBulkPublisher(ctx context.Context, request *base.PermissionLookupEntityR
 }
 
 // Publish publishes a permission check request to the BulkChecker.
-func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, contextual []*base.Tuple, result base.PermissionCheckResponse_Result) {
+func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, contextual []*base.Tuple, result base.CheckResult) {
 	s.bulkChecker.RequestChan <- BulkCheckerRequest{
 		Request: &base.PermissionCheckRequest{
 			TenantId:         s.request.GetTenantId(),

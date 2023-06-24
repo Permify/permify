@@ -405,7 +405,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 	// If there are no functions, deny the permission and return
 	if len(functions) == 0 {
 		return &base.PermissionCheckResponse{
-			Can:      base.PermissionCheckResponse_RESULT_DENIED,
+			Can:      base.CheckResult_RESULT_DENIED,
 			Metadata: responseMetadata,
 		}, nil
 	}
@@ -437,7 +437,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 				return denied(responseMetadata), d.err
 			}
 			// If the CheckFunction allowed the permission, allow the permission and return
-			if d.resp.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
+			if d.resp.GetCan() == base.CheckResult_RESULT_ALLOWED {
 				return allowed(responseMetadata), nil
 			}
 		// If the context is done, deny the permission and return a cancellation error
@@ -488,7 +488,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 				return denied(responseMetadata), d.err
 			}
 			// If the CheckFunction denied the permission, deny the permission and return
-			if d.resp.GetCan() == base.PermissionCheckResponse_RESULT_DENIED {
+			if d.resp.GetCan() == base.CheckResult_RESULT_DENIED {
 				return denied(responseMetadata), nil
 			}
 		// If the context is done, deny the permission and return a cancellation error
@@ -551,7 +551,7 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 			return denied(responseMetadata), left.err
 		}
 
-		if left.resp.GetCan() == base.PermissionCheckResponse_RESULT_DENIED {
+		if left.resp.GetCan() == base.CheckResult_RESULT_DENIED {
 			return denied(responseMetadata), nil
 		}
 
@@ -569,7 +569,7 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 				return denied(responseMetadata), d.err
 			}
 
-			if d.resp.GetCan() == base.PermissionCheckResponse_RESULT_ALLOWED {
+			if d.resp.GetCan() == base.CheckResult_RESULT_ALLOWED {
 				return denied(responseMetadata), nil
 			}
 
@@ -647,7 +647,7 @@ func checkFail(err error) CheckFunction {
 // 2. The function returns a denied PermissionCheckResponse with a RESULT_DENIED Can value and the provided metadata.
 func denied(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckResponse {
 	return &base.PermissionCheckResponse{
-		Can:      base.PermissionCheckResponse_RESULT_DENIED,
+		Can:      base.CheckResult_RESULT_DENIED,
 		Metadata: meta,
 	}
 }
@@ -659,7 +659,7 @@ func denied(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckRes
 // 2. The function returns an allowed PermissionCheckResponse with a RESULT_ALLOWED Can value and the provided metadata.
 func allowed(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckResponse {
 	return &base.PermissionCheckResponse{
-		Can:      base.PermissionCheckResponse_RESULT_ALLOWED,
+		Can:      base.CheckResult_RESULT_ALLOWED,
 		Metadata: meta,
 	}
 }

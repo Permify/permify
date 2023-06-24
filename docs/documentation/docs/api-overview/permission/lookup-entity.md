@@ -1,11 +1,11 @@
 ---
-title: Check Entities' Permissions
+title: Entity Filtering
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Check Entities' Permissions (Data Filtering)
+# Entity Filtering
 
 Lookup Entity endpoint lets you ask questions in form of **“Which resources can user:X do action Y?”**. As a response of this you’ll get a entity results in a format of string array or as a streaming response depending on the endpoint you're using.
 

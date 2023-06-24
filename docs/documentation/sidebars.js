@@ -104,13 +104,14 @@ module.exports = {
 					link: {
 						type: "generated-index",
 						title: "Permission Service",
-						slug: "/api-overview//permission",
+						slug: "/api-overview/permission",
 					},
 					items: [
 						"api-overview/permission/check-api",
 						"api-overview/permission/lookup-entity",
 						"api-overview/permission/lookup-subject",
-						"api-overview/permission/expand-api"
+						"api-overview/permission/expand-api",
+						"api-overview/permission/subject-permission"
 					],
 				  },
 				  {

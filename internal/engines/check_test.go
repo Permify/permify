@@ -69,7 +69,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -88,8 +88,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "doc:1",
 						subject: "user:1",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"read": base.PermissionCheckResponse_RESULT_ALLOWED,
+						assertions: map[string]base.CheckResult{
+							"read": base.CheckResult_RESULT_ALLOWED,
 						},
 					},
 				},
@@ -105,6 +105,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -176,7 +177,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -192,8 +193,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "doc:1",
 						subject: "user:1",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"update": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"update": base.CheckResult_RESULT_DENIED,
 						},
 					},
 				},
@@ -209,6 +210,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -279,7 +281,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -298,8 +300,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "doc:1",
 						subject: "user:1",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"read": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"read": base.CheckResult_RESULT_DENIED,
 						},
 					},
 				},
@@ -315,6 +317,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -410,7 +413,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -424,8 +427,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repository:1",
 						subject: "user:1",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"push": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_RESULT_DENIED,
 						},
 					},
 				},
@@ -441,6 +444,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -511,7 +515,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -529,8 +533,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repository:1",
 						subject: "user:1",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"push": base.PermissionCheckResponse_RESULT_ALLOWED,
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_RESULT_ALLOWED,
 						},
 					},
 				},
@@ -545,6 +549,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -613,7 +618,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -630,8 +635,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repository:1",
 						subject: "user:1",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"delete": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"delete": base.CheckResult_RESULT_DENIED,
 						},
 					},
 				},
@@ -647,6 +652,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -748,7 +754,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -766,8 +772,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repo:1",
 						subject: "user:2",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"push": base.PermissionCheckResponse_RESULT_ALLOWED,
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_RESULT_ALLOWED,
 						},
 					},
 				},
@@ -782,6 +788,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -850,7 +857,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -876,8 +883,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repo:1",
 						subject: "user:2",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"push": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_RESULT_DENIED,
 						},
 					},
 				},
@@ -893,6 +900,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -971,7 +979,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -991,8 +999,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repo:1",
 						subject: "user:2",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"delete": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"delete": base.CheckResult_RESULT_DENIED,
 						},
 					},
 				},
@@ -1008,6 +1016,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -1077,7 +1086,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -1099,15 +1108,15 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repo:1",
 						subject: "user:2",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"update": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"update": base.CheckResult_RESULT_DENIED,
 						},
 					},
 					{
 						entity:  "repo:1",
 						subject: "user:2",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"view": base.PermissionCheckResponse_RESULT_ALLOWED,
+						assertions: map[string]base.CheckResult{
+							"view": base.CheckResult_RESULT_ALLOWED,
 						},
 					},
 				},
@@ -1123,6 +1132,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -1192,7 +1202,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -1211,8 +1221,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repo:1",
 						subject: "user:2",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"view": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"view": base.CheckResult_RESULT_DENIED,
 						},
 					},
 				},
@@ -1228,6 +1238,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -1297,7 +1308,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -1316,8 +1327,8 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repo:1",
 						subject: "user:2",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"admin": base.PermissionCheckResponse_RESULT_DENIED,
+						assertions: map[string]base.CheckResult{
+							"admin": base.CheckResult_RESULT_DENIED,
 						},
 					},
 				},
@@ -1333,6 +1344,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,
@@ -1430,7 +1442,7 @@ var _ = Describe("check-engine", func() {
 			type check struct {
 				entity     string
 				subject    string
-				assertions map[string]base.PermissionCheckResponse_Result
+				assertions map[string]base.CheckResult
 			}
 
 			tests := struct {
@@ -1447,22 +1459,22 @@ var _ = Describe("check-engine", func() {
 					{
 						entity:  "repo:1",
 						subject: "googleuser:2",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"push": base.PermissionCheckResponse_RESULT_ALLOWED,
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_RESULT_ALLOWED,
 						},
 					},
 					{
 						entity:  "repo:1",
 						subject: "facebookuser:3",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"push": base.PermissionCheckResponse_RESULT_ALLOWED,
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_RESULT_ALLOWED,
 						},
 					},
 					{
 						entity:  "organization:1",
 						subject: "facebookuser:3",
-						assertions: map[string]base.PermissionCheckResponse_Result{
-							"edit": base.PermissionCheckResponse_RESULT_ALLOWED,
+						assertions: map[string]base.CheckResult{
+							"edit": base.CheckResult_RESULT_ALLOWED,
 						},
 					},
 				},
@@ -1477,6 +1489,7 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				relationshipReader,
 				checkEngine,
+				nil,
 				nil,
 				nil,
 				nil,

@@ -88,6 +88,21 @@ service Permission {
       operation_id: "permissions.lookupSubject"
     };
   }
+
+  rpc SubjectPermission(PermissionSubjectPermissionRequest) returns (PermissionSubjectPermissionResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/permissions/subject-permission"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: ""
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.subjectPermission"
+    };
+  }
 }
 
 // CHECK
@@ -125,14 +140,7 @@ message PermissionCheckRequestMetadata {
 
 // PermissionCheckResponse
 message PermissionCheckResponse {
-  // Result
-  enum Result {
-    RESULT_UNKNOWN = 0;
-    RESULT_ALLOWED = 1;
-    RESULT_DENIED = 2;
-  }
-
-  Result can = 1 [json_name = "can"];
+  CheckResult can = 1 [json_name = "can"];
   PermissionCheckResponseMetadata metadata = 2 [json_name = "metadata"];
 }
 
@@ -175,7 +183,7 @@ message PermissionExpandResponse {
   Expand tree = 1 [json_name = "tree"];
 }
 
-//LOOKUP
+// LOOKUP ENTITY
 
 // PermissionLookupEntityRequest
 message PermissionLookupEntityRequest {
@@ -245,6 +253,8 @@ message PermissionEntityFilterRequestMetadata {
   int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
+// LOOKUP SUBJECT
+
 // PermissionLookupSubjectRequest
 message PermissionLookupSubjectRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
@@ -280,6 +290,37 @@ message PermissionLookupSubjectResponse {
   repeated string subject_ids = 1 [json_name = "subject_ids"];
 }
 
+// SUBJECT PERMISSION
+
+message PermissionSubjectPermissionRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  PermissionSubjectPermissionRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
+
+  repeated Tuple contextual_tuples = 5 [json_name = "contextual_tuples"];
+}
+
+// PermissionCheckRequestMetadata
+message PermissionSubjectPermissionRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+  string snap_token = 2 [json_name = "snap_token"];
+  bool only_permission = 3 [json_name = "only_permission"];
+  int32 depth = 4 [json_name = "depth", (validate.rules).int32.gte = 3];
+}
+
+// SubjectPermissionResponse
+message PermissionSubjectPermissionResponse {
+  map<string, CheckResult> results = 1 [json_name = "results"];
+}
+
 // ** WATCH SERVICE **
 
 // Watch
@@ -313,7 +354,7 @@ message WatchRequest {
 
 // WatchResponse
 message WatchResponse {
-   TupleChanges changes = 1 [json_name = "changes"];
+  TupleChanges changes = 1 [json_name = "changes"];
 }
 
 // ** SCHEMA SERVICE **

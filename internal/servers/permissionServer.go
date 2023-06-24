@@ -130,3 +130,24 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 
 	return response, nil
 }
+
+// SubjectPermission -
+func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.PermissionSubjectPermissionRequest) (*v1.PermissionSubjectPermissionResponse, error) {
+	ctx, span := tracer.Start(ctx, "permissions.subject-permission")
+	defer span.End()
+
+	v := request.Validate()
+	if v != nil {
+		return nil, v
+	}
+
+	response, err := r.invoker.SubjectPermission(ctx, request)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		r.logger.Error(err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	return response, nil
+}
