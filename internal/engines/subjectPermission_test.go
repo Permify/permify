@@ -49,7 +49,6 @@ var _ = Describe("subject-permission-engine", func() {
 `
 
 	Context("Drive Sample: Subject Permission", func() {
-
 		It("Drive Sample: Case 1", func() {
 			db, err := factories.DatabaseFactory(
 				config.Database{
@@ -305,7 +304,6 @@ var _ = Describe("subject-permission-engine", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(reflect.DeepEqual(response.Results, assertion.result)).Should(Equal(true))
 			}
-
 		})
 
 		It("Drive Sample: Case 3", func() {
