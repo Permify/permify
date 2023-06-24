@@ -1,11 +1,11 @@
 ---
-title: Check Subjects' Permissions
+title: Subject Filtering
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Check Subjects' Permissions
+# Subject Filtering
 
 Lookup Subject endpoint lets you ask questions in form of **“Which subjects can do action Y on entity:X?”**. As a response of this you’ll get a subject results in a format of string array.
 
@@ -100,3 +100,8 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 
 </TabItem>
 </Tabs>
+
+
+## Need any help ?
+
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).

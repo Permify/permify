@@ -34,8 +34,8 @@ In this section we'll look at the resource based check request of Permify. You c
 cr, err: = client.Permission.Check(context.Background(), &v1.PermissionCheckRequest {
     TenantId: "t1",
     Metadata: &v1.PermissionCheckRequestMetadata {
-        SnapToken: ""
-        SchemaVersion: ""
+        SnapToken: "",
+        SchemaVersion: "",
         Depth: 20,
     },
     Entity: &v1.Entity {
@@ -116,7 +116,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 
 ```json
 {
-  "can": "RESULT_ALLOW",
+  "can": "RESULT_ALLOWED",
   "remaining_depth": 0
 }
 ```
@@ -132,3 +132,4 @@ With the right architecture we expect **7-12 ms** latency. Depending on your loa
 ## Need any help ?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+
