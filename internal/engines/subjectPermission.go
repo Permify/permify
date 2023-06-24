@@ -57,18 +57,20 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 		Results: map[string]base.CheckResult{},
 	}
 
-	typs := []base.EntityDefinition_RelationalReference{
+	// Initialize a reference types with permission
+	rtyps := []base.EntityDefinition_RelationalReference{
 		base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
 	}
 
+	// If the request is not for only permissions, we add relation reference to the list of relational reference types.
 	if !request.GetMetadata().GetOnlyPermission() {
-		typs = append(typs, base.EntityDefinition_RELATIONAL_REFERENCE_RELATION)
+		rtyps = append(rtyps, base.EntityDefinition_RELATIONAL_REFERENCE_RELATION)
 	}
 
+	// If allowed reference types contains reference. append to refs list
 	var refs []string
-
 	for ref, typ := range en.GetReferences() {
-		if slices.Contains(typs, typ) {
+		if slices.Contains(rtyps, typ) {
 			refs = append(refs, ref)
 		}
 	}
