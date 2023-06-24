@@ -25,6 +25,7 @@ type Invoker interface {
 	Expand
 	LookupEntity
 	LookupSubject
+	SubjectPermission
 }
 
 // Check is an interface that defines a method for checking permissions.
@@ -54,6 +55,11 @@ type LookupSubject interface {
 	LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error)
 }
 
+// SubjectPermission -
+type SubjectPermission interface {
+	SubjectPermission(ctx context.Context, request *base.PermissionSubjectPermissionRequest) (response *base.PermissionSubjectPermissionResponse, err error)
+}
+
 // DirectInvoker is a struct that implements the Invoker interface.
 // It holds references to various engines needed for permission-related operations.
 type DirectInvoker struct {
@@ -69,11 +75,14 @@ type DirectInvoker struct {
 	le LookupEntity
 	// LookupSubject
 	ls LookupSubject
+	// LookupSubject
+	sp SubjectPermission
 
 	// Metrics
-	checkCounter         api.Int64Counter
-	lookupEntityCounter  api.Int64Counter
-	lookupSubjectCounter api.Int64Counter
+	checkCounter             api.Int64Counter
+	lookupEntityCounter      api.Int64Counter
+	lookupSubjectCounter     api.Int64Counter
+	subjectPermissionCounter api.Int64Counter
 }
 
 // NewDirectInvoker is a constructor for DirectInvoker.
@@ -86,36 +95,45 @@ func NewDirectInvoker(
 	ec Expand,
 	le LookupEntity,
 	ls LookupSubject,
+	sp SubjectPermission,
 	meter api.Meter,
 ) *DirectInvoker {
-	// Define metrics
+	// Check Counter
 	checkCounter, err := meter.Int64Counter("check_count", api.WithDescription("Number of permission checks performed"))
 	if err != nil {
 		panic(err)
 	}
 
-	// Define metrics
+	// Lookup Entity Counter
 	lookupEntityCounter, err := meter.Int64Counter("lookup_entity_count", api.WithDescription("Number of permission lookup entity performed"))
 	if err != nil {
 		panic(err)
 	}
 
-	// Define metrics
+	// Lookup Subject Counter
 	lookupSubjectCounter, err := meter.Int64Counter("lookup_subject_count", api.WithDescription("Number of permission lookup subject performed"))
 	if err != nil {
 		panic(err)
 	}
 
+	// Subject Permission Counter
+	subjectPermissionCounter, err := meter.Int64Counter("subject_permission_count", api.WithDescription("Number of subject permission performed"))
+	if err != nil {
+		panic(err)
+	}
+
 	return &DirectInvoker{
-		schemaReader:         schemaReader,
-		relationshipReader:   relationshipReader,
-		cc:                   cc,
-		ec:                   ec,
-		le:                   le,
-		ls:                   ls,
-		checkCounter:         checkCounter,
-		lookupEntityCounter:  lookupEntityCounter,
-		lookupSubjectCounter: lookupSubjectCounter,
+		schemaReader:             schemaReader,
+		relationshipReader:       relationshipReader,
+		cc:                       cc,
+		ec:                       ec,
+		le:                       le,
+		ls:                       ls,
+		sp:                       sp,
+		checkCounter:             checkCounter,
+		lookupEntityCounter:      lookupEntityCounter,
+		lookupSubjectCounter:     lookupSubjectCounter,
+		subjectPermissionCounter: subjectPermissionCounter,
 	}
 }
 
@@ -136,9 +154,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.PermissionCheckResponse_RESULT_DENIED.String())})
+		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_RESULT_DENIED.String())})
 		return &base.PermissionCheckResponse{
-			Can: base.PermissionCheckResponse_RESULT_DENIED,
+			Can: base.CheckResult_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
@@ -152,9 +170,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.PermissionCheckResponse_RESULT_DENIED.String())})
+			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_RESULT_DENIED.String())})
 			return &base.PermissionCheckResponse{
-				Can: base.PermissionCheckResponse_RESULT_DENIED,
+				Can: base.CheckResult_RESULT_DENIED,
 				Metadata: &base.PermissionCheckResponseMetadata{
 					CheckCount: 0,
 				},
@@ -169,9 +187,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.PermissionCheckResponse_RESULT_DENIED.String())})
+			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_RESULT_DENIED.String())})
 			return &base.PermissionCheckResponse{
-				Can: base.PermissionCheckResponse_RESULT_DENIED,
+				Can: base.CheckResult_RESULT_DENIED,
 				Metadata: &base.PermissionCheckResponseMetadata{
 					CheckCount: 0,
 				},
@@ -187,9 +205,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.PermissionCheckResponse_RESULT_DENIED.String())})
+		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_RESULT_DENIED.String())})
 		return &base.PermissionCheckResponse{
-			Can: base.PermissionCheckResponse_RESULT_DENIED,
+			Can: base.CheckResult_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
@@ -365,4 +383,50 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 	// Call the LookupSubject function of the ls field in the invoker, pass the context and request,
 	// and return its response and error
 	return invoker.ls.LookupSubject(ctx, request)
+}
+
+// SubjectPermission is a method of the DirectInvoker structure. It handles the task of subject's permissions
+// and returning the results in a response.
+func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *base.PermissionSubjectPermissionRequest) (response *base.PermissionSubjectPermissionResponse, err error) {
+	ctx, span := tracer.Start(ctx, "subject-permission", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
+		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
+	))
+	defer span.End()
+
+	// Check if the request has a SnapToken. If not, a SnapToken is set.
+	if request.GetMetadata().GetSnapToken() == "" {
+		// Create an instance of SnapToken
+		var st token.SnapToken
+		// Retrieve the head snapshot from the relationship reader
+		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
+		// If there's an error retrieving the snapshot, return the response and the error
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return response, err
+		}
+		// Set the SnapToken in the request metadata
+		request.Metadata.SnapToken = st.Encode().String()
+	}
+
+	// Similar to SnapToken, check if the request has a SchemaVersion. If not, a SchemaVersion is set.
+	if request.GetMetadata().GetSchemaVersion() == "" {
+		// Retrieve the head schema version from the schema reader
+		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
+		// If there's an error retrieving the schema version, return the response and the error
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return response, err
+		}
+	}
+
+	// Increase the subject permission count in the metrics.
+	invoker.subjectPermissionCounter.Add(ctx, 1)
+
+	// Call the SubjectPermission function of the ls field in the invoker, pass the context and request,
+	// and return its response and error
+	return invoker.sp.SubjectPermission(ctx, request)
 }

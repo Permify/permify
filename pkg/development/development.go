@@ -59,6 +59,7 @@ func NewContainer() *Development {
 	entityFilterEngine := engines.NewEntityFilterEngine(schemaReader, relationshipReader)
 	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, entityFilterEngine)
 	lookupSubjectEngine := engines.NewLookupSubjectEngine(schemaReader, relationshipReader)
+	subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader)
 
 	invoker := invoke.NewDirectInvoker(
 		schemaReader,
@@ -67,6 +68,7 @@ func NewContainer() *Development {
 		expandEngine,
 		lookupEntityEngine,
 		lookupSubjectEngine,
+		subjectPermissionEngine,
 		telemetry.NewNoopMeter(),
 	)
 
@@ -400,9 +402,9 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 			// Each Assertion in the current check is processed
 			for permission, expected := range check.Assertions {
-				exp := v1.PermissionCheckResponse_RESULT_ALLOWED
+				exp := v1.CheckResult_RESULT_ALLOWED
 				if !expected {
-					exp = v1.PermissionCheckResponse_RESULT_DENIED
+					exp = v1.CheckResult_RESULT_DENIED
 				}
 
 				// A Permission Check is made for the current entity, permission and subject
@@ -431,7 +433,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 					list.AddError(fmt.Sprintf("fail: %s ->", query))
 
 					// Handle the case where the permission check result is ALLOWED but the expected result was DENIED
-					if res.Can == v1.PermissionCheckResponse_RESULT_ALLOWED {
+					if res.Can == v1.CheckResult_RESULT_ALLOWED {
 						list.AddError(fmt.Sprintf("fail: %s -> expected: DENIED actual: ALLOWED ", query))
 					} else {
 						// Handle the case where the permission check result is DENIED but the expected result was ALLOWED
