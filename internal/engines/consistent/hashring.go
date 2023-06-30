@@ -29,7 +29,7 @@ type Hashring struct {
 
 // NewCheckEngineWithHashring creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.ConsistentHash, g *gossip.Gossip, port string, l *logger.Logger, options ...grpc.DialOption) (invoke.Check, error) {
+func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.ConsistentHash, g gossip.IGossip, port string, l *logger.Logger, options ...grpc.DialOption) (invoke.Check, error) {
 	// Return a new instance of EngineKeys with the provided cache
 	ip, err := gossip.ExternalIP()
 	if err != nil {
@@ -53,18 +53,20 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 		Relation: request.GetPermission(),
 	}), tuple.SubjectToString(request.GetSubject()))
 
-	ok := c.consistent.AddKey(k)
+	_, ok := c.consistent.Get(k)
 	if !ok {
-		// If there's an error, return false
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, errors.New("error adding key %s to consistent hash")
+		ok := c.consistent.AddKey(k)
+		if !ok {
+			// If there's an error, return false
+			return &base.PermissionCheckResponse{
+				Can: base.CheckResult_RESULT_DENIED,
+				Metadata: &base.PermissionCheckResponseMetadata{
+					CheckCount: 0,
+				},
+			}, errors.New("error adding key to consistent hash")
+		}
+		c.l.Info("added key %s to consistent hash", k)
 	}
-	c.l.Info("added key %s to consistent hash", k)
-
 	node, found := c.consistent.Get(k)
 	if !found {
 		// If the responsible node is not found, return false

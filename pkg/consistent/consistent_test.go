@@ -8,9 +8,11 @@ import (
 )
 
 func TestConsistentHash_Updated(t *testing.T) {
-	ch := hash.NewConsistentHash(100, []string{"node1", "node2", "node3", "node5"}, nil)
+	ch := hash.NewConsistentHash(100, nil)
 
 	keys := []string{"key1", "key2", "key3", "key4", "key5", "key6", "key7", "key8", "key9", "key10"}
+	ch.Add("node1")
+	ch.Add("node2")
 
 	// Test initial assignment
 	assignment := make(map[string]string)
@@ -24,20 +26,18 @@ func TestConsistentHash_Updated(t *testing.T) {
 
 	ok := ch.AddKey("wrqw")
 	if !ok {
-		t.Errorf("Failed to get node for key '%s'", "")
+		t.Errorf("Failed to add key '%s'", "wrqw")
 	}
 
-	nodes, _ := ch.Get("wrqw")
-	t.Log(nodes)
-	// Test consistency after adding a new node with weight
-	ch.AddWithWeight("node4", 100)
+	// Test consistency after adding a new node
+	ch.Add("node4")
 	for _, key := range keys {
 		node, ok := ch.Get(key)
 		if !ok {
 			t.Errorf("Failed to get node for key '%s'", key)
 		}
 		if node != assignment[key] {
-			color.Info.Printf("Key '%s' was reassigned from '%s' to '%s' after removing a node", key, assignment[key], node)
+			color.Info.Printf("Key '%s' was reassigned from '%s' to '%s' after adding a node", key, assignment[key], node)
 		}
 	}
 
@@ -64,10 +64,5 @@ func TestConsistentHash_Updated(t *testing.T) {
 			color.Info.Printf("Key '%s' was reassigned from '%s' to '%s' after removing a node", key, assignment[key], node)
 		}
 	}
-
-	for _, key := range keys {
-		node, _ := ch.Get(key)
-
-		t.Log(node, key)
-	}
+	t.Log("TestConsistentHash_Updated passed")
 }
