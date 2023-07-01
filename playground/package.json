@@ -46,7 +46,7 @@
     "react-infinite-scroll-component": "^6.1.0",
     "react-inlinesvg": "^3.0.1",
     "react-moment": "^1.1.1",
-    "react-monaco-editor": "^0.52.0",
+    "react-monaco-editor": "^0.53.0",
     "react-redux": "^8.0.5",
     "react-router": "6.10.0",
     "react-router-dom": "^6.11.1",
