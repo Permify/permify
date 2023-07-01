@@ -48,7 +48,7 @@
     "react-moment": "^1.1.1",
     "react-monaco-editor": "^0.52.0",
     "react-redux": "^8.0.5",
-    "react-router": "6.10.0",
+    "react-router": "6.14.1",
     "react-router-dom": "^6.11.1",
     "react-scripts": "^5.0.1",
     "react-simple-code-editor": "^0.13.0",
