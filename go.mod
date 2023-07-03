@@ -10,7 +10,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/dustin/go-humanize v1.0.1
-	github.com/envoyproxy/protoc-gen-validate v1.0.1
+	github.com/envoyproxy/protoc-gen-validate v1.0.2
 	github.com/fatih/color v1.15.0
 	github.com/go-jose/go-jose/v3 v3.0.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
