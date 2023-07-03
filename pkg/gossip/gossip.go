@@ -1,10 +1,12 @@
 package gossip
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	hash "github.com/Permify/permify/pkg/consistent"
 	"net"
+
+	hash "github.com/Permify/permify/pkg/consistent"
 )
 
 // IGossip is an interface that represents the basic operations
@@ -12,7 +14,7 @@ import (
 // interface should provide mechanisms for synchronizing cluster
 // membership and managing the lifecycle of the gossip protocol.
 type IGossip interface {
-	SyncNodes(consistent *hash.ConsistentHash, nodeName, port string)
+	SyncNodes(ctx context.Context, consistent *hash.ConsistentHash, nodeName, port string)
 	// Shutdown gracefully stops the gossip protocol and performs
 	// any necessary cleanup. It returns an error if the shutdown
 	// process encounters any issues.
@@ -20,7 +22,7 @@ type IGossip interface {
 }
 
 // InitMemberList initializes a memberlist instance with the given
-func InitMemberList(nodes string, name string) (IGossip, error) {
+func InitMemberList(nodes, name string) (IGossip, error) {
 	switch name {
 	case "serf":
 		return NewSerfGossip(nodes)
