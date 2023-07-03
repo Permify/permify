@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"google.golang.org/grpc"
@@ -29,7 +28,7 @@ type Hashring struct {
 
 // NewCheckEngineWithHashring creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.ConsistentHash, g *gossip.Gossip, port string, l *logger.Logger, options ...grpc.DialOption) (invoke.Check, error) {
+func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.ConsistentHash, g gossip.IGossip, port string, l *logger.Logger) (invoke.Check, error) {
 	// Return a new instance of EngineKeys with the provided cache
 	ip, err := gossip.ExternalIP()
 	if err != nil {
@@ -37,12 +36,11 @@ func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.Consisten
 	}
 
 	return &Hashring{
-		checker:           checker,
-		localNodeAddress:  ip + ":" + port,
-		gossip:            g,
-		consistent:        consistent,
-		connectionOptions: options,
-		l:                 l,
+		checker:          checker,
+		localNodeAddress: ip + ":" + port,
+		gossip:           g,
+		consistent:       consistent,
+		l:                l,
 	}, nil
 }
 
@@ -53,19 +51,22 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 		Relation: request.GetPermission(),
 	}), tuple.SubjectToString(request.GetSubject()))
 
-	ok := c.consistent.AddKey(k)
+	_, _, ok := c.consistent.Get(k)
 	if !ok {
-		// If there's an error, return false
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, errors.New("error adding key %s to consistent hash")
+		ok := c.consistent.AddKey(k)
+		if !ok {
+			// If there's an error, return false
+			return &base.PermissionCheckResponse{
+				Can: base.CheckResult_RESULT_DENIED,
+				Metadata: &base.PermissionCheckResponseMetadata{
+					CheckCount: 0,
+				},
+			}, errors.New("error adding key to consistent hash")
+		}
+		c.l.Info("added key %s to consistent hash", k)
 	}
-	c.l.Info("added key %s to consistent hash", k)
 
-	node, found := c.consistent.Get(k)
+	node, conn, found := c.consistent.Get(k)
 	if !found {
 		// If the responsible node is not found, return false
 		return &base.PermissionCheckResponse{
@@ -81,7 +82,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 		return c.checker.Check(ctx, request)
 	}
 
-	resp, err := c.forwardRequestToNode(ctx, node, request)
+	resp, err := c.forwardRequestToNode(ctx, conn, request)
 	if err != nil {
 		return &base.PermissionCheckResponse{
 			Can: base.CheckResult_RESULT_DENIED,
@@ -95,14 +96,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 }
 
 // forwardRequestGetToNode forwards a request to the responsible node
-func (c *Hashring) forwardRequestToNode(ctx context.Context, node string, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
-	// Set up a connection to the server.
-	conn, err := grpc.DialContext(ctx, node, c.connectionOptions...)
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-
+func (c *Hashring) forwardRequestToNode(ctx context.Context, conn *grpc.ClientConn, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
 	// Create a PermissionClient using the connection.
 	client := base.NewPermissionClient(conn)
 

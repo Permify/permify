@@ -1,73 +1,42 @@
-package hash_test
+package hash
 
 import (
+	"github.com/Permify/permify/internal/config"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+	"net"
 	"testing"
-
-	hash "github.com/Permify/permify/pkg/consistent"
-	"github.com/gookit/color"
 )
 
-func TestConsistentHash_Updated(t *testing.T) {
-	ch := hash.NewConsistentHash(100, []string{"node1", "node2", "node3", "node5"}, nil)
+func TestAddAndRemove(t *testing.T) {
+	// Mock grpc server
+	lis, err := net.Listen("tcp", "localhost:0")
+	assert.NoError(t, err)
+	grpcServer := grpc.NewServer()
+	go func() {
+		_ = grpcServer.Serve(lis)
+	}()
+	defer grpcServer.Stop()
 
-	keys := []string{"key1", "key2", "key3", "key4", "key5", "key6", "key7", "key8", "key9", "key10"}
+	// Create ConsistentHash instance
+	hashFunc := Hash
+	c := NewConsistentHash(100, hashFunc, config.GRPC{})
 
-	// Test initial assignment
-	assignment := make(map[string]string)
-	for _, key := range keys {
-		node, ok := ch.Get(key)
-		if !ok {
-			t.Errorf("Failed to get node for key '%s'", key)
-		}
-		assignment[key] = node
-	}
+	// Test Add
+	node := lis.Addr().String()
+	c.Add(node)
+	_, conn, ok := c.Get("key")
+	assert.True(t, ok)
+	assert.NotNil(t, conn)
 
-	ok := ch.AddKey("wrqw")
-	if !ok {
-		t.Errorf("Failed to get node for key '%s'", "")
-	}
+	// Test Remove
+	c.Remove(node)
+	_, _, ok = c.Get("key")
+	assert.False(t, ok)
 
-	nodes, _ := ch.Get("wrqw")
-	t.Log(nodes)
-	// Test consistency after adding a new node with weight
-	ch.AddWithWeight("node4", 100)
-	for _, key := range keys {
-		node, ok := ch.Get(key)
-		if !ok {
-			t.Errorf("Failed to get node for key '%s'", key)
-		}
-		if node != assignment[key] {
-			color.Info.Printf("Key '%s' was reassigned from '%s' to '%s' after removing a node", key, assignment[key], node)
-		}
-	}
-
-	// Test consistency after removing a node
-	ch.Remove("node4")
-	for _, key := range keys {
-		node, ok := ch.Get(key)
-		if !ok {
-			t.Errorf("Failed to get node for key '%s'", key)
-		}
-		if node != assignment[key] {
-			color.Info.Printf("Key '%s' was reassigned from '%s' to '%s' after removing a node", key, assignment[key], node)
-		}
-	}
-
-	// Test consistency after removing a node
-	ch.Remove("node1")
-	for _, key := range keys {
-		node, ok := ch.Get(key)
-		if !ok {
-			t.Errorf("Failed to get node for key '%s'", key)
-		}
-		if node != assignment[key] {
-			color.Info.Printf("Key '%s' was reassigned from '%s' to '%s' after removing a node", key, assignment[key], node)
-		}
-	}
-
-	for _, key := range keys {
-		node, _ := ch.Get(key)
-
-		t.Log(node, key)
-	}
+	// Test AddWithReplicas
+	c.AddWithReplicas(node, 100)
+	_, conn, ok = c.Get("key")
+	assert.True(t, ok)
+	assert.NotNil(t, conn)
 }
