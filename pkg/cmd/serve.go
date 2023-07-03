@@ -162,7 +162,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		if cfg.Distributed.Enabled {
 			l.Info("🔗 starting distributed mode...")
 
-			consistencyChecker = hash.NewConsistentHash(100, nil, cfg.GRPC)
+			consistencyChecker, err = hash.NewConsistentHash(100, nil, cfg.GRPC)
+			if err != nil {
+				l.Fatal(err)
+			}
 
 			externalIP, err := gossip.ExternalIP()
 			if err != nil {
@@ -176,7 +179,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			go gossipEngine.SyncNodes(consistencyChecker, cfg.Distributed.NodeName, cfg.Server.GRPC.Port)
+			go gossipEngine.SyncNodes(ctx, consistencyChecker, cfg.Distributed.NodeName, cfg.Server.GRPC.Port)
 
 			defer func() {
 				if err = gossipEngine.Shutdown(); err != nil {
