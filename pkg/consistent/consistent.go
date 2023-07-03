@@ -1,6 +1,10 @@
 package hash
 
 import (
+	"github.com/Permify/permify/internal/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"sort"
 	"strconv"
@@ -21,33 +25,47 @@ type Consistent interface {
 	Add(node string)
 	AddWithReplicas(node string, replicas int)
 	AddWithWeight(node string, weight int)
-	Get(v string) (string, bool)
+	Get(v string) (string, *grpc.ClientConn, bool)
 	Remove(node string)
 	AddKey(key string) bool
 }
 
 type ConsistentHash struct {
-	hashFunc Func
-	replicas int
-	keys     []uint64
-	ring     map[uint64]string
-	Nodes    map[string]struct{}
-	lock     sync.RWMutex
+	hashFunc          Func
+	replicas          int
+	keys              []uint64
+	ring              map[uint64]string
+	Nodes             map[string]*grpc.ClientConn
+	lock              sync.RWMutex
+	connectionOptions []grpc.DialOption
 }
 
-func NewConsistentHash(replicas int, fn Func) *ConsistentHash {
+func NewConsistentHash(replicas int, fn Func, connOpts config.GRPC) *ConsistentHash {
 	if replicas < minReplicas {
 		replicas = minReplicas
 	}
 	if fn == nil {
 		fn = Hash
 	}
+	options := []grpc.DialOption{
+		grpc.WithBlock(),
+	}
+	if connOpts.TLSConfig.Enabled {
+		c, err := credentials.NewClientTLSFromFile(connOpts.TLSConfig.CertPath, "")
+		if err != nil {
+			return nil
+		}
+		options = append(options, grpc.WithTransportCredentials(c))
+	} else {
+		options = append(options, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
 
 	return &ConsistentHash{
-		hashFunc: fn,
-		replicas: replicas,
-		ring:     make(map[uint64]string),
-		Nodes:    make(map[string]struct{}),
+		hashFunc:          fn,
+		replicas:          replicas,
+		ring:              make(map[uint64]string),
+		Nodes:             make(map[string]*grpc.ClientConn),
+		connectionOptions: options,
 	}
 }
 
@@ -108,16 +126,16 @@ func (h *ConsistentHash) Remove(node string) {
 	h.keys = newKeys
 }
 
-func (h *ConsistentHash) Get(v string) (string, bool) {
+func (h *ConsistentHash) Get(v string) (string, *grpc.ClientConn, bool) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
 	return h.get(v)
 }
 
-func (h *ConsistentHash) get(v string) (string, bool) {
+func (h *ConsistentHash) get(v string) (string, *grpc.ClientConn, bool) {
 	if len(h.ring) == 0 {
 		log.Printf("ring is empty")
-		return "", false
+		return "", nil, false
 	}
 
 	hash := h.hashFunc([]byte(v))
@@ -131,17 +149,17 @@ func (h *ConsistentHash) get(v string) (string, bool) {
 
 	node := h.ring[h.keys[index]]
 	if node != "" {
-		return node, true
+		return node, h.Nodes[node], true
 	}
 
-	return "", false
+	return "", nil, false
 }
 
 func (h *ConsistentHash) AddKey(key string) bool {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
-	node, ok := h.get(key)
+	node, _, ok := h.get(key)
 	if !ok {
 		return false
 	}
@@ -169,9 +187,19 @@ func (h *ConsistentHash) containsNode(node string) bool {
 }
 
 func (h *ConsistentHash) addNode(node string) {
-	h.Nodes[node] = struct{}{}
+	conn, err := grpc.Dial(node, h.connectionOptions...)
+	if err != nil {
+		log.Printf("failed to dial: %v", err)
+		return
+	}
+	h.Nodes[node] = conn
 }
 
 func (h *ConsistentHash) removeNode(node string) {
+	err := h.Nodes[node].Close()
+	if err != nil {
+		log.Printf("failed to close connection: %v", err)
+		return
+	}
 	delete(h.Nodes, node)
 }

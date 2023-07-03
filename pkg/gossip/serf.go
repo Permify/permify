@@ -15,7 +15,7 @@ type Serf struct {
 	EventCh chan serf.Event
 }
 
-func NewSerfGossip(nodes []string) (*Serf, error) {
+func NewSerfGossip(node string) (*Serf, error) {
 	config := serf.DefaultConfig()
 	config.RejoinAfterLeave = true
 	eventChannel := make(chan serf.Event, 256)
@@ -32,7 +32,7 @@ func NewSerfGossip(nodes []string) (*Serf, error) {
 		return nil, err
 	}
 
-	_, err = s.Join(nodes, true)
+	_, err = s.Join([]string{node}, true)
 	if err != nil {
 		log.Fatalf("Failed to join cluster: %v", err)
 		return nil, err
@@ -46,7 +46,7 @@ func NewSerfGossip(nodes []string) (*Serf, error) {
 	}, nil
 }
 
-func (s *Serf) SyncNodes(consistent *hash.ConsistentHash, port string) {
+func (s *Serf) SyncNodes(consistent *hash.ConsistentHash, nodeName, port string) {
 	for {
 		select {
 		case e := <-s.EventCh:
@@ -54,19 +54,22 @@ func (s *Serf) SyncNodes(consistent *hash.ConsistentHash, port string) {
 			case serf.EventMemberJoin:
 				me := e.(serf.MemberEvent)
 				for _, m := range me.Members {
-					if _, exists := consistent.Nodes[fmt.Sprintf("%s:%d", m.Addr.String(), m.Port)]; !exists {
-						fmt.Printf("Adding node %s:%s to the consistent hash\n", m.Addr.String(), port)
-						consistent.AddWithWeight(fmt.Sprintf("%s:%s", m.Addr.String(), port), 100)
+					if m.Name != nodeName {
+						if _, exists := consistent.Nodes[fmt.Sprintf("%s:%d", m.Addr.String(), m.Port)]; !exists {
+							fmt.Printf("Adding node %s:%s to the consistent hash\n", m.Addr.String(), port)
+							consistent.AddWithWeight(fmt.Sprintf("%s:%s", m.Addr.String(), port), 100)
+						}
 					}
 				}
 			case serf.EventMemberLeave, serf.EventMemberFailed, serf.EventMemberReap:
 				me := e.(serf.MemberEvent)
 				for _, m := range me.Members {
-					fmt.Printf("Removing node %s:%d to the consistent hash\n", m.Addr.String(), m.Port)
-					if _, exists := consistent.Nodes[fmt.Sprintf("%s:%d", m.Addr.String(), m.Port)]; exists {
-						consistent.Remove(fmt.Sprintf("%s:%s", m.Addr.String(), port))
+					if m.Name != nodeName {
+						fmt.Printf("Removing node %s:%d to the consistent hash\n", m.Addr.String(), m.Port)
+						if _, exists := consistent.Nodes[fmt.Sprintf("%s:%d", m.Addr.String(), m.Port)]; exists {
+							consistent.Remove(fmt.Sprintf("%s:%s", m.Addr.String(), port))
+						}
 					}
-					fmt.Println(consistent.Nodes)
 				}
 			}
 		}

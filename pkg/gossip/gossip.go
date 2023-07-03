@@ -12,7 +12,7 @@ import (
 // interface should provide mechanisms for synchronizing cluster
 // membership and managing the lifecycle of the gossip protocol.
 type IGossip interface {
-	SyncNodes(consistent *hash.ConsistentHash, port string)
+	SyncNodes(consistent *hash.ConsistentHash, nodeName, port string)
 	// Shutdown gracefully stops the gossip protocol and performs
 	// any necessary cleanup. It returns an error if the shutdown
 	// process encounters any issues.
@@ -20,12 +20,12 @@ type IGossip interface {
 }
 
 // InitMemberList initializes a memberlist instance with the given
-func InitMemberList(nodes []string, name string) (IGossip, error) {
+func InitMemberList(nodes string, name string) (IGossip, error) {
 	switch name {
 	case "serf":
 		return NewSerfGossip(nodes)
 	default:
-		return nil, fmt.Errorf("%s ", name)
+		return nil, fmt.Errorf("protocol not implamented: %s ", name)
 	}
 }
 
