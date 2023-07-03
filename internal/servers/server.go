@@ -177,8 +177,8 @@ func (s *Container) Run(
 			pprofserver := &http.Server{
 				Addr:         ":" + profiler.Port,
 				Handler:      mux,
-				ReadTimeout:  5 * time.Second,
-				WriteTimeout: 5 * time.Second,
+				ReadTimeout:  20 * time.Second,
+				WriteTimeout: 20 * time.Second,
 				IdleTimeout:  15 * time.Second,
 			}
 

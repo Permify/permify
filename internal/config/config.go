@@ -153,8 +153,10 @@ type (
 	}
 
 	Distributed struct {
-		Enabled bool     `mapstructure:"enabled"`
-		Nodes   []string `mapstructure:"nodes"`
+		Enabled  bool   `mapstructure:"enabled"`
+		Protocol string `mapstructure:"protocol"`
+		NodeName string `mapstructure:"node_name"`
+		Node     string `mapstructure:"node"`
 	}
 )
 
@@ -304,7 +306,6 @@ func DefaultConfig() *Config {
 		},
 		Distributed: Distributed{
 			Enabled: false,
-			Nodes:   []string{},
 		},
 	}
 }
