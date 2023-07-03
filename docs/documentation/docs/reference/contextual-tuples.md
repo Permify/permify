@@ -1,30 +1,95 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Contextual Tuples
+# Contextual Tuples (Dynamic Permissions)
 
-Contextual tuples are relations that can be dynamically added to permission request operations. When you send these relations along with your requests, they get processed alongside existing relations in the database and will return a result. Examples of these might be dynamic IP addresses, different locations, or time-based requests, where these can be beneficial.
+## What is it ? 
 
-:::info
-Note: When you use contextual tuples, the cache system will not be operational. This is because the cache system is written along with snapshots and if contextual tuples are written, using the cache would lead to incorrect results. Hence, to prevent this, the use of the cache is blocked at the time of the request.
-:::
+Contextual tuples are relations that can be dynamically added to permission request operations. When you send these relations along with your requests, they get processed alongside existing relations in the database and will return a result.
 
-#### IP Range
+You can utilize Contextual Tuples in authorization checks that depend on certain dynamic or contextual data (such as location, time, IP address, etc) that have not been written as traditional Permify relation tuples.
+
+## Use Case
+
+Let's give an example to better understand the usage of Contextual Tuples aka dynamic permissions in access checks. 
+
+Consider you're modeling an permission system for an internal application that belongs to an multi regional organization. 
+
+### Authorization Model
+
+In that application an employee that belongs to HR department can view details of another employee if:
+
+1. If he/she is an Manager in HR department
+2. Connected via the branch's internal network or through the branch's VPN
+
+As you notice we can model the rule **1.** easily with our existing schema language, which gives ability to define arbitrary relations between users and objects such as manager of HR entity, as follows,
 
 ```perm
+entity user {}
+
 entity organization {
 
-    relation ip_address_range @ip_address_range
-    relation admin  @user
-    
-    permission edit = ip_address_range.user or admin
+    relation employee @user
+
 }
+
+entity hr_department {
+
+    relation parent @organization
+    
+    relation manager @user @organization#employee
+}
+```
+
+But to create the `view_employee` permission in the organization entity, we need to consider not only whether the employee is a manager but also check the IP address.
+
+At this point, traditional relation tuples of Permify are insufficient since network address is an dynamic variable that cannot be added as static relations.
+
+So, to incorporate the IP address into our authorization model we will use Contextual Tuples and send dynamic relations values when sending the access check request.
+
+Let's extend our authorization model with adding contextual entities and relations to create the `view_employee` action.
+
+```perm
+entity user {}
+
+entity organization {
+
+    relation employee @user
+    relation hr @hr_department
+
+    relation ip_address_range @ip_address_range
+
+    action view_employee = manager and ip_address_range.user
+
+}
+
+entity hr_department {
+
+    relation parent @organization
+    
+    relation manager @user @organization#employee
+}
+
 
 entity ip_address_range {
     relation user @user
 }
 ```
 
+A quick breakdown we define **type** for contextual variable `ip_address_range` and related them with user. Afterwards call that dynamic entities inside our organization entity and form the `view_employee` permission as follows:
+
+```perm 
+action view_employee = manager and ip_address_range.user and time_slot.user
+```
+
+### Dynamic Access Check
+
+Since we cannot create relation statically for `ip_address_range` we need to send ip value on runtime, specifically when performing access control check.
+
+So let's say user Ashley trying to view employee X. And lets assume that,
+
+* She has a **manager** relation in HR department with the tuple `department:hr#manager@user:ashley`
+* She connected to VPN which connected to network 192.158.1.38 - which is Branch's internal network.
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -41,7 +106,7 @@ cr, err: = client.Permission.Check(context.Background(), &v1.PermissionCheckRequ
         Type: "organization",
         Id: "1",
     },
-    Permission: "edit",
+    Permission: "view_employee",
     Subject: &v1.Subject {
         Type: "user",
         Id: "1",
@@ -91,10 +156,10 @@ client.permission.check({
         depth: 20
     },
     entity: {
-        type: "repository",
+        type: "organization",
         id: "1"
     },
-    permission: "edit",
+    permission: "view_employee",
     subject: {
         type: "user",
         id: "1"
@@ -145,10 +210,10 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
     "depth": 20
   },
   "entity": {
-    "type": "repository",
+    "type": "organization",
     "id": "1"
   },
-  "permission": "edit",
+  "permission": "view_employee",
   "subject": {
     "type": "user",
     "id": "1",
@@ -184,8 +249,11 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 </TabItem>
 </Tabs>
 
+A quick note 
 
+When you use contextual tuples, the cache system will not be operational. This is because the cache system is written along with snapshots and if contextual tuples are written, using the cache would lead to incorrect results. 
 
+Hence, to prevent this, the use of the cache is blocked at the time of the request. See more on the section [Permify Cache Mechanisims](./cache.md) 
 
 ## Need any help ?
 
