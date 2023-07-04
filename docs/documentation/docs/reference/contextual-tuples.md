@@ -53,7 +53,7 @@ entity organization {
 
     relation ip_address_range @ip_address_range
 
-    action view_employee = hr.manager and ip_address_range.user
+    action view_employee = hr_manager and ip_address_range.user
 
 }
 
@@ -65,7 +65,7 @@ entity ip_address_range {
 A quick breakdown we define **type** for contextual variable `ip_address_range` and related them with user. Afterwards call that dynamic entities inside our organization entity and form the `view_employee` permission as follows:
 
 ```perm 
-action view_employee = hr.manager and ip_address_range.user
+action view_employee = hr_manager and ip_address_range.user
 ```
 
 ### Dynamic Access Check
@@ -74,7 +74,7 @@ Since we cannot create relation statically for `ip_address_range` we need to sen
 
 So let's say user Ashley trying to view employee X. And lets assume that,
 
-* She has a **manager** relation in HR department with the tuple `department:hr#manager@user:ashley`
+* She has a **manager** relation in HR department with the tuple `organization:1#hr_manager@user:1`
 * She connected to VPN which connected to network 192.158.1.38 - which is Branch's internal network.
 
 <Tabs>
