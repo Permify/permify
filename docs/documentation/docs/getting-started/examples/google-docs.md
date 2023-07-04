@@ -249,31 +249,34 @@ Let's test these access checks in our local with using **permify validator**. We
 
 ```yaml
 schema: >-
-  entity user {}
+    entity user {}
 
-  entity document {
-      relation viewer  @user  @group#member @group#manager
-      relation manager @user @group#member @group#manager
-      
-      action edit = manager
-      action view = viewer or manager
-  }
+    entity organization {
+        relation group @group
+        relation document @document
+        relation administrator @user @group#member @group#manager
+        relation direct_member @user
 
-  entity group {
-      relation manager @user @group#member @group#manager
-      relation member @user @group#member @group#manager
-  }
+        permission admin = administrator
+        permission member = direct_member or administrator or group.member
+    }
 
-  entity organization {
-      relation group @group
-      relation document @document
+    entity group {
+        relation manager @user @group#member @group#manager
+        relation member @user @group#member @group#manager
 
-      relation administrator @user @group#member @group#manager
-      relation direct_member @user
+        permission member = direct_member + manager
+    }
 
-      permission admin = administrator
-      permission member = direct_member or administrator or group.member
-  }
+    entity document {
+        relation org @organization
+
+        relation viewer  @user  @group#member @group#manager
+        relation manager @user @group#member @group#manager
+
+        action edit = manager or org.admin
+        action view = viewer or manager or org.admin
+    }
 
 relationships:
   - group:tech#manager@user:ashley
