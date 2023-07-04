@@ -1,75 +1,83 @@
 # Google Docs Simplified
 
-This example models a simplified version of Google Docs style permission system where users can be granted direct access to a resource, or access via organizations and nested groups.
+This example models a simplified version of Google Docs style permission system where users can be granted direct access to a document, or access via organizations and nested groups.
 
 ### Schema | [Open in playground](https://play.permify.co/?s=iuRic3nR1HeZJcFyRNKPo)
 
 ```perm
 entity user {}
 
-entity resource {
-    relation viewer  @user  @group#member @group#manager
-    relation manager @user @group#member @group#manager
-    
-    action edit = manager
-    action view = viewer or manager
+entity organization {
+    relation group @group
+    relation document @document
+    relation administrator @user @group#member @group#manager
+    relation direct_member @user
+
+    permission admin = administrator
+    permission member = direct_member or administrator or group.member
 }
 
 entity group {
     relation manager @user @group#member @group#manager
     relation member @user @group#member @group#manager
+
+    permission member = direct_member + manager
 }
 
-entity organization {
-    relation group @group
-    relation resource @resource
+entity document {
+    relation org @organization
 
-    relation administrator @user @group#member @group#manager
-    relation direct_member @user
-   
-    permission admin = administrator
-    permission member = direct_member or administrator or group.member
+    relation viewer  @user  @group#member @group#manager
+    relation manager @user @group#member @group#manager
+
+    action edit = manager or org.admin
+    action view = viewer or manager or org.admin
 }
 ```
 
-## Breakdown of the Model 
+## Breakdown of the Model
 
-### User 
+### User
 
 ```perm
 entity user {}
 ```
-Represents a user who can be granted permission to access a resource directly, or through their membership in a group or organization. 
 
-### Resource 
+Represents a user who can be granted permission to access a documents directly, or through their membership in a group or organization.
+
+### Document
 
 ```perm
-entity resource {
+entity document {
+    relation org @organization
+
     relation viewer  @user  @group#member @group#manager
     relation manager @user @group#member @group#manager
 
-    action edit = manager
-    action view = viewer or manager
+    action edit = manager or org.admin
+    action view = viewer or manager or org.admin
 }
 ```
 
-Represents a resource that users can be granted permission to access. The resource entity has two relationships:
+Represents a document that users can be granted permission to access. The document entity has two relationships:
 
-#### Relations 
+#### Relations
 
-**manager:** A relationship between users who are authorized to manage the resource. This relationship is defined by the `@user` annotation on both ends, and by the `@group#member` and `@group#manager` annotations on the ends corresponding to the group member and manager relations.
+**org:** Represents organization that document belongs to.
 
-**viewer:** A relationship between users who are authorized to view the resource. This relationship is defined by the `@user` annotation on one end and the `@group#member` and `@group#manager` annotations on the other end corresponding to the group entity member and manager relations.
+**manager:** A relationship between users who are authorized to manage the document. This relationship is defined by the `@user` annotation on both ends, and by the `@group#member` and `@group#manager` annotations on the ends corresponding to the group member and manager relations.
 
-The resource entity has two actions defined:
+**viewer:** A relationship between users who are authorized to view the document. This relationship is defined by the `@user` annotation on one end and the `@group#member` and `@group#manager` annotations on the other end corresponding to the group entity member and manager relations.
 
-#### Actions 
+The document entity has two actions defined:
 
-**manage:**: An action that can be performed by users who are authorized to manage the resource, as determined by the manager relationship.
+#### Actions
 
-**view:** An action that can be performed by users who are authorized to view the resource, as determined by the viewer and manager relationships.
+**manage:**: An action that can be performed by users who are authorized to manage the document, as determined by the manager relationship.
 
-### group
+**view:** An action that can be performed by users who are authorized to view the document, as determined by the viewer and manager relationships.
+
+### Group
 
 ```perm
 entity group {
@@ -78,9 +86,9 @@ entity group {
 }
 ```
 
-Represents a group of users who can be granted permission to access a resource. The group entity has two relationships:
+Represents a group of users who can be granted permission to access a document. The group entity has two relationships:
 
-#### Relations 
+#### Relations
 
 **manager:** A relationship between users who are authorized to manage the group. This relationship is defined by the `@user` annotation on both ends, and by the `@group#member` and `@group#manager` annotations on the ends corresponding to the group entity member and manager.
 
@@ -88,40 +96,39 @@ Represents a group of users who can be granted permission to access a resource. 
 
 The group entity has one action defined:
 
-### Organization 
+### Organization
 
 ```perm
 entity organization {
     relation group @group
-    relation resource @resource
-
+    relation document @document
     relation administrator @user @group#member @group#manager
     relation direct_member @user
-   
+
     permission admin = administrator
     permission member = direct_member or administrator or group.member
 }
 ```
 
-Represents an organization that can contain groups, users, and resources. The organization entity has several relationships:
+Represents an organization that can contain groups, users, and documents. The organization entity has several relationships:
 
-#### Relations 
+#### Relations
 
 **group:** A relationship between the organization and its groups. This relationship is defined by the `@group` annotation on the end corresponding to the group entity.
+
+**document:** A relationship between the organization and its document. This relationship is defined by the `@document` annotation on the end corresponding to the group entity.
 
 **administrator:** A relationship between users who are authorized to manage the organization. This relationship is defined by the `@user` annotation on both ends, and by the `@group#member` and `@group#manager` annotations on the ends corresponding to the group entity member and manager.
 
 **direct_member:** A relationship between users who are directly members of the organization. This relationship is defined by the `@user` annotation on the end corresponding to the user entity.
 
-**resource:** A relationship between the organization and its resources. This relationship is defined by the `@resource` annotation on the end corresponding to the resource entity.
-
 The organization entity has two permissions defined:
 
-#### Permissions 
+#### Permissions
 
 **admin:** An permission that can be performed by users who are authorized to manage the organization, as determined by the administrator relationship.
 
-**member:** An permission that can be performed by users who are directly members of the organization, or who have administrator relationship, or who are members of groups that are part of the organization, 
+**member:** An permission that can be performed by users who are directly members of the organization, or who have administrator relationship, or who are members of groups that are part of the organization,
 
 ## Relationships
 
@@ -145,165 +152,177 @@ organization:acme#group@group:tech
 organization:acme#group@group:marketing
 organization:acme#group@group:hr
 
-// Add some resources under the organization
-organization:acme#resource@resource:product_database
-organization:acme#resource@resource:marketing_materials
-organization:acme#resource@resource:hr_documents
+// Add some documents under the organization
+organization:acme#document@document:product_database
+organization:acme#document@document:marketing_materials
+organization:acme#document@document:hr_documents
 
 // Assign a user and members of a group as administrators for the organization
 organization:acme#administrator@group:tech#manager
 organization:acme#administrator@user:jenny
 
-// Set the permissions on some resources
-resource:product_database#manager@group:tech#manager
-resource:product_database#viewer@group:tech#member
-resource:marketing_materials#viewer@group:marketing#member
-resource:hr_documents#manager@group:hr#manager
-resource:hr_documents#viewer@group:hr#member
+// Set the permissions on some documents
+document:product_database#manager@group:tech#manager
+document:product_database#viewer@group:tech#member
+document:marketing_materials#viewer@group:marketing#member
+document:hr_documents#manager@group:hr#manager
+document:hr_documents#viewer@group:hr#member
 ```
 
 ## Test & Validation
 
-Finally, let's check some permissions and test our authorization logic. 
+Finally, let's check some permissions and test our authorization logic.
 
-<details><summary>can <strong>user:ashley edit resource:product_database</strong> ? </summary>
+<details><summary>can <strong>user:ashley edit document:product_database</strong> ? </summary>
 <p>
 
 ```perm
-   entity resource {
-        relation viewer  @user  @group#member @group#manager
-        relation manager @user @group#member @group#manager
-            
-        action edit = manager
-        action view = viewer or manager
-    }     
+   entity document {
+    relation org @organization
+
+    relation viewer  @user  @group#member @group#manager
+    relation manager @user @group#member @group#manager
+
+    action edit = manager or org.admin
+    action view = viewer or manager or org.admin
+    }
 ```
 
-According what we have defined for the edit action only managers of can edit product database. In this context, Permify engine will check does subject `user:ashley` has any direct or indirect manager relation within `resource:product_database`.
-    
-Ashley is manager in group tech (`group:tech#manager@user:ashley`) and we have defined that manager of group tech is manager of product_database with the tuple (`resource:product_database#manager@group:tech#manager`). Therefore, the **user:ashley edit resource:product_database** check request should yield **true** response. 
+According what we have defined for the edit action managers and admins, of the organization that document belongs, can edit product database. In this context, Permify engine will check does subject `user:ashley` has any direct or indirect manager relation within `document:product_database`. Consecutively it will check does `user:ashley`  has admin relation in the Acme Org - `organization:acme#document@document:product_database`.
+
+Ashley doesn't have any administrative relation in Acme Org but she is the manager in group tech (`group:tech#manager@user:ashley`) and we have defined that manager of group tech is manager of product_database with the tuple (`document:product_database#manager@group:tech#manager`). Therefore, the **user:ashley edit document:product_database** check request should yield **true** response.
 
 </p>
 </details>
 
-<details><summary>can <strong>user:joe view resource:hr_documents</strong> ? </summary>
+<details><summary>can <strong>user:joe view document:hr_documents</strong> ? </summary>
 <p>
 
 ```perm
-   entity resource {
-        relation viewer  @user  @group#member @group#manager
-        relation manager @user @group#member @group#manager
-            
-        action edit = manager
-        action view = viewer or manager
-    }     
+   entity document {
+    relation org @organization
+
+    relation viewer  @user  @group#member @group#manager
+    relation manager @user @group#member @group#manager
+
+    action edit = manager or org.admin
+    action view = viewer or manager or org.admin
+    }
 ```
 
-According what we have defined for the view action viewers or managers of can view hr documents. In this context, Permify engine will check does subject `user:joe` has any direct or indirect manager or viewer relation within `resource:hr_documents`. 
-    
-Joe doesn't have manager relationship in that resource or within any entity but he is member in the hr group (`group:hr#member@user:joe`) and we defined hr members have viewer relationship in hr documents (`resource:hr_documents#viewer@group:hr#member`). So that, this enforcement should yield **true** response.
+According what we have defined for the view action viewers or managers or org.admin's can view hr documents. In this context, Permify engine will check whether subject `user:joe` has any direct or indirect manager or viewer relation within `document:hr_documents`. Also consecutively it will check does `user:joe` has admin relation in the Acme Org - `organization:acme#document@document:hr_documents`.
+
+Joe doesn't have administrative role/relation in Acme Org.
+
+Also he doesn't have have manager relationship in that document or within any entity.
+
+But he is member in the hr group (`group:hr#member@user:joe`) and we defined hr members have viewer relationship in hr documents (`document:hr_documents#viewer@group:hr#member`). So that, this enforcement should yield **true** response.
 
 </p>
 </details>
 
-<details><summary>can <strong>user:david view resource:marketing_materials</strong> ? </summary>
+<details><summary>can <strong>user:david view document:marketing_materials</strong> ? </summary>
 <p>
 
 ```perm
-   entity resource {
-        relation viewer  @user  @group#member @group#manager
-        relation manager @user @group#member @group#manager
-            
-        action edit = manager
-        action view = viewer or manager
-    }     
+   entity document {
+    relation org @organization
+
+    relation viewer  @user  @group#member @group#manager
+    relation manager @user @group#member @group#manager
+
+    action edit = manager or org.admin
+    action view = viewer or manager or org.admin
+    }
 ```
 
-According what we have defined for the view action viewers or managers of can view hr documents. In this context, Permify engine will check does subject `user:david` has any direct or indirect manager or viewer relation within `resource:marketing_materials`. 
+According what we have defined for the view action viewers or managers or org.admin's can view hr documents. In this context, Permify engine will check does subject `user:david` has any direct or indirect manager or viewer relation within `document:marketing_materials`. Also consecutively it will check does `user:david` has admin relation in the Acme Org - `organization:acme#document@document:marketing_materials`.
 
-David doesn't have member or manager relationship related with marketing group or with the `resource:marketing_materials`. So that, this enforcement should yield **false** response.
+Similar Joe and Ashley, David also doesn't have administrative role/relation in Acme Org.
+
+Also David doesn't have member or manager relationship related with marketing group - `document:marketing_materials`. So that, this enforcement should yield **false** response.
 
 </p>
 </details>
 
-Let's test these access checks in our local with using **permify validator**. We'll use the below schema for the schema validation file. 
+Let's test these access checks in our local with using **permify validator**. We'll use the below schema for the schema validation file.
 
 ```yaml
 schema: >-
-    entity user {}
+  entity user {}
 
-    entity resource {
-        relation viewer  @user  @group#member @group#manager
-        relation manager @user @group#member @group#manager
-        
-        action edit = manager
-        action view = viewer or manager
-    }
+  entity document {
+      relation viewer  @user  @group#member @group#manager
+      relation manager @user @group#member @group#manager
+      
+      action edit = manager
+      action view = viewer or manager
+  }
 
-    entity group {
-        relation manager @user @group#member @group#manager
-        relation member @user @group#member @group#manager
-    }
+  entity group {
+      relation manager @user @group#member @group#manager
+      relation member @user @group#member @group#manager
+  }
 
-    entity organization {
-        relation group @group
-        relation resource @resource
+  entity organization {
+      relation group @group
+      relation document @document
 
-        relation administrator @user @group#member @group#manager
-        relation direct_member @user
-    
-        permission admin = administrator
-        permission member = direct_member or administrator or group.member
-    }
+      relation administrator @user @group#member @group#manager
+      relation direct_member @user
+
+      permission admin = administrator
+      permission member = direct_member or administrator or group.member
+  }
 
 relationships:
-    - group:tech#manager@user:ashley
-    - group:tech#member@user:david
-    - group:marketing#manager@user:john
-    - group:marketing#member@user:jenny
-    - group:hr#manager@user:josh
-    - group:hr#member@user:joe
-    - group:tech#member@group:marketing#member
-    - group:tech#member@group:hr#member
-    - organization:acme#group@group:tech
-    - organization:acme#group@group:marketing
-    - organization:acme#group@group:hr
-    - organization:acme#resource@resource:product_database
-    - organization:acme#resource@resource:marketing_materials
-    - organization:acme#resource@resource:hr_documents
-    - organization:acme#administrator@group:tech#manager
-    - organization:acme#administrator@user:jenny
-    - resource:product_database#manager@group:tech#manager
-    - resource:product_database#viewer@group:tech#member
-    - resource:marketing_materials#viewer@group:marketing#member
-    - resource:hr_documents#manager@group:hr#manager
-    - resource:hr_documents#viewer@group:hr#member
+  - group:tech#manager@user:ashley
+  - group:tech#member@user:david
+  - group:marketing#manager@user:john
+  - group:marketing#member@user:jenny
+  - group:hr#manager@user:josh
+  - group:hr#member@user:joe
+  - group:tech#member@group:marketing#member
+  - group:tech#member@group:hr#member
+  - organization:acme#group@group:tech
+  - organization:acme#group@group:marketing
+  - organization:acme#group@group:hr
+  - organization:acme#document@document:product_database
+  - organization:acme#document@document:marketing_materials
+  - organization:acme#document@document:hr_documents
+  - organization:acme#administrator@group:tech#manager
+  - organization:acme#administrator@user:jenny
+  - document:product_database#manager@group:tech#manager
+  - document:product_database#viewer@group:tech#member
+  - document:marketing_materials#viewer@group:marketing#member
+  - document:hr_documents#manager@group:hr#manager
+  - document:hr_documents#viewer@group:hr#member
 
 scenarios:
   - name: "scenario 1"
     description: "test description"
     checks:
-      - entity: "resource:product_database"
+      - entity: "document:product_database"
         subject: "user:ashley"
         assertions:
-          edit : true
-      - entity: "resource:hr_documents"
+          edit: true
+      - entity: "document:hr_documents"
         subject: "user:joe"
         assertions:
-          view : true
-      - entity: "resource:marketing_materials"
+          view: true
+      - entity: "document:marketing_materials"
         subject: "user:david"
         assertions:
-          view : false
+          view: false
 ```
 
-### Using Schema Validator in Local 
+### Using Schema Validator in Local
 
 After cloning [Permify](https://github.com/Permify/permify), open up a new file and copy the **schema yaml file** content inside. Then, build and run Permify instance using the command `make run`.
 
 ![Running Permify](https://user-images.githubusercontent.com/34595361/233155326-e1d2daf6-2406-4139-b0b3-5f7b54880593.png)
 
-Then run `permify validate {path of your schema validation file}` to start the test process. 
+Then run `permify validate {path of your schema validation file}` to start the test process.
 
 The validation result according to our example schema validation file:
 
