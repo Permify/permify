@@ -30,14 +30,8 @@ entity user {}
 entity organization {
 
     relation employee @user
+    relation hr_manager @user @organization#employee
 
-}
-
-entity hr_department {
-
-    relation parent @organization
-    
-    relation manager @user @organization#employee
 }
 ```
 
@@ -55,21 +49,13 @@ entity user {}
 entity organization {
 
     relation employee @user
-    relation hr @hr_department
+    relation hr_manager @user @organization#employee
 
     relation ip_address_range @ip_address_range
 
-    action view_employee = manager and ip_address_range.user
+    action view_employee = hr.manager and ip_address_range.user
 
 }
-
-entity hr_department {
-
-    relation parent @organization
-    
-    relation manager @user @organization#employee
-}
-
 
 entity ip_address_range {
     relation user @user
@@ -79,7 +65,7 @@ entity ip_address_range {
 A quick breakdown we define **type** for contextual variable `ip_address_range` and related them with user. Afterwards call that dynamic entities inside our organization entity and form the `view_employee` permission as follows:
 
 ```perm 
-action view_employee = manager and ip_address_range.user and time_slot.user
+action view_employee = hr.manager and ip_address_range.user
 ```
 
 ### Dynamic Access Check
@@ -249,7 +235,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 </TabItem>
 </Tabs>
 
-A quick note 
+A quick note, 
 
 When you use contextual tuples, the cache system will not be operational. This is because the cache system is written along with snapshots and if contextual tuples are written, using the cache would lead to incorrect results. 
 
