@@ -64,6 +64,7 @@ const MainLayout = ({children, ...rest}) => {
                                 <Option key="empty" value="empty">Empty</Option>
                                 <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations & Hierarchies</Option>
                                 <Option key="rbac" value="rbac">RBAC</Option>
+                                <Option key="custom-roles" value="custom-roles">Custom Roles</Option>
                                 <Option key="user-groups" value="user-groups">User Groups</Option>
                             </OptGroup>
                             <OptGroup label="Sample Apps">
