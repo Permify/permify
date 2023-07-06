@@ -44,7 +44,7 @@ func check() js.Func {
 
 		// If the permission check response indicates that the action is allowed,
 		// return true and no error.
-		if result.GetCan() == v1.PermissionCheckResponse_RESULT_ALLOWED {
+		if result.GetCan() == v1.CheckResult_RESULT_ALLOWED {
 			return js.ValueOf([]interface{}{true, nil})
 		}
 
