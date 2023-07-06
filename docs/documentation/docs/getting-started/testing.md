@@ -136,7 +136,7 @@ The output of the example provided above is as follows.
 
 You can also test your new authorization model in your local (Permify clone) without using [permify-validate-action] at all. 
 
-For that open up a new file and add a schema yaml file inside. Then build your project with, run `make run` command and run `./permify validate {path of your schema validation file}`. 
+For that open up a new file and add a schema yaml file inside. Then build your project with, run `make serve` command and run `./permify validate {path of your schema validation file}`. 
 
 If we use the above example schema validation file, after running `./permify validate {path of your schema validation file}` it gives a result on the terminal as:
 
