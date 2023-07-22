@@ -43,9 +43,12 @@ var keywords = map[string]Type{
 	"relation":   RELATION,
 	"action":     PERMISSION,
 	"permission": PERMISSION,
+	"rule":       RULE,
+	"attribute":  ATTRIBUTE,
 	"and":        AND,
 	"or":         OR,
 	"not":        NOT,
+	"in":         IN,
 }
 
 // ignores - maps ignored token types to an empty struct.
@@ -63,25 +66,42 @@ const (
 	*/
 	EOF     = "EOF"
 	ILLEGAL = "ILLEGAL"
+	NEWLINE = "NEWLINE"
 
 	/*
 		Identifiers & Literals
 	*/
-	IDENT = "IDENT"
+	IDENT   = "IDENT"
+	STRING  = "STRING"
+	INTEGER = "INTEGER"
+	FLOAT   = "NUMBER"
+	BOOLEAN = "BOOLEAN"
 
 	/*
-		Delimiters
+		Symbols
 	*/
-	COMMA   = "COMMA"
-	LBRACE  = "LBRACE"
-	RBRACE  = "RBRACE"
-	LPAREN  = "LPAREN"
-	RPAREN  = "RPAREN"
-	ASSIGN  = "ASSIGN"
-	SIGN    = "SIGN"
-	HASH    = "HASH"
-	DOT     = "DOT"
-	NEWLINE = "NEWLINE"
+	COMMA  = "COMMA"
+	LCB    = "LCB"
+	RCB    = "RCB"
+	LP     = "LP"
+	RP     = "RP"
+	ASSIGN = "ASSIGN"
+	SIGN   = "SIGN"
+	COLON  = "COLON"
+	HASH   = "HASH"
+	QM     = "QM"
+	DOT    = "DOT"
+	LSB    = "LSB"
+	RSB    = "RSB"
+	EXCL   = "EXCL"
+	PLUS   = "PLUS"
+	MINUS  = "MINUS"
+	TIMES  = "TIMES"
+	DIVIDE = "DIVIDE"
+	MOD    = "MOD"
+	POW    = "POW"
+	GT     = "GT"
+	LT     = "LT"
 
 	/*
 		Keywords
@@ -89,13 +109,12 @@ const (
 	ENTITY     = "ENTITY"
 	RELATION   = "RELATION"
 	PERMISSION = "PERMISSION"
-
-	/*
-		Logical
-	*/
-	AND = "AND"
-	OR  = "OR"
-	NOT = "NOT"
+	ATTRIBUTE  = "ATTRIBUTE"
+	RULE       = "RULE"
+	AND        = "AND"
+	OR         = "OR"
+	NOT        = "NOT"
+	IN         = "IN"
 
 	/*
 		Comments

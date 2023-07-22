@@ -73,18 +73,42 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.NEWLINE, l.ch)
 	case ';':
 		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.NEWLINE, l.ch)
+	case ':':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.COLON, l.ch)
 	case '=':
 		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.ASSIGN, l.ch)
 	case '@':
 		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.SIGN, l.ch)
 	case '(':
-		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.LPAREN, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.LP, l.ch)
 	case ')':
-		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.RPAREN, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.RP, l.ch)
 	case '{':
-		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.LBRACE, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.LCB, l.ch)
 	case '}':
-		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.RBRACE, l.ch)
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.RCB, l.ch)
+	case '[':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.LSB, l.ch)
+	case ']':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.RSB, l.ch)
+	case '+':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.PLUS, l.ch)
+	case '-':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.MINUS, l.ch)
+	case '*':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.TIMES, l.ch)
+	case '%':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.MOD, l.ch)
+	case '^':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.POW, l.ch)
+	case '>':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.GT, l.ch)
+	case '<':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.LT, l.ch)
+	case '!':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.EXCL, l.ch)
+	case '?':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.QM, l.ch)
 	case ',':
 		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.COMMA, l.ch)
 	case '#':
@@ -93,26 +117,46 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.DOT, l.ch)
 	case 0:
 		tok = token.Token{PositionInfo: positionInfo(l.linePosition, l.columnPosition), Type: token.EOF, Literal: ""}
+	case '/':
+		if l.peekChar() == '/' {
+			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
+			tok.Literal = l.lexSingleLineComment()
+			tok.Type = token.SINGLE_LINE_COMMENT
+			return
+		} else if l.peekChar() == '*' {
+			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
+			tok.Literal = l.lexMultiLineComment()
+			tok.Type = token.MULTI_LINE_COMMENT
+			return
+		} else {
+			tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.DIVIDE, l.ch)
+		}
+	case '"':
+		// check if the character is a double quote, indicating a string
+		tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
+		tok.Literal = l.lexString()
+		tok.Type = token.STRING
+		return
 	default:
 		// check if the character is a letter, and if so, lex the identifier and look up the keyword
 		if isLetter(l.ch) {
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexIdent()
+			if tok.Literal == "true" || tok.Literal == "false" {
+				tok.Type = token.BOOLEAN
+				return
+			}
 			tok.Type = token.LookupKeywords(tok.Literal)
 			return
-		}
-
-		if l.ch == '/' && l.peekChar() == '/' {
-			// check if the character is the start of a single-line comment
+		} else if isDigit(l.ch) {
+			var isFloat bool
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
-			tok.Literal = l.lexSingleLineComment()
-			tok.Type = token.SINGLE_LINE_COMMENT
-			return
-		} else if l.ch == '/' && l.peekChar() == '*' {
-			// check if the character is the start of a multi-line comment
-			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
-			tok.Literal = l.lexMultiLineComment()
-			tok.Type = token.MULTI_LINE_COMMENT
+			tok.Literal, isFloat = l.lexNumber()
+			if isFloat {
+				tok.Type = token.FLOAT
+			} else {
+				tok.Type = token.INTEGER
+			}
 			return
 		} else {
 			// if none of the above cases match, create an illegal token with the current character
@@ -138,6 +182,52 @@ func (l *Lexer) lexIdent() string {
 		l.readChar()
 	}
 	return l.input[position:l.position]
+}
+
+// lexNumber - reads and returns a number.
+func (l *Lexer) lexNumber() (string, bool) {
+	position := l.position
+	seenDot := false
+	for isDigit(l.ch) || (!seenDot && l.ch == '.') {
+		if l.ch == '.' {
+			seenDot = true
+		}
+		l.readChar()
+	}
+	return l.input[position:l.position], seenDot
+}
+
+// lexString lex a string literal. It does not support escape sequences or multi-line strings.
+func (l *Lexer) lexString() string {
+	// Skip the initial quotation mark.
+	l.readChar()
+	position := l.position
+	var str string
+	for {
+		if l.ch == '\\' {
+			str += l.input[position:l.position]
+			l.readChar() // Skip the backslash
+			switch l.ch {
+			case 'n':
+				str += "\n"
+			case 't':
+				str += "\t"
+			case '"':
+				str += "\""
+			case '\\':
+				str += "\\"
+			}
+			position = l.position + 1
+		} else if l.ch == '"' || l.ch == 0 {
+			break
+		}
+		l.readChar()
+	}
+	str += l.input[position:l.position]
+	if l.ch == '"' {
+		l.readChar()
+	}
+	return str
 }
 
 // lexSingleLineComment - reads and returns a single line comment.
@@ -180,6 +270,11 @@ func isNewline(r byte) bool {
 // isLetter - returns true if the given byte is a letter (upper or lowercase) or an underscore.
 func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
+// isDigit - returns true if the given byte is a digit.
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
 }
 
 // positionInfo - returns a token.PositionInfo struct with the current line and column position.
