@@ -18,7 +18,7 @@ var Schema = &memdb.DBSchema{
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "TenantID"},
-							&memdb.StringFieldIndex{Field: "EntityType"},
+							&memdb.StringFieldIndex{Field: "Name"},
 							&memdb.StringFieldIndex{Field: "Version"},
 						},
 					},
@@ -39,6 +39,44 @@ var Schema = &memdb.DBSchema{
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "TenantID"},
+						},
+					},
+				},
+			},
+		},
+		memory.AttributesTable: {
+			Name: memory.AttributesTable,
+			Indexes: map[string]*memdb.IndexSchema{
+				"id": {
+					Name:   "id",
+					Unique: true,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
+							&memdb.StringFieldIndex{Field: "EntityType"},
+							&memdb.StringFieldIndex{Field: "EntityID"},
+							&memdb.StringFieldIndex{Field: "Attribute"},
+						},
+					},
+				},
+				"entity-type-index": {
+					Name:   "entity-type-index",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
+							&memdb.StringFieldIndex{Field: "EntityType"},
+						},
+					},
+				},
+				"entity-type-and-attribute-index": {
+					Name:   "entity-type-and-attribute-index",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
+							&memdb.StringFieldIndex{Field: "EntityType"},
+							&memdb.StringFieldIndex{Field: "Attribute"},
 						},
 					},
 				},

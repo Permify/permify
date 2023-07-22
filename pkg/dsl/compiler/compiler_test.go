@@ -2,9 +2,10 @@ package compiler
 
 import (
 	"errors"
-	`github.com/davecgh/go-spew/spew`
-	`github.com/google/cel-go/cel`
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/google/cel-go/cel"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

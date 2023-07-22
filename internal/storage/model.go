@@ -3,6 +3,8 @@ package storage
 import (
 	"time"
 
+	"google.golang.org/protobuf/types/known/anypb"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -36,10 +38,32 @@ func (r RelationTuple) ToTuple() *base.Tuple {
 	}
 }
 
+type Attribute struct {
+	ID         uint64
+	TenantID   string
+	EntityType string
+	EntityID   string
+	Attribute  string
+	Type       string
+	Value      *anypb.Any
+}
+
+func (r Attribute) ToAttribute() *base.Attribute {
+	return &base.Attribute{
+		Entity: &base.Entity{
+			Type: r.EntityType,
+			Id:   r.EntityID,
+		},
+		Attribute: r.Attribute,
+		Type:      r.Type,
+		Value:     r.Value,
+	}
+}
+
 // SchemaDefinition - Structure for Schema Definition
 type SchemaDefinition struct {
 	TenantID             string
-	EntityType           string
+	Name                 string
 	SerializedDefinition []byte
 	Version              string
 }

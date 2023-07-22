@@ -24,8 +24,8 @@ func NewWatcher(database *db.Memory, logger logger.Interface) *Watch {
 }
 
 // Watch - Watches for changes in the repository.
-func (r *Watch) Watch(_ context.Context, _, _ string) (<-chan *base.TupleChanges, <-chan error) {
-	tupleChanges := make(chan *base.TupleChanges)
+func (r *Watch) Watch(_ context.Context, _, _ string) (<-chan *base.DataChanges, <-chan error) {
+	tupleChanges := make(chan *base.DataChanges)
 	errs := make(chan error)
 
 	r.logger.Info(base.ErrorCode_ERROR_CODE_NOT_IMPLEMENTED.String())
