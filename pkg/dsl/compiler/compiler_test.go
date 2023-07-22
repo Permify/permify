@@ -2,6 +2,8 @@ package compiler
 
 import (
 	"errors"
+	`github.com/davecgh/go-spew/spew`
+	`github.com/google/cel-go/cel`
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -1509,14 +1511,16 @@ var _ = Describe("compiler", func() {
 
 		It("Case 15", func() {
 			sch, err := parser.NewParser(`
+			entity user {}
+
 			entity account {
     			relation owner @user
-    			attribute balance float
+    			attribute balance integer
 
-    			permission withdraw = check_balance(context.amount, balance) and owner
+    			permission withdraw = check_balance(request.amount, balance) and owner
 			}
 	
-			rule check_balance(amount float, balance float) {
+			rule check_balance(amount integer, balance integer) {
 				balance >= amount && amount <= 5000
 			}
 			`).Parse()
@@ -1533,133 +1537,60 @@ var _ = Describe("compiler", func() {
 
 			eI := []*base.EntityDefinition{
 				{
-					Name:        "usertype",
+					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Attributes:  map[string]*base.AttributeDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
 					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				{
-					Name: "company",
+					Name: "account",
 					Relations: map[string]*base.RelationDefinition{
 						"owner": {
 							Name: "owner",
 							RelationReferences: []*base.RelationReference{
 								{
-									Type:     "usertype",
-									Relation: "",
-								},
-							},
-						},
-					},
-					Attributes:  map[string]*base.AttributeDefinition{},
-					Permissions: map[string]*base.PermissionDefinition{},
-					References: map[string]base.EntityDefinition_Reference{
-						"owner": base.EntityDefinition_REFERENCE_RELATION,
-					},
-				},
-				{
-					Name: "organization",
-					Relations: map[string]*base.RelationDefinition{
-						"parent": {
-							Name: "parent",
-							RelationReferences: []*base.RelationReference{
-								{
-									Type:     "company",
-									Relation: "",
-								},
-								{
-									Type:     "organization",
-									Relation: "",
-								},
-							},
-						},
-						"owner": {
-							Name: "owner",
-							RelationReferences: []*base.RelationReference{
-								{
-									Type:     "usertype",
-									Relation: "",
-								},
-							},
-						},
-					},
-					Attributes:  map[string]*base.AttributeDefinition{},
-					Permissions: map[string]*base.PermissionDefinition{},
-					References: map[string]base.EntityDefinition_Reference{
-						"parent": base.EntityDefinition_REFERENCE_RELATION,
-						"owner":  base.EntityDefinition_REFERENCE_RELATION,
-					},
-				},
-				{
-					Name: "repository",
-					Relations: map[string]*base.RelationDefinition{
-						"parent": {
-							Name: "parent",
-							RelationReferences: []*base.RelationReference{
-								{
-									Type:     "organization",
-									Relation: "parent",
-								},
-							},
-						},
-						"owner": {
-							Name: "owner",
-							RelationReferences: []*base.RelationReference{
-								{
-									Type:     "usertype",
+									Type:     "user",
 									Relation: "",
 								},
 							},
 						},
 					},
 					Attributes: map[string]*base.AttributeDefinition{
-						"is_public": {
-							Name: "is_public",
-							Type: base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
+						"balance": {
+							Name: "balance",
+							Type: base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
 						},
 					},
 					Permissions: map[string]*base.PermissionDefinition{
-						"view": {
-							Name: "view",
-							Child: &base.Child{
-								Type: &base.Child_Leaf{
-									Leaf: &base.Leaf{
-										Type: &base.Leaf_Call{
-											Call: &base.Call{
-												RuleName: "is_public_rule",
-												Arguments: []*base.CallArgument{
-													{
-														Type: &base.CallArgument_ComputedAttribute{
-															ComputedAttribute: &base.ComputedAttribute{
-																Name: "is_public",
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"edit": {
-							Name: "edit",
+						"withdraw": {
+							Name: "withdraw",
 							Child: &base.Child{
 								Type: &base.Child_Rewrite{
 									Rewrite: &base.Rewrite{
-										RewriteOperation: base.Rewrite_OPERATION_UNION,
+										RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
 										Children: []*base.Child{
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Type: &base.Leaf_TupleToUserSet{
-															TupleToUserSet: &base.TupleToUserSet{
-																TupleSet: &base.TupleSet{
-																	Relation: "parent",
-																},
-																Computed: &base.ComputedUserSet{
-																	Relation: "owner",
+														Type: &base.Leaf_Call{
+															Call: &base.Call{
+																RuleName: "check_balance",
+																Arguments: []*base.CallArgument{
+																	{
+																		Type: &base.CallArgument_ContextAttribute{
+																			ContextAttribute: &base.ContextAttribute{
+																				Name: "amount",
+																			},
+																		},
+																	},
+																	{
+																		Type: &base.CallArgument_ComputedAttribute{
+																			ComputedAttribute: &base.ComputedAttribute{
+																				Name: "balance",
+																			},
+																		},
+																	},
 																},
 															},
 														},
@@ -1682,39 +1613,37 @@ var _ = Describe("compiler", func() {
 								},
 							},
 						},
-						"delete": {
-							Name: "delete",
-							Child: &base.Child{
-								Type: &base.Child_Leaf{
-									Leaf: &base.Leaf{
-										Type: &base.Leaf_ComputedUserSet{
-											ComputedUserSet: &base.ComputedUserSet{
-												Relation: "edit",
-											},
-										},
-									},
-								},
-							},
-						},
 					},
 					References: map[string]base.EntityDefinition_Reference{
-						"parent":    base.EntityDefinition_REFERENCE_RELATION,
-						"owner":     base.EntityDefinition_REFERENCE_RELATION,
-						"is_public": base.EntityDefinition_REFERENCE_ATTRIBUTE,
-						"view":      base.EntityDefinition_REFERENCE_PERMISSION,
-						"edit":      base.EntityDefinition_REFERENCE_PERMISSION,
-						"delete":    base.EntityDefinition_REFERENCE_PERMISSION,
+						"owner":    base.EntityDefinition_REFERENCE_RELATION,
+						"balance":  base.EntityDefinition_REFERENCE_ATTRIBUTE,
+						"withdraw": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}
 
+			env, err := cel.NewEnv(
+				cel.Variable("amount", cel.IntType),
+				cel.Variable("balance", cel.IntType),
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			compiledExp, issues := env.Compile("\nbalance >= amount && amount <= 5000\n\t\t")
+			Expect(issues.Err()).ShouldNot(HaveOccurred())
+
+			expr, err := cel.AstToCheckedExpr(compiledExp)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
 			rI := []*base.RuleDefinition{
 				{
-					Name: "is_public_rule",
+					Name: "check_balance",
 					Arguments: map[string]base.AttributeType{
-						"is_public": base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
+						"amount":  base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
+						"balance": base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
 					},
-					Expression: "\nis_public = true\n\t\t",
+					Expression: expr,
 				},
 			}
 
@@ -1927,6 +1856,83 @@ var _ = Describe("compiler", func() {
 			}
 
 			Expect(eIs).Should(Equal(eI))
+		})
+
+		It("Case 17", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity account {
+    			relation owner @user
+    			attribute balance integer
+
+    			permission withdraw = check_balance(request.amount, balance) and owner
+			}
+	
+			rule check_balance(amount integer, balance double) {
+				balance >= amount && amount <= 5000
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+
+			Expect(err.Error()).Should(Equal("8:61: invalid argument"))
+		})
+
+		It("Case 18", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity account {
+    			relation owner @user
+    			attribute balance integer
+
+    			permission withdraw = check_balance(request.amount, bal) and owner
+			}
+	
+			rule check_balance(amount integer, balance integer) {
+				balance >= amount && amount <= 5000
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+
+			Expect(err.Error()).Should(Equal("8:31: invalid rule reference"))
+		})
+
+		It("Case 19", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity account {
+    			relation owner @user
+    			attribute balance integer
+
+    			permission withdraw = check_balance(balance) and owner
+			}
+	
+			rule check_balance(amount integer, balance integer) {
+				balance >= amount && amount <= 5000
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			spew.Dump(err)
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+
+			Expect(err.Error()).Should(Equal("8:31: missing argument"))
 		})
 	})
 })

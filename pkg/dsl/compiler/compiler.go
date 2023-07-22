@@ -315,7 +315,7 @@ func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*b
 		call := expression.(*ast.Call)
 
 		// Compile the call and return the result.
-		return t.compileCall(call)
+		return t.compileCall(entityName, call)
 
 	// Default case when the expression type is neither an Identifier nor a Call.
 	default:
@@ -406,21 +406,38 @@ func (t *Compiler) compileIdentifier(entityName string, ident *ast.Identifier) (
 	return nil, compileError(ident.Idents[2].PositionInfo, base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())
 }
 
-// compileCall takes a call from the abstract syntax tree (AST)
-// and compiles it into a base.Child object.
-// If the call is invalid (e.g., an argument identifier has more than two segments),
-// it returns an error.
-func (*Compiler) compileCall(call *ast.Call) (*base.Child, error) {
-	// Create a new base.Child
+// compileCall compiles a function call within the Compiler.
+// It takes the entityName and a pointer to an ast.Call object representing the function call.
+// It returns a pointer to a base.Child object and an error, if any.
+func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, error) {
+	// Create a new base.Child to store the compiled information for the call.
 	child := &base.Child{}
 
-	// Prepare a slice to hold arguments
+	// Create a slice to store the call arguments.
 	var arguments []*base.CallArgument
 
-	// Iterate over each argument in the call
+	// Create a map to store the types of the rule arguments, only if reference validation is enabled.
+	var types map[string]string
+
+	// If reference validation is enabled, try to get the rule argument types from the schema for the specific call.
+	// If the call's rule does not exist in the schema, return an error.
+	if t.withReferenceValidation {
+		var exist bool
+		types, exist = t.schema.GetReferences().GetRuleArgumentTypesIfRuleExist(call.Name.Literal)
+		if !exist {
+			return nil, compileError(call.Name.PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_RULE_REFERENCE.String())
+		}
+
+		if len(types) != len(call.Arguments) {
+			return nil, compileError(call.Name.PositionInfo, base.ErrorCode_ERROR_CODE_MISSING_ARGUMENT.String())
+		}
+	}
+
+	// Loop through each argument in the call.
 	for _, argument := range call.Arguments {
 
-		// If the argument identifier has no segments, return an error
+		// Check if the argument has no identifiers, which is not allowed.
+		// Return an error if this is the case.
 		if len(argument.Idents) == 0 {
 			return nil, compileError(token.PositionInfo{
 				LinePosition:   1,
@@ -428,9 +445,28 @@ func (*Compiler) compileCall(call *ast.Call) (*base.Child, error) {
 			}, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
-		// If the argument identifier has one segment,
-		// add a ComputedAttribute to the argument list
+		// If the argument has only one identifier, it is a computed attribute.
 		if len(argument.Idents) == 1 {
+
+			// If reference validation is enabled, check if the attribute reference exists and its type matches the rule's argument type.
+			if t.withReferenceValidation {
+				atyp, exist := t.schema.GetReferences().GetAttributeReferenceTypeIfExist(utils.Key(entityName, argument.Idents[0].Literal))
+				if !exist {
+					return nil, compileError(call.Name.PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_RULE_REFERENCE.String())
+				}
+
+				// Get the type of the rule argument from the types map and compare it with the attribute reference type.
+				typeInfo, exist := types[argument.Idents[0].Literal]
+				if !exist {
+					return nil, compileError(argument.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+				}
+
+				if typeInfo != atyp.String() {
+					return nil, compileError(argument.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+				}
+			}
+
+			// Append the computed attribute to the arguments slice.
 			arguments = append(arguments, &base.CallArgument{
 				Type: &base.CallArgument_ComputedAttribute{
 					ComputedAttribute: &base.ComputedAttribute{
@@ -441,15 +477,24 @@ func (*Compiler) compileCall(call *ast.Call) (*base.Child, error) {
 			continue
 		}
 
-		// If the argument identifier has two segments and the first is "context",
-		// add a ContextAttribute to the argument list
-		// If the first segment is not "context", return an error
+		// If the argument has two identifiers, it is a context attribute.
 		if len(argument.Idents) == 2 {
 
+			// Check if the first identifier is "request" (context attribute).
+			// If it's not "request," it means an unsupported relation walk is attempted, so return an error.
 			if argument.Idents[0].Literal != "request" {
 				return nil, compileError(argument.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_NOT_IMPLEMENTED.String())
 			}
 
+			// If reference validation is enabled, check if the context attribute exists in the types map.
+			if t.withReferenceValidation {
+				_, exist := types[argument.Idents[1].Literal]
+				if !exist {
+					return nil, compileError(argument.Idents[1].PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+				}
+			}
+
+			// Append the context attribute to the arguments slice.
 			arguments = append(arguments, &base.CallArgument{
 				Type: &base.CallArgument_ContextAttribute{
 					ContextAttribute: &base.ContextAttribute{
@@ -460,11 +505,12 @@ func (*Compiler) compileCall(call *ast.Call) (*base.Child, error) {
 			continue
 		}
 
-		// If the argument identifier has more than two segments, return an error
-		return nil, compileError(argument.Idents[2].PositionInfo, base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_RELATION_WALK.String())
+		// If the argument has more than two identifiers, it indicates an unsupported relation walk.
+		// Return an error in this case.
+		return nil, compileError(argument.Idents[2].PositionInfo, base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_WALK.String())
 	}
 
-	// Create a Leaf type with the compiled Call and its arguments
+	// Set the child's type to be a leaf with the compiled call information.
 	child.Type = &base.Child_Leaf{Leaf: &base.Leaf{
 		Type: &base.Leaf_Call{Call: &base.Call{
 			RuleName:  call.Name.Literal,
@@ -472,7 +518,7 @@ func (*Compiler) compileCall(call *ast.Call) (*base.Child, error) {
 		}},
 	}}
 
-	// Return the compiled Child and no error
+	// Return the compiled child and nil error to indicate success.
 	return child, nil
 }
 
@@ -529,22 +575,6 @@ func (t *Compiler) compileTupleToUserSetIdentifier(p, r string) (l *base.Leaf, e
 	}
 	leaf.Type = &base.Leaf_TupleToUserSet{TupleToUserSet: tupleToUserSet}
 	return leaf, nil
-}
-
-// validateReference checks if the provided identifier refers to a valid relation in the schema.
-func (t *Compiler) validateComputedAttributeReference(entityName string, identifier *ast.Identifier) error {
-	if !t.schema.GetReferences().IsReferenceExist(utils.Key(entityName, identifier.Idents[0].Literal)) {
-		return compileError(identifier.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
-	}
-	return nil
-}
-
-// validateReference checks if the provided identifier refers to a valid relation in the schema.
-func (t *Compiler) validateComputedUserSetReference(entityName string, identifier *ast.Identifier) error {
-	if !t.schema.GetReferences().IsReferenceExist(utils.Key(entityName, identifier.Idents[0].Literal)) {
-		return compileError(identifier.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
-	}
-	return nil
 }
 
 // validateReference checks if the provided identifier refers to a valid relation in the schema.

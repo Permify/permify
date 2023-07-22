@@ -23,7 +23,7 @@ type References struct {
 	// Map of entity references extracted from the schema
 	entityReferences map[string]struct{}
 	// Map of rule references extracted from the schema
-	ruleReferences map[string]struct{}
+	ruleReferences map[string]map[string]string
 
 	// Map of permission references extracted from the schema
 	// -> ["entity_name#permission_name"] = {}
@@ -44,7 +44,7 @@ type References struct {
 func NewReferences() *References {
 	return &References{
 		entityReferences:     map[string]struct{}{},
-		ruleReferences:       map[string]struct{}{},
+		ruleReferences:       map[string]map[string]string{},
 		permissionReferences: map[string]struct{}{},
 		attributeReferences:  map[string]AttributeTypeStatement{},
 		relationReferences:   map[string][]RelationTypeStatement{},
@@ -52,6 +52,7 @@ func NewReferences() *References {
 	}
 }
 
+// SetEntityReference sets a reference for an entity.
 func (refs *References) SetEntityReference(name string) error {
 	if len(name) == 0 {
 		return fmt.Errorf("name cannot be empty")
@@ -64,18 +65,20 @@ func (refs *References) SetEntityReference(name string) error {
 	return nil
 }
 
-func (refs *References) SetRuleReference(name string) error {
+// SetRuleReference sets a reference for a rule.
+func (refs *References) SetRuleReference(name string, types map[string]string) error {
 	if len(name) == 0 {
 		return fmt.Errorf("name cannot be empty")
 	}
 	if refs.IsReferenceExist(name) {
 		return fmt.Errorf("reference %s already exists", name)
 	}
-	refs.ruleReferences[name] = struct{}{}
+	refs.ruleReferences[name] = types
 	refs.references[name] = RULE
 	return nil
 }
 
+// SetRelationReferences sets references for a relation with its types.
 func (refs *References) SetRelationReferences(key string, types []RelationTypeStatement) error {
 	if len(key) == 0 {
 		return fmt.Errorf("key cannot be empty")
@@ -88,6 +91,7 @@ func (refs *References) SetRelationReferences(key string, types []RelationTypeSt
 	return nil
 }
 
+// SetPermissionReference sets a reference for a permission.
 func (refs *References) SetPermissionReference(key string) error {
 	if len(key) == 0 {
 		return fmt.Errorf("key cannot be empty")
@@ -100,6 +104,7 @@ func (refs *References) SetPermissionReference(key string) error {
 	return nil
 }
 
+// SetAttributeReferences sets references for an attribute with its type.
 func (refs *References) SetAttributeReferences(key string, typ AttributeTypeStatement) error {
 	if len(key) == 0 {
 		return fmt.Errorf("key cannot be empty")
@@ -112,6 +117,7 @@ func (refs *References) SetAttributeReferences(key string, typ AttributeTypeStat
 	return nil
 }
 
+// GetReferenceType retrieves the type of the reference for a given key.
 func (refs *References) GetReferenceType(key string) (ReferenceType, bool) {
 	if _, ok := refs.references[key]; ok {
 		return refs.references[key], true
@@ -119,6 +125,7 @@ func (refs *References) GetReferenceType(key string) (ReferenceType, bool) {
 	return UNSPECIFIED, false
 }
 
+// IsEntityReferenceExist checks if an entity reference exists for the given name.
 func (refs *References) IsEntityReferenceExist(name string) bool {
 	if _, ok := refs.entityReferences[name]; ok {
 		return ok
@@ -126,6 +133,7 @@ func (refs *References) IsEntityReferenceExist(name string) bool {
 	return false
 }
 
+// IsRelationReferenceExist checks if a relation reference exists for the given key.
 func (refs *References) IsRelationReferenceExist(name string) bool {
 	if _, ok := refs.relationReferences[name]; ok {
 		return true
@@ -133,6 +141,7 @@ func (refs *References) IsRelationReferenceExist(name string) bool {
 	return false
 }
 
+// IsAttributeReferenceExist checks if an attribute reference exists for the given key.
 func (refs *References) IsAttributeReferenceExist(name string) bool {
 	if _, ok := refs.attributeReferences[name]; ok {
 		return true
@@ -140,6 +149,7 @@ func (refs *References) IsAttributeReferenceExist(name string) bool {
 	return false
 }
 
+// IsRuleReferenceExist checks if a rule reference exists for the given name.
 func (refs *References) IsRuleReferenceExist(name string) bool {
 	if _, ok := refs.ruleReferences[name]; ok {
 		return true
@@ -147,6 +157,7 @@ func (refs *References) IsRuleReferenceExist(name string) bool {
 	return false
 }
 
+// IsReferenceExist checks if a reference exists for the given key.
 func (refs *References) IsReferenceExist(name string) bool {
 	if _, ok := refs.references[name]; ok {
 		return true
@@ -154,6 +165,7 @@ func (refs *References) IsReferenceExist(name string) bool {
 	return false
 }
 
+// GetAttributeReferenceTypeIfExist retrieves the attribute type for a given attribute reference key.
 func (refs *References) GetAttributeReferenceTypeIfExist(name string) (AttributeTypeStatement, bool) {
 	if _, ok := refs.attributeReferences[name]; ok {
 		return refs.attributeReferences[name], true
@@ -161,9 +173,18 @@ func (refs *References) GetAttributeReferenceTypeIfExist(name string) (Attribute
 	return AttributeTypeStatement{}, false
 }
 
+// GetRelationReferenceTypesIfExist retrieves the relation types for a given relation reference key.
 func (refs *References) GetRelationReferenceTypesIfExist(name string) ([]RelationTypeStatement, bool) {
 	if _, ok := refs.relationReferences[name]; ok {
 		return refs.relationReferences[name], true
 	}
 	return nil, false
+}
+
+// GetRuleArgumentTypesIfRuleExist retrieves the rule argument types for a given rule reference key.
+func (refs *References) GetRuleArgumentTypesIfRuleExist(name string) (map[string]string, bool) {
+	if _, ok := refs.ruleReferences[name]; ok {
+		return refs.ruleReferences[name], true
+	}
+	return map[string]string{}, false
 }

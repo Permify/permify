@@ -274,6 +274,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 	}
 
 	arguments := map[token.Token]token.Token{}
+	args := map[string]string{}
 
 	// Loop over the tokens until a right parenthesis ')' is encountered.
 	// In each iteration, two tokens are processed: an identifier (arg name) and its type.
@@ -283,6 +284,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 			return nil, p.Error()
 		}
 		argument := p.currentToken
+		arg := p.currentToken.Literal
 
 		// Expect the second token to be the parameter's type.
 		if !p.expectAndNext(token.IDENT) {
@@ -290,6 +292,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 		}
 
 		arguments[argument] = p.currentToken
+		args[arg] = p.currentToken.Literal
 
 		// If the next token is a comma, there are more parameters to parse.
 		// Continue to the next iteration.
@@ -341,7 +344,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 	}
 
 	// Register the parsed rule in the parser's references.
-	err := p.references.SetRuleReference(stmt.Name.Literal)
+	err := p.references.SetRuleReference(stmt.Name.Literal, args)
 	if err != nil {
 		// If there's an error (e.g., a duplicate rule), return an error.
 		p.duplicationError(stmt.Name.Literal)
