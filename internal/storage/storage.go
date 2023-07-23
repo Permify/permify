@@ -8,53 +8,82 @@ import (
 	"github.com/Permify/permify/pkg/token"
 )
 
-// RelationshipReader - Reads relation tuples from the storage.
-type RelationshipReader interface {
-	// QueryRelationships reads relation tuples from the storage.
+// DataReader - Interface for reading Data from the storage.
+type DataReader interface {
+	// QueryRelationships reads relation tuples from the storage based on the given filter.
+	// It returns an iterator to iterate over the tuples and any error encountered.
 	QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string) (iterator *database.TupleIterator, err error)
-	// ReadRelationships reads relation tuples from the storage with different options.
+
+	// ReadRelationships reads relation tuples from the storage based on the given filter and pagination.
+	// It returns a collection of tuples, a continuous token indicating the position in the data set, and any error encountered.
 	ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error)
-	// HeadSnapshot reads the latest version of the snapshot from the storage.
+
+	// QuerySingleAttribute retrieves a single attribute from the storage based on the given filter.
+	// It returns the retrieved attribute and any error encountered.
+	QuerySingleAttribute(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string) (attribute *base.Attribute, err error)
+
+	// QueryAttributes reads multiple attributes from the storage based on the given filter.
+	// It returns an iterator to iterate over the attributes and any error encountered.
+	QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string) (iterator *database.AttributeIterator, err error)
+
+	// ReadAttributes reads multiple attributes from the storage based on the given filter and pagination.
+	// It returns a collection of attributes, a continuous token indicating the position in the data set, and any error encountered.
+	ReadAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string, pagination database.Pagination) (collection *database.AttributeCollection, ct database.EncodedContinuousToken, err error)
+
+	// HeadSnapshot reads the latest version of the snapshot from the storage for a specific tenant.
+	// It returns the snapshot token representing the version of the snapshot and any error encountered.
 	HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error)
 }
 
-type NoopRelationshipReader struct{}
+type NoopDataReader struct{}
 
-func NewNoopRelationshipReader() RelationshipReader {
-	return &NoopRelationshipReader{}
+func NewNoopRelationshipReader() DataReader {
+	return &NoopDataReader{}
 }
 
-func (f *NoopRelationshipReader) QueryRelationships(_ context.Context, _ string, _ *base.TupleFilter, _ string) (*database.TupleIterator, error) {
+func (f *NoopDataReader) QueryRelationships(_ context.Context, _ string, _ *base.TupleFilter, _ string) (*database.TupleIterator, error) {
 	return database.NewTupleIterator(), nil
 }
 
-func (f *NoopRelationshipReader) ReadRelationships(_ context.Context, _ string, _ *base.TupleFilter, _ string, _ database.Pagination) (*database.TupleCollection, database.EncodedContinuousToken, error) {
+func (f *NoopDataReader) ReadRelationships(_ context.Context, _ string, _ *base.TupleFilter, _ string, _ database.Pagination) (*database.TupleCollection, database.EncodedContinuousToken, error) {
 	return database.NewTupleCollection(), database.NewNoopContinuousToken().Encode(), nil
 }
 
-func (f *NoopRelationshipReader) HeadSnapshot(_ context.Context, _ string) (token.SnapToken, error) {
+func (f *NoopDataReader) QuerySingleAttribute(_ context.Context, _ string, _ *base.AttributeFilter, _ string) (*base.Attribute, error) {
+	return &base.Attribute{}, nil
+}
+
+func (f *NoopDataReader) QueryAttributes(_ context.Context, _ string, _ *base.AttributeFilter, _ string) (*database.AttributeIterator, error) {
+	return database.NewAttributeIterator(), nil
+}
+
+func (f *NoopDataReader) ReadAttributes(_ context.Context, _ string, _ *base.AttributeFilter, _ string, _ database.Pagination) (*database.AttributeCollection, database.EncodedContinuousToken, error) {
+	return database.NewAttributeCollection(), database.NewNoopContinuousToken().Encode(), nil
+}
+
+func (f *NoopDataReader) HeadSnapshot(_ context.Context, _ string) (token.SnapToken, error) {
 	return token.NewNoopToken(), nil
 }
 
-// RelationshipWriter - Writes relation tuples to the storage.
-type RelationshipWriter interface {
-	// WriteRelationships writes relation tuples to the storage.
-	WriteRelationships(ctx context.Context, tenantID string, collection *database.TupleCollection) (token token.EncodedSnapToken, err error)
-	// DeleteRelationships deletes relation tuples from the storage.
-	DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token token.EncodedSnapToken, err error)
+// DataWriter - Writes relation tuples to the storage.
+type DataWriter interface {
+	// Write writes relation tuples to the storage.
+	Write(ctx context.Context, tenantID string, tupleCollection *database.TupleCollection, attributesCollection *database.AttributeCollection) (token token.EncodedSnapToken, err error)
+	// Delete deletes relation tuples from the storage.
+	Delete(ctx context.Context, tenantID string, tupleFilter *base.TupleFilter, attributeFilter *base.AttributeFilter) (token token.EncodedSnapToken, err error)
 }
 
-type NoopRelationshipWriter struct{}
+type NoopDataWriter struct{}
 
-func NewNoopRelationshipWriter() RelationshipWriter {
-	return &NoopRelationshipWriter{}
+func NewNoopDataWriter() DataWriter {
+	return &NoopDataWriter{}
 }
 
-func (n *NoopRelationshipWriter) WriteRelationships(_ context.Context, _ string, _ *database.TupleCollection) (token.EncodedSnapToken, error) {
+func (n *NoopDataWriter) Write(_ context.Context, _ string, _ *database.TupleCollection, _ *database.AttributeCollection) (token.EncodedSnapToken, error) {
 	return token.NewNoopToken().Encode(), nil
 }
 
-func (n *NoopRelationshipWriter) DeleteRelationships(_ context.Context, _ string, _ *base.TupleFilter) (token.EncodedSnapToken, error) {
+func (n *NoopDataWriter) Delete(_ context.Context, _ string, _ *base.TupleFilter, _ *base.AttributeFilter) (token.EncodedSnapToken, error) {
 	return token.NewNoopToken().Encode(), nil
 }
 
@@ -62,8 +91,10 @@ func (n *NoopRelationshipWriter) DeleteRelationships(_ context.Context, _ string
 type SchemaReader interface {
 	// ReadSchema reads entity config from the storage.
 	ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error)
-	// ReadSchemaDefinition reads entity config from the storage.
-	ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error)
+	// ReadEntityDefinition reads entity config from the storage.
+	ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error)
+	// ReadRuleDefinition reads rule config from the storage.
+	ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (definition *base.RuleDefinition, v string, err error)
 	// HeadVersion reads the latest version of the schema from the storage.
 	HeadVersion(ctx context.Context, tenantID string) (version string, err error)
 }
@@ -78,8 +109,12 @@ func (n *NoopSchemaReader) ReadSchema(_ context.Context, _, _ string) (*base.Sch
 	return &base.SchemaDefinition{}, nil
 }
 
-func (n *NoopSchemaReader) ReadSchemaDefinition(_ context.Context, _, _, _ string) (*base.EntityDefinition, string, error) {
+func (n *NoopSchemaReader) ReadEntityDefinition(_ context.Context, _, _, _ string) (*base.EntityDefinition, string, error) {
 	return &base.EntityDefinition{}, "", nil
+}
+
+func (n *NoopSchemaReader) ReadRuleDefinition(_ context.Context, _, _, _ string) (*base.RuleDefinition, string, error) {
+	return &base.RuleDefinition{}, "", nil
 }
 
 func (n *NoopSchemaReader) HeadVersion(_ context.Context, _ string) (string, error) {
@@ -105,7 +140,7 @@ func (n *NoopSchemaWriter) WriteSchema(_ context.Context, _ []SchemaDefinition) 
 // Watcher - Watches relation tuple changes from the storage.
 type Watcher interface {
 	// Watch watches relation tuple changes from the storage.
-	Watch(ctx context.Context, tenantID, snap string) (<-chan *base.TupleChanges, <-chan error)
+	Watch(ctx context.Context, tenantID, snap string) (<-chan *base.DataChanges, <-chan error)
 }
 
 type NoopWatcher struct{}
@@ -114,16 +149,16 @@ func NewNoopWatcher() Watcher {
 	return &NoopWatcher{}
 }
 
-func (n *NoopWatcher) Watch(_ context.Context, _, _ string) (<-chan *base.TupleChanges, <-chan error) {
+func (n *NoopWatcher) Watch(_ context.Context, _, _ string) (<-chan *base.DataChanges, <-chan error) {
 	// Create empty channels
-	tupleChanges := make(chan *base.TupleChanges)
+	aclChanges := make(chan *base.DataChanges)
 	errs := make(chan error)
 
 	// Close the channels immediately
-	close(tupleChanges)
+	close(aclChanges)
 	close(errs)
 
-	return tupleChanges, errs
+	return aclChanges, errs
 }
 
 // TenantReader - Reads tenants from the storage.
