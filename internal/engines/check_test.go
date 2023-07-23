@@ -2,13 +2,16 @@ package engines
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -89,21 +92,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "doc:1",
 						subject: "user:1",
 						assertions: map[string]base.CheckResult{
-							"read": base.CheckResult_RESULT_ALLOWED,
+							"read": base.CheckResult_CHECK_RESULT_ALLOWED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -122,7 +125,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -194,21 +197,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "doc:1",
 						subject: "user:1",
 						assertions: map[string]base.CheckResult{
-							"update": base.CheckResult_RESULT_DENIED,
+							"update": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -227,7 +230,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -301,21 +304,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "doc:1",
 						subject: "user:1",
 						assertions: map[string]base.CheckResult{
-							"read": base.CheckResult_RESULT_DENIED,
+							"read": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -334,7 +337,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -428,21 +431,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "repository:1",
 						subject: "user:1",
 						assertions: map[string]base.CheckResult{
-							"push": base.CheckResult_RESULT_DENIED,
+							"push": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -461,7 +464,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -534,20 +537,20 @@ var _ = Describe("check-engine", func() {
 						entity:  "repository:1",
 						subject: "user:1",
 						assertions: map[string]base.CheckResult{
-							"push": base.CheckResult_RESULT_ALLOWED,
+							"push": base.CheckResult_CHECK_RESULT_ALLOWED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -590,7 +593,9 @@ var _ = Describe("check-engine", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-						ContextualTuples: tuples,
+						Context: &base.Context{
+							Tuples: tuples,
+						},
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -636,21 +641,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "repository:1",
 						subject: "user:1",
 						assertions: map[string]base.CheckResult{
-							"delete": base.CheckResult_RESULT_DENIED,
+							"delete": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -669,7 +674,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -773,20 +778,20 @@ var _ = Describe("check-engine", func() {
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.CheckResult{
-							"push": base.CheckResult_RESULT_ALLOWED,
+							"push": base.CheckResult_CHECK_RESULT_ALLOWED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -829,7 +834,9 @@ var _ = Describe("check-engine", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-						ContextualTuples: tuples,
+						Context: &base.Context{
+							Tuples: tuples,
+						},
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -884,21 +891,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.CheckResult{
-							"push": base.CheckResult_RESULT_DENIED,
+							"push": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -917,7 +924,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var contextual []*base.Tuple
@@ -952,7 +959,9 @@ var _ = Describe("check-engine", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-						ContextualTuples: contextual,
+						Context: &base.Context{
+							Tuples: contextual,
+						},
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -1000,21 +1009,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.CheckResult{
-							"delete": base.CheckResult_RESULT_DENIED,
+							"delete": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -1033,7 +1042,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -1109,28 +1118,28 @@ var _ = Describe("check-engine", func() {
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.CheckResult{
-							"update": base.CheckResult_RESULT_DENIED,
+							"update": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 					{
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.CheckResult{
-							"view": base.CheckResult_RESULT_ALLOWED,
+							"view": base.CheckResult_CHECK_RESULT_ALLOWED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -1149,7 +1158,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -1222,21 +1231,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.CheckResult{
-							"view": base.CheckResult_RESULT_DENIED,
+							"view": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -1255,7 +1264,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -1328,21 +1337,21 @@ var _ = Describe("check-engine", func() {
 						entity:  "repo:1",
 						subject: "user:2",
 						assertions: map[string]base.CheckResult{
-							"admin": base.CheckResult_RESULT_DENIED,
+							"admin": base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -1361,7 +1370,7 @@ var _ = Describe("check-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, check := range tests.checks {
@@ -1405,7 +1414,7 @@ var _ = Describe("check-engine", func() {
 	entity facebookuser {}
 	
 	entity company {
-	  relation member @googleuser @facebookuser
+		relation member @googleuser @facebookuser
 	}
 	
 	entity organization {
@@ -1460,34 +1469,34 @@ var _ = Describe("check-engine", func() {
 						entity:  "repo:1",
 						subject: "googleuser:2",
 						assertions: map[string]base.CheckResult{
-							"push": base.CheckResult_RESULT_ALLOWED,
+							"push": base.CheckResult_CHECK_RESULT_ALLOWED,
 						},
 					},
 					{
 						entity:  "repo:1",
 						subject: "facebookuser:3",
 						assertions: map[string]base.CheckResult{
-							"push": base.CheckResult_RESULT_ALLOWED,
+							"push": base.CheckResult_CHECK_RESULT_ALLOWED,
 						},
 					},
 					{
 						entity:  "organization:1",
 						subject: "facebookuser:3",
 						assertions: map[string]base.CheckResult{
-							"edit": base.CheckResult_RESULT_ALLOWED,
+							"edit": base.CheckResult_CHECK_RESULT_ALLOWED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -1530,7 +1539,413 @@ var _ = Describe("check-engine", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-						ContextualTuples: tuples,
+						Context: &base.Context{
+							Tuples: tuples,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+		})
+	})
+
+	// WEEKDAY SAMPLE
+	weekdaySchema := `
+		entity user {}
+		
+		entity organization {
+		
+			relation member @user
+		
+			attribute balance integer
+
+			permission view = check_balance(balance) and member
+		}
+		
+		entity repository {
+		
+			relation organization  @organization
+			
+			attribute is_public boolean
+
+			permission view = is_public
+			permission edit = organization.view
+			permission delete = is_weekday(request.day_of_week)
+		}
+		
+		rule check_balance(balance integer) {
+			balance > 5000
+		}
+
+		rule is_weekday(day_of_week string) {
+			  day_of_week != 'saturday' && day_of_week != 'sunday'
+		}
+		`
+
+	Context("Weekday Sample: Check", func() {
+		It("Weekday Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(weekdaySchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.CheckResult
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				checks        []check
+			}{
+				relationships: []string{},
+				attributes: []string{
+					"repository:1#is_public@boolean:true",
+				},
+				checks: []check{
+					{
+						entity:  "repository:1",
+						subject: "user:1",
+						assertions: map[string]base.CheckResult{
+							"view": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+				nil,
+				telemetry.NewNoopMeter(),
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+			var attributes []*base.Attribute
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			for _, attr := range tests.attributes {
+				t, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+		})
+
+		It("Weekday Sample: Case 2", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(weekdaySchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				context    map[string]interface{}
+				assertions map[string]base.CheckResult
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				checks        []check
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"repository:1#organization@organization:1",
+				},
+				attributes: []string{
+					"organization:1#balance@integer:7000",
+				},
+				checks: []check{
+					{
+						entity:  "organization:1",
+						subject: "user:1",
+						assertions: map[string]base.CheckResult{
+							"view": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+					{
+						entity:  "repository:1",
+						subject: "user:1",
+						assertions: map[string]base.CheckResult{
+							"edit": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+					{
+						entity:  "repository:1",
+						subject: "user:1",
+						context: map[string]interface{}{
+							"day_of_week": "saturday",
+						},
+						assertions: map[string]base.CheckResult{
+							"delete": base.CheckResult_CHECK_RESULT_DENIED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+				nil,
+				telemetry.NewNoopMeter(),
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+			var attributes []*base.Attribute
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			for _, attr := range tests.attributes {
+				t, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+
+					ctx := &base.Context{
+						Tuples:     []*base.Tuple{},
+						Attributes: []*base.Attribute{},
+						Data:       &structpb.Struct{},
+					}
+
+					if check.context != nil {
+						value, err := structpb.NewStruct(check.context)
+						if err != nil {
+							fmt.Printf("Error creating struct: %v", err)
+						}
+						ctx.Data = value
+					}
+
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Context:    ctx,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         20,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+		})
+
+		It("Weekday Sample: Case 3", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(weekdaySchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.CheckResult
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				checks        []check
+			}{
+				relationships: []string{},
+				attributes: []string{
+					"repository:1#is_public@boolean:true",
+				},
+				checks: []check{
+					{
+						entity:  "repository:1",
+						subject: "user:1",
+						assertions: map[string]base.CheckResult{
+							"view": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+				nil,
+				telemetry.NewNoopMeter(),
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+			var attributes []*base.Attribute
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			for _, attr := range tests.attributes {
+				t, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, t)
+			}
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         20,
+						},
+						Context: &base.Context{
+							Attributes: attributes,
+						},
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
