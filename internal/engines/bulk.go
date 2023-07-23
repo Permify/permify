@@ -65,7 +65,7 @@ func (c *BulkChecker) Start() {
 			// run the permission check in a separate goroutine
 			c.g.Go(func() error {
 				defer sem.Release(1)
-				if req.Result == base.CheckResult_RESULT_UNKNOWN {
+				if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
 					result, err := c.checkEngine.Check(c.ctx, req.Request)
 					if err != nil {
 						return err
@@ -114,15 +114,15 @@ func NewBulkPublisher(ctx context.Context, request *base.PermissionLookupEntityR
 }
 
 // Publish publishes a permission check request to the BulkChecker.
-func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, contextual []*base.Tuple, result base.CheckResult) {
+func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
 	s.bulkChecker.RequestChan <- BulkCheckerRequest{
 		Request: &base.PermissionCheckRequest{
-			TenantId:         s.request.GetTenantId(),
-			Metadata:         metadata,
-			Entity:           entity,
-			Permission:       s.request.GetPermission(),
-			Subject:          s.request.GetSubject(),
-			ContextualTuples: contextual,
+			TenantId:   s.request.GetTenantId(),
+			Metadata:   metadata,
+			Entity:     entity,
+			Permission: s.request.GetPermission(),
+			Subject:    s.request.GetSubject(),
+			Context:    context,
 		},
 		Result: result,
 	}

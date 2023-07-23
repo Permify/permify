@@ -3,18 +3,17 @@ package consistent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
 	"google.golang.org/grpc"
 
+	"github.com/Permify/permify/internal/engines/keys"
 	"github.com/Permify/permify/internal/invoke"
 	hash "github.com/Permify/permify/pkg/consistent"
 	"github.com/Permify/permify/pkg/gossip"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/tuple"
 )
 
 // Hashring is a wrapper around the consistent hash implementation that
@@ -48,16 +47,13 @@ func NewCheckEngineWithHashring(checker invoke.Check, consistent *hash.Consisten
 
 func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
 	// Generate a unique checkKey string based on the provided PermissionCheckRequest
-	k := fmt.Sprintf("check_%s_%s:%s:%s@%s", request.GetTenantId(), request.GetMetadata().GetSchemaVersion(), request.GetMetadata().GetSnapToken(), tuple.EntityAndRelationToString(&base.EntityAndRelation{
-		Entity:   request.GetEntity(),
-		Relation: request.GetPermission(),
-	}), tuple.SubjectToString(request.GetSubject()))
+	k := keys.GenerateKey(request)
 
 	ok := c.consistent.AddKey(k)
 	if !ok {
 		// If there's an error, return false
 		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_RESULT_DENIED,
+			Can: base.CheckResult_CHECK_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
@@ -69,7 +65,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 	if !found {
 		// If the responsible node is not found, return false
 		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_RESULT_DENIED,
+			Can: base.CheckResult_CHECK_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
@@ -84,7 +80,7 @@ func (c *Hashring) Check(ctx context.Context, request *base.PermissionCheckReque
 	resp, err := c.forwardRequestToNode(ctx, node, request)
 	if err != nil {
 		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_RESULT_DENIED,
+			Can: base.CheckResult_CHECK_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
