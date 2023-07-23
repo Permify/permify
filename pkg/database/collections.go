@@ -112,3 +112,35 @@ func (e *EntityCollection) GetEntities() []*base.Entity {
 func (e *EntityCollection) Add(entity *base.Entity) {
 	e.entities = append(e.entities, entity)
 }
+
+// AttributeCollection -Attribute collection.
+type AttributeCollection struct {
+	attributes []*base.Attribute
+}
+
+// NewAttributeCollection - Create new attribute collection.
+func NewAttributeCollection(attributes ...*base.Attribute) *AttributeCollection {
+	if len(attributes) == 0 {
+		return &AttributeCollection{}
+	}
+	return &AttributeCollection{
+		attributes: attributes,
+	}
+}
+
+// GetAttributes - Get entities
+func (t *AttributeCollection) GetAttributes() []*base.Attribute {
+	return t.attributes
+}
+
+// CreateAttributeIterator - Create tuple iterator according to collection.
+func (t *AttributeCollection) CreateAttributeIterator() *AttributeIterator {
+	return &AttributeIterator{
+		attributes: t.attributes,
+	}
+}
+
+// Add - New subject to collection.
+func (t *AttributeCollection) Add(attribute *base.Attribute) {
+	t.attributes = append(t.attributes, attribute)
+}
