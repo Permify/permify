@@ -45,10 +45,10 @@ var tracer = otel.Tracer("servers")
 type Container struct {
 	// Invoker for performing permission-related operations
 	Invoker invoke.Invoker
-	// RelationshipReader for reading relationships from storage
-	RR storage.RelationshipReader
-	// RelationshipWriter for writing relationships to storage
-	RW storage.RelationshipWriter
+	// DataReader for reading data from storage
+	DR storage.DataReader
+	// DataWriter for writing data to storage
+	DW storage.DataWriter
 	// SchemaReader for reading schemas from storage
 	SR storage.SchemaReader
 	// SchemaWriter for writing schemas to storage
@@ -66,8 +66,8 @@ type Container struct {
 // TenantReader, and TenantWriter as arguments, and returns a pointer to a Container instance.
 func NewContainer(
 	invoker invoke.Invoker,
-	rr storage.RelationshipReader,
-	rw storage.RelationshipWriter,
+	dr storage.DataReader,
+	dw storage.DataWriter,
 	sr storage.SchemaReader,
 	sw storage.SchemaWriter,
 	tr storage.TenantReader,
@@ -76,8 +76,8 @@ func NewContainer(
 ) *Container {
 	return &Container{
 		Invoker: invoker,
-		RR:      rr,
-		RW:      rw,
+		DR:      dr,
+		DW:      dw,
 		SR:      sr,
 		SW:      sw,
 		TR:      tr,
@@ -156,9 +156,9 @@ func (s *Container) Run(
 	grpcServer := grpc.NewServer(opts...)
 	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.Invoker, l))
 	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR, l))
-	grpcV1.RegisterRelationshipServer(grpcServer, NewRelationshipServer(s.RR, s.RW, s.SR, l))
+	grpcV1.RegisterDataServer(grpcServer, NewDataServer(s.DR, s.DW, s.SR, l))
 	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW, l))
-	grpcV1.RegisterWatchServer(grpcServer, NewWatchServer(s.W, s.RR, l))
+	grpcV1.RegisterWatchServer(grpcServer, NewWatchServer(s.W, s.DR, l))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	reflection.Register(grpcServer)
 
@@ -261,7 +261,7 @@ func (s *Container) Run(
 		if err = grpcV1.RegisterSchemaHandler(ctx, mux, conn); err != nil {
 			return err
 		}
-		if err = grpcV1.RegisterRelationshipHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterDataHandler(ctx, mux, conn); err != nil {
 			return err
 		}
 		if err = grpcV1.RegisterTenancyHandler(ctx, mux, conn); err != nil {

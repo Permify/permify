@@ -433,13 +433,13 @@ message SchemaReadResponse {
   SchemaDefinition schema = 1 [json_name = "schema"];
 }
 
-// ** RELATIONSHIP SERVICE **
+// ** DATA SERVICE **
 
-// Relationship
-service Relationship {
-  rpc Write(RelationshipWriteRequest) returns (RelationshipWriteResponse) {
+// DATA
+service Data {
+  rpc Write(DataWriteRequest) returns (DataWriteResponse) {
     option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/relationships/write"
+      post: "/v1/tenants/{tenant_id}/data/write"
       body: "*"
     };
 
@@ -452,9 +452,9 @@ service Relationship {
     };
   }
 
-  rpc Read(RelationshipReadRequest) returns (RelationshipReadResponse) {
+  rpc ReadRelationships(RelationshipReadRequest) returns (RelationshipReadResponse) {
     option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/relationships/read"
+      post: "/v1/tenants/{tenant_id}/data/relationships/read"
       body: "*"
     };
 
@@ -467,9 +467,24 @@ service Relationship {
     };
   }
 
-  rpc Delete(RelationshipDeleteRequest) returns (RelationshipDeleteResponse) {
+  rpc ReadAttributes(AttributeReadRequest) returns (AttributeReadResponse) {
     option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/relationships/delete"
+      post: "/v1/tenants/{tenant_id}/data/attributes/read"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "read attribute(s)"
+      tags: [
+        "Relationship"
+      ]
+      operation_id: "relationships.read"
+    };
+  }
+
+  rpc Delete(DataDeleteRequest) returns (DataDeleteResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/data/relationships/delete"
       body: "*"
     };
 
@@ -483,15 +498,15 @@ service Relationship {
   }
 }
 
-// RelationshipWriteRequest
-message RelationshipWriteRequest {
+// DataWriteRequest
+message DataWriteRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  RelationshipWriteRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+  DataWriteRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
   repeated Tuple tuples = 3 [json_name = "tuples", (validate.rules).repeated = {
     min_items : 1,
@@ -502,15 +517,25 @@ message RelationshipWriteRequest {
       },
     },
   }];
+
+  repeated Attribute attributes = 4 [json_name = "attributes", (validate.rules).repeated = {
+    min_items : 1,
+    max_items : 100,
+    items : {
+      message : {
+        required : true,
+      },
+    },
+  }];
 }
 
-// RelationshipWriteRequestMetadata
-message RelationshipWriteRequestMetadata {
+// DataWriteRequestMetadata
+message DataWriteRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
 }
 
-// RelationshipWriteResponse
-message RelationshipWriteResponse {
+// DataWriteResponse
+message DataWriteResponse {
   string snap_token = 1 [json_name = "snap_token"];
 }
 
@@ -545,19 +570,52 @@ message RelationshipReadResponse {
   string continuous_token = 2 [json_name = "continuous_token"];
 }
 
-// RelationshipDeleteRequest
-message RelationshipDeleteRequest {
+// AttributeReadRequest
+message AttributeReadRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  TupleFilter filter = 2 [json_name = "filter", (validate.rules).message.required = true];
+  AttributeReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  AttributeFilter filter = 3 [json_name = "filter", (validate.rules).message.required = true];
+
+  uint32 page_size = 4 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
+  ];
+
+  string continuous_token = 5 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
 
-// RelationshipDeleteResponse
-message RelationshipDeleteResponse {
+// AttributeReadRequestMetadata
+message AttributeReadRequestMetadata {
+  string snap_token = 1 [json_name = "snap_token"];
+}
+
+// AttributeReadResponse
+message AttributeReadResponse {
+  repeated Attribute attributes = 1 [json_name = "attributes"];
+  string continuous_token = 2 [json_name = "continuous_token"];
+}
+
+// DataDeleteRequest
+message DataDeleteRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  TupleFilter tuple_filter = 2 [json_name = "tuple_filter", (validate.rules).message.required = true];
+
+  AttributeFilter attribute_filter = 3 [json_name = "attribute_filter", (validate.rules).message.required = true];
+}
+
+// DataDeleteResponse
+message DataDeleteResponse {
   string snap_token = 1 [json_name = "snap_token"];
 }
 
