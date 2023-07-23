@@ -46,8 +46,8 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchema(ctx context.Context, tenantI
 	}
 }
 
-// ReadSchemaDefinition - Read schema definition from repository
-func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (*base.EntityDefinition, string, error) {
+// ReadEntityDefinition - Read entity definition from repository
+func (r *SchemaReaderWithCircuitBreaker) ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (*base.EntityDefinition, string, error) {
 	type circuitBreakerResponse struct {
 		Definition *base.EntityDefinition
 		Version    string
@@ -56,9 +56,36 @@ func (r *SchemaReaderWithCircuitBreaker) ReadSchemaDefinition(ctx context.Contex
 
 	output := make(chan circuitBreakerResponse, 1)
 
-	hystrix.ConfigureCommand("schemaReader.readSchemaDefinition", hystrix.CommandConfig{Timeout: 1000})
-	bErrors := hystrix.Go("schemaReader.readSchemaDefinition", func() error {
-		conf, v, err := r.delegate.ReadSchemaDefinition(ctx, tenantID, entityType, version)
+	hystrix.ConfigureCommand("schemaReader.readEntityDefinition", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("schemaReader.readEntityDefinition", func() error {
+		conf, v, err := r.delegate.ReadEntityDefinition(ctx, tenantID, entityName, version)
+		output <- circuitBreakerResponse{Definition: conf, Version: v, Error: err}
+		return nil
+	}, func(err error) error {
+		return nil
+	})
+
+	select {
+	case out := <-output:
+		return out.Definition, out.Version, out.Error
+	case <-bErrors:
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
+	}
+}
+
+// ReadRuleDefinition - Read rule definition from repository
+func (r *SchemaReaderWithCircuitBreaker) ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (*base.RuleDefinition, string, error) {
+	type circuitBreakerResponse struct {
+		Definition *base.RuleDefinition
+		Version    string
+		Error      error
+	}
+
+	output := make(chan circuitBreakerResponse, 1)
+
+	hystrix.ConfigureCommand("schemaReader.readRuleDefinition", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("schemaReader.readRuleDefinition", func() error {
+		conf, v, err := r.delegate.ReadRuleDefinition(ctx, tenantID, ruleName, version)
 		output <- circuitBreakerResponse{Definition: conf, Version: v, Error: err}
 		return nil
 	}, func(err error) error {

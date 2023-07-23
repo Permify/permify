@@ -12,18 +12,18 @@ import (
 	"github.com/Permify/permify/pkg/token"
 )
 
-// RelationshipWriterWithCircuitBreaker - Add circuit breaker behaviour to relationship writer
-type RelationshipWriterWithCircuitBreaker struct {
-	delegate storage.RelationshipWriter
+// DataWriterWithCircuitBreaker - Add circuit breaker behaviour to data writer
+type DataWriterWithCircuitBreaker struct {
+	delegate storage.DataWriter
 }
 
-// NewRelationshipWriterWithCircuitBreaker - Add circuit breaker behaviour to new relationship writer
-func NewRelationshipWriterWithCircuitBreaker(delegate storage.RelationshipWriter) *RelationshipWriterWithCircuitBreaker {
-	return &RelationshipWriterWithCircuitBreaker{delegate: delegate}
+// NewDataWriterWithCircuitBreaker - Add circuit breaker behaviour to new data writer
+func NewDataWriterWithCircuitBreaker(delegate storage.DataWriter) *DataWriterWithCircuitBreaker {
+	return &DataWriterWithCircuitBreaker{delegate: delegate}
 }
 
 // WriteRelationships - Write relation tuples from the repository
-func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Context, tenantID string, collection *database.TupleCollection) (token.EncodedSnapToken, error) {
+func (r *DataWriterWithCircuitBreaker) Write(ctx context.Context, tenantID string, tupleCollection *database.TupleCollection, attributeCollection *database.AttributeCollection) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.EncodedSnapToken
 		Error error
@@ -31,9 +31,9 @@ func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Co
 
 	output := make(chan circuitBreakerResponse, 1)
 
-	hystrix.ConfigureCommand("relationshipWriter.writeRelationships", hystrix.CommandConfig{Timeout: 1000})
-	bErrors := hystrix.Go("relationshipWriter.writeRelationships", func() error {
-		t, err := r.delegate.WriteRelationships(ctx, tenantID, collection)
+	hystrix.ConfigureCommand("dataWriter.write", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("dataWriter.write", func() error {
+		t, err := r.delegate.Write(ctx, tenantID, tupleCollection, attributeCollection)
 		output <- circuitBreakerResponse{Token: t, Error: err}
 		return nil
 	}, func(err error) error {
@@ -48,8 +48,8 @@ func (r *RelationshipWriterWithCircuitBreaker) WriteRelationships(ctx context.Co
 	}
 }
 
-// DeleteRelationships - Delete relation tuples from the repository
-func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter) (token.EncodedSnapToken, error) {
+// Delete - Delete relation tuples and attributes from the repository
+func (r *DataWriterWithCircuitBreaker) Delete(ctx context.Context, tenantID string, tupleFilter *base.TupleFilter, attrFilter *base.AttributeFilter) (token.EncodedSnapToken, error) {
 	type circuitBreakerResponse struct {
 		Token token.EncodedSnapToken
 		Error error
@@ -57,9 +57,9 @@ func (r *RelationshipWriterWithCircuitBreaker) DeleteRelationships(ctx context.C
 
 	output := make(chan circuitBreakerResponse, 1)
 
-	hystrix.ConfigureCommand("relationshipWriter.deleteRelationships", hystrix.CommandConfig{Timeout: 1000})
-	bErrors := hystrix.Go("relationshipWriter.deleteRelationships", func() error {
-		t, err := r.delegate.DeleteRelationships(ctx, tenantID, filter)
+	hystrix.ConfigureCommand("dataWriter.deleteRelationships", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("dataWriter.deleteRelationships", func() error {
+		t, err := r.delegate.Delete(ctx, tenantID, tupleFilter, attrFilter)
 		output <- circuitBreakerResponse{Token: t, Error: err}
 		return nil
 	}, func(err error) error {
