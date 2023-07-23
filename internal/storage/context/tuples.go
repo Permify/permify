@@ -1,4 +1,4 @@
-package storage
+package context
 
 import (
 	"golang.org/x/exp/slices"
@@ -32,7 +32,7 @@ func (c *ContextualTuples) filterTuples(filter *base.TupleFilter) []*base.Tuple 
 	// Iterate over the tuples
 	for _, tup := range c.Tuples {
 		// If a tuple matches the Entity, Relation, and Subject filters, add it to the filtered slice
-		if matchesEntityFilter(tup, filter.GetEntity()) &&
+		if matchesEntityFilterForTuples(tup, filter.GetEntity()) &&
 			matchesRelationFilter(tup, filter.GetRelation()) &&
 			matchesSubjectFilter(tup, filter.GetSubject()) {
 			filtered = append(filtered, tup)
@@ -43,7 +43,7 @@ func (c *ContextualTuples) filterTuples(filter *base.TupleFilter) []*base.Tuple 
 }
 
 // matchesEntityFilter checks if a Tuple matches the conditions in an EntityFilter.
-func matchesEntityFilter(tup *base.Tuple, filter *base.EntityFilter) bool {
+func matchesEntityFilterForTuples(tup *base.Tuple, filter *base.EntityFilter) bool {
 	// Return true if the filter is empty or the tuple's entity matches the filter
 	return (filter.GetType() == "" || tup.GetEntity().GetType() == filter.GetType()) &&
 		(len(filter.GetIds()) == 0 || slices.Contains(filter.GetIds(), tup.GetEntity().GetId()))

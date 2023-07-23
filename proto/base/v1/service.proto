@@ -1,8 +1,6 @@
 syntax = "proto3";
 package base.v1;
 
-import "google/protobuf/empty.proto";
-
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
 import "base/v1/base.proto";
@@ -128,7 +126,9 @@ message PermissionCheckRequest {
 
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
 
-  repeated Tuple contextual_tuples = 6 [json_name = "contextual_tuples"];
+  Context context = 6 [json_name = "context"];
+
+  repeated CallArgument arguments = 7 [json_name = "arguments"];
 }
 
 // PermissionCheckRequestMetadata
@@ -169,7 +169,7 @@ message PermissionExpandRequest {
     ignore_empty: true,
   }];
 
-  repeated Tuple contextual_tuples = 5 [json_name = "contextual_tuples"];
+  Context context = 5 [json_name = "context"];
 }
 
 // PermissionExpandRequestMetadata
@@ -209,7 +209,7 @@ message PermissionLookupEntityRequest {
 
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
 
-  repeated Tuple contextual_tuples = 6 [json_name = "contextual_tuples"];
+  Context context = 6 [json_name = "context"];
 }
 
 // PermissionLookupEntityRequestMetadata
@@ -243,7 +243,7 @@ message PermissionEntityFilterRequest {
 
   Subject subject = 4 [json_name = "subject"];
 
-  repeated Tuple contextual_tuples = 5 [json_name = "contextual_tuples"];
+  Context context = 5 [json_name = "context"];
 }
 
 // PermissionEntityFilterRequestMetadata
@@ -276,7 +276,7 @@ message PermissionLookupSubjectRequest {
 
   RelationReference subject_reference = 5 [json_name = "subject_reference"];
 
-  repeated Tuple contextual_tuples = 6 [json_name = "contextual_tuples"];
+  Context context = 6 [json_name = "context"];
 }
 
 // PermissionLookupSubjectRequestMetadata
@@ -305,7 +305,7 @@ message PermissionSubjectPermissionRequest {
 
   Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
 
-  repeated Tuple contextual_tuples = 5 [json_name = "contextual_tuples"];
+  Context context = 5 [json_name = "context"];
 }
 
 // PermissionCheckRequestMetadata
@@ -354,7 +354,7 @@ message WatchRequest {
 
 // WatchResponse
 message WatchResponse {
-  TupleChanges changes = 1 [json_name = "changes"];
+  DataChanges changes = 1 [json_name = "changes"];
 }
 
 // ** SCHEMA SERVICE **
@@ -435,7 +435,7 @@ message SchemaReadResponse {
 
 // ** RELATIONSHIP SERVICE **
 
-// Schema
+// Relationship
 service Relationship {
   rpc Write(RelationshipWriteRequest) returns (RelationshipWriteResponse) {
     option (google.api.http) = {

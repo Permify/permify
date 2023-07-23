@@ -221,7 +221,36 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 		}
 	}
 
-	for idx, item := range m.GetContextualTuples() {
+	if all {
+		switch v := interface{}(m.GetContext()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionCheckRequestValidationError{
+					field:  "Context",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionCheckRequestValidationError{
+					field:  "Context",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetContext()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionCheckRequestValidationError{
+				field:  "Context",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetArguments() {
 		_, _ = idx, item
 
 		if all {
@@ -229,7 +258,7 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, PermissionCheckRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
+						field:  fmt.Sprintf("Arguments[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -237,7 +266,7 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, PermissionCheckRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
+						field:  fmt.Sprintf("Arguments[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -246,7 +275,7 @@ func (m *PermissionCheckRequest) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return PermissionCheckRequestValidationError{
-					field:  fmt.Sprintf("ContextualTuples[%v]", idx),
+					field:  fmt.Sprintf("Arguments[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -845,38 +874,33 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 
 	}
 
-	for idx, item := range m.GetContextualTuples() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, PermissionExpandRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, PermissionExpandRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return PermissionExpandRequestValidationError{
-					field:  fmt.Sprintf("ContextualTuples[%v]", idx),
+	if all {
+		switch v := interface{}(m.GetContext()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionExpandRequestValidationError{
+					field:  "Context",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionExpandRequestValidationError{
+					field:  "Context",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
 		}
-
+	} else if v, ok := interface{}(m.GetContext()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionExpandRequestValidationError{
+				field:  "Context",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -1369,38 +1393,33 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 		}
 	}
 
-	for idx, item := range m.GetContextualTuples() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, PermissionLookupEntityRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, PermissionLookupEntityRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return PermissionLookupEntityRequestValidationError{
-					field:  fmt.Sprintf("ContextualTuples[%v]", idx),
+	if all {
+		switch v := interface{}(m.GetContext()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionLookupEntityRequestValidationError{
+					field:  "Context",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionLookupEntityRequestValidationError{
+					field:  "Context",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
 		}
-
+	} else if v, ok := interface{}(m.GetContext()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionLookupEntityRequestValidationError{
+				field:  "Context",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -1962,38 +1981,33 @@ func (m *PermissionEntityFilterRequest) validate(all bool) error {
 		}
 	}
 
-	for idx, item := range m.GetContextualTuples() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, PermissionEntityFilterRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, PermissionEntityFilterRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return PermissionEntityFilterRequestValidationError{
-					field:  fmt.Sprintf("ContextualTuples[%v]", idx),
+	if all {
+		switch v := interface{}(m.GetContext()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionEntityFilterRequestValidationError{
+					field:  "Context",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionEntityFilterRequestValidationError{
+					field:  "Context",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
 		}
-
+	} else if v, ok := interface{}(m.GetContext()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionEntityFilterRequestValidationError{
+				field:  "Context",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -2374,38 +2388,33 @@ func (m *PermissionLookupSubjectRequest) validate(all bool) error {
 		}
 	}
 
-	for idx, item := range m.GetContextualTuples() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, PermissionLookupSubjectRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, PermissionLookupSubjectRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return PermissionLookupSubjectRequestValidationError{
-					field:  fmt.Sprintf("ContextualTuples[%v]", idx),
+	if all {
+		switch v := interface{}(m.GetContext()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionLookupSubjectRequestValidationError{
+					field:  "Context",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionLookupSubjectRequestValidationError{
+					field:  "Context",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
 		}
-
+	} else if v, ok := interface{}(m.GetContext()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionLookupSubjectRequestValidationError{
+				field:  "Context",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -2871,38 +2880,33 @@ func (m *PermissionSubjectPermissionRequest) validate(all bool) error {
 		}
 	}
 
-	for idx, item := range m.GetContextualTuples() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, PermissionSubjectPermissionRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, PermissionSubjectPermissionRequestValidationError{
-						field:  fmt.Sprintf("ContextualTuples[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return PermissionSubjectPermissionRequestValidationError{
-					field:  fmt.Sprintf("ContextualTuples[%v]", idx),
+	if all {
+		switch v := interface{}(m.GetContext()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PermissionSubjectPermissionRequestValidationError{
+					field:  "Context",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PermissionSubjectPermissionRequestValidationError{
+					field:  "Context",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
 		}
-
+	} else if v, ok := interface{}(m.GetContext()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PermissionSubjectPermissionRequestValidationError{
+				field:  "Context",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
