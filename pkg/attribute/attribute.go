@@ -1,6 +1,7 @@
 package attribute
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -154,4 +155,57 @@ func AnyToString(any *anypb.Any) string {
 	}
 
 	return str
+}
+
+// TypeToString function takes an AttributeType enum and converts it into a string.
+func TypeToString(attributeType base.AttributeType) string {
+	switch attributeType {
+	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER:
+		return "integer"
+	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE:
+		return "double"
+	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
+		return "string"
+	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
+		return "boolean"
+	default:
+		return "undefined"
+	}
+}
+
+// ValidateValue checks the validity of the 'any' parameter which is a protobuf 'Any' type,
+// based on the attribute type provided.
+//
+// 'any' is a protobuf 'Any' type which should contain a value of a specific type.
+// 'attributeType' is an enum indicating the expected type of the value within 'any'.
+// The function returns an error if the value within 'any' is not of the expected type, or if unmarshalling fails.
+//
+// The function returns nil if the value is valid (i.e., it is of the expected type and can be successfully unmarshalled).
+func ValidateValue(any *anypb.Any, attributeType base.AttributeType) error {
+	// Declare a variable 'target' of type proto.Message to hold the unmarshalled value.
+	var target proto.Message
+
+	// Depending on the expected attribute type, assign 'target' a new instance of the corresponding specific type.
+	switch attributeType {
+	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER:
+		target = &wrapperspb.Int32Value{} // Expected integer type
+	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE:
+		target = &wrapperspb.DoubleValue{} // Expected double type
+	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
+		target = &wrapperspb.StringValue{} // Expected string type
+	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
+		target = &wrapperspb.BoolValue{} // Expected boolean type
+	default:
+		// If attributeType doesn't match any of the known types, return an error indicating invalid argument.
+		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+	}
+
+	// Attempt to unmarshal the value in 'any' into 'target'.
+	// If this fails, return the error from UnmarshalTo.
+	if err := any.UnmarshalTo(target); err != nil {
+		return err
+	}
+
+	// If the value was successfully unmarshalled and is of the expected type, return nil to indicate success.
+	return nil
 }

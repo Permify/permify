@@ -66,7 +66,7 @@ type DirectInvoker struct {
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
 	// relationshipReader is responsible for reading relationship information
-	relationshipReader storage.RelationshipReader
+	dataReader storage.DataReader
 	// Check engine for permission checks
 	cc Check
 	// Expand engine for expanding permissions
@@ -90,7 +90,7 @@ type DirectInvoker struct {
 // and returns an Invoker instance.
 func NewDirectInvoker(
 	schemaReader storage.SchemaReader,
-	relationshipReader storage.RelationshipReader,
+	dataReader storage.DataReader,
 	cc Check,
 	ec Expand,
 	le LookupEntity,
@@ -124,7 +124,7 @@ func NewDirectInvoker(
 
 	return &DirectInvoker{
 		schemaReader:             schemaReader,
-		relationshipReader:       relationshipReader,
+		dataReader:               dataReader,
 		cc:                       cc,
 		ec:                       ec,
 		le:                       le,
@@ -144,7 +144,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	ctx, span := tracer.Start(ctx, "check", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
-		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
+		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(tuple.RelationToString(request.GetPermission()))},
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
@@ -154,9 +154,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_RESULT_DENIED.String())})
+		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_CHECK_RESULT_DENIED.String())})
 		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_RESULT_DENIED,
+			Can: base.CheckResult_CHECK_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
@@ -166,13 +166,13 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	// Set the SnapToken if it's not provided in the request.
 	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
-		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_RESULT_DENIED.String())})
+			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_CHECK_RESULT_DENIED.String())})
 			return &base.PermissionCheckResponse{
-				Can: base.CheckResult_RESULT_DENIED,
+				Can: base.CheckResult_CHECK_RESULT_DENIED,
 				Metadata: &base.PermissionCheckResponseMetadata{
 					CheckCount: 0,
 				},
@@ -187,9 +187,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_RESULT_DENIED.String())})
+			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_CHECK_RESULT_DENIED.String())})
 			return &base.PermissionCheckResponse{
-				Can: base.CheckResult_RESULT_DENIED,
+				Can: base.CheckResult_CHECK_RESULT_DENIED,
 				Metadata: &base.PermissionCheckResponseMetadata{
 					CheckCount: 0,
 				},
@@ -205,9 +205,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_RESULT_DENIED.String())})
+		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_CHECK_RESULT_DENIED.String())})
 		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_RESULT_DENIED,
+			Can: base.CheckResult_CHECK_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
 				CheckCount: 0,
 			},
@@ -237,7 +237,7 @@ func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.Permissi
 
 	if request.GetMetadata().GetSnapToken() == "" {
 		var st token.SnapToken
-		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -273,7 +273,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
 		var st token.SnapToken
-		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -313,7 +313,7 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
 		var st token.SnapToken
-		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -354,7 +354,7 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 		// Create an instance of SnapToken
 		var st token.SnapToken
 		// Retrieve the head snapshot from the relationship reader
-		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId())
 		// If there's an error retrieving the snapshot, return the response and the error
 		if err != nil {
 			span.RecordError(err)
@@ -400,7 +400,7 @@ func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *ba
 		// Create an instance of SnapToken
 		var st token.SnapToken
 		// Retrieve the head snapshot from the relationship reader
-		st, err = invoker.relationshipReader.HeadSnapshot(ctx, request.GetTenantId())
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId())
 		// If there's an error retrieving the snapshot, return the response and the error
 		if err != nil {
 			span.RecordError(err)

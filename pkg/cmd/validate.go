@@ -14,10 +14,10 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	server_validation "github.com/Permify/permify/internal/validation"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
 	"github.com/Permify/permify/pkg/development/file"
-	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -101,7 +101,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		_, err = compiler.NewCompiler(true, sch).Compile()
+		_, _, err = compiler.NewCompiler(true, sch).Compile()
 		if err != nil {
 			return err
 		}
@@ -113,7 +113,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			cnf = append(cnf, storage.SchemaDefinition{
 				TenantID:             "t1",
 				Version:              version,
-				EntityType:           st.(*ast.EntityStatement).Name.Literal,
+				Name:                 st.GetName(),
 				SerializedDefinition: []byte(st.String()),
 			})
 		}
@@ -146,7 +146,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				continue
 			}
 
-			definition, _, err := dev.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+			definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
 			if err != nil {
 				return err
 			}
@@ -156,7 +156,36 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			_, err = dev.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(tup))
+			_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
+			if err != nil {
+				list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
+				color.Danger.Println(fmt.Sprintf("fail: %s failed %s", t, validationError(err.Error())))
+				continue
+			}
+
+			color.Success.Println(fmt.Sprintf("  success: %s ", t))
+		}
+
+		// write attributes
+		for _, t := range s.Attributes {
+			var attr *base.Attribute
+			attr, err = attribute.Attribute(t)
+			if err != nil {
+				list.Add(err.Error())
+				continue
+			}
+
+			definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+			if err != nil {
+				return err
+			}
+
+			err = server_validation.ValidateAttribute(definition, attr)
+			if err != nil {
+				return err
+			}
+
+			_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
 			if err != nil {
 				list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
 				color.Danger.Println(fmt.Sprintf("fail: %s failed %s", t, validationError(err.Error())))
@@ -193,22 +222,12 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					Relation: ear.GetRelation(),
 				}
 
-				var contextTuples []*base.Tuple
-
-				for _, t := range check.ContextualTuples {
-					tup, err := tuple.Tuple(t)
-					if err != nil {
-						list.Add(err.Error())
-						continue
-					}
-
-					contextTuples = append(contextTuples, tup)
-				}
+				var cont *base.Context
 
 				for permission, expected := range check.Assertions {
-					exp := base.CheckResult_RESULT_ALLOWED
+					exp := base.CheckResult_CHECK_RESULT_ALLOWED
 					if !expected {
-						exp = base.CheckResult_RESULT_DENIED
+						exp = base.CheckResult_CHECK_RESULT_DENIED
 					}
 
 					res, err := dev.Container.Invoker.Check(ctx, &base.PermissionCheckRequest{
@@ -218,10 +237,10 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							Depth:         100,
 						},
-						ContextualTuples: contextTuples,
-						Entity:           entity,
-						Permission:       permission,
-						Subject:          subject,
+						Context:    cont,
+						Entity:     entity,
+						Permission: permission,
+						Subject:    subject,
 					})
 					if err != nil {
 						list.Add(err.Error())
@@ -235,7 +254,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						fmt.Printf(" %s \n", query)
 					} else {
 						color.Danger.Printf("    fail: %s ->", query)
-						if res.Can == base.CheckResult_RESULT_ALLOWED {
+						if res.Can == base.CheckResult_CHECK_RESULT_ALLOWED {
 							color.Danger.Println("  expected: DENIED actual: ALLOWED ")
 							list.Add(fmt.Sprintf("%s -> expected: DENIED actual: ALLOWED ", query))
 						} else {
@@ -262,17 +281,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					Relation: ear.GetRelation(),
 				}
 
-				var contextTuples []*base.Tuple
-
-				for _, t := range filter.ContextualTuples {
-					tup, err := tuple.Tuple(t)
-					if err != nil {
-						list.Add(err.Error())
-						continue
-					}
-
-					contextTuples = append(contextTuples, tup)
-				}
+				var cont *base.Context
 
 				for permission, expected := range filter.Assertions {
 					res, err := dev.Container.Invoker.LookupEntity(ctx, &base.PermissionLookupEntityRequest{
@@ -282,10 +291,10 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							Depth:         100,
 						},
-						ContextualTuples: contextTuples,
-						EntityType:       filter.EntityType,
-						Permission:       permission,
-						Subject:          subject,
+						Context:    cont,
+						EntityType: filter.EntityType,
+						Permission: permission,
+						Subject:    subject,
 					})
 					if err != nil {
 						list.Add(err.Error())
@@ -317,17 +326,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					continue
 				}
 
-				var contextTuples []*base.Tuple
-
-				for _, t := range filter.ContextualTuples {
-					tup, err := tuple.Tuple(t)
-					if err != nil {
-						list.Add(err.Error())
-						continue
-					}
-
-					contextTuples = append(contextTuples, tup)
-				}
+				var cont *base.Context
 
 				for permission, expected := range filter.Assertions {
 					res, err := dev.Container.Invoker.LookupSubject(ctx, &base.PermissionLookupSubjectRequest{
@@ -336,7 +335,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							SchemaVersion: version,
 							SnapToken:     token.NewNoopToken().Encode().String(),
 						},
-						ContextualTuples: contextTuples,
+						Context:          cont,
 						SubjectReference: subjectReference,
 						Permission:       permission,
 						Entity:           entity,

@@ -8,6 +8,9 @@ type Shape struct {
 	// Relationships is a slice of strings that represent the authorization relationships.
 	Relationships []string `yaml:"relationships"`
 
+	// Attributes is a slice of strings that represent the authorization attributes.
+	Attributes []string `yaml:"attributes"`
+
 	// Scenarios is a slice of Scenario structs that represent the different authorization scenarios.
 	Scenarios []Scenario `yaml:"scenarios"`
 }
@@ -30,10 +33,22 @@ type Scenario struct {
 	SubjectFilters []SubjectFilter `yaml:"subject_filters"`
 }
 
+// Context represents a structure with context data.
+type Context struct {
+	// Tuples is a slice of strings, each representing a tuple in the context.
+	Tuples []string `yaml:"context"`
+
+	// Attributes is a slice of strings, each representing an attribute in the context.
+	Attributes []string `yaml:"attributes"`
+
+	// Data is a map where each key-value pair represents additional context data.
+	Data map[string]interface{} `yaml:"data"`
+}
+
 // Check is a struct that represents an individual authorization check.
 type Check struct {
-	// ContextualTuples is a slice of strings that represent the contextual tuples involved in the authorization check.
-	ContextualTuples []string `yaml:"contextual_tuples"`
+	// Context is a struct that represents the context of the authorization check.
+	Context Context `yaml:"context"`
 
 	// Entity is a string that represents the entity type involved in the authorization check.
 	Entity string `yaml:"entity"`
@@ -47,8 +62,8 @@ type Check struct {
 
 // EntityFilter is a struct that represents a filter to be applied during an authorization check.
 type EntityFilter struct {
-	// ContextualTuples is a slice of strings that represent the contextual tuples involved in the authorization check.
-	ContextualTuples []string `yaml:"contextual_tuples"`
+	// Context is a struct that represents the context of the authorization entity filter.
+	Context Context `yaml:"context"`
 
 	// EntityType is a string that represents the type of entity the filter applies to.
 	EntityType string `yaml:"entity_type"`
@@ -62,8 +77,8 @@ type EntityFilter struct {
 
 // SubjectFilter is a struct that represents a filter to be applied during an authorization check.
 type SubjectFilter struct {
-	// ContextualTuples is a slice of strings that represent the contextual tuples involved in the authorization check.
-	ContextualTuples []string `yaml:"contextual_tuples"`
+	// Context is a struct that represents the context of the authorization subject filter.
+	Context Context `yaml:"context"`
 
 	// EntityType is a string that represents the type of entity the filter applies to.
 	SubjectReference string `yaml:"subject_reference"`
