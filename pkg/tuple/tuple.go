@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	ENTITY    = "%s:%s" // format string for entity in the form of "<type>:<id>"
-	RELATION  = "#%s"   // format string for relation in the form of "#<relation>"
-	REFERENCE = "%s#%s" // format string for reference in the form of "<type>#<relation>"
+	ENTITY                 = "%s:%s"   // format string for entity in the form of "<type>:<id>"
+	RELATION               = "#%s"     // format string for relation in the form of "#<relation>"
+	RELATION_WITH_ARGUMENT = "#%s(%s)" // format string for relation in the form of "#<relation>"
+	REFERENCE              = "%s#%s"   // format string for reference in the form of "<type>#<relation>"
 )
 
 const (
@@ -56,7 +57,14 @@ func SubjectToEAR(subject *base.Subject) *base.EntityAndRelation {
 }
 
 // EntityAndRelationToString converts an EntityAndRelation object to string format
-func EntityAndRelationToString(entityAndRelation *base.EntityAndRelation) string {
+func EntityAndRelationToString(entityAndRelation *base.EntityAndRelation, arguments ...*base.CallArgument) string {
+	if len(arguments) > 0 {
+		var args []string
+		for _, arg := range arguments {
+			args = append(args, arg.GetComputedAttribute().GetName())
+		}
+		return EntityToString(entityAndRelation.GetEntity()) + fmt.Sprintf(RELATION_WITH_ARGUMENT, entityAndRelation.GetRelation(), strings.Join(args, ","))
+	}
 	return EntityToString(entityAndRelation.GetEntity()) + fmt.Sprintf(RELATION, entityAndRelation.GetRelation())
 }
 
