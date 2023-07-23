@@ -10,7 +10,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 )
@@ -29,7 +28,7 @@ func newSchema(model string) ([]storage.SchemaDefinition, error) {
 		return nil, err
 	}
 
-	_, err = compiler.NewCompiler(false, sch).Compile()
+	_, _, err = compiler.NewCompiler(false, sch).Compile()
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +40,7 @@ func newSchema(model string) ([]storage.SchemaDefinition, error) {
 		cnf = append(cnf, storage.SchemaDefinition{
 			TenantID:             "t1",
 			Version:              version,
-			EntityType:           st.(*ast.EntityStatement).Name.Literal,
+			Name:                 st.GetName(),
 			SerializedDefinition: []byte(st.String()),
 		})
 	}
