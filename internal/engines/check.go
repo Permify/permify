@@ -406,7 +406,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 // ComputedUserSet data structure. It returns a CheckFunction closure that performs the check.
 func (engine *CheckEngine) checkComputedUserSet(
 	request *base.PermissionCheckRequest, // The request containing details about the permission to be checked
-	cu *base.ComputedUserSet, // The computed user set containing user set information
+	cu *base.ComputedUserSet,             // The computed user set containing user set information
 ) CheckFunction {
 	// The returned CheckFunction invokes a permission check with a new request that is almost the same
 	// as the incoming request, but changes the Permission to be the relation defined in the computed user set.
@@ -510,7 +510,7 @@ func (engine *CheckEngine) checkDirectAttribute(
 // It returns a function (CheckFunction) that when called, performs the permission check.
 func (engine *CheckEngine) checkCall(
 	request *base.PermissionCheckRequest, // The request containing the details for the permission check
-	call *base.Call, // The specific call to be checked
+	call *base.Call,                      // The specific call to be checked
 ) CheckFunction {
 	// The function returned by checkCall
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
@@ -529,20 +529,41 @@ func (engine *CheckEngine) checkCall(
 		}
 
 		// Prepare the arguments map to be used in the CEL evaluation
-		arguments := map[string]interface{}{}
+		arguments := make(map[string]interface{})
+
+		// Prepare a slice for attributes
+		attributes := make([]string, 0)
 
 		// Populate the arguments map based on the type of argument in the call
-		var attributes []string
 		for _, arg := range call.GetArguments() {
-			switch arg.Type.(type) {
+			switch actualArg := arg.Type.(type) {
 			case *base.CallArgument_ComputedAttribute:
-				arguments[arg.GetComputedAttribute().GetName()] = nil
-				// For computed attributes, add them to the attributes list
-				attributes = append(attributes, arg.GetComputedAttribute().GetName())
+				// Get the name of the computed attribute
+				attrName := actualArg.ComputedAttribute.GetName()
+
+				// Get the empty value for this attribute type
+				emptyValue := getEmptyValueForType(ru.GetArguments()[attrName])
+
+				// Add the attribute with its empty value to the arguments map
+				arguments[attrName] = emptyValue
+
+				// Append the attribute to the attributes slice
+				attributes = append(attributes, attrName)
 			case *base.CallArgument_ContextAttribute:
-				arguments[arg.GetContextAttribute().GetName()] = request.GetContext().GetData().AsMap()[arg.GetContextAttribute().GetName()]
+				// Get the name of the context attribute
+				attrName := actualArg.ContextAttribute.GetName()
+
+				// Get the value of the context attribute if exists, else get an empty value
+				value, exists := request.GetContext().GetData().AsMap()[attrName]
+				if !exists {
+					value = getEmptyValueForType(ru.GetArguments()[attrName])
+				}
+
+				// Add the attribute with its value to the arguments map
+				arguments[attrName] = value
 			default:
-				return denied(&base.PermissionCheckResponseMetadata{}), errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String())
+				// Return an error for unhandled types
+				return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 		}
 

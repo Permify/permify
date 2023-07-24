@@ -122,3 +122,29 @@ func getDuplicates(s []string) []string {
 	// Return the slice that contains all the duplicated strings
 	return duplicatesSlice
 }
+
+// getEmptyValueForType is a helper function that takes a string representation of a type
+// and returns an "empty" value for that type.
+// An empty value is a value that is generally considered a default or initial state for a variable of a given type.
+// The purpose of this function is to be able to initialize a variable of a given type without knowing the type in advance.
+// The function uses a switch statement to handle different possible type values and returns a corresponding empty value.
+func getEmptyValueForType(typ base.AttributeType) interface{} {
+	switch typ {
+	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
+		// In the case of a string type, an empty string "" is considered the empty value.
+		return ""
+	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER:
+		// In the case of an integer type, zero (0) is considered the empty value.
+		return 0
+	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE:
+		// In the case of a double (or floating point) type, zero (0.0) is considered the empty value.
+		return 0.0
+	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
+		// In the case of a boolean type, false is considered the empty value.
+		return false
+	default:
+		// For any other types that are not explicitly handled, the function returns nil.
+		// This may need to be adjusted if there are other types that need specific empty values.
+		return nil
+	}
+}
