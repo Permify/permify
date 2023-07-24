@@ -4,7 +4,13 @@ sidebar_position: 1
 
 # Guide
 
-This guide shows how to set up Permify in your servers and use it across your applications. Set up and implementation consists of 4 steps,
+This guide shows you how to set up Permify in your servers and use it across your applications.
+
+:::info Minimum Requirements
+PostgreSQL: Version 13.8 or higher
+:::
+
+Please ensure your system meets these requirements before proceeding with the following steps:
 
 1. [Set Up & Run Permify Service](#set-up-permify-service)
 2. [Model your Authorization with Permify's DSL, Permify Schema](#model-your-authorization-with-permify-schema)
@@ -202,14 +208,14 @@ Lets get back to our example and perform an example access check via [Check API]
 
 **POST /v1/tenants/{tenant_id}/permissions/check**
 
-| Required | Argument | Type | Default | Description |
-|----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant in your system) use pre-inserted tenant **t1** for this field. 
-| [x]   | entity | object | - | name and id of the entity. Example: organization:1.
-| [x]   | action | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action  |
-| [ ]   | schema_version | string | - | get results according to given schema version|
-| [ ]   | depth | integer | 8 | |
+| Required | Argument       | Type     | Default | Description                                                                                                                                       |
+|----------|----------------|----------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| [x]      | tenant_id      | string   | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant in your system) use pre-inserted tenant **t1** for this field. |
+| [x]      | entity         | object   | -       | name and id of the entity. Example: organization:1.                                                                                               | 
+| [x]      | action         | string   | -       | the action the user wants to perform on the resource                                                                                              |
+| [x]      | subject        | object   | -       | the user or user set who wants to take the action                                                                                                 |
+| [ ]      | schema_version | string   | -       | get results according to given schema version                                                                                                     |
+| [ ]      | depth          | integer  | 8       | -                                                                                                                                                 |
 
 ### Request
 
