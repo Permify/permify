@@ -1288,7 +1288,7 @@ func RegisterDataHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/base.v1.Data/Delete", runtime.WithHTTPPathPattern("/v1/tenants/{tenant_id}/data/relationships/delete"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/base.v1.Data/Delete", runtime.WithHTTPPathPattern("/v1/tenants/{tenant_id}/data/delete"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1871,7 +1871,7 @@ func RegisterDataHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/base.v1.Data/Delete", runtime.WithHTTPPathPattern("/v1/tenants/{tenant_id}/data/relationships/delete"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/base.v1.Data/Delete", runtime.WithHTTPPathPattern("/v1/tenants/{tenant_id}/data/delete"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1897,7 +1897,7 @@ var (
 
 	pattern_Data_ReadAttributes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "tenants", "tenant_id", "data", "attributes", "read"}, ""))
 
-	pattern_Data_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "tenants", "tenant_id", "data", "relationships", "delete"}, ""))
+	pattern_Data_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 2, 4}, []string{"v1", "tenants", "tenant_id", "data", "delete"}, ""))
 )
 
 var (

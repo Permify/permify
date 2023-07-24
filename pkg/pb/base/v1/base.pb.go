@@ -25,13 +25,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// CheckResult
+// Enumerates results of a check operation.
 type CheckResult int32
 
 const (
+	// Not specified check result. This is the default value.
 	CheckResult_CHECK_RESULT_UNSPECIFIED CheckResult = 0
-	CheckResult_CHECK_RESULT_ALLOWED     CheckResult = 1
-	CheckResult_CHECK_RESULT_DENIED      CheckResult = 2
+	// Represents a successful check (the check allowed the operation).
+	CheckResult_CHECK_RESULT_ALLOWED CheckResult = 1
+	// Represents a failed check (the check denied the operation).
+	CheckResult_CHECK_RESULT_DENIED CheckResult = 2
 )
 
 // Enum value maps for CheckResult.
@@ -75,15 +78,20 @@ func (CheckResult) EnumDescriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{0}
 }
 
-// AttributeType
+// Enumerates the types of attribute.
 type AttributeType int32
 
 const (
+	// Not specified attribute type. This is the default value.
 	AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED AttributeType = 0
-	AttributeType_ATTRIBUTE_TYPE_BOOLEAN     AttributeType = 1
-	AttributeType_ATTRIBUTE_TYPE_STRING      AttributeType = 2
-	AttributeType_ATTRIBUTE_TYPE_INTEGER     AttributeType = 3
-	AttributeType_ATTRIBUTE_TYPE_DOUBLE      AttributeType = 4
+	// A boolean attribute type.
+	AttributeType_ATTRIBUTE_TYPE_BOOLEAN AttributeType = 1
+	// A string attribute type.
+	AttributeType_ATTRIBUTE_TYPE_STRING AttributeType = 2
+	// An integer attribute type.
+	AttributeType_ATTRIBUTE_TYPE_INTEGER AttributeType = 3
+	// A double attribute type.
+	AttributeType_ATTRIBUTE_TYPE_DOUBLE AttributeType = 4
 )
 
 // Enum value maps for AttributeType.
@@ -131,14 +139,17 @@ func (AttributeType) EnumDescriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{1}
 }
 
-// Operation
+// Operation enum includes potential rewrite operations.
+// OPERATION_UNION: Represents a union operation.
+// OPERATION_INTERSECTION: Represents an intersection operation.
+// OPERATION_EXCLUSION: Represents an exclusion operation.
 type Rewrite_Operation int32
 
 const (
-	Rewrite_OPERATION_UNSPECIFIED  Rewrite_Operation = 0
-	Rewrite_OPERATION_UNION        Rewrite_Operation = 1
-	Rewrite_OPERATION_INTERSECTION Rewrite_Operation = 2
-	Rewrite_OPERATION_EXCLUSION    Rewrite_Operation = 3
+	Rewrite_OPERATION_UNSPECIFIED  Rewrite_Operation = 0 // Default, unspecified operation.
+	Rewrite_OPERATION_UNION        Rewrite_Operation = 1 // Represents a union operation.
+	Rewrite_OPERATION_INTERSECTION Rewrite_Operation = 2 // Represents an intersection operation.
+	Rewrite_OPERATION_EXCLUSION    Rewrite_Operation = 3 // Represents an exclusion operation.
 )
 
 // Enum value maps for Rewrite_Operation.
@@ -184,13 +195,13 @@ func (Rewrite_Operation) EnumDescriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{3, 0}
 }
 
-// SchemaReference
+// The Reference enum helps distinguish whether a name corresponds to an entity or a rule.
 type SchemaDefinition_Reference int32
 
 const (
-	SchemaDefinition_REFERENCE_UNSPECIFIED SchemaDefinition_Reference = 0
-	SchemaDefinition_REFERENCE_ENTITY      SchemaDefinition_Reference = 1
-	SchemaDefinition_REFERENCE_RULE        SchemaDefinition_Reference = 2
+	SchemaDefinition_REFERENCE_UNSPECIFIED SchemaDefinition_Reference = 0 // Default, unspecified reference.
+	SchemaDefinition_REFERENCE_ENTITY      SchemaDefinition_Reference = 1 // Indicates that the name refers to an entity.
+	SchemaDefinition_REFERENCE_RULE        SchemaDefinition_Reference = 2 // Indicates that the name refers to a rule.
 )
 
 // Enum value maps for SchemaDefinition_Reference.
@@ -234,14 +245,14 @@ func (SchemaDefinition_Reference) EnumDescriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{4, 0}
 }
 
-// Reference
+// The Reference enum specifies whether a name pertains to a relation, permission, or attribute.
 type EntityDefinition_Reference int32
 
 const (
-	EntityDefinition_REFERENCE_UNSPECIFIED EntityDefinition_Reference = 0
-	EntityDefinition_REFERENCE_RELATION    EntityDefinition_Reference = 1
-	EntityDefinition_REFERENCE_PERMISSION  EntityDefinition_Reference = 2
-	EntityDefinition_REFERENCE_ATTRIBUTE   EntityDefinition_Reference = 3
+	EntityDefinition_REFERENCE_UNSPECIFIED EntityDefinition_Reference = 0 // Default, unspecified reference.
+	EntityDefinition_REFERENCE_RELATION    EntityDefinition_Reference = 1 // Indicates that the name refers to a relation.
+	EntityDefinition_REFERENCE_PERMISSION  EntityDefinition_Reference = 2 // Indicates that the name refers to a permission.
+	EntityDefinition_REFERENCE_ATTRIBUTE   EntityDefinition_Reference = 3 // Indicates that the name refers to an attribute.
 )
 
 // Enum value maps for EntityDefinition_Reference.
@@ -287,7 +298,7 @@ func (EntityDefinition_Reference) EnumDescriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{5, 0}
 }
 
-// Operation
+// Operation is an enum representing the type of operation to be applied on the tree node.
 type ExpandTreeNode_Operation int32
 
 const (
@@ -343,9 +354,9 @@ func (ExpandTreeNode_Operation) EnumDescriptor() ([]byte, []int) {
 type DataChange_Operation int32
 
 const (
-	DataChange_OPERATION_UNSPECIFIED DataChange_Operation = 0
-	DataChange_OPERATION_CREATE      DataChange_Operation = 1
-	DataChange_OPERATION_DELETE      DataChange_Operation = 2
+	DataChange_OPERATION_UNSPECIFIED DataChange_Operation = 0 // Default operation, not specified.
+	DataChange_OPERATION_CREATE      DataChange_Operation = 1 // Creation operation.
+	DataChange_OPERATION_DELETE      DataChange_Operation = 2 // Deletion operation.
 )
 
 // Enum value maps for DataChange_Operation.
@@ -389,14 +400,19 @@ func (DataChange_Operation) EnumDescriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{33, 0}
 }
 
+// Context encapsulates the information related to a single operation,
+// including the tuples involved and the associated attributes.
 type Context struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Tuples     []*Tuple         `protobuf:"bytes,1,rep,name=tuples,proto3" json:"tuples,omitempty"`
-	Attributes []*Attribute     `protobuf:"bytes,2,rep,name=attributes,proto3" json:"attributes,omitempty"`
-	Data       *structpb.Struct `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	// A repeated field of tuples involved in the operation.
+	Tuples []*Tuple `protobuf:"bytes,1,rep,name=tuples,proto3" json:"tuples,omitempty"`
+	// A repeated field of attributes associated with the operation.
+	Attributes []*Attribute `protobuf:"bytes,2,rep,name=attributes,proto3" json:"attributes,omitempty"`
+	// Additional data associated with the context.
+	Data *structpb.Struct `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (x *Context) Reset() {
@@ -452,12 +468,14 @@ func (x *Context) GetData() *structpb.Struct {
 	return nil
 }
 
-// Child
+// Child represents a node in the permission tree.
 type Child struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Child node can be either a leaf or a rewrite operation.
+	//
 	// Types that are assignable to Type:
 	//
 	//	*Child_Leaf
@@ -523,10 +541,12 @@ type isChild_Type interface {
 }
 
 type Child_Leaf struct {
+	// Leaf node in the permission tree.
 	Leaf *Leaf `protobuf:"bytes,1,opt,name=leaf,proto3,oneof"`
 }
 
 type Child_Rewrite struct {
+	// Rewrite operation in the permission tree.
 	Rewrite *Rewrite `protobuf:"bytes,2,opt,name=rewrite,proto3,oneof"`
 }
 
@@ -534,12 +554,14 @@ func (*Child_Leaf) isChild_Type() {}
 
 func (*Child_Rewrite) isChild_Type() {}
 
-// Leaf
+// Leaf represents a leaf node in the permission tree.
 type Leaf struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Leaf node can be one of several types.
+	//
 	// Types that are assignable to Type:
 	//
 	//	*Leaf_ComputedUserSet
@@ -621,18 +643,22 @@ type isLeaf_Type interface {
 }
 
 type Leaf_ComputedUserSet struct {
+	// A computed set of users.
 	ComputedUserSet *ComputedUserSet `protobuf:"bytes,1,opt,name=computed_user_set,json=computedUserSet,proto3,oneof"`
 }
 
 type Leaf_TupleToUserSet struct {
+	// A tuple to user set conversion.
 	TupleToUserSet *TupleToUserSet `protobuf:"bytes,2,opt,name=tuple_to_user_set,json=tupleToUserSet,proto3,oneof"`
 }
 
 type Leaf_ComputedAttribute struct {
+	// A computed attribute.
 	ComputedAttribute *ComputedAttribute `protobuf:"bytes,3,opt,name=computed_attribute,json=computedAttribute,proto3,oneof"`
 }
 
 type Leaf_Call struct {
+	// A call to a function or method.
 	Call *Call `protobuf:"bytes,4,opt,name=call,proto3,oneof"`
 }
 
@@ -644,14 +670,17 @@ func (*Leaf_ComputedAttribute) isLeaf_Type() {}
 
 func (*Leaf_Call) isLeaf_Type() {}
 
-// Rewrite
+// The Rewrite message represents a specific rewrite operation.
+// This operation could be one of the following: union, intersection, or exclusion.
 type Rewrite struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The type of rewrite operation to be performed.
 	RewriteOperation Rewrite_Operation `protobuf:"varint,1,opt,name=rewrite_operation,json=rewriteOperation,proto3,enum=base.v1.Rewrite_Operation" json:"rewrite_operation,omitempty"`
-	Children         []*Child          `protobuf:"bytes,2,rep,name=children,proto3" json:"children,omitempty"`
+	// A list of children that are operated upon by the rewrite operation.
+	Children []*Child `protobuf:"bytes,2,rep,name=children,proto3" json:"children,omitempty"`
 }
 
 func (x *Rewrite) Reset() {
@@ -700,15 +729,18 @@ func (x *Rewrite) GetChildren() []*Child {
 	return nil
 }
 
-// SchemaDefinition
+// The SchemaDefinition message provides definitions for entities and rules,
+// and includes references to clarify whether a name refers to an entity or a rule.
 type SchemaDefinition struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Map of entity definitions. The key is the entity name, and the value is the corresponding EntityDefinition.
 	EntityDefinitions map[string]*EntityDefinition `protobuf:"bytes,1,rep,name=entity_definitions,json=entityDefinitions,proto3" json:"entity_definitions,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	RuleDefinitions   map[string]*RuleDefinition   `protobuf:"bytes,2,rep,name=rule_definitions,json=ruleDefinitions,proto3" json:"rule_definitions,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// ["entity_name , rule_name"] => Reference
+	// Map of rule definitions. The key is the rule name, and the value is the corresponding RuleDefinition.
+	RuleDefinitions map[string]*RuleDefinition `protobuf:"bytes,2,rep,name=rule_definitions,json=ruleDefinitions,proto3" json:"rule_definitions,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Map of references to signify whether a string refers to an entity or a rule.
 	References map[string]SchemaDefinition_Reference `protobuf:"bytes,3,rep,name=references,proto3" json:"references,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=base.v1.SchemaDefinition_Reference"`
 }
 
@@ -765,20 +797,21 @@ func (x *SchemaDefinition) GetReferences() map[string]SchemaDefinition_Reference
 	return nil
 }
 
-// EntityDefinition
+// The EntityDefinition message provides detailed information about a specific entity.
 type EntityDefinition struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The name of the entity, which follows a specific string pattern and has a maximum byte size.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// ["relation_name"] => RelationDefinition
+	// Map of relation definitions within this entity. The key is the relation name, and the value is the RelationDefinition.
 	Relations map[string]*RelationDefinition `protobuf:"bytes,2,rep,name=relations,proto3" json:"relations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// ["permission_name"] => PermissionDefinition
+	// Map of permission definitions within this entity. The key is the permission name, and the value is the PermissionDefinition.
 	Permissions map[string]*PermissionDefinition `protobuf:"bytes,3,rep,name=permissions,proto3" json:"permissions,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// ["attribute_name"] => AttributeDefinition
+	// Map of attribute definitions within this entity. The key is the attribute name, and the value is the AttributeDefinition.
 	Attributes map[string]*AttributeDefinition `protobuf:"bytes,4,rep,name=attributes,proto3" json:"attributes,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// ["relation_name , permission_name, attribute_name"] => Reference
+	// Map of references indicating whether a string pertains to a relation, permission, or attribute.
 	References map[string]EntityDefinition_Reference `protobuf:"bytes,5,rep,name=references,proto3" json:"references,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=base.v1.EntityDefinition_Reference"`
 }
 
@@ -849,16 +882,18 @@ func (x *EntityDefinition) GetReferences() map[string]EntityDefinition_Reference
 	return nil
 }
 
-// RuleDefinition
+// The RuleDefinition message provides detailed information about a specific rule.
 type RuleDefinition struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The name of the rule, which follows a specific string pattern and has a maximum byte size.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// ["attribute_name"] => AttributeType
-	Arguments  map[string]AttributeType `protobuf:"bytes,2,rep,name=arguments,proto3" json:"arguments,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=base.v1.AttributeType"`
-	Expression *v1alpha1.CheckedExpr    `protobuf:"bytes,3,opt,name=expression,proto3" json:"expression,omitempty"`
+	// Map of arguments for this rule. The key is the attribute name, and the value is the AttributeType.
+	Arguments map[string]AttributeType `protobuf:"bytes,2,rep,name=arguments,proto3" json:"arguments,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=base.v1.AttributeType"`
+	// The expression for this rule in the form of a google.api.expr.v1alpha1.CheckedExpr.
+	Expression *v1alpha1.CheckedExpr `protobuf:"bytes,3,opt,name=expression,proto3" json:"expression,omitempty"`
 }
 
 func (x *RuleDefinition) Reset() {
@@ -914,13 +949,15 @@ func (x *RuleDefinition) GetExpression() *v1alpha1.CheckedExpr {
 	return nil
 }
 
-// RelationDefinition
+// The AttributeDefinition message provides detailed information about a specific attribute.
 type AttributeDefinition struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name string        `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The name of the attribute, which follows a specific string pattern and has a maximum byte size.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The type of the attribute.
 	Type AttributeType `protobuf:"varint,2,opt,name=type,proto3,enum=base.v1.AttributeType" json:"type,omitempty"`
 }
 
@@ -970,13 +1007,15 @@ func (x *AttributeDefinition) GetType() AttributeType {
 	return AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED
 }
 
-// RelationDefinition
+// The RelationDefinition message provides detailed information about a specific relation.
 type RelationDefinition struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name               string               `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The name of the relation, which follows a specific string pattern and has a maximum byte size.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// A list of references to other relations.
 	RelationReferences []*RelationReference `protobuf:"bytes,2,rep,name=relation_references,json=relationReferences,proto3" json:"relation_references,omitempty"`
 }
 
@@ -1026,13 +1065,15 @@ func (x *RelationDefinition) GetRelationReferences() []*RelationReference {
 	return nil
 }
 
-// PermissionDefinition
+// The PermissionDefinition message provides detailed information about a specific permission.
 type PermissionDefinition struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name  string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The name of the permission, which follows a specific string pattern and has a maximum byte size.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The child related to this permission.
 	Child *Child `protobuf:"bytes,2,opt,name=child,proto3" json:"child,omitempty"`
 }
 
@@ -1082,13 +1123,15 @@ func (x *PermissionDefinition) GetChild() *Child {
 	return nil
 }
 
-// RelationReference
+// The RelationReference message provides a reference to a specific relation.
 type RelationReference struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Type     string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// The type of the referenced entity, which follows a specific string pattern and has a maximum byte size.
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// The name of the referenced relation, which follows a specific string pattern and has a maximum byte size.
 	Relation string `protobuf:"bytes,2,opt,name=relation,proto3" json:"relation,omitempty"`
 }
 
@@ -1138,7 +1181,7 @@ func (x *RelationReference) GetRelation() string {
 	return ""
 }
 
-// CallArgument
+// CallArgument defines the type of argument in a Call. It can be either a ComputedAttribute or a ContextAttribute.
 type CallArgument struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1220,14 +1263,14 @@ func (*CallArgument_ComputedAttribute) isCallArgument_Type() {}
 
 func (*CallArgument_ContextAttribute) isCallArgument_Type() {}
 
-// Call
+// Call represents a call to a rule. It includes the name of the rule and the arguments passed to it.
 type Call struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	RuleName  string          `protobuf:"bytes,1,opt,name=rule_name,json=ruleName,proto3" json:"rule_name,omitempty"`
-	Arguments []*CallArgument `protobuf:"bytes,2,rep,name=arguments,proto3" json:"arguments,omitempty"`
+	RuleName  string          `protobuf:"bytes,1,opt,name=rule_name,json=ruleName,proto3" json:"rule_name,omitempty"` // Name of the rule
+	Arguments []*CallArgument `protobuf:"bytes,2,rep,name=arguments,proto3" json:"arguments,omitempty"`               // Arguments passed to the rule
 }
 
 func (x *Call) Reset() {
@@ -1276,13 +1319,13 @@ func (x *Call) GetArguments() []*CallArgument {
 	return nil
 }
 
-// ComputedUserSet
+// ComputedAttribute defines a computed attribute which includes its name.
 type ComputedAttribute struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // Name of the computed attribute
 }
 
 func (x *ComputedAttribute) Reset() {
@@ -1324,13 +1367,13 @@ func (x *ComputedAttribute) GetName() string {
 	return ""
 }
 
-// ContextAttribute
+// ContextAttribute defines a context attribute which includes its name.
 type ContextAttribute struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // Name of the context attribute
 }
 
 func (x *ContextAttribute) Reset() {
@@ -1372,13 +1415,13 @@ func (x *ContextAttribute) GetName() string {
 	return ""
 }
 
-// ComputedUserSet
+// ComputedUserSet defines a set of computed users which includes the relation name.
 type ComputedUserSet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Relation string `protobuf:"bytes,1,opt,name=relation,proto3" json:"relation,omitempty"`
+	Relation string `protobuf:"bytes,1,opt,name=relation,proto3" json:"relation,omitempty"` // Relation name
 }
 
 func (x *ComputedUserSet) Reset() {
@@ -1420,14 +1463,14 @@ func (x *ComputedUserSet) GetRelation() string {
 	return ""
 }
 
-// TupleToUserSet
+// TupleToUserSet defines a mapping from tuple sets to computed user sets.
 type TupleToUserSet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TupleSet *TupleSet        `protobuf:"bytes,1,opt,name=tupleSet,proto3" json:"tupleSet,omitempty"`
-	Computed *ComputedUserSet `protobuf:"bytes,2,opt,name=computed,proto3" json:"computed,omitempty"`
+	TupleSet *TupleSet        `protobuf:"bytes,1,opt,name=tupleSet,proto3" json:"tupleSet,omitempty"` // The tuple set
+	Computed *ComputedUserSet `protobuf:"bytes,2,opt,name=computed,proto3" json:"computed,omitempty"` // The computed user set
 }
 
 func (x *TupleToUserSet) Reset() {
@@ -1476,7 +1519,7 @@ func (x *TupleToUserSet) GetComputed() *ComputedUserSet {
 	return nil
 }
 
-// TupleSet
+// TupleSet represents a set of tuples associated with a specific relation.
 type TupleSet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1524,7 +1567,7 @@ func (x *TupleSet) GetRelation() string {
 	return ""
 }
 
-// Tuple
+// Tuple is a structure that includes an entity, a relation, and a subject.
 type Tuple struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1588,16 +1631,16 @@ func (x *Tuple) GetSubject() *Subject {
 	return nil
 }
 
-// Attribute
+// Attribute represents an attribute of an entity with a specific type and value.
 type Attribute struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	Entity    *Entity    `protobuf:"bytes,1,opt,name=entity,proto3" json:"entity,omitempty"`
-	Attribute string     `protobuf:"bytes,2,opt,name=attribute,proto3" json:"attribute,omitempty"`
-	Type      string     `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
-	Value     *anypb.Any `protobuf:"bytes,4,opt,name=value,proto3" json:"value,omitempty"`
+	Attribute string     `protobuf:"bytes,2,opt,name=attribute,proto3" json:"attribute,omitempty"` // Name of the attribute
+	Type      string     `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`           // Type of the attribute
+	Value     *anypb.Any `protobuf:"bytes,4,opt,name=value,proto3" json:"value,omitempty"`         // Value of the attribute
 }
 
 func (x *Attribute) Reset() {
@@ -1660,7 +1703,7 @@ func (x *Attribute) GetValue() *anypb.Any {
 	return nil
 }
 
-// Tuples
+// Tuples is a collection of tuples.
 type Tuples struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1708,7 +1751,7 @@ func (x *Tuples) GetTuples() []*Tuple {
 	return nil
 }
 
-// Entity
+// Entity represents an entity with a type and an identifier.
 type Entity struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1764,6 +1807,7 @@ func (x *Entity) GetId() string {
 	return ""
 }
 
+// EntityAndRelation represents an entity along with a relation.
 type EntityAndRelation struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1819,7 +1863,7 @@ func (x *EntityAndRelation) GetRelation() string {
 	return ""
 }
 
-// Subject
+// Subject represents an entity subject with a type, an identifier, and a relation.
 type Subject struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1883,14 +1927,14 @@ func (x *Subject) GetRelation() string {
 	return ""
 }
 
-// AttributesFilter is used to filter attributes
+// AttributeFilter is used to filter attributes based on the entity and attribute names.
 type AttributeFilter struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	Entity     *EntityFilter `protobuf:"bytes,1,opt,name=entity,proto3" json:"entity,omitempty"`
-	Attributes []string      `protobuf:"bytes,2,rep,name=attributes,proto3" json:"attributes,omitempty"`
+	Attributes []string      `protobuf:"bytes,2,rep,name=attributes,proto3" json:"attributes,omitempty"` // Names of the attributes to be filtered
 }
 
 func (x *AttributeFilter) Reset() {
@@ -1939,7 +1983,7 @@ func (x *AttributeFilter) GetAttributes() []string {
 	return nil
 }
 
-// TupleFilter is used to filter tuples
+// TupleFilter is used to filter tuples based on the entity, relation and the subject.
 type TupleFilter struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1947,7 +1991,7 @@ type TupleFilter struct {
 
 	Entity   *EntityFilter  `protobuf:"bytes,1,opt,name=entity,proto3" json:"entity,omitempty"`
 	Relation string         `protobuf:"bytes,2,opt,name=relation,proto3" json:"relation,omitempty"`
-	Subject  *SubjectFilter `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"`
+	Subject  *SubjectFilter `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"` // The subject filter
 }
 
 func (x *TupleFilter) Reset() {
@@ -2003,14 +2047,14 @@ func (x *TupleFilter) GetSubject() *SubjectFilter {
 	return nil
 }
 
-// EntityFilter is used to filter entities
+// EntityFilter is used to filter entities based on the type and ids.
 type EntityFilter struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Type string   `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Ids  []string `protobuf:"bytes,2,rep,name=ids,proto3" json:"ids,omitempty"`
+	Type string   `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"` // Type of the entity
+	Ids  []string `protobuf:"bytes,2,rep,name=ids,proto3" json:"ids,omitempty"`   // List of entity IDs
 }
 
 func (x *EntityFilter) Reset() {
@@ -2059,14 +2103,14 @@ func (x *EntityFilter) GetIds() []string {
 	return nil
 }
 
-// SubjectFilter is used to filter subjects
+// SubjectFilter is used to filter subjects based on the type, ids and relation.
 type SubjectFilter struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Type     string   `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Ids      []string `protobuf:"bytes,2,rep,name=ids,proto3" json:"ids,omitempty"`
+	Type     string   `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"` // Type of the subject
+	Ids      []string `protobuf:"bytes,2,rep,name=ids,proto3" json:"ids,omitempty"`   // List of subject IDs
 	Relation string   `protobuf:"bytes,3,opt,name=relation,proto3" json:"relation,omitempty"`
 }
 
@@ -2123,14 +2167,14 @@ func (x *SubjectFilter) GetRelation() string {
 	return ""
 }
 
-// ExpandTreeNode
+// ExpandTreeNode represents a node in an expansion tree with a specific operation and its children.
 type ExpandTreeNode struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Operation ExpandTreeNode_Operation `protobuf:"varint,1,opt,name=operation,proto3,enum=base.v1.ExpandTreeNode_Operation" json:"operation,omitempty"`
-	Children  []*Expand                `protobuf:"bytes,2,rep,name=children,proto3" json:"children,omitempty"`
+	Operation ExpandTreeNode_Operation `protobuf:"varint,1,opt,name=operation,proto3,enum=base.v1.ExpandTreeNode_Operation" json:"operation,omitempty"` // Operation to be applied on this tree node
+	Children  []*Expand                `protobuf:"bytes,2,rep,name=children,proto3" json:"children,omitempty"`                                          // The children of this tree node
 }
 
 func (x *ExpandTreeNode) Reset() {
@@ -2179,13 +2223,13 @@ func (x *ExpandTreeNode) GetChildren() []*Expand {
 	return nil
 }
 
-// Expand
+// Expand is used to define a hierarchical structure, having a target and either another hierarchical structure or a set of subjects as a node.
 type Expand struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Target *EntityAndRelation `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Target *EntityAndRelation `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"` // The target entity and relation.
 	// Types that are assignable to Node:
 	//
 	//	*Expand_Expand
@@ -2258,24 +2302,24 @@ type isExpand_Node interface {
 }
 
 type Expand_Expand struct {
-	Expand *ExpandTreeNode `protobuf:"bytes,2,opt,name=expand,proto3,oneof"`
+	Expand *ExpandTreeNode `protobuf:"bytes,2,opt,name=expand,proto3,oneof"` // This contains the hierarchical structure (an expansion tree).
 }
 
 type Expand_Leaf struct {
-	Leaf *Subjects `protobuf:"bytes,3,opt,name=leaf,proto3,oneof"`
+	Leaf *Subjects `protobuf:"bytes,3,opt,name=leaf,proto3,oneof"` // This contains a set of subjects.
 }
 
 func (*Expand_Expand) isExpand_Node() {}
 
 func (*Expand_Leaf) isExpand_Node() {}
 
-// Result
+// Subjects holds a repeated field of Subject type.
 type Subjects struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Subjects []*Subject `protobuf:"bytes,1,rep,name=subjects,proto3" json:"subjects,omitempty"`
+	Subjects []*Subject `protobuf:"bytes,1,rep,name=subjects,proto3" json:"subjects,omitempty"` // A list of subjects.
 }
 
 func (x *Subjects) Reset() {
@@ -2317,15 +2361,15 @@ func (x *Subjects) GetSubjects() []*Subject {
 	return nil
 }
 
-// Tenant
+// Tenant represents a tenant with an id, a name, and a timestamp indicating when it was created.
 type Tenant struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name      string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,proto3" json:"created_at,omitempty"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                 // The ID of the tenant.
+	Name      string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`             // The name of the tenant.
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,proto3" json:"created_at,omitempty"` // The time at which the tenant was created.
 }
 
 func (x *Tenant) Reset() {
@@ -2381,14 +2425,14 @@ func (x *Tenant) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-// DataChanges
+// DataChanges represent changes in data with a snap token and a list of data change objects.
 type DataChanges struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SnapToken   string        `protobuf:"bytes,1,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
-	DataChanges []*DataChange `protobuf:"bytes,2,rep,name=data_changes,proto3" json:"data_changes,omitempty"`
+	SnapToken   string        `protobuf:"bytes,1,opt,name=snap_token,proto3" json:"snap_token,omitempty"`     // The snapshot token.
+	DataChanges []*DataChange `protobuf:"bytes,2,rep,name=data_changes,proto3" json:"data_changes,omitempty"` // The list of data changes.
 }
 
 func (x *DataChanges) Reset() {
@@ -2437,13 +2481,13 @@ func (x *DataChanges) GetDataChanges() []*DataChange {
 	return nil
 }
 
-// DataChange
+// DataChange represents a single change in data, with an operation type and the actual change which could be a tuple or an attribute.
 type DataChange struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Operation DataChange_Operation `protobuf:"varint,1,opt,name=operation,proto3,enum=base.v1.DataChange_Operation" json:"operation,omitempty"`
+	Operation DataChange_Operation `protobuf:"varint,1,opt,name=operation,proto3,enum=base.v1.DataChange_Operation" json:"operation,omitempty"` // The operation type.
 	// Types that are assignable to Type:
 	//
 	//	*DataChange_Tuple
@@ -2516,11 +2560,11 @@ type isDataChange_Type interface {
 }
 
 type DataChange_Tuple struct {
-	Tuple *Tuple `protobuf:"bytes,2,opt,name=tuple,proto3,oneof"`
+	Tuple *Tuple `protobuf:"bytes,2,opt,name=tuple,proto3,oneof"` // If the change is a tuple.
 }
 
 type DataChange_Attribute struct {
-	Attribute *Attribute `protobuf:"bytes,3,opt,name=attribute,proto3,oneof"`
+	Attribute *Attribute `protobuf:"bytes,3,opt,name=attribute,proto3,oneof"` // If the change is an attribute.
 }
 
 func (*DataChange_Tuple) isDataChange_Type() {}

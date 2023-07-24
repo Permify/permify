@@ -31,11 +31,24 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PermissionClient interface {
+	// Check method receives a PermissionCheckRequest and returns a PermissionCheckResponse.
+	// It is used to determine whether a specific user has permission to perform an action on a resource.
+	// For example, "Can the user 1 push to repository 1?"
 	Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResponse, error)
+	// Expand method receives a PermissionExpandRequest and returns a PermissionExpandResponse.
+	// It expands relationships according to the schema provided.
 	Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error)
+	// LookupEntity method receives a PermissionLookupEntityRequest and returns a PermissionLookupEntityResponse.
+	// It is used to retrieve an entity by its identifier.
 	LookupEntity(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (*PermissionLookupEntityResponse, error)
+	// LookupEntityStream method receives a PermissionLookupEntityRequest and streams a series of PermissionLookupEntityStreamResponse messages.
+	// It is used to retrieve entities by their identifiers in a streaming fashion.
 	LookupEntityStream(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (Permission_LookupEntityStreamClient, error)
+	// LookupSubject method receives a PermissionLookupSubjectRequest and returns a PermissionLookupSubjectResponse.
+	// It is used to retrieve a subject by its identifier.
 	LookupSubject(ctx context.Context, in *PermissionLookupSubjectRequest, opts ...grpc.CallOption) (*PermissionLookupSubjectResponse, error)
+	// SubjectPermission method receives a PermissionSubjectPermissionRequest and returns a PermissionSubjectPermissionResponse.
+	// It is used to retrieve permissions related to a specific subject.
 	SubjectPermission(ctx context.Context, in *PermissionSubjectPermissionRequest, opts ...grpc.CallOption) (*PermissionSubjectPermissionResponse, error)
 }
 
@@ -128,11 +141,24 @@ func (c *permissionClient) SubjectPermission(ctx context.Context, in *Permission
 // All implementations must embed UnimplementedPermissionServer
 // for forward compatibility
 type PermissionServer interface {
+	// Check method receives a PermissionCheckRequest and returns a PermissionCheckResponse.
+	// It is used to determine whether a specific user has permission to perform an action on a resource.
+	// For example, "Can the user 1 push to repository 1?"
 	Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResponse, error)
+	// Expand method receives a PermissionExpandRequest and returns a PermissionExpandResponse.
+	// It expands relationships according to the schema provided.
 	Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error)
+	// LookupEntity method receives a PermissionLookupEntityRequest and returns a PermissionLookupEntityResponse.
+	// It is used to retrieve an entity by its identifier.
 	LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error)
+	// LookupEntityStream method receives a PermissionLookupEntityRequest and streams a series of PermissionLookupEntityStreamResponse messages.
+	// It is used to retrieve entities by their identifiers in a streaming fashion.
 	LookupEntityStream(*PermissionLookupEntityRequest, Permission_LookupEntityStreamServer) error
+	// LookupSubject method receives a PermissionLookupSubjectRequest and returns a PermissionLookupSubjectResponse.
+	// It is used to retrieve a subject by its identifier.
 	LookupSubject(context.Context, *PermissionLookupSubjectRequest) (*PermissionLookupSubjectResponse, error)
+	// SubjectPermission method receives a PermissionSubjectPermissionRequest and returns a PermissionSubjectPermissionResponse.
+	// It is used to retrieve permissions related to a specific subject.
 	SubjectPermission(context.Context, *PermissionSubjectPermissionRequest) (*PermissionSubjectPermissionResponse, error)
 	mustEmbedUnimplementedPermissionServer()
 }
@@ -447,7 +473,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SchemaClient interface {
+	// Write is an RPC that allows you to write your authorization model.
 	Write(ctx context.Context, in *SchemaWriteRequest, opts ...grpc.CallOption) (*SchemaWriteResponse, error)
+	// Read is an RPC that allows you to read your authorization model.
 	Read(ctx context.Context, in *SchemaReadRequest, opts ...grpc.CallOption) (*SchemaReadResponse, error)
 }
 
@@ -481,7 +509,9 @@ func (c *schemaClient) Read(ctx context.Context, in *SchemaReadRequest, opts ...
 // All implementations must embed UnimplementedSchemaServer
 // for forward compatibility
 type SchemaServer interface {
+	// Write is an RPC that allows you to write your authorization model.
 	Write(context.Context, *SchemaWriteRequest) (*SchemaWriteResponse, error)
+	// Read is an RPC that allows you to read your authorization model.
 	Read(context.Context, *SchemaReadRequest) (*SchemaReadResponse, error)
 	mustEmbedUnimplementedSchemaServer()
 }
@@ -576,9 +606,13 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DataClient interface {
+	// The Write RPC method creates a new relation tuple.
 	Write(ctx context.Context, in *DataWriteRequest, opts ...grpc.CallOption) (*DataWriteResponse, error)
+	// The ReadRelationships RPC method reads relation tuple(s).
 	ReadRelationships(ctx context.Context, in *RelationshipReadRequest, opts ...grpc.CallOption) (*RelationshipReadResponse, error)
+	// The ReadAttributes RPC method reads attribute(s) of a relation.
 	ReadAttributes(ctx context.Context, in *AttributeReadRequest, opts ...grpc.CallOption) (*AttributeReadResponse, error)
+	// The Delete RPC method deletes a relation tuple.
 	Delete(ctx context.Context, in *DataDeleteRequest, opts ...grpc.CallOption) (*DataDeleteResponse, error)
 }
 
@@ -630,9 +664,13 @@ func (c *dataClient) Delete(ctx context.Context, in *DataDeleteRequest, opts ...
 // All implementations must embed UnimplementedDataServer
 // for forward compatibility
 type DataServer interface {
+	// The Write RPC method creates a new relation tuple.
 	Write(context.Context, *DataWriteRequest) (*DataWriteResponse, error)
+	// The ReadRelationships RPC method reads relation tuple(s).
 	ReadRelationships(context.Context, *RelationshipReadRequest) (*RelationshipReadResponse, error)
+	// The ReadAttributes RPC method reads attribute(s) of a relation.
 	ReadAttributes(context.Context, *AttributeReadRequest) (*AttributeReadResponse, error)
+	// The Delete RPC method deletes a relation tuple.
 	Delete(context.Context, *DataDeleteRequest) (*DataDeleteResponse, error)
 	mustEmbedUnimplementedDataServer()
 }
@@ -776,8 +814,14 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TenancyClient interface {
+	// Create is a unary RPC to create a new tenant.
+	// It requires a TenantCreateRequest and returns a TenantCreateResponse.
 	Create(ctx context.Context, in *TenantCreateRequest, opts ...grpc.CallOption) (*TenantCreateResponse, error)
+	// Delete is a unary RPC to delete an existing tenant.
+	// It requires a TenantDeleteRequest and returns a TenantDeleteResponse.
 	Delete(ctx context.Context, in *TenantDeleteRequest, opts ...grpc.CallOption) (*TenantDeleteResponse, error)
+	// List is a unary RPC to get a list of all tenants.
+	// It requires a TenantListRequest and returns a TenantListResponse.
 	List(ctx context.Context, in *TenantListRequest, opts ...grpc.CallOption) (*TenantListResponse, error)
 }
 
@@ -820,8 +864,14 @@ func (c *tenancyClient) List(ctx context.Context, in *TenantListRequest, opts ..
 // All implementations must embed UnimplementedTenancyServer
 // for forward compatibility
 type TenancyServer interface {
+	// Create is a unary RPC to create a new tenant.
+	// It requires a TenantCreateRequest and returns a TenantCreateResponse.
 	Create(context.Context, *TenantCreateRequest) (*TenantCreateResponse, error)
+	// Delete is a unary RPC to delete an existing tenant.
+	// It requires a TenantDeleteRequest and returns a TenantDeleteResponse.
 	Delete(context.Context, *TenantDeleteRequest) (*TenantDeleteResponse, error)
+	// List is a unary RPC to get a list of all tenants.
+	// It requires a TenantListRequest and returns a TenantListResponse.
 	List(context.Context, *TenantListRequest) (*TenantListResponse, error)
 	mustEmbedUnimplementedTenancyServer()
 }
