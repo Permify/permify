@@ -176,6 +176,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			color.Success.Println(fmt.Sprintf("  success: %s ", t))
 		}
 
+		// if debug is true, print attributes are creating with color blue
+		color.Notice.Println("attributes are creating... 🚀")
+
 		// Iterate over all attributes in the subject
 		for _, a := range s.Attributes {
 			// Convert each attribute to an Attribute
