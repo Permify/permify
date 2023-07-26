@@ -147,7 +147,7 @@ func (engine *CheckEngine) check(
 		fn = engine.checkDirectAttribute(request)
 	case base.EntityDefinition_REFERENCE_RELATION:
 		// If the reference is a relation, check the direct relation.
-		fn = engine.checkDirect(request)
+		fn = engine.checkDirectRelation(request)
 	default:
 		// If the reference is not a permission, attribute or relation, check the call.
 		fn = engine.checkCall(request, &base.Call{
@@ -251,9 +251,9 @@ func (engine *CheckEngine) setChild(
 	}
 }
 
-// checkDirect is a method of CheckEngine struct that returns a CheckFunction.
+// checkDirectRelation is a method of CheckEngine struct that returns a CheckFunction.
 // It's responsible for directly checking the permissions on an entity
-func (engine *CheckEngine) checkDirect(request *base.PermissionCheckRequest) CheckFunction {
+func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequest) CheckFunction {
 	// The returned CheckFunction is a closure over the provided context and request
 	return func(ctx context.Context) (result *base.PermissionCheckResponse, err error) {
 		// Define a TupleFilter. This specifies which tuples we're interested in.
@@ -406,7 +406,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 // ComputedUserSet data structure. It returns a CheckFunction closure that performs the check.
 func (engine *CheckEngine) checkComputedUserSet(
 	request *base.PermissionCheckRequest, // The request containing details about the permission to be checked
-	cu *base.ComputedUserSet,             // The computed user set containing user set information
+	cu *base.ComputedUserSet, // The computed user set containing user set information
 ) CheckFunction {
 	// The returned CheckFunction invokes a permission check with a new request that is almost the same
 	// as the incoming request, but changes the Permission to be the relation defined in the computed user set.
@@ -510,7 +510,7 @@ func (engine *CheckEngine) checkDirectAttribute(
 // It returns a function (CheckFunction) that when called, performs the permission check.
 func (engine *CheckEngine) checkCall(
 	request *base.PermissionCheckRequest, // The request containing the details for the permission check
-	call *base.Call,                      // The specific call to be checked
+	call *base.Call, // The specific call to be checked
 ) CheckFunction {
 	// The function returned by checkCall
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
@@ -537,7 +537,7 @@ func (engine *CheckEngine) checkCall(
 		// Populate the arguments map based on the type of argument in the call
 		for _, arg := range call.GetArguments() {
 			switch actualArg := arg.Type.(type) {
-			case *base.CallArgument_ComputedAttribute:
+			case *base.Argument_ComputedAttribute:
 				// Get the name of the computed attribute
 				attrName := actualArg.ComputedAttribute.GetName()
 
@@ -549,7 +549,7 @@ func (engine *CheckEngine) checkCall(
 
 				// Append the attribute to the attributes slice
 				attributes = append(attributes, attrName)
-			case *base.CallArgument_ContextAttribute:
+			case *base.Argument_ContextAttribute:
 				// Get the name of the context attribute
 				attrName := actualArg.ContextAttribute.GetName()
 
@@ -567,35 +567,37 @@ func (engine *CheckEngine) checkCall(
 			}
 		}
 
-		// Prepare the filter for querying attributes from the database
-		filter := &base.AttributeFilter{
-			Entity: &base.EntityFilter{
-				Type: request.GetEntity().GetType(),
-				Ids:  []string{request.GetEntity().GetId()},
-			},
-			Attributes: attributes,
-		}
-
-		// Query the database for the attributes and add them to the arguments map
-		ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
-		if err != nil {
-			return denied(&base.PermissionCheckResponseMetadata{}), err
-		}
-
-		cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter)
-		if err != nil {
-			return denied(&base.PermissionCheckResponseMetadata{}), err
-		}
-
-		it := database.NewUniqueAttributeIterator(ait, cta)
-
-		for it.HasNext() {
-			// Get the next tuple's subject.
-			next, ok := it.GetNext()
-			if !ok {
-				break
+		if len(attributes) > 0 {
+			// Prepare the filter for querying attributes from the database
+			filter := &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: request.GetEntity().GetType(),
+					Ids:  []string{request.GetEntity().GetId()},
+				},
+				Attributes: attributes,
 			}
-			arguments[next.GetAttribute()] = next.GetValue()
+
+			// Query the database for the attributes and add them to the arguments map
+			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+			if err != nil {
+				return denied(&base.PermissionCheckResponseMetadata{}), err
+			}
+
+			cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter)
+			if err != nil {
+				return denied(&base.PermissionCheckResponseMetadata{}), err
+			}
+
+			it := database.NewUniqueAttributeIterator(ait, cta)
+
+			for it.HasNext() {
+				// Get the next tuple's subject.
+				next, ok := it.GetNext()
+				if !ok {
+					break
+				}
+				arguments[next.GetAttribute()] = next.GetValue()
+			}
 		}
 
 		// Prepare the CEL environment using the arguments in the rule definition
