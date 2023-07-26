@@ -11,15 +11,24 @@ import (
 // The function creates a new SchemaDefinition structure, initializes its EntityDefinitions field to an empty map, and
 // then adds each input EntityDefinition structure to this map with the entity name as the key.
 // Finally, it returns the pointer to the constructed SchemaDefinition structure.
-func Schema(entities ...*base.EntityDefinition) *base.SchemaDefinition {
+func Schema(entities []*base.EntityDefinition, rules []*base.RuleDefinition) *base.SchemaDefinition {
 	// create a new SchemaDefinition structure
 	def := &base.SchemaDefinition{
 		EntityDefinitions: map[string]*base.EntityDefinition{},
+		RuleDefinitions:   map[string]*base.RuleDefinition{},
+		References:        map[string]base.SchemaDefinition_Reference{},
 	}
-	// add each input EntityDefinition structure to the EntityDefinitions map with the entity name as the key
+
 	for _, entity := range entities {
 		def.EntityDefinitions[entity.Name] = entity
+		def.References[entity.Name] = base.SchemaDefinition_REFERENCE_ENTITY
 	}
+
+	for _, rule := range rules {
+		def.RuleDefinitions[rule.Name] = rule
+		def.References[rule.Name] = base.SchemaDefinition_REFERENCE_RULE
+	}
+
 	// return the pointer to the constructed SchemaDefinition structure
 	return def
 }
@@ -29,23 +38,59 @@ func Schema(entities ...*base.EntityDefinition) *base.SchemaDefinition {
 // It takes in the name of the entity, an array of relations, and an array of actions.
 // It then initializes the EntityDefinition with the provided values and returns it.
 // The EntityDefinition contains information about the entity's name, its relations, actions, and references.
-func Entity(name string, relations []*base.RelationDefinition, actions []*base.PermissionDefinition) *base.EntityDefinition {
+func Entity(name string, relations []*base.RelationDefinition, attributes []*base.AttributeDefinition, permissions []*base.PermissionDefinition) *base.EntityDefinition {
 	def := &base.EntityDefinition{
 		Name:        name,
 		Relations:   map[string]*base.RelationDefinition{},
+		Attributes:  map[string]*base.AttributeDefinition{},
 		Permissions: map[string]*base.PermissionDefinition{},
-		References:  map[string]base.EntityDefinition_RelationalReference{},
+		References:  map[string]base.EntityDefinition_Reference{},
 	}
+
 	for _, relation := range relations {
 		def.Relations[relation.Name] = relation
-		def.References[relation.Name] = base.EntityDefinition_RELATIONAL_REFERENCE_RELATION
+		def.References[relation.Name] = base.EntityDefinition_REFERENCE_RELATION
 	}
-	for _, action := range actions {
-		def.Permissions[action.Name] = action
-		def.References[action.Name] = base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION
+
+	for _, attribute := range attributes {
+		def.Attributes[attribute.Name] = attribute
+		def.References[attribute.Name] = base.EntityDefinition_REFERENCE_ATTRIBUTE
 	}
+
+	for _, permission := range permissions {
+		def.Permissions[permission.Name] = permission
+		def.References[permission.Name] = base.EntityDefinition_REFERENCE_PERMISSION
+	}
+
 	return def
 }
+
+//func Rule(name string, relations []*base.RelationDefinition, attributes []*base.AttributeDefinition, permissions []*base.PermissionDefinition) *base.RuleDefinition {
+//	def := &base.RuleDefinition{
+//		Name:        name,
+//		Relations:   map[string]*base.RelationDefinition{},
+//		Attributes:  map[string]*base.AttributeDefinition{},
+//		Permissions: map[string]*base.PermissionDefinition{},
+//		References:  map[string]base.EntityDefinition_Reference{},
+//	}
+//
+//	for _, relation := range relations {
+//		def.Relations[relation.Name] = relation
+//		def.References[relation.Name] = base.EntityDefinition_REFERENCE_RELATION
+//	}
+//
+//	for _, attribute := range attributes {
+//		def.Attributes[attribute.Name] = attribute
+//		def.References[attribute.Name] = base.EntityDefinition_REFERENCE_ATTRIBUTE
+//	}
+//
+//	for _, permission := range permissions {
+//		def.Permissions[permission.Name] = permission
+//		def.References[permission.Name] = base.EntityDefinition_REFERENCE_PERMISSION
+//	}
+//
+//	return def
+//}
 
 // Relation - Relation builder function that creates a new RelationDefinition instance
 // with the given name and references.
@@ -62,6 +107,18 @@ func Relation(name string, references ...*base.RelationReference) *base.Relation
 		Name:               name,
 		RelationReferences: references,
 	}
+}
+
+func Attribute(name string, typ base.AttributeType) *base.AttributeDefinition {
+	return &base.AttributeDefinition{
+		Name: name,
+		Type: typ,
+	}
+}
+
+// Attributes - Attributes builder
+func Attributes(defs ...*base.AttributeDefinition) []*base.AttributeDefinition {
+	return defs
 }
 
 // Relations - Relations builder

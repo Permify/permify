@@ -155,7 +155,7 @@ message PermissionCheckRequest {
   Context context = 6 [json_name = "context"];
 
   // Additional arguments associated with this request.
-  repeated CallArgument arguments = 7 [json_name = "arguments"];
+  repeated Argument arguments = 7 [json_name = "arguments"];
 }
 
 // PermissionCheckRequestMetadata is the metadata associated with a PermissionCheckRequest.
@@ -215,6 +215,9 @@ message PermissionExpandRequest {
 
   // Context associated with this request.
   Context context = 5 [json_name = "context"];
+
+  // Additional arguments associated with this request.
+  repeated Argument arguments = 6 [json_name = "arguments"];
 }
 
 // PermissionExpandRequestMetadata is the metadata associated with a PermissionExpandRequest.

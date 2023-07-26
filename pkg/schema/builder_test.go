@@ -19,7 +19,7 @@ var _ = Describe("compiler", func() {
 	Context("Schema", func() {
 		It("Case 1", func() {
 			is := Schema(
-				Entity("user", Relations(), Permissions()),
+				Entity("user", Relations(), Attributes(), Permissions())...,
 			)
 
 			Expect(is.EntityDefinitions).Should(Equal(map[string]*base.EntityDefinition{
@@ -27,7 +27,7 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 			}))
 		})
@@ -56,7 +56,7 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				"organization": {
 					Name: "organization",
@@ -116,10 +116,10 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}))
@@ -152,7 +152,7 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				"organization": {
 					Name: "organization",
@@ -232,10 +232,10 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}))
@@ -262,7 +262,7 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				"organization": {
 					Name: "organization",
@@ -302,10 +302,10 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}))
@@ -349,7 +349,7 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				"organization": {
 					Name: "organization",
@@ -389,10 +389,10 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 				"repository": {
@@ -487,10 +487,10 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"parent": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"delete": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					References: map[string]base.EntityDefinition_Reference{
+						"parent": base.EntityDefinition_REFERENCE_RELATION,
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"delete": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}))

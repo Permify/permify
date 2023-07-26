@@ -414,7 +414,7 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 	child := &base.Child{}
 
 	// Create a slice to store the call arguments.
-	var arguments []*base.CallArgument
+	var arguments []*base.Argument
 
 	// Create a map to store the types of the rule arguments, only if reference validation is enabled.
 	var types map[string]string
@@ -467,8 +467,8 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 			}
 
 			// Append the computed attribute to the arguments slice.
-			arguments = append(arguments, &base.CallArgument{
-				Type: &base.CallArgument_ComputedAttribute{
+			arguments = append(arguments, &base.Argument{
+				Type: &base.Argument_ComputedAttribute{
 					ComputedAttribute: &base.ComputedAttribute{
 						Name: argument.Idents[0].Literal,
 					},
@@ -495,8 +495,8 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 			}
 
 			// Append the context attribute to the arguments slice.
-			arguments = append(arguments, &base.CallArgument{
-				Type: &base.CallArgument_ContextAttribute{
+			arguments = append(arguments, &base.Argument{
+				Type: &base.Argument_ContextAttribute{
 					ContextAttribute: &base.ContextAttribute{
 						Name: argument.Idents[1].Literal,
 					},

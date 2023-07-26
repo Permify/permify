@@ -1,11 +1,11 @@
 syntax = "proto3";
 package base.v1;
 
-import "google/protobuf/timestamp.proto";
-import "validate/validate.proto";
+import "google/api/expr/v1alpha1/checked.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
-import "google/api/expr/v1alpha1/checked.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
@@ -96,10 +96,10 @@ message Rewrite {
   // OPERATION_INTERSECTION: Represents an intersection operation.
   // OPERATION_EXCLUSION: Represents an exclusion operation.
   enum Operation {
-    OPERATION_UNSPECIFIED = 0;  // Default, unspecified operation.
-    OPERATION_UNION = 1;        // Represents a union operation.
+    OPERATION_UNSPECIFIED = 0; // Default, unspecified operation.
+    OPERATION_UNION = 1; // Represents a union operation.
     OPERATION_INTERSECTION = 2; // Represents an intersection operation.
-    OPERATION_EXCLUSION = 3;    // Represents an exclusion operation.
+    OPERATION_EXCLUSION = 3; // Represents an exclusion operation.
   }
 
   // The type of rewrite operation to be performed.
@@ -114,9 +114,9 @@ message Rewrite {
 message SchemaDefinition {
   // The Reference enum helps distinguish whether a name corresponds to an entity or a rule.
   enum Reference {
-    REFERENCE_UNSPECIFIED = 0;  // Default, unspecified reference.
-    REFERENCE_ENTITY = 1;       // Indicates that the name refers to an entity.
-    REFERENCE_RULE = 2;         // Indicates that the name refers to a rule.
+    REFERENCE_UNSPECIFIED = 0; // Default, unspecified reference.
+    REFERENCE_ENTITY = 1; // Indicates that the name refers to an entity.
+    REFERENCE_RULE = 2; // Indicates that the name refers to a rule.
   }
 
   // Map of entity definitions. The key is the entity name, and the value is the corresponding EntityDefinition.
@@ -133,10 +133,10 @@ message SchemaDefinition {
 message EntityDefinition {
   // The Reference enum specifies whether a name pertains to a relation, permission, or attribute.
   enum Reference {
-    REFERENCE_UNSPECIFIED = 0;   // Default, unspecified reference.
-    REFERENCE_RELATION = 1;      // Indicates that the name refers to a relation.
-    REFERENCE_PERMISSION = 2;    // Indicates that the name refers to a permission.
-    REFERENCE_ATTRIBUTE = 3;     // Indicates that the name refers to an attribute.
+    REFERENCE_UNSPECIFIED = 0; // Default, unspecified reference.
+    REFERENCE_RELATION = 1; // Indicates that the name refers to a relation.
+    REFERENCE_PERMISSION = 2; // Indicates that the name refers to a permission.
+    REFERENCE_ATTRIBUTE = 3; // Indicates that the name refers to an attribute.
   }
 
   // The name of the entity, which follows a specific string pattern and has a maximum byte size.
@@ -225,8 +225,8 @@ message RelationReference {
   }];
 }
 
-// CallArgument defines the type of argument in a Call. It can be either a ComputedAttribute or a ContextAttribute.
-message CallArgument {
+// Argument defines the type of argument in a Call. It can be either a ComputedAttribute or a ContextAttribute.
+message Argument {
   oneof type {
     ComputedAttribute computed_attribute = 1;
     ContextAttribute context_attribute = 2;
@@ -235,8 +235,8 @@ message CallArgument {
 
 // Call represents a call to a rule. It includes the name of the rule and the arguments passed to it.
 message Call {
-  string rule_name = 1;                // Name of the rule
-  repeated CallArgument arguments = 2; // Arguments passed to the rule
+  string rule_name = 1; // Name of the rule
+  repeated Argument arguments = 2; // Arguments passed to the rule
 }
 
 // ComputedAttribute defines a computed attribute which includes its name.
@@ -244,7 +244,7 @@ message ComputedAttribute {
   string name = 1 [(validate.rules).string = {
     pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
     max_bytes: 64,
-  }];  // Name of the computed attribute
+  }]; // Name of the computed attribute
 }
 
 // ContextAttribute defines a context attribute which includes its name.
@@ -252,7 +252,7 @@ message ContextAttribute {
   string name = 1 [(validate.rules).string = {
     pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
     max_bytes: 64,
-  }];  // Name of the context attribute
+  }]; // Name of the context attribute
 }
 
 // ComputedUserSet defines a set of computed users which includes the relation name.
@@ -260,13 +260,13 @@ message ComputedUserSet {
   string relation = 1 [(validate.rules).string = {
     pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
     max_bytes: 64,
-  }];  // Relation name
+  }]; // Relation name
 }
 
 // TupleToUserSet defines a mapping from tuple sets to computed user sets.
 message TupleToUserSet {
-  TupleSet tupleSet = 1;           // The tuple set
-  ComputedUserSet computed = 2;    // The computed user set
+  TupleSet tupleSet = 1; // The tuple set
+  ComputedUserSet computed = 2; // The computed user set
 }
 
 // TupleSet represents a set of tuples associated with a specific relation.
@@ -447,13 +447,46 @@ message ExpandTreeNode {
   repeated Expand children = 2; // The children of this tree node
 }
 
-// Expand is used to define a hierarchical structure, having a target and either another hierarchical structure or a set of subjects as a node.
+// Expand is used to define a hierarchical structure for permissions.
+// It has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects.
 message Expand {
-  EntityAndRelation target = 1; // The target entity and relation.
-  oneof node { // The node can either be an ExpandTreeNode or a set of Subjects.
-    ExpandTreeNode expand = 2; // This contains the hierarchical structure (an expansion tree).
-    Subjects leaf = 3; // This contains a set of subjects.
+  // entity is the entity for which the hierarchical structure is defined.
+  Entity entity = 1;
+
+  // permission is the permission applied to the entity.
+  string permission = 2;
+
+  // arguments are the additional information or context used to evaluate permissions.
+  repeated Argument arguments = 3;
+
+  // The node can either be an ExpandTreeNode or a set of Subjects.
+  oneof node {
+    // expand contains another hierarchical structure.
+    ExpandTreeNode expand = 4;
+
+    // leaf contains a set of subjects.
+    ExpandLeaf leaf = 5;
   }
+}
+
+// ExpandLeaf is the leaf node of an Expand tree and can be either a set of Subjects or a set of Values.
+message ExpandLeaf {
+  oneof type { // type can be either Subjects or Values.
+    option (validate.required) = true;
+
+    // subjects are used when the leaf is a set of subjects.
+    Subjects subjects = 1 [json_name = "subjects"];
+
+    // values are used when the leaf node is a set of values.
+    Values values = 2 [json_name = "values"];
+
+    // value is used when the leaf node is a single value.
+    google.protobuf.Any value = 3 [json_name = "value"];
+  }
+}
+
+message Values {
+  map<string, google.protobuf.Any> values = 1 [json_name = "values"];
 }
 
 // Subjects holds a repeated field of Subject type.

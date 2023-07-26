@@ -1577,16 +1577,16 @@ var _ = Describe("compiler", func() {
 														Type: &base.Leaf_Call{
 															Call: &base.Call{
 																RuleName: "check_balance",
-																Arguments: []*base.CallArgument{
+																Arguments: []*base.Argument{
 																	{
-																		Type: &base.CallArgument_ContextAttribute{
+																		Type: &base.Argument_ContextAttribute{
 																			ContextAttribute: &base.ContextAttribute{
 																				Name: "amount",
 																			},
 																		},
 																	},
 																	{
-																		Type: &base.CallArgument_ComputedAttribute{
+																		Type: &base.Argument_ComputedAttribute{
 																			ComputedAttribute: &base.ComputedAttribute{
 																				Name: "balance",
 																			},

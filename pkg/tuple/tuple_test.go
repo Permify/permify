@@ -21,7 +21,7 @@ var _ = Describe("tuple", func() {
 		It("EntityAndRelationToString", func() {
 			tests := []struct {
 				target    *base.EntityAndRelation
-				arguments []*base.CallArgument
+				arguments []*base.Argument
 				expected  string
 			}{
 				{&base.EntityAndRelation{
@@ -44,9 +44,9 @@ var _ = Describe("tuple", func() {
 						Id:   "1",
 					},
 					Relation: "check_balance",
-				}, []*base.CallArgument{
+				}, []*base.Argument{
 					{
-						Type: &base.CallArgument_ComputedAttribute{
+						Type: &base.Argument_ComputedAttribute{
 							ComputedAttribute: &base.ComputedAttribute{
 								Name: "balance",
 							},
@@ -59,16 +59,16 @@ var _ = Describe("tuple", func() {
 						Id:   "1",
 					},
 					Relation: "check_balance",
-				}, []*base.CallArgument{
+				}, []*base.Argument{
 					{
-						Type: &base.CallArgument_ContextAttribute{
+						Type: &base.Argument_ContextAttribute{
 							ContextAttribute: &base.ContextAttribute{
 								Name: "amount",
 							},
 						},
 					},
 					{
-						Type: &base.CallArgument_ComputedAttribute{
+						Type: &base.Argument_ComputedAttribute{
 							ComputedAttribute: &base.ComputedAttribute{
 								Name: "balance",
 							},

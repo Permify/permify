@@ -903,6 +903,40 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 		}
 	}
 
+	for idx, item := range m.GetArguments() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PermissionExpandRequestValidationError{
+						field:  fmt.Sprintf("Arguments[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PermissionExpandRequestValidationError{
+						field:  fmt.Sprintf("Arguments[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PermissionExpandRequestValidationError{
+					field:  fmt.Sprintf("Arguments[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return PermissionExpandRequestMultiError(errors)
 	}
