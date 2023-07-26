@@ -109,26 +109,30 @@ func (c *CheckEngineWithKeys) getCheckKey(key *base.PermissionCheckRequest) (*ba
 	return nil, false
 }
 
+// setCheckKey is a function to set a check key in the cache of the CheckEngineWithKeys.
+// It takes a permission check request as a key, a permission check response as a value,
+// and returns a boolean value indicating if the operation was successful.
 func (c *CheckEngineWithKeys) setCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse) bool {
+	// If either the key or the value is nil, return false.
 	if key == nil || value == nil {
-		// If either the key or value is nil, return false
 		return false
 	}
 
-	// Initialize a new xxhash object
+	// Create a new xxhash object for hashing.
 	h := xxhash.New()
 
-	// Write the checkKey string to the hash object
+	// Generate a key string from the permission check request and write it to the hash.
+	// If there's an error while writing to the hash, return false.
 	size, err := h.Write([]byte(GenerateKey(key)))
 	if err != nil {
-		// If there's an error, return false
 		return false
 	}
 
-	// Generate the final cache key by encoding the hash object's sum as a hexadecimal string
+	// Compute the hash sum and encode it as a hexadecimal string.
 	k := hex.EncodeToString(h.Sum(nil))
 
-	// Set the cache key with the given value and size, then return the result
+	// Set the hashed key and the check result in the cache, using the size of the hashed key as an expiry.
+	// The Set method should return true if the operation was successful, so return the result.
 	return c.cache.Set(k, value.Can, int64(size))
 }
 
