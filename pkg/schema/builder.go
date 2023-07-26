@@ -3,6 +3,9 @@ package schema
 import (
 	"strings"
 
+	"github.com/google/cel-go/cel"
+
+	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -65,32 +68,60 @@ func Entity(name string, relations []*base.RelationDefinition, attributes []*bas
 	return def
 }
 
-//func Rule(name string, relations []*base.RelationDefinition, attributes []*base.AttributeDefinition, permissions []*base.PermissionDefinition) *base.RuleDefinition {
-//	def := &base.RuleDefinition{
-//		Name:        name,
-//		Relations:   map[string]*base.RelationDefinition{},
-//		Attributes:  map[string]*base.AttributeDefinition{},
-//		Permissions: map[string]*base.PermissionDefinition{},
-//		References:  map[string]base.EntityDefinition_Reference{},
-//	}
-//
-//	for _, relation := range relations {
-//		def.Relations[relation.Name] = relation
-//		def.References[relation.Name] = base.EntityDefinition_REFERENCE_RELATION
-//	}
-//
-//	for _, attribute := range attributes {
-//		def.Attributes[attribute.Name] = attribute
-//		def.References[attribute.Name] = base.EntityDefinition_REFERENCE_ATTRIBUTE
-//	}
-//
-//	for _, permission := range permissions {
-//		def.Permissions[permission.Name] = permission
-//		def.References[permission.Name] = base.EntityDefinition_REFERENCE_PERMISSION
-//	}
-//
-//	return def
-//}
+// Entities - Entities builder
+func Entities(defs ...*base.EntityDefinition) []*base.EntityDefinition {
+	return defs
+}
+
+// Rule is a function that generates a rule definition given a name,
+// a map of argument names to attribute types, and an expression string.
+// The expression string is compiled and transformed to a checked expression.
+func Rule(name string, arguments map[string]base.AttributeType, expression string) *base.RuleDefinition {
+	// Initialize an empty slice of environment options.
+	var envOptions []cel.EnvOption
+
+	// Iterate through each argument.
+	for name, ty := range arguments {
+		// Convert the attribute type to CEL type.
+		cType, err := utils.GetCelType(ty)
+		if err != nil {
+			return nil
+		}
+
+		// Append a new environment option which represents a variable and its type.
+		envOptions = append(envOptions, cel.Variable(name, cType))
+	}
+
+	// Create a new CEL environment with the environment options.
+	env, err := cel.NewEnv(envOptions...)
+	if err != nil {
+		return nil
+	}
+
+	// Compile the given expression string.
+	compiledExp, issues := env.Compile(expression)
+	if issues != nil && issues.Err() != nil {
+		return nil
+	}
+
+	// Convert the compiled expression to a checked expression.
+	expr, err := cel.AstToCheckedExpr(compiledExp)
+	if err != nil {
+		return nil
+	}
+
+	// Return a new rule definition with the given name, arguments, and the checked expression.
+	return &base.RuleDefinition{
+		Name:       name,
+		Arguments:  arguments,
+		Expression: expr,
+	}
+}
+
+// Rules - Rules builder
+func Rules(defs ...*base.RuleDefinition) []*base.RuleDefinition {
+	return defs
+}
 
 // Relation - Relation builder function that creates a new RelationDefinition instance
 // with the given name and references.
@@ -109,7 +140,10 @@ func Relation(name string, references ...*base.RelationReference) *base.Relation
 	}
 }
 
+// Attribute is a function that generates an attribute definition
+// given a name and an attribute type.
 func Attribute(name string, typ base.AttributeType) *base.AttributeDefinition {
+	// Return a new attribute definition with the given name and type.
 	return &base.AttributeDefinition{
 		Name: name,
 		Type: typ,
@@ -167,6 +201,41 @@ func ComputedUserSet(relation string) *base.Child {
 				Type: &base.Leaf_ComputedUserSet{
 					ComputedUserSet: &base.ComputedUserSet{
 						Relation: relation,
+					},
+				},
+			},
+		},
+	}
+}
+
+// ComputedAttribute is a function that generates a child definition for a computed attribute
+// given its name.
+func ComputedAttribute(name string) *base.Child {
+	// Return a new child definition with the leaf type as a computed attribute and the given name.
+	return &base.Child{
+		Type: &base.Child_Leaf{
+			Leaf: &base.Leaf{
+				Type: &base.Leaf_ComputedAttribute{
+					ComputedAttribute: &base.ComputedAttribute{
+						Name: name,
+					},
+				},
+			},
+		},
+	}
+}
+
+// Call is a function that generates a child definition for a call
+// given its name and a list of arguments.
+func Call(name string, arguments ...*base.Argument) *base.Child {
+	// Return a new child definition with the leaf type as a call and the given name and arguments.
+	return &base.Child{
+		Type: &base.Child_Leaf{
+			Leaf: &base.Leaf{
+				Type: &base.Leaf_Call{
+					Call: &base.Call{
+						RuleName:  name,
+						Arguments: arguments,
 					},
 				},
 			},
