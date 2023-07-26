@@ -1,7 +1,11 @@
 package engines
 
 import (
+	"errors"
 	"sync"
+
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -147,4 +151,88 @@ func getEmptyValueForType(typ base.AttributeType) interface{} {
 		// This may need to be adjusted if there are other types that need specific empty values.
 		return nil
 	}
+}
+
+// 'getEmptyProtoValueForType' is a function which creates an 'anypb.Any' value that
+// corresponds to the base value of the provided attribute type.
+func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
+
+	// Based on the provided attribute type, create a new 'anypb.Any' value that corresponds
+	// to the base value of that type.
+	switch typ {
+
+	// If the attribute type is a string, create an 'anypb.Any' value that corresponds to an empty string.
+	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
+		value, err := anypb.New(wrapperspb.String(""))
+		if err != nil {
+			return nil, err
+		}
+		return value, nil
+
+	// If the attribute type is an integer, create an 'anypb.Any' value that corresponds to 0.
+	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER:
+		value, err := anypb.New(wrapperspb.Int64(0))
+		if err != nil {
+			return nil, err
+		}
+		return value, nil
+
+	// If the attribute type is a double, create an 'anypb.Any' value that corresponds to 0.0.
+	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE:
+		value, err := anypb.New(wrapperspb.Double(0.0))
+		if err != nil {
+			return nil, err
+		}
+		return value, nil
+
+	// If the attribute type is a boolean, create an 'anypb.Any' value that corresponds to 'false'.
+	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
+		value, err := anypb.New(wrapperspb.Bool(false))
+		if err != nil {
+			return nil, err
+		}
+		return value, nil
+
+	// If the attribute type is not recognized, return an error.
+	default:
+		return nil, errors.New("unknown type")
+	}
+}
+
+// ConvertToAnyPB is a function to convert various basic Go types into *anypb.Any.
+// It supports conversion from bool, int, float64, and string.
+// It uses a type switch to detect the type of the input value.
+// If the type is unsupported or unknown, it returns an error.
+func ConvertToAnyPB(value interface{}) (*anypb.Any, error) {
+	// anyValue will store the converted value, err will store any error occurred during conversion.
+	var anyValue *anypb.Any
+	var err error
+
+	// Use a type switch to handle different types of value.
+	switch v := value.(type) {
+	case bool:
+		// In case of a bool type, we convert it to a protobuf BoolValue.
+		anyValue, err = anypb.New(wrapperspb.Bool(v))
+	case int:
+		// In case of an int type, we convert it to a protobuf Int64Value.
+		// Note that this involves a type conversion from int to int64.
+		anyValue, err = anypb.New(wrapperspb.Int64(int64(v)))
+	case float64:
+		// In case of a float64 type, we convert it to a protobuf DoubleValue.
+		anyValue, err = anypb.New(wrapperspb.Double(v))
+	case string:
+		// In case of a string type, we convert it to a protobuf StringValue.
+		anyValue, err = anypb.New(wrapperspb.String(v))
+	default:
+		// In case of an unsupported or unknown type, we return an error.
+		return nil, errors.New("unknown type")
+	}
+
+	// If there was an error during the conversion, return the error.
+	if err != nil {
+		return nil, err
+	}
+
+	// If the conversion was successful, return the converted value.
+	return anyValue, nil
 }
