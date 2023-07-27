@@ -113,7 +113,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Tracing
 		if cfg.Tracer.Enabled {
 			var exporter trace.SpanExporter
-			exporter, err = tracerexporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
+			exporter, err = tracerexporters.ExporterFactory(
+				cfg.Tracer.Exporter,
+				cfg.Tracer.Endpoint,
+				cfg.Tracer.Insecure,
+			)
 			if err != nil {
 				l.Fatal(err)
 			}
