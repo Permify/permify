@@ -9,7 +9,7 @@ import (
 	"net/http/pprof"
 	"time"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/ratelimit"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/ratelimit"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
