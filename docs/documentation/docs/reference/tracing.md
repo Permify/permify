@@ -4,6 +4,7 @@
 Permify has integrations with some of popular tracing tools to analyze performance and behavior of your authorization. These are:
 
 - [Jaeger](https://www.jaegertracing.io/)
+- [OpenTelemetry](https://opentelemetry.io/)
 - [Signoz](https://signoz.io/)
 - [Zipkin](https://zipkin.io/)
 
@@ -19,9 +20,11 @@ tracer:
   endpoint: 'http://172.17.0.4:9411/api/v2/spans'
   disabled: false
 ```
-- ***exporter***: enter the tool name that you want to use. `jaeger` , `signoz` and `zipkin`.
+
+- ***exporter***: enter the tool name that you want to use. `jaeger` , `otlp`, `signoz`, and `zipkin`.
 - ***endpoint***: export url for tracing data.
 - ***disabled***: switch option for tracing.
+- ***insecure***: configures the exporter to connect to the collcetor using HTTP instead of HTTPS. This configuration is relevant only for `signoz` and `otlp`.
 
 **Example YAML configuration file**
 
