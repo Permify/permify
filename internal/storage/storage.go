@@ -30,6 +30,14 @@ type DataReader interface {
 	// It returns a collection of attributes, a continuous token indicating the position in the data set, and any error encountered.
 	ReadAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string, pagination database.Pagination) (collection *database.AttributeCollection, ct database.EncodedContinuousToken, err error)
 
+	// QueryUniqueEntities reads unique entities from the storage based on the given filter and pagination.
+	// It returns a slice of entity IDs, a continuous token indicating the position in the data set, and any error encountered.
+	QueryUniqueEntities(ctx context.Context, tenantID, name, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error)
+
+	// QueryUniqueSubjectReferences reads unique subject references from the storage based on the given filter and pagination.
+	// It returns a slice of subject reference IDs, a continuous token indicating the position in the data set, and any error encountered.
+	QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error)
+
 	// HeadSnapshot reads the latest version of the snapshot from the storage for a specific tenant.
 	// It returns the snapshot token representing the version of the snapshot and any error encountered.
 	HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error)
@@ -59,6 +67,14 @@ func (f *NoopDataReader) QueryAttributes(_ context.Context, _ string, _ *base.At
 
 func (f *NoopDataReader) ReadAttributes(_ context.Context, _ string, _ *base.AttributeFilter, _ string, _ database.Pagination) (*database.AttributeCollection, database.EncodedContinuousToken, error) {
 	return database.NewAttributeCollection(), database.NewNoopContinuousToken().Encode(), nil
+}
+
+func (f *NoopDataReader) QueryUniqueEntities(_ context.Context, _, _, _ string, _ database.Pagination) ([]string, database.EncodedContinuousToken, error) {
+	return []string{}, database.NewNoopContinuousToken().Encode(), nil
+}
+
+func (f *NoopDataReader) QueryUniqueSubjectReferences(_ context.Context, _ string, _ *base.RelationReference, _ string, _ database.Pagination) ([]string, database.EncodedContinuousToken, error) {
+	return []string{}, database.NewNoopContinuousToken().Encode(), nil
 }
 
 func (f *NoopDataReader) HeadSnapshot(_ context.Context, _ string) (token.SnapToken, error) {
