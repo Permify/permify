@@ -2426,6 +2426,7 @@ type ExpandLeaf_Values struct {
 }
 
 type ExpandLeaf_Value struct {
+	// value is used when the leaf node is a single value.
 	Value *anypb.Any `protobuf:"bytes,3,opt,name=value,proto3,oneof"`
 }
 

@@ -2564,6 +2564,17 @@ func (m *PermissionLookupSubjectRequestMetadata) validate(all bool) error {
 
 	// no validation rules for SnapToken
 
+	if m.GetDepth() < 3 {
+		err := PermissionLookupSubjectRequestMetadataValidationError{
+			field:  "Depth",
+			reason: "value must be greater than or equal to 3",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return PermissionLookupSubjectRequestMetadataMultiError(errors)
 	}

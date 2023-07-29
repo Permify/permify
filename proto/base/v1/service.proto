@@ -378,6 +378,9 @@ message PermissionLookupSubjectRequestMetadata {
 
   // Token associated with the snap.
   string snap_token = 2 [json_name = "snap_token"];
+
+  // Depth of the check, must be greater than or equal to 3.
+  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
 // PermissionLookupSubjectResponse is the response message for the LookupSubject method in the Permission service.
