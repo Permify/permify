@@ -99,7 +99,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	tFit := memdb.NewFilterIterator(tit, utils.FilterRelationTuplesQuery(tupleFilter))
+	tFit := memdb.NewFilterIterator(tit, utils.FilterRelationTuplesQuery(tenantID, tupleFilter))
 	for obj := tFit.Next(); obj != nil; obj = tFit.Next() {
 		t, ok := obj.(storage.RelationTuple)
 		if !ok {
@@ -118,7 +118,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	fit := memdb.NewFilterIterator(aIt, utils.FilterAttributesQuery(attributeFilter))
+	fit := memdb.NewFilterIterator(aIt, utils.FilterAttributesQuery(tenantID, attributeFilter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.RelationTuple)
 		if !ok {

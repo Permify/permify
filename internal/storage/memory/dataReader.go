@@ -52,7 +52,7 @@ func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filt
 	}
 
 	// Filter the result iterator and add the tuples to the collection.
-	fit := memdb.NewFilterIterator(result, utils.FilterRelationTuplesQuery(filter))
+	fit := memdb.NewFilterIterator(result, utils.FilterRelationTuplesQuery(tenantID, filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.RelationTuple)
 		if !ok {
@@ -93,7 +93,7 @@ func (r *DataReader) ReadRelationships(_ context.Context, tenantID string, filte
 
 	// Filter the result iterator and add the tuples to the array.
 	tup := make([]storage.RelationTuple, 0, 10)
-	fit := memdb.NewFilterIterator(result, utils.FilterRelationTuplesQuery(filter))
+	fit := memdb.NewFilterIterator(result, utils.FilterRelationTuplesQuery(tenantID, filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.RelationTuple)
 		if !ok {
@@ -165,7 +165,7 @@ func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter 
 	}
 
 	// Filter the result iterator and add the attributes to the collection.
-	fit := memdb.NewFilterIterator(result, utils.FilterAttributesQuery(filter))
+	fit := memdb.NewFilterIterator(result, utils.FilterAttributesQuery(tenantID, filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.Attribute)
 		if !ok {
@@ -207,7 +207,7 @@ func (r *DataReader) ReadAttributes(_ context.Context, tenantID string, filter *
 
 	// Filter the result iterator and add the attributes to the array.
 	attr := make([]storage.Attribute, 0, 10)
-	fit := memdb.NewFilterIterator(result, utils.FilterAttributesQuery(filter))
+	fit := memdb.NewFilterIterator(result, utils.FilterAttributesQuery(tenantID, filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		a, ok := obj.(storage.Attribute)
 		if !ok {
@@ -232,6 +232,87 @@ func (r *DataReader) ReadAttributes(_ context.Context, tenantID string, filter *
 	}
 
 	return database.NewAttributeCollection(attributes...), database.NewNoopContinuousToken().Encode(), nil
+}
+
+// QueryUniqueEntities is a function that searches for unique entities in a given database.
+func (r *DataReader) QueryUniqueEntities(_ context.Context, tenantID, name, _ string, _ database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
+	// Starts a new read-only transaction
+	txn := r.database.DB.Txn(false)
+	defer txn.Abort()
+
+	var tupleIds []string
+
+	// Query the database for entities matching the given tenant ID and name
+	var entityResult memdb.ResultIterator
+	entityResult, err = txn.Get(AttributesTable, "entity-type-index", tenantID, name)
+	if err != nil {
+		// Returns an error if execution fails
+		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	// Iterates over the resulting entities and append their IDs to the tupleIds slice
+	for obj := entityResult.Next(); obj != nil; obj = entityResult.Next() {
+		t, ok := obj.(storage.RelationTuple)
+		if !ok {
+			// Returns an error if type conversion fails
+			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		}
+		tupleIds = append(tupleIds, t.EntityID)
+	}
+
+	var attributeIds []string
+
+	// Query the database for attributes matching the given tenant ID and name
+	var attributeResult memdb.ResultIterator
+	attributeResult, err = txn.Get(AttributesTable, "entity-type-index", tenantID, name)
+	if err != nil {
+		// Returns an error if execution fails
+		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	// Iterates over the resulting attributes and append their IDs to the tupleIds slice
+	for obj := attributeResult.Next(); obj != nil; obj = attributeResult.Next() {
+		t, ok := obj.(storage.Attribute)
+		if !ok {
+			// Returns an error if type conversion fails
+			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		}
+		tupleIds = append(tupleIds, t.EntityID)
+	}
+
+	// Returns the union of tupleIds and attributeIds, a new noop continuous token, and no error
+	return utils.Union(tupleIds, attributeIds), database.NewNoopContinuousToken().Encode(), nil
+}
+
+// QueryUniqueSubjectReferences is a function that searches for unique subject references in a given database.
+func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID string, subjectReference *base.RelationReference, _ string, _ database.Pagination) ([]string, database.EncodedContinuousToken, error) {
+	txn := r.database.DB.Txn(false)
+	defer txn.Abort()
+
+	var ids []string
+
+	// Get the result iterator based on the index and arguments.
+	result, err := txn.Get(RelationTuplesTable, "id")
+	if err != nil {
+		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	// Filter the result iterator and add the tuples to the collection.
+	fit := memdb.NewFilterIterator(result, utils.FilterRelationTuplesQuery(tenantID, &base.TupleFilter{
+		Subject: &base.SubjectFilter{
+			Type:     subjectReference.GetType(),
+			Relation: subjectReference.GetRelation(),
+		},
+	}))
+	for obj := fit.Next(); obj != nil; obj = fit.Next() {
+		t, ok := obj.(storage.RelationTuple)
+		if !ok {
+			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		}
+		ids = append(ids, t.SubjectID)
+	}
+
+	return ids, database.NewNoopContinuousToken().Encode(), nil
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.

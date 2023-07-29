@@ -62,3 +62,22 @@ func GetAttributesIndexNameAndArgsByFilters(tenantID string, filter *base.Attrib
 	}
 	return "id", nil
 }
+
+// Union - Get union of two slices
+func Union(a, b []string) []string {
+	elements := make(map[string]bool)
+	for _, item := range a {
+		elements[item] = true
+	}
+
+	for _, item := range b {
+		elements[item] = true
+	}
+
+	var union []string
+	for key := range elements {
+		union = append(union, key)
+	}
+
+	return union
+}
