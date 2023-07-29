@@ -1509,7 +1509,8 @@
           "description": "values are used when the leaf node is a set of values."
         },
         "value": {
-          "$ref": "#/definitions/Any"
+          "$ref": "#/definitions/Any",
+          "description": "value is used when the leaf node is a single value."
         }
       },
       "description": "ExpandLeaf is the leaf node of an Expand tree and can be either a set of Subjects or a set of Values."
@@ -1820,6 +1821,11 @@
         "snap_token": {
           "type": "string",
           "description": "Token associated with the snap."
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Depth of the check, must be greater than or equal to 3."
         }
       },
       "description": "PermissionLookupSubjectRequestMetadata is the metadata associated with a PermissionLookupSubjectRequest."
