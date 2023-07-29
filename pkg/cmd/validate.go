@@ -3,11 +3,12 @@ package cmd
 import (
 	"context"
 	"fmt"
-	`google.golang.org/protobuf/types/known/structpb`
 	"net/url"
 	"os"
 	"sort"
 	"strings"
+
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/gookit/color"
 	"github.com/rs/xid"
