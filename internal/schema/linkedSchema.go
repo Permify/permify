@@ -122,18 +122,24 @@ func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference,
 		return nil, errors.New("entity definition not found")
 	}
 
-	if def.References[target.GetRelation()] == base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
-		action, ok := def.Permissions[target.GetRelation()]
+	switch def.References[target.GetRelation()] {
+	case base.EntityDefinition_REFERENCE_PERMISSION:
+		permission, ok := def.Permissions[target.GetRelation()]
 		if !ok {
-			return nil, errors.New("action not found")
+			return nil, errors.New("permission not found")
 		}
-		child := action.GetChild()
+		child := permission.GetChild()
 		if child.GetRewrite() != nil {
 			return g.findEntranceRewrite(target, source, child.GetRewrite(), visited)
 		}
 		return g.findEntranceLeaf(target, source, child.GetLeaf(), visited)
+	case base.EntityDefinition_REFERENCE_ATTRIBUTE:
+		return nil, ErrUnimplemented
+	case base.EntityDefinition_REFERENCE_RELATION:
+		return g.findRelationEntrance(target, source, visited)
+	default:
+		return nil, ErrUnimplemented
 	}
-	return g.findRelationEntrance(target, source, visited)
 }
 
 // findRelationEntrance is a helper function that searches the LinkedSchemaGraph for entry points that can be reached from
@@ -272,8 +278,12 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 			results...,
 		)
 		return entrances, nil
+	case *base.Leaf_ComputedAttribute:
+		return nil, ErrUnimplemented
+	case *base.Leaf_Call:
+		return nil, ErrUnimplemented
 	default:
-		return nil, errors.New("undefined leaf type")
+		return nil, ErrUndefinedLeafType
 	}
 }
 

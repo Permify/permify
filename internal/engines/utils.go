@@ -45,6 +45,16 @@ func LookupSubjectConcurrencyLimit(limit int) LookupSubjectOption {
 	}
 }
 
+// SchemaBaseSubjectFilterOption - a functional option type for configuring the LookupSubjectEngine.
+type SchemaBaseSubjectFilterOption func(engine *SchemaBasedSubjectFilter)
+
+// SchemaBaseSubjectFilterConcurrencyLimit - a functional option that sets the concurrency limit for the LookupSubjectEngine.
+func SchemaBaseSubjectFilterConcurrencyLimit(limit int) SchemaBaseSubjectFilterOption {
+	return func(c *SchemaBasedSubjectFilter) {
+		c.concurrencyLimit = limit
+	}
+}
+
 // SubjectPermissionOption - a functional option type for configuring the SubjectPermissionEngine.
 type SubjectPermissionOption func(engine *SubjectPermissionEngine)
 
@@ -88,9 +98,9 @@ func (s *ERMap) Add(onr *base.EntityAndRelation) bool {
 	return !existed
 }
 
-// LookupSubjectResponse -
-type LookupSubjectResponse struct {
-	resp *base.PermissionLookupSubjectResponse
+// SubjectFilterResponse -
+type SubjectFilterResponse struct {
+	resp []string
 	err  error
 }
 
@@ -156,7 +166,6 @@ func getEmptyValueForType(typ base.AttributeType) interface{} {
 // 'getEmptyProtoValueForType' is a function which creates an 'anypb.Any' value that
 // corresponds to the base value of the provided attribute type.
 func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
-
 	// Based on the provided attribute type, create a new 'anypb.Any' value that corresponds
 	// to the base value of that type.
 	switch typ {

@@ -21,26 +21,26 @@ import (
 var _ = Describe("subject-permission-engine", func() {
 	driveSchema := `
 		entity user {}
-	
+
 		entity organization {
 			relation admin @user
 		}
-	
+
 		entity folder {
 			relation org @organization
 			relation creator @user
 			relation collaborator @user
-	
+
 			permission read = collaborator
 			permission update = collaborator
 			permission delete = creator or org.admin
 		}
-	
+
 		entity doc {
 			relation org @organization
 			relation parent @folder
 			relation owner @user
-	
+
 			permission read = (owner or parent.collaborator) or org.admin
 			permission update = owner and org.admin
 			permission delete = owner or org.admin
@@ -92,15 +92,15 @@ var _ = Describe("subject-permission-engine", func() {
 						onlyPermission: false,
 						result: map[string]base.CheckResult{
 							// relations
-							"org":    base.CheckResult_RESULT_DENIED,
-							"parent": base.CheckResult_RESULT_DENIED,
-							"owner":  base.CheckResult_RESULT_DENIED,
+							"org":    base.CheckResult_CHECK_RESULT_DENIED,
+							"parent": base.CheckResult_CHECK_RESULT_DENIED,
+							"owner":  base.CheckResult_CHECK_RESULT_DENIED,
 
 							// permissions
-							"read":   base.CheckResult_RESULT_ALLOWED,
-							"update": base.CheckResult_RESULT_DENIED,
-							"delete": base.CheckResult_RESULT_ALLOWED,
-							"share":  base.CheckResult_RESULT_DENIED,
+							"read":   base.CheckResult_CHECK_RESULT_ALLOWED,
+							"update": base.CheckResult_CHECK_RESULT_DENIED,
+							"delete": base.CheckResult_CHECK_RESULT_ALLOWED,
+							"share":  base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 					{
@@ -108,26 +108,26 @@ var _ = Describe("subject-permission-engine", func() {
 						entity:         "doc:1",
 						onlyPermission: true,
 						result: map[string]base.CheckResult{
-							"read":   base.CheckResult_RESULT_ALLOWED,
-							"update": base.CheckResult_RESULT_DENIED,
-							"delete": base.CheckResult_RESULT_ALLOWED,
-							"share":  base.CheckResult_RESULT_DENIED,
+							"read":   base.CheckResult_CHECK_RESULT_ALLOWED,
+							"update": base.CheckResult_CHECK_RESULT_DENIED,
+							"delete": base.CheckResult_CHECK_RESULT_ALLOWED,
+							"share":  base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			subjectPermissionEngine := NewSubjectPermission(checkEngine, schemaReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -146,7 +146,7 @@ var _ = Describe("subject-permission-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, assertion := range tests.assertions {
@@ -219,15 +219,15 @@ var _ = Describe("subject-permission-engine", func() {
 						onlyPermission: false,
 						result: map[string]base.CheckResult{
 							// relations
-							"org":    base.CheckResult_RESULT_DENIED,
-							"parent": base.CheckResult_RESULT_DENIED,
-							"owner":  base.CheckResult_RESULT_DENIED,
+							"org":    base.CheckResult_CHECK_RESULT_DENIED,
+							"parent": base.CheckResult_CHECK_RESULT_DENIED,
+							"owner":  base.CheckResult_CHECK_RESULT_DENIED,
 
 							// permissions
-							"read":   base.CheckResult_RESULT_ALLOWED,
-							"update": base.CheckResult_RESULT_DENIED,
-							"delete": base.CheckResult_RESULT_ALLOWED,
-							"share":  base.CheckResult_RESULT_DENIED,
+							"read":   base.CheckResult_CHECK_RESULT_ALLOWED,
+							"update": base.CheckResult_CHECK_RESULT_DENIED,
+							"delete": base.CheckResult_CHECK_RESULT_ALLOWED,
+							"share":  base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 					{
@@ -235,26 +235,26 @@ var _ = Describe("subject-permission-engine", func() {
 						entity:         "doc:1",
 						onlyPermission: true,
 						result: map[string]base.CheckResult{
-							"read":   base.CheckResult_RESULT_ALLOWED,
-							"update": base.CheckResult_RESULT_DENIED,
-							"delete": base.CheckResult_RESULT_ALLOWED,
-							"share":  base.CheckResult_RESULT_DENIED,
+							"read":   base.CheckResult_CHECK_RESULT_ALLOWED,
+							"update": base.CheckResult_CHECK_RESULT_DENIED,
+							"delete": base.CheckResult_CHECK_RESULT_ALLOWED,
+							"share":  base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			subjectPermissionEngine := NewSubjectPermission(checkEngine, schemaReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -273,7 +273,7 @@ var _ = Describe("subject-permission-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, assertion := range tests.assertions {
@@ -349,15 +349,15 @@ var _ = Describe("subject-permission-engine", func() {
 						onlyPermission: false,
 						result: map[string]base.CheckResult{
 							// relations
-							"org":    base.CheckResult_RESULT_DENIED,
-							"parent": base.CheckResult_RESULT_DENIED,
-							"owner":  base.CheckResult_RESULT_DENIED,
+							"org":    base.CheckResult_CHECK_RESULT_DENIED,
+							"parent": base.CheckResult_CHECK_RESULT_DENIED,
+							"owner":  base.CheckResult_CHECK_RESULT_DENIED,
 
 							// permissions
-							"read":   base.CheckResult_RESULT_DENIED,
-							"update": base.CheckResult_RESULT_DENIED,
-							"delete": base.CheckResult_RESULT_DENIED,
-							"share":  base.CheckResult_RESULT_DENIED,
+							"read":   base.CheckResult_CHECK_RESULT_DENIED,
+							"update": base.CheckResult_CHECK_RESULT_DENIED,
+							"delete": base.CheckResult_CHECK_RESULT_DENIED,
+							"share":  base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 					{
@@ -365,26 +365,26 @@ var _ = Describe("subject-permission-engine", func() {
 						entity:         "doc:1",
 						onlyPermission: true,
 						result: map[string]base.CheckResult{
-							"read":   base.CheckResult_RESULT_DENIED,
-							"update": base.CheckResult_RESULT_DENIED,
-							"delete": base.CheckResult_RESULT_DENIED,
-							"share":  base.CheckResult_RESULT_DENIED,
+							"read":   base.CheckResult_CHECK_RESULT_DENIED,
+							"update": base.CheckResult_CHECK_RESULT_DENIED,
+							"delete": base.CheckResult_CHECK_RESULT_DENIED,
+							"share":  base.CheckResult_CHECK_RESULT_DENIED,
 						},
 					},
 				},
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
 			subjectPermissionEngine := NewSubjectPermission(checkEngine, schemaReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				nil,
@@ -403,7 +403,7 @@ var _ = Describe("subject-permission-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, assertion := range tests.assertions {

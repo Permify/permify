@@ -3,6 +3,8 @@ package schema
 import (
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -24,12 +26,18 @@ var _ = Describe("schema", func() {
 				Name:        "user",
 				Relations:   map[string]*base.RelationDefinition{},
 				Permissions: map[string]*base.PermissionDefinition{},
-				References:  map[string]base.EntityDefinition_RelationalReference{},
+				References:  map[string]base.EntityDefinition_Reference{},
 			})
 
-			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
+			spew.Dump(NewSchemaFromEntityAndRuleDefinitions(entities, []*base.RuleDefinition{}))
+
+			Expect(NewSchemaFromEntityAndRuleDefinitions(entities, []*base.RuleDefinition{})).To(Equal(&base.SchemaDefinition{
 				EntityDefinitions: map[string]*base.EntityDefinition{
 					"user": entities[0],
+				},
+				RuleDefinitions: map[string]*base.RuleDefinition{},
+				References: map[string]base.SchemaDefinition_Reference{
+					"user": base.SchemaDefinition_REFERENCE_ENTITY,
 				},
 			}))
 		})
@@ -41,7 +49,7 @@ var _ = Describe("schema", func() {
 				Name:        "user",
 				Relations:   map[string]*base.RelationDefinition{},
 				Permissions: map[string]*base.PermissionDefinition{},
-				References:  map[string]base.EntityDefinition_RelationalReference{},
+				References:  map[string]base.EntityDefinition_Reference{},
 			}, &base.EntityDefinition{
 				Name: "organization",
 				Relations: map[string]*base.RelationDefinition{
@@ -100,16 +108,21 @@ var _ = Describe("schema", func() {
 						},
 					},
 				},
-				References: map[string]base.EntityDefinition_RelationalReference{
-					"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+				References: map[string]base.EntityDefinition_Reference{
+					"owner":  base.EntityDefinition_REFERENCE_RELATION,
+					"update": base.EntityDefinition_REFERENCE_PERMISSION,
 				},
 			})
 
-			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
+			Expect(NewSchemaFromEntityAndRuleDefinitions(entities, []*base.RuleDefinition{})).To(Equal(&base.SchemaDefinition{
 				EntityDefinitions: map[string]*base.EntityDefinition{
 					"user":         entities[0],
 					"organization": entities[1],
+				},
+				RuleDefinitions: map[string]*base.RuleDefinition{},
+				References: map[string]base.SchemaDefinition_Reference{
+					"user":         base.SchemaDefinition_REFERENCE_ENTITY,
+					"organization": base.SchemaDefinition_REFERENCE_ENTITY,
 				},
 			}))
 		})
@@ -121,7 +134,7 @@ var _ = Describe("schema", func() {
 				Name:        "user",
 				Relations:   map[string]*base.RelationDefinition{},
 				Permissions: map[string]*base.PermissionDefinition{},
-				References:  map[string]base.EntityDefinition_RelationalReference{},
+				References:  map[string]base.EntityDefinition_Reference{},
 			}, &base.EntityDefinition{
 				Name: "organization",
 				Relations: map[string]*base.RelationDefinition{
@@ -180,9 +193,9 @@ var _ = Describe("schema", func() {
 						},
 					},
 				},
-				References: map[string]base.EntityDefinition_RelationalReference{
-					"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+				References: map[string]base.EntityDefinition_Reference{
+					"owner":  base.EntityDefinition_REFERENCE_RELATION,
+					"update": base.EntityDefinition_REFERENCE_PERMISSION,
 				},
 			}, &base.EntityDefinition{
 				Name: "repository",
@@ -299,20 +312,26 @@ var _ = Describe("schema", func() {
 						},
 					},
 				},
-				References: map[string]base.EntityDefinition_RelationalReference{
-					"parent":     base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"maintainer": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"owner":      base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-					"update":     base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
-					"delete":     base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+				References: map[string]base.EntityDefinition_Reference{
+					"parent":     base.EntityDefinition_REFERENCE_RELATION,
+					"maintainer": base.EntityDefinition_REFERENCE_RELATION,
+					"owner":      base.EntityDefinition_REFERENCE_RELATION,
+					"update":     base.EntityDefinition_REFERENCE_PERMISSION,
+					"delete":     base.EntityDefinition_REFERENCE_PERMISSION,
 				},
 			})
 
-			Expect(NewSchemaFromEntityDefinitions(entities...)).To(Equal(&base.SchemaDefinition{
+			Expect(NewSchemaFromEntityAndRuleDefinitions(entities, []*base.RuleDefinition{})).To(Equal(&base.SchemaDefinition{
 				EntityDefinitions: map[string]*base.EntityDefinition{
 					"user":         entities[0],
 					"organization": entities[1],
 					"repository":   entities[2],
+				},
+				RuleDefinitions: map[string]*base.RuleDefinition{},
+				References: map[string]base.SchemaDefinition_Reference{
+					"user":         base.SchemaDefinition_REFERENCE_ENTITY,
+					"organization": base.SchemaDefinition_REFERENCE_ENTITY,
+					"repository":   base.SchemaDefinition_REFERENCE_ENTITY,
 				},
 			}))
 		})

@@ -94,15 +94,20 @@ entity doc {
 				},
 			}
 
-			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			// filters
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				nil,
 				nil,
@@ -119,7 +124,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -190,14 +195,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				nil,
 				nil,
@@ -214,7 +222,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -292,14 +300,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				nil,
 				nil,
@@ -316,7 +327,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -384,14 +395,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				nil,
 				nil,
@@ -408,7 +422,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -478,14 +492,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				nil,
 				nil,
@@ -502,7 +519,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -572,14 +589,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				nil,
 				nil,
@@ -596,7 +616,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -671,14 +691,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				nil,
 				nil,
@@ -695,7 +718,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {

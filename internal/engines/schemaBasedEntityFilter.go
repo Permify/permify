@@ -3,42 +3,39 @@ package engines
 import (
 	"context"
 	"errors"
-	"sync"
 
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
+	storageContext "github.com/Permify/permify/internal/storage/context"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// EntityFilterEngine is responsible for executing linked entity operations
-type EntityFilterEngine struct {
+// SchemaBasedEntityFilter is a struct that performs permission checks on a set of entities
+type SchemaBasedEntityFilter struct {
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
-	// relationshipReader is responsible for reading relationship information
-	relationshipReader storage.RelationshipReader
-	// schemaMap is a map that keeps track of schema versions
-	schemaMap sync.Map
+	// dataReader is responsible for reading relationship information
+	dataReader storage.DataReader
 }
 
-// NewEntityFilterEngine creates a new EntityFilter engine
-func NewEntityFilterEngine(schemaReader storage.SchemaReader, relationshipReader storage.RelationshipReader) *EntityFilterEngine {
-	return &EntityFilterEngine{
-		schemaReader:       schemaReader,
-		relationshipReader: relationshipReader,
-		schemaMap:          sync.Map{},
+// NewSchemaBasedEntityFilter creates a new EntityFilter engine
+func NewSchemaBasedEntityFilter(schemaReader storage.SchemaReader, dataReader storage.DataReader) *SchemaBasedEntityFilter {
+	return &SchemaBasedEntityFilter{
+		schemaReader: schemaReader,
+		dataReader:   dataReader,
 	}
 }
 
 // EntityFilter is a method of the EntityFilterEngine struct. It executes a permission request for linked entities.
-func (engine *EntityFilterEngine) EntityFilter(
+func (engine *SchemaBasedEntityFilter) EntityFilter(
 	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) (err error) { // Returns an error if one occurs during execution.
 	// Check if direct result
 	if request.GetEntityReference().GetType() == request.GetSubject().GetType() && request.GetEntityReference().GetRelation() == request.GetSubject().GetRelation() {
@@ -52,12 +49,11 @@ func (engine *EntityFilterEngine) EntityFilter(
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
-		}, request.GetContextualTuples(), base.CheckResult_RESULT_UNKNOWN)
+		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
-	// Retrieve entity definition
 	var sc *base.SchemaDefinition
-	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	sc, err = engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return err
 	}
@@ -117,13 +113,13 @@ func (engine *EntityFilterEngine) EntityFilter(
 }
 
 // relationEntrance is a method of the EntityFilterEngine struct. It handles relation entrances.
-func (engine *EntityFilterEngine) relationEntrance(
+func (engine *SchemaBasedEntityFilter) relationEntrance(
 	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	entrance *schema.LinkedEntrance, // A linked entrance.
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
 	// Define a TupleFilter. This specifies which tuples we're interested in.
 	// We want tuples that match the entity type and ID from the request, and have a specific relation.
@@ -143,14 +139,14 @@ func (engine *EntityFilterEngine) relationEntrance(
 	// Use the filter to query for relationships in the given context.
 	// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 	// QueryRelationships() then uses the filter to find and return matching relationships.
-	cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
+	cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
 	if err != nil {
 		return err
 	}
 
 	// Query the relationships for the entity in the request.
 	// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
-	rit, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+	rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
 	if err != nil {
 		return err
 	}
@@ -179,7 +175,7 @@ func (engine *EntityFilterEngine) relationEntrance(
 }
 
 // tupleToUserSetEntrance is a method of the EntityFilterEngine struct. It handles tuple to user set entrances.
-func (engine *EntityFilterEngine) tupleToUserSetEntrance(
+func (engine *SchemaBasedEntityFilter) tupleToUserSetEntrance(
 	// A context used for tracing and cancellation.
 	ctx context.Context,
 	// A permission request for linked entities.
@@ -191,7 +187,7 @@ func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 	// An errgroup used for executing goroutines.
 	g *errgroup.Group,
 	// A custom publisher that publishes results in bulk.
-	publisher *BulkPublisher,
+	publisher *BulkEntityPublisher,
 ) error { // Returns an error if one occurs during execution.
 	for _, relation := range []string{"", tuple.ELLIPSIS} {
 		// Define a TupleFilter. This specifies which tuples we're interested in.
@@ -212,14 +208,14 @@ func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 		// Use the filter to query for relationships in the given context.
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
-		cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
+		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
 		if err != nil {
 			return err
 		}
 
 		// Use the filter to query for relationships in the database.
 		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
-		rit, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
 		if err != nil {
 			return err
 		}
@@ -249,20 +245,22 @@ func (engine *EntityFilterEngine) tupleToUserSetEntrance(
 }
 
 // run is a method of the EntityFilterEngine struct. It executes the linked entity engine for a given request.
-func (engine *EntityFilterEngine) l(
+func (engine *SchemaBasedEntityFilter) l(
 	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	found *base.EntityAndRelation, // An entity and relation that was previously found.
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkPublisher, // A custom publisher that publishes results in bulk.
+	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
 	if !visits.Add(found) { // If the entity and relation has already been visited.
 		return nil
 	}
 
-	// Retrieve entity definition
-	sc, err := engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	var err error
+
+	var sc *base.SchemaDefinition
+	sc, err = engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return err
 	}
@@ -290,7 +288,7 @@ func (engine *EntityFilterEngine) l(
 				SnapToken:     request.GetMetadata().GetSnapToken(),
 				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 				Depth:         request.GetMetadata().GetDepth(),
-			}, request.GetContextualTuples(), base.CheckResult_RESULT_UNKNOWN)
+			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 			return nil
 		}
 		return nil // Otherwise, return without publishing any results.
@@ -305,34 +303,9 @@ func (engine *EntityFilterEngine) l(
 				Id:       found.GetEntity().GetId(),
 				Relation: found.GetRelation(),
 			},
-			Metadata:         request.GetMetadata(),
-			ContextualTuples: request.GetContextualTuples(),
+			Metadata: request.GetMetadata(),
+			Context:  request.GetContext(),
 		}, visits, publisher)
 	})
 	return nil
-}
-
-// getSchema is a method of the EntityFilterEngine struct. It retrieves the schema for a given tenant and schema version.
-func (engine *EntityFilterEngine) readSchema(ctx context.Context, tenantID, schemaVersion string) (*base.SchemaDefinition, error) {
-	// Create a cache key by concatenating the tenantID and schemaVersion with a separator.
-	cacheKey := tenantID + "|" + schemaVersion
-
-	// Check if the schema is present in the cache by trying to load it using the cacheKey.
-	if sch, ok := engine.schemaMap.Load(cacheKey); ok {
-		// If the schema is found in the cache, cast it to the appropriate type and return it.
-		return sch.(*base.SchemaDefinition), nil
-	}
-
-	// If the schema is not found in the cache, read it using the schemaReader.
-	sch, err := engine.schemaReader.ReadSchema(ctx, tenantID, schemaVersion)
-	if err != nil {
-		// If there's an error while reading the schema, return the error.
-		return nil, err
-	}
-
-	// If the schema is successfully read, store it in the cache using the cacheKey.
-	engine.schemaMap.Store(cacheKey, sch)
-
-	// Return the schema.
-	return sch, nil
 }
