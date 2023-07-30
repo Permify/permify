@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	`github.com/Permify/permify/pkg/attribute`
 	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
@@ -16,14 +17,19 @@ import (
 type SchemaCoverageInfo struct {
 	EntityCoverageInfo         []EntityCoverageInfo
 	TotalRelationshipsCoverage int
+	TotalAttributesCoverage    int
 	TotalAssertionsCoverage    int
 }
 
 // EntityCoverageInfo - Entity coverage info
 type EntityCoverageInfo struct {
-	EntityName                   string
+	EntityName string
+
 	UncoveredRelationships       []string
 	CoverageRelationshipsPercent int
+
+	UncoveredAttributes       []string
+	CoverageAttributesPercent int
 
 	UncoveredAssertions       map[string][]string
 	CoverageAssertionsPercent map[string]int
@@ -68,6 +74,7 @@ type EntityCoverageInfo struct {
 type SchemaCoverage struct {
 	EntityName    string
 	Relationships []string
+	Attributes    []string
 	Assertions    []string
 }
 
@@ -77,7 +84,7 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		return SchemaCoverageInfo{}
 	}
 
-	definitions, err := compiler.NewCompiler(true, p).Compile()
+	definitions, _, err := compiler.NewCompiler(true, p).Compile()
 	if err != nil {
 		return SchemaCoverageInfo{}
 	}
@@ -95,9 +102,11 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		entityCoverageInfo := EntityCoverageInfo{
 			EntityName:                   ref.EntityName,
 			UncoveredRelationships:       []string{},
+			UncoveredAttributes:          []string{},
 			CoverageAssertionsPercent:    map[string]int{},
 			UncoveredAssertions:          map[string][]string{},
 			CoverageRelationshipsPercent: 0,
+			CoverageAttributesPercent:    0,
 		}
 
 		// Calculate relationships coverage
@@ -112,6 +121,20 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		entityCoverageInfo.CoverageRelationshipsPercent = calculateCoveragePercent(
 			ref.Relationships,
 			entityCoverageInfo.UncoveredRelationships,
+		)
+
+		// Calculate attributes coverage
+		at := attributes(ref.EntityName, shape.Attributes)
+
+		for _, attr := range ref.Attributes {
+			if !slices.Contains(at, attr) {
+				entityCoverageInfo.UncoveredAttributes = append(entityCoverageInfo.UncoveredAttributes, attr)
+			}
+		}
+
+		entityCoverageInfo.CoverageAttributesPercent = calculateCoveragePercent(
+			ref.Attributes,
+			entityCoverageInfo.UncoveredAttributes,
 		)
 
 		// Calculate assertions coverage for each scenario
@@ -134,8 +157,9 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 	}
 
 	// Calculate and assign the total relationships and assertions coverage to the schemaCoverageInfo
-	relationshipsCoverage, assertionsCoverage := calculateTotalCoverage(schemaCoverageInfo.EntityCoverageInfo)
+	relationshipsCoverage, attributesCoverage, assertionsCoverage := calculateTotalCoverage(schemaCoverageInfo.EntityCoverageInfo)
 	schemaCoverageInfo.TotalRelationshipsCoverage = relationshipsCoverage
+	schemaCoverageInfo.TotalAttributesCoverage = attributesCoverage
 	schemaCoverageInfo.TotalAssertionsCoverage = assertionsCoverage
 
 	return schemaCoverageInfo
@@ -154,9 +178,12 @@ func calculateCoveragePercent(totalElements, uncoveredElements []string) int {
 	return coveragePercent
 }
 
-func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int) {
+// calculateTotalCoverage - Calculate total relationships and assertions coverage
+func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int, int) {
 	totalRelationships := 0
 	totalCoveredRelationships := 0
+	totalAttributes := 0
+	totalCoveredAttributes := 0
 	totalAssertions := 0
 	totalCoveredAssertions := 0
 
@@ -164,6 +191,9 @@ func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int) {
 	for _, entity := range entities {
 		totalRelationships++
 		totalCoveredRelationships += entity.CoverageRelationshipsPercent
+
+		totalAttributes++
+		totalCoveredAttributes += entity.CoverageAttributesPercent
 
 		for _, assertionsPercent := range entity.CoverageAssertionsPercent {
 			totalAssertions++
@@ -173,10 +203,11 @@ func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int) {
 
 	// Calculate the coverage percentages
 	totalRelationshipsCoverage := totalCoveredRelationships / totalRelationships
+	totalAttributesCoverage := totalCoveredAttributes / totalAttributes
 	totalAssertionsCoverage := totalCoveredAssertions / totalAssertions
 
 	// Return the coverage percentages
-	return totalRelationshipsCoverage, totalAssertionsCoverage
+	return totalRelationshipsCoverage, totalAttributesCoverage, totalAssertionsCoverage
 }
 
 // References - Get references for a given entity
@@ -197,6 +228,12 @@ func references(entity *base.EntityDefinition) (coverage SchemaCoverage) {
 			}
 		}
 	}
+	// Iterate over all attributes in the entity
+	for _, attr := range entity.GetAttributes() {
+		// Format and append the attribute to the coverage struct
+		formattedAttribute := fmt.Sprintf("%s#%s", entity.GetName(), attr.GetName())
+		coverage.Attributes = append(coverage.Attributes, formattedAttribute)
+	}
 	// Iterate over all permissions in the entity
 	for _, permission := range entity.GetPermissions() {
 		// Format and append the permission to the coverage struct
@@ -207,7 +244,7 @@ func references(entity *base.EntityDefinition) (coverage SchemaCoverage) {
 	return
 }
 
-// relationships -
+// relationships - Get relationships for a given entity
 func relationships(en string, relationships []string) []string {
 	var rels []string
 	for _, relationship := range relationships {
@@ -228,6 +265,22 @@ func relationships(en string, relationships []string) []string {
 		// Format ad append the relationship without the relation name to the coverage struct
 	}
 	return rels
+}
+
+// attributes - Get attributes for a given entity
+func attributes(en string, attributes []string) []string {
+	var attrs []string
+	for _, attr := range attributes {
+		a, err := attribute.Attribute(attr)
+		if err != nil {
+			return []string{}
+		}
+		if a.GetEntity().GetType() != en {
+			continue
+		}
+		attrs = append(attrs, fmt.Sprintf("%s#%s", a.GetEntity().GetType(), a.GetAttribute()))
+	}
+	return attrs
 }
 
 // assertions - Get assertions for a given entity

@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/Permify/permify/internal/storage"
-	server_validation "github.com/Permify/permify/internal/validation"
+	serverValidation "github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development"
@@ -158,7 +158,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			}
 
 			// Validate the tuple using the entity definition
-			err = server_validation.ValidateTuple(definition, tup)
+			err = serverValidation.ValidateTuple(definition, tup)
 			// If an error occurs during validation, return the error
 			if err != nil {
 				return err
@@ -199,7 +199,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			}
 
 			// Validate the attribute using the entity definition
-			err = server_validation.ValidateAttribute(definition, attr)
+			err = serverValidation.ValidateAttribute(definition, attr)
 			// If an error occurs during validation, return the error
 			if err != nil {
 				return err

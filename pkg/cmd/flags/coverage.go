@@ -14,6 +14,11 @@ func RegisterCoverageFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.Int("coverage-attributes", 0, "the min coverage for attributes")
+	if err := viper.BindPFlag("coverage-attributes", flags.Lookup("coverage-attributes")); err != nil {
+		panic(err)
+	}
+
 	flags.Int("coverage-assertions", 0, "the min coverage for assertions")
 	if err := viper.BindPFlag("coverage-assertions", flags.Lookup("coverage-assertions")); err != nil {
 		panic(err)
