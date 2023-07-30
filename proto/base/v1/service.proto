@@ -676,7 +676,7 @@ message DataWriteRequest {
 
   // tuples contains the list of tuples (entity-relation-entity triples) that need to be written.
   repeated Tuple tuples = 3 [json_name = "tuples", (validate.rules).repeated = {
-    min_items : 1,
+    min_items : 0,
     max_items : 100,
     items : {
       message : {
@@ -687,7 +687,7 @@ message DataWriteRequest {
 
   // attributes contains the list of attributes (entity-attribute-value triples) that need to be written.
   repeated Attribute attributes = 4 [json_name = "attributes", (validate.rules).repeated = {
-    min_items : 1,
+    min_items : 0,
     max_items : 100,
     items : {
       message : {

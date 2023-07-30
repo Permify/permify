@@ -4239,10 +4239,10 @@ func (m *DataWriteRequest) validate(all bool) error {
 		}
 	}
 
-	if l := len(m.GetTuples()); l < 1 || l > 100 {
+	if len(m.GetTuples()) > 100 {
 		err := DataWriteRequestValidationError{
 			field:  "Tuples",
-			reason: "value must contain between 1 and 100 items, inclusive",
+			reason: "value must contain no more than 100 item(s)",
 		}
 		if !all {
 			return err
@@ -4295,10 +4295,10 @@ func (m *DataWriteRequest) validate(all bool) error {
 
 	}
 
-	if l := len(m.GetAttributes()); l < 1 || l > 100 {
+	if len(m.GetAttributes()) > 100 {
 		err := DataWriteRequestValidationError{
 			field:  "Attributes",
-			reason: "value must contain between 1 and 100 items, inclusive",
+			reason: "value must contain no more than 100 item(s)",
 		}
 		if !all {
 			return err
