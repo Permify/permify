@@ -10,6 +10,7 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -1916,6 +1917,170 @@ entity organization {
 			}
 
 			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+						TenantId:   "t1",
+						EntityType: filter.entityType,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionLookupEntityRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         100,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+				}
+			}
+		})
+	})
+
+	weekdaySchema := `
+		entity user {}
+		
+		entity organization {
+		
+			relation member @user
+		
+			attribute balance integer
+
+			permission view = check_balance(balance) and member
+		}
+		
+		entity repository {
+		
+			relation organization  @organization
+			
+			attribute is_public boolean
+
+			permission view = is_public
+			permission edit = organization.view
+			permission delete = is_weekday(request.day_of_week)
+		}
+		
+		rule check_balance(balance integer) {
+			balance > 5000
+		}
+
+		rule is_weekday(day_of_week string) {
+			  day_of_week != 'saturday' && day_of_week != 'sunday'
+		}
+		`
+
+	Context("Weekday Sample: Entity Filter", func() {
+		It("Weekday Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(weekdaySchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"organization:2#member@user:1",
+				},
+				attributes: []string{
+					"repository:1#is_public@boolean:true",
+					"repository:2#is_public@boolean:false",
+					"repository:3#is_public@boolean:true",
+
+					"organization:1#balance@integer:4000",
+					"organization:2#balance@integer:6000",
+				},
+				filters: []filter{
+					{
+						entityType: "repository",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"view": {"1", "3"},
+						},
+					},
+					{
+						entityType: "organization",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"view": {"2"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEntityEngine,
+				nil,
+				nil,
+				telemetry.NewNoopMeter(),
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {

@@ -31,9 +31,9 @@ func NewLookupSubjectEngine(check *CheckEngine, sr storage.SchemaReader, schemaB
 	// By default, the concurrency limit is set to a predefined constant _defaultConcurrencyLimit.
 	engine := &LookupSubjectEngine{
 		checkEngine:              check,
+		schemaReader:             sr,
 		schemaBasedSubjectFilter: schemaBasedSubjectFilter,
 		massSubjectFilter:        massSubjectFilter,
-		schemaReader:             sr,
 		concurrencyLimit:         _defaultConcurrencyLimit,
 	}
 
@@ -68,17 +68,17 @@ func (engine *LookupSubjectEngine) LookupSubject(ctx context.Context, request *b
 
 			// Callback function which is called for each entity. If the entity passes the permission check,
 			// the entity ID is appended to the entityIDs slice.
-			callback := func(entityID string, result base.CheckResult) {
-				if result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+			callback := func(subjectID string, result base.CheckResult) {
+				if result == base.CheckResult_CHECK_RESULT_ALLOWED {
 					mu.Lock()         // Safeguard access to the shared slice with a mutex
 					defer mu.Unlock() // Ensure the lock is released after appending the ID
-					subjectIDs = append(subjectIDs, entityID)
+					subjectIDs = append(subjectIDs, subjectID)
 				}
 			}
 
 			// Create and start BulkChecker. It performs permission checks in parallel.
 			checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
-			checker.Start()
+			checker.Start(BULK_SUBJECT)
 
 			// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
 			publisher := NewBulkSubjectPublisher(ctx, request, checker)

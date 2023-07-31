@@ -64,7 +64,7 @@ func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *bas
 
 	// Create and start BulkChecker. It performs permission checks in parallel.
 	checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
-	checker.Start()
+	checker.Start(BULK_ENTITY)
 
 	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
 	publisher := NewBulkEntityPublisher(ctx, request, checker)
@@ -146,7 +146,7 @@ func (engine *LookupEntityEngine) LookupEntityStream(ctx context.Context, reques
 
 	// Create and start BulkChecker. It performs permission checks concurrently.
 	checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
-	checker.Start()
+	checker.Start(BULK_ENTITY)
 
 	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
 	publisher := NewBulkEntityPublisher(ctx, request, checker)

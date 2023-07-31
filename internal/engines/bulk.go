@@ -9,6 +9,13 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+type BulkCheckerType string
+
+const (
+	BULK_SUBJECT BulkCheckerType = "subject"
+	BULK_ENTITY  BulkCheckerType = "entity"
+)
+
 // BulkCheckerRequest is a struct for a permission check request and the channel to send the result.
 type BulkCheckerRequest struct {
 	Request *base.PermissionCheckRequest
@@ -48,7 +55,7 @@ func NewBulkChecker(ctx context.Context, engine *CheckEngine, callback func(enti
 
 // Start begins processing permission check requests from the RequestChan.
 // It starts an errgroup that manages multiple goroutines for performing permission checks.
-func (c *BulkChecker) Start() {
+func (c *BulkChecker) Start(typ BulkCheckerType) {
 	c.g.Go(func() error {
 		sem := semaphore.NewWeighted(int64(c.concurrencyLimit))
 		for {
@@ -71,10 +78,20 @@ func (c *BulkChecker) Start() {
 						return err
 					}
 
-					// call the callback with the result
-					c.callback(req.Request.GetEntity().GetId(), result.Can)
+					if typ == BULK_ENTITY {
+						// call the callback with the result
+						c.callback(req.Request.GetEntity().GetId(), result.Can)
+					} else if typ == BULK_SUBJECT {
+						c.callback(req.Request.GetSubject().GetId(), result.Can)
+					}
+
 				} else {
-					c.callback(req.Request.GetEntity().GetId(), req.Result)
+					if typ == BULK_ENTITY {
+						// call the callback with the result
+						c.callback(req.Request.GetEntity().GetId(), req.Result)
+					} else if typ == BULK_SUBJECT {
+						c.callback(req.Request.GetSubject().GetId(), req.Result)
+					}
 				}
 				return nil
 			})
