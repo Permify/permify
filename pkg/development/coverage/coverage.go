@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	`github.com/Permify/permify/pkg/attribute`
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"

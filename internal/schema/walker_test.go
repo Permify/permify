@@ -106,7 +106,6 @@ var _ = Describe("walker", func() {
 			err = w.Walk("repository", "edit")
 
 			Expect(err).Should(Equal(ErrUnimplemented))
-
 		})
 	})
 })

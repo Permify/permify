@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	`github.com/golang/protobuf/jsonpb`
 	"strings"
+
+	"github.com/golang/protobuf/jsonpb"
 
 	"github.com/Masterminds/squirrel"
 	otelCodes "go.opentelemetry.io/otel/codes"
