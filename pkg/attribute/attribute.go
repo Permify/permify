@@ -73,7 +73,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		wrapped = wrapperspb.Double(doubleVal)
 	// In case of integer
 	case "integer":
-		intVal, err := strconv.Atoi(v[1])
+		intVal, err := strconv.ParseInt(v[1], 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse integer: %v", err)
 		}
