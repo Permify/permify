@@ -11,19 +11,19 @@ import (
 type WatchServer struct {
 	v1.UnimplementedWatchServer
 
-	rr     storage.RelationshipReader
+	dr     storage.DataReader
 	w      storage.Watcher
 	logger logger.Interface
 }
 
 func NewWatchServer(
 	w storage.Watcher,
-	rr storage.RelationshipReader,
+	dr storage.DataReader,
 	l logger.Interface,
 ) *WatchServer {
 	return &WatchServer{
 		w:      w,
-		rr:     rr,
+		dr:     dr,
 		logger: l,
 	}
 }
@@ -44,7 +44,7 @@ func (r *WatchServer) Watch(request *v1.WatchRequest, server v1.Watch_WatchServe
 	snap := request.GetSnapToken()
 	if snap == "" {
 		// If the snapshot token is not provided, get the head snapshot from the database.
-		st, err := r.rr.HeadSnapshot(ctx, request.GetTenantId())
+		st, err := r.dr.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
 			return err // If there's an error retrieving the snapshot, return it.
 		}
