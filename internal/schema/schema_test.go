@@ -3,8 +3,6 @@ package schema
 import (
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -28,8 +26,6 @@ var _ = Describe("schema", func() {
 				Permissions: map[string]*base.PermissionDefinition{},
 				References:  map[string]base.EntityDefinition_Reference{},
 			})
-
-			spew.Dump(NewSchemaFromEntityAndRuleDefinitions(entities, []*base.RuleDefinition{}))
 
 			Expect(NewSchemaFromEntityAndRuleDefinitions(entities, []*base.RuleDefinition{})).To(Equal(&base.SchemaDefinition{
 				EntityDefinitions: map[string]*base.EntityDefinition{
