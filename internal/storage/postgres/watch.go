@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+
 	"github.com/Masterminds/squirrel"
 
 	"github.com/Permify/permify/internal/storage"
@@ -48,9 +51,9 @@ func NewWatcher(database *db.Postgres, logger logger.Interface) *Watch {
 }
 
 // Watch returns a channel that emits a stream of changes to the relationship tuples in the database.
-func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.TupleChanges, <-chan error) {
+func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.DataChanges, <-chan error) {
 	// Create channels for changes and errors.
-	changes := make(chan *base.TupleChanges, w.bufferSize)
+	changes := make(chan *base.DataChanges, w.bufferSize)
 	errs := make(chan error, 1)
 
 	// Decode the snapshot value.
@@ -188,12 +191,12 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 //
 // This method returns a TupleChanges instance that encapsulates the changes in the relation tuples within the specified
 // transaction, or an error if something went wrong during execution.
-func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID string) (*base.TupleChanges, error) {
+func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID string) (*base.DataChanges, error) {
 	// Initialize a new TupleChanges instance.
-	changes := &base.TupleChanges{}
+	changes := &base.DataChanges{}
 
 	// Construct the SQL SELECT statement for retrieving the changes from the RelationTuplesTable.
-	builder := w.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, expired_tx_id").
+	tbuilder := w.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, expired_tx_id").
 		From(RelationTuplesTable).
 		Where(squirrel.Eq{"tenant_id": tenantID}).Where(squirrel.Or{
 		squirrel.Eq{"created_tx_id": value},
@@ -201,44 +204,101 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 	})
 
 	// Generate the SQL query and arguments.
-	query, args, err := builder.ToSql()
+	tquery, targs, err := tbuilder.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
 	// Execute the SQL query and retrieve the result rows.
-	var rows *sql.Rows
-	rows, err = w.database.DB.QueryContext(ctx, query, args...)
+	var trows *sql.Rows
+	trows, err = w.database.DB.QueryContext(ctx, tquery, targs...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	// Ensure the rows are closed after processing.
-	defer rows.Close()
+	defer trows.Close()
+
+	abuilder := w.database.Builder.Select("entity_type, entity_id, attribute, value, expired_tx_id").
+		From(AttributesTable).
+		Where(squirrel.Eq{"tenant_id": tenantID}).Where(squirrel.Or{
+		squirrel.Eq{"created_tx_id": value},
+		squirrel.Eq{"expired_tx_id": value},
+	})
+
+	aquery, aargs, err := abuilder.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var arows *sql.Rows
+	arows, err = w.database.DB.QueryContext(ctx, aquery, aargs...)
+	if err != nil {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+	// Ensure the rows are closed after processing.
+	defer arows.Close()
 
 	// Set the snapshot token for the changes.
 	changes.SnapToken = snapshot.Token{Value: value}.Encode().String()
 
 	// Iterate through the result rows.
-	for rows.Next() {
+	for trows.Next() {
 		var expiredXID types.XID8
 
 		rt := storage.RelationTuple{}
 		// Scan the result row into a RelationTuple instance.
-		err = rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation, &expiredXID)
+		err = trows.Scan(&rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation, &expiredXID)
 		if err != nil {
 			return nil, err
 		}
 
 		// Determine the operation type based on the expired transaction ID.
-		op := base.TupleChange_OPERATION_CREATE
+		op := base.DataChange_OPERATION_CREATE
 		if expiredXID.Uint == value.Uint {
-			op = base.TupleChange_OPERATION_DELETE
+			op = base.DataChange_OPERATION_DELETE
 		}
 
 		// Append the change to the list of changes.
-		changes.TupleChanges = append(changes.TupleChanges, &base.TupleChange{
+		changes.DataChanges = append(changes.DataChanges, &base.DataChange{
 			Operation: op,
-			Tuple:     rt.ToTuple(),
+			Type: &base.DataChange_Tuple{
+				Tuple: rt.ToTuple(),
+			},
+		})
+	}
+
+	// Iterate through the result rows.
+	for arows.Next() {
+		var expiredXID types.XID8
+
+		rt := storage.Attribute{}
+
+		var valueBytes []byte
+
+		// Scan the result row into a RelationTuple instance.
+		err = trows.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueBytes, &expiredXID)
+		if err != nil {
+			return nil, err
+		}
+
+		rt.Value = &anypb.Any{}
+		err = proto.Unmarshal(valueBytes, rt.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		// Determine the operation type based on the expired transaction ID.
+		op := base.DataChange_OPERATION_CREATE
+		if expiredXID.Uint == value.Uint {
+			op = base.DataChange_OPERATION_DELETE
+		}
+
+		// Append the change to the list of changes.
+		changes.DataChanges = append(changes.DataChanges, &base.DataChange{
+			Operation: op,
+			Type: &base.DataChange_Attribute{
+				Attribute: rt.ToAttribute(),
+			},
 		})
 	}
 

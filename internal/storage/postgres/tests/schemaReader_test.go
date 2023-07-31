@@ -40,16 +40,16 @@ func TestHeadVersion_Test(t *testing.T) {
 
 	version := xid.New().String()
 	schemas := map[string]storage.SchemaDefinition{
-		version: {TenantID: "1", EntityType: "entity1", SerializedDefinition: []byte("def1"), Version: version},
+		version: {TenantID: "1", Name: "entity1", SerializedDefinition: []byte("def1"), Version: version},
 	}
 
 	writeSchemas := []storage.SchemaDefinition{
-		{TenantID: "1", EntityType: "entity1", SerializedDefinition: []byte("def1"), Version: version},
+		{TenantID: "1", Name: "entity1", SerializedDefinition: []byte("def1"), Version: version},
 	}
 
 	query := "INSERT INTO schema_definitions \\(entity_type, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
 	mock.ExpectExec(query).
-		WithArgs(schemas[version].EntityType, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
+		WithArgs(schemas[version].Name, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
 		WillReturnResult(sqlmock.NewResult(0, 2))
 
 	err = writer.WriteSchema(ctx, writeSchemas)
@@ -85,16 +85,16 @@ func TestReadSchema_Test(t *testing.T) {
 
 	version := xid.New().String()
 	schemas := map[string]storage.SchemaDefinition{
-		version: {TenantID: "1", EntityType: "user", SerializedDefinition: []byte(schemaExample), Version: version},
+		version: {TenantID: "1", Name: "user", SerializedDefinition: []byte(schemaExample), Version: version},
 	}
 
 	writeSchemas := []storage.SchemaDefinition{
-		{TenantID: "1", EntityType: "user", SerializedDefinition: []byte(schemaExample), Version: version},
+		{TenantID: "1", Name: "user", SerializedDefinition: []byte(schemaExample), Version: version},
 	}
 
 	query := "INSERT INTO schema_definitions \\(entity_type, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
 	mock.ExpectExec(query).
-		WithArgs(schemas[version].EntityType, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
+		WithArgs(schemas[version].Name, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
 		WillReturnResult(sqlmock.NewResult(0, 2))
 
 	err = writer.WriteSchema(ctx, writeSchemas)
@@ -131,16 +131,16 @@ func TestReadSchemaDefinition_Test(t *testing.T) {
 
 	version := xid.New().String()
 	schemas := map[string]storage.SchemaDefinition{
-		version: {TenantID: "1", EntityType: "user", SerializedDefinition: []byte(schemaExample), Version: version},
+		version: {TenantID: "1", Name: "user", SerializedDefinition: []byte(schemaExample), Version: version},
 	}
 
 	writeSchemas := []storage.SchemaDefinition{
-		{TenantID: "1", EntityType: "user", SerializedDefinition: []byte(schemaExample), Version: version},
+		{TenantID: "1", Name: "user", SerializedDefinition: []byte(schemaExample), Version: version},
 	}
 
 	query := "INSERT INTO schema_definitions \\(entity_type, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
 	mock.ExpectExec(query).
-		WithArgs(schemas[version].EntityType, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
+		WithArgs(schemas[version].Name, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
 		WillReturnResult(sqlmock.NewResult(0, 2))
 
 	err = writer.WriteSchema(ctx, writeSchemas)
