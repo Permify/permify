@@ -9,8 +9,8 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var _ = Describe("connected schema", func() {
-	Context("connected schema", func() {
+var _ = Describe("linked schema", func() {
+	Context("linked schema", func() {
 		It("Case 1", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
@@ -22,9 +22,9 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, _ := c.Compile()
+			a, _, _ := c.Compile()
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -61,9 +61,9 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, _ := c.Compile()
+			a, _, _ := c.Compile()
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -116,9 +116,9 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, _ := c.Compile()
+			a, _, _ := c.Compile()
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -175,9 +175,9 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, _ := c.Compile()
+			a, _, _ := c.Compile()
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -239,9 +239,9 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, _ := c.Compile()
+			a, _, _ := c.Compile()
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -306,10 +306,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -361,10 +361,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -448,10 +448,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -495,10 +495,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -544,10 +544,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -601,10 +601,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -649,10 +649,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -699,10 +699,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -739,10 +739,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "document",
@@ -791,10 +791,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "account",
@@ -834,10 +834,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "account",
@@ -885,10 +885,10 @@ var _ = Describe("connected schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			c := compiler.NewCompiler(true, sch)
-			a, err := c.Compile()
+			a, _, err := c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			g := NewLinkedGraph(NewSchemaFromEntityDefinitions(a...))
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
 			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
 				Type:     "account",

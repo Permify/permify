@@ -212,8 +212,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Initialize the storage with factory methods
-		relationshipReader := factories.RelationshipReaderFactory(db, l)
-		relationshipWriter := factories.RelationshipWriterFactory(db, l)
+		dataReader := factories.DataReaderFactory(db, l)
+		dataWriter := factories.DataWriterFactory(db, l)
 		schemaReader := factories.SchemaReaderFactory(db, l)
 		schemaWriter := factories.SchemaWriterFactory(db, l)
 		tenantReader := factories.TenantReaderFactory(db, l)
@@ -225,20 +225,26 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Check if circuit breaker should be enabled for services
 		if cfg.Service.CircuitBreaker {
 			// Add circuit breaker to the relationship reader and writer using decorators
-			relationshipWriter = decorators.NewRelationshipWriterWithCircuitBreaker(relationshipWriter)
-			relationshipReader = decorators.NewRelationshipReaderWithCircuitBreaker(relationshipReader)
+			dataWriter = decorators.NewDataWriterWithCircuitBreaker(dataWriter)
+			dataReader = decorators.NewDataReaderWithCircuitBreaker(dataReader)
 
 			// Add circuit breaker to the schema reader and writer using decorators
 			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
 			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
 		}
 
+		// filters
+		schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(schemaReader, dataReader)
+		massEntityFilter := engines.NewMassEntityFilter(dataReader)
+
+		schemaBaseSubjectFilter := engines.NewSchemaBasedSubjectFilter(schemaReader, dataReader, engines.SchemaBaseSubjectFilterConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		massSubjectFilter := engines.NewMassSubjectFilter(dataReader)
+
 		// Initialize the engines using the key manager, schema reader, and relationship reader
-		checkEngine := engines.NewCheckEngine(schemaReader, relationshipReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
-		expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
-		entityFilterEngine := engines.NewEntityFilterEngine(schemaReader, relationshipReader)
-		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, entityFilterEngine, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
-		lookupSubjectEngine := engines.NewLookupSubjectEngine(schemaReader, relationshipReader, engines.LookupSubjectConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
+		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
+		lookupSubjectEngine := engines.NewLookupSubjectEngine(checkEngine, schemaReader, schemaBaseSubjectFilter, massSubjectFilter, engines.LookupSubjectConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
 		subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
 
 		var check invoke.Check
@@ -267,7 +273,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		invoker := invoke.NewDirectInvoker(
 			schemaReader,
-			relationshipReader,
+			dataReader,
 			check,
 			expandEngine,
 			lookupEntityEngine,
@@ -281,8 +287,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Create the container with engines, storage, and other dependencies
 		container := servers.NewContainer(
 			invoker,
-			relationshipReader,
-			relationshipWriter,
+			dataReader,
+			dataWriter,
 			schemaReader,
 			schemaWriter,
 			tenantReader,

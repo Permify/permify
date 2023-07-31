@@ -36,10 +36,10 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.Schema
 	ctx, span := tracer.Start(ctx, "schema-writer.write-schema")
 	defer span.End()
 
-	insertBuilder := w.database.Builder.Insert(SchemaDefinitionTable).Columns("entity_type, serialized_definition, version, tenant_id")
+	insertBuilder := w.database.Builder.Insert(SchemaDefinitionTable).Columns("name, serialized_definition, version, tenant_id")
 
 	for _, schema := range schemas {
-		insertBuilder = insertBuilder.Values(schema.EntityType, schema.SerializedDefinition, schema.Version, schema.TenantID)
+		insertBuilder = insertBuilder.Values(schema.Name, schema.SerializedDefinition, schema.Version, schema.TenantID)
 	}
 
 	var query string

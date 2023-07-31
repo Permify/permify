@@ -10,136 +10,107 @@ import (
 	"github.com/Permify/permify/pkg/logger"
 )
 
-// RelationshipReaderFactory is a factory function that returns a relationship reader instance according to the
-// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
-//
-// db: the database.Database instance for which the relationship reader should be created
-// logger: the logger.Interface instance to be used by the relationship reader for logging purposes
-//
-// Returns a storage.RelationshipReader instance that performs read operations on the relationships stored
-// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
-func RelationshipReaderFactory(db database.Database, logger logger.Interface) (repo storage.RelationshipReader) {
+// DataReaderFactory creates and returns a DataReader based on the database engine type.
+func DataReaderFactory(db database.Database, logger logger.Interface) (repo storage.DataReader) {
 	switch db.GetEngineType() {
 	case "postgres":
-		return PQRepository.NewRelationshipReader(db.(*PQDatabase.Postgres), logger)
+		// If the database engine is Postgres, create a new DataReader using the Postgres implementation
+		return PQRepository.NewDataReader(db.(*PQDatabase.Postgres), logger)
 	case "memory":
-		return MMRepository.NewRelationshipReader(db.(*MMDatabase.Memory), logger)
+		// If the database engine is in-memory, create a new DataReader using the in-memory implementation
+		return MMRepository.NewDataReader(db.(*MMDatabase.Memory), logger)
 	default:
-		return MMRepository.NewRelationshipReader(db.(*MMDatabase.Memory), logger)
+		// For any other type, use the in-memory implementation as a default
+		return MMRepository.NewDataReader(db.(*MMDatabase.Memory), logger)
 	}
 }
 
-// RelationshipWriterFactory is a factory function that returns a relationship writer instance according to the
-// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
-//
-// db: the database.Database instance for which the relationship writer should be created
-// logger: the logger.Interface instance to be used by the relationship writer for logging purposes
-//
-// Returns a storage.RelationshipWriter instance that performs write operations on the relationships stored
-// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
-func RelationshipWriterFactory(db database.Database, logger logger.Interface) (repo storage.RelationshipWriter) {
+// DataWriterFactory creates and returns a DataWriter based on the database engine type.
+func DataWriterFactory(db database.Database, logger logger.Interface) (repo storage.DataWriter) {
 	switch db.GetEngineType() {
 	case "postgres":
-		return PQRepository.NewRelationshipWriter(db.(*PQDatabase.Postgres), logger)
+		// If the database engine is Postgres, create a new DataWriter using the Postgres implementation
+		return PQRepository.NewDataWriter(db.(*PQDatabase.Postgres), logger)
 	case "memory":
-		return MMRepository.NewRelationshipWriter(db.(*MMDatabase.Memory), logger)
+		// If the database engine is in-memory, create a new DataWriter using the in-memory implementation
+		return MMRepository.NewDataWriter(db.(*MMDatabase.Memory), logger)
 	default:
-		return MMRepository.NewRelationshipWriter(db.(*MMDatabase.Memory), logger)
+		// For any other type, use the in-memory implementation as a default
+		return MMRepository.NewDataWriter(db.(*MMDatabase.Memory), logger)
 	}
 }
 
-// SchemaReaderFactory is a factory function that returns a schema reader instance according to the
-// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
-//
-// db: the database.Database instance for which the schema reader should be created
-// logger: the logger.Interface instance to be used by the schema reader for logging purposes
-//
-// Returns a storage.SchemaReader instance that performs read operations on the schema stored
-// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
+// SchemaReaderFactory creates and returns a SchemaReader based on the database engine type.
 func SchemaReaderFactory(db database.Database, logger logger.Interface) (repo storage.SchemaReader) {
 	switch db.GetEngineType() {
 	case "postgres":
+		// If the database engine is Postgres, create a new SchemaReader using the Postgres implementation
 		return PQRepository.NewSchemaReader(db.(*PQDatabase.Postgres), logger)
 	case "memory":
+		// If the database engine is in-memory, create a new SchemaReader using the in-memory implementation
 		return MMRepository.NewSchemaReader(db.(*MMDatabase.Memory), logger)
 	default:
+		// For any other type, use the in-memory implementation as a default
 		return MMRepository.NewSchemaReader(db.(*MMDatabase.Memory), logger)
 	}
 }
 
-// WatcherFactory is a factory function that creates and returns a Watcher instance based on the
-// type of the provided database. It supports different types of databases, including PostgreSQL and in-memory databases.
-//
-// db: The database.Database instance for which the Watcher should be created.
-// logger: The logger.Interface instance to be used by the Watcher for logging purposes.
-//
-// The function returns a storage.Watcher instance that can interact with the underlying database based on the chosen
-// Watcher implementation. If the database engine type is not recognized, the function defaults to creating a Watcher for
-// an in-memory database.
+// WatcherFactory creates and returns a Watcher based on the database engine type.
 func WatcherFactory(db database.Database, logger logger.Interface) (repo storage.Watcher) {
 	switch db.GetEngineType() {
 	case "postgres":
+		// If the database engine is Postgres, create a new Watcher using the Postgres implementation
 		return PQRepository.NewWatcher(db.(*PQDatabase.Postgres), logger)
 	case "memory":
+		// If the database engine is in-memory, create a new Watcher using the in-memory implementation
 		return MMRepository.NewWatcher(db.(*MMDatabase.Memory), logger)
 	default:
+		// For any other type, use the in-memory implementation as a default
 		return MMRepository.NewWatcher(db.(*MMDatabase.Memory), logger)
 	}
 }
 
-// SchemaWriterFactory is a factory function that returns a schema writer instance according to the
-// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
-//
-// db: the database.Database instance for which the schema writer should be created
-// logger: the logger.Interface instance to be used by the schema writer for logging purposes
-//
-// Returns a storage.SchemaWriter instance that performs write operations on the schema stored
-// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
+// SchemaWriterFactory creates and returns a SchemaWriter based on the database engine type.
 func SchemaWriterFactory(db database.Database, logger logger.Interface) (repo storage.SchemaWriter) {
 	switch db.GetEngineType() {
 	case "postgres":
+		// If the database engine is Postgres, create a new SchemaWriter using the Postgres implementation
 		return PQRepository.NewSchemaWriter(db.(*PQDatabase.Postgres), logger)
 	case "memory":
+		// If the database engine is in-memory, create a new SchemaWriter using the in-memory implementation
 		return MMRepository.NewSchemaWriter(db.(*MMDatabase.Memory), logger)
 	default:
+		// For any other type, use the in-memory implementation as a default
 		return MMRepository.NewSchemaWriter(db.(*MMDatabase.Memory), logger)
 	}
 }
 
-// TenantReaderFactory is a factory function that returns a tenant reader instance according to the
-// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
-//
-// db: the database.Database instance for which the tenant reader should be created
-// logger: the logger.Interface instance to be used by the tenant reader for logging purposes
-//
-// Returns a storage.TenantReader instance that performs read operations on the tenants stored
-// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
+// TenantReaderFactory creates and returns a TenantReader based on the database engine type.
 func TenantReaderFactory(db database.Database, logger logger.Interface) (repo storage.TenantReader) {
 	switch db.GetEngineType() {
 	case "postgres":
+		// If the database engine is Postgres, create a new TenantReader using the Postgres implementation
 		return PQRepository.NewTenantReader(db.(*PQDatabase.Postgres), logger)
 	case "memory":
+		// If the database engine is in-memory, create a new TenantReader using the in-memory implementation
 		return MMRepository.NewTenantReader(db.(*MMDatabase.Memory), logger)
 	default:
+		// For any other type, use the in-memory implementation as a default
 		return MMRepository.NewTenantReader(db.(*MMDatabase.Memory), logger)
 	}
 }
 
-// TenantWriterFactory is a factory function that returns a tenant writer instance according to the
-// given database interface. It supports different types of databases, such as PostgreSQL and in-memory databases.
-//
-// db: the database.Database instance for which the tenant writer should be created
-// logger: the logger.Interface instance to be used by the tenant writer for logging purposes
-//
-// Returns a storage.TenantWriter instance that performs write operations on the tenants stored
-// in the given database. If the database engine type is not recognized, it defaults to an in-memory database.
+// TenantWriterFactory creates and returns a TenantWriter based on the database engine type.
 func TenantWriterFactory(db database.Database, logger logger.Interface) (repo storage.TenantWriter) {
 	switch db.GetEngineType() {
 	case "postgres":
+		// If the database engine is Postgres, create a new TenantWriter using the Postgres implementation
 		return PQRepository.NewTenantWriter(db.(*PQDatabase.Postgres), logger)
 	case "memory":
+		// If the database engine is in-memory, create a new TenantWriter using the in-memory implementation
 		return MMRepository.NewTenantWriter(db.(*MMDatabase.Memory), logger)
 	default:
+		// For any other type, use the in-memory implementation as a default
 		return MMRepository.NewTenantWriter(db.(*MMDatabase.Memory), logger)
 	}
 }

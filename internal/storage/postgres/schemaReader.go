@@ -38,7 +38,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
 
-	builder := r.database.Builder.Select("entity_type, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
+	builder := r.database.Builder.Select("name, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
 
 	var query string
 	var args []interface{}
@@ -62,7 +62,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 	var definitions []string
 	for rows.Next() {
 		sd := storage.SchemaDefinition{}
-		err = rows.Scan(&sd.EntityType, &sd.SerializedDefinition, &sd.Version)
+		err = rows.Scan(&sd.Name, &sd.SerializedDefinition, &sd.Version)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
@@ -86,12 +86,12 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 	return sch, err
 }
 
-// ReadSchemaDefinition - Reads entity config from the repository.
-func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
-	ctx, span := tracer.Start(ctx, "schema-reader.read-schema-definition")
+// ReadEntityDefinition - Reads entity config from the repository.
+func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name, version string) (definition *base.EntityDefinition, v string, err error) {
+	ctx, span := tracer.Start(ctx, "schema-reader.read-entity-definition")
 	defer span.End()
 
-	builder := r.database.Builder.Select("entity_type, serialized_definition, version").Where(squirrel.Eq{"entity_type": entityType, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
+	builder := r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
 
 	var query string
 	var args []interface{}
@@ -111,7 +111,7 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entit
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	if err = row.Scan(&def.EntityType, &def.SerializedDefinition, &def.Version); err != nil {
+	if err = row.Scan(&def.Name, &def.SerializedDefinition, &def.Version); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
@@ -128,7 +128,53 @@ func (r *SchemaReader) ReadSchemaDefinition(ctx context.Context, tenantID, entit
 		return nil, "", err
 	}
 
-	definition, err = schema.GetEntityByName(sch, entityType)
+	definition, err = schema.GetEntityByName(sch, name)
+	return definition, def.Version, err
+}
+
+// ReadRuleDefinition - Reads rule config from the repository.
+func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, version string) (definition *base.RuleDefinition, v string, err error) {
+	ctx, span := tracer.Start(ctx, "schema-reader.read-rule-definition")
+	defer span.End()
+
+	builder := r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
+
+	var query string
+	var args []interface{}
+
+	query, args, err = builder.ToSql()
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+	}
+
+	var def storage.SchemaDefinition
+	row := r.database.DB.QueryRowContext(ctx, query, args...)
+	if err = row.Err(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	if err = row.Scan(&def.Name, &def.SerializedDefinition, &def.Version); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+		}
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
+	}
+
+	var sch *base.SchemaDefinition
+	sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, "", err
+	}
+
+	definition, err = schema.GetRuleByName(sch, name)
 	return definition, def.Version, err
 }
 

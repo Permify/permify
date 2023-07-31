@@ -40,6 +40,7 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 
 		// get min coverage from viper
 		coverageRelationships := viper.GetInt("coverage-relationships")
+		coverageAttributes := viper.GetInt("coverage-attributes")
 		coverageAssertions := viper.GetInt("coverage-assertions")
 
 		if err != nil {
@@ -81,6 +82,12 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 			os.Exit(1)
 		}
 
+		if schemaCoverageInfo.TotalAttributesCoverage < coverageAttributes {
+			color.Danger.Printf("attributes coverage < %d%%\n", coverageAttributes)
+			// print FAILED with color danger
+			color.Danger.Println("FAILED")
+			os.Exit(1)
+		}
 		return nil
 	}
 }
@@ -113,6 +120,14 @@ func DisplayCoverageInfo(schemaCoverageInfo cov.SchemaCoverageInfo) {
 			color.Danger.Printf(" %d%%\n", entityCoverageInfo.CoverageRelationshipsPercent)
 		} else {
 			color.Success.Printf(" %d%%\n", entityCoverageInfo.CoverageRelationshipsPercent)
+		}
+
+		fmt.Printf("  coverage attributes percentage:")
+
+		if entityCoverageInfo.CoverageAttributesPercent <= 50 {
+			color.Danger.Printf(" %d%%\n", entityCoverageInfo.CoverageAttributesPercent)
+		} else {
+			color.Success.Printf(" %d%%\n", entityCoverageInfo.CoverageAttributesPercent)
 		}
 
 		fmt.Printf("  coverage assertions percentage: \n")

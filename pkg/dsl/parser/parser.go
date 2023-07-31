@@ -19,8 +19,6 @@ const (
 	LOWEST
 	// AND_OR_NOT precedence level for logical operators (AND, OR)
 	AND_OR_NOT
-	// PREFIX precedence level for prefix operators (NOT)
-	PREFIX
 )
 
 var precedences = map[token.Type]int{ // a map that assigns precedence levels to different token types
@@ -43,25 +41,8 @@ type Parser struct {
 	prefixParseFns map[token.Type]prefixParseFn
 	// a map that associates infix parsing functions with token types
 	infixParseFunc map[token.Type]infixParseFn
-
-	// entity references
-	// a map that stores entity types as keys and an empty struct as value, indicating that the entity type has been referenced
-	entityReferences map[string]struct{}
-
-	// relation references
-	// a map that stores relation types as keys and a slice of relation type statements as value
-	// relation types are of the form entity_type#relation_name
-	relationReferences map[string][]ast.RelationTypeStatement
-
-	// action references
-	// a map that stores action types as keys and an empty struct as value, indicating that the action type has been referenced
-	// action types are of the form entity_type#action_name
-	actionReferences map[string]struct{}
-
-	// relational references
-	// a map that stores relational reference types as keys and a RelationalReferenceType as value
-	// relational reference types are of the form entity_type#relation_name, entity_type#action_name
-	relationalReferences map[string]ast.RelationalReferenceType
+	// references to entities, rules, relations, attributes, and permissions
+	references *ast.References
 }
 
 type (
@@ -76,114 +57,22 @@ type (
 func NewParser(str string) (p *Parser) {
 	// initialize a new Parser object with the given input string and default values for other fields
 	p = &Parser{
-		l:                    lexer.NewLexer(str),                      // create a new Lexer object with the input string
-		errors:               []string{},                               // initialize an empty slice of error messages
-		entityReferences:     map[string]struct{}{},                    // initialize an empty map for entity references
-		relationReferences:   map[string][]ast.RelationTypeStatement{}, // initialize an empty map for relation references
-		actionReferences:     map[string]struct{}{},                    // initialize an empty map for action references
-		relationalReferences: map[string]ast.RelationalReferenceType{}, // initialize an empty map for relational references
+		l:          lexer.NewLexer(str), // create a new Lexer object with the input string
+		errors:     []string{},          // initialize an empty slice of error messages
+		references: ast.NewReferences(), // initialize an empty map for relational references
 	}
 
 	// register prefix parsing functions for token types IDENT and NOT
-	p.prefixParseFns = make(map[token.Type]prefixParseFn) // initialize an empty map for prefix parsing functions
-	p.registerPrefix(token.IDENT, p.parseIdentifier)      // associate the parseIdentifier function with the IDENT token type
+	p.prefixParseFns = make(map[token.Type]prefixParseFn)  // initialize an empty map for prefix parsing functions
+	p.registerPrefix(token.IDENT, p.parseIdentifierOrCall) // associate the parseIdentifier function with the IDENT token type
 
-	// register infix parsing functions for token types AND and OR
+	// register infix parsing functions for token types AND, OR, NOT
 	p.infixParseFunc = make(map[token.Type]infixParseFn) // initialize an empty map for infix parsing functions
 	p.registerInfix(token.AND, p.parseInfixExpression)   // associate the parseInfixExpression function with the AND token type
 	p.registerInfix(token.OR, p.parseInfixExpression)    // associate the parseInfixExpression function with the OR token type
 	p.registerInfix(token.NOT, p.parseInfixExpression)   // associate the parseInfixExpression function with the OR token type
 
 	return p // return the newly created Parser object and no error
-}
-
-// setEntityReference adds a new entity reference to the Parser's entityReferences map
-func (p *Parser) setEntityReference(key string) error {
-	// Check if the key string is empty
-	if len(key) == 0 {
-		return fmt.Errorf("key cannot be empty")
-	}
-
-	// If the entityReferences map is nil, initialize it
-	if p.entityReferences == nil {
-		p.entityReferences = map[string]struct{}{}
-	}
-
-	// Check if the entity type has already been referenced, and return an error if it has
-	if _, ok := p.entityReferences[key]; ok {
-		p.duplicationError(key) // Generate an error message indicating a duplication error
-		return p.Error()        // Return the error message
-	}
-
-	// Add the entity type to the entityReferences map
-	p.entityReferences[key] = struct{}{}
-	return nil // Return nil to indicate that there was no error
-}
-
-// setRelationReference adds a new relation reference to the Parser's relationReferences and relationalReferences maps
-func (p *Parser) setRelationReference(key string, types []ast.RelationTypeStatement) error {
-	// Check if the key string is empty
-	if len(key) == 0 {
-		return fmt.Errorf("key cannot be empty")
-	}
-
-	// If the relationReferences map is nil, initialize it
-	if p.relationReferences == nil {
-		p.relationReferences = map[string][]ast.RelationTypeStatement{}
-	}
-
-	// Check if the relation type has already been referenced, and return an error if it has
-	if _, ok := p.relationReferences[key]; ok {
-		p.duplicationError(key) // Generate an error message indicating a duplication error
-		return p.Error()        // Return the error message
-	}
-
-	// Check if the relation type has already been added to the relationalReferences map, and return an error if it has
-	if _, ok := p.relationalReferences[key]; ok {
-		p.duplicationError(key) // Generate an error message indicating a duplication error
-		return p.Error()        // Return the error message
-	}
-
-	// Add the relation type and its associated RelationTypeStatements to the relationReferences map
-	p.relationReferences[key] = types
-
-	// Add the relation type to the relationalReferences map, with a value of RELATION to indicate that it is a relation reference
-	p.relationalReferences[key] = ast.RELATION
-
-	return nil // Return nil to indicate that there was no error
-}
-
-// setPermissionReference adds a new action reference to the Parser's actionReferences and relationalReferences maps
-func (p *Parser) setPermissionReference(key string) error {
-	// Check if the key string is empty
-	if len(key) == 0 {
-		return fmt.Errorf("key cannot be empty")
-	}
-
-	// If the actionReferences map is nil, initialize it
-	if p.actionReferences == nil {
-		p.actionReferences = map[string]struct{}{}
-	}
-
-	// Check if the action type has already been referenced, and return an error if it has
-	if _, ok := p.actionReferences[key]; ok {
-		p.duplicationError(key) // Generate an error message indicating a duplication error
-		return p.Error()        // Return the error message
-	}
-
-	// Check if the action type has already been added to the relationalReferences map, and return an error if it has
-	if _, ok := p.relationalReferences[key]; ok {
-		p.duplicationError(key) // Generate an error message indicating a duplication error
-		return p.Error()        // Return the error message
-	}
-
-	// Add the action type to the actionReferences map
-	p.actionReferences[key] = struct{}{}
-
-	// Add the action type to the relationalReferences map, with a value of PERMISSION to indicate that it is an action reference
-	p.relationalReferences[key] = ast.PERMISSION
-
-	return nil // Return nil to indicate that there was no error
 }
 
 // next retrieves the next non-ignored token from the Parser's lexer and updates the Parser's currentToken and peekToken fields
@@ -201,6 +90,19 @@ func (p *Parser) next() {
 			break
 		}
 	}
+}
+
+// nextWithIgnores advances the parser's token stream by one position.
+// It updates the currentToken and peekToken of the Parser.
+func (p *Parser) nextWithIgnores() {
+	// Get the next token in the lexers token stream and store it in the variable peek.
+	peek := p.l.NextToken()
+
+	// Update the currentToken with the value of peekToken.
+	p.currentToken = p.peekToken
+
+	// Update the peekToken with the value of peek (the new next token in the lexers stream).
+	p.peekToken = peek
 }
 
 // currentTokenIs checks if the Parser's currentToken is any of the given token types
@@ -242,7 +144,7 @@ func (p *Parser) Error() error {
 // Parse reads and parses the input string and returns an AST representation of the schema, along with any errors encountered during parsing
 func (p *Parser) Parse() (*ast.Schema, error) {
 	// create a new Schema object to store the parsed statements
-	schema := &ast.Schema{}
+	schema := ast.NewSchema()
 	schema.Statements = []ast.Statement{}
 
 	// loop through the input string until the end is reached
@@ -262,11 +164,7 @@ func (p *Parser) Parse() (*ast.Schema, error) {
 		p.next()
 	}
 
-	// set the schema's references fields to the corresponding maps in the Parser
-	schema.SetEntityReferences(p.entityReferences)
-	schema.SetRelationReferences(p.relationReferences)
-	schema.SetPermissionReferences(p.actionReferences)
-	schema.SetRelationalReferences(p.relationalReferences)
+	schema.SetReferences(p.references)
 
 	// return the parsed schema object and nil to indicate that there were no errors
 	return schema, nil
@@ -279,8 +177,10 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	case token.ENTITY:
 		// if the currentToken is ENTITY, parse an EntityStatement
 		return p.parseEntityStatement()
+	case token.RULE:
+		// if the currentToken is RULE, parse a RuleStatement
+		return p.parseRuleStatement()
 	default:
-		// if the currentToken is not recognized, return nil for both the statement and error values
 		return nil, nil
 	}
 }
@@ -296,21 +196,22 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 	stmt.Name = p.currentToken
 
 	// add the entity reference to the Parser's entityReferences map
-	err := p.setEntityReference(stmt.Name.Literal)
+	err := p.references.SetEntityReference(stmt.Name.Literal)
 	if err != nil {
-		return nil, err
+		p.duplicationError(stmt.Name.Literal) // Generate an error message indicating a duplication error
+		return nil, p.Error()
 	}
 
 	// expect the next token to be a left brace token, indicating the start of the entity's body
-	if !p.expectAndNext(token.LBRACE) {
+	if !p.expectAndNext(token.LCB) {
 		return nil, p.Error()
 	}
 
 	// loop through the entity's body until a right brace token is encountered
-	for !p.currentTokenIs(token.RBRACE) {
+	for !p.currentTokenIs(token.RCB) {
 		// if the currentToken is EOF, raise an error and return nil for both the statement and error values
 		if p.currentTokenIs(token.EOF) {
-			p.currentError(token.RBRACE)
+			p.currentError(token.RCB)
 			return nil, p.Error()
 		}
 		// based on the currentToken's type, parse a RelationStatement or PermissionStatement and add it to the EntityStatement's corresponding field
@@ -321,6 +222,12 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 				return nil, p.Error()
 			}
 			stmt.RelationStatements = append(stmt.RelationStatements, relation)
+		case token.ATTRIBUTE:
+			attribute, err := p.parseAttributeStatement(stmt.Name.Literal)
+			if err != nil {
+				return nil, p.Error()
+			}
+			stmt.AttributeStatements = append(stmt.AttributeStatements, attribute)
 		case token.PERMISSION:
 			action, err := p.parsePermissionStatement(stmt.Name.Literal)
 			if err != nil {
@@ -329,9 +236,9 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 			stmt.PermissionStatements = append(stmt.PermissionStatements, action)
 		default:
 			// if the currentToken is not recognized, check if it is a newline, left brace, or right brace token, and skip it if it is
-			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LBRACE) && !p.currentTokenIs(token.RBRACE) {
+			if !p.currentTokenIs(token.NEWLINE) && !p.currentTokenIs(token.LCB) && !p.currentTokenIs(token.RCB) {
 				// if the currentToken is not recognized and not a newline, left brace, or right brace token, raise an error and return nil for both the statement and error values
-				p.currentError(token.RELATION, token.PERMISSION)
+				p.currentError(token.RELATION, token.PERMISSION, token.ATTRIBUTE)
 				return nil, p.Error()
 			}
 		}
@@ -340,6 +247,141 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 	}
 
 	// return the parsed EntityStatement and nil for the error value
+	return stmt, nil
+}
+
+// parseRuleStatement is responsible for parsing a rule statement in the form:
+//
+//	rule name(typ1 string, typ2 boolean) {
+//	    EXPRESSION
+//	}
+//
+// This method assumes the current token points to the 'rule' token when it is called.
+func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
+	// Create a new RuleStatement
+	stmt := &ast.RuleStatement{Rule: p.currentToken}
+
+	// Expect the next token to be an identifier (the name of the rule).
+	// If it's not an identifier, return an error.
+	if !p.expectAndNext(token.IDENT) {
+		return nil, p.Error()
+	}
+	stmt.Name = p.currentToken
+
+	// Expect the next token to be a left parenthesis '(' starting the argument list.
+	if !p.expectAndNext(token.LP) {
+		return nil, p.Error()
+	}
+
+	arguments := map[token.Token]token.Token{}
+	args := map[string]string{}
+
+	// Loop over the tokens until a right parenthesis ')' is encountered.
+	// In each iteration, two tokens are processed: an identifier (arg name) and its type.
+	for !p.peekTokenIs(token.RP) {
+		// Expect the first token to be the parameter's identifier.
+		if !p.expectAndNext(token.IDENT) {
+			return nil, p.Error()
+		}
+		argument := p.currentToken
+		arg := p.currentToken.Literal
+
+		// Expect the second token to be the parameter's type.
+		if !p.expectAndNext(token.IDENT) {
+			return nil, p.Error()
+		}
+
+		arguments[argument] = p.currentToken
+		args[arg] = p.currentToken.Literal
+
+		// If the next token is a comma, there are more parameters to parse.
+		// Continue to the next iteration.
+		if p.peekTokenIs(token.COMMA) {
+			p.next()
+			continue
+		} else if !p.peekTokenIs(token.RP) {
+			// If the next token is not a comma, it must be a closing parenthesis.
+			// If it's not, return an error.
+			return nil, p.Error()
+		}
+	}
+
+	// Save parsed arguments to the statement
+	stmt.Arguments = arguments
+
+	// Consume the right parenthesis.
+	p.next()
+
+	// Expect the next token to be a left curly bracket '{' starting the body.
+	if !p.expectAndNext(token.LCB) {
+		return nil, p.Error()
+	}
+
+	p.next()
+
+	// Collect tokens for the body until a closing curly bracket '}' is encountered.
+	var bodyTokens []token.Token
+	for !p.peekTokenIs(token.RCB) {
+		// If there's no closing bracket, return an error.
+		if p.peekTokenIs(token.EOF) {
+			return nil, p.Error()
+		}
+
+		bodyTokens = append(bodyTokens, p.currentToken)
+		p.nextWithIgnores()
+	}
+
+	// Combine all the body tokens into a single string
+	var bodyStr strings.Builder
+	for _, t := range bodyTokens {
+		bodyStr.WriteString(t.Literal)
+	}
+	stmt.Expression = bodyStr.String()
+
+	// Expect and consume the closing curly bracket '}'.
+	if !p.expectAndNext(token.RCB) {
+		return nil, p.Error()
+	}
+
+	// Register the parsed rule in the parser's references.
+	err := p.references.SetRuleReference(stmt.Name.Literal, args)
+	if err != nil {
+		// If there's an error (e.g., a duplicate rule), return an error.
+		p.duplicationError(stmt.Name.Literal)
+		return nil, p.Error()
+	}
+
+	// Return the successfully parsed RuleStatement.
+	return stmt, nil
+}
+
+// parseRelationStatement method parses a RELATION statement and returns a RelationStatement AST node
+func (p *Parser) parseAttributeStatement(entityName string) (*ast.AttributeStatement, error) {
+	// create a new RelationStatement object and set its Relation field to the currentToken
+	stmt := &ast.AttributeStatement{Attribute: p.currentToken}
+
+	// expect the next token to be an identifier token, and set the RelationStatement's Name field to the identifier's value
+	if !p.expectAndNext(token.IDENT) {
+		return nil, p.Error()
+	}
+	stmt.Name = p.currentToken
+
+	if !p.expectAndNext(token.IDENT) {
+		return nil, p.Error()
+	}
+
+	atstmt := ast.AttributeTypeStatement{Type: p.currentToken}
+	stmt.AttributeType = atstmt
+
+	key := utils.Key(entityName, stmt.Name.Literal)
+	// add the relation reference to the Parser's relationReferences and relationalReferences maps
+	err := p.references.SetAttributeReferences(key, atstmt)
+	if err != nil {
+		p.duplicationError(key) // Generate an error message indicating a duplication error
+		return nil, p.Error()
+	}
+
+	// return the parsed RelationStatement and nil for the error value
 	return stmt, nil
 }
 
@@ -370,10 +412,13 @@ func (p *Parser) parseRelationStatement(entityName string) (*ast.RelationStateme
 		stmt.RelationTypes = append(stmt.RelationTypes, *relationStatement)
 	}
 
+	key := utils.Key(entityName, relationName)
+
 	// add the relation reference to the Parser's relationReferences and relationalReferences maps
-	err := p.setRelationReference(utils.Key(entityName, relationName), stmt.RelationTypes)
+	err := p.references.SetRelationReferences(key, stmt.RelationTypes)
 	if err != nil {
-		return nil, err
+		p.duplicationError(key) // Generate an error message indicating a duplication error
+		return nil, p.Error()
 	}
 
 	// return the parsed RelationStatement and nil for the error value
@@ -419,10 +464,12 @@ func (p *Parser) parsePermissionStatement(entityName string) (ast.Statement, err
 	}
 	stmt.Name = p.currentToken
 
+	key := utils.Key(entityName, stmt.Name.Literal)
 	// add the action reference to the Parser's actionReferences and relationalReferences maps
-	err := p.setPermissionReference(utils.Key(entityName, stmt.Name.Literal))
+	err := p.references.SetPermissionReference(key)
 	if err != nil {
-		return nil, err
+		p.duplicationError(key) // Generate an error message indicating a duplication error
+		return nil, p.Error()
 	}
 
 	// expect the next token to be an ASSIGN token, indicating the start of the expression to be assigned to the action
@@ -486,14 +533,14 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	var exp ast.Expression
 	var err error
 
-	if p.currentTokenIs(token.LPAREN) {
+	if p.currentTokenIs(token.LP) {
 		p.next() // Consume the left parenthesis.
 		exp, err = p.parseExpression(LOWEST)
 		if err != nil {
 			return nil, err
 		}
 
-		if !p.expect(token.RPAREN) {
+		if !p.expect(token.RP) {
 			return nil, p.Error()
 		}
 		p.next() // Consume the right parenthesis.
@@ -563,7 +610,7 @@ func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, erro
 
 	// Ensure the right operand is not nil.
 	if right == nil {
-		p.currentError(token.IDENT, token.NOT, token.LPAREN) // Replace with your actual valid right operand token types
+		p.currentError(token.IDENT, token.LP) // Replace with your actual valid right operand token types
 		return nil, p.Error()
 	}
 
@@ -595,11 +642,24 @@ func (p *Parser) currentPrecedence() int {
 	return LOWEST
 }
 
+func (p *Parser) parseIdentifierOrCall() (ast.Expression, error) {
+	// Ensure the current token is a valid identifier before proceeding.
+	if !p.currentTokenIs(token.IDENT) {
+		return nil, fmt.Errorf("unexpected token type for identifier expression: %s", p.currentToken.Type)
+	}
+
+	if p.peekTokenIs(token.LP) {
+		return p.parseCallExpression()
+	}
+
+	return p.parseIdentifierExpression()
+}
+
 // parseIdentifier parses an identifier expression that may consist of one or more dot-separated
 // identifiers, such as "x", "foo.bar", or "a.b.c.d".
 // It constructs a new Identifier expression with the first token as the prefix and subsequent
 // tokens as identifiers, and returns the resulting expression and any error encountered.
-func (p *Parser) parseIdentifier() (ast.Expression, error) {
+func (p *Parser) parseIdentifierExpression() (ast.Expression, error) {
 	// Ensure the current token is a valid identifier before proceeding.
 	if !p.currentTokenIs(token.IDENT) {
 		return nil, fmt.Errorf("unexpected token type for identifier expression: %s", p.currentToken.Type)
@@ -623,6 +683,68 @@ func (p *Parser) parseIdentifier() (ast.Expression, error) {
 
 	// Return the resulting Identifier expression.
 	return ident, nil
+}
+
+// call_func(variable1, variable2)
+func (p *Parser) parseCallExpression() (ast.Expression, error) {
+	// Ensure the current token is a valid identifier before proceeding.
+	if !p.currentTokenIs(token.IDENT) {
+		return nil, fmt.Errorf("unexpected token type for identifier expression: %s", p.currentToken.Type)
+	}
+
+	// Create a new Identifier expression with the first token as the prefix.
+	call := &ast.Call{Name: p.currentToken}
+
+	if !p.expectAndNext(token.LP) {
+		return nil, p.Error()
+	}
+
+	// Check if there are no arguments
+	if p.peekTokenIs(token.RP) {
+		p.next() // consume the RP token
+		return call, nil
+	}
+
+	p.next()
+
+	// Parse the first argument
+	ident, err := p.parseIdentifierExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	i, ok := ident.(*ast.Identifier)
+	if !ok {
+		return nil, fmt.Errorf("expected identifier, got %T", ident)
+	}
+	call.Arguments = append(call.Arguments, *i)
+
+	// Parse remaining arguments
+	for p.peekTokenIs(token.COMMA) {
+		p.next()
+
+		if !p.expectAndNext(token.IDENT) {
+			return nil, p.Error()
+		}
+
+		ident, err = p.parseIdentifierExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		i, ok = ident.(*ast.Identifier)
+		if !ok {
+			return nil, fmt.Errorf("expected identifier, got %T", ident)
+		}
+		call.Arguments = append(call.Arguments, *i)
+	}
+
+	if !p.expectAndNext(token.RP) {
+		return nil, p.Error()
+	}
+
+	// Return the resulting Identifier expression.
+	return call, nil
 }
 
 // registerPrefix safely registers a parsing function for a prefix token type in the parser's prefixParseFns map.

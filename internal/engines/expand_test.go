@@ -2,13 +2,18 @@ package engines
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -97,79 +102,77 @@ var _ = Describe("expand-engine", func() {
 						entity: "doc:1",
 						assertions: map[string]*base.Expand{
 							"read": {
-								Target: &base.EntityAndRelation{
-									Entity: &base.Entity{
-										Type: "doc",
-										Id:   "1",
-									},
-									Relation: "read",
+								Entity: &base.Entity{
+									Type: "doc",
+									Id:   "1",
 								},
+								Permission: "read",
 								Node: &base.Expand_Expand{
 									Expand: &base.ExpandTreeNode{
 										Operation: base.ExpandTreeNode_OPERATION_UNION,
 										Children: []*base.Expand{
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "doc",
-														Id:   "1",
-													},
-													Relation: "read",
+												Entity: &base.Entity{
+													Type: "doc",
+													Id:   "1",
 												},
+												Permission: "read",
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_UNION,
 														Children: []*base.Expand{
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "owner",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "owner",
 																Node: &base.Expand_Expand{
 																	Expand: &base.ExpandTreeNode{
 																		Operation: base.ExpandTreeNode_OPERATION_UNION,
 																		Children: []*base.Expand{
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "folder",
-																						Id:   "2",
-																					},
-																					Relation: "creator",
+																				Entity: &base.Entity{
+																					Type: "folder",
+																					Id:   "2",
 																				},
+																				Permission: "creator",
 																				Node: &base.Expand_Leaf{
-																					Leaf: &base.Subjects{
-																						Subjects: []*base.Subject{
-																							{
-																								Type: "user",
-																								Id:   "89",
+																					Leaf: &base.ExpandLeaf{
+																						Type: &base.ExpandLeaf_Subjects{
+																							Subjects: &base.Subjects{
+																								Subjects: []*base.Subject{
+																									{
+																										Type: "user",
+																										Id:   "89",
+																									},
+																								},
 																							},
 																						},
 																					},
 																				},
 																			},
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "doc",
-																						Id:   "1",
-																					},
-																					Relation: "owner",
+																				Entity: &base.Entity{
+																					Type: "doc",
+																					Id:   "1",
 																				},
+																				Permission: "owner",
 																				Node: &base.Expand_Leaf{
-																					Leaf: &base.Subjects{
-																						Subjects: []*base.Subject{
-																							{
-																								Type: "user",
-																								Id:   "2",
-																							},
-																							{
-																								Type:     "folder",
-																								Id:       "2",
-																								Relation: "creator",
+																					Leaf: &base.ExpandLeaf{
+																						Type: &base.ExpandLeaf_Subjects{
+																							Subjects: &base.Subjects{
+																								Subjects: []*base.Subject{
+																									{
+																										Type: "user",
+																										Id:   "2",
+																									},
+																									{
+																										Type:     "folder",
+																										Id:       "2",
+																										Relation: "creator",
+																									},
+																								},
 																							},
 																						},
 																					},
@@ -180,35 +183,35 @@ var _ = Describe("expand-engine", func() {
 																},
 															},
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "read",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "parent",
 																Node: &base.Expand_Expand{
 																	Expand: &base.ExpandTreeNode{
 																		Operation: base.ExpandTreeNode_OPERATION_UNION,
 																		Children: []*base.Expand{
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "folder",
-																						Id:   "1",
-																					},
-																					Relation: "collaborator",
+																				Entity: &base.Entity{
+																					Type: "folder",
+																					Id:   "1",
 																				},
+																				Permission: "collaborator",
 																				Node: &base.Expand_Leaf{
-																					Leaf: &base.Subjects{
-																						Subjects: []*base.Subject{
-																							{
-																								Type: "user",
-																								Id:   "1",
-																							},
-																							{
-																								Type: "user",
-																								Id:   "3",
+																					Leaf: &base.ExpandLeaf{
+																						Type: &base.ExpandLeaf_Subjects{
+																							Subjects: &base.Subjects{
+																								Subjects: []*base.Subject{
+																									{
+																										Type: "user",
+																										Id:   "1",
+																									},
+																									{
+																										Type: "user",
+																										Id:   "3",
+																									},
+																								},
 																							},
 																						},
 																					},
@@ -223,31 +226,31 @@ var _ = Describe("expand-engine", func() {
 												},
 											},
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "doc",
-														Id:   "1",
-													},
-													Relation: "read",
+												Entity: &base.Entity{
+													Type: "doc",
+													Id:   "1",
 												},
+												Permission: "org",
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_UNION,
 														Children: []*base.Expand{
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "organization",
-																		Id:   "1",
-																	},
-																	Relation: "admin",
+																Entity: &base.Entity{
+																	Type: "organization",
+																	Id:   "1",
 																},
+																Permission: "admin",
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Subjects{
-																		Subjects: []*base.Subject{
-																			{
-																				Type: "user",
-																				Id:   "1",
+																	Leaf: &base.ExpandLeaf{
+																		Type: &base.ExpandLeaf_Subjects{
+																			Subjects: &base.Subjects{
+																				Subjects: []*base.Subject{
+																					{
+																						Type: "user",
+																						Id:   "1",
+																					},
+																				},
 																			},
 																		},
 																	},
@@ -267,67 +270,67 @@ var _ = Describe("expand-engine", func() {
 						entity: "doc:1",
 						assertions: map[string]*base.Expand{
 							"delete": {
-								Target: &base.EntityAndRelation{
-									Entity: &base.Entity{
-										Type: "doc",
-										Id:   "1",
-									},
-									Relation: "delete",
+								Entity: &base.Entity{
+									Type: "doc",
+									Id:   "1",
 								},
+								Permission: "delete",
 								Node: &base.Expand_Expand{
 									Expand: &base.ExpandTreeNode{
 										Operation: base.ExpandTreeNode_OPERATION_EXCLUSION,
 										Children: []*base.Expand{
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "doc",
-														Id:   "1",
-													},
-													Relation: "owner",
+												Entity: &base.Entity{
+													Type: "doc",
+													Id:   "1",
 												},
+												Permission: "owner",
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_UNION,
 														Children: []*base.Expand{
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "folder",
-																		Id:   "2",
-																	},
-																	Relation: "creator",
+																Entity: &base.Entity{
+																	Type: "folder",
+																	Id:   "2",
 																},
+																Permission: "creator",
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Subjects{
-																		Subjects: []*base.Subject{
-																			{
-																				Type: "user",
-																				Id:   "89",
+																	Leaf: &base.ExpandLeaf{
+																		Type: &base.ExpandLeaf_Subjects{
+																			Subjects: &base.Subjects{
+																				Subjects: []*base.Subject{
+																					{
+																						Type: "user",
+																						Id:   "89",
+																					},
+																				},
 																			},
 																		},
 																	},
 																},
 															},
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "owner",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "owner",
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Subjects{
-																		Subjects: []*base.Subject{
-																			{
-																				Type: "user",
-																				Id:   "2",
-																			},
-																			{
-																				Type:     "folder",
-																				Id:       "2",
-																				Relation: "creator",
+																	Leaf: &base.ExpandLeaf{
+																		Type: &base.ExpandLeaf_Subjects{
+																			Subjects: &base.Subjects{
+																				Subjects: []*base.Subject{
+																					{
+																						Type: "user",
+																						Id:   "2",
+																					},
+																					{
+																						Type:     "folder",
+																						Id:       "2",
+																						Relation: "creator",
+																					},
+																				},
 																			},
 																		},
 																	},
@@ -338,67 +341,67 @@ var _ = Describe("expand-engine", func() {
 												},
 											},
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "doc",
-														Id:   "1",
-													},
-													Relation: "update",
+												Entity: &base.Entity{
+													Type: "doc",
+													Id:   "1",
 												},
+												Permission: "update",
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_EXCLUSION,
 														Children: []*base.Expand{
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "owner",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "owner",
 																Node: &base.Expand_Expand{
 																	Expand: &base.ExpandTreeNode{
 																		Operation: base.ExpandTreeNode_OPERATION_UNION,
 																		Children: []*base.Expand{
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "folder",
-																						Id:   "2",
-																					},
-																					Relation: "creator",
+																				Entity: &base.Entity{
+																					Type: "folder",
+																					Id:   "2",
 																				},
+																				Permission: "creator",
 																				Node: &base.Expand_Leaf{
-																					Leaf: &base.Subjects{
-																						Subjects: []*base.Subject{
-																							{
-																								Type: "user",
-																								Id:   "89",
+																					Leaf: &base.ExpandLeaf{
+																						Type: &base.ExpandLeaf_Subjects{
+																							Subjects: &base.Subjects{
+																								Subjects: []*base.Subject{
+																									{
+																										Type: "user",
+																										Id:   "89",
+																									},
+																								},
 																							},
 																						},
 																					},
 																				},
 																			},
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "doc",
-																						Id:   "1",
-																					},
-																					Relation: "owner",
+																				Entity: &base.Entity{
+																					Type: "doc",
+																					Id:   "1",
 																				},
+																				Permission: "owner",
 																				Node: &base.Expand_Leaf{
-																					Leaf: &base.Subjects{
-																						Subjects: []*base.Subject{
-																							{
-																								Type: "user",
-																								Id:   "2",
-																							},
-																							{
-																								Type:     "folder",
-																								Id:       "2",
-																								Relation: "creator",
+																					Leaf: &base.ExpandLeaf{
+																						Type: &base.ExpandLeaf_Subjects{
+																							Subjects: &base.Subjects{
+																								Subjects: []*base.Subject{
+																									{
+																										Type: "user",
+																										Id:   "2",
+																									},
+																									{
+																										Type:     "folder",
+																										Id:       "2",
+																										Relation: "creator",
+																									},
+																								},
 																							},
 																						},
 																					},
@@ -409,31 +412,31 @@ var _ = Describe("expand-engine", func() {
 																},
 															},
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "update",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "org",
 																Node: &base.Expand_Expand{
 																	Expand: &base.ExpandTreeNode{
 																		Operation: base.ExpandTreeNode_OPERATION_UNION,
 																		Children: []*base.Expand{
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "organization",
-																						Id:   "1",
-																					},
-																					Relation: "admin",
+																				Entity: &base.Entity{
+																					Type: "organization",
+																					Id:   "1",
 																				},
+																				Permission: "admin",
 																				Node: &base.Expand_Leaf{
-																					Leaf: &base.Subjects{
-																						Subjects: []*base.Subject{
-																							{
-																								Type: "user",
-																								Id:   "1",
+																					Leaf: &base.ExpandLeaf{
+																						Type: &base.ExpandLeaf_Subjects{
+																							Subjects: &base.Subjects{
+																								Subjects: []*base.Subject{
+																									{
+																										Type: "user",
+																										Id:   "1",
+																									},
+																								},
 																							},
 																						},
 																					},
@@ -457,67 +460,67 @@ var _ = Describe("expand-engine", func() {
 						entity: "doc:1",
 						assertions: map[string]*base.Expand{
 							"view": {
-								Target: &base.EntityAndRelation{
-									Entity: &base.Entity{
-										Type: "doc",
-										Id:   "1",
-									},
-									Relation: "view",
+								Entity: &base.Entity{
+									Type: "doc",
+									Id:   "1",
 								},
+								Permission: "view",
 								Node: &base.Expand_Expand{
 									Expand: &base.ExpandTreeNode{
 										Operation: base.ExpandTreeNode_OPERATION_EXCLUSION,
 										Children: []*base.Expand{
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "doc",
-														Id:   "1",
-													},
-													Relation: "owner",
+												Entity: &base.Entity{
+													Type: "doc",
+													Id:   "1",
 												},
+												Permission: "owner",
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_UNION,
 														Children: []*base.Expand{
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "folder",
-																		Id:   "2",
-																	},
-																	Relation: "creator",
+																Entity: &base.Entity{
+																	Type: "folder",
+																	Id:   "2",
 																},
+																Permission: "creator",
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Subjects{
-																		Subjects: []*base.Subject{
-																			{
-																				Type: "user",
-																				Id:   "89",
+																	Leaf: &base.ExpandLeaf{
+																		Type: &base.ExpandLeaf_Subjects{
+																			Subjects: &base.Subjects{
+																				Subjects: []*base.Subject{
+																					{
+																						Type: "user",
+																						Id:   "89",
+																					},
+																				},
 																			},
 																		},
 																	},
 																},
 															},
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "owner",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "owner",
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Subjects{
-																		Subjects: []*base.Subject{
-																			{
-																				Type: "user",
-																				Id:   "2",
-																			},
-																			{
-																				Type:     "folder",
-																				Id:       "2",
-																				Relation: "creator",
+																	Leaf: &base.ExpandLeaf{
+																		Type: &base.ExpandLeaf_Subjects{
+																			Subjects: &base.Subjects{
+																				Subjects: []*base.Subject{
+																					{
+																						Type: "user",
+																						Id:   "2",
+																					},
+																					{
+																						Type:     "folder",
+																						Id:       "2",
+																						Relation: "creator",
+																					},
+																				},
 																			},
 																		},
 																	},
@@ -528,79 +531,77 @@ var _ = Describe("expand-engine", func() {
 												},
 											},
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "doc",
-														Id:   "1",
-													},
-													Relation: "read",
+												Entity: &base.Entity{
+													Type: "doc",
+													Id:   "1",
 												},
+												Permission: "read",
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_UNION,
 														Children: []*base.Expand{
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "read",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "read",
 																Node: &base.Expand_Expand{
 																	Expand: &base.ExpandTreeNode{
 																		Operation: base.ExpandTreeNode_OPERATION_UNION,
 																		Children: []*base.Expand{
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "doc",
-																						Id:   "1",
-																					},
-																					Relation: "owner",
+																				Entity: &base.Entity{
+																					Type: "doc",
+																					Id:   "1",
 																				},
+																				Permission: "owner",
 																				Node: &base.Expand_Expand{
 																					Expand: &base.ExpandTreeNode{
 																						Operation: base.ExpandTreeNode_OPERATION_UNION,
 																						Children: []*base.Expand{
 																							{
-																								Target: &base.EntityAndRelation{
-																									Entity: &base.Entity{
-																										Type: "folder",
-																										Id:   "2",
-																									},
-																									Relation: "creator",
+																								Entity: &base.Entity{
+																									Type: "folder",
+																									Id:   "2",
 																								},
+																								Permission: "creator",
 																								Node: &base.Expand_Leaf{
-																									Leaf: &base.Subjects{
-																										Subjects: []*base.Subject{
-																											{
-																												Type: "user",
-																												Id:   "89",
+																									Leaf: &base.ExpandLeaf{
+																										Type: &base.ExpandLeaf_Subjects{
+																											Subjects: &base.Subjects{
+																												Subjects: []*base.Subject{
+																													{
+																														Type: "user",
+																														Id:   "89",
+																													},
+																												},
 																											},
 																										},
 																									},
 																								},
 																							},
 																							{
-																								Target: &base.EntityAndRelation{
-																									Entity: &base.Entity{
-																										Type: "doc",
-																										Id:   "1",
-																									},
-																									Relation: "owner",
+																								Entity: &base.Entity{
+																									Type: "doc",
+																									Id:   "1",
 																								},
+																								Permission: "owner",
 																								Node: &base.Expand_Leaf{
-																									Leaf: &base.Subjects{
-																										Subjects: []*base.Subject{
-																											{
-																												Type: "user",
-																												Id:   "2",
-																											},
-																											{
-																												Type:     "folder",
-																												Id:       "2",
-																												Relation: "creator",
+																									Leaf: &base.ExpandLeaf{
+																										Type: &base.ExpandLeaf_Subjects{
+																											Subjects: &base.Subjects{
+																												Subjects: []*base.Subject{
+																													{
+																														Type: "user",
+																														Id:   "2",
+																													},
+																													{
+																														Type:     "folder",
+																														Id:       "2",
+																														Relation: "creator",
+																													},
+																												},
 																											},
 																										},
 																									},
@@ -611,35 +612,35 @@ var _ = Describe("expand-engine", func() {
 																				},
 																			},
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "doc",
-																						Id:   "1",
-																					},
-																					Relation: "read",
+																				Entity: &base.Entity{
+																					Type: "doc",
+																					Id:   "1",
 																				},
+																				Permission: "parent",
 																				Node: &base.Expand_Expand{
 																					Expand: &base.ExpandTreeNode{
 																						Operation: base.ExpandTreeNode_OPERATION_UNION,
 																						Children: []*base.Expand{
 																							{
-																								Target: &base.EntityAndRelation{
-																									Entity: &base.Entity{
-																										Type: "folder",
-																										Id:   "1",
-																									},
-																									Relation: "collaborator",
+																								Entity: &base.Entity{
+																									Type: "folder",
+																									Id:   "1",
 																								},
+																								Permission: "collaborator",
 																								Node: &base.Expand_Leaf{
-																									Leaf: &base.Subjects{
-																										Subjects: []*base.Subject{
-																											{
-																												Type: "user",
-																												Id:   "1",
-																											},
-																											{
-																												Type: "user",
-																												Id:   "3",
+																									Leaf: &base.ExpandLeaf{
+																										Type: &base.ExpandLeaf_Subjects{
+																											Subjects: &base.Subjects{
+																												Subjects: []*base.Subject{
+																													{
+																														Type: "user",
+																														Id:   "1",
+																													},
+																													{
+																														Type: "user",
+																														Id:   "3",
+																													},
+																												},
 																											},
 																										},
 																									},
@@ -654,31 +655,31 @@ var _ = Describe("expand-engine", func() {
 																},
 															},
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "read",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "org",
 																Node: &base.Expand_Expand{
 																	Expand: &base.ExpandTreeNode{
 																		Operation: base.ExpandTreeNode_OPERATION_UNION,
 																		Children: []*base.Expand{
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "organization",
-																						Id:   "1",
-																					},
-																					Relation: "admin",
+																				Entity: &base.Entity{
+																					Type: "organization",
+																					Id:   "1",
 																				},
+																				Permission: "admin",
 																				Node: &base.Expand_Leaf{
-																					Leaf: &base.Subjects{
-																						Subjects: []*base.Subject{
-																							{
-																								Type: "user",
-																								Id:   "1",
+																					Leaf: &base.ExpandLeaf{
+																						Type: &base.ExpandLeaf_Subjects{
+																							Subjects: &base.Subjects{
+																								Subjects: []*base.Subject{
+																									{
+																										Type: "user",
+																										Id:   "1",
+																									},
+																								},
 																							},
 																						},
 																					},
@@ -702,67 +703,67 @@ var _ = Describe("expand-engine", func() {
 						entity: "doc:1",
 						assertions: map[string]*base.Expand{
 							"admin": {
-								Target: &base.EntityAndRelation{
-									Entity: &base.Entity{
-										Type: "doc",
-										Id:   "1",
-									},
-									Relation: "view",
+								Entity: &base.Entity{
+									Type: "doc",
+									Id:   "1",
 								},
+								Permission: "view",
 								Node: &base.Expand_Expand{
 									Expand: &base.ExpandTreeNode{
 										Operation: base.ExpandTreeNode_OPERATION_EXCLUSION,
 										Children: []*base.Expand{
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "doc",
-														Id:   "1",
-													},
-													Relation: "owner",
+												Entity: &base.Entity{
+													Type: "doc",
+													Id:   "1",
 												},
+												Permission: "owner",
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_UNION,
 														Children: []*base.Expand{
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "folder",
-																		Id:   "2",
-																	},
-																	Relation: "creator",
+																Entity: &base.Entity{
+																	Type: "folder",
+																	Id:   "2",
 																},
+																Permission: "creator",
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Subjects{
-																		Subjects: []*base.Subject{
-																			{
-																				Type: "user",
-																				Id:   "89",
+																	Leaf: &base.ExpandLeaf{
+																		Type: &base.ExpandLeaf_Subjects{
+																			Subjects: &base.Subjects{
+																				Subjects: []*base.Subject{
+																					{
+																						Type: "user",
+																						Id:   "89",
+																					},
+																				},
 																			},
 																		},
 																	},
 																},
 															},
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "owner",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "owner",
 																Node: &base.Expand_Leaf{
-																	Leaf: &base.Subjects{
-																		Subjects: []*base.Subject{
-																			{
-																				Type: "user",
-																				Id:   "2",
-																			},
-																			{
-																				Type:     "folder",
-																				Id:       "2",
-																				Relation: "creator",
+																	Leaf: &base.ExpandLeaf{
+																		Type: &base.ExpandLeaf_Subjects{
+																			Subjects: &base.Subjects{
+																				Subjects: []*base.Subject{
+																					{
+																						Type: "user",
+																						Id:   "2",
+																					},
+																					{
+																						Type:     "folder",
+																						Id:       "2",
+																						Relation: "creator",
+																					},
+																				},
 																			},
 																		},
 																	},
@@ -773,79 +774,77 @@ var _ = Describe("expand-engine", func() {
 												},
 											},
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "doc",
-														Id:   "1",
-													},
-													Relation: "read",
+												Entity: &base.Entity{
+													Type: "doc",
+													Id:   "1",
 												},
+												Permission: "read",
 												Node: &base.Expand_Expand{
 													Expand: &base.ExpandTreeNode{
 														Operation: base.ExpandTreeNode_OPERATION_UNION,
 														Children: []*base.Expand{
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "read",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "read",
 																Node: &base.Expand_Expand{
 																	Expand: &base.ExpandTreeNode{
 																		Operation: base.ExpandTreeNode_OPERATION_UNION,
 																		Children: []*base.Expand{
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "doc",
-																						Id:   "1",
-																					},
-																					Relation: "owner",
+																				Entity: &base.Entity{
+																					Type: "doc",
+																					Id:   "1",
 																				},
+																				Permission: "owner",
 																				Node: &base.Expand_Expand{
 																					Expand: &base.ExpandTreeNode{
 																						Operation: base.ExpandTreeNode_OPERATION_UNION,
 																						Children: []*base.Expand{
 																							{
-																								Target: &base.EntityAndRelation{
-																									Entity: &base.Entity{
-																										Type: "folder",
-																										Id:   "2",
-																									},
-																									Relation: "creator",
+																								Entity: &base.Entity{
+																									Type: "folder",
+																									Id:   "2",
 																								},
+																								Permission: "creator",
 																								Node: &base.Expand_Leaf{
-																									Leaf: &base.Subjects{
-																										Subjects: []*base.Subject{
-																											{
-																												Type: "user",
-																												Id:   "89",
+																									Leaf: &base.ExpandLeaf{
+																										Type: &base.ExpandLeaf_Subjects{
+																											Subjects: &base.Subjects{
+																												Subjects: []*base.Subject{
+																													{
+																														Type: "user",
+																														Id:   "89",
+																													},
+																												},
 																											},
 																										},
 																									},
 																								},
 																							},
 																							{
-																								Target: &base.EntityAndRelation{
-																									Entity: &base.Entity{
-																										Type: "doc",
-																										Id:   "1",
-																									},
-																									Relation: "owner",
+																								Entity: &base.Entity{
+																									Type: "doc",
+																									Id:   "1",
 																								},
+																								Permission: "owner",
 																								Node: &base.Expand_Leaf{
-																									Leaf: &base.Subjects{
-																										Subjects: []*base.Subject{
-																											{
-																												Type: "user",
-																												Id:   "2",
-																											},
-																											{
-																												Type:     "folder",
-																												Id:       "2",
-																												Relation: "creator",
+																									Leaf: &base.ExpandLeaf{
+																										Type: &base.ExpandLeaf_Subjects{
+																											Subjects: &base.Subjects{
+																												Subjects: []*base.Subject{
+																													{
+																														Type: "user",
+																														Id:   "2",
+																													},
+																													{
+																														Type:     "folder",
+																														Id:       "2",
+																														Relation: "creator",
+																													},
+																												},
 																											},
 																										},
 																									},
@@ -856,35 +855,35 @@ var _ = Describe("expand-engine", func() {
 																				},
 																			},
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "doc",
-																						Id:   "1",
-																					},
-																					Relation: "read",
+																				Entity: &base.Entity{
+																					Type: "doc",
+																					Id:   "1",
 																				},
+																				Permission: "parent",
 																				Node: &base.Expand_Expand{
 																					Expand: &base.ExpandTreeNode{
 																						Operation: base.ExpandTreeNode_OPERATION_UNION,
 																						Children: []*base.Expand{
 																							{
-																								Target: &base.EntityAndRelation{
-																									Entity: &base.Entity{
-																										Type: "folder",
-																										Id:   "1",
-																									},
-																									Relation: "collaborator",
+																								Entity: &base.Entity{
+																									Type: "folder",
+																									Id:   "1",
 																								},
+																								Permission: "collaborator",
 																								Node: &base.Expand_Leaf{
-																									Leaf: &base.Subjects{
-																										Subjects: []*base.Subject{
-																											{
-																												Type: "user",
-																												Id:   "1",
-																											},
-																											{
-																												Type: "user",
-																												Id:   "3",
+																									Leaf: &base.ExpandLeaf{
+																										Type: &base.ExpandLeaf_Subjects{
+																											Subjects: &base.Subjects{
+																												Subjects: []*base.Subject{
+																													{
+																														Type: "user",
+																														Id:   "1",
+																													},
+																													{
+																														Type: "user",
+																														Id:   "3",
+																													},
+																												},
 																											},
 																										},
 																									},
@@ -899,31 +898,31 @@ var _ = Describe("expand-engine", func() {
 																},
 															},
 															{
-																Target: &base.EntityAndRelation{
-																	Entity: &base.Entity{
-																		Type: "doc",
-																		Id:   "1",
-																	},
-																	Relation: "read",
+																Entity: &base.Entity{
+																	Type: "doc",
+																	Id:   "1",
 																},
+																Permission: "org",
 																Node: &base.Expand_Expand{
 																	Expand: &base.ExpandTreeNode{
 																		Operation: base.ExpandTreeNode_OPERATION_UNION,
 																		Children: []*base.Expand{
 																			{
-																				Target: &base.EntityAndRelation{
-																					Entity: &base.Entity{
-																						Type: "organization",
-																						Id:   "1",
-																					},
-																					Relation: "admin",
+																				Entity: &base.Entity{
+																					Type: "organization",
+																					Id:   "1",
 																				},
+																				Permission: "admin",
 																				Node: &base.Expand_Leaf{
-																					Leaf: &base.Subjects{
-																						Subjects: []*base.Subject{
-																							{
-																								Type: "user",
-																								Id:   "1",
+																					Leaf: &base.ExpandLeaf{
+																						Type: &base.ExpandLeaf_Subjects{
+																							Subjects: &base.Subjects{
+																								Subjects: []*base.Subject{
+																									{
+																										Type: "user",
+																										Id:   "1",
+																									},
+																								},
 																							},
 																						},
 																					},
@@ -947,14 +946,14 @@ var _ = Describe("expand-engine", func() {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			expandEngine := NewExpandEngine(schemaReader, relationshipReader)
+			expandEngine := NewExpandEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				expandEngine,
 				nil,
@@ -971,14 +970,17 @@ var _ = Describe("expand-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var contextual []*base.Tuple
-			for _, relationship := range tests.contextual {
-				t, err := tuple.Tuple(relationship)
+			reqCont := &base.Context{
+				Tuples: []*base.Tuple{},
+			}
+
+			for _, contextual := range tests.contextual {
+				t, err := tuple.Tuple(contextual)
 				Expect(err).ShouldNot(HaveOccurred())
-				contextual = append(contextual, t)
+				reqCont.Tuples = append(reqCont.Tuples, t)
 			}
 
 			for _, expand := range tests.expands {
@@ -995,7 +997,7 @@ var _ = Describe("expand-engine", func() {
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
 						},
-						ContextualTuples: contextual,
+						Context: reqCont,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -1013,7 +1015,7 @@ var _ = Describe("expand-engine", func() {
 	entity facebookuser {}
 	
 	entity company {
-	  relation member @googleuser @facebookuser
+	relation member @googleuser @facebookuser
 	}
 	
 	entity organization {
@@ -1074,58 +1076,60 @@ var _ = Describe("expand-engine", func() {
 						entity: "repo:1",
 						assertions: map[string]*base.Expand{
 							"push": {
-								Target: &base.EntityAndRelation{
-									Entity: &base.Entity{
-										Type: "repo",
-										Id:   "1",
-									},
-									Relation: "push",
+								Entity: &base.Entity{
+									Type: "repo",
+									Id:   "1",
 								},
+								Permission: "parent",
 								Node: &base.Expand_Expand{
 									Expand: &base.ExpandTreeNode{
 										Operation: base.ExpandTreeNode_OPERATION_UNION,
 										Children: []*base.Expand{
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "company",
-														Id:   "1",
-													},
-													Relation: "member",
+												Entity: &base.Entity{
+													Type: "company",
+													Id:   "1",
 												},
+												Permission: "member",
 												Node: &base.Expand_Leaf{
-													Leaf: &base.Subjects{
-														Subjects: []*base.Subject{
-															{
-																Type: "googleuser",
-																Id:   "2",
+													Leaf: &base.ExpandLeaf{
+														Type: &base.ExpandLeaf_Subjects{
+															Subjects: &base.Subjects{
+																Subjects: []*base.Subject{
+																	{
+																		Type: "googleuser",
+																		Id:   "2",
+																	},
+																},
 															},
 														},
 													},
 												},
 											},
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "organization",
-														Id:   "1",
-													},
-													Relation: "member",
+												Entity: &base.Entity{
+													Type: "organization",
+													Id:   "1",
 												},
+												Permission: "member",
 												Node: &base.Expand_Leaf{
-													Leaf: &base.Subjects{
-														Subjects: []*base.Subject{
-															{
-																Type: "facebookuser",
-																Id:   "3",
-															},
-															{
-																Type: "facebookuser",
-																Id:   "4",
-															},
-															{
-																Type: "facebookuser",
-																Id:   "5",
+													Leaf: &base.ExpandLeaf{
+														Type: &base.ExpandLeaf_Subjects{
+															Subjects: &base.Subjects{
+																Subjects: []*base.Subject{
+																	{
+																		Type: "facebookuser",
+																		Id:   "3",
+																	},
+																	{
+																		Type: "facebookuser",
+																		Id:   "4",
+																	},
+																	{
+																		Type: "facebookuser",
+																		Id:   "5",
+																	},
+																},
 															},
 														},
 													},
@@ -1136,58 +1140,60 @@ var _ = Describe("expand-engine", func() {
 								},
 							},
 							"delete": {
-								Target: &base.EntityAndRelation{
-									Entity: &base.Entity{
-										Type: "repo",
-										Id:   "1",
-									},
-									Relation: "push",
+								Entity: &base.Entity{
+									Type: "repo",
+									Id:   "1",
 								},
+								Permission: "parent",
 								Node: &base.Expand_Expand{
 									Expand: &base.ExpandTreeNode{
 										Operation: base.ExpandTreeNode_OPERATION_UNION,
 										Children: []*base.Expand{
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "company",
-														Id:   "1",
-													},
-													Relation: "member",
+												Entity: &base.Entity{
+													Type: "company",
+													Id:   "1",
 												},
+												Permission: "member",
 												Node: &base.Expand_Leaf{
-													Leaf: &base.Subjects{
-														Subjects: []*base.Subject{
-															{
-																Type: "googleuser",
-																Id:   "2",
+													Leaf: &base.ExpandLeaf{
+														Type: &base.ExpandLeaf_Subjects{
+															Subjects: &base.Subjects{
+																Subjects: []*base.Subject{
+																	{
+																		Type: "googleuser",
+																		Id:   "2",
+																	},
+																},
 															},
 														},
 													},
 												},
 											},
 											{
-												Target: &base.EntityAndRelation{
-													Entity: &base.Entity{
-														Type: "organization",
-														Id:   "1",
-													},
-													Relation: "member",
+												Entity: &base.Entity{
+													Type: "organization",
+													Id:   "1",
 												},
+												Permission: "member",
 												Node: &base.Expand_Leaf{
-													Leaf: &base.Subjects{
-														Subjects: []*base.Subject{
-															{
-																Type: "facebookuser",
-																Id:   "3",
-															},
-															{
-																Type: "facebookuser",
-																Id:   "4",
-															},
-															{
-																Type: "facebookuser",
-																Id:   "5",
+													Leaf: &base.ExpandLeaf{
+														Type: &base.ExpandLeaf_Subjects{
+															Subjects: &base.Subjects{
+																Subjects: []*base.Subject{
+																	{
+																		Type: "facebookuser",
+																		Id:   "3",
+																	},
+																	{
+																		Type: "facebookuser",
+																		Id:   "4",
+																	},
+																	{
+																		Type: "facebookuser",
+																		Id:   "5",
+																	},
+																},
 															},
 														},
 													},
@@ -1203,14 +1209,14 @@ var _ = Describe("expand-engine", func() {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			expandEngine := NewExpandEngine(schemaReader, relationshipReader)
+			expandEngine := NewExpandEngine(schemaReader, dataReader)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				nil,
 				expandEngine,
 				nil,
@@ -1227,15 +1233,10 @@ var _ = Describe("expand-engine", func() {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var contextual []*base.Tuple
-			for _, relationship := range tests.contextual {
-				t, err := tuple.Tuple(relationship)
-				Expect(err).ShouldNot(HaveOccurred())
-				contextual = append(contextual, t)
-			}
+			var reqContext *base.Context
 
 			for _, expand := range tests.expands {
 				entity, err := tuple.E(expand.entity)
@@ -1251,7 +1252,259 @@ var _ = Describe("expand-engine", func() {
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
 						},
-						ContextualTuples: contextual,
+						Context: reqContext,
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(response.Tree).Should(Equal(res))
+				}
+			}
+		})
+	})
+
+	// WEEKDAY SAMPLE
+
+	weekdaySchema := `
+		entity user {}
+	
+		entity organization {
+	
+			relation member @user
+	
+			attribute balance integer
+	
+			permission view = check_balance(balance) and member
+		}
+	
+		entity repository {
+	
+			relation organization  @organization
+	
+			attribute is_public boolean
+	
+			permission view = is_public or organization.member
+			permission edit = organization.view
+			permission delete = is_weekday(request.day_of_week)
+		}
+	
+		rule check_balance(balance integer) {
+			balance > 5000
+		}
+	
+		rule is_weekday(day_of_week string) {
+			  day_of_week != 'saturday' && day_of_week != 'sunday'
+		}
+		`
+
+	Context("Weekday Sample: Expand", func() {
+		It("Weekday Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// SCHEMA
+
+			conf, err := newSchema(weekdaySchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// RELATIONSHIPS
+
+			type expand struct {
+				entity     string
+				context    map[string]interface{}
+				assertions map[string]*base.Expand
+			}
+
+			anyVal, _ := anypb.New(&wrapperspb.BoolValue{Value: true})
+			dow, _ := anypb.New(wrapperspb.String("monday"))
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				expands       []expand
+			}{
+				relationships: []string{
+					"repository:1#organization@organization:1",
+					"organization:1#member@user:1",
+				},
+				attributes: []string{
+					"repository:1#is_public@boolean:true",
+				},
+				expands: []expand{
+					{
+						entity: "repository:1",
+						context: map[string]interface{}{
+							"day_of_week": "monday",
+						},
+						assertions: map[string]*base.Expand{
+							"view": {
+								Entity: &base.Entity{
+									Type: "repository",
+									Id:   "1",
+								},
+								Permission: "view",
+								Node: &base.Expand_Expand{
+									Expand: &base.ExpandTreeNode{
+										Operation: base.ExpandTreeNode_OPERATION_UNION,
+										Children: []*base.Expand{
+											{
+												Entity: &base.Entity{
+													Type: "repository",
+													Id:   "1",
+												},
+												Permission: "is_public",
+												Node: &base.Expand_Leaf{
+													Leaf: &base.ExpandLeaf{
+														Type: &base.ExpandLeaf_Value{
+															Value: anyVal,
+														},
+													},
+												},
+											},
+											{
+												Entity: &base.Entity{
+													Type: "repository",
+													Id:   "1",
+												},
+												Permission: "organization",
+												Node: &base.Expand_Expand{
+													Expand: &base.ExpandTreeNode{
+														Operation: base.ExpandTreeNode_OPERATION_UNION,
+														Children: []*base.Expand{
+															{
+																Entity: &base.Entity{
+																	Type: "organization",
+																	Id:   "1",
+																},
+																Permission: "member",
+																Node: &base.Expand_Leaf{
+																	Leaf: &base.ExpandLeaf{
+																		Type: &base.ExpandLeaf_Subjects{
+																			Subjects: &base.Subjects{
+																				Subjects: []*base.Subject{
+																					{
+																						Type: "user",
+																						Id:   "1",
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+							"delete": {
+								Entity: &base.Entity{
+									Type: "repository",
+									Id:   "1",
+								},
+								Permission: "is_weekday",
+								Arguments: []*base.Argument{
+									{
+										Type: &base.Argument_ContextAttribute{
+											ContextAttribute: &base.ContextAttribute{
+												Name: "day_of_week",
+											},
+										},
+									},
+								},
+								Node: &base.Expand_Leaf{
+									Leaf: &base.ExpandLeaf{
+										Type: &base.ExpandLeaf_Values{
+											Values: &base.Values{
+												Values: map[string]*anypb.Any{
+													"day_of_week": dow,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+
+			expandEngine := NewExpandEngine(schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				nil,
+				expandEngine,
+				nil,
+				nil,
+				nil,
+				telemetry.NewNoopMeter(),
+			)
+
+			var tuples []*base.Tuple
+			var attributes []*base.Attribute
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, expand := range tests.expands {
+				entity, err := tuple.E(expand.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ctx := &base.Context{
+					Tuples:     []*base.Tuple{},
+					Attributes: []*base.Attribute{},
+					Data:       &structpb.Struct{},
+				}
+
+				if expand.context != nil {
+					value, err := structpb.NewStruct(expand.context)
+					if err != nil {
+						fmt.Printf("Error creating struct: %v", err)
+					}
+					ctx.Data = value
+				}
+
+				for permission, res := range expand.assertions {
+
+					var response *base.PermissionExpandResponse
+					response, err = invoker.Expand(context.Background(), &base.PermissionExpandRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Permission: permission,
+						Metadata: &base.PermissionExpandRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+						},
+						Context: ctx,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())

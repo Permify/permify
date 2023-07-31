@@ -16,9 +16,9 @@ import (
 	"github.com/Permify/permify/internal/servers"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/development/file"
-	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/logger"
@@ -46,24 +46,30 @@ func NewContainer() *Development {
 	l := logger.New("debug")
 
 	// Create instances of storage using the factories package
-	relationshipReader := factories.RelationshipReaderFactory(db, l)
-	relationshipWriter := factories.RelationshipWriterFactory(db, l)
+	dataReader := factories.DataReaderFactory(db, l)
+	dataWriter := factories.DataWriterFactory(db, l)
 	schemaReader := factories.SchemaReaderFactory(db, l)
 	schemaWriter := factories.SchemaWriterFactory(db, l)
 	tenantReader := factories.TenantReaderFactory(db, l)
 	tenantWriter := factories.TenantWriterFactory(db, l)
 
+	// filters
+	schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(schemaReader, dataReader)
+	massEntityFilter := engines.NewMassEntityFilter(dataReader)
+
+	schemaBaseSubjectFilter := engines.NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+	massSubjectFilter := engines.NewMassSubjectFilter(dataReader)
+
 	// Create instances of engines
-	checkEngine := engines.NewCheckEngine(schemaReader, relationshipReader)
-	expandEngine := engines.NewExpandEngine(schemaReader, relationshipReader)
-	entityFilterEngine := engines.NewEntityFilterEngine(schemaReader, relationshipReader)
-	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, entityFilterEngine)
-	lookupSubjectEngine := engines.NewLookupSubjectEngine(schemaReader, relationshipReader)
+	checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
+	expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
+	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter)
+	lookupSubjectEngine := engines.NewLookupSubjectEngine(checkEngine, schemaReader, schemaBaseSubjectFilter, massSubjectFilter)
 	subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader)
 
 	invoker := invoke.NewDirectInvoker(
 		schemaReader,
-		relationshipReader,
+		dataReader,
 		checkEngine,
 		expandEngine,
 		lookupEntityEngine,
@@ -78,8 +84,8 @@ func NewContainer() *Development {
 	return &Development{
 		Container: servers.NewContainer(
 			invoker,
-			relationshipReader,
-			relationshipWriter,
+			dataReader,
+			dataWriter,
 			schemaReader,
 			schemaWriter,
 			tenantReader,
@@ -176,20 +182,26 @@ func (c *Development) LookupSubject(ctx context.Context, entity *v1.Entity, perm
 	return c.Container.Invoker.LookupSubject(ctx, req)
 }
 
-// ReadTuple - Creates new read API request
 func (c *Development) ReadTuple(ctx context.Context, filter *v1.TupleFilter) (tuples *database.TupleCollection, continuousToken database.EncodedContinuousToken, err error) {
-	// Get the head snapshot of the "t1" schema from the schema repository
-	snap, err := c.Container.RR.HeadSnapshot(ctx, "t1")
+	snap, err := c.Container.DR.HeadSnapshot(ctx, "t1")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Create a new read relationships request with the given tuple filter, snapshot token, and pagination
-	return c.Container.RR.ReadRelationships(ctx, "t1", filter, snap.Encode().String(), database.NewPagination())
+	return c.Container.DR.ReadRelationships(ctx, "t1", filter, snap.Encode().String(), database.NewPagination())
+}
+
+func (c *Development) ReadAttribute(ctx context.Context, filter *v1.AttributeFilter) (attributes *database.AttributeCollection, continuousToken database.EncodedContinuousToken, err error) {
+	snap, err := c.Container.DR.HeadSnapshot(ctx, "t1")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return c.Container.DR.ReadAttributes(ctx, "t1", filter, snap.Encode().String(), database.NewPagination())
 }
 
 // WriteTuple - Creates new write API request
-func (c *Development) WriteTuple(ctx context.Context, tuples []*v1.Tuple) (err error) {
+func (c *Development) WriteTuple(ctx context.Context, tuples []*v1.Tuple, attributes []*v1.Attribute) (err error) {
 	// Get the head version of the "t1" schema from the schema repository
 	version, err := c.Container.SR.HeadVersion(ctx, "t1")
 	if err != nil {
@@ -202,7 +214,7 @@ func (c *Development) WriteTuple(ctx context.Context, tuples []*v1.Tuple) (err e
 	// Validate each tuple and append it to the relationships slice
 	for _, tup := range tuples {
 		// Read the schema definition for the tuple's entity type and version from the schema repository
-		definition, _, err := c.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
 		if err != nil {
 			return err
 		}
@@ -217,14 +229,32 @@ func (c *Development) WriteTuple(ctx context.Context, tuples []*v1.Tuple) (err e
 		relationships = append(relationships, tup)
 	}
 
+	attrs := make([]*v1.Attribute, 0, len(attributes))
+
+	for _, attr := range attributes {
+		// Read the schema definition for the tuple's entity type and version from the schema repository
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+		if err != nil {
+			return err
+		}
+
+		// Validate the tuple against the schema definition
+		err = validation.ValidateAttribute(definition, attr)
+		if err != nil {
+			return err
+		}
+
+		// Append the validated tuple to the relationships slice
+		attrs = append(attrs, attr)
+	}
+
 	// Write the relationships to the relationship repository and return the encoded snap token
-	_, err = c.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(relationships...))
+	_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(relationships...), database.NewAttributeCollection(attrs...))
 	return err
 }
 
-// DeleteTuple - Creates new delete relation tuple request
-func (c *Development) DeleteTuple(ctx context.Context, filter *v1.TupleFilter) (token token.EncodedSnapToken, err error) {
-	return c.Container.RW.DeleteRelationships(ctx, "t1", filter)
+func (c *Development) Delete(ctx context.Context, tupleFilter *v1.TupleFilter, attributeFilter *v1.AttributeFilter) (token token.EncodedSnapToken, err error) {
+	return c.Container.DW.Delete(ctx, "t1", tupleFilter, attributeFilter)
 }
 
 // WriteSchema - Creates new write schema request
@@ -236,7 +266,7 @@ func (c *Development) WriteSchema(ctx context.Context, schema string) (err error
 	}
 
 	// Compile the AST into a set of schema definitions
-	_, err = compiler.NewCompiler(true, sch).Compile()
+	_, _, err = compiler.NewCompiler(true, sch).Compile()
 	if err != nil {
 		return err
 	}
@@ -252,7 +282,7 @@ func (c *Development) WriteSchema(ctx context.Context, schema string) (err error
 		cnf = append(cnf, storage.SchemaDefinition{
 			TenantID:             "t1",
 			Version:              version,
-			EntityType:           st.(*ast.EntityStatement).Name.Literal,
+			Name:                 st.GetName(),
 			SerializedDefinition: []byte(st.String()),
 		})
 	}
@@ -309,7 +339,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 	}
 
 	// Compile the parsed schema
-	_, err = compiler.NewCompiler(true, sch).Compile()
+	_, _, err = compiler.NewCompiler(true, sch).Compile()
 	if err != nil {
 		list.AddError(err.Error())
 		return list
@@ -324,7 +354,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 		cnf = append(cnf, storage.SchemaDefinition{
 			TenantID:             "t1",
 			Version:              version,
-			EntityType:           st.(*ast.EntityStatement).Name.Literal,
+			Name:                 st.GetName(),
 			SerializedDefinition: []byte(st.String()),
 		})
 	}
@@ -351,7 +381,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 		}
 
 		// Read the schema definition for this relationship
-		definition, _, err := c.Container.SR.ReadSchemaDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
 		if err != nil {
 			list.AddError(err.Error())
 			return list
@@ -365,10 +395,44 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 		}
 
 		// Write the relationship to the database
-		_, err = c.Container.RW.WriteRelationships(ctx, "t1", database.NewTupleCollection(tup))
+		_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
 		// Continue to the next relationship if an error occurred
 		if err != nil {
 			list.AddError(fmt.Sprintf("%s failed %s", t, err.Error()))
+			continue
+		}
+	}
+
+	// Start the process of creating attributes
+	list.AddProgress("attributes are creating... 🚀")
+
+	// Each item in the Attributes slice is processed individually
+	for _, a := range s.Attributes {
+		attr, err := attribute.Attribute(a)
+		if err != nil {
+			list.AddError(err.Error())
+			continue
+		}
+
+		// Read the schema definition for this attribute
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+		if err != nil {
+			list.AddError(err.Error())
+			return list
+		}
+
+		// Validate the attribute against the schema definition
+		err = validation.ValidateAttribute(definition, attr)
+		if err != nil {
+			list.AddError(err.Error())
+			return list
+		}
+
+		// Write the attribute to the database
+		_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
+		// Continue to the next attribute if an error occurred
+		if err != nil {
+			list.AddError(fmt.Sprintf("%s failed %s", a, err.Error()))
 			continue
 		}
 	}
@@ -402,9 +466,9 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 
 			// Each Assertion in the current check is processed
 			for permission, expected := range check.Assertions {
-				exp := v1.CheckResult_RESULT_ALLOWED
+				exp := v1.CheckResult_CHECK_RESULT_ALLOWED
 				if !expected {
-					exp = v1.CheckResult_RESULT_DENIED
+					exp = v1.CheckResult_CHECK_RESULT_DENIED
 				}
 
 				// A Permission Check is made for the current entity, permission and subject
@@ -433,7 +497,7 @@ func (c *Development) Validate(ctx context.Context, shape map[string]interface{}
 					list.AddError(fmt.Sprintf("fail: %s ->", query))
 
 					// Handle the case where the permission check result is ALLOWED but the expected result was DENIED
-					if res.Can == v1.CheckResult_RESULT_ALLOWED {
+					if res.Can == v1.CheckResult_CHECK_RESULT_ALLOWED {
 						list.AddError(fmt.Sprintf("fail: %s -> expected: DENIED actual: ALLOWED ", query))
 					} else {
 						// Handle the case where the permission check result is DENIED but the expected result was ALLOWED

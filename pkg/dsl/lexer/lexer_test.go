@@ -40,15 +40,15 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "user"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
-				{token.RBRACE, "}"},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.ENTITY, "entity"},
 				{token.SPACE, " "},
 				// --
 				{token.IDENT, "organization"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
+				{token.LCB, "{"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.RELATION, "relation"},
@@ -105,7 +105,7 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "admin"},
 				{token.NEWLINE, "\n"},
-				{token.RBRACE, "}"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.EOF, ""},
 			}
@@ -140,8 +140,8 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "user"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
-				{token.RBRACE, "}"},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.NEWLINE, "\n"},
 				{token.ENTITY, "entity"},
@@ -149,7 +149,7 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "organization"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
+				{token.LCB, "{"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.RELATION, "relation"},
@@ -196,7 +196,7 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "admin"},
 				{token.NEWLINE, "\n"},
-				{token.RBRACE, "}"},
+				{token.RCB, "}"},
 				{token.EOF, ""},
 			}
 
@@ -241,8 +241,8 @@ entity repository {
 				{token.SPACE, " "},
 				{token.IDENT, "user"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
-				{token.RBRACE, "}"},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.NEWLINE, "\n"},
 				{token.ENTITY, "entity"},
@@ -250,7 +250,7 @@ entity repository {
 				{token.SPACE, " "},
 				{token.IDENT, "organization"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
+				{token.LCB, "{"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.SINGLE_LINE_COMMENT, "comment line"},
@@ -297,7 +297,7 @@ entity repository {
 				{token.SPACE, " "},
 				{token.IDENT, "admin"},
 				{token.NEWLINE, "\n"},
-				{token.RBRACE, "}"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.NEWLINE, "\n"},
 				{token.ENTITY, "entity"},
@@ -305,7 +305,7 @@ entity repository {
 				{token.SPACE, " "},
 				{token.IDENT, "repository"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
+				{token.LCB, "{"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.MULTI_LINE_COMMENT, "\n\tcomment line 1\n\tcomment line 2\n\t"},
@@ -348,7 +348,7 @@ entity repository {
 				{token.OR, "or"},
 				{token.SPACE, " "},
 				// --
-				{token.LPAREN, "("},
+				{token.LP, "("},
 				{token.IDENT, "member"},
 				{token.SPACE, " "},
 				{token.AND, "and"},
@@ -356,9 +356,9 @@ entity repository {
 				{token.IDENT, "parent"},
 				{token.DOT, "."},
 				{token.IDENT, "admin"},
-				{token.RPAREN, ")"},
+				{token.RP, ")"},
 				{token.NEWLINE, "\n"},
-				{token.RBRACE, "}"},
+				{token.RCB, "}"},
 				{token.EOF, ""},
 			}
 
@@ -394,8 +394,8 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "user"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
-				{token.RBRACE, "}"},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.MULTI_LINE_COMMENT, "\nentity organization {\n\trelation admin @user\n\trelation member @user\n\taction create_repository = admin or member\n\taction delete = admin\n}\n"},
 				{token.NEWLINE, "\n"},
@@ -434,8 +434,8 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "user"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
-				{token.RBRACE, "}"},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.MULTI_LINE_COMMENT, "\nentity organization {\n\trelation admin @user\n\trelation member @user\n\taction create_repository = admin or member\n\taction delete = admin\n}\n"},
 				{token.EOF, ""},
@@ -464,7 +464,12 @@ entity organization {
 		relation org @organization#member
 
 		action enabled = org
-	}`
+	}
+
+	rule is_time_greater(created_at time, started_at time) {
+		created_at > started_at
+	}
+`
 
 			tests := []struct {
 				expectedType    token.Type
@@ -476,8 +481,8 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "user"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
-				{token.RBRACE, "}"},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
@@ -486,7 +491,7 @@ entity organization {
 
 				{token.IDENT, "organization"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
+				{token.LCB, "{"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.TAB, "\t"},
@@ -499,7 +504,7 @@ entity organization {
 				{token.IDENT, "user"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
-				{token.RBRACE, "}"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
@@ -511,7 +516,7 @@ entity organization {
 				{token.IDENT, "maintainer"},
 
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
+				{token.LCB, "{"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.TAB, "\t"},
@@ -537,7 +542,40 @@ entity organization {
 				{token.IDENT, "org"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
-				{token.RBRACE, "}"},
+				{token.RCB, "}"},
+
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.RULE, "rule"},
+				{token.SPACE, " "},
+				{token.IDENT, "is_time_greater"},
+				{token.LP, "("},
+				{token.IDENT, "created_at"},
+				{token.SPACE, " "},
+				{token.IDENT, "time"},
+
+				{token.COMMA, ","},
+				{token.SPACE, " "},
+				{token.IDENT, "started_at"},
+				{token.SPACE, " "},
+				{token.IDENT, "time"},
+				{token.RP, ")"},
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+
+				{token.TAB, "\t"},
+				{token.IDENT, "created_at"},
+				{token.SPACE, " "},
+				{token.GT, ">"},
+				{token.SPACE, " "},
+				{token.IDENT, "started_at"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.RCB, "}"},
+				{token.NEWLINE, "\n"},
 				{token.EOF, ""},
 			}
 
@@ -576,8 +614,8 @@ entity organization {
 				{token.SPACE, " "},
 				{token.IDENT, "user"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
-				{token.RBRACE, "}"},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
@@ -586,7 +624,7 @@ entity organization {
 
 				{token.IDENT, "organization"},
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
+				{token.LCB, "{"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.TAB, "\t"},
@@ -599,7 +637,7 @@ entity organization {
 				{token.IDENT, "user"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
-				{token.RBRACE, "}"},
+				{token.RCB, "}"},
 				{token.NEWLINE, "\n"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
@@ -611,7 +649,7 @@ entity organization {
 				{token.IDENT, "maintainer"},
 
 				{token.SPACE, " "},
-				{token.LBRACE, "{"},
+				{token.LCB, "{"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.TAB, "\t"},
@@ -637,7 +675,7 @@ entity organization {
 				{token.IDENT, "member"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
-				{token.RBRACE, "}"},
+				{token.RCB, "}"},
 				{token.EOF, ""},
 			}
 

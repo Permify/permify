@@ -27,26 +27,67 @@ func NewSchemaReaderWithCache(delegate storage.SchemaReader, cache cache.Cache) 
 
 // ReadSchema  - Read schema from the repository
 func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error) {
-	return r.delegate.ReadSchema(ctx, tenantID, version)
-}
-
-// ReadSchemaDefinition - Read schema definition from the repository
-func (r *SchemaReaderWithCache) ReadSchemaDefinition(ctx context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
 	var s interface{}
 	found := false
 	if version != "" {
-		s, found = r.cache.Get(fmt.Sprintf("%s|%s|%s", tenantID, entityType, version))
+		s, found = r.cache.Get(fmt.Sprintf("%s|%s", tenantID, version))
 	}
 	if !found {
-		definition, version, err = r.delegate.ReadSchemaDefinition(ctx, tenantID, entityType, version)
+		schema, err = r.delegate.ReadSchema(ctx, tenantID, version)
+		if err != nil {
+			return nil, err
+		}
+		size := reflect.TypeOf(schema).Size()
+		r.cache.Set(fmt.Sprintf("%s|%s", tenantID, version), schema, int64(size))
+		return schema, nil
+	}
+	def, ok := s.(*base.SchemaDefinition)
+	if !ok {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
+	}
+	return def, err
+}
+
+// ReadEntityDefinition - Read entity definition from the repository
+func (r *SchemaReaderWithCache) ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error) {
+	var s interface{}
+	found := false
+	if version != "" {
+		s, found = r.cache.Get(fmt.Sprintf("%s|%s|%s", tenantID, entityName, version))
+	}
+	if !found {
+		definition, version, err = r.delegate.ReadEntityDefinition(ctx, tenantID, entityName, version)
 		if err != nil {
 			return nil, "", err
 		}
 		size := reflect.TypeOf(definition).Size()
-		r.cache.Set(fmt.Sprintf("%s|%s|%s", tenantID, entityType, version), definition, int64(size))
+		r.cache.Set(fmt.Sprintf("%s|%s|%s", tenantID, entityName, version), definition, int64(size))
 		return definition, version, nil
 	}
 	def, ok := s.(*base.EntityDefinition)
+	if !ok {
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
+	}
+	return def, "", err
+}
+
+// ReadRuleDefinition - Read rule definition from the repository
+func (r *SchemaReaderWithCache) ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (definition *base.RuleDefinition, v string, err error) {
+	var s interface{}
+	found := false
+	if version != "" {
+		s, found = r.cache.Get(fmt.Sprintf("%s|%s|%s", tenantID, ruleName, version))
+	}
+	if !found {
+		definition, version, err = r.delegate.ReadRuleDefinition(ctx, tenantID, ruleName, version)
+		if err != nil {
+			return nil, "", err
+		}
+		size := reflect.TypeOf(definition).Size()
+		r.cache.Set(fmt.Sprintf("%s|%s|%s", tenantID, ruleName, version), definition, int64(size))
+		return definition, version, nil
+	}
+	def, ok := s.(*base.RuleDefinition)
 	if !ok {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
 	}

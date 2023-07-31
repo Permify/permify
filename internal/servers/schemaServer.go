@@ -8,7 +8,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/dsl/ast"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/logger"
@@ -45,7 +44,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 		return nil, err
 	}
 
-	_, err = compiler.NewCompiler(true, sch).Compile()
+	_, _, err = compiler.NewCompiler(true, sch).Compile()
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -59,7 +58,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 		cnf = append(cnf, storage.SchemaDefinition{
 			TenantID:             request.GetTenantId(),
 			Version:              version,
-			EntityType:           st.(*ast.EntityStatement).Name.Literal,
+			Name:                 st.GetName(),
 			SerializedDefinition: []byte(st.String()),
 		})
 	}

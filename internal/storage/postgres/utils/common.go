@@ -41,9 +41,22 @@ func SnapshotQuery(sl squirrel.SelectBuilder, value uint64) squirrel.SelectBuild
 	return sl.Where(createdWhere).Where(expiredWhere)
 }
 
-// GarbageCollectQuery -
-func GarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
+// TuplesGarbageCollectQuery -
+func TuplesGarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
 	return squirrel.Delete("relation_tuples").
+		Where(squirrel.Expr(fmt.Sprintf("created_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339)))).
+		Where(squirrel.And{
+			squirrel.Or{
+				squirrel.Expr("expired_tx_id = '0'::xid8"),
+				squirrel.Expr(fmt.Sprintf("expired_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339))),
+			},
+			squirrel.Expr(fmt.Sprintf("tenant_id = '%v'", tenantID)),
+		})
+}
+
+// AttributesGarbageCollectQuery -
+func AttributesGarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
+	return squirrel.Delete("attributes").
 		Where(squirrel.Expr(fmt.Sprintf("created_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339)))).
 		Where(squirrel.And{
 			squirrel.Or{

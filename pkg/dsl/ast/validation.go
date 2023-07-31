@@ -11,7 +11,7 @@ import (
 
 // Validate - validates the schema to ensure that it meets certain requirements.
 func (sch *Schema) Validate() error {
-	if len(sch.entityReferences) == 0 {
+	if len(sch.GetReferences().entityReferences) == 0 {
 		return validationError(token.PositionInfo{
 			LinePosition:   1,
 			ColumnPosition: 1,
@@ -19,7 +19,7 @@ func (sch *Schema) Validate() error {
 	}
 
 	// Loop through all relation references in the schema.
-	for _, st := range sch.relationReferences {
+	for _, st := range sch.GetReferences().relationReferences {
 		// Loop through all relation type statements in the relation reference.
 		for _, s := range st {
 			// Check that the relation type statement is valid.
@@ -34,12 +34,12 @@ func (sch *Schema) Validate() error {
 // validateRelationTypeStatement - validates a single relation type statement to ensure that it meets certain requirements.
 func (sch *Schema) validateRelationTypeStatement(ref RelationTypeStatement) error {
 	// Check that the entity reference in the relation type statement is valid.
-	if !sch.IsEntityReferenceExist(ref.Type.Literal) {
+	if !sch.GetReferences().IsEntityReferenceExist(ref.Type.Literal) {
 		return validationError(ref.Type.PositionInfo, base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String())
 	}
 	// If the relation type statement does not have a direct entity reference, check that the relation reference is valid.
 	if !IsDirectEntityReference(ref) {
-		if !sch.IsRelationReferenceExist(ref.Type.Literal + "#" + ref.Relation.Literal) {
+		if !sch.GetReferences().IsRelationReferenceExist(ref.Type.Literal + "#" + ref.Relation.Literal) {
 			return validationError(ref.Type.PositionInfo, base.ErrorCode_ERROR_CODE_RELATION_REFERENCE_NOT_FOUND_IN_ENTITY_REFERENCES.String())
 		}
 	}

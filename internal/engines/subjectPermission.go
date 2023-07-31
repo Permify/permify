@@ -46,7 +46,7 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 
 	// The schema definition for the entity is read from the engine's schemaReader.
 	// The tenant ID, entity type, and schema version are all taken from the request.
-	en, _, err := engine.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err := engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		// If there's an error reading the schema definition, we wrap it and return.
 		return emptyResp, err
@@ -58,13 +58,13 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 	}
 
 	// Initialize a reference types with permission
-	rtyps := []base.EntityDefinition_RelationalReference{
-		base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+	rtyps := []base.EntityDefinition_Reference{
+		base.EntityDefinition_REFERENCE_PERMISSION,
 	}
 
 	// If the request is not for only permissions, we add relation reference to the list of relational reference types.
 	if !request.GetMetadata().GetOnlyPermission() {
-		rtyps = append(rtyps, base.EntityDefinition_RELATIONAL_REFERENCE_RELATION)
+		rtyps = append(rtyps, base.EntityDefinition_REFERENCE_RELATION)
 	}
 
 	// If allowed reference types contains reference. append to refs list
@@ -100,14 +100,14 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 					SnapToken:     request.GetMetadata().GetSnapToken(),
 					Depth:         request.GetMetadata().GetDepth(),
 				},
-				Entity:           request.GetEntity(),
-				Permission:       permission,
-				Subject:          request.GetSubject(),
-				ContextualTuples: request.GetContextualTuples(),
+				Entity:     request.GetEntity(),
+				Permission: permission,
+				Subject:    request.GetSubject(),
+				Context:    request.GetContext(),
 			})
 			// If there's an error, it is sent over the resultChannel along with the permission and a "denied" result.
 			if err != nil {
-				resultChannel <- SubjectPermissionResponse{permission: permission, result: base.CheckResult_RESULT_DENIED, err: err}
+				resultChannel <- SubjectPermissionResponse{permission: permission, result: base.CheckResult_CHECK_RESULT_DENIED, err: err}
 				return
 			}
 

@@ -51,12 +51,12 @@ func (r *SchemaReader) ReadSchema(_ context.Context, tenantID, version string) (
 	return sch, nil
 }
 
-// ReadSchemaDefinition - Reads a Schema Definition from repository
-func (r *SchemaReader) ReadSchemaDefinition(_ context.Context, tenantID, entityType, version string) (definition *base.EntityDefinition, v string, err error) {
+// ReadEntityDefinition - Reads a Entity Definition from repository
+func (r *SchemaReader) ReadEntityDefinition(_ context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(SchemaDefinitionsTable, "id", tenantID, entityType, version)
+	raw, err = txn.First(SchemaDefinitionsTable, "id", tenantID, entityName, version)
 	if err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -68,7 +68,34 @@ func (r *SchemaReader) ReadSchemaDefinition(_ context.Context, tenantID, entityT
 		if err != nil {
 			return nil, "", err
 		}
-		definition, err = schema.GetEntityByName(sch, entityType)
+		definition, err = schema.GetEntityByName(sch, entityName)
+		if err != nil {
+			return nil, "", err
+		}
+		return definition, def.Version, err
+	}
+
+	return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+}
+
+// ReadRuleDefinition - Reads a Rule Definition from repository
+func (r *SchemaReader) ReadRuleDefinition(_ context.Context, tenantID, ruleName, version string) (definition *base.RuleDefinition, v string, err error) {
+	txn := r.database.DB.Txn(false)
+	defer txn.Abort()
+	var raw interface{}
+	raw, err = txn.First(SchemaDefinitionsTable, "id", tenantID, ruleName, version)
+	if err != nil {
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	def, ok := raw.(storage.SchemaDefinition)
+	if ok {
+		var sch *base.SchemaDefinition
+		sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
+		if err != nil {
+			return nil, "", err
+		}
+		definition, err = schema.GetRuleByName(sch, ruleName)
 		if err != nil {
 			return nil, "", err
 		}

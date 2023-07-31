@@ -480,9 +480,9 @@ var _ = Describe("parser", func() {
 
 		It("Case 11 - Duplicate Relation", func() {
 			pr := NewParser(`
- 				entity organization { 
-					relation member @user 
-					relation member @user 
+				entity organization {
+					relation member @user
+					relation member @user
 				} `)
 
 			_, err := pr.Parse()
@@ -498,8 +498,8 @@ var _ = Describe("parser", func() {
 			pr := NewParser(`
 			entity organization {
 				relation admin @user
-				action delete = admin 
-				permission delete = admin 
+				action delete = admin
+				permission delete = admin
 			}`)
 
 			_, err := pr.Parse()
@@ -509,6 +509,107 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("5:25:duplication found for organization#delete"))
+		})
+
+		It("Case 13 - Attribute", func() {
+			pr := NewParser(`
+			entity repository {
+		
+				relation parent  @organization
+				relation owner  @user @organization#member
+		
+				attribute is_public boolean
+		
+				action view = owner
+				action read = view and (parent.admin and parent.member)
+			}
+			`)
+
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			st := schema.Statements[0].(*ast.EntityStatement)
+
+			Expect(st.Name.Literal).Should(Equal("repository"))
+
+			r1 := st.RelationStatements[0].(*ast.RelationStatement)
+			Expect(r1.Name.Literal).Should(Equal("parent"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.Type.Literal).Should(Equal("organization"))
+			}
+
+			r2 := st.RelationStatements[1].(*ast.RelationStatement)
+			Expect(r2.Name.Literal).Should(Equal("owner"))
+
+			Expect(r2.RelationTypes[0].Type.Literal).Should(Equal("user"))
+			Expect(r2.RelationTypes[1].Type.Literal).Should(Equal("organization"))
+			Expect(r2.RelationTypes[1].Relation.Literal).Should(Equal("member"))
+
+			at1 := st.AttributeStatements[0].(*ast.AttributeStatement)
+			Expect(at1.Name.Literal).Should(Equal("is_public"))
+			Expect(at1.AttributeType.String()).Should(Equal("boolean"))
+
+			a1 := st.PermissionStatements[0].(*ast.PermissionStatement)
+			Expect(a1.Name.Literal).Should(Equal("view"))
+
+			es1 := a1.ExpressionStatement.(*ast.ExpressionStatement)
+			Expect(es1.Expression.(*ast.Identifier).String()).Should(Equal("owner"))
+
+			a2 := st.PermissionStatements[1].(*ast.PermissionStatement)
+			Expect(a2.Name.Literal).Should(Equal("read"))
+
+			es2 := a2.ExpressionStatement.(*ast.ExpressionStatement)
+
+			Expect(es2.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("view"))
+			Expect(es2.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
+			Expect(es2.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
+		})
+
+		It("Case 14 - Rule", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			attribute balance float
+
+    			permission withdraw = check_balance(context.amount, balance) and owner
+			}
+	
+			rule check_balance(amount float, balance float) {
+				balance >= amount && amount <= 5000
+			}
+			`)
+
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			st := schema.Statements[0].(*ast.EntityStatement)
+
+			Expect(st.Name.Literal).Should(Equal("account"))
+
+			r1 := st.RelationStatements[0].(*ast.RelationStatement)
+			Expect(r1.Name.Literal).Should(Equal("owner"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.Type.Literal).Should(Equal("user"))
+			}
+
+			a1 := st.AttributeStatements[0].(*ast.AttributeStatement)
+			Expect(a1.Name.Literal).Should(Equal("balance"))
+			Expect(a1.AttributeType.Type.Literal).Should(Equal("float"))
+
+			p1 := st.PermissionStatements[0].(*ast.PermissionStatement)
+			Expect(p1.Name.Literal).Should(Equal("withdraw"))
+
+			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement)
+
+			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(context.amount, balance)"))
+			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))
+
+			rs1 := schema.Statements[1].(*ast.RuleStatement)
+
+			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
+			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
 		})
 	})
 })

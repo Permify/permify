@@ -9,6 +9,7 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -94,22 +95,29 @@ entity doc {
 				},
 			}
 
-			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			// filters
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
-				nil,
+				dataReader,
+				checkEngine,
 				nil,
 				nil,
 				lookupSubjectEngine,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
+
+			checkEngine.SetInvoker(invoker)
 
 			var tuples []*base.Tuple
 
@@ -119,7 +127,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -190,21 +198,26 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
-				nil,
+				dataReader,
+				checkEngine,
 				nil,
 				nil,
 				lookupSubjectEngine,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
+
+			checkEngine.SetInvoker(invoker)
 
 			var tuples []*base.Tuple
 
@@ -214,7 +227,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -292,21 +305,26 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
-				nil,
+				dataReader,
+				checkEngine,
 				nil,
 				nil,
 				lookupSubjectEngine,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
+
+			checkEngine.SetInvoker(invoker)
 
 			var tuples []*base.Tuple
 
@@ -316,7 +334,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -384,21 +402,26 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
-				nil,
+				dataReader,
+				checkEngine,
 				nil,
 				nil,
 				lookupSubjectEngine,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
+
+			checkEngine.SetInvoker(invoker)
 
 			var tuples []*base.Tuple
 
@@ -408,7 +431,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -478,21 +501,26 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
-				nil,
+				dataReader,
+				checkEngine,
 				nil,
 				nil,
 				lookupSubjectEngine,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
+
+			checkEngine.SetInvoker(invoker)
 
 			var tuples []*base.Tuple
 
@@ -502,7 +530,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -572,21 +600,26 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
-				nil,
+				dataReader,
+				checkEngine,
 				nil,
 				nil,
 				lookupSubjectEngine,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
+
+			checkEngine.SetInvoker(invoker)
 
 			var tuples []*base.Tuple
 
@@ -596,7 +629,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -671,21 +704,26 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			lookupSubjectEngine := NewLookupSubjectEngine(schemaReader, relationshipReader)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
-				nil,
+				dataReader,
+				checkEngine,
 				nil,
 				nil,
 				lookupSubjectEngine,
 				nil,
 				telemetry.NewNoopMeter(),
 			)
+
+			checkEngine.SetInvoker(invoker)
 
 			var tuples []*base.Tuple
 
@@ -695,7 +733,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -711,6 +749,169 @@ entity doc {
 						Metadata: &base.PermissionLookupSubjectRequestMetadata{
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							SchemaVersion: "",
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+				}
+			}
+		})
+	})
+
+	weekdaySchema := `
+		entity user {}
+		
+		entity organization {
+		
+			relation member @user
+		
+			attribute balance integer
+
+			permission view = check_balance(balance) and member
+		}
+		
+		entity repository {
+		
+			relation organization  @organization
+			
+			attribute is_public boolean
+
+			permission view = is_public
+			permission edit = organization.view
+			permission delete = is_weekday(request.day_of_week)
+		}
+		
+		rule check_balance(balance integer) {
+			balance > 5000
+		}
+
+		rule is_weekday(day_of_week string) {
+			  day_of_week != 'saturday' && day_of_week != 'sunday'
+		}
+		`
+
+	Context("Weekday Sample: Subject Filter", func() {
+		It("Weekday Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(weekdaySchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				subjectReference string
+				entity           string
+				assertions       map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"organization:2#member@user:1",
+					"organization:2#member@user:3",
+					"organization:5#member@user:2",
+					"organization:5#member@user:5",
+				},
+				attributes: []string{
+					"repository:1#is_public@boolean:true",
+					"repository:2#is_public@boolean:false",
+					"repository:3#is_public@boolean:true",
+
+					"organization:1#balance@integer:4000",
+					"organization:2#balance@integer:6000",
+				},
+				filters: []filter{
+					{
+						subjectReference: "user",
+						entity:           "repository:1",
+						assertions: map[string][]string{
+							"view": {"1", "2", "3", "5"},
+						},
+					},
+					{
+						subjectReference: "user",
+						entity:           "organization:2",
+						assertions: map[string][]string{
+							"view": {"1", "3"},
+						},
+					},
+				},
+			}
+
+			// filters
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+			massSubjectFilter := NewMassSubjectFilter(dataReader)
+			lookupSubjectEngine := NewLookupSubjectEngine(checkEngine, schemaReader, schemaBasedSubjectFilter, massSubjectFilter)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				lookupSubjectEngine,
+				nil,
+				telemetry.NewNoopMeter(),
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				entity, err := tuple.E(filter.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range filter.assertions {
+					response, err := invoker.LookupSubject(context.Background(), &base.PermissionLookupSubjectRequest{
+						TenantId:         "t1",
+						SubjectReference: tuple.RelationReference(filter.subjectReference),
+						Entity:           entity,
+						Permission:       permission,
+						Metadata: &base.PermissionLookupSubjectRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         100,
 						},
 					})
 

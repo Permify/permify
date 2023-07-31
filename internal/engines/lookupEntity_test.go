@@ -10,6 +10,7 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -42,7 +43,7 @@ entity doc {
 	relation org @organization
 	relation parent @folder
 	relation owner @user
-	
+
 	permission read = (owner or parent.collaborator) or org.admin
 	permission update = owner and org.admin
 	permission delete = owner or org.admin
@@ -101,16 +102,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			linkedEntityEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, linkedEntityEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -129,15 +131,18 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var contextual []*base.Tuple
+			reqContext := &base.Context{
+				Tuples:     []*base.Tuple{},
+				Attributes: []*base.Attribute{},
+			}
 
 			for _, relationship := range tests.contextual {
 				t, err := tuple.Tuple(relationship)
 				Expect(err).ShouldNot(HaveOccurred())
-				contextual = append(contextual, t)
+				reqContext.Tuples = append(reqContext.Tuples, t)
 			}
 
 			for _, filter := range tests.filters {
@@ -161,7 +166,7 @@ entity doc {
 							SchemaVersion: "",
 							Depth:         100,
 						},
-						ContextualTuples: contextual,
+						Context: reqContext,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -228,16 +233,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -256,7 +262,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -343,16 +349,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -371,7 +378,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -458,16 +465,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -486,7 +494,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -576,16 +584,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -604,7 +613,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -703,16 +712,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -731,15 +741,18 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var contextual []*base.Tuple
+			reqContext := &base.Context{
+				Tuples:     []*base.Tuple{},
+				Attributes: []*base.Attribute{},
+			}
 
 			for _, relationship := range tests.contextual {
 				t, err := tuple.Tuple(relationship)
 				Expect(err).ShouldNot(HaveOccurred())
-				contextual = append(contextual, t)
+				reqContext.Tuples = append(reqContext.Tuples, t)
 			}
 
 			for _, filter := range tests.filters {
@@ -763,7 +776,7 @@ entity doc {
 							SchemaVersion: "",
 							Depth:         100,
 						},
-						ContextualTuples: contextual,
+						Context: reqContext,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -889,16 +902,17 @@ entity doc {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -917,7 +931,7 @@ entity doc {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -955,109 +969,109 @@ entity user {}
 
 entity group {
 
-    // Relation to represent the members of the group
-    relation member @user
-    // Relation to represent the admins of the group
-    relation admin @user
-    // Relation to represent the moderators of the group
-    relation moderator @user
+   // Relation to represent the members of the group
+   relation member @user
+   // Relation to represent the admins of the group
+   relation admin @user
+   // Relation to represent the moderators of the group
+   relation moderator @user
 
-    // Permissions for the group entity
-    action create = member
-    action join = member
-    action leave = member
-    action invite_to_group = admin
-    action remove_from_group = admin or moderator
-    action edit_settings = admin or moderator
-    action post_to_group = member
-    action comment_on_post = member
-    action view_group_insights = admin or moderator
+   // Permissions for the group entity
+   action create = member
+   action join = member
+   action leave = member
+   action invite_to_group = admin
+   action remove_from_group = admin or moderator
+   action edit_settings = admin or moderator
+   action post_to_group = member
+   action comment_on_post = member
+   action view_group_insights = admin or moderator
 }
 
 entity post {
 
-    // Relation to represent the owner of the post
-    relation owner @user
-    // Relation to represent the group that the post belongs to
-    relation group @group
+   // Relation to represent the owner of the post
+   relation owner @user
+   // Relation to represent the group that the post belongs to
+   relation group @group
 
-    // Permissions for the post entity
-    action view_post = owner or group.member
-    action edit_post = owner or group.admin
-    action delete_post = owner or group.admin
+   // Permissions for the post entity
+   action view_post = owner or group.member
+   action edit_post = owner or group.admin
+   action delete_post = owner or group.admin
 
-    permission group_member = group.member
+   permission group_member = group.member
 }
 
 entity comment {
 
-    // Relation to represent the owner of the comment
-    relation owner @user
+   // Relation to represent the owner of the comment
+   relation owner @user
 
-    // Relation to represent the post that the comment belongs to
-    relation post @post
+   // Relation to represent the post that the comment belongs to
+   relation post @post
 
-    // Permissions for the comment entity
-    action view_comment = owner or post.group_member
-    action edit_comment = owner
-    action delete_comment = owner
+   // Permissions for the comment entity
+   action view_comment = owner or post.group_member
+   action edit_comment = owner
+   action delete_comment = owner
 }
 
 entity like {
 
-    // Relation to represent the owner of the like
-    relation owner @user
+   // Relation to represent the owner of the like
+   relation owner @user
 
-    // Relation to represent the post that the like belongs to
-    relation post @post
+   // Relation to represent the post that the like belongs to
+   relation post @post
 
-    // Permissions for the like entity
-    action like_post = owner or post.group_member
-    action unlike_post = owner or post.group_member
+   // Permissions for the like entity
+   action like_post = owner or post.group_member
+   action unlike_post = owner or post.group_member
 }
 
 entity poll {
 
-    // Relation to represent the owner of the poll
-    relation owner @user
+   // Relation to represent the owner of the poll
+   relation owner @user
 
-    // Relation to represent the group that the poll belongs to
-    relation group @group
+   // Relation to represent the group that the poll belongs to
+   relation group @group
 
-    // Permissions for the poll entity
-    action create_poll = owner or group.admin
-    action view_poll = owner or group.member
-    action edit_poll = owner or group.admin
-    action delete_poll = owner or group.admin
+   // Permissions for the poll entity
+   action create_poll = owner or group.admin
+   action view_poll = owner or group.member
+   action edit_poll = owner or group.admin
+   action delete_poll = owner or group.admin
 }
 
 entity file {
 
-    // Relation to represent the owner of the file
-    relation owner @user
+   // Relation to represent the owner of the file
+   relation owner @user
 
-    // Relation to represent the group that the file belongs to
-    relation group @group
+   // Relation to represent the group that the file belongs to
+   relation group @group
 
-    // Permissions for the file entity
-    action upload_file = owner or group.member
-    action view_file = owner or group.member
-    action delete_file = owner or group.admin
+   // Permissions for the file entity
+   action upload_file = owner or group.member
+   action view_file = owner or group.member
+   action delete_file = owner or group.admin
 }
 
 entity event {
 
-    // Relation to represent the owner of the event
-    relation owner @user
-    // Relation to represent the group that the event belongs to
-    relation group @group
-    
-    // Permissions for the event entity
-    action create_event = owner or group.admin
-    action view_event = owner or group.member
-    action edit_event = owner or group.admin
-    action delete_event = owner or group.admin
-    action RSVP_to_event = owner or group.member
+   // Relation to represent the owner of the event
+   relation owner @user
+   // Relation to represent the group that the event belongs to
+   relation group @group
+
+   // Permissions for the event entity
+   action create_event = owner or group.admin
+   action view_event = owner or group.member
+   action edit_event = owner or group.admin
+   action delete_event = owner or group.admin
+   action RSVP_to_event = owner or group.member
 }
 `
 
@@ -1173,16 +1187,17 @@ entity event {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -1201,7 +1216,7 @@ entity event {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -1386,16 +1401,17 @@ entity event {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -1414,15 +1430,18 @@ entity event {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var contextual []*base.Tuple
+			reqContext := &base.Context{
+				Tuples:     []*base.Tuple{},
+				Attributes: []*base.Attribute{},
+			}
 
 			for _, relationship := range tests.contextual {
 				t, err := tuple.Tuple(relationship)
 				Expect(err).ShouldNot(HaveOccurred())
-				contextual = append(contextual, t)
+				reqContext.Tuples = append(reqContext.Tuples, t)
 			}
 
 			for _, filter := range tests.filters {
@@ -1446,7 +1465,7 @@ entity event {
 							SchemaVersion: "",
 							Depth:         100,
 						},
-						ContextualTuples: contextual,
+						Context: reqContext,
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -1460,27 +1479,27 @@ entity event {
 entity user {}
 
 entity resource {
-    relation viewer  @user  @group#member @group#manager
-    relation manager @user @group#member @group#manager
+   relation viewer  @user  @group#member @group#manager
+   relation manager @user @group#member @group#manager
 
-    action edit = manager
-    action view = viewer or manager
+   action edit = manager
+   action view = viewer or manager
 }
 
 entity group {
-    relation manager @user @group#member @group#manager
-    relation member @user @group#member @group#manager
+   relation manager @user @group#member @group#manager
+   relation member @user @group#member @group#manager
 }
 
 entity organization {
-    relation group @group
-    relation resource @resource
+   relation group @group
+   relation resource @resource
 
-    relation administrator @user @group#member @group#manager
-    relation direct_member @user
+   relation administrator @user @group#member @group#manager
+   relation direct_member @user
 
-    permission admin = administrator
-    permission member = direct_member or administrator or group.member
+   permission admin = administrator
+   permission member = direct_member or administrator or group.member
 }`
 
 	Context("Google Docs Sample: Entity Filter", func() {
@@ -1576,16 +1595,17 @@ entity organization {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -1604,7 +1624,7 @@ entity organization {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -1755,16 +1775,17 @@ entity organization {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -1783,7 +1804,7 @@ entity organization {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {
@@ -1866,16 +1887,17 @@ entity organization {
 			}
 
 			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			relationshipReader := factories.RelationshipReaderFactory(db, logger.New("debug"))
-			relationshipWriter := factories.RelationshipWriterFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
 
-			checkEngine := NewCheckEngine(schemaReader, relationshipReader)
-			entityFilterEngine := NewEntityFilterEngine(schemaReader, relationshipReader)
-			lookupEntityEngine := NewLookupEntityEngine(checkEngine, entityFilterEngine)
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
-				relationshipReader,
+				dataReader,
 				checkEngine,
 				nil,
 				lookupEntityEngine,
@@ -1894,7 +1916,171 @@ entity organization {
 				tuples = append(tuples, t)
 			}
 
-			_, err = relationshipWriter.WriteRelationships(context.Background(), "t1", database.NewTupleCollection(tuples...))
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+						TenantId:   "t1",
+						EntityType: filter.entityType,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionLookupEntityRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         100,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+				}
+			}
+		})
+	})
+
+	weekdaySchema := `
+		entity user {}
+		
+		entity organization {
+		
+			relation member @user
+		
+			attribute balance integer
+
+			permission view = check_balance(balance) and member
+		}
+		
+		entity repository {
+		
+			relation organization  @organization
+			
+			attribute is_public boolean
+
+			permission view = is_public
+			permission edit = organization.view
+			permission delete = is_weekday(request.day_of_week)
+		}
+		
+		rule check_balance(balance integer) {
+			balance > 5000
+		}
+
+		rule is_weekday(day_of_week string) {
+			  day_of_week != 'saturday' && day_of_week != 'sunday'
+		}
+		`
+
+	Context("Weekday Sample: Entity Filter", func() {
+		It("Weekday Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(weekdaySchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"organization:2#member@user:1",
+				},
+				attributes: []string{
+					"repository:1#is_public@boolean:true",
+					"repository:2#is_public@boolean:false",
+					"repository:3#is_public@boolean:true",
+
+					"organization:1#balance@integer:4000",
+					"organization:2#balance@integer:6000",
+				},
+				filters: []filter{
+					{
+						entityType: "repository",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"view": {"1", "3"},
+						},
+					},
+					{
+						entityType: "organization",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"view": {"2"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(schemaReader, dataReader)
+			massEntityFilter := NewMassEntityFilter(dataReader)
+			lookupEntityEngine := NewLookupEntityEngine(checkEngine, schemaReader, schemaBasedEntityFilter, massEntityFilter)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEntityEngine,
+				nil,
+				nil,
+				telemetry.NewNoopMeter(),
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
 			Expect(err).ShouldNot(HaveOccurred())
 
 			for _, filter := range tests.filters {

@@ -126,6 +126,7 @@ func (c *GarbageCollector) Wait() error {
 	return c.g.Wait()
 }
 
+// getTenants gets all tenants from the database.
 func (c *GarbageCollector) getTenants(ctx context.Context) ([]*base.Tenant, error) {
 	// get all tenants
 	builder := c.database.Builder.Select("id, name, created_at").From(TenantsTable)
@@ -161,18 +162,54 @@ func (c *GarbageCollector) getTenants(ctx context.Context) ([]*base.Tenant, erro
 	return tenants, nil
 }
 
+// executeCollector executes garbage collection for a specific tenant.
 func (c *GarbageCollector) executeCollector(ctx context.Context, tenantID string) error {
-	garbageQuery := utils.GarbageCollectQuery(c.window, tenantID)
-
-	garbageSQL, garbageQueryArgs, err := garbageQuery.ToSql()
+	// Start a new transaction. If unable to start a transaction, return the error.
+	tx, err := c.database.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	_, err = c.database.DB.QueryContext(ctx, garbageSQL, garbageQueryArgs...)
+	// Create a query for garbage collection of tuples based on a provided window and tenantID
+	tuplesGarbageQuery := utils.TuplesGarbageCollectQuery(c.window, tenantID)
+
+	// Convert the query into SQL format. If unsuccessful, rollback the transaction and return the error.
+	tuplesGarbageSQL, tuplesGarbageQueryArgs, err := tuplesGarbageQuery.ToSql()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Execute the SQL query within the transaction. If unsuccessful, rollback the transaction and return the error.
+	_, err = tx.ExecContext(ctx, tuplesGarbageSQL, tuplesGarbageQueryArgs...)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Create a query for garbage collection of attributes based on a provided window and tenantID
+	attributesGarbageQuery := utils.AttributesGarbageCollectQuery(c.window, tenantID)
+
+	// Convert the query into SQL format. If unsuccessful, rollback the transaction and return the error.
+	attributesGarbageSQL, attributesGarbageQueryArgs, err := attributesGarbageQuery.ToSql()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Execute the SQL query within the transaction. If unsuccessful, rollback the transaction and return the error.
+	_, err = tx.ExecContext(ctx, attributesGarbageSQL, attributesGarbageQueryArgs...)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// If all previous operations were successful, commit the transaction. If commit fails, return the error.
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
 
+	// If all operations were successful and the transaction was committed, return nil indicating no error.
 	return nil
 }

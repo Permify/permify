@@ -3,12 +3,18 @@ package engines
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
+
+	"github.com/google/cel-go/cel"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
+	storageContext "github.com/Permify/permify/internal/storage/context"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -22,7 +28,7 @@ type CheckEngine struct {
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
 	// relationshipReader is responsible for reading relationship information
-	relationshipReader storage.RelationshipReader
+	dataReader storage.DataReader
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
 }
@@ -30,12 +36,12 @@ type CheckEngine struct {
 // NewCheckEngine creates a new CheckEngine instance for performing permission checks.
 // It takes a key manager, schema reader, and relationship reader as parameters.
 // Additionally, it allows for optional configuration through CheckOption function arguments.
-func NewCheckEngine(sr storage.SchemaReader, rr storage.RelationshipReader, opts ...CheckOption) *CheckEngine {
+func NewCheckEngine(sr storage.SchemaReader, rr storage.DataReader, opts ...CheckOption) *CheckEngine {
 	// Initialize a CheckEngine with default concurrency limit and provided parameters
 	engine := &CheckEngine{
-		schemaReader:       sr,
-		relationshipReader: rr,
-		concurrencyLimit:   _defaultConcurrencyLimit,
+		schemaReader:     sr,
+		dataReader:       rr,
+		concurrencyLimit: _defaultConcurrencyLimit,
 	}
 
 	// Apply provided options to configure the CheckEngine
@@ -62,7 +68,7 @@ func (engine *CheckEngine) Check(ctx context.Context, request *base.PermissionCh
 
 	// Retrieve entity definition
 	var en *base.EntityDefinition
-	en, _, err = engine.schemaReader.ReadSchemaDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err = engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return emptyResp, err
 	}
@@ -101,50 +107,61 @@ func (engine *CheckEngine) invoke(request *base.PermissionCheckRequest) CheckFun
 	}
 }
 
-// check is a method for the CheckEngine struct.
-// It determines the type of relational reference for the permission field in the request,
-// prepares and returns a CheckFunction accordingly.
+// check constructs a CheckFunction that performs permission checks based on the type of reference in the entity definition.
 func (engine *CheckEngine) check(
 	ctx context.Context,
 	request *base.PermissionCheckRequest,
 	en *base.EntityDefinition,
 ) CheckFunction {
-	// The GetTypeOfRelationalReferenceByNameInEntityDefinition method retrieves the type of relational reference for the permission field.
-	tor, err := schema.GetTypeOfRelationalReferenceByNameInEntityDefinition(en, request.GetPermission())
+	// Declare a CheckFunction variable that will later be defined based on the type of reference.
+	var fn CheckFunction
+
+	// Determine the type of the reference by name in the given entity definition.
+	tor, err := schema.GetTypeOfReferenceByNameInEntityDefinition(en, request.GetPermission())
 	if err != nil {
 		// If an error is encountered while determining the type, a CheckFunction is returned that always fails with this error.
 		return checkFail(err)
 	}
 
-	var fn CheckFunction
-	// Depending on the type of the relational reference, we handle the permission differently.
-	if tor == base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION {
-		// Get the permission by its name in the entity definition.
+	// Based on the type of the reference, define the CheckFunction in different ways.
+	switch tor {
+	case base.EntityDefinition_REFERENCE_PERMISSION:
+		// Get the permission from the entity definition.
 		permission, err := schema.GetPermissionByNameInEntityDefinition(en, request.GetPermission())
 		if err != nil {
 			// If an error is encountered while getting the permission, a CheckFunction is returned that always fails with this error.
 			return checkFail(err)
 		}
+		// Get the child of the permission.
 		child := permission.GetChild()
 
-		// Depending on whether the child permission has a rewrite rule,
-		// we prepare a CheckFunction to handle it accordingly.
+		// If the child has a rewrite, check the rewrite.
+		// If not, check the leaf.
 		if child.GetRewrite() != nil {
 			fn = engine.checkRewrite(ctx, request, child.GetRewrite())
 		} else {
 			fn = engine.checkLeaf(request, child.GetLeaf())
 		}
-	} else {
-		// If the relational reference is not a permission, we directly check the permission.
-		fn = engine.checkDirect(request)
+	case base.EntityDefinition_REFERENCE_ATTRIBUTE:
+		// If the reference is an attribute, check the direct attribute.
+		fn = engine.checkDirectAttribute(request)
+	case base.EntityDefinition_REFERENCE_RELATION:
+		// If the reference is a relation, check the direct relation.
+		fn = engine.checkDirectRelation(request)
+	default:
+		// If the reference is not a permission, attribute or relation, check the call.
+		fn = engine.checkCall(request, &base.Call{
+			RuleName:  request.GetPermission(),
+			Arguments: request.GetArguments(),
+		})
 	}
 
-	// If we could not prepare a CheckFunction, we return a function that always fails with an error indicating undefined child kind.
+	// If the CheckFunction is still undefined after the switch, return a CheckFunction that always fails with an error indicating an undefined child kind.
 	if fn == nil {
 		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 	}
 
-	// Finally, we return a function that combines results from the prepared function.
+	// Otherwise, return a CheckFunction that checks a union of CheckFunctions with a concurrency limit.
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 		return checkUnion(ctx, []CheckFunction{fn}, engine.concurrencyLimit)
 	}
@@ -186,6 +203,14 @@ func (engine *CheckEngine) checkLeaf(request *base.PermissionCheckRequest, leaf 
 	// if the request's user is in the computed UserSet.
 	case *base.Leaf_ComputedUserSet:
 		return engine.checkComputedUserSet(request, op.ComputedUserSet)
+	// In case of ComputedAttribute operation, prepare a CheckFunction that checks
+	// the computed attribute's permission.
+	case *base.Leaf_ComputedAttribute:
+		return engine.checkComputedAttribute(request, op.ComputedAttribute)
+	// In case of Call operation, prepare a CheckFunction that checks
+	// the Call's permission.
+	case *base.Leaf_Call:
+		return engine.checkCall(request, op.Call)
 	// In case of an undefined type, return a CheckFunction that always fails.
 	default:
 		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
@@ -226,9 +251,9 @@ func (engine *CheckEngine) setChild(
 	}
 }
 
-// checkDirect is a method of CheckEngine struct that returns a CheckFunction.
+// checkDirectRelation is a method of CheckEngine struct that returns a CheckFunction.
 // It's responsible for directly checking the permissions on an entity
-func (engine *CheckEngine) checkDirect(request *base.PermissionCheckRequest) CheckFunction {
+func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequest) CheckFunction {
 	// The returned CheckFunction is a closure over the provided context and request
 	return func(ctx context.Context) (result *base.PermissionCheckResponse, err error) {
 		// Define a TupleFilter. This specifies which tuples we're interested in.
@@ -245,7 +270,7 @@ func (engine *CheckEngine) checkDirect(request *base.PermissionCheckRequest) Che
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
 		var cti *database.TupleIterator
-		cti, err = storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
+		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
@@ -254,7 +279,7 @@ func (engine *CheckEngine) checkDirect(request *base.PermissionCheckRequest) Che
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
 
 		// If there's an error in querying, return a denied permission response along with the error.
 		if err != nil {
@@ -288,10 +313,10 @@ func (engine *CheckEngine) checkDirect(request *base.PermissionCheckRequest) Che
 						Type: subject.GetType(),
 						Id:   subject.GetId(),
 					},
-					Permission:       subject.GetRelation(),
-					Subject:          request.GetSubject(),
-					Metadata:         request.GetMetadata(),
-					ContextualTuples: request.GetContextualTuples(),
+					Permission: subject.GetRelation(),
+					Subject:    request.GetSubject(),
+					Metadata:   request.GetMetadata(),
+					Context:    request.GetContext(),
 				}))
 			}
 		}
@@ -327,7 +352,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 		// Use the filter to query for relationships in the given context.
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
-		cti, err := storage.NewContextualTuples(request.GetContextualTuples()...).QueryRelationships(filter)
+		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
@@ -335,7 +360,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 
 		// Use the filter to query for relationships in the database.
 		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
-		rit, err := engine.relationshipReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
@@ -363,10 +388,10 @@ func (engine *CheckEngine) checkTupleToUserSet(
 					Type: subject.GetType(),
 					Id:   subject.GetId(),
 				},
-				Permission:       subject.GetRelation(),
-				Subject:          request.GetSubject(),
-				Metadata:         request.GetMetadata(),
-				ContextualTuples: request.GetContextualTuples(),
+				Permission: subject.GetRelation(),
+				Subject:    request.GetSubject(),
+				Metadata:   request.GetMetadata(),
+				Context:    request.GetContext(),
 			}, ttu.GetComputed()))
 		}
 
@@ -387,13 +412,226 @@ func (engine *CheckEngine) checkComputedUserSet(
 	// as the incoming request, but changes the Permission to be the relation defined in the computed user set.
 	// This is how the check "descends" into the computed user set to check permissions there.
 	return engine.invoke(&base.PermissionCheckRequest{
-		TenantId:         request.GetTenantId(), // Tenant ID from the incoming request
-		Entity:           request.GetEntity(),
-		Permission:       cu.GetRelation(),      // Permission is set to the relation defined in the computed user set
-		Subject:          request.GetSubject(),  // The subject from the incoming request
-		Metadata:         request.GetMetadata(), // Metadata from the incoming request
-		ContextualTuples: request.GetContextualTuples(),
+		TenantId:   request.GetTenantId(), // Tenant ID from the incoming request
+		Entity:     request.GetEntity(),
+		Permission: cu.GetRelation(),      // Permission is set to the relation defined in the computed user set
+		Subject:    request.GetSubject(),  // The subject from the incoming request
+		Metadata:   request.GetMetadata(), // Metadata from the incoming request
+		Context:    request.GetContext(),
 	})
+}
+
+// checkComputedAttribute constructs a CheckFunction that checks if a computed attribute
+// permission check request is allowed or denied.
+func (engine *CheckEngine) checkComputedAttribute(
+	request *base.PermissionCheckRequest,
+	ca *base.ComputedAttribute,
+) CheckFunction {
+	// We're returning a function here - this is the CheckFunction.
+	// Instead of performing the check directly here, we're using the 'invoke' method.
+	// We pass a new PermissionCheckRequest to 'invoke', copying most of the fields
+	// from the original request, but replacing the 'Permission' with the computed
+	// attribute's name.
+	return engine.invoke(&base.PermissionCheckRequest{
+		TenantId:   request.GetTenantId(),
+		Entity:     request.GetEntity(),
+		Permission: ca.GetName(),
+		Subject:    request.GetSubject(),
+		Metadata:   request.GetMetadata(),
+		Context:    request.GetContext(),
+	})
+}
+
+// checkDirectAttribute constructs a CheckFunction that checks if a direct attribute
+// permission check request is allowed or denied.
+func (engine *CheckEngine) checkDirectAttribute(
+	request *base.PermissionCheckRequest,
+) CheckFunction {
+	// We're returning a function here - this is the actual CheckFunction.
+	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
+		// Initial error declaration
+		var err error
+
+		// Create a new AttributeFilter with the entity type and ID from the request
+		// and the requested permission.
+		filter := &base.AttributeFilter{
+			Entity: &base.EntityFilter{
+				Type: request.GetEntity().GetType(),
+				Ids:  []string{request.GetEntity().GetId()},
+			},
+			Attributes: []string{request.GetPermission()},
+		}
+
+		var val *base.Attribute
+
+		// storageContext.NewContextualAttributes creates a new instance of ContextualAttributes based on the attributes
+		// retrieved from the request context.
+		val, err = storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QuerySingleAttribute(filter)
+
+		// An error occurred while querying the single attribute, so we return a denied response with empty metadata
+		// and the error.
+		if err != nil {
+			return denied(&base.PermissionCheckResponseMetadata{}), err
+		}
+
+		if val == nil {
+			// Use the data reader's QuerySingleAttribute method to find the relevant attribute
+			val, err = engine.dataReader.QuerySingleAttribute(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+			// If there was an error, return a denied response and the error.
+			if err != nil {
+				return denied(&base.PermissionCheckResponseMetadata{}), err
+			}
+		}
+
+		// No attribute was found matching the provided filter. In this case, we return a denied response with empty metadata
+		// and no error.
+		if val == nil {
+			return denied(&base.PermissionCheckResponseMetadata{}), nil
+		}
+
+		// Unmarshal the attribute value into a BoolValue message.
+		var msg wrapperspb.BoolValue
+		if err := val.GetValue().UnmarshalTo(&msg); err != nil {
+			// If there was an error unmarshaling, return a denied response and the error.
+			return denied(&base.PermissionCheckResponseMetadata{}), err
+		}
+
+		// If the attribute's value is true, return an allowed response.
+		if msg.Value {
+			return allowed(&base.PermissionCheckResponseMetadata{}), nil
+		}
+
+		// If the attribute's value is not true, return a denied response.
+		return denied(&base.PermissionCheckResponseMetadata{}), nil
+	}
+}
+
+// checkCall is a function that validates a call using the CheckEngine.
+// It returns a function (CheckFunction) that when called, performs the permission check.
+func (engine *CheckEngine) checkCall(
+	request *base.PermissionCheckRequest, // The request containing the details for the permission check
+	call *base.Call, // The specific call to be checked
+) CheckFunction {
+	// The function returned by checkCall
+	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
+		var err error
+
+		// If an error occurs during the check, this default "denied" response will be returned.
+		emptyResp := denied(&base.PermissionCheckResponseMetadata{
+			CheckCount: 0,
+		})
+
+		// Read the rule definition from the schema. If an error occurs, return the default denied response.
+		var ru *base.RuleDefinition
+		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), call.GetRuleName(), request.GetMetadata().GetSchemaVersion())
+		if err != nil {
+			return emptyResp, err
+		}
+
+		// Prepare the arguments map to be used in the CEL evaluation
+		arguments := make(map[string]interface{})
+
+		// Prepare a slice for attributes
+		attributes := make([]string, 0)
+
+		// Populate the arguments map based on the type of argument in the call
+		for _, arg := range call.GetArguments() {
+			switch actualArg := arg.Type.(type) {
+			case *base.Argument_ComputedAttribute:
+				// Get the name of the computed attribute
+				attrName := actualArg.ComputedAttribute.GetName()
+
+				// Get the empty value for this attribute type
+				emptyValue := getEmptyValueForType(ru.GetArguments()[attrName])
+
+				// Add the attribute with its empty value to the arguments map
+				arguments[attrName] = emptyValue
+
+				// Append the attribute to the attributes slice
+				attributes = append(attributes, attrName)
+			case *base.Argument_ContextAttribute:
+				// Get the name of the context attribute
+				attrName := actualArg.ContextAttribute.GetName()
+
+				// Get the value of the context attribute if exists, else get an empty value
+				value, exists := request.GetContext().GetData().AsMap()[attrName]
+				if !exists {
+					value = getEmptyValueForType(ru.GetArguments()[attrName])
+				}
+
+				// Add the attribute with its value to the arguments map
+				arguments[attrName] = value
+			default:
+				// Return an error for unhandled types
+				return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
+			}
+		}
+
+		if len(attributes) > 0 {
+			// Prepare the filter for querying attributes from the database
+			filter := &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: request.GetEntity().GetType(),
+					Ids:  []string{request.GetEntity().GetId()},
+				},
+				Attributes: attributes,
+			}
+
+			// Query the database for the attributes and add them to the arguments map
+			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+			if err != nil {
+				return denied(&base.PermissionCheckResponseMetadata{}), err
+			}
+
+			cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter)
+			if err != nil {
+				return denied(&base.PermissionCheckResponseMetadata{}), err
+			}
+
+			it := database.NewUniqueAttributeIterator(ait, cta)
+
+			for it.HasNext() {
+				// Get the next tuple's subject.
+				next, ok := it.GetNext()
+				if !ok {
+					break
+				}
+				arguments[next.GetAttribute()] = next.GetValue()
+			}
+		}
+
+		// Prepare the CEL environment using the arguments in the rule definition
+		env, err := utils.ArgumentsAsCelEnv(ru.Arguments)
+		if err != nil {
+			return nil, err
+		}
+
+		// Prepare the CEL program using the rule's expression
+		exp := cel.CheckedExprToAst(ru.Expression)
+		prg, err := env.Program(exp)
+		if err != nil {
+			return nil, err
+		}
+
+		// Evaluate the CEL program with the arguments. If an error occurs, return a "denied" response.
+		out, _, err := prg.Eval(arguments)
+		if err != nil {
+			return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf("failed to evaluate expression: %w", err)
+		}
+
+		// Check if the result of the CEL evaluation is a boolean
+		result, ok := out.Value().(bool)
+		if !ok {
+			return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf("expected boolean result, but got %T", out.Value())
+		}
+
+		// If the result of the CEL evaluation is true, return an "allowed" response, otherwise return a "denied" response
+		if result {
+			return allowed(&base.PermissionCheckResponseMetadata{}), nil
+		}
+
+		return denied(&base.PermissionCheckResponseMetadata{}), err
+	}
 }
 
 // checkUnion checks if the subject has permission by running multiple CheckFunctions concurrently,
@@ -405,7 +643,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 	// If there are no functions, deny the permission and return
 	if len(functions) == 0 {
 		return &base.PermissionCheckResponse{
-			Can:      base.CheckResult_RESULT_DENIED,
+			Can:      base.CheckResult_CHECK_RESULT_DENIED,
 			Metadata: responseMetadata,
 		}, nil
 	}
@@ -437,7 +675,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 				return denied(responseMetadata), d.err
 			}
 			// If the CheckFunction allowed the permission, allow the permission and return
-			if d.resp.GetCan() == base.CheckResult_RESULT_ALLOWED {
+			if d.resp.GetCan() == base.CheckResult_CHECK_RESULT_ALLOWED {
 				return allowed(responseMetadata), nil
 			}
 		// If the context is done, deny the permission and return a cancellation error
@@ -488,7 +726,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 				return denied(responseMetadata), d.err
 			}
 			// If the CheckFunction denied the permission, deny the permission and return
-			if d.resp.GetCan() == base.CheckResult_RESULT_DENIED {
+			if d.resp.GetCan() == base.CheckResult_CHECK_RESULT_DENIED {
 				return denied(responseMetadata), nil
 			}
 		// If the context is done, deny the permission and return a cancellation error
@@ -551,7 +789,7 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 			return denied(responseMetadata), left.err
 		}
 
-		if left.resp.GetCan() == base.CheckResult_RESULT_DENIED {
+		if left.resp.GetCan() == base.CheckResult_CHECK_RESULT_DENIED {
 			return denied(responseMetadata), nil
 		}
 
@@ -569,7 +807,7 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 				return denied(responseMetadata), d.err
 			}
 
-			if d.resp.GetCan() == base.CheckResult_RESULT_ALLOWED {
+			if d.resp.GetCan() == base.CheckResult_CHECK_RESULT_ALLOWED {
 				return denied(responseMetadata), nil
 			}
 
@@ -647,7 +885,7 @@ func checkFail(err error) CheckFunction {
 // 2. The function returns a denied PermissionCheckResponse with a RESULT_DENIED Can value and the provided metadata.
 func denied(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckResponse {
 	return &base.PermissionCheckResponse{
-		Can:      base.CheckResult_RESULT_DENIED,
+		Can:      base.CheckResult_CHECK_RESULT_DENIED,
 		Metadata: meta,
 	}
 }
@@ -659,7 +897,7 @@ func denied(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckRes
 // 2. The function returns an allowed PermissionCheckResponse with a RESULT_ALLOWED Can value and the provided metadata.
 func allowed(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckResponse {
 	return &base.PermissionCheckResponse{
-		Can:      base.CheckResult_RESULT_ALLOWED,
+		Can:      base.CheckResult_CHECK_RESULT_ALLOWED,
 		Metadata: meta,
 	}
 }
