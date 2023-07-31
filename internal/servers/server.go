@@ -9,7 +9,7 @@ import (
 	"net/http/pprof"
 	"time"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/ratelimit"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/ratelimit"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
@@ -177,8 +177,8 @@ func (s *Container) Run(
 			pprofserver := &http.Server{
 				Addr:         ":" + profiler.Port,
 				Handler:      mux,
-				ReadTimeout:  5 * time.Second,
-				WriteTimeout: 5 * time.Second,
+				ReadTimeout:  20 * time.Second,
+				WriteTimeout: 20 * time.Second,
 				IdleTimeout:  15 * time.Second,
 			}
 

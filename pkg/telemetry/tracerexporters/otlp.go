@@ -8,12 +8,22 @@ import (
 )
 
 // NewOTLP - Creates new OTLP exporter
-func NewOTLP(url string) (trace.SpanExporter, error) {
+func NewOTLP(endpoint string, insecure bool) (trace.SpanExporter, error) {
 	var exporter trace.SpanExporter
 	var err error
-	exporter, err = otlptracehttp.New(context.Background(), otlptracehttp.WithInsecure(), otlptracehttp.WithEndpoint(url))
+
+	opts := []otlptracehttp.Option{
+		otlptracehttp.WithEndpoint(endpoint),
+	}
+
+	if insecure {
+		opts = append(opts, otlptracehttp.WithInsecure())
+	}
+
+	exporter, err = otlptracehttp.New(context.Background(), opts...)
 	if err != nil {
 		return nil, err
 	}
+
 	return exporter, nil
 }

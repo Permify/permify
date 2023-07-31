@@ -251,7 +251,7 @@ authentication.
 
 #### Definition
 
-Permify integrated with [jaeger] , [signoz] and [zipkin] tacing tools to analyze performance and behavior of your
+Permify integrated with [jaeger], [otlp], [signoz], and [zipkin] tacing tools to analyze performance and behavior of your
 authorization when using Permify.
 
 #### Structure
@@ -265,11 +265,12 @@ authorization when using Permify.
 
 #### Glossary
 
-| Required | Argument | Default | Description                                                      |
-|----------|----------|---------|------------------------------------------------------------------|
-| [x]      | exporter | -       | Tracer exporter, the options are `jaeger`, `signoz` and `zipkin` |
-| [x]      | endpoint | -       | export uri for tracing data.                                     |
-| [ ]      | enabled  | false   | switch option for tracing.                                       |
+| Required | Argument | Default | Description                                                                |
+|----------|----------|---------|----------------------------------------------------------------------------|
+| [x]      | exporter | -       | Tracer exporter, the options are `jaeger`, `otlp`, `signoz`, and `zipkin`. |
+| [x]      | endpoint | -       | export uri for tracing data.                                               |
+| [ ]      | enabled  | false   | switch option for tracing.                                                 |
+| [ ]      | insecure | false   | Whether to use HTTP instead of HTTPs for exporting the traces.             |
 
 #### ENV
 
@@ -278,6 +279,7 @@ authorization when using Permify.
 | tracer-enabled       | PERMIFY_TRACER_ENABLED        | boolean      |
 | tracer-exporter      | PERMIFY_TRACER_EXPORTER       | string       |
 | tracer-endpoint      | PERMIFY_TRACER_ENDPOINT       | string       |
+| tracer-insecure      | PERMIFY_TRACER_INSECURE       | boolean      |
 
 </p>
 </details>
@@ -427,27 +429,36 @@ A consistent hashing ring ensures data distribution that minimizes reorganizatio
 ```
 ├── distributed
 |   ├── enabled
-|   ├── nodes
+|   ├── node
+|   ├── node-name
+|   ├── protocol
 ```
 
 #### Glossary
 
-| Required | Argument | Default | Description                    |
-|----------|----------|---------|--------------------------------|
-| [ ]      | enabled  | true    | switch option for distributed. |
-| [x]      | nodes    | -       | node list                      |
+| Required | Argument  | Default | Description                                                              |
+|----------|-----------|---------|--------------------------------------------------------------------------|
+| [x]      | enabled   | false   | switch option for distributed.                                           |
+| [x]      | node      | -       | endpoint definition for distributed                                      |
+| [x]      | node-name | -       | node name definition for  protocol agent (for example serf node name)    |
+| [x]      | protocol  | -       | a field where you specify which gossip protocol to use, for example serf |
+
 
 #### ENV
 
-| Argument            | ENV                         | Type         |
-|---------------------|-----------------------------|--------------|
-| distributed-enabled | PERMIFY_DISTRIBUTED_ENABLED | boolean      |
-| distributed-nodes   | PERMIFY_DISTRIBUTED_NODES   | string array |
+| Argument               | ENV                           | Type    |
+|------------------------|-------------------------------|---------|
+| distributed-enabled    | PERMIFY_DISTRIBUTED_ENABLED   | boolean |
+| distributed-node       | PERMIFY_DISTRIBUTED_NODE      | string  |
+| distributed-node-name  | PERMIFY_DISTRIBUTED_NODE_NAME | string  |
+| distributed-protocol   | PERMIFY_DISTRIBUTED_PROTOCOL  | string  |
 
 </p>
 </details>
 
 [jaeger]: https://www.jaegertracing.io/
+
+[otlp]: (https://opentelemetry.io/)
 
 [zipkin]: https://zipkin.io/
 

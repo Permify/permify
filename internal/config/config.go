@@ -88,6 +88,7 @@ type (
 		Enabled  bool   `mapstructure:"enabled"`  // Whether tracing collection is enabled
 		Exporter string `mapstructure:"exporter"` // Exporter for tracing data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the tracing exporter
+		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
 	}
 
 	// Meter contains configuration for metrics collection and reporting.
@@ -153,8 +154,10 @@ type (
 	}
 
 	Distributed struct {
-		Enabled bool     `mapstructure:"enabled"`
-		Nodes   []string `mapstructure:"nodes"`
+		Enabled  bool   `mapstructure:"enabled"`
+		Protocol string `mapstructure:"protocol"`
+		NodeName string `mapstructure:"node_name"`
+		Node     string `mapstructure:"node"`
 	}
 )
 
@@ -304,7 +307,6 @@ func DefaultConfig() *Config {
 		},
 		Distributed: Distributed{
 			Enabled: false,
-			Nodes:   []string{},
 		},
 	}
 }

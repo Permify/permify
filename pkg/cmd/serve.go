@@ -4,12 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/signal"
-	"strconv"
 	"syscall"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/Permify/permify/internal/engines/consistent"
 	"github.com/Permify/permify/internal/engines/keys"
@@ -118,7 +113,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Tracing
 		if cfg.Tracer.Enabled {
 			var exporter trace.SpanExporter
-			exporter, err = tracerexporters.ExporterFactory(cfg.Tracer.Exporter, cfg.Tracer.Endpoint)
+			exporter, err = tracerexporters.ExporterFactory(
+				cfg.Tracer.Exporter,
+				cfg.Tracer.Endpoint,
+				cfg.Tracer.Insecure,
+			)
 			if err != nil {
 				l.Fatal(err)
 			}
@@ -162,12 +161,15 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		var gossipEngine *gossip.Gossip
+		var gossipEngine gossip.IGossip
 		var consistencyChecker *hash.ConsistentHash
 		if cfg.Distributed.Enabled {
 			l.Info("🔗 starting distributed mode...")
 
-			consistencyChecker = hash.NewConsistentHash(100, cfg.Distributed.Nodes, nil)
+			consistencyChecker, err = hash.NewConsistentHash(100, nil, cfg.GRPC)
+			if err != nil {
+				l.Fatal(err)
+			}
 
 			externalIP, err := gossip.ExternalIP()
 			if err != nil {
@@ -175,24 +177,13 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 			l.Info("🔗 external IP: " + externalIP)
 
-			consistencyChecker.Add(externalIP + ":" + cfg.HTTP.Port)
-
-			grpcPort, err := strconv.Atoi(cfg.Server.GRPC.Port)
-			if err != nil {
-				return err
-			}
-
-			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.Nodes, grpcPort)
+			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.Node, cfg.Distributed.Protocol)
 			if err != nil {
 				l.Info("🔗 failed to start distributed mode: %s ", err.Error())
 				return err
 			}
 
-			go func() {
-				for {
-					consistencyChecker.SyncNodes(gossipEngine)
-				}
-			}()
+			go gossipEngine.SyncNodes(ctx, consistencyChecker, cfg.Distributed.NodeName, cfg.Server.GRPC.Port)
 
 			defer func() {
 				if err = gossipEngine.Shutdown(); err != nil {
@@ -258,19 +249,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		var check invoke.Check
 		if cfg.Distributed.Enabled {
-			options := []grpc.DialOption{
-				grpc.WithBlock(),
-			}
-			if cfg.GRPC.TLSConfig.Enabled {
-				c, err := credentials.NewClientTLSFromFile(cfg.GRPC.TLSConfig.CertPath, "")
-				if err != nil {
-					return err
-				}
-				options = append(options, grpc.WithTransportCredentials(c))
-			} else {
-				options = append(options, grpc.WithTransportCredentials(insecure.NewCredentials()))
-			}
-
 			check, err = consistent.NewCheckEngineWithHashring(
 				keys.NewCheckEngineWithKeys(
 					checkEngine,
@@ -281,7 +259,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				gossipEngine,
 				cfg.Server.GRPC.Port,
 				l,
-				options...,
 			)
 			if err != nil {
 				return err
