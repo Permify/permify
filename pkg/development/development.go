@@ -53,12 +53,18 @@ func NewContainer() *Development {
 	tenantReader := factories.TenantReaderFactory(db, l)
 	tenantWriter := factories.TenantWriterFactory(db, l)
 
+	// filters
+	schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(schemaReader, dataReader)
+	massEntityFilter := engines.NewMassEntityFilter(dataReader)
+
+	schemaBaseSubjectFilter := engines.NewSchemaBasedSubjectFilter(schemaReader, dataReader)
+	massSubjectFilter := engines.NewMassSubjectFilter(dataReader)
+
 	// Create instances of engines
 	checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
 	expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
-	entityFilterEngine := engines.NewEntityFilterEngine(schemaReader, dataReader)
-	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, entityFilterEngine)
-	lookupSubjectEngine := engines.NewLookupSubjectEngine(schemaReader, dataReader)
+	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter)
+	lookupSubjectEngine := engines.NewLookupSubjectEngine(checkEngine, schemaReader, schemaBaseSubjectFilter, massSubjectFilter)
 	subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader)
 
 	invoker := invoke.NewDirectInvoker(
