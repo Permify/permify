@@ -128,23 +128,24 @@ func (r *DataReader) QuerySingleAttribute(_ context.Context, tenantID string, fi
 	// Get the index and arguments based on the filter.
 	index, args := utils.GetAttributesIndexNameAndArgsByFilters(tenantID, filter)
 
-	// Get the result based on the index and arguments.
-	var result interface{}
-	result, err = txn.First(AttributesTable, index, args...)
+	// Get the result iterator based on the index and arguments.
+	var result memdb.ResultIterator
+	result, err = txn.Get(AttributesTable, index, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	if result == nil {
-		return nil, nil
+	// Filter the result iterator and add the attributes to the collection.
+	fit := memdb.NewFilterIterator(result, utils.FilterAttributesQuery(tenantID, filter))
+	for obj := fit.Next(); obj != nil; {
+		t, ok := obj.(storage.Attribute)
+		if !ok {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		}
+		return t.ToAttribute(), nil
 	}
 
-	t, ok := result.(storage.Attribute)
-	if !ok {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
-	}
-
-	return t.ToAttribute(), nil
+	return nil, nil
 }
 
 // QueryAttributes queries the database for attributes based on the provided filter.
@@ -244,7 +245,7 @@ func (r *DataReader) QueryUniqueEntities(_ context.Context, tenantID, name, _ st
 
 	// Query the database for entities matching the given tenant ID and name
 	var entityResult memdb.ResultIterator
-	entityResult, err = txn.Get(AttributesTable, "entity-type-index", tenantID, name)
+	entityResult, err = txn.Get(RelationTuplesTable, "entity-type-index", tenantID, name)
 	if err != nil {
 		// Returns an error if execution fails
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
@@ -289,7 +290,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID st
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
-	var ids []string
+	ids := make(map[string]bool)
 
 	// Get the result iterator based on the index and arguments.
 	result, err := txn.Get(RelationTuplesTable, "id")
@@ -309,10 +310,19 @@ func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID st
 		if !ok {
 			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		ids = append(ids, t.SubjectID)
+		// If the id is not already in the map, add it.
+		if _, exists := ids[t.SubjectID]; !exists {
+			ids[t.SubjectID] = true
+		}
 	}
 
-	return ids, database.NewNoopContinuousToken().Encode(), nil
+	// Convert the map keys to a slice.
+	uniqueIDs := make([]string, 0, len(ids))
+	for id := range ids {
+		uniqueIDs = append(uniqueIDs, id)
+	}
+
+	return uniqueIDs, database.NewNoopContinuousToken().Encode(), nil
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
