@@ -22,6 +22,7 @@ var _ = Describe("attribute", func() {
 	Context("Attribute", func() {
 		isPublic, _ := anypb.New(wrapperspb.Bool(true))
 		double, _ := anypb.New(wrapperspb.Double(100))
+		integer, _ := anypb.New(wrapperspb.Int32(45))
 
 		It("ToString", func() {
 			tests := []struct {
@@ -86,6 +87,18 @@ var _ = Describe("attribute", func() {
 						Attribute: "balance",
 						Type:      "double",
 						Value:     double,
+					},
+				},
+				{
+					target: "user:1#age@integer:45",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "user",
+							Id:   "1",
+						},
+						Attribute: "age",
+						Type:      "integer",
+						Value:     integer,
 					},
 				},
 			}

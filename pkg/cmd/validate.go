@@ -405,6 +405,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						Metadata: &base.PermissionLookupSubjectRequestMetadata{
 							SchemaVersion: version,
 							SnapToken:     token.NewNoopToken().Encode().String(),
+							Depth:         100,
 						},
 						SubjectReference: subjectReference,
 						Permission:       permission,
