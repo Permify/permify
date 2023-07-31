@@ -27,7 +27,7 @@ func (w *Walker) Walk(
 	def, ok := w.schema.EntityDefinitions[entityType]
 	if !ok {
 		// Error is returned if entity definition is not found
-		return errors.New("entity definition not found")
+		return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String())
 	}
 
 	// Switch on the type of reference specified by the permission
@@ -55,7 +55,7 @@ func (w *Walker) Walk(
 		return ErrUnimplemented
 	default:
 		// For any other reference type, not implemented, return error
-		return ErrUnimplemented
+		return errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String())
 	}
 }
 
@@ -69,11 +69,13 @@ func (w *Walker) WalkRewrite(
 		// Switch on the type of the child
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
-			// If the child is a rewrite, recursively walk the rewrite
-			return w.WalkRewrite(entityType, child.GetRewrite())
+			if err := w.WalkRewrite(entityType, child.GetRewrite()); err != nil {
+				return err
+			}
 		case *base.Child_Leaf:
-			// If the child is a leaf, walk the leaf
-			return w.WalkLeaf(entityType, child.GetLeaf())
+			if err := w.WalkLeaf(entityType, child.GetLeaf()); err != nil {
+				return err
+			}
 		default:
 			// For any other child type, return an error indicating an undefined child type
 			return errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String())
@@ -122,10 +124,7 @@ func (w *Walker) WalkLeaf(
 	case *base.Leaf_ComputedUserSet:
 		// Handle case where the leaf is a computed user set
 		// Walk the entity type and relation
-		return w.Walk(
-			entityType,
-			t.ComputedUserSet.GetRelation(),
-		)
+		return nil
 	case *base.Leaf_ComputedAttribute:
 		// Handle case where the leaf is a computed attribute
 		// This is currently unimplemented, so return an error
