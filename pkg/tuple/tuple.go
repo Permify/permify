@@ -42,6 +42,11 @@ func AreSubjectsEqual(s1, s2 *base.Subject) bool {
 	return NormalizeRelation(s1.GetRelation()) == NormalizeRelation(s2.GetRelation()) && s1.GetId() == s2.GetId() && s1.GetType() == s2.GetType()
 }
 
+// AreQueryAndSubjectEqual checks if a query and a subject are equal
+func AreQueryAndSubjectEqual(en *base.Entity, permission string, s2 *base.Subject) bool {
+	return NormalizeRelation(permission) == NormalizeRelation(s2.GetRelation()) && en.GetId() == s2.GetId() && en.GetType() == s2.GetType()
+}
+
 // EAREqual checks if two subjects are equal
 func EAREqual(s1, s2 *base.EntityAndRelation) bool {
 	return s1.GetRelation() == s2.GetRelation() && s1.GetEntity().GetId() == s2.GetEntity().GetId() && s1.GetEntity().GetType() == s2.GetEntity().GetType()

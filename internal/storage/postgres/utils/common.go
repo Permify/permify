@@ -12,6 +12,24 @@ import (
 	"github.com/Permify/permify/pkg/logger"
 )
 
+const (
+	BulkEntityFilterTemplate = `
+    WITH entities AS (
+        (SELECT id, entity_id, entity_type, tenant_id, created_tx_id, expired_tx_id FROM relation_tuples)
+        UNION ALL
+        (SELECT id, entity_id, entity_type, tenant_id, created_tx_id, expired_tx_id FROM attributes)
+    ), filtered_entities AS (
+        SELECT DISTINCT ON (entity_id) id, entity_id
+        FROM entities
+        WHERE tenant_id = '%s'
+        AND entity_type = '%s'
+        AND %s
+        AND %s
+    )
+    SELECT id, entity_id
+    FROM filtered_entities`
+)
+
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
 // The query checks if transactions are visible in a snapshot associated with the provided value.
 func SnapshotQuery(sl squirrel.SelectBuilder, value uint64) squirrel.SelectBuilder {
@@ -39,6 +57,40 @@ func SnapshotQuery(sl squirrel.SelectBuilder, value uint64) squirrel.SelectBuild
 
 	// Add the created and expired conditions to the SELECT query.
 	return sl.Where(createdWhere).Where(expiredWhere)
+}
+
+// snapshotQuery function generates two strings representing conditions to be applied in a SQL query to filter data based on visibility of transactions.
+func snapshotQuery(value uint64) (string, string) {
+	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
+	valStr := fmt.Sprintf("'%v'::xid8", value)
+
+	// Create a subquery that fetches the snapshot associated with the transaction ID.
+	snapshotQ := fmt.Sprintf("(SELECT snapshot FROM transactions WHERE id = %s)", valStr)
+
+	// Create an expression that checks whether a transaction (represented by 'created_tx_id') is visible in the snapshot.
+	visibilityExpr := fmt.Sprintf("pg_visible_in_snapshot(created_tx_id, %s) = true", snapshotQ)
+	// Create an expression that checks if the 'created_tx_id' is the same as our transaction ID.
+	createdExpr := fmt.Sprintf("created_tx_id = %s", valStr)
+	// Combine these expressions to form a condition. A row will satisfy this condition if either of the expressions are true.
+	createdWhere := fmt.Sprintf("(%s OR %s)", visibilityExpr, createdExpr)
+
+	// Create an expression that checks whether a transaction (represented by 'expired_tx_id') is not visible in the snapshot.
+	expiredVisibilityExpr := fmt.Sprintf("pg_visible_in_snapshot(expired_tx_id, %s) = false", snapshotQ)
+	// Create an expression that checks if the 'expired_tx_id' is zero. This handles cases where the transaction hasn't expired.
+	expiredZeroExpr := "expired_tx_id = '0'::xid8"
+	// Create an expression that checks if the 'expired_tx_id' is not the same as our transaction ID.
+	expiredNotExpr := fmt.Sprintf("expired_tx_id <> %s", valStr)
+	// Combine these expressions to form a condition. A row will satisfy this condition if the first set of expressions are true (either the transaction hasn't expired, or if it has, it's not visible in the snapshot) and the second expression is also true (the 'expired_tx_id' is not the same as our transaction ID).
+	expiredWhere := fmt.Sprintf("(%s AND %s)", fmt.Sprintf("(%s OR %s)", expiredVisibilityExpr, expiredZeroExpr), expiredNotExpr)
+
+	// Return the conditions for both 'created' and 'expired' transactions. These can be used in a WHERE clause of a SQL query to filter results.
+	return createdWhere, expiredWhere
+}
+
+// BulkEntityFilterQuery -
+func BulkEntityFilterQuery(tenantID, entityType string, snap uint64) string {
+	createdWhere, expiredWhere := snapshotQuery(snap)
+	return fmt.Sprintf(BulkEntityFilterTemplate, tenantID, entityType, createdWhere, expiredWhere)
 }
 
 // TuplesGarbageCollectQuery -

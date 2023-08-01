@@ -268,7 +268,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
-	builder := r.database.Builder.Select("entity_type, entity_id, attribute, type, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, type, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 
@@ -291,9 +291,13 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	// Scan the row from the database into the fields of `rt` and `valueStr`.
 	err = row.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &rt.Type, &valueStr)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, nil
+		} else {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			return nil, err
+		}
 	}
 
 	// Unmarshal the JSON data from `valueStr` into `rt.Value`.
@@ -564,21 +568,7 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	// Rollback the transaction in case of any error.
 	defer utils.Rollback(tx, r.logger)
 
-	// Create the first select statement
-	relations := r.database.Builder.Select("id, entity_id").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID, "entity_type": name})
-	relations = utils.SnapshotQuery(relations, st.(snapshot.Token).Value.Uint)
-
-	// Create the second select statement
-	attributes := r.database.Builder.Select("id, entity_id").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID, "entity_type": name})
-	attributes = utils.SnapshotQuery(attributes, st.(snapshot.Token).Value.Uint)
-
-	rsql, _, _ := relations.ToSql()
-	asql, _, _ := attributes.ToSql()
-
-	unionSql := fmt.Sprintf("(%s) UNION (%s) AS unionQuery", rsql, asql)
-
-	// Create a subquery from the UNION statement.
-	subQuery := squirrel.Select("*").Prefix(unionSql)
+	query := utils.BulkEntityFilterQuery(tenantID, name, st.(snapshot.Token).Value.Uint)
 
 	// Apply the pagination token and limit to the subQuery.
 	if pagination.Token() != "" {
@@ -596,24 +586,16 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 			span.SetStatus(codes.Error, err.Error())
 			return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String())
 		}
-		subQuery = subQuery.Where(squirrel.GtOrEq{"id": v})
+
+		query = fmt.Sprintf("%s WHERE id >= %s", query, strconv.FormatUint(v, 10))
 	}
 
-	subQuery = subQuery.OrderBy("id").Limit(uint64(pagination.PageSize() + 1))
-
-	// Generate the SQL query and arguments.
-	var query string
-	var args []interface{}
-	query, args, err = subQuery.ToSql()
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
-	}
+	// Append ORDER BY and LIMIT clauses.
+	query = fmt.Sprintf("%s ORDER BY id LIMIT %d", query, pagination.PageSize()+1)
 
 	// Execute the query and retrieve the rows.
 	var rows *sql.Rows
-	rows, err = tx.QueryContext(ctx, query, args...)
+	rows, err = tx.QueryContext(ctx, query)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -688,7 +670,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	defer utils.Rollback(tx, r.logger)
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
-	builder := r.database.Builder.Select("id, subject_id").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.Select("id, subject_id").Distinct().From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.TuplesFilterQueryForSelectBuilder(builder, &base.TupleFilter{Subject: &base.SubjectFilter{Type: subjectReference.GetType(), Relation: subjectReference.GetRelation()}})
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 

@@ -9,42 +9,47 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// MassSubjectFilter is a struct that represents a filter for mass subjects.
 type MassSubjectFilter struct {
-	dataReader storage.DataReader
+	dataReader storage.DataReader // An interface for reading data.
 }
 
+// NewMassSubjectFilter returns a new MassSubjectFilter.
 func NewMassSubjectFilter(dataReader storage.DataReader) *MassSubjectFilter {
 	return &MassSubjectFilter{
-		dataReader: dataReader,
+		dataReader: dataReader, // Set the data reader.
 	}
 }
 
+// SubjectFilter is a method on MassSubjectFilter that filters subjects.
 func (filter *MassSubjectFilter) SubjectFilter(
-	ctx context.Context,
-	request *base.PermissionLookupSubjectRequest,
-	publisher *BulkSubjectPublisher,
+	ctx context.Context, // The context in which the method is executed.
+	request *base.PermissionLookupSubjectRequest, // The request containing the subject to look up.
+	publisher *BulkSubjectPublisher, // The publisher to publish the filtered subjects to.
 ) (err error) {
-	// Initialize the pagination with an initial continuation token.
-	pagination := database.NewPagination(database.Size(100), database.Token(""))
+	// Make an empty set to avoid duplicates.
+	contextIds := make(map[string]struct{})
 
-	var contextIds []string
-
+	// Query relationships based on the given filter criteria.
 	tit, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(&base.TupleFilter{
 		Subject: &base.SubjectFilter{
 			Type:     request.GetSubjectReference().GetType(),
 			Relation: request.GetSubjectReference().GetRelation(),
 		},
 	})
+	// Return any error encountered during the query.
 	if err != nil {
 		return err
 	}
 
+	// Add each unique subject ID to the set.
 	for tit.HasNext() {
 		tuple := tit.GetNext()
-		contextIds = append(contextIds, tuple.GetSubject().GetId())
+		contextIds[tuple.GetSubject().GetId()] = struct{}{}
 	}
 
-	for _, id := range contextIds {
+	// Publish each subject in the set.
+	for id := range contextIds {
 		publisher.Publish(&base.Subject{
 			Type:     request.GetSubjectReference().GetType(),
 			Id:       id,
@@ -56,8 +61,11 @@ func (filter *MassSubjectFilter) SubjectFilter(
 		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
+	// Prepare the initial pagination object.
+	pagination := database.NewPagination(database.Size(100), database.Token(""))
+
+	// Continuously query for unique subject references until all have been retrieved.
 	for {
-		// Query unique entities.
 		ids, continuationToken, err := filter.dataReader.QueryUniqueSubjectReferences(
 			ctx,
 			request.GetTenantId(),
@@ -65,10 +73,12 @@ func (filter *MassSubjectFilter) SubjectFilter(
 			request.GetMetadata().GetSnapToken(),
 			pagination,
 		)
+		// Return any error encountered during the query.
 		if err != nil {
 			return err
 		}
 
+		// Publish each subject retrieved.
 		for _, id := range ids {
 			publisher.Publish(&base.Subject{
 				Type:     request.GetSubjectReference().GetType(),
@@ -81,7 +91,7 @@ func (filter *MassSubjectFilter) SubjectFilter(
 			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 		}
 
-		// If the continuation token is empty, we've retrieved all entities.
+		// If the continuation token is empty, all subjects have been retrieved.
 		if continuationToken.String() == "" {
 			break
 		}
