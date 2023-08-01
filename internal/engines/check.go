@@ -113,6 +113,13 @@ func (engine *CheckEngine) check(
 	request *base.PermissionCheckRequest,
 	en *base.EntityDefinition,
 ) CheckFunction {
+	// If the request's entity and permission are the same as the subject, return a CheckFunction that always allows the permission.
+	if tuple.AreQueryAndSubjectEqual(request.GetEntity(), request.GetPermission(), request.GetSubject()) {
+		return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
+			return allowed(&base.PermissionCheckResponseMetadata{}), nil
+		}
+	}
+
 	// Declare a CheckFunction variable that will later be defined based on the type of reference.
 	var fn CheckFunction
 
@@ -413,7 +420,7 @@ func (engine *CheckEngine) checkComputedUserSet(
 	// This is how the check "descends" into the computed user set to check permissions there.
 	return engine.invoke(&base.PermissionCheckRequest{
 		TenantId:   request.GetTenantId(), // Tenant ID from the incoming request
-		Entity:     request.GetEntity(),
+		Entity:     request.GetEntity(),   // Entity from the incoming request
 		Permission: cu.GetRelation(),      // Permission is set to the relation defined in the computed user set
 		Subject:    request.GetSubject(),  // The subject from the incoming request
 		Metadata:   request.GetMetadata(), // Metadata from the incoming request
