@@ -28,11 +28,9 @@ func (filter *MassEntityFilter) EntityFilter(
 	request *base.PermissionLookupEntityRequest,
 	publisher *BulkEntityPublisher,
 ) (err error) {
-	// Initialize the pagination with an initial continuation token.
-	pagination := database.NewPagination(database.Size(100), database.Token(""))
+	contextIds := make(map[string]struct{}) // Make an empty set to avoid duplicates
 
-	var contextIds []string
-
+	// Querying relationships related to the entity type in the request context
 	tit, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(&base.TupleFilter{
 		Entity: &base.EntityFilter{
 			Type: request.GetEntityType(),
@@ -42,11 +40,13 @@ func (filter *MassEntityFilter) EntityFilter(
 		return err
 	}
 
+	// Iterating through the results and adding the entity IDs to the contextIds map
 	for tit.HasNext() {
 		tuple := tit.GetNext()
-		contextIds = append(contextIds, tuple.GetEntity().GetId())
+		contextIds[tuple.GetEntity().GetId()] = struct{}{}
 	}
 
+	// Querying attributes related to the entity type in the request context
 	ait, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(&base.AttributeFilter{
 		Entity: &base.EntityFilter{
 			Type: request.GetEntityType(),
@@ -56,12 +56,14 @@ func (filter *MassEntityFilter) EntityFilter(
 		return err
 	}
 
+	// Iterating through the results and adding the entity IDs to the contextIds map
 	for ait.HasNext() {
 		attribute := ait.GetNext()
-		contextIds = append(contextIds, attribute.GetEntity().GetId())
+		contextIds[attribute.GetEntity().GetId()] = struct{}{}
 	}
 
-	for _, id := range contextIds {
+	// Publishing the context IDs with the publisher
+	for id := range contextIds {
 		publisher.Publish(&base.Entity{
 			Type: request.GetEntityType(),
 			Id:   id,
@@ -72,8 +74,13 @@ func (filter *MassEntityFilter) EntityFilter(
 		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
+	// Creating a pagination object
+	pagination := database.NewPagination(database.Size(100), database.Token(""))
+
+	// This loop continues until all unique entities have been queried and published
 	for {
-		// Query unique entities.
+
+		// Querying unique entities from the database
 		ids, continuationToken, err := filter.dataReader.QueryUniqueEntities(
 			ctx,
 			request.GetTenantId(),
@@ -85,6 +92,7 @@ func (filter *MassEntityFilter) EntityFilter(
 			return err
 		}
 
+		// Publishing the unique entities
 		for _, id := range ids {
 			publisher.Publish(&base.Entity{
 				Type: request.GetEntityType(),
@@ -96,15 +104,15 @@ func (filter *MassEntityFilter) EntityFilter(
 			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 		}
 
-		// If the continuation token is empty, we've retrieved all entities.
+		// Checking if all entities have been retrieved. If the continuation token is empty, the loop breaks
 		if continuationToken.String() == "" {
 			break
 		}
 
-		// Update the continuation token in the pagination for the next loop iteration.
+		// Updating the continuation token in the pagination object for the next loop iteration
 		pagination = database.NewPagination(database.Size(100), database.Token(continuationToken.String()))
 	}
 
-	// Return all IDs retrieved.
+	// Return successful completion of the function
 	return nil
 }
