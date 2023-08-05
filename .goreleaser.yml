@@ -106,4 +106,4 @@ release:
   mode: replace
   prerelease: auto
   footer: |
-    This version can be found as Docker images at permify/permify:v{{ .Version }} and ghcr.io/permify/permify:v{{ .Version }}.
+    This version can be found as Docker images at permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }} and ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}.
