@@ -15,24 +15,24 @@ builds:
 docker_manifests:
   -
     image_templates:
-      - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
-      - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
-    name_template: "ghcr.io/permify/permify:v{{ .Version }}"
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    name_template: "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}"
   -
     image_templates:
-      - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
-      - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
-    name_template: "ghcr.io/permify/permify:latest"
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    name_template: "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:latest"
   -
     image_templates:
-      - "permify/permify:v{{ .Version }}-amd64"
-      - "permify/permify:v{{ .Version }}-arm64"
-    name_template: "permify/permify:v{{ .Version }}"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    name_template: "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}"
   -
     image_templates:
-      - "permify/permify:v{{ .Version }}-amd64"
-      - "permify/permify:v{{ .Version }}-arm64"
-    name_template: "permify/permify:latest"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    name_template: "permify/permify{{ if .IsNightly }}-beta{{ end }}:latest"
 dockers:
   -
     build_flag_templates:
@@ -41,8 +41,8 @@ dockers:
     goarch: arm64
     goos: linux
     image_templates:
-      - "ghcr.io/permify/permify:v{{ .Version }}-arm64"
-      - "permify/permify:v{{ .Version }}-arm64"
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
     use: buildx
   -
     build_flag_templates:
@@ -51,8 +51,8 @@ dockers:
     goarch: amd64
     goos: linux
     image_templates:
-      - "ghcr.io/permify/permify:v{{ .Version }}-amd64"
-      - "permify/permify:v{{ .Version }}-amd64"
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
     use: buildx
 checksum:
   name_template: "checksums.txt"
