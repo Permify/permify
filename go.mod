@@ -26,7 +26,7 @@ require (
 	github.com/hashicorp/serf v0.10.1
 	github.com/jackc/pgio v1.0.0
 	github.com/jackc/pgtype v1.14.0
-	github.com/jackc/pgx/v5 v5.4.2
+	github.com/jackc/pgx/v5 v5.4.3
 	github.com/juju/ratelimit v1.0.2
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
