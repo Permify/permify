@@ -183,6 +183,7 @@ module.exports = {
 				"reference/configuration",
 				"reference/contextual-tuples",
 				"reference/snap-tokens",
+				"reference/cache",
 				"reference/tracing"
 			],
 			collapsed: true
