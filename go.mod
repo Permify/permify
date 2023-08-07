@@ -39,7 +39,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
-	github.com/testcontainers/testcontainers-go v0.21.0
+	github.com/testcontainers/testcontainers-go v0.22.0
 	github.com/zitadel/oidc v1.13.4
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.42.0
 	go.opentelemetry.io/contrib/instrumentation/host v0.42.0
@@ -65,14 +65,15 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df // indirect
 	github.com/armon/go-metrics v0.4.0 // indirect
-	github.com/containerd/containerd v1.6.19 // indirect
+	github.com/containerd/containerd v1.7.3 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
-	github.com/docker/docker v24.0.2+incompatible // indirect
+	github.com/docker/docker v24.0.5+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -95,7 +96,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/memberlist v0.5.0 // indirect
-	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
