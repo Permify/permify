@@ -47,18 +47,23 @@ The cache library used is: https://github.com/dgraph-io/ristretto
 
 Note: Another advantage of the MVCC pattern is the ability to historically store data. However, it has a downside of accumulation of too many relationships. For this, we have developed a garbage collector that will delete old relationships at a time period you specify.
 
-
 ## Distributed Cache
 
 Permify does provide a distributed cache across availability zones (within an AWS region) via **Consistent Hashing**. Permify uses Consistent Hashing across its distributed instances for more efficient use of their individual caches. 
 
- This would allow for high availability and resilience in the face of individual nodes or even entire availability zone failure, as well as improved performance due to data locality benefits.
+This would allow for high availability and resilience in the face of individual nodes or even entire availability zone failure, as well as improved performance due to data locality benefits.
 
-Consistent Hashing is a distributed hashing scheme that operates independently of the number of objects in a distributed hash table.
+Consistent Hashing is a distributed hashing scheme that operates independently of the number of objects in a distributed hash table. This method hashes according to the nodes’ peers, estimating which node a key would be on and thereby ensuring the most suitable request goes to the most suitable node, effectively creating a natural load balancer.
 
-This method hashes according to the nodes’ peers, estimating which node a key would be on and thereby ensuring the most suitable request goes to the most suitable node, effectively creating a natural load balancer.
+### How Consistent Hashing Operates in Permify
 
-You can learn more about it from the following blog post: [Introducing Consistent Hashing](https://itnext.io/introducing-consistent-hashing-9a289769052e)
+With a single instance, when an API request is made, request and corresponding response stored in its corresponding local cache.
+
+If we have more than one Permify instance consistent hashing activates on API calls, hashes the request, and outputs a unique key representing the node/instance that will store the request's data. Suppose it stored in the instance 2, subsequent API calls with the same hash will retrieve the response from the instance 2, regardless of which instance that API called from.
+
+Using this consistent hashing approach, we can effectively utilize individual cache capacities. Adding more instances automatically increases the total cache capacity in Permify.
+
+You can learn more about consistent hashing from the following blog post: [Introducing Consistent Hashing](https://itnext.io/introducing-consistent-hashing-9a289769052e)
 
 :::info
 Note, however, that while the consistent hashing approach will distribute keys evenly across the cache nodes, it's up to the application logic to ensure the cache is used effectively (i.e., that it reads from and writes to the cache appropriately).
