@@ -252,7 +252,7 @@ Lets get back to our example and perform an example access check via [Check API]
 
 See [Access Control Check] section for learn how access checks works and access decisions evaluated in Permify
 
-[Access Control Check]: ../getting-started/enforcement.md
+[Access Control Check]: ../api-overview/permission/check-api.md
 
 ## Need any help ?
 
