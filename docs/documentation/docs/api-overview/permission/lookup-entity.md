@@ -95,6 +95,42 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 </TabItem>
 </Tabs>
 
+## How Lookup Operations Evaluated
+
+We explicitly designed reverse lookup to be more performant with changing its evaluation pattern. We do not query all the documents in bulk to get response, instead of this Permify first finds the necessary relations with given subject and the permission/action in the API call. Then query these relations with the subject id this way we reduce lots of additional queries.
+
+To give an example, 
+
+```jsx
+entity user {}
+
+entity organization {
+		relation admin @user
+}
+
+entity container {
+		relation parent @organization
+		relation container_admin @user
+		action admin = parent.admin or container_admin
+}
+	
+entity document {
+		relation container @container
+		relation viewer @user
+		relation owner @user
+		action view = viewer or owner or container.admin
+}
+```
+
+Lets say we called (reverse) lookup API to find the documents that user:1 can view. Permify first finds the relations that linked with view action, these are 
+
+- `document#viewer`
+- `document#owner`
+- `organization#admin`
+- `container#``container_admin`
+
+Then queries each of them with `user:1.`
+
 ### Lookup Entity (Streaming)
 
 The difference between this endpoint from direct Lookup Entity is response of this entity gives the IDs' as stream. This could be useful if you have large data set that getting all of the authorized data can take long with direct lookup entity endpoint.
