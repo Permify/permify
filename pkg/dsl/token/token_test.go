@@ -30,6 +30,8 @@ var _ = Describe("token", func() {
 				{target: "test", expected: IDENT},
 				{target: "and", expected: AND},
 				{target: "permission", expected: PERMISSION},
+				{target: "attribute", expected: ATTRIBUTE},
+				{target: "rule", expected: RULE},
 			}
 
 			for _, tt := range tests {
@@ -53,6 +55,7 @@ var _ = Describe("token", func() {
 				{target: SPACE, expected: true},
 				{target: TAB, expected: true},
 				{target: "test", expected: false},
+				{target: RULE, expected: false},
 			}
 
 			for _, tt := range tests {

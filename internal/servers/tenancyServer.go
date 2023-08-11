@@ -6,7 +6,8 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -15,15 +16,17 @@ import (
 type TenancyServer struct {
 	v1.UnimplementedTenancyServer
 
-	tenancyService services.ITenancyService
-	logger         logger.Interface
+	tr     storage.TenantReader
+	tw     storage.TenantWriter
+	logger logger.Interface
 }
 
 // NewTenancyServer - Creates new Tenancy Server
-func NewTenancyServer(s services.ITenancyService, l logger.Interface) *TenancyServer {
+func NewTenancyServer(tr storage.TenantReader, tw storage.TenantWriter, l logger.Interface) *TenancyServer {
 	return &TenancyServer{
-		tenancyService: s,
-		logger:         l,
+		tr:     tr,
+		tw:     tw,
+		logger: l,
 	}
 }
 
@@ -32,7 +35,7 @@ func (t *TenancyServer) Create(ctx context.Context, request *v1.TenantCreateRequ
 	ctx, span := tracer.Start(ctx, "tenant.create")
 	defer span.End()
 
-	tenant, err := t.tenancyService.CreateTenant(ctx, request.GetId(), request.GetName())
+	tenant, err := t.tw.CreateTenant(ctx, request.GetId(), request.GetName())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -50,7 +53,7 @@ func (t *TenancyServer) Delete(ctx context.Context, request *v1.TenantDeleteRequ
 	ctx, span := tracer.Start(ctx, "tenant.delete")
 	defer span.End()
 
-	tenant, err := t.tenancyService.DeleteTenant(ctx, request.GetId())
+	tenant, err := t.tw.DeleteTenant(ctx, request.GetId())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -68,7 +71,7 @@ func (t *TenancyServer) List(ctx context.Context, request *v1.TenantListRequest)
 	ctx, span := tracer.Start(ctx, "tenant.list")
 	defer span.End()
 
-	tenants, ct, err := t.tenancyService.ListTenants(ctx, request.GetPageSize(), request.GetContinuousToken())
+	tenants, ct, err := t.tr.ListTenants(ctx, database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken())))
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

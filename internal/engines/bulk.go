@@ -9,10 +9,17 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+type BulkCheckerType string
+
+const (
+	BULK_SUBJECT BulkCheckerType = "subject"
+	BULK_ENTITY  BulkCheckerType = "entity"
+)
+
 // BulkCheckerRequest is a struct for a permission check request and the channel to send the result.
 type BulkCheckerRequest struct {
 	Request *base.PermissionCheckRequest
-	Result  base.PermissionCheckResponse_Result
+	Result  base.CheckResult
 }
 
 // BulkChecker is a struct for checking permissions in bulk.
@@ -27,7 +34,7 @@ type BulkChecker struct {
 	// limit for concurrent permission checks
 	concurrencyLimit int
 	// callback function to handle the result of each permission check
-	callback func(entityID string, result base.PermissionCheckResponse_Result)
+	callback func(entityID string, result base.CheckResult)
 }
 
 // NewBulkChecker creates a new BulkChecker instance.
@@ -35,7 +42,7 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, engine *CheckEngine, callback func(entityID string, result base.PermissionCheckResponse_Result), concurrencyLimit int) *BulkChecker {
+func NewBulkChecker(ctx context.Context, engine *CheckEngine, callback func(entityID string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
 	return &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
 		checkEngine:      engine,
@@ -48,7 +55,7 @@ func NewBulkChecker(ctx context.Context, engine *CheckEngine, callback func(enti
 
 // Start begins processing permission check requests from the RequestChan.
 // It starts an errgroup that manages multiple goroutines for performing permission checks.
-func (c *BulkChecker) Start() {
+func (c *BulkChecker) Start(typ BulkCheckerType) {
 	c.g.Go(func() error {
 		sem := semaphore.NewWeighted(int64(c.concurrencyLimit))
 		for {
@@ -65,25 +72,32 @@ func (c *BulkChecker) Start() {
 			// run the permission check in a separate goroutine
 			c.g.Go(func() error {
 				defer sem.Release(1)
-				if req.Result == base.PermissionCheckResponse_RESULT_UNKNOWN {
-					result, err := c.checkEngine.Run(c.ctx, req.Request)
+				if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+					result, err := c.checkEngine.Check(c.ctx, req.Request)
 					if err != nil {
 						return err
 					}
 
-					// call the callback with the result
-					c.callback(req.Request.GetEntity().GetId(), result.Can)
+					if typ == BULK_ENTITY {
+						// call the callback with the result
+						c.callback(req.Request.GetEntity().GetId(), result.Can)
+					} else if typ == BULK_SUBJECT {
+						c.callback(req.Request.GetSubject().GetId(), result.Can)
+					}
+
 				} else {
-					c.callback(req.Request.GetEntity().GetId(), req.Result)
+					if typ == BULK_ENTITY {
+						// call the callback with the result
+						c.callback(req.Request.GetEntity().GetId(), req.Result)
+					} else if typ == BULK_SUBJECT {
+						c.callback(req.Request.GetSubject().GetId(), req.Result)
+					}
 				}
 				return nil
 			})
 		}
 		// wait for all remaining semaphore resources to be released
-		if err := sem.Acquire(c.ctx, int64(c.concurrencyLimit)); err != nil {
-			return err
-		}
-		return nil
+		return sem.Acquire(c.ctx, int64(c.concurrencyLimit))
 	})
 }
 
@@ -95,14 +109,11 @@ func (c *BulkChecker) Stop() {
 // Wait waits for all goroutines in the errgroup to finish.
 // Returns an error if any of the goroutines encounter an error.
 func (c *BulkChecker) Wait() error {
-	if err := c.g.Wait(); err != nil {
-		return err
-	}
-	return nil
+	return c.g.Wait()
 }
 
-// BulkPublisher is a struct for streaming permission check results.
-type BulkPublisher struct {
+// BulkEntityPublisher is a struct for streaming permission check results.
+type BulkEntityPublisher struct {
 	bulkChecker *BulkChecker
 
 	request *base.PermissionLookupEntityRequest
@@ -110,9 +121,9 @@ type BulkPublisher struct {
 	ctx context.Context
 }
 
-// NewBulkPublisher creates a new BulkStreamer instance.
-func NewBulkPublisher(ctx context.Context, request *base.PermissionLookupEntityRequest, bulkChecker *BulkChecker) *BulkPublisher {
-	return &BulkPublisher{
+// NewBulkEntityPublisher creates a new BulkStreamer instance.
+func NewBulkEntityPublisher(ctx context.Context, request *base.PermissionLookupEntityRequest, bulkChecker *BulkChecker) *BulkEntityPublisher {
+	return &BulkEntityPublisher{
 		bulkChecker: bulkChecker,
 		request:     request,
 		ctx:         ctx,
@@ -120,7 +131,7 @@ func NewBulkPublisher(ctx context.Context, request *base.PermissionLookupEntityR
 }
 
 // Publish publishes a permission check request to the BulkChecker.
-func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, result base.PermissionCheckResponse_Result) {
+func (s *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
 	s.bulkChecker.RequestChan <- BulkCheckerRequest{
 		Request: &base.PermissionCheckRequest{
 			TenantId:   s.request.GetTenantId(),
@@ -128,6 +139,40 @@ func (s *BulkPublisher) Publish(entity *base.Entity, metadata *base.PermissionCh
 			Entity:     entity,
 			Permission: s.request.GetPermission(),
 			Subject:    s.request.GetSubject(),
+			Context:    context,
+		},
+		Result: result,
+	}
+}
+
+// BulkSubjectPublisher is a struct for streaming permission check results.
+type BulkSubjectPublisher struct {
+	bulkChecker *BulkChecker
+
+	request *base.PermissionLookupSubjectRequest
+	// context to manage goroutines and cancellation
+	ctx context.Context
+}
+
+// NewBulkSubjectPublisher creates a new BulkStreamer instance.
+func NewBulkSubjectPublisher(ctx context.Context, request *base.PermissionLookupSubjectRequest, bulkChecker *BulkChecker) *BulkSubjectPublisher {
+	return &BulkSubjectPublisher{
+		bulkChecker: bulkChecker,
+		request:     request,
+		ctx:         ctx,
+	}
+}
+
+// Publish publishes a permission check request to the BulkChecker.
+func (s *BulkSubjectPublisher) Publish(subject *base.Subject, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
+	s.bulkChecker.RequestChan <- BulkCheckerRequest{
+		Request: &base.PermissionCheckRequest{
+			TenantId:   s.request.GetTenantId(),
+			Metadata:   metadata,
+			Entity:     s.request.GetEntity(),
+			Permission: s.request.GetPermission(),
+			Subject:    subject,
+			Context:    context,
 		},
 		Result: result,
 	}

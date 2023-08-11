@@ -46,5 +46,9 @@ Then this snap token can be used in endpoints. For example it can be used in acc
 
 - [Write API](../api-overview/relationship/write-relationships) 
 - [Check API](../api-overview/permission/check-api)
-- [Expand API](../api-overview/permission/expand-api) 
-- [Schema Lookup](../api-overview/permission/schema-lookup)
+- [Expand API](../api-overview/permission/expand-api)
+
+
+## More on Cache Mechanism 
+
+Permify implements several cache mecnanisims in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisims](./cache.md) 

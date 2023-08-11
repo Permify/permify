@@ -3,14 +3,14 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open-source authorization service for creating and maintaining fine-grained authorizations across your individual applications and services. Permify converts authorization data as relational tuples into a database you point at. We called that database a Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model of your authorization with Permify's DSL - Permify Schema - and perform access checks with a single API call anywhere on your stack. Access decisions made according to stored relational tuples.",
-    "version": "v0.3.9",
+    "version": "v0.5.0",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
       "email": "hello@permify.co"
     },
     "license": {
-      "name": "GNU Affero General Public License v3.0",
+      "name": "Apache-2.0 license",
       "url": "https://github.com/Permify/permify/blob/master/LICENSE"
     }
   },
@@ -19,16 +19,16 @@
       "name": "Permission"
     },
     {
+      "name": "Watch"
+    },
+    {
       "name": "Schema"
     },
     {
-      "name": "Relationship"
+      "name": "Data"
     },
     {
       "name": "Tenancy"
-    },
-    {
-      "name": "Welcome"
     }
   ],
   "schemes": [
@@ -41,29 +41,6 @@
     "application/json"
   ],
   "paths": {
-    "/": {
-      "get": {
-        "summary": "welcome to permify",
-        "operationId": "welcome.hello",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/welcomeResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "tags": [
-          "Welcome"
-        ]
-      }
-    },
     "/v1/tenants/create": {
       "post": {
         "summary": "create new tenant",
@@ -85,6 +62,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "TenantCreateRequest is the message used for the request to create a tenant.",
             "in": "body",
             "required": true,
             "schema": {
@@ -118,6 +96,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "TenantListRequest is the message used for the request to list all tenants.",
             "in": "body",
             "required": true,
             "schema": {
@@ -151,6 +130,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "id is the unique identifier of the tenant to be deleted.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -161,9 +141,243 @@
         ]
       }
     },
+    "/v1/tenants/{tenant_id}/data/attributes/read": {
+      "post": {
+        "summary": "read attribute(s)",
+        "operationId": "data.attributes.read",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/AttributeReadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "tenant_id represents the unique identifier of the tenant from which the attributes are being read.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/AttributeReadRequestMetadata",
+                  "description": "metadata holds additional information related to the request."
+                },
+                "filter": {
+                  "$ref": "#/definitions/AttributeFilter",
+                  "description": "filter specifies the criteria used to select the attributes that should be returned."
+                },
+                "page_size": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "page_size specifies the number of results to return in a single page.\nIf more results are available, a continuous_token is included in the response."
+                },
+                "continuous_token": {
+                  "type": "string",
+                  "description": "continuous_token is used in case of paginated reads to get the next page of results."
+                }
+              },
+              "description": "AttributeReadRequest defines the structure of a request for reading attributes.\nIt includes the tenant_id, metadata, attribute filter, page size for pagination, and a continuous token for multi-page results."
+            }
+          }
+        ],
+        "tags": [
+          "Data"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/data/delete": {
+      "post": {
+        "summary": "delete data",
+        "operationId": "data.delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/DataDeleteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "tenant_id represents the unique identifier of the tenant from which the data will be deleted.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "tuple_filter": {
+                  "$ref": "#/definitions/TupleFilter",
+                  "description": "tuple_filter specifies the criteria used to select the tuples that should be deleted."
+                },
+                "attribute_filter": {
+                  "$ref": "#/definitions/AttributeFilter",
+                  "description": "attribute_filter specifies the criteria used to select the attributes that should be deleted."
+                }
+              },
+              "description": "DataDeleteRequest defines the structure of a request to delete data.\nIt includes the tenant_id and filters for selecting tuples and attributes to be deleted."
+            }
+          }
+        ],
+        "tags": [
+          "Data"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/data/relationships/read": {
+      "post": {
+        "summary": "read relation tuple(s)",
+        "operationId": "data.relationships.read",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/RelationshipReadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "tenant_id represents the unique identifier of the tenant for which relationships are read.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/RelationshipReadRequestMetadata",
+                  "description": "metadata holds additional data related to the request."
+                },
+                "filter": {
+                  "$ref": "#/definitions/TupleFilter",
+                  "description": "filter is used to specify criteria for the data that needs to be read."
+                },
+                "page_size": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "page_size specifies the number of results to return in a single page.\nIf more results are available, a continuous_token is included in the response."
+                },
+                "continuous_token": {
+                  "type": "string",
+                  "description": "continuous_token is used in case of paginated reads to get the next page of results."
+                }
+              },
+              "description": "RelationshipReadRequest defines the structure of a request for reading relationships.\nIt contains the necessary information such as tenant_id, metadata, and filter for the read operation."
+            }
+          }
+        ],
+        "tags": [
+          "Data"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/data/write": {
+      "post": {
+        "summary": "create data",
+        "operationId": "data.write",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/DataWriteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "tenant_id represents the unique identifier of the tenant for which data is written.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/DataWriteRequestMetadata",
+                  "description": "metadata holds additional data related to the request."
+                },
+                "tuples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Tuple"
+                  },
+                  "description": "tuples contains the list of tuples (entity-relation-entity triples) that need to be written."
+                },
+                "attributes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Attribute"
+                  },
+                  "description": "attributes contains the list of attributes (entity-attribute-value triples) that need to be written."
+                }
+              },
+              "description": "DataWriteRequest defines the structure of a request for writing data.\nIt contains the necessary information such as tenant_id, metadata,\ntuples and attributes for the write operation."
+            }
+          }
+        ],
+        "tags": [
+          "Data"
+        ]
+      }
+    },
     "/v1/tenants/{tenant_id}/permissions/check": {
       "post": {
-        "summary": "This method returns a decision about whether user can perform an permission on a certain resource. For example, Can the user 1 push to repository 1?",
+        "summary": "This method returns a decision about whether user can perform an permission on a certain resource.",
         "operationId": "permissions.check",
         "responses": {
           "200": {
@@ -182,6 +396,7 @@
         "parameters": [
           {
             "name": "tenant_id",
+            "description": "Identifier of the tenant, required, and must match the pattern \"[a-zA-Z0-9-,]+\", max 64 bytes.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -194,20 +409,35 @@
               "type": "object",
               "properties": {
                 "metadata": {
-                  "$ref": "#/definitions/PermissionCheckRequestMetadata"
+                  "$ref": "#/definitions/PermissionCheckRequestMetadata",
+                  "description": "Metadata associated with this request, required."
                 },
                 "entity": {
-                  "$ref": "#/definitions/Entity"
+                  "$ref": "#/definitions/Entity",
+                  "description": "Entity on which the permission needs to be checked, required."
                 },
                 "permission": {
                   "type": "string",
-                  "title": "its can be permission or relation"
+                  "description": "Name of the permission or relation, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
                 },
                 "subject": {
-                  "$ref": "#/definitions/Subject"
+                  "$ref": "#/definitions/Subject",
+                  "description": "Subject for which the permission needs to be checked, required."
+                },
+                "context": {
+                  "$ref": "#/definitions/Context",
+                  "description": "Context associated with this request."
+                },
+                "arguments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Argument"
+                  },
+                  "description": "Additional arguments associated with this request."
                 }
               },
-              "title": "PermissionCheckRequest"
+              "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
             }
           }
         ],
@@ -237,6 +467,7 @@
         "parameters": [
           {
             "name": "tenant_id",
+            "description": "Identifier of the tenant, required, and must match the pattern \"[a-zA-Z0-9-,]+\", max 64 bytes.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -249,16 +480,31 @@
               "type": "object",
               "properties": {
                 "metadata": {
-                  "$ref": "#/definitions/PermissionExpandRequestMetadata"
+                  "$ref": "#/definitions/PermissionExpandRequestMetadata",
+                  "description": "Metadata associated with this request, required."
                 },
                 "entity": {
-                  "$ref": "#/definitions/Entity"
+                  "$ref": "#/definitions/Entity",
+                  "description": "Entity on which the permission needs to be expanded, required."
                 },
                 "permission": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Name of the permission to be expanded, not required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+                },
+                "context": {
+                  "$ref": "#/definitions/Context",
+                  "description": "Context associated with this request."
+                },
+                "arguments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Argument"
+                  },
+                  "description": "Additional arguments associated with this request."
                 }
               },
-              "title": "PermissionExpandRequest"
+              "description": "PermissionExpandRequest is the request message for the Expand method in the Permission service."
             }
           }
         ],
@@ -269,6 +515,7 @@
     },
     "/v1/tenants/{tenant_id}/permissions/lookup-entity": {
       "post": {
+        "summary": "Retrieve an entity by its identifier.",
         "operationId": "permissions.lookupEntity",
         "responses": {
           "200": {
@@ -287,6 +534,7 @@
         "parameters": [
           {
             "name": "tenant_id",
+            "description": "Identifier of the tenant, required, and must match the pattern \"[a-zA-Z0-9-,]+\", max 64 bytes.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -299,19 +547,27 @@
               "type": "object",
               "properties": {
                 "metadata": {
-                  "$ref": "#/definitions/PermissionLookupEntityRequestMetadata"
+                  "$ref": "#/definitions/PermissionLookupEntityRequestMetadata",
+                  "description": "Metadata associated with this request, required."
                 },
                 "entity_type": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
                 },
                 "permission": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
                 },
                 "subject": {
-                  "$ref": "#/definitions/Subject"
+                  "$ref": "#/definitions/Subject",
+                  "description": "Subject for which to check the permission, required."
+                },
+                "context": {
+                  "$ref": "#/definitions/Context",
+                  "description": "Context associated with this request."
                 }
               },
-              "title": "PermissionLookupEntityRequest"
+              "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
             }
           }
         ],
@@ -322,6 +578,7 @@
     },
     "/v1/tenants/{tenant_id}/permissions/lookup-entity-stream": {
       "post": {
+        "summary": "Stream entities by their identifiers.",
         "operationId": "permissions.lookupEntityStream",
         "responses": {
           "200": {
@@ -349,6 +606,7 @@
         "parameters": [
           {
             "name": "tenant_id",
+            "description": "Identifier of the tenant, required, and must match the pattern \"[a-zA-Z0-9-,]+\", max 64 bytes.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -361,19 +619,27 @@
               "type": "object",
               "properties": {
                 "metadata": {
-                  "$ref": "#/definitions/PermissionLookupEntityRequestMetadata"
+                  "$ref": "#/definitions/PermissionLookupEntityRequestMetadata",
+                  "description": "Metadata associated with this request, required."
                 },
                 "entity_type": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
                 },
                 "permission": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
                 },
                 "subject": {
-                  "$ref": "#/definitions/Subject"
+                  "$ref": "#/definitions/Subject",
+                  "description": "Subject for which to check the permission, required."
+                },
+                "context": {
+                  "$ref": "#/definitions/Context",
+                  "description": "Context associated with this request."
                 }
               },
-              "title": "PermissionLookupEntityRequest"
+              "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
             }
           }
         ],
@@ -382,14 +648,15 @@
         ]
       }
     },
-    "/v1/tenants/{tenant_id}/permissions/lookup-schema": {
+    "/v1/tenants/{tenant_id}/permissions/lookup-subject": {
       "post": {
-        "operationId": "permissions.lookupSchema",
+        "summary": "Retrieve a subject by its identifier.",
+        "operationId": "permissions.lookupSubject",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/PermissionLookupSchemaResponse"
+              "$ref": "#/definitions/PermissionLookupSubjectResponse"
             }
           },
           "default": {
@@ -402,6 +669,7 @@
         "parameters": [
           {
             "name": "tenant_id",
+            "description": "Identifier of the tenant, required, and must match the pattern \"[a-zA-Z0-9-,]+\", max 64 bytes.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -414,19 +682,27 @@
               "type": "object",
               "properties": {
                 "metadata": {
-                  "$ref": "#/definitions/PermissionLookupSchemaRequestMetadata"
+                  "$ref": "#/definitions/PermissionLookupSubjectRequestMetadata",
+                  "description": "Metadata associated with this request, required."
                 },
-                "entity_type": {
-                  "type": "string"
+                "entity": {
+                  "$ref": "#/definitions/Entity",
+                  "description": "Entity for which to check the permission, required."
                 },
-                "relation_names": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
+                "permission": {
+                  "type": "string",
+                  "description": "Permission to be checked, can be a permission or relation. Required, and must match the pattern \"^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$\", max 64 bytes."
+                },
+                "subject_reference": {
+                  "$ref": "#/definitions/RelationReference",
+                  "description": "Reference to the subject to lookup."
+                },
+                "context": {
+                  "$ref": "#/definitions/Context",
+                  "description": "Context associated with this request."
                 }
               },
-              "title": "PermissionLookupSchemaRequest"
+              "description": "PermissionLookupSubjectRequest is the request message for the LookupSubject method in the Permission service."
             }
           }
         ],
@@ -435,15 +711,15 @@
         ]
       }
     },
-    "/v1/tenants/{tenant_id}/relationships/delete": {
+    "/v1/tenants/{tenant_id}/permissions/subject-permission": {
       "post": {
-        "summary": "delete relation tuple",
-        "operationId": "relationships.delete",
+        "summary": "Retrieve permissions related to a specific subject.",
+        "operationId": "permissions.subjectPermission",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/RelationshipDeleteResponse"
+              "$ref": "#/definitions/PermissionSubjectPermissionResponse"
             }
           },
           "default": {
@@ -456,51 +732,7 @@
         "parameters": [
           {
             "name": "tenant_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "filter": {
-                  "$ref": "#/definitions/TupleFilter"
-                }
-              },
-              "title": "RelationshipDeleteRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Relationship"
-        ]
-      }
-    },
-    "/v1/tenants/{tenant_id}/relationships/read": {
-      "post": {
-        "summary": "read relation tuple(s)",
-        "operationId": "relationships.read",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/RelationshipReadResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "tenant_id",
+            "description": "Identifier of the tenant, required, and must match the pattern \"[a-zA-Z0-9-,]+\", max 64 bytes.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -513,76 +745,28 @@
               "type": "object",
               "properties": {
                 "metadata": {
-                  "$ref": "#/definitions/RelationshipReadRequestMetadata"
+                  "$ref": "#/definitions/PermissionSubjectPermissionRequestMetadata",
+                  "description": "Metadata associated with this request, required."
                 },
-                "filter": {
-                  "$ref": "#/definitions/TupleFilter"
+                "entity": {
+                  "$ref": "#/definitions/Entity",
+                  "description": "Entity for which to check the permission, required."
                 },
-                "page_size": {
-                  "type": "integer",
-                  "format": "int64"
+                "subject": {
+                  "$ref": "#/definitions/Subject",
+                  "description": "Subject for which to check the permission, required."
                 },
-                "continuous_token": {
-                  "type": "string"
+                "context": {
+                  "$ref": "#/definitions/Context",
+                  "description": "Context associated with this request."
                 }
               },
-              "title": "RelationshipReadRequest"
+              "description": "PermissionSubjectPermissionRequest is the request message for the SubjectPermission method in the Permission service."
             }
           }
         ],
         "tags": [
-          "Relationship"
-        ]
-      }
-    },
-    "/v1/tenants/{tenant_id}/relationships/write": {
-      "post": {
-        "summary": "create new relation tuple",
-        "operationId": "relationships.write",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/RelationshipWriteResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "tenant_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/RelationshipWriteRequestMetadata"
-                },
-                "tuples": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/Tuple"
-                  }
-                }
-              },
-              "title": "RelationshipWriteRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Relationship"
+          "Permission"
         ]
       }
     },
@@ -607,6 +791,7 @@
         "parameters": [
           {
             "name": "tenant_id",
+            "description": "tenant_id is a string that identifies the tenant. It must match the pattern \"[a-zA-Z0-9-,]+\",\nbe a maximum of 64 bytes, and must not be empty.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -619,10 +804,11 @@
               "type": "object",
               "properties": {
                 "metadata": {
-                  "$ref": "#/definitions/SchemaReadRequestMetadata"
+                  "$ref": "#/definitions/SchemaReadRequestMetadata",
+                  "description": "metadata is the additional information needed for the Read request."
                 }
               },
-              "title": "SchemaReadRequest"
+              "description": "SchemaReadRequest is the request message for the Read method in the Schema service.\nIt contains tenant_id and metadata about the schema to be read."
             }
           }
         ],
@@ -652,6 +838,7 @@
         "parameters": [
           {
             "name": "tenant_id",
+            "description": "tenant_id is a string that identifies the tenant. It must match the pattern \"[a-zA-Z0-9-,]+\",\nbe a maximum of 64 bytes, and must not be empty.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -664,10 +851,11 @@
               "type": "object",
               "properties": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "schema is the string representation of the schema to be written."
                 }
               },
-              "title": "SchemaWriteRequest"
+              "description": "SchemaWriteRequest is the request message for the Write method in the Schema service.\nIt contains tenant_id and the schema to be written."
             }
           }
         ],
@@ -675,38 +863,504 @@
           "Schema"
         ]
       }
+    },
+    "/v1/tenants/{tenant_id}/watch": {
+      "post": {
+        "operationId": "watch.watch",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/WatchResponse"
+                },
+                "error": {
+                  "$ref": "#/definitions/Status"
+                }
+              },
+              "title": "Stream result of WatchResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "Identifier of the tenant, required, and must match the pattern \"[a-zA-Z0-9-,]+\", max 64 bytes.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "snap_token": {
+                  "type": "string",
+                  "description": "Snap token to be used for watching."
+                }
+              },
+              "description": "WatchRequest is the request message for the Watch RPC. It contains the\ndetails needed to establish a watch stream."
+            }
+          }
+        ],
+        "tags": [
+          "Watch"
+        ]
+      }
     }
   },
   "definitions": {
+    "AbstractType": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The fully qualified name of this abstract type."
+        },
+        "parameterTypes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1.Type"
+          },
+          "description": "Parameter types for this abstract type."
+        }
+      },
+      "description": "Application defined abstract type."
+    },
     "Any": {
       "type": "object",
       "properties": {
         "@type": {
-          "type": "string"
+          "type": "string",
+          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
         }
       },
-      "additionalProperties": {}
+      "additionalProperties": {},
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+    },
+    "Argument": {
+      "type": "object",
+      "properties": {
+        "computedAttribute": {
+          "$ref": "#/definitions/ComputedAttribute"
+        },
+        "contextAttribute": {
+          "$ref": "#/definitions/ContextAttribute"
+        }
+      },
+      "description": "Argument defines the type of argument in a Call. It can be either a ComputedAttribute or a ContextAttribute."
+    },
+    "Attribute": {
+      "type": "object",
+      "properties": {
+        "entity": {
+          "$ref": "#/definitions/Entity"
+        },
+        "attribute": {
+          "type": "string",
+          "title": "Name of the attribute"
+        },
+        "type": {
+          "type": "string",
+          "title": "Type of the attribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Any",
+          "title": "Value of the attribute"
+        }
+      },
+      "description": "Attribute represents an attribute of an entity with a specific type and value."
+    },
+    "AttributeDefinition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the attribute, which follows a specific string pattern and has a maximum byte size."
+        },
+        "type": {
+          "$ref": "#/definitions/AttributeType",
+          "description": "The type of the attribute."
+        }
+      },
+      "description": "The AttributeDefinition message provides detailed information about a specific attribute."
+    },
+    "AttributeFilter": {
+      "type": "object",
+      "properties": {
+        "entity": {
+          "$ref": "#/definitions/EntityFilter"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Names of the attributes to be filtered"
+        }
+      },
+      "description": "AttributeFilter is used to filter attributes based on the entity and attribute names."
+    },
+    "AttributeReadRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string",
+          "description": "snap_token represents a specific state or \"snapshot\" of the database."
+        }
+      },
+      "description": "AttributeReadRequestMetadata defines the structure for the metadata of an attribute read request.\nIt includes the snap_token associated with a particular state of the database."
+    },
+    "AttributeReadResponse": {
+      "type": "object",
+      "properties": {
+        "attributes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Attribute"
+          },
+          "description": "attributes is a list of the attributes retrieved in the read operation."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is used in the case of paginated reads to retrieve the next page of results."
+        }
+      },
+      "description": "AttributeReadResponse defines the structure of the response to an attribute read request.\nIt includes the attributes retrieved and a continuous token for handling result pagination."
+    },
+    "AttributeType": {
+      "type": "string",
+      "enum": [
+        "ATTRIBUTE_TYPE_UNSPECIFIED",
+        "ATTRIBUTE_TYPE_BOOLEAN",
+        "ATTRIBUTE_TYPE_STRING",
+        "ATTRIBUTE_TYPE_INTEGER",
+        "ATTRIBUTE_TYPE_DOUBLE"
+      ],
+      "default": "ATTRIBUTE_TYPE_UNSPECIFIED",
+      "description": "Enumerates the types of attribute.\n\n - ATTRIBUTE_TYPE_UNSPECIFIED: Not specified attribute type. This is the default value.\n - ATTRIBUTE_TYPE_BOOLEAN: A boolean attribute type.\n - ATTRIBUTE_TYPE_STRING: A string attribute type.\n - ATTRIBUTE_TYPE_INTEGER: An integer attribute type.\n - ATTRIBUTE_TYPE_DOUBLE: A double attribute type."
+    },
+    "CheckResult": {
+      "type": "string",
+      "enum": [
+        "CHECK_RESULT_UNSPECIFIED",
+        "CHECK_RESULT_ALLOWED",
+        "CHECK_RESULT_DENIED"
+      ],
+      "default": "CHECK_RESULT_UNSPECIFIED",
+      "description": "Enumerates results of a check operation.\n\n - CHECK_RESULT_UNSPECIFIED: Not specified check result. This is the default value.\n - CHECK_RESULT_ALLOWED: Represents a successful check (the check allowed the operation).\n - CHECK_RESULT_DENIED: Represents a failed check (the check denied the operation)."
+    },
+    "CheckedExpr": {
+      "type": "object",
+      "properties": {
+        "referenceMap": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1alpha1.Reference"
+          },
+          "description": "A map from expression ids to resolved references.\n\nThe following entries are in this table:\n\n- An Ident or Select expression is represented here if it resolves to a\n  declaration. For instance, if `a.b.c` is represented by\n  `select(select(id(a), b), c)`, and `a.b` resolves to a declaration,\n  while `c` is a field selection, then the reference is attached to the\n  nested select expression (but not to the id or or the outer select).\n  In turn, if `a` resolves to a declaration and `b.c` are field selections,\n  the reference is attached to the ident expression.\n- Every Call expression has an entry here, identifying the function being\n  called.\n- Every CreateStruct expression for a message has an entry, identifying\n  the message."
+        },
+        "typeMap": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1alpha1.Type"
+          },
+          "description": "A map from expression ids to types.\n\nEvery expression node which has a type different than DYN has a mapping\nhere. If an expression has type DYN, it is omitted from this map to save\nspace."
+        },
+        "sourceInfo": {
+          "$ref": "#/definitions/SourceInfo",
+          "description": "The source info derived from input that generated the parsed `expr` and\nany optimizations made during the type-checking pass."
+        },
+        "exprVersion": {
+          "type": "string",
+          "description": "The expr version indicates the major / minor version number of the `expr`\nrepresentation.\n\nThe most common reason for a version change will be to indicate to the CEL\nruntimes that transformations have been performed on the expr during static\nanalysis. In some cases, this will save the runtime the work of applying\nthe same or similar transformations prior to evaluation."
+        },
+        "expr": {
+          "$ref": "#/definitions/Expr",
+          "description": "The checked expression. Semantically equivalent to the parsed `expr`, but\nmay have structural differences."
+        }
+      },
+      "description": "A CEL expression which has been successfully type checked."
     },
     "Child": {
       "type": "object",
       "properties": {
         "leaf": {
-          "$ref": "#/definitions/Leaf"
+          "$ref": "#/definitions/Leaf",
+          "description": "Leaf node in the permission tree."
         },
         "rewrite": {
-          "$ref": "#/definitions/Rewrite"
+          "$ref": "#/definitions/Rewrite",
+          "description": "Rewrite operation in the permission tree."
         }
       },
-      "title": "Child"
+      "description": "Child represents a node in the permission tree."
+    },
+    "Comprehension": {
+      "type": "object",
+      "properties": {
+        "iterVar": {
+          "type": "string",
+          "description": "The name of the iteration variable."
+        },
+        "iterRange": {
+          "$ref": "#/definitions/Expr",
+          "description": "The range over which var iterates."
+        },
+        "accuVar": {
+          "type": "string",
+          "description": "The name of the variable used for accumulation of the result."
+        },
+        "accuInit": {
+          "$ref": "#/definitions/Expr",
+          "description": "The initial value of the accumulator."
+        },
+        "loopCondition": {
+          "$ref": "#/definitions/Expr",
+          "description": "An expression which can contain iter_var and accu_var.\n\nReturns false when the result has been computed and may be used as\na hint to short-circuit the remainder of the comprehension."
+        },
+        "loopStep": {
+          "$ref": "#/definitions/Expr",
+          "description": "An expression which can contain iter_var and accu_var.\n\nComputes the next value of accu_var."
+        },
+        "result": {
+          "$ref": "#/definitions/Expr",
+          "description": "An expression which can contain accu_var.\n\nComputes the result."
+        }
+      },
+      "description": "A comprehension expression applied to a list or map.\n\nComprehensions are not part of the core syntax, but enabled with macros.\nA macro matches a specific call signature within a parsed AST and replaces\nthe call with an alternate AST block. Macro expansion happens at parse\ntime.\n\nThe following macros are supported within CEL:\n\nAggregate type macros may be applied to all elements in a list or all keys\nin a map:\n\n*  `all`, `exists`, `exists_one` -  test a predicate expression against\n   the inputs and return `true` if the predicate is satisfied for all,\n   any, or only one value `list.all(x, x \u003c 10)`.\n*  `filter` - test a predicate expression against the inputs and return\n   the subset of elements which satisfy the predicate:\n   `payments.filter(p, p \u003e 1000)`.\n*  `map` - apply an expression to all elements in the input and return the\n   output aggregate type: `[1, 2, 3].map(i, i * i)`.\n\nThe `has(m.x)` macro tests whether the property `x` is present in struct\n`m`. The semantics of this macro depend on the type of `m`. For proto2\nmessages `has(m.x)` is defined as 'defined, but not set`. For proto3, the\nmacro tests whether the property is set to its default. For map and struct\ntypes, the macro tests whether the property `x` is defined on `m`."
+    },
+    "ComputedAttribute": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name of the computed attribute"
+        }
+      },
+      "description": "ComputedAttribute defines a computed attribute which includes its name."
     },
     "ComputedUserSet": {
       "type": "object",
       "properties": {
         "relation": {
-          "type": "string"
+          "type": "string",
+          "title": "Relation name"
         }
       },
-      "title": "ComputedUserSet"
+      "description": "ComputedUserSet defines a set of computed users which includes the relation name."
+    },
+    "Constant": {
+      "type": "object",
+      "properties": {
+        "nullValue": {
+          "type": "string",
+          "description": "null value."
+        },
+        "boolValue": {
+          "type": "boolean",
+          "description": "boolean value."
+        },
+        "int64Value": {
+          "type": "string",
+          "format": "int64",
+          "description": "int64 value."
+        },
+        "uint64Value": {
+          "type": "string",
+          "format": "uint64",
+          "description": "uint64 value."
+        },
+        "doubleValue": {
+          "type": "number",
+          "format": "double",
+          "description": "double value."
+        },
+        "stringValue": {
+          "type": "string",
+          "description": "string value."
+        },
+        "bytesValue": {
+          "type": "string",
+          "format": "byte",
+          "description": "bytes value."
+        },
+        "durationValue": {
+          "type": "string",
+          "description": "protobuf.Duration value.\n\nDeprecated: duration is no longer considered a builtin cel type."
+        },
+        "timestampValue": {
+          "type": "string",
+          "format": "date-time",
+          "description": "protobuf.Timestamp value.\n\nDeprecated: timestamp is no longer considered a builtin cel type."
+        }
+      },
+      "description": "Represents a primitive literal.\n\nNamed 'Constant' here for backwards compatibility.\n\nThis is similar as the primitives supported in the well-known type\n`google.protobuf.Value`, but richer so it can represent CEL's full range of\nprimitives.\n\nLists and structs are not included as constants as these aggregate types may\ncontain [Expr][google.api.expr.v1alpha1.Expr] elements which require evaluation and are thus not constant.\n\nExamples of literals include: `\"hello\"`, `b'bytes'`, `1u`, `4.2`, `-2`,\n`true`, `null`."
+    },
+    "Context": {
+      "type": "object",
+      "properties": {
+        "tuples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Tuple"
+          },
+          "description": "A repeated field of tuples involved in the operation."
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Attribute"
+          },
+          "description": "A repeated field of attributes associated with the operation."
+        },
+        "data": {
+          "type": "object",
+          "description": "Additional data associated with the context."
+        }
+      },
+      "description": "Context encapsulates the information related to a single operation,\nincluding the tuples involved and the associated attributes."
+    },
+    "ContextAttribute": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name of the context attribute"
+        }
+      },
+      "description": "ContextAttribute defines a context attribute which includes its name."
+    },
+    "CreateList": {
+      "type": "object",
+      "properties": {
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Expr"
+          },
+          "description": "The elements part of the list."
+        },
+        "optionalIndices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": "The indices within the elements list which are marked as optional\nelements.\n\nWhen an optional-typed value is present, the value it contains\nis included in the list. If the optional-typed value is absent, the list\nelement is omitted from the CreateList result."
+        }
+      },
+      "description": "A list creation expression.\n\nLists may either be homogenous, e.g. `[1, 2, 3]`, or heterogeneous, e.g.\n`dyn([1, 'hello', 2.0])`"
+    },
+    "CreateStruct": {
+      "type": "object",
+      "properties": {
+        "messageName": {
+          "type": "string",
+          "description": "The type name of the message to be created, empty when creating map\nliterals."
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Entry"
+          },
+          "description": "The entries in the creation expression."
+        }
+      },
+      "description": "A map or message creation expression.\n\nMaps are constructed as `{'key_name': 'value'}`. Message construction is\nsimilar, but prefixed with a type name and composed of field ids:\n`types.MyType{field_id: 'value'}`."
+    },
+    "DataChange": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "$ref": "#/definitions/DataChange.Operation",
+          "description": "The operation type."
+        },
+        "tuple": {
+          "$ref": "#/definitions/Tuple",
+          "description": "If the change is a tuple."
+        },
+        "attribute": {
+          "$ref": "#/definitions/Attribute",
+          "description": "If the change is an attribute."
+        }
+      },
+      "description": "DataChange represents a single change in data, with an operation type and the actual change which could be a tuple or an attribute."
+    },
+    "DataChange.Operation": {
+      "type": "string",
+      "enum": [
+        "OPERATION_UNSPECIFIED",
+        "OPERATION_CREATE",
+        "OPERATION_DELETE"
+      ],
+      "default": "OPERATION_UNSPECIFIED",
+      "description": " - OPERATION_UNSPECIFIED: Default operation, not specified.\n - OPERATION_CREATE: Creation operation.\n - OPERATION_DELETE: Deletion operation."
+    },
+    "DataChanges": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string",
+          "description": "The snapshot token."
+        },
+        "data_changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/DataChange"
+          },
+          "description": "The list of data changes."
+        }
+      },
+      "description": "DataChanges represent changes in data with a snap token and a list of data change objects."
+    },
+    "DataDeleteResponse": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string",
+          "description": "snap_token represents the state of the database after the requested deletions."
+        }
+      },
+      "description": "DataDeleteResponse defines the structure of the response to a data delete request.\nIt includes a snap_token representing the state of the database after the deletion."
+    },
+    "DataWriteRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "schema_version represents the version of the schema for the data being written."
+        }
+      },
+      "description": "DataWriteRequestMetadata defines the structure of metadata for a write request.\nIt includes the schema version of the data to be written."
+    },
+    "DataWriteResponse": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string",
+          "description": "snap_token is the token generated after the data write operation, representing a snapshot of the data."
+        }
+      },
+      "description": "DataWriteResponse defines the structure of the response after writing data.\nIt contains the snap_token generated after the write operation."
     },
     "Entity": {
       "type": "object",
@@ -718,215 +1372,421 @@
           "type": "string"
         }
       },
-      "title": "Entity"
-    },
-    "EntityAndRelation": {
-      "type": "object",
-      "properties": {
-        "entity": {
-          "$ref": "#/definitions/Entity"
-        },
-        "relation": {
-          "type": "string"
-        }
-      }
+      "description": "Entity represents an entity with a type and an identifier."
     },
     "EntityDefinition": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the entity, which follows a specific string pattern and has a maximum byte size."
         },
         "relations": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/RelationDefinition"
           },
-          "title": "[\"relation_name\"] =\u003e RelationDefinition"
+          "description": "Map of relation definitions within this entity. The key is the relation name, and the value is the RelationDefinition."
         },
         "permissions": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/PermissionDefinition"
           },
-          "title": "[\"permission_name\"] =\u003e PermissionDefinition"
+          "description": "Map of permission definitions within this entity. The key is the permission name, and the value is the PermissionDefinition."
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/AttributeDefinition"
+          },
+          "description": "Map of attribute definitions within this entity. The key is the attribute name, and the value is the AttributeDefinition."
         },
         "references": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/RelationalReference"
+            "$ref": "#/definitions/EntityDefinition.Reference"
           },
-          "title": "[\"relation_name or permission_name\"] =\u003e RelationalReference"
+          "description": "Map of references indicating whether a string pertains to a relation, permission, or attribute."
         }
       },
-      "title": "EntityDefinition"
+      "description": "The EntityDefinition message provides detailed information about a specific entity."
+    },
+    "EntityDefinition.Reference": {
+      "type": "string",
+      "enum": [
+        "REFERENCE_UNSPECIFIED",
+        "REFERENCE_RELATION",
+        "REFERENCE_PERMISSION",
+        "REFERENCE_ATTRIBUTE"
+      ],
+      "default": "REFERENCE_UNSPECIFIED",
+      "description": "The Reference enum specifies whether a name pertains to a relation, permission, or attribute.\n\n - REFERENCE_UNSPECIFIED: Default, unspecified reference.\n - REFERENCE_RELATION: Indicates that the name refers to a relation.\n - REFERENCE_PERMISSION: Indicates that the name refers to a permission.\n - REFERENCE_ATTRIBUTE: Indicates that the name refers to an attribute."
     },
     "EntityFilter": {
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "title": "Type of the entity"
         },
         "ids": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "title": "List of entity IDs"
         }
       },
-      "title": "EntityFilter is used to filter entities"
+      "description": "EntityFilter is used to filter entities based on the type and ids."
+    },
+    "Entry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "Required. An id assigned to this node by the parser which is unique\nin a given expression tree. This is used to associate type\ninformation and other attributes to the node."
+        },
+        "fieldKey": {
+          "type": "string",
+          "description": "The field key for a message creator statement."
+        },
+        "mapKey": {
+          "$ref": "#/definitions/Expr",
+          "description": "The key expression for a map creation statement."
+        },
+        "value": {
+          "$ref": "#/definitions/Expr",
+          "description": "Required. The value assigned to the key.\n\nIf the optional_entry field is true, the expression must resolve to an\noptional-typed value. If the optional value is present, the key will be\nset; however, if the optional value is absent, the key will be unset."
+        },
+        "optionalEntry": {
+          "type": "boolean",
+          "description": "Whether the key-value pair is optional."
+        }
+      },
+      "description": "Represents an entry."
     },
     "Expand": {
       "type": "object",
       "properties": {
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "description": "entity is the entity for which the hierarchical structure is defined."
+        },
+        "permission": {
+          "type": "string",
+          "description": "permission is the permission applied to the entity."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "description": "arguments are the additional information or context used to evaluate permissions."
+        },
         "expand": {
-          "$ref": "#/definitions/ExpandTreeNode"
+          "$ref": "#/definitions/ExpandTreeNode",
+          "description": "expand contains another hierarchical structure."
         },
         "leaf": {
-          "$ref": "#/definitions/v1.Result"
+          "$ref": "#/definitions/ExpandLeaf",
+          "description": "leaf contains a set of subjects."
         }
       },
-      "title": "Expand"
+      "description": "Expand is used to define a hierarchical structure for permissions.\nIt has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects."
+    },
+    "ExpandLeaf": {
+      "type": "object",
+      "properties": {
+        "subjects": {
+          "$ref": "#/definitions/Subjects",
+          "description": "subjects are used when the leaf is a set of subjects."
+        },
+        "values": {
+          "$ref": "#/definitions/Values",
+          "description": "values are used when the leaf node is a set of values."
+        },
+        "value": {
+          "$ref": "#/definitions/Any",
+          "description": "value is used when the leaf node is a single value."
+        }
+      },
+      "description": "ExpandLeaf is the leaf node of an Expand tree and can be either a set of Subjects or a set of Values."
     },
     "ExpandTreeNode": {
       "type": "object",
       "properties": {
         "operation": {
-          "$ref": "#/definitions/ExpandTreeNode.Operation"
+          "$ref": "#/definitions/ExpandTreeNode.Operation",
+          "title": "Operation to be applied on this tree node"
         },
         "children": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Expand"
-          }
+          },
+          "title": "The children of this tree node"
         }
       },
-      "title": "ExpandTreeNode"
+      "description": "ExpandTreeNode represents a node in an expansion tree with a specific operation and its children."
     },
     "ExpandTreeNode.Operation": {
       "type": "string",
       "enum": [
         "OPERATION_UNSPECIFIED",
         "OPERATION_UNION",
-        "OPERATION_INTERSECTION"
+        "OPERATION_INTERSECTION",
+        "OPERATION_EXCLUSION"
       ],
       "default": "OPERATION_UNSPECIFIED",
-      "title": "Operation"
+      "description": "Operation is an enum representing the type of operation to be applied on the tree node."
+    },
+    "Expr": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "Required. An id assigned to this node by the parser which is unique in a\ngiven expression tree. This is used to associate type information and other\nattributes to a node in the parse tree."
+        },
+        "constExpr": {
+          "$ref": "#/definitions/Constant",
+          "description": "A literal expression."
+        },
+        "identExpr": {
+          "$ref": "#/definitions/Ident",
+          "description": "An identifier expression."
+        },
+        "selectExpr": {
+          "$ref": "#/definitions/Select",
+          "description": "A field selection expression, e.g. `request.auth`."
+        },
+        "callExpr": {
+          "$ref": "#/definitions/Expr.Call",
+          "description": "A call expression, including calls to predefined functions and operators."
+        },
+        "listExpr": {
+          "$ref": "#/definitions/CreateList",
+          "description": "A list creation expression."
+        },
+        "structExpr": {
+          "$ref": "#/definitions/CreateStruct",
+          "description": "A map or message creation expression."
+        },
+        "comprehensionExpr": {
+          "$ref": "#/definitions/Comprehension",
+          "description": "A comprehension expression."
+        }
+      },
+      "description": "An abstract representation of a common expression.\n\nExpressions are abstractly represented as a collection of identifiers,\nselect statements, function calls, literals, and comprehensions. All\noperators with the exception of the '.' operator are modelled as function\ncalls. This makes it easy to represent new operators into the existing AST.\n\nAll references within expressions must resolve to a [Decl][google.api.expr.v1alpha1.Decl] provided at\ntype-check for an expression to be valid. A reference may either be a bare\nidentifier `name` or a qualified identifier `google.api.name`. References\nmay either refer to a value or a function declaration.\n\nFor example, the expression `google.api.name.startsWith('expr')` references\nthe declaration `google.api.name` within a [Expr.Select][google.api.expr.v1alpha1.Expr.Select] expression, and\nthe function declaration `startsWith`."
+    },
+    "Expr.Call": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "$ref": "#/definitions/Expr",
+          "description": "The target of an method call-style expression. For example, `x` in\n`x.f()`."
+        },
+        "function": {
+          "type": "string",
+          "description": "Required. The name of the function or method being called."
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Expr"
+          },
+          "description": "The arguments."
+        }
+      },
+      "description": "A call expression, including calls to predefined functions and operators.\n\nFor example, `value == 10`, `size(map_value)`."
+    },
+    "FunctionType": {
+      "type": "object",
+      "properties": {
+        "resultType": {
+          "$ref": "#/definitions/v1alpha1.Type",
+          "description": "Result type of the function."
+        },
+        "argTypes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1.Type"
+          },
+          "description": "Argument types of the function."
+        }
+      },
+      "description": "Function type with result and arg types."
+    },
+    "Ident": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Required. Holds a single, unqualified identifier, possibly preceded by a\n'.'.\n\nQualified names are represented by the [Expr.Select][google.api.expr.v1alpha1.Expr.Select] expression."
+        }
+      },
+      "description": "An identifier expression. e.g. `request`."
     },
     "Leaf": {
       "type": "object",
       "properties": {
-        "exclusion": {
-          "type": "boolean"
-        },
         "computedUserSet": {
-          "$ref": "#/definitions/ComputedUserSet"
+          "$ref": "#/definitions/ComputedUserSet",
+          "description": "A computed set of users."
         },
         "tupleToUserSet": {
-          "$ref": "#/definitions/TupleToUserSet"
+          "$ref": "#/definitions/TupleToUserSet",
+          "description": "A tuple to user set conversion."
+        },
+        "computedAttribute": {
+          "$ref": "#/definitions/ComputedAttribute",
+          "description": "A computed attribute."
+        },
+        "call": {
+          "$ref": "#/definitions/v1.Call",
+          "description": "A call to a function or method."
         }
       },
-      "title": "Leaf"
+      "description": "Leaf represents a leaf node in the permission tree."
+    },
+    "ListType": {
+      "type": "object",
+      "properties": {
+        "elemType": {
+          "$ref": "#/definitions/v1alpha1.Type",
+          "description": "The element type."
+        }
+      },
+      "description": "List type with typed elements, e.g. `list\u003cexample.proto.MyMessage\u003e`."
+    },
+    "MapType": {
+      "type": "object",
+      "properties": {
+        "keyType": {
+          "$ref": "#/definitions/v1alpha1.Type",
+          "description": "The type of the key."
+        },
+        "valueType": {
+          "$ref": "#/definitions/v1alpha1.Type",
+          "description": "The type of the value."
+        }
+      },
+      "description": "Map type with parameterized key and value types, e.g. `map\u003cstring, int\u003e`."
+    },
+    "NullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
     },
     "PermissionCheckRequestMetadata": {
       "type": "object",
       "properties": {
         "schema_version": {
-          "type": "string"
+          "type": "string",
+          "description": "Version of the schema."
         },
         "snap_token": {
-          "type": "string"
-        },
-        "exclusion": {
-          "type": "boolean"
+          "type": "string",
+          "description": "Token associated with the snap."
         },
         "depth": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "description": "Depth of the check, must be greater than or equal to 3."
         }
       },
-      "title": "PermissionCheckRequestMetadata"
+      "description": "PermissionCheckRequestMetadata is the metadata associated with a PermissionCheckRequest."
     },
     "PermissionCheckResponse": {
       "type": "object",
       "properties": {
         "can": {
-          "$ref": "#/definitions/PermissionCheckResponse.Result"
+          "$ref": "#/definitions/CheckResult",
+          "description": "Result of the permission check."
         },
         "metadata": {
-          "$ref": "#/definitions/PermissionCheckResponseMetadata"
+          "$ref": "#/definitions/PermissionCheckResponseMetadata",
+          "description": "Metadata associated with this response."
         }
       },
-      "title": "PermissionCheckResponse"
-    },
-    "PermissionCheckResponse.Result": {
-      "type": "string",
-      "enum": [
-        "RESULT_UNKNOWN",
-        "RESULT_ALLOWED",
-        "RESULT_DENIED"
-      ],
-      "default": "RESULT_UNKNOWN",
-      "title": "Result"
+      "description": "PermissionCheckResponse is the response message for the Check method in the Permission service."
     },
     "PermissionCheckResponseMetadata": {
       "type": "object",
       "properties": {
         "check_count": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "description": "The count of the checks performed."
         }
       },
-      "title": "CheckResponseMetadata"
+      "description": "PermissionCheckResponseMetadata is the metadata associated with a PermissionCheckResponse."
     },
     "PermissionDefinition": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the permission, which follows a specific string pattern and has a maximum byte size."
         },
         "child": {
-          "$ref": "#/definitions/Child"
+          "$ref": "#/definitions/Child",
+          "description": "The child related to this permission."
         }
       },
-      "title": "PermissionDefinition"
+      "description": "The PermissionDefinition message provides detailed information about a specific permission."
     },
     "PermissionExpandRequestMetadata": {
       "type": "object",
       "properties": {
         "schema_version": {
-          "type": "string"
+          "type": "string",
+          "description": "Version of the schema."
         },
         "snap_token": {
-          "type": "string"
+          "type": "string",
+          "description": "Token associated with the snap."
         }
       },
-      "title": "PermissionExpandRequestMetadata"
+      "description": "PermissionExpandRequestMetadata is the metadata associated with a PermissionExpandRequest."
     },
     "PermissionExpandResponse": {
       "type": "object",
       "properties": {
         "tree": {
-          "$ref": "#/definitions/Expand"
+          "$ref": "#/definitions/Expand",
+          "description": "Expansion tree."
         }
       },
-      "title": "PermissionExpandResponse"
+      "description": "PermissionExpandResponse is the response message for the Expand method in the Permission service."
     },
     "PermissionLookupEntityRequestMetadata": {
       "type": "object",
       "properties": {
         "schema_version": {
-          "type": "string"
+          "type": "string",
+          "description": "Version of the schema."
         },
         "snap_token": {
-          "type": "string"
+          "type": "string",
+          "description": "Token associated with the snap."
         },
         "depth": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "description": "Depth of lookup, required, must be greater or equal to 3."
         }
       },
-      "title": "PermissionLookupEntityRequestMetadata"
+      "description": "PermissionLookupEntityRequestMetadata is the metadata associated with a PermissionLookupEntityRequest."
     },
     "PermissionLookupEntityResponse": {
       "type": "object",
@@ -935,95 +1795,145 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "List of identifiers for entities that match the lookup."
         }
       },
-      "title": "PermissionLookupEntityResponse"
+      "description": "PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service."
     },
     "PermissionLookupEntityStreamResponse": {
       "type": "object",
       "properties": {
         "entity_id": {
-          "type": "string"
+          "type": "string",
+          "description": "Identifier for an entity that matches the lookup."
         }
       },
-      "title": "PermissionLookupEntityStreamResponse"
+      "description": "PermissionLookupEntityStreamResponse is the response message for the LookupEntityStream method in the Permission service."
     },
-    "PermissionLookupSchemaRequestMetadata": {
+    "PermissionLookupSubjectRequestMetadata": {
       "type": "object",
       "properties": {
         "schema_version": {
-          "type": "string"
+          "type": "string",
+          "description": "Version of the schema."
+        },
+        "snap_token": {
+          "type": "string",
+          "description": "Token associated with the snap."
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Depth of the check, must be greater than or equal to 3."
         }
       },
-      "title": "PermissionLookupSchemaRequestMetadata"
+      "description": "PermissionLookupSubjectRequestMetadata is the metadata associated with a PermissionLookupSubjectRequest."
     },
-    "PermissionLookupSchemaResponse": {
+    "PermissionLookupSubjectResponse": {
       "type": "object",
       "properties": {
-        "permission_names": {
+        "subject_ids": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "List of identifiers for subjects that match the lookup."
         }
       },
-      "title": "PermissionLookupSchemaResponse"
+      "description": "PermissionLookupSubjectResponse is the response message for the LookupSubject method in the Permission service."
+    },
+    "PermissionSubjectPermissionRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "Version of the schema."
+        },
+        "snap_token": {
+          "type": "string",
+          "description": "Token associated with the snap."
+        },
+        "only_permission": {
+          "type": "boolean",
+          "description": "Whether to only check permissions."
+        },
+        "depth": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Depth of the check, must be greater than or equal to 3."
+        }
+      },
+      "description": "PermissionSubjectPermissionRequestMetadata is the metadata associated with a PermissionSubjectPermissionRequest."
+    },
+    "PermissionSubjectPermissionResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/CheckResult"
+          },
+          "description": "Map of results for each permission check."
+        }
+      },
+      "description": "PermissionSubjectPermissionResponse is the response message for the SubjectPermission method in the Permission service."
+    },
+    "PrimitiveType": {
+      "type": "string",
+      "enum": [
+        "PRIMITIVE_TYPE_UNSPECIFIED",
+        "BOOL",
+        "INT64",
+        "UINT64",
+        "DOUBLE",
+        "STRING",
+        "BYTES"
+      ],
+      "default": "PRIMITIVE_TYPE_UNSPECIFIED",
+      "description": "CEL primitive types.\n\n - PRIMITIVE_TYPE_UNSPECIFIED: Unspecified type.\n - BOOL: Boolean type.\n - INT64: Int64 type.\n\nProto-based integer values are widened to int64.\n - UINT64: Uint64 type.\n\nProto-based unsigned integer values are widened to uint64.\n - DOUBLE: Double type.\n\nProto-based float values are widened to double values.\n - STRING: String type.\n - BYTES: Bytes type."
     },
     "RelationDefinition": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the relation, which follows a specific string pattern and has a maximum byte size."
         },
         "relationReferences": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/RelationReference"
-          }
+          },
+          "description": "A list of references to other relations."
         }
       },
-      "title": "RelationDefinition"
+      "description": "The RelationDefinition message provides detailed information about a specific relation."
     },
     "RelationReference": {
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "description": "The type of the referenced entity, which follows a specific string pattern and has a maximum byte size."
         },
         "relation": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the referenced relation, which follows a specific string pattern and has a maximum byte size."
         }
       },
-      "title": "RelationReference"
-    },
-    "RelationalReference": {
-      "type": "string",
-      "enum": [
-        "RELATIONAL_REFERENCE_UNSPECIFIED",
-        "RELATIONAL_REFERENCE_RELATION",
-        "RELATIONAL_REFERENCE_PERMISSION"
-      ],
-      "default": "RELATIONAL_REFERENCE_UNSPECIFIED",
-      "title": "RelationalReference"
-    },
-    "RelationshipDeleteResponse": {
-      "type": "object",
-      "properties": {
-        "snap_token": {
-          "type": "string"
-        }
-      },
-      "title": "RelationshipDeleteResponse"
+      "description": "The RelationReference message provides a reference to a specific relation."
     },
     "RelationshipReadRequestMetadata": {
       "type": "object",
       "properties": {
         "snap_token": {
-          "type": "string"
+          "type": "string",
+          "description": "snap_token represents a specific state or \"snapshot\" of the database."
         }
       },
-      "title": "RelationshipWriteRequestMetadata"
+      "description": "RelationshipReadRequestMetadata defines the structure of the metadata for a read request focused on relationships.\nIt includes the snap_token associated with a particular state of the database."
     },
     "RelationshipReadResponse": {
       "type": "object",
@@ -1031,57 +1941,67 @@
         "tuples": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Tuple"
-          }
+          },
+          "description": "tuples is a list of the relationships retrieved in the read operation, represented as entity-relation-entity triples."
         },
         "continuous_token": {
-          "type": "string"
+          "type": "string",
+          "description": "continuous_token is used in the case of paginated reads to retrieve the next page of results."
         }
       },
-      "title": "RelationshipReadResponse"
-    },
-    "RelationshipWriteRequestMetadata": {
-      "type": "object",
-      "properties": {
-        "schema_version": {
-          "type": "string"
-        }
-      },
-      "title": "RelationshipWriteRequestMetadata"
-    },
-    "RelationshipWriteResponse": {
-      "type": "object",
-      "properties": {
-        "snap_token": {
-          "type": "string"
-        }
-      },
-      "title": "RelationshipWriteResponse"
+      "description": "RelationshipReadResponse defines the structure of the response after reading relationships.\nIt includes the tuples representing the relationships and a continuous token for handling result pagination."
     },
     "Rewrite": {
       "type": "object",
       "properties": {
         "rewriteOperation": {
-          "$ref": "#/definitions/Rewrite.Operation"
+          "$ref": "#/definitions/Rewrite.Operation",
+          "description": "The type of rewrite operation to be performed."
         },
         "children": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Child"
-          }
+          },
+          "description": "A list of children that are operated upon by the rewrite operation."
         }
       },
-      "title": "Rewrite"
+      "description": "The Rewrite message represents a specific rewrite operation.\nThis operation could be one of the following: union, intersection, or exclusion."
     },
     "Rewrite.Operation": {
       "type": "string",
       "enum": [
         "OPERATION_UNSPECIFIED",
         "OPERATION_UNION",
-        "OPERATION_INTERSECTION"
+        "OPERATION_INTERSECTION",
+        "OPERATION_EXCLUSION"
       ],
       "default": "OPERATION_UNSPECIFIED",
-      "title": "Operation"
+      "description": "Operation enum includes potential rewrite operations.\nOPERATION_UNION: Represents a union operation.\nOPERATION_INTERSECTION: Represents an intersection operation.\nOPERATION_EXCLUSION: Represents an exclusion operation.\n\n - OPERATION_UNSPECIFIED: Default, unspecified operation.\n - OPERATION_UNION: Represents a union operation.\n - OPERATION_INTERSECTION: Represents an intersection operation.\n - OPERATION_EXCLUSION: Represents an exclusion operation."
+    },
+    "RuleDefinition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the rule, which follows a specific string pattern and has a maximum byte size."
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/AttributeType"
+          },
+          "description": "Map of arguments for this rule. The key is the attribute name, and the value is the AttributeType."
+        },
+        "expression": {
+          "$ref": "#/definitions/CheckedExpr",
+          "description": "The expression for this rule in the form of a google.api.expr.v1alpha1.CheckedExpr."
+        }
+      },
+      "description": "The RuleDefinition message provides detailed information about a specific rule."
     },
     "SchemaDefinition": {
       "type": "object",
@@ -1090,65 +2010,120 @@
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/EntityDefinition"
-          }
+          },
+          "description": "Map of entity definitions. The key is the entity name, and the value is the corresponding EntityDefinition."
+        },
+        "ruleDefinitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/RuleDefinition"
+          },
+          "description": "Map of rule definitions. The key is the rule name, and the value is the corresponding RuleDefinition."
+        },
+        "references": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/SchemaDefinition.Reference"
+          },
+          "description": "Map of references to signify whether a string refers to an entity or a rule."
         }
       },
-      "title": "Definition"
+      "description": "The SchemaDefinition message provides definitions for entities and rules,\nand includes references to clarify whether a name refers to an entity or a rule."
+    },
+    "SchemaDefinition.Reference": {
+      "type": "string",
+      "enum": [
+        "REFERENCE_UNSPECIFIED",
+        "REFERENCE_ENTITY",
+        "REFERENCE_RULE"
+      ],
+      "default": "REFERENCE_UNSPECIFIED",
+      "description": "The Reference enum helps distinguish whether a name corresponds to an entity or a rule.\n\n - REFERENCE_UNSPECIFIED: Default, unspecified reference.\n - REFERENCE_ENTITY: Indicates that the name refers to an entity.\n - REFERENCE_RULE: Indicates that the name refers to a rule."
     },
     "SchemaReadRequestMetadata": {
       "type": "object",
       "properties": {
         "schema_version": {
-          "type": "string"
+          "type": "string",
+          "description": "schema_version is the string that identifies the version of the schema to be read."
         }
       },
-      "title": "SchemaReadRequestMetadata"
+      "description": "SchemaReadRequestMetadata provides additional information for the Schema Read request.\nIt contains schema_version to specify which version of the schema should be read."
     },
     "SchemaReadResponse": {
       "type": "object",
       "properties": {
         "schema": {
-          "$ref": "#/definitions/SchemaDefinition"
+          "$ref": "#/definitions/SchemaDefinition",
+          "description": "schema is the SchemaDefinition that represents the read schema."
         }
       },
-      "title": "SchemaReadRequest"
+      "description": "SchemaReadResponse is the response message for the Read method in the Schema service.\nIt returns the requested schema."
     },
     "SchemaWriteResponse": {
       "type": "object",
       "properties": {
         "schema_version": {
-          "type": "string"
+          "type": "string",
+          "description": "schema_version is the string that identifies the version of the written schema."
         }
       },
-      "title": "SchemaWriteResponse"
+      "description": "SchemaWriteResponse is the response message for the Write method in the Schema service.\nIt returns the version of the written schema."
     },
-    "Socials": {
+    "Select": {
       "type": "object",
       "properties": {
-        "discord": {
-          "type": "string"
+        "operand": {
+          "$ref": "#/definitions/Expr",
+          "description": "Required. The target of the selection expression.\n\nFor example, in the select expression `request.auth`, the `request`\nportion of the expression is the `operand`."
         },
-        "twitter": {
-          "type": "string"
+        "field": {
+          "type": "string",
+          "description": "Required. The name of the field to select.\n\nFor example, in the select expression `request.auth`, the `auth` portion\nof the expression would be the `field`."
         },
-        "linkedin": {
-          "type": "string"
+        "testOnly": {
+          "type": "boolean",
+          "description": "Whether the select is to be interpreted as a field presence test.\n\nThis results from the macro `has(request.auth)`."
         }
-      }
+      },
+      "description": "A field selection expression. e.g. `request.auth`."
     },
-    "Sources": {
+    "SourceInfo": {
       "type": "object",
       "properties": {
-        "docs": {
-          "type": "string"
+        "syntaxVersion": {
+          "type": "string",
+          "description": "The syntax version of the source, e.g. `cel1`."
         },
-        "gitHub": {
-          "type": "string"
+        "location": {
+          "type": "string",
+          "description": "The location name. All position information attached to an expression is\nrelative to this location.\n\nThe location could be a file, UI element, or similar. For example,\n`acme/app/AnvilPolicy.cel`."
         },
-        "blog": {
-          "type": "string"
+        "lineOffsets": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": "Monotonically increasing list of code point offsets where newlines\n`\\n` appear.\n\nThe line number of a given position is the index `i` where for a given\n`id` the `line_offsets[i] \u003c id_positions[id] \u003c line_offsets[i+1]`. The\ncolumn may be derivd from `id_positions[id] - line_offsets[i]`."
+        },
+        "positions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": "A map from the parse node id (e.g. `Expr.id`) to the code point offset\nwithin the source."
+        },
+        "macroCalls": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Expr"
+          },
+          "description": "A map from the parse node id where a macro replacement was made to the\ncall `Expr` that resulted in a macro expansion.\n\nFor example, `has(value.field)` is a function call that is replaced by a\n`test_only` field selection in the AST. Likewise, the call\n`list.exists(e, e \u003e 10)` translates to a comprehension expression. The key\nin the map corresponds to the expression id of the expanded macro, and the\nvalue is the call `Expr` that was replaced."
         }
-      }
+      },
+      "description": "Source information collected at parse time."
     },
     "Status": {
       "type": "object",
@@ -1163,6 +2138,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Any"
           }
         }
@@ -1181,84 +2157,109 @@
           "type": "string"
         }
       },
-      "title": "Subject"
+      "description": "Subject represents an entity subject with a type, an identifier, and a relation."
     },
     "SubjectFilter": {
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "title": "Type of the subject"
         },
         "ids": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "title": "List of subject IDs"
         },
         "relation": {
           "type": "string"
         }
       },
-      "title": "SubjectFilter is used to filter subjects"
+      "description": "SubjectFilter is used to filter subjects based on the type, ids and relation."
+    },
+    "Subjects": {
+      "type": "object",
+      "properties": {
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Subject"
+          },
+          "description": "A list of subjects."
+        }
+      },
+      "description": "Subjects holds a repeated field of Subject type."
     },
     "Tenant": {
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "The ID of the tenant."
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the tenant."
         },
         "created_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "The time at which the tenant was created."
         }
       },
-      "title": "Tenant"
+      "description": "Tenant represents a tenant with an id, a name, and a timestamp indicating when it was created."
     },
     "TenantCreateRequest": {
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "id is a unique identifier for the tenant."
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "name is the name of the tenant."
         }
       },
-      "title": "TenantCreateRequest"
+      "description": "TenantCreateRequest is the message used for the request to create a tenant."
     },
     "TenantCreateResponse": {
       "type": "object",
       "properties": {
         "tenant": {
-          "$ref": "#/definitions/Tenant"
+          "$ref": "#/definitions/Tenant",
+          "description": "tenant is the created tenant information."
         }
       },
-      "title": "TenantCreateResponse"
+      "description": "TenantCreateResponse is the message returned from the request to create a tenant."
     },
     "TenantDeleteResponse": {
       "type": "object",
       "properties": {
         "tenant": {
-          "$ref": "#/definitions/Tenant"
+          "$ref": "#/definitions/Tenant",
+          "description": "tenant is the tenant information that was deleted."
         }
       },
-      "title": "TenantDeleteResponse"
+      "description": "TenantDeleteResponse is the message returned from the request to delete a tenant."
     },
     "TenantListRequest": {
       "type": "object",
       "properties": {
         "page_size": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
         },
         "continuous_token": {
-          "type": "string"
+          "type": "string",
+          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
         }
       },
-      "title": "TenantListRequest"
+      "description": "TenantListRequest is the message used for the request to list all tenants."
     },
     "TenantListResponse": {
       "type": "object",
@@ -1266,14 +2267,17 @@
         "tenants": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/Tenant"
-          }
+          },
+          "description": "tenants is a list of tenants."
         },
         "continuous_token": {
-          "type": "string"
+          "type": "string",
+          "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
         }
       },
-      "title": "TenantListResponse"
+      "description": "TenantListResponse is the message returned from the request to list all tenants."
     },
     "Tuple": {
       "type": "object",
@@ -1288,7 +2292,7 @@
           "$ref": "#/definitions/Subject"
         }
       },
-      "title": "Tuple"
+      "description": "Tuple is a structure that includes an entity, a relation, and a subject."
     },
     "TupleFilter": {
       "type": "object",
@@ -1300,10 +2304,11 @@
           "type": "string"
         },
         "subject": {
-          "$ref": "#/definitions/SubjectFilter"
+          "$ref": "#/definitions/SubjectFilter",
+          "title": "The subject filter"
         }
       },
-      "title": "TupleFilter is used to filter tuples"
+      "description": "TupleFilter is used to filter tuples based on the entity, relation and the subject."
     },
     "TupleSet": {
       "type": "object",
@@ -1312,52 +2317,152 @@
           "type": "string"
         }
       },
-      "title": "TupleSet"
+      "description": "TupleSet represents a set of tuples associated with a specific relation."
     },
     "TupleToUserSet": {
       "type": "object",
       "properties": {
         "tupleSet": {
-          "$ref": "#/definitions/TupleSet"
+          "$ref": "#/definitions/TupleSet",
+          "title": "The tuple set"
         },
         "computed": {
-          "$ref": "#/definitions/ComputedUserSet"
+          "$ref": "#/definitions/ComputedUserSet",
+          "title": "The computed user set"
         }
       },
-      "title": "TupleToUserSet"
+      "description": "TupleToUserSet defines a mapping from tuple sets to computed user sets."
     },
-    "v1.Result": {
+    "Values": {
       "type": "object",
       "properties": {
-        "target": {
-          "$ref": "#/definitions/EntityAndRelation"
-        },
-        "exclusion": {
-          "type": "boolean"
-        },
-        "subjects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Subject"
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Any"
           }
         }
-      },
-      "title": "Result"
+      }
     },
-    "welcomeResponse": {
+    "WatchResponse": {
       "type": "object",
       "properties": {
-        "permify": {
-          "type": "string"
-        },
-        "sources": {
-          "$ref": "#/definitions/Sources"
-        },
-        "socials": {
-          "$ref": "#/definitions/Socials"
+        "changes": {
+          "$ref": "#/definitions/DataChanges",
+          "description": "Changes in the data."
         }
       },
-      "title": "WelcomeResponse"
+      "description": "WatchResponse is the response message for the Watch RPC. It contains the\nchanges in the data that are being watched."
+    },
+    "WellKnownType": {
+      "type": "string",
+      "enum": [
+        "WELL_KNOWN_TYPE_UNSPECIFIED",
+        "ANY",
+        "TIMESTAMP",
+        "DURATION"
+      ],
+      "default": "WELL_KNOWN_TYPE_UNSPECIFIED",
+      "description": "Well-known protobuf types treated with first-class support in CEL.\n\n - WELL_KNOWN_TYPE_UNSPECIFIED: Unspecified type.\n - ANY: Well-known protobuf.Any type.\n\nAny types are a polymorphic message type. During type-checking they are\ntreated like `DYN` types, but at runtime they are resolved to a specific\nmessage type specified at evaluation time.\n - TIMESTAMP: Well-known protobuf.Timestamp type, internally referenced as `timestamp`.\n - DURATION: Well-known protobuf.Duration type, internally referenced as `duration`."
+    },
+    "v1.Call": {
+      "type": "object",
+      "properties": {
+        "ruleName": {
+          "type": "string",
+          "title": "Name of the rule"
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "title": "Arguments passed to the rule"
+        }
+      },
+      "description": "Call represents a call to a rule. It includes the name of the rule and the arguments passed to it."
+    },
+    "v1alpha1.Reference": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The fully qualified name of the declaration."
+        },
+        "overloadId": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "For references to functions, this is a list of `Overload.overload_id`\nvalues which match according to typing rules.\n\nIf the list has more than one element, overload resolution among the\npresented candidates must happen at runtime because of dynamic types. The\ntype checker attempts to narrow down this list as much as possible.\n\nEmpty if this is not a reference to a\n[Decl.FunctionDecl][google.api.expr.v1alpha1.Decl.FunctionDecl]."
+        },
+        "value": {
+          "$ref": "#/definitions/Constant",
+          "description": "For references to constants, this may contain the value of the\nconstant if known at compile time."
+        }
+      },
+      "description": "Describes a resolved reference to a declaration."
+    },
+    "v1alpha1.Type": {
+      "type": "object",
+      "properties": {
+        "dyn": {
+          "type": "object",
+          "properties": {},
+          "description": "Dynamic type."
+        },
+        "null": {
+          "type": "string",
+          "description": "Null value."
+        },
+        "primitive": {
+          "$ref": "#/definitions/PrimitiveType",
+          "description": "Primitive types: `true`, `1u`, `-2.0`, `'string'`, `b'bytes'`."
+        },
+        "wrapper": {
+          "$ref": "#/definitions/PrimitiveType",
+          "description": "Wrapper of a primitive type, e.g. `google.protobuf.Int64Value`."
+        },
+        "wellKnown": {
+          "$ref": "#/definitions/WellKnownType",
+          "description": "Well-known protobuf type such as `google.protobuf.Timestamp`."
+        },
+        "listType": {
+          "$ref": "#/definitions/ListType",
+          "description": "Parameterized list with elements of `list_type`, e.g. `list\u003ctimestamp\u003e`."
+        },
+        "mapType": {
+          "$ref": "#/definitions/MapType",
+          "description": "Parameterized map with typed keys and values."
+        },
+        "function": {
+          "$ref": "#/definitions/FunctionType",
+          "description": "Function type."
+        },
+        "messageType": {
+          "type": "string",
+          "description": "Protocol buffer message type.\n\nThe `message_type` string specifies the qualified message type name. For\nexample, `google.plus.Profile`."
+        },
+        "typeParam": {
+          "type": "string",
+          "description": "Type param type.\n\nThe `type_param` string specifies the type parameter name, e.g. `list\u003cE\u003e`\nwould be a `list_type` whose element type was a `type_param` type\nnamed `E`."
+        },
+        "type": {
+          "$ref": "#/definitions/v1alpha1.Type",
+          "description": "Type type.\n\nThe `type` value specifies the target type. e.g. int is type with a\ntarget type of `Primitive.INT`."
+        },
+        "error": {
+          "type": "object",
+          "properties": {},
+          "description": "Error type.\n\nDuring type-checking if an expression is an error, its type is propagated\nas the `ERROR` type. This permits the type-checker to discover other\nerrors present in the expression."
+        },
+        "abstractType": {
+          "$ref": "#/definitions/AbstractType",
+          "description": "Abstract, application defined type."
+        }
+      },
+      "description": "Represents a CEL type."
     }
   },
   "securityDefinitions": {

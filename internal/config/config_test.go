@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -137,4 +138,35 @@ database:
 	assert.Equal(t, "info", cfg.Log.Level)
 	assert.Equal(t, "otlp", cfg.Meter.Exporter)
 	assert.Equal(t, "telemetry.permify.co", cfg.Meter.Endpoint)
+}
+
+func Test_isYAML(t *testing.T) {
+	type args struct {
+		file string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "valid yaml file",
+			args: args{
+				file: "testdata/valid.yaml",
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "invalid yaml file",
+			args: args{
+				file: "testdata/invalid.json",
+			},
+			wantErr: assert.Error,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.wantErr(t, isYAML(tt.args.file), fmt.Sprintf("isYAML(%v)", tt.args.file))
+		})
+	}
 }

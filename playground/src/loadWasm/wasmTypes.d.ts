@@ -1,14 +1,16 @@
 declare global {
   export interface Window {
     Go: any;
-    check: (query: string, version: string)=>any[]
-    lookupEntity: (query: string, version: string)=>any[]
+    check: (query: string)=>any[]
+    lookupEntity: (query: string)=>any[]
+    lookupSubject: (query: string)=>any[]
     writeSchema: (schema: string)=>any[]
-    readSchema: (version: string)=>any[]
-    writeTuple: (tuple: string, version: string)=>any[]
+    readSchema: ()=>any[]
+    writeTuple: (tuple: string)=>any[]
     readTuple: (filter: string)=>any[]
     deleteTuple: (tuple: string)=>any[]
-    readSchemaGraph: (version: string)=>any[]
+    readSchemaGraph: ()=>any[]
+    validate: (input: string)=>any[]
   }
 }
 

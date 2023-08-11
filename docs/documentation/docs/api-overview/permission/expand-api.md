@@ -17,14 +17,13 @@ It is not designed to use as a check access. Expand request has a high latency w
 <TabItem value="go" label="Go">
 
 ```go
-cr, err: = client.Permission.Expand(context.Background(), & v1.PermissionExpandRequest {
+cr, err: = client.Permission.Expand(context.Background(), &v1.PermissionExpandRequest{
     TenantId: "t1",
-    Metadata: & v1.PermissionExpandRequestMetadata {
-        SnapToken: ""
-        SchemaVersion: ""
-        Depth: 20,
+    Metadata: &v1.PermissionExpandRequestMetadata{
+        SnapToken: "",
+        SchemaVersion: "",
     },
-    Entity: & v1.Entity {
+    Entity: &v1.Entity{
         Type: "repository",
         Id: "1",
     },
@@ -41,8 +40,7 @@ client.permission.expand({
   tenantId: "t1",
   metadata: {
         snapToken: "",
-        schemaVersion: "",
-        depth: 20
+        schemaVersion: ""
     },
     entity: {
         type: "repository",
@@ -118,13 +116,14 @@ We can use expand API to reason the access actions. If we want to reason access 
 
 **Path:** POST /v1/tenants/{tenant_id}/permissions/expand
 
-| Required | Argument | Type | Default | Description |
-|----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
-| [ ]   | schema_version | string | 8 | Version of the schema |
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
-| [x]   | entity | string | - | Name and id of the entity. Example: repository:1”.
-| [x]   | action | string | - | The action the user wants to perform on the resource |
+| Required | Argument          | Type   | Default | Description                                                                                                                                                                |
+|----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [x]      | tenant_id         | string | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                           |
+| [ ]      | schema_version    | string | -       | Version of the schema                                                                                                                                                      |
+| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens)                                                                        |
+| [x]      | entity            | string | -       | Name and id of the entity. Example: repository:1”.                                                                                                                         |
+| [x]      | permission        | string | -       | The permission the user wants to perform on the resource                                                                                                                   |
+| [ ]      | contextual_tuples | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
 
 ### Expand Push Action 
 
@@ -153,25 +152,24 @@ We can use expand API to reason the access actions. If we want to reason access 
 
 ```json
 {
-    "tree": {
-        "target": {
-            "entity": {
-                "type": "repository",
-                "id": "1"
-            },
-            "relation": "owner"
-        },
-        "leaf": {
-            "exclusion": false,
-            "subjects": [
-                {
-                    "type": "user",
-                    "id": "1",
-                    "relation": ""
-                }
-            ]
+  "tree": {
+    "target": {
+      "entity": {
+        "type": "repository",
+        "id": "1"
+      },
+      "relation": "owner"
+    },
+    "leaf": {
+      "subjects": [
+        {
+          "type": "user",
+          "id": "1",
+          "relation": ""
         }
+      ]
     }
+  }
 }
 ```
 
@@ -185,11 +183,15 @@ We can use expand API to reason the access actions. If we want to reason access 
 
 ```json
 {
-    "entity": {
-        "type": "repository",
-        "id": "1"
-    },
-    "action": "read"
+  "metadata": {
+    "schema_version": "",
+    "snap_token": ""
+  },
+  "entity": {
+    "type": "repository",
+    "id": "1"
+  },
+  "permission": "read"
 }
 ```
 
@@ -201,127 +203,110 @@ We can use expand API to reason the access actions. If we want to reason access 
 
 ```json
 {
-    "tree": {
-        "target": null,
-        "expand": {
-            "operation": "INTERSECTION",
-            "children": [
-                {
-                    "target": {
-                        "entity": {
-                            "type": "repository",
-                            "id": "1"
-                        },
-                        "relation": "owner"
-                    },
-                    "leaf": {
-                        "exclusion": false,
-                        "subjects": [
-                            {
-                                "type": "user",
-                                "id": "1",
-                                "relation": ""
-                            }
-                        ]
-                    }
-                },
-                {
-                    "target": null,
-                    "expand": {
-                        "operation": "UNION",
-                        "children": [
-                            {
-                                "target": null,
-                                "expand": {
-                                    "operation": "UNION",
-                                    "children": [
-                                        {
-                                            "target": {
-                                                "entity": {
-                                                    "type": "repository",
-                                                    "id": "1"
-                                                },
-                                                "relation": "parent.admin"
-                                            },
-                                            "leaf": {
-                                                "exclusion": false,
-                                                "subjects": [
-                                                    {
-                                                        "type": "organization",
-                                                        "id": "1",
-                                                        "relation": "admin"
-                                                    }
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            "target": {
-                                                "entity": {
-                                                    "type": "organization",
-                                                    "id": "1"
-                                                },
-                                                "relation": "admin"
-                                            },
-                                            "leaf": {
-                                                "exclusion": false,
-                                                "subjects": [
-                                                    {
-                                                        "type": "user",
-                                                        "id": "1",
-                                                        "relation": ""
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                }
-                            },
-                            {
-                                "target": null,
-                                "expand": {
-                                    "operation": "UNION",
-                                    "children": [
-                                        {
-                                            "target": {
-                                                "entity": {
-                                                    "type": "repository",
-                                                    "id": "1"
-                                                },
-                                                "relation": "parent.member"
-                                            },
-                                            "leaf": {
-                                                "exclusion": false,
-                                                "subjects": [
-                                                    {
-                                                        "type": "organization",
-                                                        "id": "1",
-                                                        "relation": "member"
-                                                    }
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            "target": {
-                                                "entity": {
-                                                    "type": "organization",
-                                                    "id": "1"
-                                                },
-                                                "relation": "member"
-                                            },
-                                            "leaf": {
-                                                "exclusion": false,
-                                                "subjects": []
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                }
+  "tree": {
+    "target": {
+      "entity": {
+        "type": "repository",
+        "id": "1"
+      },
+      "relation": "read"
+    },
+    "expand": {
+      "operation": "OPERATION_INTERSECTION",
+      "children": [
+        {
+          "target": {
+            "entity": {
+              "type": "repository",
+              "id": "1"
+            },
+            "relation": "owner"
+          },
+          "leaf": {
+            "subjects": [
+              {
+                "type": "user",
+                "id": "1",
+                "relation": ""
+              }
             ]
+          }
+        },
+        {
+          "target": {
+            "entity": {
+              "type": "repository",
+              "id": "1"
+            },
+            "relation": "read"
+          },
+          "expand": {
+            "operation": "OPERATION_UNION",
+            "children": [
+              {
+                "target": {
+                  "entity": {
+                    "type": "repository",
+                    "id": "1"
+                  },
+                  "relation": "read"
+                },
+                "expand": {
+                  "operation": "OPERATION_UNION",
+                  "children": [
+                    {
+                      "target": {
+                        "entity": {
+                          "type": "organization",
+                          "id": "1"
+                        },
+                        "relation": "admin"
+                      },
+                      "leaf": {
+                        "subjects": [
+                          {
+                            "type": "user",
+                            "id": "1",
+                            "relation": ""
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "target": {
+                  "entity": {
+                    "type": "repository",
+                    "id": "1"
+                  },
+                  "relation": "read"
+                },
+                "expand": {
+                  "operation": "OPERATION_UNION",
+                  "children": [
+                    {
+                      "target": {
+                        "entity": {
+                          "type": "organization",
+                          "id": "1"
+                        },
+                        "relation": "member"
+                      },
+                      "leaf": {
+                        "subjects": []
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
         }
+      ]
     }
+  }
 }
 ```
 </p>

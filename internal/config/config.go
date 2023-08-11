@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/pkg/errors"
@@ -12,20 +13,22 @@ import (
 type (
 	// Config is the main configuration structure containing various sections for different aspects of the application.
 	Config struct {
-		Server   `mapstructure:"server"`   // Server configuration for both HTTP and gRPC
-		Log      `mapstructure:"logger"`   // Logging configuration
-		Profiler `mapstructure:"profiler"` // Profiler configuration
-		Authn    `mapstructure:"authn"`    // Authentication configuration
-		Tracer   `mapstructure:"tracer"`   // Tracing configuration
-		Meter    `mapstructure:"meter"`    // Metrics configuration
-		Service  `mapstructure:"service"`  // Service configuration
-		Database `mapstructure:"database"` // Database configuration
+		Server      `mapstructure:"server"`      // Server configuration for both HTTP and gRPC
+		Log         `mapstructure:"logger"`      // Logging configuration
+		Profiler    `mapstructure:"profiler"`    // Profiler configuration
+		Authn       `mapstructure:"authn"`       // Authentication configuration
+		Tracer      `mapstructure:"tracer"`      // Tracing configuration
+		Meter       `mapstructure:"meter"`       // Metrics configuration
+		Service     `mapstructure:"service"`     // Service configuration
+		Database    `mapstructure:"database"`    // Database configuration
+		Distributed `mapstructure:"distributed"` // Distributed configuration
 	}
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		HTTP `mapstructure:"http"` // HTTP server configuration
-		GRPC `mapstructure:"grpc"` // gRPC server configuration
+		HTTP      `mapstructure:"http"` // HTTP server configuration
+		GRPC      `mapstructure:"grpc"` // gRPC server configuration
+		RateLimit int64                 `mapstructure:"rate_limit"` // Rate limit configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.
@@ -66,7 +69,7 @@ type (
 	// Oidc contains configuration for OIDC authentication.
 	Oidc struct {
 		Issuer   string `mapstructure:"issuer"`    // OIDC issuer URL
-		ClientId string `mapstructure:"client_id"` // OIDC client ID
+		ClientID string `mapstructure:"client_id"` // OIDC client ID
 	}
 
 	// Profiler contains configuration for the profiler.
@@ -85,6 +88,7 @@ type (
 		Enabled  bool   `mapstructure:"enabled"`  // Whether tracing collection is enabled
 		Exporter string `mapstructure:"exporter"` // Exporter for tracing data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the tracing exporter
+		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
 	}
 
 	// Meter contains configuration for metrics collection and reporting.
@@ -97,9 +101,15 @@ type (
 	// Service contains configuration for various service-level features.
 	Service struct {
 		CircuitBreaker bool         `mapstructure:"circuit_breaker"` // Whether to enable the circuit breaker pattern
+		Watch          Watch        `mapstructure:"watch"`           // Watch service configuration
 		Schema         Schema       `mapstructure:"schema"`          // Schema service configuration
 		Permission     Permission   `mapstructure:"permission"`      // Permission service configuration
 		Relationship   Relationship `mapstructure:"relationship"`    // Relationship service configuration
+	}
+
+	// Watch contains configuration for the watch service.
+	Watch struct {
+		Enabled bool `mapstructure:"enabled"`
 	}
 
 	// Schema contains configuration for the schema service.
@@ -136,11 +146,18 @@ type (
 	}
 
 	DatabaseGarbageCollection struct {
-		Enable          bool          `mapstructure:"enable"`
+		Enabled         bool          `mapstructure:"enabled"`
 		Interval        time.Duration `mapstructure:"interval"`
 		Timeout         time.Duration `mapstructure:"timeout"`
 		Window          time.Duration `mapstructure:"window"`
 		NumberOfThreads int           `mapstructure:"number_of_threads"`
+	}
+
+	Distributed struct {
+		Enabled  bool   `mapstructure:"enabled"`
+		Protocol string `mapstructure:"protocol"`
+		NodeName string `mapstructure:"node_name"`
+		Node     string `mapstructure:"node"`
 	}
 )
 
@@ -180,6 +197,46 @@ func NewConfig() (*Config, error) {
 	return cfg, nil
 }
 
+// NewConfigWithFile initializes and returns a new Config object by reading and unmarshalling
+// the configuration file from the given path. It falls back to the DefaultConfig if the
+// file is not found. If there's an error during the process, it returns the error.
+func NewConfigWithFile(dir string) (*Config, error) {
+	// Start with the default configuration values
+	cfg := DefaultConfig()
+
+	viper.SetConfigFile(dir)
+
+	err := isYAML(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	// Read the config file
+	err = viper.ReadInConfig()
+	// If there's an error during reading the config file
+	if err != nil {
+		// Check if the error is because of the config file not being found
+		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok {
+			// If it's not a "file not found" error, return the error with a message
+			return nil, fmt.Errorf("failed to load server config: %w", err)
+		}
+		if ok := errors.As(err, &viper.ConfigMarshalError{}); !ok {
+			// If it's not a "file not found" error, return the error with a message
+			return nil, fmt.Errorf("failed to load server config: %w", err)
+		}
+		// If it's a "file not found" error, the code will continue and use the default config
+	}
+
+	// Unmarshal the configuration data into the Config struct
+	if err = viper.Unmarshal(cfg); err != nil {
+		// If there's an error during unmarshalling, return the error with a message
+		return nil, fmt.Errorf("failed to unmarshal server config: %w", err)
+	}
+
+	// Return the populated Config object
+	return cfg, nil
+}
+
 // DefaultConfig - Creates default config.
 func DefaultConfig() *Config {
 	return &Config{
@@ -199,6 +256,7 @@ func DefaultConfig() *Config {
 					Enabled: false,
 				},
 			},
+			RateLimit: 100,
 		},
 		Profiler: Profiler{
 			Enabled: false,
@@ -216,6 +274,9 @@ func DefaultConfig() *Config {
 		},
 		Service: Service{
 			CircuitBreaker: false,
+			Watch: Watch{
+				Enabled: false,
+			},
 			Schema: Schema{
 				Cache: Cache{
 					NumberOfCounters: 1_000,
@@ -241,8 +302,19 @@ func DefaultConfig() *Config {
 			Engine:      "memory",
 			AutoMigrate: true,
 			DatabaseGarbageCollection: DatabaseGarbageCollection{
-				Enable: false,
+				Enabled: false,
 			},
 		},
+		Distributed: Distributed{
+			Enabled: false,
+		},
 	}
+}
+
+func isYAML(file string) error {
+	ext := filepath.Ext(file)
+	if ext != ".yaml" {
+		return errors.New("file is not yaml")
+	}
+	return nil
 }

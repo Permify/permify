@@ -5,8 +5,6 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/rs/xid"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -28,7 +26,7 @@ func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
 		trace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
-			attribute.String("id", xid.New().String()),
+			attribute.String("id", internal.Identifier),
 			attribute.String("version", internal.Version),
 			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),

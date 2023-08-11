@@ -15,65 +15,72 @@ import (
 // If there's an error during validation or creating the schema, it returns an error.
 func NewSchemaFromStringDefinitions(validation bool, definitions ...string) (*base.SchemaDefinition, error) {
 	// Create entity definitions from the input string definitions
-	defs, err := NewEntityDefinitionsFromStringDefinitions(validation, definitions...)
+	en, ru, err := NewEntityAndRuleDefinitionsFromStringDefinitions(validation, definitions...)
 	if err != nil {
 		// If there's an error, return the error
 		return nil, err
 	}
 	// Create a schema from the entity definitions
-	return NewSchemaFromEntityDefinitions(defs...), nil
+	return NewSchemaFromEntityAndRuleDefinitions(en, ru), nil
 }
 
-// NewSchemaFromEntityDefinitions creates a new `SchemaDefinition` from a list of `EntityDefinition`s.
-// It initializes the `EntityDefinitions` property of the `SchemaDefinition` as an empty map,
-// and then adds each `EntityDefinition` to the map using the entity name as the key.
-// If an `EntityDefinition` doesn't have a `Relations` or `Permissions` property, it initializes it as an empty map.
-// Finally, it returns a pointer to the newly created `SchemaDefinition`.
-func NewSchemaFromEntityDefinitions(entities ...*base.EntityDefinition) *base.SchemaDefinition {
-	// Initialize the schema definition
+// NewSchemaFromEntityAndRuleDefinitions creates a new base.SchemaDefinition from entity and rule definitions.
+// It takes two slices of pointers to base.EntityDefinition and base.RuleDefinition, representing the entities and rules to include in the schema.
+// It returns a pointer to the created base.SchemaDefinition.
+func NewSchemaFromEntityAndRuleDefinitions(entities []*base.EntityDefinition, rules []*base.RuleDefinition) *base.SchemaDefinition {
+	// Create a new base.SchemaDefinition with empty maps for EntityDefinitions, RuleDefinitions, and References.
 	schema := &base.SchemaDefinition{
 		EntityDefinitions: map[string]*base.EntityDefinition{},
+		RuleDefinitions:   map[string]*base.RuleDefinition{},
+		References:        map[string]base.SchemaDefinition_Reference{},
 	}
-	// Loop through each entity definition
+
+	// Process each entity in the entities slice.
 	for _, entity := range entities {
-		// If the entity definition doesn't have a Relations property, initialize it as an empty map
+		// If the entity's Relations map is nil, initialize it as an empty map.
 		if entity.Relations == nil {
 			entity.Relations = map[string]*base.RelationDefinition{}
 		}
-		// If the entity definition doesn't have an Permissions property, initialize it as an empty map
+
+		// If the entity's Permissions map is nil, initialize it as an empty map.
 		if entity.Permissions == nil {
 			entity.Permissions = map[string]*base.PermissionDefinition{}
 		}
-		// Add the entity definition to the schema definition's EntityDefinitions map
+
+		// Add the entity to the EntityDefinitions map of the schema, using its name as the key.
 		schema.EntityDefinitions[entity.Name] = entity
+
+		// Set a reference for the entity in the References map of the schema, indicating it's an entity reference.
+		schema.References[entity.Name] = base.SchemaDefinition_REFERENCE_ENTITY
 	}
-	// Return the schema definition
+
+	// Process each rule in the rules slice.
+	for _, rule := range rules {
+		// If the rule's Arguments map is nil, initialize it as an empty map.
+		if rule.Arguments == nil {
+			rule.Arguments = map[string]base.AttributeType{}
+		}
+
+		// Add the rule to the RuleDefinitions map of the schema, using its name as the key.
+		schema.RuleDefinitions[rule.Name] = rule
+
+		// Set a reference for the rule in the References map of the schema, indicating it's a rule reference.
+		schema.References[rule.Name] = base.SchemaDefinition_REFERENCE_RULE
+	}
+
+	// Return the created schema.
 	return schema
 }
 
-// NewEntityDefinitionsFromStringDefinitions creates a list of `EntityDefinition`s from a list of string definitions.
-// The `validation` argument determines whether to validate the input definitions before creating the entity definitions.
-// It first uses the `parser` package to parse the string definitions into a `Schema` object.
-// If there's an error during parsing, it returns an error.
-// Then it uses the `compiler` package to compile the `Schema` into a list of `EntityDefinition`s.
-// If the validation is successful, it returns the list of `EntityDefinition`s.
-// If there's an error during validation or compiling, it returns an error.
-func NewEntityDefinitionsFromStringDefinitions(validation bool, definitions ...string) ([]*base.EntityDefinition, error) {
+func NewEntityAndRuleDefinitionsFromStringDefinitions(validation bool, definitions ...string) ([]*base.EntityDefinition, []*base.RuleDefinition, error) {
 	// Use the parser to parse the string definitions into a Schema object
 	sch, err := parser.NewParser(strings.Join(definitions, "\n")).Parse()
 	if err != nil {
 		// If there's an error, return the error
-		return nil, err
-	}
-	// Use the compiler to compile the Schema into a list of EntityDefinitions
-	var s []*base.EntityDefinition
-	s, err = compiler.NewCompiler(!validation, sch).Compile()
-	if err != nil {
-		// If there's an error, return the error
-		return nil, err
+		return nil, nil, err
 	}
 	// Return the list of EntityDefinitions
-	return s, nil
+	return compiler.NewCompiler(validation, sch).Compile()
 }
 
 // GetEntityByName retrieves an `EntityDefinition` from a `SchemaDefinition` by its name.
@@ -89,17 +96,32 @@ func GetEntityByName(schema *base.SchemaDefinition, name string) (entityDefiniti
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String())
 }
 
-// GetTypeOfRelationalReferenceByNameInEntityDefinition retrieves the type of a relational reference in an `EntityDefinition` by its name.
+// GetRuleByName retrieves the rule definition from the given schema by its name.
+// It takes a pointer to a base.SchemaDefinition and the name of the rule to look for.
+// If the rule with the specified name is found in the schema's RuleDefinitions map, it returns the rule definition and a nil error.
+// If the rule is not found, it returns nil for the rule definition and an error indicating that the entity definition was not found.
+func GetRuleByName(schema *base.SchemaDefinition, name string) (ruleDefinition *base.RuleDefinition, err error) {
+	// Check if the rule with the specified name exists in the schema's RuleDefinitions map.
+	if en, ok := schema.GetRuleDefinitions()[name]; ok {
+		// If the rule definition is found, return it and a nil error.
+		return en, nil
+	}
+
+	// If the rule is not found, return nil for the rule definition and an error indicating that the entity definition was not found.
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String())
+}
+
+// GetTypeOfReferenceByNameInEntityDefinition retrieves the type of reference in an `EntityDefinition` by its name.
 // It returns the type of the relational reference if it is found in the `EntityDefinition`.
 // If the relational reference is not found, it returns an error with error code `ERROR_CODE_RELATION_DEFINITION_NOT_FOUND`.
-func GetTypeOfRelationalReferenceByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (relationalDefinitionType base.EntityDefinition_RelationalReference, err error) {
+func GetTypeOfReferenceByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (relationalDefinitionType base.EntityDefinition_Reference, err error) {
 	// Look up the relational reference in the entity definition's References map
 	if re, ok := entityDefinition.GetReferences()[name]; ok {
 		// If the relational reference is found, return its type and a nil error
 		return re, nil
 	}
 	// If the relational reference is not found, return the default type and an error
-	return base.EntityDefinition_RELATIONAL_REFERENCE_UNSPECIFIED, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
+	return base.EntityDefinition_REFERENCE_UNSPECIFIED, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 }
 
 // GetPermissionByNameInEntityDefinition retrieves an `PermissionDefinition` from an `EntityDefinition` by its name.
@@ -126,6 +148,19 @@ func GetRelationByNameInEntityDefinition(entityDefinition *base.EntityDefinition
 	}
 	// If the relation definition is not found, return a nil relation definition and an error
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
+}
+
+// GetAttributeByNameInEntityDefinition retrieves an `AttributeDefinition` from an `EntityDefinition` by its name.
+// It returns a pointer to the `AttributeDefinition` if it is found in the `EntityDefinition`.
+// If the `AttributeDefinition` is not found, it returns an error with error code `ERROR_CODE_ATTRIBUTE_DEFINITION_NOT_FOUND`.
+func GetAttributeByNameInEntityDefinition(entityDefinition *base.EntityDefinition, name string) (attributeDefinition *base.AttributeDefinition, err error) {
+	// Look up the attribute definition in the entity definition's Attributes map
+	if ad, ok := entityDefinition.GetAttributes()[name]; ok {
+		// If the attribute definition is found, return it and a nil error
+		return ad, nil
+	}
+	// If the attribute definition is not found, return a nil attribute definition and an error
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ATTRIBUTE_DEFINITION_NOT_FOUND.String())
 }
 
 // IsDirectlyRelated checks if a source `RelationReference` is directly related to a target `RelationDefinition`.

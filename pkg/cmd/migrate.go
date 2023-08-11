@@ -109,7 +109,7 @@ func migrateUp() func(cmd *cobra.Command, args []string) error {
 		}
 
 		if p == 0 {
-			if err := goose.Up(db, "internal/repositories/postgres/migrations"); err != nil {
+			if err := goose.Up(db, "internal/storage/postgres/migrations"); err != nil {
 				color.Warn.Println("migration failed: up error " + err.Error())
 				return nil
 			}
@@ -118,7 +118,7 @@ func migrateUp() func(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		if err := goose.UpTo(db, "internal/repositories/postgres/migrations", p); err != nil {
+		if err := goose.UpTo(db, "internal/storage/postgres/migrations", p); err != nil {
 			color.Warn.Println("migration failed: Goose Up Error")
 			return nil
 		}
@@ -155,7 +155,7 @@ func migrateDown() func(cmd *cobra.Command, args []string) error {
 
 		if p == 0 {
 			var count int
-			err = filepath.Walk("internal/repositories/postgres/migrations", func(path string, info os.FileInfo, err error) error {
+			err = filepath.Walk("internal/storage/postgres/migrations", func(path string, info os.FileInfo, err error) error {
 				if !info.IsDir() && strings.HasSuffix(info.Name(), ".sql") {
 					count++
 				}
@@ -167,7 +167,7 @@ func migrateDown() func(cmd *cobra.Command, args []string) error {
 			}
 
 			for i := 0; i < count; i++ {
-				if err := goose.Down(db, "internal/repositories/postgres/migrations"); err != nil {
+				if err := goose.Down(db, "internal/storage/postgres/migrations"); err != nil {
 					color.Warn.Println("migration failed: down error " + err.Error())
 					return nil
 				}
@@ -177,7 +177,7 @@ func migrateDown() func(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		if err := goose.DownTo(db, "internal/repositories/postgres/migrations", p); err != nil {
+		if err := goose.DownTo(db, "internal/storage/postgres/migrations", p); err != nil {
 			color.Warn.Println("migration failed: down error " + err.Error())
 
 			return nil
@@ -208,7 +208,7 @@ func migrateStatus() func(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		if err := goose.Status(db, "internal/repositories/postgres/migrations"); err != nil {
+		if err := goose.Status(db, "internal/storage/postgres/migrations"); err != nil {
 			color.Warn.Println("migration failed: check status error " + err.Error())
 			return nil
 		}

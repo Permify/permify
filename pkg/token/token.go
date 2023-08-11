@@ -48,12 +48,12 @@ func (t NoopToken) Eg(token SnapToken) bool {
 }
 
 // Gt - Snapshot is greater than given snapshot
-func (t NoopToken) Gt(token SnapToken) bool {
+func (t NoopToken) Gt(SnapToken) bool {
 	return false
 }
 
 // Lt - Snapshot is less than given snapshot
-func (t NoopToken) Lt(token SnapToken) bool {
+func (t NoopToken) Lt(SnapToken) bool {
 	return false
 }
 

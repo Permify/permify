@@ -2,6 +2,8 @@ package database
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewPagination(t *testing.T) {
@@ -61,4 +63,20 @@ func TestPagination(t *testing.T) {
 	if p.Token() != "my-token" {
 		t.Errorf("Expected token of 'my-token', but got '%s'", p.Token())
 	}
+}
+
+func TestNoopContinuousToken(t *testing.T) {
+	token := NewNoopContinuousToken()
+
+	// Test Encode
+	encodedToken := token.Encode()
+	assert.Empty(t, encodedToken.String())
+
+	// Test Decode
+	decodedToken, err := encodedToken.Decode()
+	assert.NoError(t, err)
+	assert.Empty(t, decodedToken.(NoopContinuousToken).Value)
+
+	// Test Encode and Decode
+	assert.Empty(t, decodedToken.(NoopContinuousToken).Value)
 }

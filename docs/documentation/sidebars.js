@@ -104,13 +104,14 @@ module.exports = {
 					link: {
 						type: "generated-index",
 						title: "Permission Service",
-						slug: "/api-overview//permission",
+						slug: "/api-overview/permission",
 					},
 					items: [
 						"api-overview/permission/check-api",
 						"api-overview/permission/lookup-entity",
+						"api-overview/permission/lookup-subject",
 						"api-overview/permission/expand-api",
-						"api-overview/permission/schema-lookup"
+						"api-overview/permission/subject-permission"
 					],
 				  },
 				  {
@@ -126,6 +127,18 @@ module.exports = {
 						"api-overview/tenancy/delete-tenant",
 					],
 				  },
+				{
+					type: 'category',
+					label: 'Watch Service',
+					link: {
+						type: "generated-index",
+						title: "Watch Service",
+						slug: "/api-overview/watch",
+					},
+					items: [
+						"api-overview/watch/watch-changes",
+					],
+				},
 			],
 			collapsed: true
 		},
@@ -136,8 +149,8 @@ module.exports = {
 		},
 		{
 			type: "doc",
-			id: "migrating",
-			label: "Migrating From 0.2.x to 0.3.x",
+			id: "multi-tenancy",
+			label: "Multi Tenancy",
 		},
 		{
 			type: "category",
@@ -148,8 +161,10 @@ module.exports = {
 			},
 			items: [
 				"use-cases/simple-rbac",
+				"use-cases/abac",
 				"use-cases/organizational",
 				"use-cases/ownership",
+				"use-cases/custom-roles",
 				"use-cases/nested-hierarchies",
 				"use-cases/user-groups",
 				"use-cases/sharing",
@@ -167,7 +182,9 @@ module.exports = {
 			items: [
 				"reference/glossary",
 				"reference/configuration",
+				"reference/contextual-tuples",
 				"reference/snap-tokens",
+				"reference/cache",
 				"reference/tracing"
 			],
 			collapsed: true

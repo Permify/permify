@@ -3,6 +3,9 @@ package schema
 import (
 	"strings"
 
+	"github.com/google/cel-go/cel"
+
+	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -11,15 +14,24 @@ import (
 // The function creates a new SchemaDefinition structure, initializes its EntityDefinitions field to an empty map, and
 // then adds each input EntityDefinition structure to this map with the entity name as the key.
 // Finally, it returns the pointer to the constructed SchemaDefinition structure.
-func Schema(entities ...*base.EntityDefinition) *base.SchemaDefinition {
+func Schema(entities []*base.EntityDefinition, rules []*base.RuleDefinition) *base.SchemaDefinition {
 	// create a new SchemaDefinition structure
 	def := &base.SchemaDefinition{
 		EntityDefinitions: map[string]*base.EntityDefinition{},
+		RuleDefinitions:   map[string]*base.RuleDefinition{},
+		References:        map[string]base.SchemaDefinition_Reference{},
 	}
-	// add each input EntityDefinition structure to the EntityDefinitions map with the entity name as the key
+
 	for _, entity := range entities {
 		def.EntityDefinitions[entity.Name] = entity
+		def.References[entity.Name] = base.SchemaDefinition_REFERENCE_ENTITY
 	}
+
+	for _, rule := range rules {
+		def.RuleDefinitions[rule.Name] = rule
+		def.References[rule.Name] = base.SchemaDefinition_REFERENCE_RULE
+	}
+
 	// return the pointer to the constructed SchemaDefinition structure
 	return def
 }
@@ -29,22 +41,86 @@ func Schema(entities ...*base.EntityDefinition) *base.SchemaDefinition {
 // It takes in the name of the entity, an array of relations, and an array of actions.
 // It then initializes the EntityDefinition with the provided values and returns it.
 // The EntityDefinition contains information about the entity's name, its relations, actions, and references.
-func Entity(name string, relations []*base.RelationDefinition, actions []*base.PermissionDefinition) *base.EntityDefinition {
+func Entity(name string, relations []*base.RelationDefinition, attributes []*base.AttributeDefinition, permissions []*base.PermissionDefinition) *base.EntityDefinition {
 	def := &base.EntityDefinition{
 		Name:        name,
 		Relations:   map[string]*base.RelationDefinition{},
+		Attributes:  map[string]*base.AttributeDefinition{},
 		Permissions: map[string]*base.PermissionDefinition{},
-		References:  map[string]base.EntityDefinition_RelationalReference{},
+		References:  map[string]base.EntityDefinition_Reference{},
 	}
+
 	for _, relation := range relations {
 		def.Relations[relation.Name] = relation
-		def.References[relation.Name] = base.EntityDefinition_RELATIONAL_REFERENCE_RELATION
+		def.References[relation.Name] = base.EntityDefinition_REFERENCE_RELATION
 	}
-	for _, action := range actions {
-		def.Permissions[action.Name] = action
-		def.References[action.Name] = base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION
+
+	for _, attribute := range attributes {
+		def.Attributes[attribute.Name] = attribute
+		def.References[attribute.Name] = base.EntityDefinition_REFERENCE_ATTRIBUTE
 	}
+
+	for _, permission := range permissions {
+		def.Permissions[permission.Name] = permission
+		def.References[permission.Name] = base.EntityDefinition_REFERENCE_PERMISSION
+	}
+
 	return def
+}
+
+// Entities - Entities builder
+func Entities(defs ...*base.EntityDefinition) []*base.EntityDefinition {
+	return defs
+}
+
+// Rule is a function that generates a rule definition given a name,
+// a map of argument names to attribute types, and an expression string.
+// The expression string is compiled and transformed to a checked expression.
+func Rule(name string, arguments map[string]base.AttributeType, expression string) *base.RuleDefinition {
+	// Initialize an empty slice of environment options.
+	var envOptions []cel.EnvOption
+
+	// Iterate through each argument.
+	for name, ty := range arguments {
+		// Convert the attribute type to CEL type.
+		cType, err := utils.GetCelType(ty)
+		if err != nil {
+			return nil
+		}
+
+		// Append a new environment option which represents a variable and its type.
+		envOptions = append(envOptions, cel.Variable(name, cType))
+	}
+
+	// Create a new CEL environment with the environment options.
+	env, err := cel.NewEnv(envOptions...)
+	if err != nil {
+		return nil
+	}
+
+	// Compile the given expression string.
+	compiledExp, issues := env.Compile(expression)
+	if issues != nil && issues.Err() != nil {
+		return nil
+	}
+
+	// Convert the compiled expression to a checked expression.
+	expr, err := cel.AstToCheckedExpr(compiledExp)
+	if err != nil {
+		return nil
+	}
+
+	// Return a new rule definition with the given name, arguments, and the checked expression.
+	return &base.RuleDefinition{
+		Name:       name,
+		Arguments:  arguments,
+		Expression: expr,
+	}
+}
+
+// Rules - Rules builder
+func Rules(defs ...*base.RuleDefinition) []*base.RuleDefinition {
+	return defs
 }
 
 // Relation - Relation builder function that creates a new RelationDefinition instance
@@ -62,6 +138,21 @@ func Relation(name string, references ...*base.RelationReference) *base.Relation
 		Name:               name,
 		RelationReferences: references,
 	}
+}
+
+// Attribute is a function that generates an attribute definition
+// given a name and an attribute type.
+func Attribute(name string, typ base.AttributeType) *base.AttributeDefinition {
+	// Return a new attribute definition with the given name and type.
+	return &base.AttributeDefinition{
+		Name: name,
+		Type: typ,
+	}
+}
+
+// Attributes - Attributes builder
+func Attributes(defs ...*base.AttributeDefinition) []*base.AttributeDefinition {
+	return defs
 }
 
 // Relations - Relations builder
@@ -103,14 +194,48 @@ func Permissions(defs ...*base.PermissionDefinition) []*base.PermissionDefinitio
 // ComputedUserSet - returns a Child definition that represents a computed set of users based on a relation
 // relation: the name of the relation on which the computed set is based
 // exclusion: a boolean indicating if the computed set should exclude or include the users in the set
-func ComputedUserSet(relation string, exclusion bool) *base.Child {
+func ComputedUserSet(relation string) *base.Child {
 	return &base.Child{
 		Type: &base.Child_Leaf{
 			Leaf: &base.Leaf{
-				Exclusion: exclusion,
 				Type: &base.Leaf_ComputedUserSet{
 					ComputedUserSet: &base.ComputedUserSet{
 						Relation: relation,
+					},
+				},
+			},
+		},
+	}
+}
+
+// ComputedAttribute is a function that generates a child definition for a computed attribute
+// given its name.
+func ComputedAttribute(name string) *base.Child {
+	// Return a new child definition with the leaf type as a computed attribute and the given name.
+	return &base.Child{
+		Type: &base.Child_Leaf{
+			Leaf: &base.Leaf{
+				Type: &base.Leaf_ComputedAttribute{
+					ComputedAttribute: &base.ComputedAttribute{
+						Name: name,
+					},
+				},
+			},
+		},
+	}
+}
+
+// Call is a function that generates a child definition for a call
+// given its name and a list of arguments.
+func Call(name string, arguments ...*base.Argument) *base.Child {
+	// Return a new child definition with the leaf type as a call and the given name and arguments.
+	return &base.Child{
+		Type: &base.Child_Leaf{
+			Leaf: &base.Leaf{
+				Type: &base.Leaf_Call{
+					Call: &base.Call{
+						RuleName:  name,
+						Arguments: arguments,
 					},
 				},
 			},
@@ -126,11 +251,10 @@ func ComputedUserSet(relation string, exclusion bool) *base.Child {
 // relation: the name of the relation for the computed user set
 // exclusion: a boolean indicating whether to exclude the computed user set
 // Returns a pointer to a base.Child struct.
-func TupleToUserSet(reference, relation string, exclusion bool) *base.Child {
+func TupleToUserSet(reference, relation string) *base.Child {
 	return &base.Child{
 		Type: &base.Child_Leaf{
 			Leaf: &base.Leaf{
-				Exclusion: exclusion,
 				Type: &base.Leaf_TupleToUserSet{
 					TupleToUserSet: &base.TupleToUserSet{
 						TupleSet: &base.TupleSet{
@@ -164,6 +288,18 @@ func Intersection(children ...*base.Child) *base.Child {
 		Type: &base.Child_Rewrite{
 			Rewrite: &base.Rewrite{
 				RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
+				Children:         children,
+			},
+		},
+	}
+}
+
+// Exclusion - Returns a child element that represents the exclusion of the given children. This child element can be used in defining entity relations and actions.
+func Exclusion(children ...*base.Child) *base.Child {
+	return &base.Child{
+		Type: &base.Child_Rewrite{
+			Rewrite: &base.Rewrite{
+				RewriteOperation: base.Rewrite_OPERATION_EXCLUSION,
 				Children:         children,
 			},
 		},

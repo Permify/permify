@@ -36,6 +36,6 @@ func (m *Memory) Close() error {
 }
 
 // IsReady - Check if database is ready
-func (m *Memory) IsReady(ctx context.Context) (bool, error) {
+func (m *Memory) IsReady(_ context.Context) (bool, error) {
 	return true, nil
 }

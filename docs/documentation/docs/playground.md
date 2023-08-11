@@ -14,7 +14,7 @@ You can create your authorization model in this section with using Permify autho
 
 To demonstrate how playground works, let's choose the "empty" option from our dropdown to create a simple authorization model as follows:
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193245391-6ff7cd21-69e3-4b8e-9fa8-d28c9045fe16.png)
+![authorization-model](https://github.com/Permify/permify/assets/39353278/308cfbac-0db3-4349-ae38-4cfe64bc6732)
 
 We have 2 permissions these are editing repository and deleting repository. Repository has parent child relation with organizations. Lastly organizations can have organizational wide roles such as admin and member. After completing your authorization model you can just save it with hitting the save button and start testing it.
 
@@ -22,7 +22,7 @@ We have 2 permissions these are editing repository and deleting repository. Repo
 
 We get loads of feedback about the observability and reasonability of the authorization model across teams and colleagues. So we put a simple visualizer that shows how your authorization structure looks at a high level. In particular, you can examine relations between entities and their permissions. Here is a visualization for example model that we created above.
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193245587-ff794d53-c142-44fb-959b-5c4546dd73c1.png)
+![relational-tuples](https://github.com/Permify/permify/assets/39353278/a80a39b3-5139-4f13-9395-bdf1f9296c49)
 
 ## Authorization Data
 
@@ -36,35 +36,35 @@ So the entity can be any entity that you defined in your model. If we look up ou
 
 To create a relation tuple in playground just hit the "new" button and a pop up will open.
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193246047-a6c425bd-b417-4054-b1a0-9352e8f30ded.png)
+![create-tuple-empty](https://github.com/Permify/permify/assets/39353278/abea768e-8721-4957-a2a8-4dc8eff9d6bc)
 
 You can choose entity, relation and the subject (user or user set) with entering identifier to create sample data. Let's create the relation tuple `‍organization:1#admin@user:1` as follows.
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193246036-691cb4ab-a589-4856-887e-7f412a2bb32d.png)
+![create-tuple-user](https://github.com/Permify/permify/assets/39353278/2525cb4e-8014-4871-849b-77df80efa577)
 
 And this created tuple shown in the Authorization Data section as follows.
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193246251-ffbb5c8d-944b-4b87-ae50-82a7c2d575e2.png)
+![authorization-data](https://github.com/Permify/permify/assets/39353278/d415c6bf-6b00-457c-8a95-dea846e96125)
 
 Let's add one more relation tuple to perform a sample access check. I want to add repository:1 into organization:1 as follows:
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193246717-cce0dc69-f10b-4e3a-8a85-ed846373a154.png)
+![create-tuple-parent](https://github.com/Permify/permify/assets/39353278/d8ea5e8d-c487-4cdf-91cd-48f039949046)
 
-Created relational tuple after this will be: "repository:1#parent@organization:1#..." We used “...”  when subject type is different from user entity. #… represents a relation that does not affect the semantics of the tuple.
+Created relational tuple after this will be: "repository:1#parent@organization:1".
 
 ## Enforcement ( Access Checks)
-Finally as we have a sample data lets perform an access check from the right below. Let's check whether user:1 can edit the repository:1. Since organization:1 is parent of repository:1 ( `‍repository:1#parent@organization:1#...` ) and user:1 has an admin role in organization:1 ( `‍organization:1#admin@user:1` ) user:1 should allow to edit the repository:1 because the we define rule of the edit permission action as:
+Finally as we have a sample data lets perform an access check from the right below. Let's check whether user:1 can edit the repository:1. Since organization:1 is parent of repository:1 ( `‍repository:1#parent@organization:1#...` ) and user:1 has an admin role in organization:1 ( `‍organization:1#admin@user:1` ) user:1 should allow to edit the repository:1 because the we define rule of the edit permission as:
 
-`‍action edit = owner or parent.admin`
+`‍permission edit = owner or parent.admin`
 
-which parent.admin indicates admin in the organization that repository belongs to. So let's type **"can user:1 edit repository:1"** and hit the check button to get result.
+which parent.admin indicates admin in the organization that repository belongs to. So let's type **"user:1 edit repository:1"** and hit the check button to get result.
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193246742-4df97b34-5e94-4132-9c7c-8d184ccc32f4.png)
+![relational-tuples](https://github.com/Permify/permify/assets/39353278/e7724518-f641-4f6a-9d93-d4dc89b1f409)
 
 
-Let's try to get unauthorized result. Type "can user:1 delete repository:1" on the question input. Since only owners can delete the repository this access check will result as unauthorized.
+Let's try to get unauthorized result. Type "user:1 delete repository:1" on the question input. Since only owners can delete the repository this access check will result as unauthorized.
 
-![relational-tuples](https://user-images.githubusercontent.com/34595361/193246754-86332f18-a483-479b-a0cf-62703c38a2f4.png)
+![relational-tuples](https://github.com/Permify/permify/assets/39353278/51bd7e2e-a4c1-4df5-8a1f-9eec7999872a)
 
 As we seen above this is how you can model your authorization and test it with sample data in Permify Playground. Check out our docs for different modeling use cases, creating and storing relational tuples and more. 
 

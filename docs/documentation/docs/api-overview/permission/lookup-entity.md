@@ -1,11 +1,11 @@
 ---
-title: Check Entities' Permissions
+title: Entity (Data) Filtering
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Check Entities' Permissions (Data Filtering)
+# Entity Filtering
 
 Lookup Entity endpoint lets you ask questions in form of **“Which resources can user:X do action Y?”**. As a response of this you’ll get a entity results in a format of string array or as a streaming response depending on the endpoint you're using.
 
@@ -20,14 +20,15 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 
 **POST** /v1/permissions/lookup-entity
 
-| Required | Argument | Type | Default | Description |
-|----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
-| [ ]   | schema_version | string | 8 | Version of the schema |
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
-| [x]   | entity_type | object | - | type of the  entity. Example: repository”.
-| [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
+| Required | Argument          | Type   | Default | Description                                                                                                                                                                |
+|----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [x]      | tenant_id         | string | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                           |
+| [ ]      | schema_version    | string | 8       | Version of the schema                                                                                                                                                      |
+| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens)                                                                        |
+| [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
+| [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
+| [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
+| [ ]      | contextual_tuples | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -94,33 +95,70 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 </TabItem>
 </Tabs>
 
+## How Lookup Operations Evaluated
+
+We explicitly designed reverse lookup to be more performant with changing its evaluation pattern. We do not query all the documents in bulk to get response, instead of this Permify first finds the necessary relations with given subject and the permission/action in the API call. Then query these relations with the subject id this way we reduce lots of additional queries.
+
+To give an example, 
+
+```jsx
+entity user {}
+
+entity organization {
+		relation admin @user
+}
+
+entity container {
+		relation parent @organization
+		relation container_admin @user
+		action admin = parent.admin or container_admin
+}
+	
+entity document {
+		relation container @container
+		relation viewer @user
+		relation owner @user
+		action view = viewer or owner or container.admin
+}
+```
+
+Lets say we called (reverse) lookup API to find the documents that user:1 can view. Permify first finds the relations that linked with view action, these are 
+
+- `document#viewer`
+- `document#owner`
+- `organization#admin`
+- `container#``container_admin`
+
+Then queries each of them with `user:1.`
+
 ### Lookup Entity (Streaming)
 
 The difference between this endpoint from direct Lookup Entity is response of this entity gives the IDs' as stream. This could be useful if you have large data set that getting all of the authorized data can take long with direct lookup entity endpoint.
 
 **POST** /v1/permissions/lookup-entity-stream
 
-| Required | Argument | Type | Default | Description |
-|----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [ ]   | schema_version | string | 8 | Version of the schema |
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
-| [x]   | entity_type | object | - | type of the  entity. Example: repository”.
-| [x]   | permission | string | - | the action the user wants to perform on the resource |
-| [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
+| Required | Argument          | Type   | Default | Description                                                                                                                                                                |
+|----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [ ]      | schema_version    | string | 8       | Version of the schema                                                                                                                                                      |
+| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens)                                                                        |
+| [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
+| [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
+| [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
+| [ ]      | contextual_tuples | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">
 
 ```go
-str, err: = client.Permission.LookupEntityStream(context.Background(), & v1.PermissionLookupEntityRequest {
-    Metadata: & v1.PermissionLookupEntityRequestMetadata {
+str, err: = client.Permission.LookupEntityStream(context.Background(), &v1.PermissionLookupEntityRequest {
+    Metadata: &v1.PermissionLookupEntityRequestMetadata {
         SnapToken: "", 
         SchemaVersion: "" 
         Depth: 50,
     },
     EntityType: "document",
     Permission: "view",
-    Subject: & v1.Subject {
+    Subject: &v1.Subject {
         Type: "user",
         Id: "1",
     },

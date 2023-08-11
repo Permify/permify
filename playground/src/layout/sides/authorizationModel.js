@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
+import {useSearchParams} from "react-router-dom";
 import {Button, Card, Space} from 'antd';
-import {CopyOutlined, SaveOutlined} from "@ant-design/icons";
+import {CopyOutlined, SaveOutlined, ReadOutlined} from "@ant-design/icons";
 import Editor from "../../pkg/Editor";
 import {shallowEqual, useDispatch, useSelector} from "react-redux";
 import {setModelChangeActivity} from "../../redux/common/actions";
@@ -8,6 +9,8 @@ import {WriteSchema} from "../../services/schema";
 import {setSchema} from "../../redux/shape/actions";
 
 function AuthorizationModel(props) {
+
+    const [searchParams] = useSearchParams();
 
     const modelChangeTrigger = useSelector((state) => state.common.model_change_toggle, shallowEqual);
 
@@ -21,12 +24,12 @@ function AuthorizationModel(props) {
         props.isReady(false)
         setError(null)
         WriteSchema(m).then((res) => {
-            if (res[1] != null) {
-                let numbers = parseNumbers(res[1])
+            if (res[0] != null) {
+                let numbers = parseNumbers(res[0])
                 setError({
                     line: numbers[0],
                     column: numbers[1],
-                    message: res[1].replaceAll('_', ' ').toLowerCase(),
+                    message: res[0].replaceAll('_', ' ').toLowerCase(),
                 })
             } else {
                 setIsModelCopied(false)
@@ -68,7 +71,19 @@ function AuthorizationModel(props) {
     return (
         <Card title={props.title} extra={<Space>
 
-            <Button type="secondary" onClick={() => {
+            { searchParams.get('s') === "google-docs-simplified" &&
+                <Button href="https://docs.permify.co/docs/getting-started/examples/google-docs" target="_blank" icon={<ReadOutlined />}>See In Docs</Button>
+            }
+
+            { searchParams.get('s') === "facebook-groups" &&
+                <Button href="https://docs.permify.co/docs/getting-started/examples/facebook-groups" target="_blank" icon={<ReadOutlined />}>See In Docs</Button>
+            }
+
+            { searchParams.get('s') === "notion" &&
+                <Button href="https://docs.permify.co/docs/getting-started/examples/notion" target="_blank" icon={<ReadOutlined />}>See In Docs</Button>
+            }
+
+            <Button onClick={() => {
                 copyModel(model)
             }} icon={<CopyOutlined/>}>{isModelCopied ? 'Copied!' : 'Copy'}</Button>
 

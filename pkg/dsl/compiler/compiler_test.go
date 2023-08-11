@@ -4,6 +4,9 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/google/cel-go/cel"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -28,7 +31,7 @@ var _ = Describe("compiler", func() {
 			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
-			is, err = c.Compile()
+			is, _, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(is).Should(Equal([]*base.EntityDefinition{
@@ -36,7 +39,8 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 			}))
 		})
@@ -44,22 +48,22 @@ var _ = Describe("compiler", func() {
 		It("Case 2", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
-				
+		
 			entity organization {
-				
+		
 				relation owner @user
 				relation admin @user
-
+		
 				permission update = owner or admin
 			}
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
-			is, err = c.Compile()
+			is, _, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			i := []*base.EntityDefinition{
@@ -67,7 +71,8 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				{
 					Name: "organization",
@@ -82,7 +87,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -94,7 +98,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "admin",
@@ -109,6 +112,7 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
+					Attributes: map[string]*base.AttributeDefinition{},
 					Relations: map[string]*base.RelationDefinition{
 						"owner": {
 							Name: "owner",
@@ -129,10 +133,10 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}
@@ -143,22 +147,22 @@ var _ = Describe("compiler", func() {
 		It("Case 3", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
-				
+		
 			entity organization {
-				
+		
 				relation owner @user
 				relation admin @user
-
+		
 				permission update = owner or (admin and owner)
 			}
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
-			is, err = c.Compile()
+			is, _, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			i := []*base.EntityDefinition{
@@ -166,7 +170,8 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				{
 					Name: "organization",
@@ -181,7 +186,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -198,7 +202,6 @@ var _ = Describe("compiler", func() {
 															{
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: false,
 																		Type: &base.Leaf_ComputedUserSet{
 																			ComputedUserSet: &base.ComputedUserSet{
 																				Relation: "admin",
@@ -210,7 +213,6 @@ var _ = Describe("compiler", func() {
 															{
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: false,
 																		Type: &base.Leaf_ComputedUserSet{
 																			ComputedUserSet: &base.ComputedUserSet{
 																				Relation: "owner",
@@ -249,10 +251,11 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}
@@ -263,22 +266,22 @@ var _ = Describe("compiler", func() {
 		It("Case 4", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
-				
+		
 			entity organization {
-				
+		
 				relation owner @user
 				relation admin @user
-
+		
 				permission update = owner
 			}
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
-			is, err = c.Compile()
+			is, _, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			i := []*base.EntityDefinition{
@@ -286,7 +289,8 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				{
 					Name: "organization",
@@ -296,7 +300,6 @@ var _ = Describe("compiler", func() {
 							Child: &base.Child{
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
-										Exclusion: false,
 										Type: &base.Leaf_ComputedUserSet{
 											ComputedUserSet: &base.ComputedUserSet{
 												Relation: "owner",
@@ -327,10 +330,11 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}
@@ -341,41 +345,41 @@ var _ = Describe("compiler", func() {
 		It("Case 5", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
-				
+		
 			entity organization {
-				
+		
 				relation owner @user
 				relation admin @user
-
+		
 				permission update = maintainer or admin
 			}
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
-			_, err = c.Compile()
+			_, _, err = c.Compile()
 			Expect(err).Should(Equal(errors.New("9:26: undefined relation reference")))
 		})
 
 		It("Case 6", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
-				
+		
 			entity parent {
-				
+		
 				relation admin @user
 			}
-
+		
 			entity organization {
-				
+		
 				relation parent @parent
 				relation admin @user
 			}
-
+		
 			entity repository {
-				
+		
 				relation parent @organization
 				permission update = parent.parent.admin or admin
 			}
@@ -383,40 +387,40 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
-			_, err = c.Compile()
+			_, _, err = c.Compile()
 			Expect(err).Should(Equal(errors.New("18:40: not supported relation walk")))
 		})
 
 		It("Case 7", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
-				
+		
 			entity organization {
-				
+		
 				relation owner @user
 				relation admin @user
-
+		
 				permission update = owner or admin
 			}
-
+		
 			entity repository {
-				
+		
 				relation parent @organization
 				relation owner @user
-
-				permission delete = owner or (parent.update or not parent.owner)
+		
+				permission delete = owner or (parent.update not parent.owner)
 			}
-
+		
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
-			is, err = c.Compile()
+			is, _, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			i := []*base.EntityDefinition{
@@ -424,7 +428,8 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				{
 					Name: "organization",
@@ -439,7 +444,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -451,7 +455,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "admin",
@@ -486,10 +489,11 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 				{
@@ -505,7 +509,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -517,12 +520,11 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Rewrite{
 													Rewrite: &base.Rewrite{
-														RewriteOperation: base.Rewrite_OPERATION_UNION,
+														RewriteOperation: base.Rewrite_OPERATION_EXCLUSION,
 														Children: []*base.Child{
 															{
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: false,
 																		Type: &base.Leaf_TupleToUserSet{
 																			TupleToUserSet: &base.TupleToUserSet{
 																				TupleSet: &base.TupleSet{
@@ -539,7 +541,6 @@ var _ = Describe("compiler", func() {
 															{
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: true,
 																		Type: &base.Leaf_TupleToUserSet{
 																			TupleToUserSet: &base.TupleToUserSet{
 																				TupleSet: &base.TupleSet{
@@ -583,10 +584,11 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"parent": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"delete": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"parent": base.EntityDefinition_REFERENCE_RELATION,
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"delete": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}
@@ -597,31 +599,31 @@ var _ = Describe("compiler", func() {
 		It("Case 8", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
-				
+		
 			entity organization {
-				
+		
 				relation owner @user
 				relation admin @user
-
+		
 				permission update = owner or admin
 			}
-
+		
 			entity repository {
-				
+		
 				relation parent @organization
 				relation owner @user @organization#admin @organization#owner
-
-				permission delete = owner or (parent.update or not parent.owner)
+		
+				permission delete = owner or (parent.update not parent.owner)
 			}
-
+		
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
-			is, err = c.Compile()
+			is, _, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			i := []*base.EntityDefinition{
@@ -629,7 +631,8 @@ var _ = Describe("compiler", func() {
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References:  map[string]base.EntityDefinition_RelationalReference{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
 				},
 				{
 					Name: "organization",
@@ -644,7 +647,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -656,7 +658,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "admin",
@@ -691,10 +692,11 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"admin":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"update": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"admin":  base.EntityDefinition_REFERENCE_RELATION,
+						"update": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 				{
@@ -710,7 +712,6 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Leaf{
 													Leaf: &base.Leaf{
-														Exclusion: false,
 														Type: &base.Leaf_ComputedUserSet{
 															ComputedUserSet: &base.ComputedUserSet{
 																Relation: "owner",
@@ -722,12 +723,11 @@ var _ = Describe("compiler", func() {
 											{
 												Type: &base.Child_Rewrite{
 													Rewrite: &base.Rewrite{
-														RewriteOperation: base.Rewrite_OPERATION_UNION,
+														RewriteOperation: base.Rewrite_OPERATION_EXCLUSION,
 														Children: []*base.Child{
 															{
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: false,
 																		Type: &base.Leaf_TupleToUserSet{
 																			TupleToUserSet: &base.TupleToUserSet{
 																				TupleSet: &base.TupleSet{
@@ -744,7 +744,6 @@ var _ = Describe("compiler", func() {
 															{
 																Type: &base.Child_Leaf{
 																	Leaf: &base.Leaf{
-																		Exclusion: true,
 																		Type: &base.Leaf_TupleToUserSet{
 																			TupleToUserSet: &base.TupleToUserSet{
 																				TupleSet: &base.TupleSet{
@@ -796,10 +795,11 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"parent": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"owner":  base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"delete": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"parent": base.EntityDefinition_REFERENCE_RELATION,
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"delete": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}
@@ -810,90 +810,60 @@ var _ = Describe("compiler", func() {
 		It("Case 9", func() {
 			sch, err := parser.NewParser(`
 			entity user {}
-				
+		
 			entity organization {
-				
+		
 				relation owner @user
 				relation admin @user
-
+		
 				permission update = owner or admin
 			}
-
+		
 			entity repository {
-				
+		
 				relation parent @organization
-				relation owner @user @organization
-
-				permission delete = owner or (parent.update or not parent.owner)
+				relation owner @user @organization#update
+		
+				permission delete = owner or (parent.update not parent.owner)
 			}
-
+		
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
-			_, err = c.Compile()
-			Expect(err.Error()).Should(Equal("15:28: relation reference must have one entity reference"))
+			_, _, err = c.Compile()
+			Expect(err.Error()).Should(Equal("15:28: relation reference not found in entity references"))
 		})
 
 		It("Case 10", func() {
 			sch, err := parser.NewParser(`
-			entity user {}
-				
-			entity organization {
-				
-				relation owner @user
-				relation admin @user
-
-				permission update = owner or admin
-			}
-
-			entity repository {
-				
-				relation parent @organization
-				relation owner @user @organization#update
-
-				permission delete = owner or (parent.update or not parent.owner)
-			}
-
-			`).Parse()
-
-			Expect(err).ShouldNot(HaveOccurred())
-
-			c := NewCompiler(false, sch)
-
-			_, err = c.Compile()
-			Expect(err.Error()).Should(Equal("15:28: relation reference not found in entity references"))
-		})
-
-		It("Case 11", func() {
-			sch, err := parser.NewParser(`
 			entity user {
-    			relation org @organization
-
-    			permission read = org.admin
-    			permission write = org.admin
+				relation org @organization
+		
+				permission read = org.admin
+				permission write = org.admin
 			}
-
+		
 			entity organization {
-    			relation admin @user
+				relation admin @user
 			}
-
+		
 			entity division {
-    			relation manager @user @organization#admin
-
+				relation manager @user @organization#admin
+		
 				permission read = manager
-    			permission write = manager
+				permission write = manager
 			}
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
-			is, err = c.Compile()
+			is, _, err = c.Compile()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -917,7 +887,6 @@ var _ = Describe("compiler", func() {
 							Child: &base.Child{
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
-										Exclusion: false,
 										Type: &base.Leaf_TupleToUserSet{
 											TupleToUserSet: &base.TupleToUserSet{
 												TupleSet: &base.TupleSet{
@@ -937,7 +906,6 @@ var _ = Describe("compiler", func() {
 							Child: &base.Child{
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
-										Exclusion: false,
 										Type: &base.Leaf_TupleToUserSet{
 											TupleToUserSet: &base.TupleToUserSet{
 												TupleSet: &base.TupleSet{
@@ -953,10 +921,11 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"org":   base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"read":  base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
-						"write": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"org":   base.EntityDefinition_REFERENCE_RELATION,
+						"read":  base.EntityDefinition_REFERENCE_PERMISSION,
+						"write": base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 				{
@@ -972,9 +941,10 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
+					Attributes:  map[string]*base.AttributeDefinition{},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"admin": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
+					References: map[string]base.EntityDefinition_Reference{
+						"admin": base.EntityDefinition_REFERENCE_RELATION,
 					},
 				},
 				{
@@ -1000,7 +970,6 @@ var _ = Describe("compiler", func() {
 							Child: &base.Child{
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
-										Exclusion: false,
 										Type: &base.Leaf_ComputedUserSet{
 											ComputedUserSet: &base.ComputedUserSet{
 												Relation: "manager",
@@ -1015,7 +984,6 @@ var _ = Describe("compiler", func() {
 							Child: &base.Child{
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
-										Exclusion: false,
 										Type: &base.Leaf_ComputedUserSet{
 											ComputedUserSet: &base.ComputedUserSet{
 												Relation: "manager",
@@ -1026,10 +994,180 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"manager": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"read":    base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
-						"write":   base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"manager": base.EntityDefinition_REFERENCE_RELATION,
+						"read":    base.EntityDefinition_REFERENCE_PERMISSION,
+						"write":   base.EntityDefinition_REFERENCE_PERMISSION,
+					},
+				},
+			}
+
+			Expect(is).Should(Equal(i))
+		})
+
+		It("Case 11", func() {
+			sch, err := parser.NewParser(`
+			entity user {
+				relation org @organization
+		
+				permission read = org.admin
+				permission write = org.admin
+			}
+		
+			entity organization {
+				relation admin @user
+			}
+		
+			entity division {
+				relation manager @user @organization#admin
+		
+				permission read = manager
+				permission write = manager
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			var is []*base.EntityDefinition
+			is, _, err = c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			i := []*base.EntityDefinition{
+				{
+					Name: "user",
+					Relations: map[string]*base.RelationDefinition{
+						"org": {
+							Name: "org",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "organization",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Permissions: map[string]*base.PermissionDefinition{
+						"read": {
+							Name: "read",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Type: &base.Leaf_TupleToUserSet{
+											TupleToUserSet: &base.TupleToUserSet{
+												TupleSet: &base.TupleSet{
+													Relation: "org",
+												},
+												Computed: &base.ComputedUserSet{
+													Relation: "admin",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"write": {
+							Name: "write",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Type: &base.Leaf_TupleToUserSet{
+											TupleToUserSet: &base.TupleToUserSet{
+												TupleSet: &base.TupleSet{
+													Relation: "org",
+												},
+												Computed: &base.ComputedUserSet{
+													Relation: "admin",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"org":   base.EntityDefinition_REFERENCE_RELATION,
+						"read":  base.EntityDefinition_REFERENCE_PERMISSION,
+						"write": base.EntityDefinition_REFERENCE_PERMISSION,
+					},
+				},
+				{
+					Name: "organization",
+					Relations: map[string]*base.RelationDefinition{
+						"admin": {
+							Name: "admin",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "user",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"admin": base.EntityDefinition_REFERENCE_RELATION,
+					},
+				},
+				{
+					Name: "division",
+					Relations: map[string]*base.RelationDefinition{
+						"manager": {
+							Name: "manager",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "user",
+									Relation: "",
+								},
+								{
+									Type:     "organization",
+									Relation: "admin",
+								},
+							},
+						},
+					},
+					Permissions: map[string]*base.PermissionDefinition{
+						"read": {
+							Name: "read",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Type: &base.Leaf_ComputedUserSet{
+											ComputedUserSet: &base.ComputedUserSet{
+												Relation: "manager",
+											},
+										},
+									},
+								},
+							},
+						},
+						"write": {
+							Name: "write",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Type: &base.Leaf_ComputedUserSet{
+											ComputedUserSet: &base.ComputedUserSet{
+												Relation: "manager",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"manager": base.EntityDefinition_REFERENCE_RELATION,
+						"read":    base.EntityDefinition_REFERENCE_PERMISSION,
+						"write":   base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}
@@ -1039,94 +1177,59 @@ var _ = Describe("compiler", func() {
 
 		It("Case 12", func() {
 			sch, err := parser.NewParser(`
-			entity user {
-    			relation org @organization
-
-    			permission read = org.admin
-    			permission write = org.admin
+		
+			entity usertype {}
+		
+			entity company {
+				relation admin @usertype
 			}
-
+		
 			entity organization {
-    			relation admin @user
+				relation admin @usertype
 			}
-
-			entity division {
-    			relation manager @user @organization#admin
-
-				permission read = manager
-    			permission write = manager
+		
+			entity department {
+				relation parent @company @organization
+		
+				permission read = parent.admin
+		
 			}
 			`).Parse()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			c := NewCompiler(false, sch)
+			c := NewCompiler(true, sch)
 
 			var is []*base.EntityDefinition
-			is, err = c.Compile()
+			is, _, err = c.Compile()
 
 			Expect(err).ShouldNot(HaveOccurred())
 
 			i := []*base.EntityDefinition{
 				{
-					Name: "user",
+					Name:        "usertype",
+					Relations:   map[string]*base.RelationDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
+				},
+				{
+					Name: "company",
 					Relations: map[string]*base.RelationDefinition{
-						"org": {
-							Name: "org",
+						"admin": {
+							Name: "admin",
 							RelationReferences: []*base.RelationReference{
 								{
-									Type:     "organization",
+									Type:     "usertype",
 									Relation: "",
 								},
 							},
 						},
 					},
-					Permissions: map[string]*base.PermissionDefinition{
-						"read": {
-							Name: "read",
-							Child: &base.Child{
-								Type: &base.Child_Leaf{
-									Leaf: &base.Leaf{
-										Exclusion: false,
-										Type: &base.Leaf_TupleToUserSet{
-											TupleToUserSet: &base.TupleToUserSet{
-												TupleSet: &base.TupleSet{
-													Relation: "org",
-												},
-												Computed: &base.ComputedUserSet{
-													Relation: "admin",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"write": {
-							Name: "write",
-							Child: &base.Child{
-								Type: &base.Child_Leaf{
-									Leaf: &base.Leaf{
-										Exclusion: false,
-										Type: &base.Leaf_TupleToUserSet{
-											TupleToUserSet: &base.TupleToUserSet{
-												TupleSet: &base.TupleSet{
-													Relation: "org",
-												},
-												Computed: &base.ComputedUserSet{
-													Relation: "admin",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"org":   base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"read":  base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
-						"write": base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Permissions: map[string]*base.PermissionDefinition{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"admin": base.EntityDefinition_REFERENCE_RELATION,
 					},
 				},
 				{
@@ -1136,30 +1239,31 @@ var _ = Describe("compiler", func() {
 							Name: "admin",
 							RelationReferences: []*base.RelationReference{
 								{
-									Type:     "user",
+									Type:     "usertype",
 									Relation: "",
 								},
 							},
 						},
 					},
 					Permissions: map[string]*base.PermissionDefinition{},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"admin": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"admin": base.EntityDefinition_REFERENCE_RELATION,
 					},
 				},
 				{
-					Name: "division",
+					Name: "department",
 					Relations: map[string]*base.RelationDefinition{
-						"manager": {
-							Name: "manager",
+						"parent": {
+							Name: "parent",
 							RelationReferences: []*base.RelationReference{
 								{
-									Type:     "user",
+									Type:     "company",
 									Relation: "",
 								},
 								{
 									Type:     "organization",
-									Relation: "admin",
+									Relation: "",
 								},
 							},
 						},
@@ -1170,25 +1274,14 @@ var _ = Describe("compiler", func() {
 							Child: &base.Child{
 								Type: &base.Child_Leaf{
 									Leaf: &base.Leaf{
-										Exclusion: false,
-										Type: &base.Leaf_ComputedUserSet{
-											ComputedUserSet: &base.ComputedUserSet{
-												Relation: "manager",
-											},
-										},
-									},
-								},
-							},
-						},
-						"write": {
-							Name: "write",
-							Child: &base.Child{
-								Type: &base.Child_Leaf{
-									Leaf: &base.Leaf{
-										Exclusion: false,
-										Type: &base.Leaf_ComputedUserSet{
-											ComputedUserSet: &base.ComputedUserSet{
-												Relation: "manager",
+										Type: &base.Leaf_TupleToUserSet{
+											TupleToUserSet: &base.TupleToUserSet{
+												TupleSet: &base.TupleSet{
+													Relation: "parent",
+												},
+												Computed: &base.ComputedUserSet{
+													Relation: "admin",
+												},
 											},
 										},
 									},
@@ -1196,15 +1289,651 @@ var _ = Describe("compiler", func() {
 							},
 						},
 					},
-					References: map[string]base.EntityDefinition_RelationalReference{
-						"manager": base.EntityDefinition_RELATIONAL_REFERENCE_RELATION,
-						"read":    base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
-						"write":   base.EntityDefinition_RELATIONAL_REFERENCE_PERMISSION,
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"parent": base.EntityDefinition_REFERENCE_RELATION,
+						"read":   base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}
 
 			Expect(is).Should(Equal(i))
+		})
+
+		It("Case 13", func() {
+			sch, err := parser.NewParser(`
+			entity usertype {}
+
+			entity company {
+    			relation owner @usertype
+			}
+
+			entity organization {
+    			relation parent @company @organization
+
+				relation owner @usertype
+			}
+
+			entity repository {
+
+    			relation parent @organization#parent
+    			relation owner  @usertype
+
+    			permission edit  = parent.owner or owner
+    			permission delete  = edit
+			} 
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			var is []*base.EntityDefinition
+			is, _, err = c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			i := []*base.EntityDefinition{
+				{
+					Name:        "usertype",
+					Relations:   map[string]*base.RelationDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
+				},
+				{
+					Name: "company",
+					Relations: map[string]*base.RelationDefinition{
+						"owner": {
+							Name: "owner",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "usertype",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Permissions: map[string]*base.PermissionDefinition{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"owner": base.EntityDefinition_REFERENCE_RELATION,
+					},
+				},
+				{
+					Name: "organization",
+					Relations: map[string]*base.RelationDefinition{
+						"parent": {
+							Name: "parent",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "company",
+									Relation: "",
+								},
+								{
+									Type:     "organization",
+									Relation: "",
+								},
+							},
+						},
+						"owner": {
+							Name: "owner",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "usertype",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Permissions: map[string]*base.PermissionDefinition{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"parent": base.EntityDefinition_REFERENCE_RELATION,
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+					},
+				},
+				{
+					Name: "repository",
+					Relations: map[string]*base.RelationDefinition{
+						"parent": {
+							Name: "parent",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "organization",
+									Relation: "parent",
+								},
+							},
+						},
+						"owner": {
+							Name: "owner",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "usertype",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Permissions: map[string]*base.PermissionDefinition{
+						"edit": {
+							Name: "edit",
+							Child: &base.Child{
+								Type: &base.Child_Rewrite{
+									Rewrite: &base.Rewrite{
+										RewriteOperation: base.Rewrite_OPERATION_UNION,
+										Children: []*base.Child{
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Type: &base.Leaf_TupleToUserSet{
+															TupleToUserSet: &base.TupleToUserSet{
+																TupleSet: &base.TupleSet{
+																	Relation: "parent",
+																},
+																Computed: &base.ComputedUserSet{
+																	Relation: "owner",
+																},
+															},
+														},
+													},
+												},
+											},
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Type: &base.Leaf_ComputedUserSet{
+															ComputedUserSet: &base.ComputedUserSet{
+																Relation: "owner",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"delete": {
+							Name: "delete",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Type: &base.Leaf_ComputedUserSet{
+											ComputedUserSet: &base.ComputedUserSet{
+												Relation: "edit",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Attributes: map[string]*base.AttributeDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"parent": base.EntityDefinition_REFERENCE_RELATION,
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+						"edit":   base.EntityDefinition_REFERENCE_PERMISSION,
+						"delete": base.EntityDefinition_REFERENCE_PERMISSION,
+					},
+				},
+			}
+
+			Expect(is).Should(Equal(i))
+		})
+
+		It("Case 14", func() {
+			sch, err := parser.NewParser(`
+			entity usertype {}
+
+			entity company {}
+
+			entity organization {
+    			relation parent @company
+			}
+
+			entity repository {
+
+    			relation parent @organization#parent
+    			relation owner  @usertype
+
+    			permission edit   = parent.owner or owner
+			} 
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+			Expect(err.Error()).Should(Equal("15:36: undefined relation reference"))
+		})
+
+		It("Case 15", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity account {
+    			relation owner @user
+    			attribute balance integer
+
+    			permission withdraw = check_balance(request.amount, balance) and owner
+			}
+	
+			rule check_balance(amount integer, balance integer) {
+				balance >= amount && amount <= 5000
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			var eIs []*base.EntityDefinition
+			var rIs []*base.RuleDefinition
+			eIs, rIs, err = c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			eI := []*base.EntityDefinition{
+				{
+					Name:        "user",
+					Relations:   map[string]*base.RelationDefinition{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
+				},
+				{
+					Name: "account",
+					Relations: map[string]*base.RelationDefinition{
+						"owner": {
+							Name: "owner",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "user",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Attributes: map[string]*base.AttributeDefinition{
+						"balance": {
+							Name: "balance",
+							Type: base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
+						},
+					},
+					Permissions: map[string]*base.PermissionDefinition{
+						"withdraw": {
+							Name: "withdraw",
+							Child: &base.Child{
+								Type: &base.Child_Rewrite{
+									Rewrite: &base.Rewrite{
+										RewriteOperation: base.Rewrite_OPERATION_INTERSECTION,
+										Children: []*base.Child{
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Type: &base.Leaf_Call{
+															Call: &base.Call{
+																RuleName: "check_balance",
+																Arguments: []*base.Argument{
+																	{
+																		Type: &base.Argument_ContextAttribute{
+																			ContextAttribute: &base.ContextAttribute{
+																				Name: "amount",
+																			},
+																		},
+																	},
+																	{
+																		Type: &base.Argument_ComputedAttribute{
+																			ComputedAttribute: &base.ComputedAttribute{
+																				Name: "balance",
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Type: &base.Leaf_ComputedUserSet{
+															ComputedUserSet: &base.ComputedUserSet{
+																Relation: "owner",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					References: map[string]base.EntityDefinition_Reference{
+						"owner":    base.EntityDefinition_REFERENCE_RELATION,
+						"balance":  base.EntityDefinition_REFERENCE_ATTRIBUTE,
+						"withdraw": base.EntityDefinition_REFERENCE_PERMISSION,
+					},
+				},
+			}
+
+			env, err := cel.NewEnv(
+				cel.Variable("amount", cel.IntType),
+				cel.Variable("balance", cel.IntType),
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			compiledExp, issues := env.Compile("\nbalance >= amount && amount <= 5000\n\t\t")
+			Expect(issues.Err()).ShouldNot(HaveOccurred())
+
+			expr, err := cel.AstToCheckedExpr(compiledExp)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			rI := []*base.RuleDefinition{
+				{
+					Name: "check_balance",
+					Arguments: map[string]base.AttributeType{
+						"amount":  base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
+						"balance": base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
+					},
+					Expression: expr,
+				},
+			}
+
+			Expect(eIs).Should(Equal(eI))
+			Expect(rIs).Should(Equal(rI))
+		})
+
+		It("Case 16", func() {
+			sch, err := parser.NewParser(`
+			entity usertype {}
+
+			entity company {
+    			relation owner @usertype
+			}
+
+			entity organization {
+    			relation parent @company @organization
+
+				relation owner @usertype
+			}
+
+			entity repository {
+
+    			relation parent @organization#parent
+    			relation owner  @usertype
+				
+				attribute is_public boolean
+
+				permission view = is_public
+    			permission edit  = parent.owner or owner
+    			permission delete  = edit
+			} 
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			var eIs []*base.EntityDefinition
+			eIs, _, err = c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			eI := []*base.EntityDefinition{
+				{
+					Name:        "usertype",
+					Relations:   map[string]*base.RelationDefinition{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
+				},
+				{
+					Name: "company",
+					Relations: map[string]*base.RelationDefinition{
+						"owner": {
+							Name: "owner",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "usertype",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"owner": base.EntityDefinition_REFERENCE_RELATION,
+					},
+				},
+				{
+					Name: "organization",
+					Relations: map[string]*base.RelationDefinition{
+						"parent": {
+							Name: "parent",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "company",
+									Relation: "",
+								},
+								{
+									Type:     "organization",
+									Relation: "",
+								},
+							},
+						},
+						"owner": {
+							Name: "owner",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "usertype",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References: map[string]base.EntityDefinition_Reference{
+						"parent": base.EntityDefinition_REFERENCE_RELATION,
+						"owner":  base.EntityDefinition_REFERENCE_RELATION,
+					},
+				},
+				{
+					Name: "repository",
+					Relations: map[string]*base.RelationDefinition{
+						"parent": {
+							Name: "parent",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "organization",
+									Relation: "parent",
+								},
+							},
+						},
+						"owner": {
+							Name: "owner",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "usertype",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Attributes: map[string]*base.AttributeDefinition{
+						"is_public": {
+							Name: "is_public",
+							Type: base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
+						},
+					},
+					Permissions: map[string]*base.PermissionDefinition{
+						"view": {
+							Name: "view",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Type: &base.Leaf_ComputedAttribute{
+											ComputedAttribute: &base.ComputedAttribute{
+												Name: "is_public",
+											},
+										},
+									},
+								},
+							},
+						},
+						"edit": {
+							Name: "edit",
+							Child: &base.Child{
+								Type: &base.Child_Rewrite{
+									Rewrite: &base.Rewrite{
+										RewriteOperation: base.Rewrite_OPERATION_UNION,
+										Children: []*base.Child{
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Type: &base.Leaf_TupleToUserSet{
+															TupleToUserSet: &base.TupleToUserSet{
+																TupleSet: &base.TupleSet{
+																	Relation: "parent",
+																},
+																Computed: &base.ComputedUserSet{
+																	Relation: "owner",
+																},
+															},
+														},
+													},
+												},
+											},
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Type: &base.Leaf_ComputedUserSet{
+															ComputedUserSet: &base.ComputedUserSet{
+																Relation: "owner",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"delete": {
+							Name: "delete",
+							Child: &base.Child{
+								Type: &base.Child_Leaf{
+									Leaf: &base.Leaf{
+										Type: &base.Leaf_ComputedUserSet{
+											ComputedUserSet: &base.ComputedUserSet{
+												Relation: "edit",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					References: map[string]base.EntityDefinition_Reference{
+						"parent":    base.EntityDefinition_REFERENCE_RELATION,
+						"owner":     base.EntityDefinition_REFERENCE_RELATION,
+						"is_public": base.EntityDefinition_REFERENCE_ATTRIBUTE,
+						"view":      base.EntityDefinition_REFERENCE_PERMISSION,
+						"edit":      base.EntityDefinition_REFERENCE_PERMISSION,
+						"delete":    base.EntityDefinition_REFERENCE_PERMISSION,
+					},
+				},
+			}
+
+			Expect(eIs).Should(Equal(eI))
+		})
+
+		It("Case 17", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity account {
+    			relation owner @user
+    			attribute balance integer
+
+    			permission withdraw = check_balance(request.amount, balance) and owner
+			}
+	
+			rule check_balance(amount integer, balance double) {
+				balance >= amount && amount <= 5000
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+
+			Expect(err.Error()).Should(Equal("8:61: invalid argument"))
+		})
+
+		It("Case 18", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity account {
+    			relation owner @user
+    			attribute balance integer
+
+    			permission withdraw = check_balance(request.amount, bal) and owner
+			}
+	
+			rule check_balance(amount integer, balance integer) {
+				balance >= amount && amount <= 5000
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+
+			Expect(err.Error()).Should(Equal("8:31: invalid rule reference"))
+		})
+
+		It("Case 19", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity account {
+    			relation owner @user
+    			attribute balance integer
+
+    			permission withdraw = check_balance(balance) and owner
+			}
+	
+			rule check_balance(amount integer, balance integer) {
+				balance >= amount && amount <= 5000
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			spew.Dump(err)
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+
+			Expect(err.Error()).Should(Equal("8:31: missing argument"))
 		})
 	})
 })

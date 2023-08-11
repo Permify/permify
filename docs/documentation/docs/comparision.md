@@ -9,12 +9,12 @@ This comparison table shows the differentiation between authorization solutions 
 
 ## General Aspects
 
-|   |  Ory/Keto  | OpenFGA  | SpiceDB | Permify 
-|---|---|---|---|---|
-| **Zanzibar Paper Faithfulness** |  Medium | High | High | High 
-| **Scalability** |  Medium |  Medium  | High | High 
-| **Consistency & Cache** | No Zookies | No Zookies  | Supported |  Supported |
-| **Dev UX** | Average |  Average  |  High |  High |
+|                                 | Ory/Keto   | OpenFGA    | SpiceDB   | Permify   |
+|---------------------------------|------------|------------|-----------|-----------|
+| **Zanzibar Paper Faithfulness** | Medium     | High       | High      | High      |
+| **Scalability**                 | Medium     | Medium     | High      | High      |
+| **Consistency & Cache**         | No Zookies | No Zookies | Supported | Supported |
+| **Dev UX**                      | Average    | Average    | High      | High      |
 
 ## Feature Set
 
@@ -22,17 +22,17 @@ This comparison table shows the differentiation between authorization solutions 
 -   🟡 &nbsp;Limited support and requires extra user-code to implement.
 -   ⛔ &nbsp;Not officially supported or documented.
 
-|   |  Ory/Keto  | OpenFGA  | SpiceDB | Permify 
-|---|---|---|---|---|
-| **Check API** |✅  | ✅  | ✅  | ✅  |
-| **Write API** | ✅ | ✅ | ✅ | ✅ |
-| **Read API** | ✅ | ✅ | ✅ | ✅ |
-| **Expand API** | ✅  | ✅  | ✅  | ✅ |
-| **Watch API** | ✅  | ✅  | ✅  | ⛔ |
-| **RBAC** | ✅ | ✅ | ✅ | ✅ |
-| **ReBAC** | ✅ | ✅ | ✅ | ✅ |
-| **ABAC** | ⛔ | 🟡 | ✅  | ⛔  |
-| **Data Filtering** |  ⛔ | ✅  | ✅  | ✅ |
-| **Multi Tenancy** | ⛔ | ✅ | ⛔ | ✅ |
-| **Testing & Validation** |  ⛔ | 🟡  | ✅ | ✅ |
-| **Logging & Tracing** | 🟡 | ✅  | ✅ | ✅ |
+|                          | Ory/Keto | OpenFGA | SpiceDB | Permify |
+|--------------------------|----------|---------|---------|---------|
+| **Check API**            | ✅        | ✅       | ✅       | ✅       |
+| **Write API**            | ✅        | ✅       | ✅       | ✅       |
+| **Read API**             | ✅        | ✅       | ✅       | ✅       |
+| **Expand API**           | ✅        | ✅       | ✅       | ✅       |
+| **Watch API**            | ✅        | ✅       | ✅       | ✅       |
+| **RBAC**                 | ✅        | ✅       | ✅       | ✅       |
+| **ReBAC**                | ✅        | ✅       | ✅       | ✅       |
+| **ABAC**                 | ⛔        | 🟡      | ✅       | ⛔       |
+| **Data Filtering**       | ⛔        | ✅       | ✅       | ✅       |
+| **Multi Tenancy**        | ⛔        | ✅       | ⛔       | ✅       |
+| **Testing & Validation** | ⛔        | 🟡      | ✅       | ✅       |
+| **Logging & Tracing**    | 🟡       | ✅       | ✅       | ✅       |

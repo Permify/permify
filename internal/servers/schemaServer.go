@@ -1,12 +1,15 @@
 package servers
 
 import (
+	"github.com/rs/xid"
 	"google.golang.org/grpc/status"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 
-	"github.com/Permify/permify/internal/services"
+	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/pkg/dsl/compiler"
+	"github.com/Permify/permify/pkg/dsl/parser"
 	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -15,15 +18,17 @@ import (
 type SchemaServer struct {
 	v1.UnimplementedSchemaServer
 
-	schemaService services.ISchemaService
-	logger        logger.Interface
+	sw     storage.SchemaWriter
+	sr     storage.SchemaReader
+	logger logger.Interface
 }
 
 // NewSchemaServer - Creates new Schema Server
-func NewSchemaServer(s services.ISchemaService, l logger.Interface) *SchemaServer {
+func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader, l logger.Interface) *SchemaServer {
 	return &SchemaServer{
-		schemaService: s,
-		logger:        l,
+		sw:     sw,
+		sr:     sr,
+		logger: l,
 	}
 }
 
@@ -32,7 +37,33 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()
 
-	version, err := r.schemaService.WriteSchema(ctx, request.GetTenantId(), request.GetSchema())
+	sch, err := parser.NewParser(request.GetSchema()).Parse()
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		return nil, err
+	}
+
+	_, _, err = compiler.NewCompiler(true, sch).Compile()
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		return nil, err
+	}
+
+	version := xid.New().String()
+
+	cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
+	for _, st := range sch.Statements {
+		cnf = append(cnf, storage.SchemaDefinition{
+			TenantID:             request.GetTenantId(),
+			Version:              version,
+			Name:                 st.GetName(),
+			SerializedDefinition: []byte(st.String()),
+		})
+	}
+
+	err = r.sw.WriteSchema(ctx, cnf)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -50,9 +81,16 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	ctx, span := tracer.Start(ctx, "schemas.read")
 	defer span.End()
 
-	var err error
-	var response *v1.SchemaDefinition
-	response, err = r.schemaService.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	version := request.GetMetadata().GetSchemaVersion()
+	if version == "" {
+		ver, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+		if err != nil {
+			return nil, err
+		}
+		version = ver
+	}
+
+	response, err := r.sr.ReadSchema(ctx, request.GetTenantId(), version)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

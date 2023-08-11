@@ -61,20 +61,19 @@ const MainLayout = ({children, ...rest}) => {
                     <div className="ml-12">
                         <Select className="mr-8" value={selectedSample} style={{width: 220}} onChange={handleSampleChange} showArrow={true}>
                             <OptGroup label="Use Cases">
-                                <Option key="i" value="i">Empty</Option>
-                                <Option key="p" value="p">Organizations
-                                    & Hierarchies</Option>
-                                <Option key="a" value="a">RBAC</Option>
-                                <Option key="s" value="s">User Groups</Option>
-                                <Option key="d" value="d">Parent Child
-                                    Relationships</Option>
+                                <Option key="empty" value="empty">Empty</Option>
+                                <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations & Hierarchies</Option>
+                                <Option key="rbac" value="rbac">RBAC</Option>
+                                <Option key="custom-roles" value="custom-roles">Custom Roles</Option>
+                                <Option key="user-groups" value="user-groups">User Groups</Option>
                             </OptGroup>
                             <OptGroup label="Sample Apps">
-                                <Option key="f" value="f">Github</Option>
-                                <Option key="g" value="g">Mercury</Option>
+                                <Option key="google-docs-simplified" value="google-docs-simplified">Google Docs Simplified</Option>
+                                <Option key="facebook-groups" value="facebook-groups">Facebook Groups</Option>
+                                <Option key="notion" value="notion">Notion</Option>
                             </OptGroup>
                         </Select>
-                        <Button type="secondary" onClick={() => {
+                        <Button onClick={() => {
                             share()
                         }} icon={<ShareAltOutlined/>}>Share</Button>
                     </div>
@@ -83,7 +82,7 @@ const MainLayout = ({children, ...rest}) => {
                                 href="https://www.permify.co/change-log/permify-playground">
                             How to use playground?
                         </Button>
-                        <Button className="mr-8" type="secondary" target="_blank" icon={<GithubOutlined/>}
+                        <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}
                                 href="https://github.com/Permify/permify">
                             Get Started
                         </Button>

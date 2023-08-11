@@ -1,28 +1,30 @@
 syntax = "proto3";
 package base.v1;
 
-import "google/protobuf/empty.proto";
-
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
-import "base/v1/tuple.proto";
-import "base/v1/schema.proto";
+import "base/v1/base.proto";
 import "validate/validate.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 // ** PERMISSION SERVICE **
 
-// Permission
+// Permission service contains methods to interact with permissions.
 service Permission {
+
+  // Check method receives a PermissionCheckRequest and returns a PermissionCheckResponse.
+  // It is used to determine whether a specific user has permission to perform an action on a resource.
+  // For example, "Can the user 1 push to repository 1?"
   rpc Check(PermissionCheckRequest) returns (PermissionCheckResponse) {
+    // HTTP mapping for this method
     option (google.api.http) = {
       post: "/v1/tenants/{tenant_id}/permissions/check"
       body: "*"
     };
-
+    // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "This method returns a decision about whether user can perform an permission on a certain resource. For example, Can the user 1 push to repository 1?"
+      summary: "This method returns a decision about whether user can perform an permission on a certain resource."
       tags: [
         "Permission"
       ]
@@ -30,12 +32,15 @@ service Permission {
     };
   }
 
+  // Expand method receives a PermissionExpandRequest and returns a PermissionExpandResponse.
+  // It expands relationships according to the schema provided.
   rpc Expand(PermissionExpandRequest) returns (PermissionExpandResponse) {
+    // HTTP mapping for this method
     option (google.api.http) = {
       post: "/v1/tenants/{tenant_id}/permissions/expand"
       body: "*"
     };
-
+    // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "expand relationships according to schema"
       tags: [
@@ -45,29 +50,17 @@ service Permission {
     };
   }
 
-  rpc LookupSchema(PermissionLookupSchemaRequest) returns (PermissionLookupSchemaResponse) {
-    option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/permissions/lookup-schema"
-      body: "*"
-    };
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: ""
-      tags: [
-        "Permission"
-      ]
-      operation_id: "permissions.lookupSchema"
-    };
-  }
-
+  // LookupEntity method receives a PermissionLookupEntityRequest and returns a PermissionLookupEntityResponse.
+  // It is used to retrieve an entity by its identifier.
   rpc LookupEntity(PermissionLookupEntityRequest) returns (PermissionLookupEntityResponse) {
+    // HTTP mapping for this method
     option (google.api.http) = {
       post: "/v1/tenants/{tenant_id}/permissions/lookup-entity"
       body: "*"
     };
-
+    // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: ""
+      summary: "Retrieve an entity by its identifier."
       tags: [
         "Permission"
       ]
@@ -75,338 +68,626 @@ service Permission {
     };
   }
 
+  // LookupEntityStream method receives a PermissionLookupEntityRequest and streams a series of PermissionLookupEntityStreamResponse messages.
+  // It is used to retrieve entities by their identifiers in a streaming fashion.
   rpc LookupEntityStream(PermissionLookupEntityRequest) returns (stream PermissionLookupEntityStreamResponse) {
+    // HTTP mapping for this method
     option (google.api.http) = {
       post: "/v1/tenants/{tenant_id}/permissions/lookup-entity-stream"
       body: "*"
     };
-
+    // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: ""
+      summary: "Stream entities by their identifiers."
       tags: [
         "Permission"
       ]
       operation_id: "permissions.lookupEntityStream"
     };
   }
+
+  // LookupSubject method receives a PermissionLookupSubjectRequest and returns a PermissionLookupSubjectResponse.
+  // It is used to retrieve a subject by its identifier.
+  rpc LookupSubject(PermissionLookupSubjectRequest) returns (PermissionLookupSubjectResponse) {
+    // HTTP mapping for this method
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/permissions/lookup-subject"
+      body: "*"
+    };
+    // OpenAPI annotations for this method
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Retrieve a subject by its identifier."
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.lookupSubject"
+    };
+  }
+
+  // SubjectPermission method receives a PermissionSubjectPermissionRequest and returns a PermissionSubjectPermissionResponse.
+  // It is used to retrieve permissions related to a specific subject.
+  rpc SubjectPermission(PermissionSubjectPermissionRequest) returns (PermissionSubjectPermissionResponse) {
+    // HTTP mapping for this method
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/permissions/subject-permission"
+      body: "*"
+    };
+    // OpenAPI annotations for this method
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Retrieve permissions related to a specific subject."
+      tags: [
+        "Permission"
+      ]
+      operation_id: "permissions.subjectPermission"
+    };
+  }
 }
 
 // CHECK
 
-// PermissionCheckRequest
+// PermissionCheckRequest is the request message for the Check method in the Permission service.
 message PermissionCheckRequest {
+
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // Metadata associated with this request, required.
   PermissionCheckRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
+  // Entity on which the permission needs to be checked, required.
   Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
-  // its can be permission or relation
+  // Name of the permission or relation, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // Subject for which the permission needs to be checked, required.
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+
+  // Context associated with this request.
+  Context context = 6 [json_name = "context"];
+
+  // Additional arguments associated with this request.
+  repeated Argument arguments = 7 [json_name = "arguments"];
 }
 
-// PermissionCheckRequestMetadata
+// PermissionCheckRequestMetadata is the metadata associated with a PermissionCheckRequest.
 message PermissionCheckRequestMetadata {
+
+  // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
+
+  // Token associated with the snap.
   string snap_token = 2 [json_name = "snap_token"];
-  bool exclusion = 3 [json_name = "exclusion"];
-  int32 depth = 4 [json_name = "depth", (validate.rules).int32.gte = 3];
+
+  // Depth of the check, must be greater than or equal to 3.
+  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
-// PermissionCheckResponse
+// PermissionCheckResponse is the response message for the Check method in the Permission service.
 message PermissionCheckResponse {
-  // Result
-  enum Result {
-    RESULT_UNKNOWN = 0;
-    RESULT_ALLOWED = 1;
-    RESULT_DENIED = 2;
-  }
 
-  Result can = 1 [json_name = "can"];
+  // Result of the permission check.
+  CheckResult can = 1 [json_name = "can"];
+
+  // Metadata associated with this response.
   PermissionCheckResponseMetadata metadata = 2 [json_name = "metadata"];
 }
 
-// CheckResponseMetadata
+// PermissionCheckResponseMetadata is the metadata associated with a PermissionCheckResponse.
 message PermissionCheckResponseMetadata {
+
+  // The count of the checks performed.
   int32 check_count = 1 [json_name = "check_count"];
 }
 
 // EXPAND
 
-// PermissionExpandRequest
+// PermissionExpandRequest is the request message for the Expand method in the Permission service.
 message PermissionExpandRequest {
+
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // Metadata associated with this request, required.
   PermissionExpandRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
+  // Entity on which the permission needs to be expanded, required.
   Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
 
+  // Name of the permission to be expanded, not required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
     max_bytes : 64,
     ignore_empty: true,
   }];
+
+  // Context associated with this request.
+  Context context = 5 [json_name = "context"];
+
+  // Additional arguments associated with this request.
+  repeated Argument arguments = 6 [json_name = "arguments"];
 }
 
-// PermissionExpandRequestMetadata
+// PermissionExpandRequestMetadata is the metadata associated with a PermissionExpandRequest.
 message PermissionExpandRequestMetadata {
+
+  // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
+
+  // Token associated with the snap.
   string snap_token = 2 [json_name = "snap_token"];
 }
 
-// PermissionExpandResponse
+// PermissionExpandResponse is the response message for the Expand method in the Permission service.
 message PermissionExpandResponse {
+
+  // Expansion tree.
   Expand tree = 1 [json_name = "tree"];
 }
 
-//LOOKUP
+// LOOKUP ENTITY
 
-// PermissionLookupSchemaRequest
-message PermissionLookupSchemaRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  PermissionLookupSchemaRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
-
-  string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
-    pattern : "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
-
-  repeated string relation_names = 4 [json_name = "relation_names"];
-}
-
-// PermissionLookupSchemaRequestMetadata
-message PermissionLookupSchemaRequestMetadata {
-  string schema_version = 1 [json_name = "schema_version"];
-}
-
-// PermissionLookupSchemaResponse
-message PermissionLookupSchemaResponse {
-  repeated string permission_names = 1 [json_name = "permission_names"];
-}
-
-// PermissionLookupEntityRequest
+// PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service.
 message PermissionLookupEntityRequest {
+
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // Metadata associated with this request, required.
   PermissionLookupEntityRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
+  // Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
     pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [json_name = "permission", (validate.rules).string = {
     pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // Subject for which to check the permission, required.
   Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+
+  // Context associated with this request.
+  Context context = 6 [json_name = "context"];
 }
 
-// PermissionLookupEntityRequestMetadata
+// PermissionLookupEntityRequestMetadata is the metadata associated with a PermissionLookupEntityRequest.
 message PermissionLookupEntityRequestMetadata {
+
+  // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
+
+  // Token associated with the snap.
   string snap_token = 2 [json_name = "snap_token"];
+
+  // Depth of lookup, required, must be greater or equal to 3.
   int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
-// PermissionLookupEntityResponse
+// PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service.
 message PermissionLookupEntityResponse {
+
+  // List of identifiers for entities that match the lookup.
   repeated string entity_ids = 1 [json_name = "entity_ids"];
 }
 
-// PermissionLookupEntityStreamResponse
+// LOOKUP STREAM
+
+// PermissionLookupEntityStreamResponse is the response message for the LookupEntityStream method in the Permission service.
 message PermissionLookupEntityStreamResponse {
+
+  // Identifier for an entity that matches the lookup.
   string entity_id = 1 [json_name = "entity_id"];
 }
 
-// PermissionLinkedEntityRequest
-message PermissionLinkedEntityRequest {
+// PermissionEntityFilterRequest is the request message for the LookupEntityStream method in the Permission service.
+message PermissionEntityFilterRequest {
+
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  PermissionLinkedEntityRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+  // Metadata associated with this request, required.
+  PermissionEntityFilterRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
+  // Reference to the entity to filter.
   RelationReference entity_reference = 3 [json_name = "entity_reference"];
 
+  // Subject for which to check the permission.
   Subject subject = 4 [json_name = "subject"];
+
+  // Context associated with this request.
+  Context context = 5 [json_name = "context"];
 }
 
-// PermissionLookupEntityRequestMetadata
-message PermissionLinkedEntityRequestMetadata {
+// PermissionEntityFilterRequestMetadata is the metadata associated with a PermissionEntityFilterRequest.
+message PermissionEntityFilterRequestMetadata {
+
+  // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
+
+  // Token associated with the snap.
   string snap_token = 2 [json_name = "snap_token"];
+
+  // Depth of lookup, required, must be greater or equal to 3.
   int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
 }
 
+// LOOKUP SUBJECT
+
+// PermissionLookupSubjectRequest is the request message for the LookupSubject method in the Permission service.
+message PermissionLookupSubjectRequest {
+
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  // Metadata associated with this request, required.
+  PermissionLookupSubjectRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  // Entity for which to check the permission, required.
+  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+
+  // Permission to be checked, can be a permission or relation. Required, and must match the pattern "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$", max 64 bytes.
+  string permission = 4 [json_name = "permission", (validate.rules).string = {
+    pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  // Reference to the subject to lookup.
+  RelationReference subject_reference = 5 [json_name = "subject_reference"];
+
+  // Context associated with this request.
+  Context context = 6 [json_name = "context"];
+}
+
+// PermissionLookupSubjectRequestMetadata is the metadata associated with a PermissionLookupSubjectRequest.
+message PermissionLookupSubjectRequestMetadata {
+
+  // Version of the schema.
+  string schema_version = 1 [json_name = "schema_version"];
+
+  // Token associated with the snap.
+  string snap_token = 2 [json_name = "snap_token"];
+
+  // Depth of the check, must be greater than or equal to 3.
+  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
+}
+
+// PermissionLookupSubjectResponse is the response message for the LookupSubject method in the Permission service.
+message PermissionLookupSubjectResponse {
+
+  // List of identifiers for subjects that match the lookup.
+  repeated string subject_ids = 1 [json_name = "subject_ids"];
+}
+
+// SUBJECT PERMISSION
+
+// PermissionSubjectPermissionRequest is the request message for the SubjectPermission method in the Permission service.
+message PermissionSubjectPermissionRequest {
+
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  // Metadata associated with this request, required.
+  PermissionSubjectPermissionRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  // Entity for which to check the permission, required.
+  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+
+  // Subject for which to check the permission, required.
+  Subject subject = 4 [json_name = "subject", (validate.rules).message.required = true];
+
+  // Context associated with this request.
+  Context context = 5 [json_name = "context"];
+}
+
+// PermissionSubjectPermissionRequestMetadata is the metadata associated with a PermissionSubjectPermissionRequest.
+message PermissionSubjectPermissionRequestMetadata {
+
+  // Version of the schema.
+  string schema_version = 1 [json_name = "schema_version"];
+
+  // Token associated with the snap.
+  string snap_token = 2 [json_name = "snap_token"];
+
+  // Whether to only check permissions.
+  bool only_permission = 3 [json_name = "only_permission"];
+
+  // Depth of the check, must be greater than or equal to 3.
+  int32 depth = 4 [json_name = "depth", (validate.rules).int32.gte = 3];
+}
+
+// PermissionSubjectPermissionResponse is the response message for the SubjectPermission method in the Permission service.
+message PermissionSubjectPermissionResponse {
+
+  // Map of results for each permission check.
+  map<string, CheckResult> results = 1 [json_name = "results"];
+}
+
+// ** WATCH SERVICE **
+
+// Watch service provides a streaming RPC that can be used to watch changes in the data.
+
+// Watch is the main RPC in the Watch service. It establishes a stream between
+// the client and the server. The server pushes data changes into this stream
+// and the client can read those in real time.
+service Watch {
+  rpc Watch(WatchRequest) returns (stream WatchResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/watch" // HTTP mapping: POST request to the /v1/tenants/{tenant_id}/watch endpoint.
+      body: "*" // The entire request message will be the HTTP request body.
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "" // Short summary of what the operation does.
+      tags: [
+        "Watch" // Adds an additional categorization for the operation.
+      ]
+      operation_id: "watch.watch" // Unique string used to identify the operation.
+    };
+  }
+}
+
+// WatchRequest is the request message for the Watch RPC. It contains the
+// details needed to establish a watch stream.
+message WatchRequest {
+
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  // Snap token to be used for watching.
+  string snap_token = 2 [json_name = "snap_token"];
+}
+
+// WatchResponse is the response message for the Watch RPC. It contains the
+// changes in the data that are being watched.
+message WatchResponse {
+
+  // Changes in the data.
+  DataChanges changes = 1 [json_name = "changes"];
+}
 
 // ** SCHEMA SERVICE **
 
-// Schema
+// Schema service provides methods to manage the authorization model of your application.
+// It allows you to read and write the schema of your authorization model.
+
+// The Schema service definition.
 service Schema {
+
+  // Write is an RPC that allows you to write your authorization model.
   rpc Write(SchemaWriteRequest) returns (SchemaWriteResponse) {
+
+    // It maps to HTTP POST requests and the entire request message
+    // will be treated as the HTTP request body.
     option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/schemas/write"
-      body: "*"
+      post: "/v1/tenants/{tenant_id}/schemas/write" // HTTP mapping: POST request to the /v1/tenants/{tenant_id}/schemas/write endpoint.
+      body: "*" // The entire request message will be the HTTP request body.
     };
 
+    // OpenAPI specific annotation
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "write your authorization model"
-      tags: [
-        "Schema"
-      ]
-      operation_id: "schemas.write"
+      summary: "write your authorization model" // Short summary of what the operation does.
+      tags: ["Schema"] // Adds an additional categorization for the operation.
+      operation_id: "schemas.write" // Unique string used to identify the operation.
     };
   }
 
+  // Read is an RPC that allows you to read your authorization model.
   rpc Read(SchemaReadRequest) returns (SchemaReadResponse) {
+
+    // It maps to HTTP POST requests and the entire request message
+    // will be treated as the HTTP request body.
     option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/schemas/read"
-      body: "*"
+      post: "/v1/tenants/{tenant_id}/schemas/read" // HTTP mapping: POST request to the /v1/tenants/{tenant_id}/schemas/read endpoint.
+      body: "*" // The entire request message will be the HTTP request body.
     };
 
+    // OpenAPI specific annotation
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "read your authorization model"
-      tags: [
-        "Schema"
-      ]
-      operation_id: "schemas.read"
+      summary: "read your authorization model" // Short summary of what the operation does.
+      tags: ["Schema"] // Adds an additional categorization for the operation.
+      operation_id: "schemas.read" // Unique string used to identify the operation.
     };
   }
 }
 
 // WRITE
 
-// SchemaWriteRequest
+// SchemaWriteRequest is the request message for the Write method in the Schema service.
+// It contains tenant_id and the schema to be written.
 message SchemaWriteRequest {
+
+  // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
+  // be a maximum of 64 bytes, and must not be empty.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // schema is the string representation of the schema to be written.
   string schema = 2 [json_name = "schema"];
 }
 
-// SchemaWriteResponse
+// SchemaWriteResponse is the response message for the Write method in the Schema service.
+// It returns the version of the written schema.
 message SchemaWriteResponse {
+
+  // schema_version is the string that identifies the version of the written schema.
   string schema_version = 1 [json_name = "schema_version"];
 }
 
 // READ
 
-// SchemaReadRequest
+// SchemaReadRequest is the request message for the Read method in the Schema service.
+// It contains tenant_id and metadata about the schema to be read.
 message SchemaReadRequest {
+
+  // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
+  // be a maximum of 64 bytes, and must not be empty.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // metadata is the additional information needed for the Read request.
   SchemaReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 }
 
-// SchemaReadRequestMetadata
+// SchemaReadRequestMetadata provides additional information for the Schema Read request.
+// It contains schema_version to specify which version of the schema should be read.
 message SchemaReadRequestMetadata {
+
+  // schema_version is the string that identifies the version of the schema to be read.
   string schema_version = 1 [json_name = "schema_version"];
 }
 
-// SchemaReadRequest
+// SchemaReadResponse is the response message for the Read method in the Schema service.
+// It returns the requested schema.
 message SchemaReadResponse {
+
+  // schema is the SchemaDefinition that represents the read schema.
   SchemaDefinition schema = 1 [json_name = "schema"];
 }
 
-// ** RELATIONSHIP SERVICE **
+// ** DATA SERVICE **
 
-// Schema
-service Relationship {
-  rpc Write(RelationshipWriteRequest) returns (RelationshipWriteResponse) {
+// The Data service provides RPC methods for managing data in the context of relationships and attributes.
+service Data {
+
+  // The Write RPC method creates a new relation tuple.
+  rpc Write(DataWriteRequest) returns (DataWriteResponse) {
     option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/relationships/write"
+      post: "/v1/tenants/{tenant_id}/data/write"
       body: "*"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "create new relation tuple"
+      summary: "create data"
       tags: [
-        "Relationship"
+        "Data"
       ]
-      operation_id: "relationships.write"
+      operation_id: "data.write"
     };
   }
 
-  rpc Read(RelationshipReadRequest) returns (RelationshipReadResponse) {
+  // The ReadRelationships RPC method reads relation tuple(s).
+  rpc ReadRelationships(RelationshipReadRequest) returns (RelationshipReadResponse) {
     option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/relationships/read"
+      post: "/v1/tenants/{tenant_id}/data/relationships/read"
       body: "*"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "read relation tuple(s)"
       tags: [
-        "Relationship"
+        "Data"
       ]
-      operation_id: "relationships.read"
+      operation_id: "data.relationships.read"
     };
   }
 
-  rpc Delete(RelationshipDeleteRequest) returns (RelationshipDeleteResponse) {
+  // The ReadAttributes RPC method reads attribute(s) of a relation.
+  rpc ReadAttributes(AttributeReadRequest) returns (AttributeReadResponse) {
     option (google.api.http) = {
-      post: "/v1/tenants/{tenant_id}/relationships/delete"
+      post: "/v1/tenants/{tenant_id}/data/attributes/read"
       body: "*"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "delete relation tuple"
+      summary: "read attribute(s)"
       tags: [
-        "Relationship"
+        "Data"
       ]
-      operation_id: "relationships.delete"
+      operation_id: "data.attributes.read"
+    };
+  }
+
+  // The Delete RPC method deletes a relation tuple.
+  rpc Delete(DataDeleteRequest) returns (DataDeleteResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/data/delete"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "delete data"
+      tags: [
+        "Data"
+      ]
+      operation_id: "data.delete"
     };
   }
 }
 
-// RelationshipWriteRequest
-message RelationshipWriteRequest {
+// DataWriteRequest defines the structure of a request for writing data.
+// It contains the necessary information such as tenant_id, metadata,
+// tuples and attributes for the write operation.
+message DataWriteRequest {
+  // tenant_id represents the unique identifier of the tenant for which data is written.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  RelationshipWriteRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+  // metadata holds additional data related to the request.
+  DataWriteRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
+  // tuples contains the list of tuples (entity-relation-entity triples) that need to be written.
   repeated Tuple tuples = 3 [json_name = "tuples", (validate.rules).repeated = {
-    min_items : 1,
+    min_items : 0,
+    max_items : 100,
+    items : {
+      message : {
+        required : true,
+      },
+    },
+  }];
+
+  // attributes contains the list of attributes (entity-attribute-value triples) that need to be written.
+  repeated Attribute attributes = 4 [json_name = "attributes", (validate.rules).repeated = {
+    min_items : 0,
     max_items : 100,
     items : {
       message : {
@@ -416,66 +697,137 @@ message RelationshipWriteRequest {
   }];
 }
 
-// RelationshipWriteRequestMetadata
-message RelationshipWriteRequestMetadata {
+// DataWriteRequestMetadata defines the structure of metadata for a write request.
+// It includes the schema version of the data to be written.
+message DataWriteRequestMetadata {
+  // schema_version represents the version of the schema for the data being written.
   string schema_version = 1 [json_name = "schema_version"];
 }
 
-// RelationshipWriteResponse
-message RelationshipWriteResponse {
+// DataWriteResponse defines the structure of the response after writing data.
+// It contains the snap_token generated after the write operation.
+message DataWriteResponse {
+  // snap_token is the token generated after the data write operation, representing a snapshot of the data.
   string snap_token = 1 [json_name = "snap_token"];
 }
 
-// RelationshipReadRequest
+// RelationshipReadRequest defines the structure of a request for reading relationships.
+// It contains the necessary information such as tenant_id, metadata, and filter for the read operation.
 message RelationshipReadRequest {
+  // tenant_id represents the unique identifier of the tenant for which relationships are read.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // metadata holds additional data related to the request.
   RelationshipReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
-  TupleFilter filter = 3 [json_name = "filter"];
+  // filter is used to specify criteria for the data that needs to be read.
+  TupleFilter filter = 3 [json_name = "filter", (validate.rules).message.required = true];
 
+  // page_size specifies the number of results to return in a single page.
+  // If more results are available, a continuous_token is included in the response.
   uint32 page_size = 4 [
     json_name = "page_size",
     (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
   ];
 
+  // continuous_token is used in case of paginated reads to get the next page of results.
   string continuous_token = 5 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
 
-// RelationshipWriteRequestMetadata
+// RelationshipReadRequestMetadata defines the structure of the metadata for a read request focused on relationships.
+// It includes the snap_token associated with a particular state of the database.
 message RelationshipReadRequestMetadata {
+  // snap_token represents a specific state or "snapshot" of the database.
   string snap_token = 1 [json_name = "snap_token"];
 }
 
-// RelationshipReadResponse
+// RelationshipReadResponse defines the structure of the response after reading relationships.
+// It includes the tuples representing the relationships and a continuous token for handling result pagination.
 message RelationshipReadResponse {
+  // tuples is a list of the relationships retrieved in the read operation, represented as entity-relation-entity triples.
   repeated Tuple tuples = 1 [json_name = "tuples"];
+
+  // continuous_token is used in the case of paginated reads to retrieve the next page of results.
   string continuous_token = 2 [json_name = "continuous_token"];
 }
 
-// RelationshipDeleteRequest
-message RelationshipDeleteRequest {
+// AttributeReadRequest defines the structure of a request for reading attributes.
+// It includes the tenant_id, metadata, attribute filter, page size for pagination, and a continuous token for multi-page results.
+message AttributeReadRequest {
+  // tenant_id represents the unique identifier of the tenant from which the attributes are being read.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
-  TupleFilter filter = 2 [json_name = "filter"];
+  // metadata holds additional information related to the request.
+  AttributeReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  // filter specifies the criteria used to select the attributes that should be returned.
+  AttributeFilter filter = 3 [json_name = "filter", (validate.rules).message.required = true];
+
+  // page_size specifies the number of results to return in a single page.
+  // If more results are available, a continuous_token is included in the response.
+  uint32 page_size = 4 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
+  ];
+
+  // continuous_token is used in case of paginated reads to get the next page of results.
+  string continuous_token = 5 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
+}
+// AttributeReadRequestMetadata defines the structure for the metadata of an attribute read request.
+// It includes the snap_token associated with a particular state of the database.
+message AttributeReadRequestMetadata {
+  // snap_token represents a specific state or "snapshot" of the database.
+  string snap_token = 1 [json_name = "snap_token"];
 }
 
-// RelationshipDeleteResponse
-message RelationshipDeleteResponse {
+// AttributeReadResponse defines the structure of the response to an attribute read request.
+// It includes the attributes retrieved and a continuous token for handling result pagination.
+message AttributeReadResponse {
+  // attributes is a list of the attributes retrieved in the read operation.
+  repeated Attribute attributes = 1 [json_name = "attributes"];
+
+  // continuous_token is used in the case of paginated reads to retrieve the next page of results.
+  string continuous_token = 2 [json_name = "continuous_token"];
+}
+
+// DataDeleteRequest defines the structure of a request to delete data.
+// It includes the tenant_id and filters for selecting tuples and attributes to be deleted.
+message DataDeleteRequest {
+  // tenant_id represents the unique identifier of the tenant from which the data will be deleted.
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  // tuple_filter specifies the criteria used to select the tuples that should be deleted.
+  TupleFilter tuple_filter = 2 [json_name = "tuple_filter", (validate.rules).message.required = true];
+
+  // attribute_filter specifies the criteria used to select the attributes that should be deleted.
+  AttributeFilter attribute_filter = 3 [json_name = "attribute_filter", (validate.rules).message.required = true];
+}
+
+// DataDeleteResponse defines the structure of the response to a data delete request.
+// It includes a snap_token representing the state of the database after the deletion.
+message DataDeleteResponse {
+  // snap_token represents the state of the database after the requested deletions.
   string snap_token = 1 [json_name = "snap_token"];
 }
 
 // ** TENANCY SERVICE **
+// The Tenancy service defines the gRPC methods for managing tenants.
 
 service Tenancy {
+  // Create is a unary RPC to create a new tenant.
+  // It requires a TenantCreateRequest and returns a TenantCreateResponse.
   rpc Create(TenantCreateRequest) returns (TenantCreateResponse) {
     option (google.api.http) = {
       post: "/v1/tenants/create"
@@ -491,6 +843,8 @@ service Tenancy {
     };
   }
 
+  // Delete is a unary RPC to delete an existing tenant.
+  // It requires a TenantDeleteRequest and returns a TenantDeleteResponse.
   rpc Delete(TenantDeleteRequest) returns (TenantDeleteResponse) {
     option (google.api.http) = {
       delete: "/v1/tenants/{id}"
@@ -505,6 +859,8 @@ service Tenancy {
     };
   }
 
+  // List is a unary RPC to get a list of all tenants.
+  // It requires a TenantListRequest and returns a TenantListResponse.
   rpc List(TenantListRequest) returns (TenantListResponse) {
     option (google.api.http) = {
       post: "/v1/tenants/list"
@@ -521,83 +877,61 @@ service Tenancy {
   }
 }
 
-// TenantCreateRequest
+// TenantCreateRequest is the message used for the request to create a tenant.
 message TenantCreateRequest {
+  // id is a unique identifier for the tenant.
   string id = 1 [json_name = "id", (validate.rules).string = {
     pattern : "[a-zA-Z0-9-,]+",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
+  // name is the name of the tenant.
   string name = 2 [json_name = "name", (validate.rules).string = {
     max_bytes : 64,
     ignore_empty: false,
   }];
 }
 
-// TenantCreateResponse
+// TenantCreateResponse is the message returned from the request to create a tenant.
 message TenantCreateResponse {
+  // tenant is the created tenant information.
   Tenant tenant = 1 [json_name = "tenant"];
 }
 
-// TenantDeleteRequest
+// TenantDeleteRequest is the message used for the request to delete a tenant.
 message TenantDeleteRequest {
+  // id is the unique identifier of the tenant to be deleted.
   string id = 1 [json_name = "id", (validate.rules).string = {
     ignore_empty: false,
   }];
 }
 
-// TenantDeleteResponse
+// TenantDeleteResponse is the message returned from the request to delete a tenant.
 message TenantDeleteResponse {
+  // tenant is the tenant information that was deleted.
   Tenant tenant = 1 [json_name = "tenant"];
 }
 
-// TenantListRequest
+// TenantListRequest is the message used for the request to list all tenants.
 message TenantListRequest {
-  uint32 page_size = 4 [
+  // page_size is the number of tenants to be returned in the response.
+  // The value should be between 1 and 100.
+  uint32 page_size = 1 [
     json_name = "page_size",
     (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
   ];
 
-  string continuous_token = 5 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
+  // continuous_token is an optional parameter used for pagination.
+  // It should be the value received in the previous response.
+  string continuous_token = 2 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
 
-// TenantListResponse
+// TenantListResponse is the message returned from the request to list all tenants.
 message TenantListResponse {
+  // tenants is a list of tenants.
   repeated Tenant tenants = 1 [json_name = "tenants"];
+
+  // continuous_token is a string that can be used to paginate and retrieve the next set of results.
   string continuous_token = 2 [json_name = "continuous_token"];
-}
-
-// ** WELCOME SERVICE **
-service Welcome {
-  rpc Hello(google.protobuf.Empty) returns (welcomeResponse) {
-    option (google.api.http) = {
-      get: "/"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "welcome to permify"
-      tags: [
-        "Welcome"
-      ]
-      operation_id: "welcome.hello"
-    };
-  }
-}
-
-// WelcomeResponse
-message welcomeResponse {
-  message Sources {
-    string docs = 1;
-    string gitHub = 2;
-    string blog = 3;
-  }
-  message Socials {
-    string discord = 1;
-    string twitter = 2;
-    string linkedin = 3;
-  }
-
-  string permify = 1;
-  Sources sources = 2;
-  Socials socials = 3;
 }

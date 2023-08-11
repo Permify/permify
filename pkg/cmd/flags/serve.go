@@ -15,6 +15,21 @@ func RegisterServeFlags(cmd *cobra.Command) {
 
 	flags := cmd.Flags()
 
+	// Config File
+	flags.StringP("config", "c", "", "config file (default is $HOME/.permify.yaml)")
+	if err = viper.BindPFlag("config.file", flags.Lookup("config")); err != nil {
+		panic(err)
+	}
+
+	// Server
+	flags.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
+	if err = viper.BindPFlag("server.rate_limit", flags.Lookup("server-rate-limit")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.rate_limit", "PERMIFY_RATE_LIMIT"); err != nil {
+		panic(err)
+	}
+
 	// GRPC Server
 	flags.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
 	if err = viper.BindPFlag("server.grpc.port", flags.Lookup("grpc-port")); err != nil {
@@ -156,7 +171,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("authn-oidc-client-id", conf.Authn.Oidc.ClientId, "client ID which requested the token from OIDC issuer")
+	flags.String("authn-oidc-client-id", conf.Authn.Oidc.ClientID, "client ID which requested the token from OIDC issuer")
 	if err = viper.BindPFlag("authn.oidc.client_id", flags.Lookup("authn-oidc-client-id")); err != nil {
 		panic(err)
 	}
@@ -194,7 +209,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindPFlag("meter.enabled", flags.Lookup("meter-enabled")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("meter.enabled", "PERMIFY_METRIC_ENABLED"); err != nil {
+	if err = viper.BindEnv("meter.enabled", "PERMIFY_METER_ENABLED"); err != nil {
 		panic(err)
 	}
 
@@ -220,6 +235,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	if err = viper.BindEnv("service.circuit_breaker", "PERMIFY_SERVICE_CIRCUIT_BREAKER"); err != nil {
+		panic(err)
+	}
+
+	flags.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
+	if err = viper.BindPFlag("service.watch.enabled", flags.Lookup("service-watch-enabled")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("service.watch.enabled", "PERMIFY_SERVICE_WATCH_ENABLED"); err != nil {
 		panic(err)
 	}
 
@@ -320,11 +343,11 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("database-garbage-collection-enable", conf.Database.DatabaseGarbageCollection.Enable, "use database garbage collection for expired relation tuples")
-	if err = viper.BindPFlag("database.garbage_collection.enable", flags.Lookup("database-garbage-collection-enable")); err != nil {
+	flags.Bool("database-garbage-collection-enabled", conf.Database.DatabaseGarbageCollection.Enabled, "use database garbage collection for expired relation tuples")
+	if err = viper.BindPFlag("database.garbage_collection.enabled", flags.Lookup("database-garbage-collection-enabled")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("database.garbage_collection.enable", "PERMIFY_DATABASE_GARBAGE_ENABLE"); err != nil {
+	if err = viper.BindEnv("database.garbage_collection.enabled", "PERMIFY_DATABASE_GARBAGE_ENABLED"); err != nil {
 		panic(err)
 	}
 
@@ -357,6 +380,39 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	if err = viper.BindEnv("database.garbage_collection.number_of_threads", "PERMIFY_DATABASE_GARBAGE_COLLECTION_NUMBER_OF_THREADS"); err != nil {
+		panic(err)
+	}
+
+	// Distributed
+	flags.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed")
+	if err = viper.BindPFlag("distributed.enabled", flags.Lookup("distributed-enabled")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.enabled", "PERMIFY_DISTRIBUTED_ENABLED"); err != nil {
+		panic(err)
+	}
+
+	flags.String("distributed-node", conf.Distributed.Node, "distributed node address")
+	if err = viper.BindPFlag("distributed.node", flags.Lookup("distributed-node")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.node", "PERMIFY_DISTRIBUTED_NODES"); err != nil {
+		panic(err)
+	}
+
+	flags.String("distributed-node-name", conf.Distributed.NodeName, "distributed node name")
+	if err = viper.BindPFlag("distributed.node_name", flags.Lookup("distributed-node-name")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.node_name", "PERMIFY_DISTRIBUTED_NODE_NAME"); err != nil {
+		panic(err)
+	}
+
+	flags.String("distributed-protocol", conf.Distributed.Protocol, "distributed protocol name ")
+	if err = viper.BindPFlag("distributed.protocol", flags.Lookup("distributed-protocol")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.protocol", "PERMIFY_DISTRIBUTED_PROTOCOL"); err != nil {
 		panic(err)
 	}
 }

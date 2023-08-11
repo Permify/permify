@@ -22,7 +22,7 @@ entity organization {
     relation agent @user  
 
     //organization files access permissions
-    action view_files = admin or manager or (member and not agent)
+    action view_files = admin or manager or (member not agent)
     action edit_files = admin or manager
     action delete_file = admin 
 
@@ -72,7 +72,7 @@ Roles (relations) can be scoped with different kinds of entities. But for simpli
 
 Actions describe what relations, or relation’s relation can do, think of actions as entities' permissions. Actions defines who can perform a specific action in which circumstances.
 
-Permify Schema supports ***and***, ***or***, ***and not*** and ***or not*** operators to define actions. 
+Permify Schema supports ***and***, ***or*** and ***not*** operators to define actions. 
 
 #### organization actions
 
@@ -82,7 +82,7 @@ In our schema, we define several actions for controlling access permissions on o
 entity organization {
 
     //organization files access permissions
-    action view_files = admin or manager or (member and not agent)
+    action view_files = admin or manager or (member not agent)
     action edit_files = admin or manager
     action delete_file = admin 
 
@@ -99,7 +99,7 @@ let's take a look at some of the actions:
 - ``action edit_files = admin or manager`` 
 indicates that only the admin or manager has permission to edit files in the organization.
 
-- ``action view_files = admin or manager or (member and not agent)``
+- ``action view_files = admin or manager or (member not agent)``
 indicates that the admin, manager, or members (without having the agent role) can view organization files.
 
 

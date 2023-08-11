@@ -5,6 +5,7 @@ body {
   sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-base) !important;
 }
 
 code {
@@ -16,6 +17,8 @@ code {
   text-align: left;
 
   img {
+    vertical-align: middle;
+    border-style: none;
     max-height: 34px;
   }
 }
@@ -302,8 +305,20 @@ code {
   padding-right: 12px;
 }
 
+.pt-6{
+  padding-top: 6px;
+}
+
+.pl-2{
+  padding-left: 2px;
+}
+
 .pt-12 {
   padding-top: 12px;
+}
+
+.pt-20 {
+  padding-top: 20px !important;
 }
 
 .pb-12 {
@@ -429,14 +444,46 @@ code {
   background-color: #141517 !important;
 }
 
+.wasm-loader-background {
+  background-color: #000000;
+  opacity: 1;
+  background-image: radial-gradient(#434343 0.55px, #000000 0.55px);
+  background-size: 11px 11px;
+}
+
 .spot-background {
-  background-color: #141517;
-  opacity: 0.8;
-  background-image: radial-gradient(#434343 0.55px, #141517 0.55px);
+  background-color: var(--background-base);
+  opacity: 1;
+  background-image: radial-gradient(#434343 0.55px, var(--background-base) 0.55px);
   background-size: 11px 11px;
 }
 
 .scroll {
   max-height: 74vh !important;
   overflow-y: auto;
+}
+
+.monaco-editor .bracket-highlighting-0 {
+  color: white !important;
+}
+
+.ant-btn-default{
+  background-color: transparent !important;
+  box-shadow: none;
+}
+
+.ant-black-button{
+  background-color: black !important;
+}
+
+.ant-select-selector{
+  background-color: transparent !important;
+}
+
+.ant-radio-wrapper .ant-radio-inner::after{
+  background-color: var(--background-base) !important;
+}
+
+.ant-radio-button-wrapper{
+  background-color: var(--background-base) !important;
 }

@@ -1,0 +1,526 @@
+syntax = "proto3";
+package base.v1;
+
+import "google/api/expr/v1alpha1/checked.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
+
+// Enumerates results of a check operation.
+enum CheckResult {
+  // Not specified check result. This is the default value.
+  CHECK_RESULT_UNSPECIFIED = 0;
+
+  // Represents a successful check (the check allowed the operation).
+  CHECK_RESULT_ALLOWED = 1;
+
+  // Represents a failed check (the check denied the operation).
+  CHECK_RESULT_DENIED = 2;
+}
+
+// Enumerates the types of attribute.
+enum AttributeType {
+  // Not specified attribute type. This is the default value.
+  ATTRIBUTE_TYPE_UNSPECIFIED = 0;
+
+  // A boolean attribute type.
+  ATTRIBUTE_TYPE_BOOLEAN = 1;
+
+  // A string attribute type.
+  ATTRIBUTE_TYPE_STRING = 2;
+
+  // An integer attribute type.
+  ATTRIBUTE_TYPE_INTEGER = 3;
+
+  // A double attribute type.
+  ATTRIBUTE_TYPE_DOUBLE = 4;
+}
+
+// Context encapsulates the information related to a single operation,
+// including the tuples involved and the associated attributes.
+message Context {
+  // A repeated field of tuples involved in the operation.
+  repeated Tuple tuples = 1 [json_name = "tuples"];
+
+  // A repeated field of attributes associated with the operation.
+  repeated Attribute attributes = 2 [json_name = "attributes"];
+
+  // Additional data associated with the context.
+  google.protobuf.Struct data = 3;
+}
+
+// Child represents a node in the permission tree.
+message Child {
+  // Child node can be either a leaf or a rewrite operation.
+  oneof type {
+    // Either leaf or rewrite operation is required.
+    option (validate.required) = true;
+
+    // Leaf node in the permission tree.
+    Leaf leaf = 1 [(validate.rules).message.required = true];
+
+    // Rewrite operation in the permission tree.
+    Rewrite rewrite = 2 [(validate.rules).message.required = true];
+  }
+}
+
+// Leaf represents a leaf node in the permission tree.
+message Leaf {
+  // Leaf node can be one of several types.
+  oneof type {
+    // One type is required.
+    option (validate.required) = true;
+
+    // A computed set of users.
+    ComputedUserSet computed_user_set = 1 [(validate.rules).message.required = true];
+
+    // A tuple to user set conversion.
+    TupleToUserSet tuple_to_user_set = 2 [(validate.rules).message.required = true];
+
+    // A computed attribute.
+    ComputedAttribute computed_attribute = 3 [(validate.rules).message.required = true];
+
+    // A call to a function or method.
+    Call call = 4 [(validate.rules).message.required = true];
+  }
+}
+
+// The Rewrite message represents a specific rewrite operation.
+// This operation could be one of the following: union, intersection, or exclusion.
+message Rewrite {
+  // Operation enum includes potential rewrite operations.
+  // OPERATION_UNION: Represents a union operation.
+  // OPERATION_INTERSECTION: Represents an intersection operation.
+  // OPERATION_EXCLUSION: Represents an exclusion operation.
+  enum Operation {
+    OPERATION_UNSPECIFIED = 0; // Default, unspecified operation.
+    OPERATION_UNION = 1; // Represents a union operation.
+    OPERATION_INTERSECTION = 2; // Represents an intersection operation.
+    OPERATION_EXCLUSION = 3; // Represents an exclusion operation.
+  }
+
+  // The type of rewrite operation to be performed.
+  Operation rewrite_operation = 1;
+
+  // A list of children that are operated upon by the rewrite operation.
+  repeated Child children = 2;
+}
+
+// The SchemaDefinition message provides definitions for entities and rules,
+// and includes references to clarify whether a name refers to an entity or a rule.
+message SchemaDefinition {
+  // The Reference enum helps distinguish whether a name corresponds to an entity or a rule.
+  enum Reference {
+    REFERENCE_UNSPECIFIED = 0; // Default, unspecified reference.
+    REFERENCE_ENTITY = 1; // Indicates that the name refers to an entity.
+    REFERENCE_RULE = 2; // Indicates that the name refers to a rule.
+  }
+
+  // Map of entity definitions. The key is the entity name, and the value is the corresponding EntityDefinition.
+  map<string, EntityDefinition> entity_definitions = 1;
+
+  // Map of rule definitions. The key is the rule name, and the value is the corresponding RuleDefinition.
+  map<string, RuleDefinition> rule_definitions = 2;
+
+  // Map of references to signify whether a string refers to an entity or a rule.
+  map<string, Reference> references = 3;
+}
+
+// The EntityDefinition message provides detailed information about a specific entity.
+message EntityDefinition {
+  // The Reference enum specifies whether a name pertains to a relation, permission, or attribute.
+  enum Reference {
+    REFERENCE_UNSPECIFIED = 0; // Default, unspecified reference.
+    REFERENCE_RELATION = 1; // Indicates that the name refers to a relation.
+    REFERENCE_PERMISSION = 2; // Indicates that the name refers to a permission.
+    REFERENCE_ATTRIBUTE = 3; // Indicates that the name refers to an attribute.
+  }
+
+  // The name of the entity, which follows a specific string pattern and has a maximum byte size.
+  string name = 1 [(validate.rules).string = {
+    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes: 64,
+  }];
+
+  // Map of relation definitions within this entity. The key is the relation name, and the value is the RelationDefinition.
+  map<string, RelationDefinition> relations = 2;
+
+  // Map of permission definitions within this entity. The key is the permission name, and the value is the PermissionDefinition.
+  map<string, PermissionDefinition> permissions = 3;
+
+  // Map of attribute definitions within this entity. The key is the attribute name, and the value is the AttributeDefinition.
+  map<string, AttributeDefinition> attributes = 4;
+
+  // Map of references indicating whether a string pertains to a relation, permission, or attribute.
+  map<string, Reference> references = 5;
+}
+
+// The RuleDefinition message provides detailed information about a specific rule.
+message RuleDefinition {
+  // The name of the rule, which follows a specific string pattern and has a maximum byte size.
+  string name = 1 [(validate.rules).string = {
+    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes: 64,
+  }];
+
+  // Map of arguments for this rule. The key is the attribute name, and the value is the AttributeType.
+  map<string, AttributeType> arguments = 2;
+
+  // The expression for this rule in the form of a google.api.expr.v1alpha1.CheckedExpr.
+  google.api.expr.v1alpha1.CheckedExpr expression = 3;
+}
+
+// The AttributeDefinition message provides detailed information about a specific attribute.
+message AttributeDefinition {
+  // The name of the attribute, which follows a specific string pattern and has a maximum byte size.
+  string name = 1 [(validate.rules).string = {
+    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes: 64,
+  }];
+
+  // The type of the attribute.
+  AttributeType type = 2;
+}
+
+// The RelationDefinition message provides detailed information about a specific relation.
+message RelationDefinition {
+  // The name of the relation, which follows a specific string pattern and has a maximum byte size.
+  string name = 1 [(validate.rules).string = {
+    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes: 64,
+  }];
+
+  // A list of references to other relations.
+  repeated RelationReference relation_references = 2;
+}
+
+// The PermissionDefinition message provides detailed information about a specific permission.
+message PermissionDefinition {
+  // The name of the permission, which follows a specific string pattern and has a maximum byte size.
+  string name = 1 [(validate.rules).string = {
+    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes: 64,
+  }];
+
+  // The child related to this permission.
+  Child child = 2;
+}
+
+// The RelationReference message provides a reference to a specific relation.
+message RelationReference {
+  // The type of the referenced entity, which follows a specific string pattern and has a maximum byte size.
+  string type = 1 [(validate.rules).string = {
+    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes: 64,
+  }];
+
+  // The name of the referenced relation, which follows a specific string pattern and has a maximum byte size.
+  string relation = 2 [(validate.rules).string = {
+    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes: 64,
+    ignore_empty: true,
+  }];
+}
+
+// Argument defines the type of argument in a Call. It can be either a ComputedAttribute or a ContextAttribute.
+message Argument {
+  oneof type {
+    ComputedAttribute computed_attribute = 1;
+    ContextAttribute context_attribute = 2;
+  }
+}
+
+// Call represents a call to a rule. It includes the name of the rule and the arguments passed to it.
+message Call {
+  string rule_name = 1; // Name of the rule
+  repeated Argument arguments = 2; // Arguments passed to the rule
+}
+
+// ComputedAttribute defines a computed attribute which includes its name.
+message ComputedAttribute {
+  string name = 1 [(validate.rules).string = {
+    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes: 64,
+  }]; // Name of the computed attribute
+}
+
+// ContextAttribute defines a context attribute which includes its name.
+message ContextAttribute {
+  string name = 1 [(validate.rules).string = {
+    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes: 64,
+  }]; // Name of the context attribute
+}
+
+// ComputedUserSet defines a set of computed users which includes the relation name.
+message ComputedUserSet {
+  string relation = 1 [(validate.rules).string = {
+    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes: 64,
+  }]; // Relation name
+}
+
+// TupleToUserSet defines a mapping from tuple sets to computed user sets.
+message TupleToUserSet {
+  TupleSet tupleSet = 1; // The tuple set
+  ComputedUserSet computed = 2; // The computed user set
+}
+
+// TupleSet represents a set of tuples associated with a specific relation.
+message TupleSet {
+  string relation = 1 [(validate.rules).string = {
+    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes: 64,
+  }];
+}
+
+// Tuple is a structure that includes an entity, a relation, and a subject.
+message Tuple {
+  Entity entity = 1 [
+    json_name = "entity",
+    (validate.rules).message.required = true
+  ];
+
+  string relation = 2 [
+    json_name = "relation",
+    (validate.rules).string = {
+      pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+      max_bytes: 64,
+    }
+  ];
+
+  Subject subject = 3 [
+    json_name = "subject",
+    (validate.rules).message.required = true
+  ];
+}
+
+// Attribute represents an attribute of an entity with a specific type and value.
+message Attribute {
+  Entity entity = 1 [
+    json_name = "entity",
+    (validate.rules).message.required = true
+  ];
+
+  string attribute = 2 [json_name = "attribute"]; // Name of the attribute
+
+  string type = 3 [json_name = "type"]; // Type of the attribute
+
+  google.protobuf.Any value = 4 [json_name = "value"]; // Value of the attribute
+}
+
+// Tuples is a collection of tuples.
+message Tuples {
+  repeated Tuple tuples = 1 [json_name = "tuples"];
+}
+
+// Entity represents an entity with a type and an identifier.
+message Entity {
+  string type = 1 [
+    json_name = "type",
+    (validate.rules).string = {
+      pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+      max_bytes: 64,
+    }
+  ];
+
+  string id = 2 [
+    json_name = "id",
+    (validate.rules).string = {
+      pattern: "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
+      max_bytes: 128,
+    }
+  ];
+}
+
+// EntityAndRelation represents an entity along with a relation.
+message EntityAndRelation {
+  Entity entity = 1 [
+    json_name = "entity",
+    (validate.rules).message.required = true
+  ];
+
+  string relation = 2 [
+    json_name = "relation",
+    (validate.rules).string = {
+      pattern: "^([a-z][a-z0-9_]{1,64}[a-z0-9])$",
+      max_bytes: 64,
+    }
+  ];
+}
+
+// Subject represents an entity subject with a type, an identifier, and a relation.
+message Subject {
+  string type = 1 [
+    json_name = "type",
+    (validate.rules).string = {
+      pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+      max_bytes: 64,
+    }
+  ];
+
+  string id = 2 [
+    json_name = "id",
+    (validate.rules).string = {
+      pattern: "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
+      max_bytes: 128,
+    }
+  ];
+
+  string relation = 3 [
+    json_name = "relation",
+    (validate.rules).string = {
+      pattern: "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
+      max_bytes: 64,
+      ignore_empty: true,
+    }
+  ];
+}
+
+// AttributeFilter is used to filter attributes based on the entity and attribute names.
+message AttributeFilter {
+  EntityFilter entity = 1 [
+    json_name = "entity",
+    (validate.rules).message.required = true
+  ];
+
+  repeated string attributes = 2 [json_name = "attributes"]; // Names of the attributes to be filtered
+}
+
+// TupleFilter is used to filter tuples based on the entity, relation and the subject.
+message TupleFilter {
+  EntityFilter entity = 1 [
+    json_name = "entity",
+    (validate.rules).message.required = true
+  ];
+
+  string relation = 2 [
+    json_name = "relation",
+    (validate.rules).string = {
+      pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+      max_bytes: 64,
+      ignore_empty: true,
+    }
+  ];
+
+  SubjectFilter subject = 3 [json_name = "subject"]; // The subject filter
+}
+
+// EntityFilter is used to filter entities based on the type and ids.
+message EntityFilter {
+  string type = 1 [json_name = "type"]; // Type of the entity
+
+  repeated string ids = 2 [json_name = "ids"]; // List of entity IDs
+}
+
+// SubjectFilter is used to filter subjects based on the type, ids and relation.
+message SubjectFilter {
+  string type = 1 [json_name = "type"]; // Type of the subject
+
+  repeated string ids = 2 [json_name = "ids"]; // List of subject IDs
+
+  string relation = 3 [
+    json_name = "relation",
+    (validate.rules).string = {
+      pattern: "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
+      max_bytes: 64,
+      ignore_empty: true,
+    }
+  ];
+}
+
+// ExpandTreeNode represents a node in an expansion tree with a specific operation and its children.
+message ExpandTreeNode {
+  // Operation is an enum representing the type of operation to be applied on the tree node.
+  enum Operation {
+    OPERATION_UNSPECIFIED = 0;
+    OPERATION_UNION = 1;
+    OPERATION_INTERSECTION = 2;
+    OPERATION_EXCLUSION = 3;
+  }
+
+  Operation operation = 1; // Operation to be applied on this tree node
+
+  repeated Expand children = 2; // The children of this tree node
+}
+
+// Expand is used to define a hierarchical structure for permissions.
+// It has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects.
+message Expand {
+  // entity is the entity for which the hierarchical structure is defined.
+  Entity entity = 1;
+
+  // permission is the permission applied to the entity.
+  string permission = 2;
+
+  // arguments are the additional information or context used to evaluate permissions.
+  repeated Argument arguments = 3;
+
+  // The node can either be an ExpandTreeNode or a set of Subjects.
+  oneof node {
+    // expand contains another hierarchical structure.
+    ExpandTreeNode expand = 4;
+
+    // leaf contains a set of subjects.
+    ExpandLeaf leaf = 5;
+  }
+}
+
+// ExpandLeaf is the leaf node of an Expand tree and can be either a set of Subjects or a set of Values.
+message ExpandLeaf {
+  oneof type { // type can be either Subjects or Values.
+    option (validate.required) = true;
+
+    // subjects are used when the leaf is a set of subjects.
+    Subjects subjects = 1 [json_name = "subjects"];
+
+    // values are used when the leaf node is a set of values.
+    Values values = 2 [json_name = "values"];
+
+    // value is used when the leaf node is a single value.
+    google.protobuf.Any value = 3 [json_name = "value"];
+  }
+}
+
+message Values {
+  map<string, google.protobuf.Any> values = 1 [json_name = "values"];
+}
+
+// Subjects holds a repeated field of Subject type.
+message Subjects {
+  repeated Subject subjects = 1 [json_name = "subjects"]; // A list of subjects.
+}
+
+// Tenant represents a tenant with an id, a name, and a timestamp indicating when it was created.
+message Tenant {
+  string id = 1 [json_name = "id"]; // The ID of the tenant.
+  string name = 2 [json_name = "name"]; // The name of the tenant.
+  google.protobuf.Timestamp created_at = 3 [json_name = "created_at"]; // The time at which the tenant was created.
+}
+
+// DataChanges represent changes in data with a snap token and a list of data change objects.
+message DataChanges {
+  string snap_token = 1 [json_name = "snap_token"]; // The snapshot token.
+
+  repeated DataChange data_changes = 2 [json_name = "data_changes"]; // The list of data changes.
+}
+
+// DataChange represents a single change in data, with an operation type and the actual change which could be a tuple or an attribute.
+message DataChange {
+  enum Operation {
+    OPERATION_UNSPECIFIED = 0; // Default operation, not specified.
+    OPERATION_CREATE = 1; // Creation operation.
+    OPERATION_DELETE = 2; // Deletion operation.
+  }
+
+  Operation operation = 1 [json_name = "operation"]; // The operation type.
+
+  oneof type { // The type of the change which can be either a tuple or an attribute.
+    option (validate.required) = true;
+    Tuple tuple = 2 [json_name = "tuple"]; // If the change is a tuple.
+    Attribute attribute = 3 [json_name = "attribute"]; // If the change is an attribute.
+  }
+}
