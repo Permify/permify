@@ -1,10 +1,8 @@
 package keys
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -286,16 +284,16 @@ func TestEngineKeys_SetCheckKeyWithArguments(t *testing.T) {
 			SnapToken:     "test_snap_token",
 			Depth:         20,
 		},
-		Arguments: []*base.CallArgument{
+		Arguments: []*base.Argument{
 			{
-				Type: &base.CallArgument_ComputedAttribute{
+				Type: &base.Argument_ComputedAttribute{
 					ComputedAttribute: &base.ComputedAttribute{
 						Name: "test_argument_1",
 					},
 				},
 			},
 			{
-				Type: &base.CallArgument_ComputedAttribute{
+				Type: &base.Argument_ComputedAttribute{
 					ComputedAttribute: &base.ComputedAttribute{
 						Name: "test_argument_2",
 					},
@@ -312,9 +310,6 @@ func TestEngineKeys_SetCheckKeyWithArguments(t *testing.T) {
 			Id:   "u1",
 		},
 	}
-
-	spew.Dump(GenerateKey(checkReq))
-	fmt.Println("")
 
 	checkResp := &base.PermissionCheckResponse{
 		Can: base.CheckResult_CHECK_RESULT_ALLOWED,
@@ -359,16 +354,16 @@ func TestEngineKeys_SetCheckKeyWithContext(t *testing.T) {
 			SnapToken:     "test_snap_token",
 			Depth:         20,
 		},
-		Arguments: []*base.CallArgument{
+		Arguments: []*base.Argument{
 			{
-				Type: &base.CallArgument_ComputedAttribute{
+				Type: &base.Argument_ComputedAttribute{
 					ComputedAttribute: &base.ComputedAttribute{
 						Name: "test_argument_1",
 					},
 				},
 			},
 			{
-				Type: &base.CallArgument_ComputedAttribute{
+				Type: &base.Argument_ComputedAttribute{
 					ComputedAttribute: &base.ComputedAttribute{
 						Name: "test_argument_2",
 					},
@@ -413,5 +408,5 @@ func TestEngineKeys_SetCheckKeyWithContext(t *testing.T) {
 		},
 	}
 
-	fmt.Println(GenerateKey(checkReq))
+	assert.Equal(t, "check|t1|test_version|test_snap_token|entity_type:entity_id#relation@subject_type:subject_id,entity_type:entity_id#is_public@boolean:true,day_of_a_week:saturday,day_of_a_year:35|test-entity:e1#test-rule(test_argument_1,test_argument_2)@user:u1", GenerateKey(checkReq))
 }
