@@ -42,7 +42,7 @@ code {
   background: black;
   height: 64px;
   padding: 0 5px;
-  margin: 10px 10px 0 10px;
+  margin: 10px 10px 10px 10px;
 }
 
 // font
@@ -486,4 +486,26 @@ code {
 
 .ant-radio-button-wrapper{
   background-color: var(--background-base) !important;
+}
+
+.ant-collapse-content-box{
+  padding: 0 !important;
+}
+
+.ant-collapse-item{
+  background-color: var(--background-base) !important;
+}
+
+:where(.css-dev-only-do-not-override-h0q4hs).ant-collapse{
+  border: none !important;
+}
+
+.error-row {
+  .ant-table-cell{
+    color: #dc4446 !important;
+  }
+}
+
+.ant-select-status-error:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer) .ant-select-selector{
+  border-color: #dc4446 !important;
 }
