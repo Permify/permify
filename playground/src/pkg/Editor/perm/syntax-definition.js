@@ -1,11 +1,13 @@
 function SyntaxDefinition() {
     return {
-        keywords: ["entity", "action", "relation", "and", "or", "not", "permission"],
+        keywords: ["entity", "action", "relation", "and", "or", "not", "permission", "rule", "attribute"],
         escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
         symbols:  /[=><!~?:&|+\-*\/\^%]+/,
         tokenizer: {
             root: [
-                [/\B@\w+#?\w+/, 'type'],
+                [/\B@\w+#?\w+/, 'reference'],
+                [/\b(integer|double|boolean|string)\b/, 'type'],
+                [/&&|==|!=|<=|>=|<|>|!|-|%|in|not in/, 'operator'],
                 [/`(?:[^`\\]|\\.)*`/, 'option'],
                 [/@?[a-zA-Z][\w$]*/, {
                     cases: {

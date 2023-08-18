@@ -1,42 +1,62 @@
 import React, {useState} from 'react'
-import {Card, Radio} from 'antd';
-import Check from "./particials/check";
-import EntityFilter from "./particials/entityFilter";
-import SubjectFilter from "./particials/subjectFilter";
+import {
+    Collapse,
+} from "antd";
+import YamlEditor from "../../pkg/Editor/yaml";
+import Terminal from './../../pkg/XTerm';
+import {Allotment} from "allotment";
+import "allotment/dist/style.css";
 
-function Enforcement(props) {
+const {Panel} = Collapse;
 
-    const [selected, setSelected] = useState('check');
+function Enforcement() {
 
-    const onChange = ({target: {value}}) => {
-        setSelected(value);
-    };
-
-    const renderComponent = () => {
-        switch (selected) {
-            case "check":
-                return <Check />;
-            case "entity-filter":
-                return <EntityFilter />;
-            case "subject-filter":
-                return <SubjectFilter />;
-            default:
-                return null;
-        }
-    }
-
+    const sampleDataList = [
+        {name: "Scenario 1", description: "test description", content: "entity: 'repository:1'\nsubject: 'user:1'"},
+        {name: "Scenario 2", description: "test description", content: "entity: 'repository:2'\nsubject: 'user:2'"},
+    ];
+    // const formatYaml = () => {
+    //     try {
+    //         const jsonObject = yaml.load(code);
+    //         const formattedYaml = yaml.dump(jsonObject, { indent: 4 });
+    //         setCode(formattedYaml);
+    //     } catch (e) {
+    //         console.error("Error formatting YAML:", e);
+    //         alert("Invalid YAML format. Please check your content.");
+    //     }
+    // };
     return (
-        <Card title={props.title} className="h-screen" style={{display: props.hidden && 'none'}}>
-            <div className="p-12">
-                <Radio.Group defaultValue="check" onChange={onChange} value={selected}>
-                    <Radio value="check">Check</Radio>
-                    <Radio value="entity-filter">Entity Filter</Radio>
-                    <Radio value="subject-filter">Subject Filter</Radio>
-                </Radio.Group>
-                {renderComponent()}
-            </div>
-        </Card>
-    )
+        <div style={{height: 'calc(100vh - 140px)'}}>
+            <Allotment vertical defaultSizes={[130, 100]}>
+                <Allotment.Pane >
+                    <Collapse style={{overflow: 'auto', height: 'calc(100vh - 335px)'}} size="large">
+                        {sampleDataList.map((data, index) => (
+                            <Panel
+                                header={
+                                    <div>
+                                        <h4 style={{margin: 0}}>{data.name}</h4>
+                                        <p style={{margin: 0, fontSize: '12px', color: 'grey'}}>{data.description}</p>
+                                    </div>
+                                }
+                                key={index}
+                            >
+                                <YamlEditor
+                                    initialCode={data.content}
+                                    onCodeChange={(newCode) => {
+                                        // Handle code changes, e.g., updating your state
+                                        console.log("New YAML content:", newCode);
+                                    }}
+                                />
+                            </Panel>
+                        ))}
+                    </Collapse>
+                </Allotment.Pane>
+                <Allotment.Pane >
+                    <Terminal/>
+                </Allotment.Pane>
+            </Allotment>
+        </div>
+    );
 }
 
 export default Enforcement

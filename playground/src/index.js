@@ -3,13 +3,12 @@ import ReactDOM from 'react-dom';
 import './_assets/less/index.less';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import store from "./redux/store";
 import {LoadWasm} from './loadWasm';
 
 ReactDOM.render(
     <React.StrictMode>
         <LoadWasm>
-            <App store={store} />
+            <App/>
         </LoadWasm>
     </React.StrictMode>,
     document.getElementById('root')

@@ -1,13 +1,10 @@
 import React, {useState} from "react";
-import {Layout, Row, Button, Select} from 'antd';
+import {Layout, Row, Button, Select, Typography} from 'antd';
 import {toAbsoluteUrl} from "../utility/helpers/asset";
-import {GithubOutlined, ShareAltOutlined} from "@ant-design/icons";
-import {shallowEqual, useSelector} from "react-redux";
-import yaml from "js-yaml";
-import Upload from "../services/s3";
-import Share from "./components/Modals/Share";
-import {nanoid} from "nanoid";
+import {GithubOutlined, ShareAltOutlined, ExportOutlined, ImportOutlined} from "@ant-design/icons";
+import Share from "./components/modals/share";
 
+const {Text} = Typography;
 const {Option, OptGroup} = Select;
 const {Content, Header} = Layout;
 
@@ -22,8 +19,6 @@ const MainLayout = ({children, ...rest}) => {
 
     const [id, setId] = useState("");
 
-    const shape = useSelector((state) => state.shape, shallowEqual);
-
     const handleSampleChange = (value) => {
         setSelectedSample(value)
         const params = new URLSearchParams()
@@ -32,17 +27,17 @@ const MainLayout = ({children, ...rest}) => {
     };
 
     const share = () => {
-        let id = nanoid()
-        setId(id)
-        const yamlString = yaml.dump({
-            schema: shape.schema,
-            relationships: shape.relationships,
-            assertions: shape.assertions
-        })
-        const file = new File([yamlString], `shapes/${id}.yaml`, {type : 'text/x-yaml'});
-        Upload(file).then((res) => {
-            toggleShareModalVisibility()
-        })
+        // let id = nanoid()
+        // setId(id)
+        // const yamlString = yaml.dump({
+        //     schema: shape.schema,
+        //     relationships: shape.relationships,
+        //     assertions: shape.assertions
+        // })
+        // const file = new File([yamlString], `shapes/${id}.yaml`, {type : 'text/x-yaml'});
+        // Upload(file).then((res) => {
+        //     toggleShareModalVisibility()
+        // })
     }
 
     return (
@@ -66,14 +61,24 @@ const MainLayout = ({children, ...rest}) => {
                                 <Option key="rbac" value="rbac">RBAC</Option>
                                 <Option key="custom-roles" value="custom-roles">Custom Roles</Option>
                                 <Option key="user-groups" value="user-groups">User Groups</Option>
+                                <Option key="weekday" value="weekday">Weekday <Text type="danger">(beta)</Text></Option>
+                                <Option key="banking-system" value="banking-system">Banking System <Text type="danger">(beta)</Text></Option>
                             </OptGroup>
                             <OptGroup label="Sample Apps">
                                 <Option key="google-docs-simplified" value="google-docs-simplified">Google Docs Simplified</Option>
                                 <Option key="facebook-groups" value="facebook-groups">Facebook Groups</Option>
                                 <Option key="notion" value="notion">Notion</Option>
+                                <Option key="mercury" value="mercury">Mercury <Text type="danger">(beta)</Text></Option>
+                                <Option key="instagram" value="instagram">Instagram <Text type="danger">(beta)</Text></Option>
                             </OptGroup>
                         </Select>
-                        <Button onClick={() => {
+                        <Button className="mr-8" onClick={() => {
+                            share()
+                        }} icon={<ImportOutlined/>}>Import</Button>
+                        <Button className="mr-8" onClick={() => {
+                            share()
+                        }} icon={<ExportOutlined/>}>Export</Button>
+                        <Button  onClick={() => {
                             share()
                         }} icon={<ShareAltOutlined/>}>Share</Button>
                     </div>
@@ -91,7 +96,7 @@ const MainLayout = ({children, ...rest}) => {
                     </div>
                 </Row>
             </Header>
-            <Layout className="m-10">
+            <Layout>
                 <Content className="h-full flex flex-col max-h-full">
                     <div className="flex-auto overflow-hidden">
                         {children}
