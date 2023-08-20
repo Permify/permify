@@ -47,7 +47,7 @@ func TestHeadVersion_Test(t *testing.T) {
 		{TenantID: "1", Name: "entity1", SerializedDefinition: []byte("def1"), Version: version},
 	}
 
-	query := "INSERT INTO schema_definitions \\(entity_type, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
+	query := "INSERT INTO schema_definitions \\(name, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
 	mock.ExpectExec(query).
 		WithArgs(schemas[version].Name, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
 		WillReturnResult(sqlmock.NewResult(0, 2))
@@ -92,7 +92,7 @@ func TestReadSchema_Test(t *testing.T) {
 		{TenantID: "1", Name: "user", SerializedDefinition: []byte(schemaExample), Version: version},
 	}
 
-	query := "INSERT INTO schema_definitions \\(entity_type, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
+	query := "INSERT INTO schema_definitions \\(name, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
 	mock.ExpectExec(query).
 		WithArgs(schemas[version].Name, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
 		WillReturnResult(sqlmock.NewResult(0, 2))
@@ -100,8 +100,8 @@ func TestReadSchema_Test(t *testing.T) {
 	err = writer.WriteSchema(ctx, writeSchemas)
 	require.NoError(t, err)
 
-	expectedQuery := "SELECT entity_type, serialized_definition, version FROM schema_definitions WHERE tenant_id = \\$1 AND version = \\$2"
-	expectedRows := sqlmock.NewRows([]string{"entity_type", "serialized_definition", "version"}).
+	expectedQuery := "SELECT name, serialized_definition, version FROM schema_definitions WHERE tenant_id = \\$1 AND version = \\$2"
+	expectedRows := sqlmock.NewRows([]string{"name", "serialized_definition", "version"}).
 		AddRow("user", []byte(schemaExample), version)
 
 	mock.ExpectQuery(expectedQuery).WithArgs("1", version).WillReturnRows(expectedRows)
@@ -138,7 +138,7 @@ func TestReadSchemaDefinition_Test(t *testing.T) {
 		{TenantID: "1", Name: "user", SerializedDefinition: []byte(schemaExample), Version: version},
 	}
 
-	query := "INSERT INTO schema_definitions \\(entity_type, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
+	query := "INSERT INTO schema_definitions \\(name, serialized_definition, version, tenant_id\\) VALUES \\(\\$1,\\$2,\\$3,\\$4\\)$"
 	mock.ExpectExec(query).
 		WithArgs(schemas[version].Name, schemas[version].SerializedDefinition, schemas[version].Version, schemas[version].TenantID).
 		WillReturnResult(sqlmock.NewResult(0, 2))
@@ -146,13 +146,13 @@ func TestReadSchemaDefinition_Test(t *testing.T) {
 	err = writer.WriteSchema(ctx, writeSchemas)
 	require.NoError(t, err)
 
-	expectedQuery := "SELECT entity_type, serialized_definition, version FROM schema_definitions WHERE entity_type = \\$1 AND tenant_id = \\$2 AND version = \\$3 LIMIT 1"
-	expectedRows := sqlmock.NewRows([]string{"entity_type", "serialized_definition", "version"}).
+	expectedQuery := "SELECT name, serialized_definition, version FROM schema_definitions WHERE name = \\$1 AND tenant_id = \\$2 AND version = \\$3 LIMIT 1"
+	expectedRows := sqlmock.NewRows([]string{"name", "serialized_definition", "version"}).
 		AddRow("user", schemaExample, version)
 
 	mock.ExpectQuery(expectedQuery).WithArgs("user", "1", version).WillReturnRows(expectedRows)
 
-	_, v, err := reader.ReadSchemaDefinition(ctx, "1", "user", version)
+	_, v, err := reader.ReadEntityDefinition(ctx, "1", "user", version)
 	require.NoError(t, err)
 	require.Equal(t, version, v)
 }

@@ -25,9 +25,9 @@ var conn *grpc.ClientConn
 
 // Create a PermissionClient using the connection.
 var (
-	schemaClient       base.SchemaClient
-	permissionClient   base.PermissionClient
-	relationshipClient base.RelationshipClient
+	schemaClient     base.SchemaClient
+	permissionClient base.PermissionClient
+	dataClient       base.DataClient
 )
 
 var (
@@ -55,7 +55,7 @@ var _ = BeforeSuite(func() {
 	// Create a PermissionClient using the connection.
 	schemaClient = base.NewSchemaClient(conn)
 	permissionClient = base.NewPermissionClient(conn)
-	relationshipClient = base.NewRelationshipClient(conn)
+	dataClient = base.NewDataClient(conn)
 
 	// NOTION
 
@@ -83,8 +83,8 @@ var _ = BeforeSuite(func() {
 		notionTuples = append(notionTuples, tup)
 	}
 
-	nrw, err := relationshipClient.Write(ctx, &base.RelationshipWriteRequest{
-		Metadata: &base.RelationshipWriteRequestMetadata{
+	nrw, err := dataClient.Write(ctx, &base.DataWriteRequest{
+		Metadata: &base.DataWriteRequestMetadata{
 			SchemaVersion: initialNotionSchemaVersion,
 		},
 		TenantId: "notion",
@@ -121,8 +121,8 @@ var _ = BeforeSuite(func() {
 		googleDocsTuples = append(googleDocsTuples, tup)
 	}
 
-	drw, err := relationshipClient.Write(ctx, &base.RelationshipWriteRequest{
-		Metadata: &base.RelationshipWriteRequestMetadata{
+	drw, err := dataClient.Write(ctx, &base.DataWriteRequest{
+		Metadata: &base.DataWriteRequestMetadata{
 			SchemaVersion: initialGoogleDocsSchemaVersion,
 		},
 		TenantId: "google-docs",
@@ -159,8 +159,8 @@ var _ = BeforeSuite(func() {
 		facebookGroupsTuples = append(facebookGroupsTuples, tup)
 	}
 
-	frw, err := relationshipClient.Write(ctx, &base.RelationshipWriteRequest{
-		Metadata: &base.RelationshipWriteRequestMetadata{
+	frw, err := dataClient.Write(ctx, &base.DataWriteRequest{
+		Metadata: &base.DataWriteRequestMetadata{
 			SchemaVersion: initialFacebookGroupsSchemaVersion,
 		},
 		TenantId: "facebook-groups",

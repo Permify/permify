@@ -21,7 +21,7 @@ import (
 )
 
 var _ = Describe("RelationshipReader", func() {
-	var relationshipReader *postgres2.RelationshipReader
+	var dataReader *postgres2.DataReader
 	var mock sqlmock.Sqlmock
 
 	BeforeEach(func() {
@@ -38,7 +38,7 @@ var _ = Describe("RelationshipReader", func() {
 			Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 		}
 
-		relationshipReader = postgres2.NewRelationshipReader(pg, l)
+		dataReader = postgres2.NewDataReader(pg, l)
 	})
 
 	AfterEach(func() {
@@ -63,7 +63,7 @@ var _ = Describe("RelationshipReader", func() {
 				WillReturnRows(rows)
 			mock.ExpectCommit()
 
-			value, err := relationshipReader.QueryRelationships(context.Background(), "noop", &base.TupleFilter{
+			value, err := dataReader.QueryRelationships(context.Background(), "noop", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
 					Ids:  []string{"abc"},

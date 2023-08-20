@@ -28,7 +28,7 @@ func TestGarbageCollectQuery(t *testing.T) {
 	window := 24 * time.Hour
 	tenantID := "testTenant"
 
-	query := utils.GarbageCollectQuery(window, tenantID)
+	query := utils.TuplesGarbageCollectQuery(window, tenantID)
 	sql, _, err := query.ToSql()
 
 	assert.NoError(t, err)

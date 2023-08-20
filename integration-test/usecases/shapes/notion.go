@@ -179,17 +179,17 @@ entity integration {
 			Description: "Alice and bob can read to the project plan page",
 			Checks: []file.Check{
 				{
-					ContextualTuples: []string{},
-					Entity:           "page:project_plan",
-					Subject:          "user:alice",
+					Context: file.Context{},
+					Entity:  "page:project_plan",
+					Subject: "user:alice",
 					Assertions: map[string]bool{
 						"read": true,
 					},
 				},
 				{
-					ContextualTuples: []string{},
-					Entity:           "page:project_plan",
-					Subject:          "user:bob",
+					Context: file.Context{},
+					Entity:  "page:project_plan",
+					Subject: "user:bob",
 					Assertions: map[string]bool{
 						"read": true,
 					},
@@ -197,8 +197,10 @@ entity integration {
 			},
 			EntityFilters: []file.EntityFilter{
 				{
-					ContextualTuples: []string{
-						"page:context#reader@user:bob",
+					Context: file.Context{
+						Tuples: []string{
+							"page:context#reader@user:bob",
+						},
 					},
 					EntityType: "page",
 					Subject:    "user:bob",
@@ -209,7 +211,7 @@ entity integration {
 			},
 			SubjectFilters: []file.SubjectFilter{
 				{
-					ContextualTuples: []string{},
+					Context:          file.Context{},
 					Entity:           "page:project_plan",
 					SubjectReference: "user",
 					Assertions: map[string][]string{
@@ -223,9 +225,9 @@ entity integration {
 			Description: "Check if a user who is a guest in a workspace can edit a database",
 			Checks: []file.Check{
 				{
-					ContextualTuples: []string{},
-					Entity:           "database:task_list",
-					Subject:          "user:frank",
+					Context: file.Context{},
+					Entity:  "database:task_list",
+					Subject: "user:frank",
 					Assertions: map[string]bool{
 						"write": false,
 					},
@@ -240,9 +242,9 @@ entity integration {
 			Checks:      []file.Check{},
 			EntityFilters: []file.EntityFilter{
 				{
-					ContextualTuples: []string{},
-					EntityType:       "database",
-					Subject:          "user:alice",
+					Context:    file.Context{},
+					EntityType: "database",
+					Subject:    "user:alice",
 					Assertions: map[string][]string{
 						"write": {"task_list"},
 					},
@@ -257,7 +259,7 @@ entity integration {
 			EntityFilters: []file.EntityFilter{},
 			SubjectFilters: []file.SubjectFilter{
 				{
-					ContextualTuples: []string{},
+					Context:          file.Context{},
 					Entity:           "page:project_plan",
 					SubjectReference: "user",
 					Assertions: map[string][]string{
@@ -265,7 +267,7 @@ entity integration {
 					},
 				},
 				{
-					ContextualTuples: []string{},
+					Context:          file.Context{},
 					Entity:           "page:product_spec",
 					SubjectReference: "user",
 					Assertions: map[string][]string{
@@ -279,9 +281,9 @@ entity integration {
 			Description: "Ensure that a user who is not a member of a workspace cannot view the workspace",
 			Checks: []file.Check{
 				{
-					ContextualTuples: []string{},
-					Entity:           "workspace:sales_team",
-					Subject:          "user:charlie",
+					Context: file.Context{},
+					Entity:  "workspace:sales_team",
+					Subject: "user:charlie",
 					Assertions: map[string]bool{
 						"view_workspace": false,
 					},
