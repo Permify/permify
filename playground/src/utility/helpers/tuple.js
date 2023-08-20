@@ -34,31 +34,74 @@ function constructSubjectString(subjectComponents, continuationIndicator) {
     return `${subjectComponents[1]} of ${subjectComponents[0]} is `;
 }
 
-export function TupleObjectToTupleString(tuple) {
-    return `${tuple.entity.type}:${tuple.entity.id}#${tuple.relation}@${tuple.subject.type}:${tuple.subject.id}${tuple.subject.relation === undefined ? "" : "#" + tuple.subject.relation}`
+export function RelationshipObjectToKey(tuple) {
+    return `${tuple.entityType}:${tuple.entityID}#${tuple.relation}@${tuple.subjectType}:${tuple.subjectID}${tuple.subjectRelation === "" ? "" : "#" + tuple.subjectRelation}`
 }
 
-// Tuple -
-export function Tuple(tuple) {
-    let s = tuple.trim().split("@");
+export function AttributeObjectToKey(attribute) {
+    return `${attribute.entityType}:${attribute.entityID}#${attribute.attribute}@${attribute.type}:${attribute.value}`
+}
+
+export function AttributeEntityToKey(attribute) {
+    return `${attribute.entityType}:${attribute.entityID}#${attribute.attribute}`
+}
+
+export function StringRelationshipsToObjects(relationships) {
+    let r = []
+    for (let i = 0; i < relationships.length; i++) {
+        r[i] = StringRelationshipToObject(relationships[i])
+    }
+    return r
+}
+
+export function StringRelationshipToObject(relationship) {
+    let s = relationship.trim().split("@");
     if (s.length !== 2) {
         return null;
     }
-    let ear = EAR(s[0]);
-    let sub = EAR(s[1]);
+    let ear = entityAndRelation(s[0]);
+    let sub = entityAndRelation(s[1]);
+
     return {
-        entity: ear.entity,
+        key: relationship,
+        entityType: ear.entity.type,
+        entityID: ear.entity.id,
         relation: ear.relation,
-        subject: {
-            type: sub.entity.type,
-            id: sub.entity.id,
-            relation: sub.relation,
-        },
-    };
+        subjectType: sub.entity.type,
+        subjectID: sub.entity.id,
+        subjectRelation: sub.relation,
+    }
+}
+
+export function StringAttributesToObjects(attributes) {
+    let r = []
+    for (let i = 0; i < attributes.length; i++) {
+        r[i] = StringAttributeToObject(attributes[i])
+    }
+    return r
+}
+
+// StringAttributeToObject
+export function StringAttributeToObject(attribute) {
+    let s = attribute.trim().split("@");
+    if (s.length !== 2) {
+        return null;
+    }
+    let ear = entityAndAttribute(s[0]);
+    let val = value(s[1]);
+
+    return {
+        key: attribute,
+        entityType: ear.entity.type,
+        entityID: ear.entity.id,
+        attribute: ear.attribute,
+        type: val.type,
+        value: val.value,
+    }
 }
 
 // EAR EntitiesAndRelation
-function EAR(ear) {
+function entityAndRelation(ear) {
     let s = ear.trim().split("#");
     if (s.length === 1) {
         let e = E(s[0]);
@@ -75,6 +118,38 @@ function EAR(ear) {
     } else {
         return null;
     }
+}
+
+// entityAndAttribute
+function entityAndAttribute(ear) {
+    let s = ear.trim().split("#");
+    if (s.length === 1) {
+        let e = E(s[0]);
+        return {
+            entity: e,
+            attribute: "",
+        };
+    } else if (s.length === 2) {
+        let e = E(s[0]);
+        return {
+            entity: e,
+            attribute: s[1],
+        };
+    } else {
+        return null;
+    }
+}
+
+// value
+function value(v) {
+    let s = v.trim().split(":");
+    if (s.length !== 2) {
+        return null;
+    }
+    return {
+        type: s[0],
+        value: s[1],
+    };
 }
 
 // E New Entities from string
