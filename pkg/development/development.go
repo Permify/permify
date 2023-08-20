@@ -109,7 +109,7 @@ func (c *Development) ReadSchema(ctx context.Context) (sch *v1.SchemaDefinition,
 
 type Error struct {
 	Type    string `json:"type"`
-	Key     string `json:"key"`
+	Key     any    `json:"key"`
 	Message string `json:"message"`
 }
 
@@ -119,6 +119,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	if err != nil {
 		errors = append(errors, Error{
 			Type:    "file_validation",
+			Key:     "",
 			Message: err.Error(),
 		})
 		return
@@ -130,6 +131,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	if err != nil {
 		errors = append(errors, Error{
 			Type:    "file_validation",
+			Key:     "",
 			Message: err.Error(),
 		})
 		return
@@ -140,6 +142,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	if err != nil {
 		errors = append(errors, Error{
 			Type:    "schema",
+			Key:     "",
 			Message: err.Error(),
 		})
 		return
@@ -150,6 +153,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	if err != nil {
 		errors = append(errors, Error{
 			Type:    "schema",
+			Key:     "",
 			Message: err.Error(),
 		})
 	}
@@ -173,6 +177,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	if err != nil {
 		errors = append(errors, Error{
 			Type:    "schema",
+			Key:     "",
 			Message: err.Error(),
 		})
 		return
@@ -273,14 +278,15 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	}
 
 	// Each item in the Scenarios slice is processed individually
-	for _, scenario := range s.Scenarios {
+	for i, scenario := range s.Scenarios {
 
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
 			entity, err := tuple.E(check.Entity)
 			if err != nil {
 				errors = append(errors, Error{
-					Type:    "checks",
+					Type:    "scenarios",
+					Key:     i,
 					Message: err.Error(),
 				})
 				continue
@@ -289,7 +295,8 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 			ear, err := tuple.EAR(check.Subject)
 			if err != nil {
 				errors = append(errors, Error{
-					Type:    "checks",
+					Type:    "scenarios",
+					Key:     i,
 					Message: err.Error(),
 				})
 				continue
@@ -323,6 +330,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 				if err != nil {
 					errors = append(errors, Error{
 						Type:    "checks",
+						Key:     i,
 						Message: err.Error(),
 					})
 					continue
@@ -334,13 +342,15 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 				if res.Can != exp {
 					if res.Can == v1.CheckResult_CHECK_RESULT_ALLOWED {
 						errors = append(errors, Error{
-							Type:    "checks",
+							Type:    "scenarios",
+							Key:     i,
 							Message: query,
 						})
 					} else {
 						// Handle the case where the permission check result is DENIED but the expected result was ALLOWED
 						errors = append(errors, Error{
-							Type:    "checks",
+							Type:    "scenarios",
+							Key:     i,
 							Message: query,
 						})
 					}
@@ -353,7 +363,8 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 			ear, err := tuple.EAR(filter.Subject)
 			if err != nil {
 				errors = append(errors, Error{
-					Type:    "entity_filters",
+					Type:    "scenarios",
+					Key:     i,
 					Message: err.Error(),
 				})
 				continue
@@ -382,7 +393,8 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 				})
 				if err != nil {
 					errors = append(errors, Error{
-						Type:    "entity_filters",
+						Type:    "scenarios",
+						Key:     i,
 						Message: err.Error(),
 					})
 					continue
@@ -393,12 +405,14 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 				// Check if the actual result of the entity lookup matches the expected result
 				if isSameArray(res.GetEntityIds(), expected) {
 					errors = append(errors, Error{
-						Type:    "entity_filters",
+						Type:    "scenarios",
+						Key:     i,
 						Message: query,
 					})
 				} else {
 					errors = append(errors, Error{
-						Type:    "entity_filters",
+						Type:    "scenarios",
+						Key:     i,
 						Message: query,
 					})
 				}
@@ -411,7 +425,8 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 			subjectReference := tuple.RelationReference(filter.SubjectReference)
 			if err != nil {
 				errors = append(errors, Error{
-					Type:    "subject_filters",
+					Type:    "scenarios",
+					Key:     i,
 					Message: err.Error(),
 				})
 				continue
@@ -421,7 +436,8 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 			entity, err = tuple.E(filter.Entity)
 			if err != nil {
 				errors = append(errors, Error{
-					Type:    "subject_filters",
+					Type:    "scenarios",
+					Key:     i,
 					Message: err.Error(),
 				})
 				continue
@@ -442,7 +458,8 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 				})
 				if err != nil {
 					errors = append(errors, Error{
-						Type:    "subject_filters",
+						Type:    "scenarios",
+						Key:     i,
 						Message: err.Error(),
 					})
 					continue
@@ -453,12 +470,14 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 				// Check if the actual result of the subject lookup matches the expected result
 				if isSameArray(res.GetSubjectIds(), expected) {
 					errors = append(errors, Error{
-						Type:    "subject_filters",
+						Type:    "scenarios",
+						Key:     i,
 						Message: query,
 					})
 				} else {
 					errors = append(errors, Error{
-						Type:    "subject_filters",
+						Type:    "scenarios",
+						Key:     i,
 						Message: query,
 					})
 				}
