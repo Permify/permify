@@ -3,6 +3,8 @@ import axios from 'axios'; // Assuming you're using axios as the "client"
 import yaml from 'js-yaml';
 import {nanoid} from "nanoid";
 import Upload from "../services/s3";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const useShapeStore = create((set, get) => ({
     // main shape items
@@ -23,7 +25,7 @@ export const useShapeStore = create((set, get) => ({
     relationshipErrors: [],
     attributeErrors: [],
     visualizerError: "",
-    scenariosError: "",
+    scenariosError: [],
 
     setSchema: (schema) => {
         set({schema: schema})
@@ -39,6 +41,16 @@ export const useShapeStore = create((set, get) => ({
         setTimeout(() => {
             get().run()
         }, 500);
+    },
+
+    setScenarios: (scenarios) => {
+        set({scenarios: scenarios});
+    },
+
+    removeScenario: (index) => {
+        set((state) => ({
+            scenarios: state.scenarios.filter((_, idx) => idx !== index)
+        }));
     },
 
     removeRelationship: (relationship) => {
@@ -85,6 +97,11 @@ export const useShapeStore = create((set, get) => ({
                 for (let i = 0; i < rr.length; i++) {
                     const error = JSON.parse(rr[i]);
 
+                    if (error.type === 'file_validation') {
+                        set({ systemError: error.message });
+                        toast.error(`System Error: ${error.message}`);
+                    }
+
                     if (error.type === 'schema') {
                         set({schemaError: handleSchemaError(error.message)});
                     }
@@ -96,10 +113,14 @@ export const useShapeStore = create((set, get) => ({
                     if (error.type === 'attributes') {
                         set((state) => ({attributeErrors: [...state.attributeErrors, error]}));
                     }
+
+                    if (error.type === 'scenarios') {
+                        set((state) => ({scenariosError: [...state.scenariosError, error]}));
+                    }
                 }
 
                 // If there were no schema errors, proceed to visualize
-                if (!rr.some(error => JSON.parse(error).type === 'schema')) {
+                if (!rr.some(error => JSON.parse(error).type === 'schema') && !rr.some(error => JSON.parse(error).type === 'file_validation')) {
                     return Visualize();
                 } else {
                     // You can add additional error handling or set state as needed
@@ -115,6 +136,7 @@ export const useShapeStore = create((set, get) => ({
                 });
             }
         }).catch((error) => {
+            toast.error(`System Error: ${error.message}`);
             set({systemError: error})
         });
     },
@@ -153,8 +175,10 @@ export const useShapeStore = create((set, get) => ({
             get().setSchema(result.schema ?? ``);
             get().addRelationships(result.relationships ?? []);
             get().addAttributes(result.attributes ?? []);
+            get().setScenarios(result.scenarios ?? []);
 
         } catch (error) {
+            toast.error(`System Error: ${error.message}`);
             set({systemError: error})
         }
     },
