@@ -26,7 +26,7 @@ function Share(props) {
     return (
         <Modal
             title="Share"
-            visible={props.visible}
+            open={props.visible}
             onOk={handleOk}
             onCancel={handleCancel}
             destroyOnClose
