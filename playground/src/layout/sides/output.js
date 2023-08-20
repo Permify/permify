@@ -3,15 +3,14 @@ import "allotment/dist/style.css";
 import Schema from "./schema";
 import Visualizer from "./visualizer";
 import {Button, Radio, Tabs, Typography} from "antd";
-import {CopyOutlined, PlayCircleOutlined, ShareAltOutlined} from "@ant-design/icons";
-import Share from "../components/modals/share";
+import {CopyOutlined} from "@ant-design/icons";
 import Relationships from "./particials/data/relationships";
 import Attributes from "./particials/data/attributes";
 import {useSearchParams} from 'react-router-dom';
 import {useShapeStore} from "../../state/shape";
 import Enforcement from "./enforcement";
+import NewScenario from "../components/modals/newScenario";
 
-const {TabPane} = Tabs;
 const {Text} = Typography;
 
 function Output(props) {
@@ -19,6 +18,14 @@ function Output(props) {
     const initialTab = searchParams.get("tab") || "schema";
     const [selected, setSelected] = useState(initialTab);
     const [dataSelected, setDataSelected] = useState('relationships');
+
+    const [newScenarioModalVisibility, setNewScenarioModalVisibility] = React.useState(false);
+
+    const { run } = useShapeStore();
+
+    const toggleNewScenarioModalVisibility = () => {
+        setNewScenarioModalVisibility(!newScenarioModalVisibility);
+    };
 
     const {schema} = useShapeStore();
 
@@ -72,13 +79,14 @@ function Output(props) {
             break;
         case "enforcement":
             tabBarExtra = (
-                <Button
-                    className="mr-12"
-                    type="primary"
-                    icon={<PlayCircleOutlined/>}
-                >
-                    Run
-                </Button>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Button className="mr-12" onClick={() => {
+                        toggleNewScenarioModalVisibility()
+                    }}>New Scenario</Button>
+                    <Button className="mr-12" type="primary" onClick={() => {
+                       run()
+                    }}>Run</Button>
+                </div>
             );
             break;
         default:
@@ -122,16 +130,18 @@ function Output(props) {
 
     return (
         <div>
-            {/*<Share visible={shareModalVisibility} toggle={toggleShareModalVisibility} id={id}></Share>*/}
             {!props.loading &&
-                <Tabs
-                    className="custom-card-tabs"
-                    activeKey={selected}
-                    onChange={handleTabChange}
-                    type="card"
-                    items={tabs}
-                    tabBarExtraContent={tabBarExtra}
-                />
+                <>
+                    <NewScenario visible={newScenarioModalVisibility} toggle={toggleNewScenarioModalVisibility}></NewScenario>
+                    <Tabs
+                        className="custom-card-tabs"
+                        activeKey={selected}
+                        onChange={handleTabChange}
+                        type="card"
+                        items={tabs}
+                        tabBarExtraContent={tabBarExtra}
+                    />
+                </>
             }
         </div>
     );
