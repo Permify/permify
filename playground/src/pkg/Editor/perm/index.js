@@ -90,7 +90,7 @@ function PermEditor(props) {
         acceptSuggestionOnEnter: "on",
         folding: true,
         lineNumbersMinChars: 3,
-        fontSize: 15,
+        fontSize: 13,
     };
 
     return (

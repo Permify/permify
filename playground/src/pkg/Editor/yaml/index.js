@@ -1,45 +1,10 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import MonacoEditor from "@monaco-editor/react";
 import Theme from "../perm/theme";
 
-function YamlEditor() {
+function YamlEditor(props) {
     const editorRef = useRef(null);
     const monacoRef = useRef(null);
-
-    const [code, setCode] = useState(`checks:
-  - entity: "repository:1"
-    subject: "user:1"
-    context:
-    assertions:
-      view: true
-  - entity: "repository:1"
-    subject: "user:1"
-    context:
-      tuples: []
-      attributes: []
-      data:
-        day_of_week: "saturday"
-    assertions:
-      view: true
-      delete: false
-  - entity: "organization:1"
-    subject: "user:1"
-    context:
-    assertions:
-      view: true
-  entity_filters:
-    - entity_type: "repository"
-      subject: "user:1"
-      context:
-      assertions:
-        view : ["1"]
-  subject_filters:
-    - subject_reference: "user"
-      entity: "repository:1"
-      context:
-      assertions:
-        view : ["1"]
-        edit : ["1"]`);
 
     function handleEditorDidMount(editor, monaco) {
         editorRef.current = editor;
@@ -60,17 +25,21 @@ function YamlEditor() {
         acceptSuggestionOnEnter: "on",
         folding: true,
         lineNumbersMinChars: 3,
-        fontSize: 15,
+        fontSize: 13,
     };
+
+    function handleEditorChange(value, event) {
+        props.setCode(value);
+    }
 
     return (
         <MonacoEditor
             height="50vh"
             language="yaml"
             theme="dark-theme"
-            value={code}
+            value={props.code}
             options={options}
-            onChange={newCode => setCode(newCode)}
+            onChange={handleEditorChange}
             beforeMount={handleEditorWillMount}
             onMount={handleEditorDidMount}
         />
