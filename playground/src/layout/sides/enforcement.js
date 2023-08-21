@@ -85,7 +85,7 @@ function Enforcement() {
 
                 return (
                     <Panel
-                        className={hasErrors ? 'error-row' : ''}
+                        className={hasErrors ? 'error-row' : 'success-row'}
                         header={
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
