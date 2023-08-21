@@ -94,8 +94,6 @@ function Relationships() {
                 setDataSource(newData);
                 setEditingKeys(prevKeys => prevKeys.filter(k => k !== key));
                 form.resetFields();
-
-                console.log(updatedKey)
                 addRelationships([updatedKey]);
             }
         } catch (errInfo) {

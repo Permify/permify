@@ -235,7 +235,7 @@ function Attributes() {
 
     useEffect(() => {
         setDataSource(StringAttributesToObjects(attributes))
-    }, [attributes]);
+    }, []);
 
     // Scroll to the latest data row after adding a new attribute
     useEffect(() => {
