@@ -1,8 +1,6 @@
 import {create} from 'zustand';
 import axios from 'axios'; // Assuming you're using axios as the "client"
 import yaml from 'js-yaml';
-import {nanoid} from "nanoid";
-import Upload from "../services/s3";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -183,14 +181,6 @@ export const useShapeStore = create((set, get) => ({
         }
     },
 
-    importShape: async (pond) => {
-
-    },
-
-    exportShape: async (pond) => {
-
-    },
-
     getEntityTypes: () => {
         const entityDefinitions = get()?.definitions?.entityDefinitions;
         return Object.keys(entityDefinitions || {});
@@ -245,20 +235,6 @@ export const useShapeStore = create((set, get) => ({
                 return ""
         }
     },
-
-    shareShape: async () => {
-        let id = nanoid()
-        const state = get();
-
-        const yamlString = yaml.dump({
-            schema: state.schema,
-            relationships: state.relationships,
-            scenarios: state.scenarios
-        });
-
-        const file = new File([yamlString], `shapes/${id}.yaml`, {type: 'text/x-yaml'});
-        return Upload(file)
-    }
 }));
 
 // Handles schema errors.
