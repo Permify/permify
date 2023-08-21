@@ -94,6 +94,8 @@ function Relationships() {
                 setDataSource(newData);
                 setEditingKeys(prevKeys => prevKeys.filter(k => k !== key));
                 form.resetFields();
+
+                console.log(updatedKey)
                 addRelationships([updatedKey]);
             }
         } catch (errInfo) {
@@ -286,7 +288,6 @@ function Relationships() {
 
     // A cell component for editing
     const EditableCell = ({editing, dataIndex, title, inputType, record, index, children, ...restProps}) => {
-        const placeholderText = `Enter ${title}...`;
 
         let inputElement;
 
@@ -294,8 +295,13 @@ function Relationships() {
             switch (dataIndex) {
                 case 'entityType':
                     inputElement = (
-                        <Select placeholder="Entity Type"
-                                onChange={(value) => handleEntityTypeChange(value, record.key)}
+                        <Select
+                            showSearch
+                            allowClear
+                            showArrow={false}
+                            placeholder="Entity Type"
+                            notFoundContent={null}
+                            onChange={(value) => handleEntityTypeChange(value, record.key)}
                         >
                             {getEntityTypes().map(option => (
                                 <Option key={option} value={option}>
@@ -307,8 +313,13 @@ function Relationships() {
                     break;
                 case 'relation':
                     inputElement = (
-                        <Select placeholder="Entity Type"
-                                onChange={(value) => handleRelationChange(value, record.key)}
+                        <Select
+                            showSearch
+                            allowClear
+                            showArrow={false}
+                            placeholder="Relation"
+                            notFoundContent={null}
+                            onChange={(value) => handleRelationChange(value, record.key)}
                         >
                             {getRelationOptionsForRow(record.key)}
                         </Select>
@@ -316,8 +327,13 @@ function Relationships() {
                     break;
                 case 'subjectType':
                     inputElement = (
-                        <Select placeholder="Subject Type"
-                                onChange={(value) => handleSubjectTypeChange(value, record.key)}
+                        <Select
+                            showSearch
+                            allowClear
+                            showArrow={false}
+                            placeholder="Subject Type"
+                            notFoundContent={null}
+                            onChange={(value) => handleSubjectTypeChange(value, record.key)}
                         >
                             {getSubjectTypeOptionsForRow(record.key)}
                         </Select>
@@ -325,15 +341,31 @@ function Relationships() {
                     break;
                 case 'subjectRelation':
                     inputElement = (
-                        <Select placeholder="Subject Relation">
+                        <Select
+                            showSearch
+                            allowClear
+                            showArrow={false}
+                            placeholder="Subject Relation"
+                            notFoundContent={null}
+                        >
                             {getSubjectRelationOptionsForRow(record.key)}
                         </Select>
                     );
                     break;
+                case 'entityID':
+                    inputElement = (
+                        <Input placeholder="Entity ID"/>
+                    );
+                    break;
+                case 'subjectID':
+                    inputElement = (
+                        <Input placeholder="Subject ID"/>
+                    );
+                    break;
                 default:
                     inputElement = inputType === 'number'
-                        ? <Input.Number placeholder={placeholderText}/>
-                        : <Input placeholder={placeholderText}/>;
+                        ? <Input.Number/>
+                        : <Input />;
                     break;
             }
 
@@ -348,7 +380,6 @@ function Relationships() {
                                 message: ``
                             }
                         ]}
-                        initialValue={record[dataIndex]}
                     >
                         {inputElement}
                     </Form.Item>

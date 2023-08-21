@@ -268,36 +268,21 @@ function Attributes() {
         setEditingKeys(prevKeys => [...prevKeys, newRow.key]);
     };
 
-    // Define the function that will give us the appropriate input based on the type
-    // const renderInput = (type, placeholderText, inputDisabled) => {
-    //     switch (type) {
-    //         case "switch":
-    //             return <Switch disabled={inputDisabled} />;
-    //         case "text":
-    //             return <Input placeholder={placeholderText} disabled={inputDisabled} />;
-    //         case "number":
-    //             return <Input.Number placeholder={placeholderText} disabled={inputDisabled} />;
-    //         default:
-    //             return <Input placeholder={placeholderText} disabled={inputDisabled} />;
-    //     }
-    // };
-
     const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-        const placeholderText = `Enter ${title}...`;
 
         let inputElement;
-        let inputDisabled = false;
-
-        if (dataIndex === 'type') {
-            inputDisabled = !!selectedAttributes[record.key];
-        }
 
         if (editing) {
             switch (dataIndex) {
                 case 'entityType':
                     inputElement = (
-                        <Select placeholder="Entity Type"
-                                onChange={(value) => handleEntityTypeChange(value, record.key)}
+                        <Select
+                            showSearch
+                            allowClear
+                            showArrow={false}
+                            placeholder="Entity Type"
+                            notFoundContent={null}
+                            onChange={(value) => handleEntityTypeChange(value, record.key)}
                         >
                             {getEntityTypes().map(option => (
                                 <Option key={option} value={option}>
@@ -309,17 +294,37 @@ function Attributes() {
                     break;
                 case 'attribute':
                     inputElement = (
-                        <Select placeholder="Attribute"
-                                onChange={(value) => handleAttributeChange(value, record.key)}
+                        <Select
+                            showSearch
+                            allowClear
+                            showArrow={false}
+                            placeholder="Attribute"
+                            notFoundContent={null}
+                            onChange={(value) => handleAttributeChange(value, record.key)}
                         >
                             {getAttributeOptionsForRow(record.key)}
                         </Select>
                     );
                     break;
+                case 'entityID':
+                    inputElement = (
+                        <Input placeholder="Entity ID"/>
+                    );
+                    break;
+                case 'type':
+                    inputElement = (
+                        <Input placeholder="Type" disabled={true}/>
+                    );
+                    break;
+                case 'value':
+                    inputElement = (
+                        <Input placeholder="Value"/>
+                    );
+                    break;
                 default:
                     inputElement = inputType === 'number'
-                        ? <Input.Number placeholder={placeholderText} disabled={inputDisabled}/>
-                        : <Input placeholder={placeholderText} disabled={inputDisabled}/>;
+                        ? <Input.Number/>
+                        : <Input/>;
                     break;
             }
 
@@ -334,7 +339,6 @@ function Attributes() {
                                 message: ``
                             }
                         ]}
-                        initialValue={record[dataIndex]}
                     >
                         {inputElement}
                     </Form.Item>

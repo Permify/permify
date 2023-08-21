@@ -35,7 +35,7 @@ function constructSubjectString(subjectComponents, continuationIndicator) {
 }
 
 export function RelationshipObjectToKey(tuple) {
-    return `${tuple.entityType}:${tuple.entityID}#${tuple.relation}@${tuple.subjectType}:${tuple.subjectID}${tuple.subjectRelation === "" ? "" : "#" + tuple.subjectRelation}`
+    return `${tuple.entityType}:${tuple.entityID}#${tuple.relation}@${tuple.subjectType}:${tuple.subjectID}${tuple.subjectRelation === undefined ? "" : "#" + tuple.subjectRelation}`
 }
 
 export function AttributeObjectToKey(attribute) {
