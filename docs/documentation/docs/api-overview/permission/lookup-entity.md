@@ -1,5 +1,5 @@
 ---
-title: Entity Filtering
+title: Entity (Data) Filtering
 ---
 
 import Tabs from '@theme/Tabs';

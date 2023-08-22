@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Modeling Authorization
 
-Permify has its own language that you can model your authorization logic with it. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like user types such as admin, manager, member, etc.
+Permify has its own language that you can model your authorization logic with it. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like admin, manager, member and also dynamic attributes such as IP range, location, time period, etc.
 
 ![modeling-authorization](https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif)
 
@@ -249,7 +249,7 @@ The `delete` action inherits the rules from the `edit` action. By doing that, we
 Permission union is super beneficial in scenarios where a user needs to have varied access across different departments or roles.
 ::: 
 
-### Full Schema
+### Completed Schema
 
 Here is full implementation of simple Github access control example with using Permify Schema.
 
@@ -288,6 +288,133 @@ entity repository {
 
 }
 ```
+
+
+### Defining Attributes and Rules
+
+To support Attribute Based Access Control (ABAC) in Permify, we've added two main components into our DSL: **attributes** and **rules**.
+
+Attributes are used to define properties for entities in specific data types. For instance, an attribute could be an IP range associated with an organization, defined as a string array:
+
+```perm
+attribute ip_range string[]
+```
+
+There are different types of attributes you can use;
+
+#### 1. Boolean
+
+For attributes that represent a binary choice or state, such as a yes/no question, the `Boolean` data type is an excellent choice.
+
+```perm
+entity post {
+		attribute is_public boolean
+		
+		permission view = is_public
+}
+```
+
+:::caution
+⛔ If you don’t create the related attribute data, Permify accounts boolean as `FALSE`
+:::
+
+#### 2. **String**
+
+String can be used as attribute data type in a variety of scenarios where text-based information is needed to make access control decisions. Here are a few examples:
+
+- **Location:** If you need to control access based on geographical location, you might have a location attribute (e.g., "USA", "EU", "Asia") stored as a string.
+- **Device Type**: If access control decisions need to consider the type of device being used, a device type attribute (e.g., "mobile", "desktop", "tablet") could be stored as a string.
+- **Time Zone**: If access needs to be controlled based on time zones, a time zone attribute (e.g., "EST", "PST", "GMT") could be stored as a string.
+- **Day of the Week:** In a scenario where access to certain resources is determined by the day of the week, the string data type can be used to represent these days (e.g., "Monday", "Tuesday", etc.) as attributes!
+
+```perm
+entity user {}
+
+entity organization {
+	
+	relation admin @user
+
+	attribute location string[]
+
+	permission view = check_location(request.current_location, location) or admin
+}
+
+rule check_location(current_location string, location string[]) {
+	current_location in location
+}
+```
+
+:::caution
+⛔ If you don’t create the related attribute data, Permify accounts string as `""`
+:::
+
+:::info Defining Rules
+
+In above we defined a function called with **rule** keyword.
+
+Rules are structures that allow you to write specific conditions for the model. They accept parameters and are based on conditions. 
+
+Another example, a rule could be used to check if a given IP address falls within a specified IP range:
+
+```perm
+rule check_ip_range(ip string, ip_range string[]) {
+	ip in ip_range
+}
+```
+:::
+
+#### 3. Integer
+
+Integer  can be used as attribute data type in several scenarios where numerical information is needed to make access control decisions. Here are a few examples:
+
+- **Age:** If access to certain resources is age-restricted, an age attribute stored as an integer can be used to control access.
+- **Security Clearance Level:** In a system where users have different security clearance levels, these levels can be stored as integer attributes (e.g., 1, 2, 3 with 3 being the highest clearance).
+- **Resource Size or Length:** If access to resources is controlled based on their size or length (like a document's length or a file's size), these can be stored as integer attributes.
+- **Version Number:** If access control decisions need to consider the version number of a resource (like a software version or a document revision), these can be stored as integer attributes.
+
+```perm
+entity content {
+    permission view = check_age(request.age)
+}
+
+rule check_age(age integer) {
+		age >= 18
+}
+```
+
+:::caution
+⛔ If you don’t create the related attribute data, Permify accounts integer as `0`
+:::
+
+#### 4. **Double**
+
+Double can be used as attribute data type in several scenarios where precise numerical information is needed to make access control decisions. Here are a few examples:
+
+- **Usage Limit:** If a user has a usage limit (like the amount of storage they can use or the amount of data they can download), and this limit needs to be represented with decimal precision, it can be stored as a double attribute.
+- **Transaction Amount:** In a financial system, if access control decisions need to consider the amount of a transaction, and this amount needs to be represented with decimal precision (like $100.50), these amounts can be stored as double attributes.
+- **User Rating:** If access control decisions need to consider a user's rating (like a rating out of 5 with decimal points, such as 4.7), these ratings can be stored as double attributes.
+- **Geolocation:** If access control decisions need to consider precise geographical coordinates (like latitude and longitude, which are often represented with decimal points), these coordinates can be stored as double attributes.
+
+```perm
+entity user {}
+
+entity account {
+    relation owner @user
+    attribute balance double
+
+    permission withdraw = check_balance(request.amount, balance) and owner
+}
+
+rule check_balance(amount double, balance double) {
+	(balance >= amount) && (amount <= 5000)
+}
+```
+
+:::caution
+⛔ If you don’t create the related attribute data, Permify accounts double as `0.0`
+:::
+
+See more details on [Attribute Based Access Control](../use-cases/abac) section to learn our approach on ABAC as well as how it operates in Permify.
 
 ## Permission Capabilities
 

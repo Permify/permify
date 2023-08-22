@@ -14,7 +14,7 @@ An authorization service is a module that allows you to manage access to your ap
 ## Why should I use Authorization Service instead of doing from scratch?
 
 ### Move & Iterate Faster 
-Avoid the hassle of building your a new authorization system, save time and money by leveraging existing, battle-tested code that has been developed by a team rather than starting from scratch. You can started quickly with a simple API that you can easily integrate into your application to move and iterate faster.
+Avoid the hassle of building your a new authorization system, save time and money by leveraging existing, battle-tested code that has been developed by a team rather than starting from scratch. You can get started quickly with a simple API that you can easily integrate into your application to move and iterate faster.
 
 ### Do Not Reinvent The Wheel
 Permify based on [Google Zanzibar], which is the global authorization system used at Google for handling authorization for hundreds of its services and products including; YouTube, Drive, Calendar, Cloud and Maps. Building a scalable and robust authorization system is hard and needs a quite engineering time. Zanzibar system achieved more than 95% of the access checks responded in 10 milliseconds and has maintained more than 99.999% availability for the 3 year period. Permify applies proven techniques that Google used. We’re trying to make Zanzibar available to everyone to use and benefit in their applications and services.

@@ -161,6 +161,7 @@ module.exports = {
 			},
 			items: [
 				"use-cases/simple-rbac",
+				"use-cases/abac",
 				"use-cases/organizational",
 				"use-cases/ownership",
 				"use-cases/custom-roles",
