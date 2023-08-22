@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
+
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"gopkg.in/yaml.v3"
 
@@ -302,6 +305,16 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 				continue
 			}
 
+			cont, err := Context(check.Context)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: err.Error(),
+				})
+				continue
+			}
+
 			subject := &v1.Subject{
 				Type:     ear.GetEntity().GetType(),
 				Id:       ear.GetEntity().GetId(),
@@ -323,6 +336,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 						SnapToken:     token.NewNoopToken().Encode().String(),
 						Depth:         100,
 					},
+					Context:    cont,
 					Entity:     entity,
 					Permission: permission,
 					Subject:    subject,
@@ -340,20 +354,27 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 
 				// Check if the permission check result matches the expected result
 				if res.Can != exp {
-					if res.Can == v1.CheckResult_CHECK_RESULT_ALLOWED {
-						errors = append(errors, Error{
-							Type:    "scenarios",
-							Key:     i,
-							Message: query,
-						})
+					var expectedStr, actualStr string
+					if exp == v1.CheckResult_CHECK_RESULT_ALLOWED {
+						expectedStr = "true"
 					} else {
-						// Handle the case where the permission check result is DENIED but the expected result was ALLOWED
-						errors = append(errors, Error{
-							Type:    "scenarios",
-							Key:     i,
-							Message: query,
-						})
+						expectedStr = "false"
 					}
+
+					if res.Can == v1.CheckResult_CHECK_RESULT_ALLOWED {
+						actualStr = "true"
+					} else {
+						actualStr = "false"
+					}
+
+					// Construct a detailed error message with the expected result, actual result, and the query
+					errorMsg := fmt.Sprintf("Query: %s, Expected: %s, Actual: %s", query, expectedStr, actualStr)
+
+					errors = append(errors, Error{
+						Type:    "scenarios",
+						Key:     i,
+						Message: errorMsg,
+					})
 				}
 			}
 		}
@@ -361,6 +382,16 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 		// Each EntityFilter in the current scenario is processed
 		for _, filter := range scenario.EntityFilters {
 			ear, err := tuple.EAR(filter.Subject)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: err.Error(),
+				})
+				continue
+			}
+
+			cont, err := Context(filter.Context)
 			if err != nil {
 				errors = append(errors, Error{
 					Type:    "scenarios",
@@ -387,6 +418,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 						SnapToken:     token.NewNoopToken().Encode().String(),
 						Depth:         100,
 					},
+					Context:    cont,
 					EntityType: filter.EntityType,
 					Permission: permission,
 					Subject:    subject,
@@ -402,18 +434,17 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 
 				query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
 
-				// Check if the actual result of the entity lookup matches the expected result
-				if isSameArray(res.GetEntityIds(), expected) {
+				// Check if the actual result of the entity lookup does NOT match the expected result
+				if !isSameArray(res.GetEntityIds(), expected) {
+					expectedStr := strings.Join(expected, ", ")
+					actualStr := strings.Join(res.GetEntityIds(), ", ")
+
+					errorMsg := fmt.Sprintf("Query: %s, Expected: [%s], Actual: [%s]", query, expectedStr, actualStr)
+
 					errors = append(errors, Error{
 						Type:    "scenarios",
 						Key:     i,
-						Message: query,
-					})
-				} else {
-					errors = append(errors, Error{
-						Type:    "scenarios",
-						Key:     i,
-						Message: query,
+						Message: errorMsg,
 					})
 				}
 			}
@@ -423,6 +454,16 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 		for _, filter := range scenario.SubjectFilters {
 
 			subjectReference := tuple.RelationReference(filter.SubjectReference)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: err.Error(),
+				})
+				continue
+			}
+
+			cont, err := Context(filter.Context)
 			if err != nil {
 				errors = append(errors, Error{
 					Type:    "scenarios",
@@ -451,7 +492,9 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 					Metadata: &v1.PermissionLookupSubjectRequestMetadata{
 						SchemaVersion: version,
 						SnapToken:     token.NewNoopToken().Encode().String(),
+						Depth:         100,
 					},
+					Context:          cont,
 					SubjectReference: subjectReference,
 					Permission:       permission,
 					Entity:           entity,
@@ -467,18 +510,17 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 
 				query := tuple.EntityToString(entity) + " " + permission + " " + filter.SubjectReference
 
-				// Check if the actual result of the subject lookup matches the expected result
-				if isSameArray(res.GetSubjectIds(), expected) {
+				// Check if the actual result of the subject lookup does NOT match the expected result
+				if !isSameArray(res.GetSubjectIds(), expected) {
+					expectedStr := strings.Join(expected, ", ")
+					actualStr := strings.Join(res.GetSubjectIds(), ", ")
+
+					errorMsg := fmt.Sprintf("Query: %s, Expected: [%s], Actual: [%s]", query, expectedStr, actualStr)
+
 					errors = append(errors, Error{
 						Type:    "scenarios",
 						Key:     i,
-						Message: query,
-					})
-				} else {
-					errors = append(errors, Error{
-						Type:    "scenarios",
-						Key:     i,
-						Message: query,
+						Message: errorMsg,
 					})
 				}
 			}
@@ -486,6 +528,55 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	}
 
 	return
+}
+
+// Context is a function that takes a file context and returns a base context and an error.
+func Context(fileContext file.Context) (cont *v1.Context, err error) {
+	// Initialize an empty base context to be populated from the file context.
+	cont = &v1.Context{
+		Tuples:     []*v1.Tuple{},
+		Attributes: []*v1.Attribute{},
+		Data:       nil,
+	}
+
+	// Convert the file context's data to a Struct object.
+	st, err := structpb.NewStruct(fileContext.Data)
+	if err != nil {
+		// If an error occurs, return it.
+		return nil, err
+	}
+
+	// Assign the Struct object to the context's data field.
+	cont.Data = st
+
+	// Iterate over the file context's tuples.
+	for _, t := range fileContext.Tuples {
+		// Convert each tuple to a base tuple.
+		tup, err := tuple.Tuple(t)
+		if err != nil {
+			// If an error occurs, return it.
+			return nil, err
+		}
+
+		// Add the converted tuple to the context's tuples slice.
+		cont.Tuples = append(cont.Tuples, tup)
+	}
+
+	// Iterate over the file context's attributes.
+	for _, t := range fileContext.Attributes {
+		// Convert each attribute to a base attribute.
+		attr, err := attribute.Attribute(t)
+		if err != nil {
+			// If an error occurs, return it.
+			return nil, err
+		}
+
+		// Add the converted attribute to the context's attributes slice.
+		cont.Attributes = append(cont.Attributes, attr)
+	}
+
+	// If everything goes well, return the context and a nil error.
+	return cont, nil
 }
 
 // isSameArray - check if two arrays are the same
