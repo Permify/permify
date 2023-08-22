@@ -22,8 +22,8 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// DaraWriter - Structure for Relationship Writer
-type DaraWriter struct {
+// DataWriter - Structure for Data Writer
+type DataWriter struct {
 	database *db.Postgres
 	// options
 	txOptions       sql.TxOptions
@@ -33,8 +33,8 @@ type DaraWriter struct {
 	logger logger.Interface
 }
 
-func NewDataWriter(database *db.Postgres, logger logger.Interface) *DaraWriter {
-	return &DaraWriter{
+func NewDataWriter(database *db.Postgres, logger logger.Interface) *DataWriter {
+	return &DataWriter{
 		database:        database,
 		txOptions:       sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false},
 		maxDataPerWrite: _defaultMaxDataPerWrite,
@@ -43,7 +43,7 @@ func NewDataWriter(database *db.Postgres, logger logger.Interface) *DaraWriter {
 	}
 }
 
-func (w *DaraWriter) Write(ctx context.Context, tenantID string, tupleCollection *database.TupleCollection, attributeCollection *database.AttributeCollection) (token token.EncodedSnapToken, err error) {
+func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection *database.TupleCollection, attributeCollection *database.AttributeCollection) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "data-writer.write")
 	defer span.End()
 
@@ -175,7 +175,7 @@ func (w *DaraWriter) Write(ctx context.Context, tenantID string, tupleCollection
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
 }
 
-func (w *DaraWriter) Delete(ctx context.Context, tenantID string, tupleFilter *base.TupleFilter, attributeFilter *base.AttributeFilter) (token token.EncodedSnapToken, err error) {
+func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *base.TupleFilter, attributeFilter *base.AttributeFilter) (token token.EncodedSnapToken, err error) {
 	ctx, span := tracer.Start(ctx, "data-writer.delete")
 	defer span.End()
 

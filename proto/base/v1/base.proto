@@ -317,6 +317,11 @@ message Tuples {
   repeated Tuple tuples = 1 [json_name = "tuples"];
 }
 
+// Attributes is a collection of attributes.
+message Attributes {
+  repeated Attribute attributes = 1 [json_name = "attributes"];
+}
+
 // Entity represents an entity with a type and an identifier.
 message Entity {
   string type = 1 [

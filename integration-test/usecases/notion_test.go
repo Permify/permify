@@ -37,7 +37,7 @@ var _ = Describe("notion-test", func() {
 
 					var contextTuples []*base.Tuple
 
-					for _, t := range check.ContextualTuples {
+					for _, t := range check.Context.Tuples {
 						tup, err := tuple.Tuple(t)
 						if err != nil {
 							Expect(err).ShouldNot(HaveOccurred())
@@ -47,9 +47,9 @@ var _ = Describe("notion-test", func() {
 					}
 
 					for permission, expected := range check.Assertions {
-						exp := base.PermissionCheckResponse_RESULT_ALLOWED
+						exp := base.CheckResult_CHECK_RESULT_ALLOWED
 						if !expected {
-							exp = base.PermissionCheckResponse_RESULT_DENIED
+							exp = base.CheckResult_CHECK_RESULT_DENIED
 						}
 
 						res, err := permissionClient.Check(ctx, &base.PermissionCheckRequest{
@@ -59,10 +59,12 @@ var _ = Describe("notion-test", func() {
 								SnapToken:     initialNotionSnapToken,
 								Depth:         100,
 							},
-							ContextualTuples: contextTuples,
-							Entity:           entity,
-							Permission:       permission,
-							Subject:          subject,
+							Context: &base.Context{
+								Tuples: contextTuples,
+							},
+							Entity:     entity,
+							Permission: permission,
+							Subject:    subject,
 						})
 
 						Expect(err).ShouldNot(HaveOccurred())
@@ -89,7 +91,7 @@ var _ = Describe("notion-test", func() {
 
 					var contextTuples []*base.Tuple
 
-					for _, t := range filter.ContextualTuples {
+					for _, t := range filter.Context.Tuples {
 						tup, err := tuple.Tuple(t)
 						if err != nil {
 							Expect(err).ShouldNot(HaveOccurred())
@@ -106,10 +108,12 @@ var _ = Describe("notion-test", func() {
 								SnapToken:     initialNotionSnapToken,
 								Depth:         100,
 							},
-							ContextualTuples: contextTuples,
-							EntityType:       filter.EntityType,
-							Permission:       permission,
-							Subject:          subject,
+							Context: &base.Context{
+								Tuples: contextTuples,
+							},
+							EntityType: filter.EntityType,
+							Permission: permission,
+							Subject:    subject,
 						})
 
 						Expect(err).ShouldNot(HaveOccurred())
@@ -131,7 +135,7 @@ var _ = Describe("notion-test", func() {
 
 					var contextTuples []*base.Tuple
 
-					for _, t := range filter.ContextualTuples {
+					for _, t := range filter.Context.Tuples {
 						tup, err := tuple.Tuple(t)
 						if err != nil {
 							Expect(err).ShouldNot(HaveOccurred())
@@ -148,7 +152,9 @@ var _ = Describe("notion-test", func() {
 								SchemaVersion: initialNotionSchemaVersion,
 								SnapToken:     initialNotionSnapToken,
 							},
-							ContextualTuples: contextTuples,
+							Context: &base.Context{
+								Tuples: contextTuples,
+							},
 							SubjectReference: subjectReference,
 							Permission:       permission,
 							Entity:           entity,

@@ -1,10 +1,9 @@
 import React, {useEffect} from "react";
 import AppRouter from "./router/Router";
 import {Layout} from "./utility/context/Layout"
-import {Provider} from 'react-redux'
 import {ConfigProvider, theme} from 'antd';
 
-function App({store}) {
+function App() {
 
     const params = new URLSearchParams(window.location.search);
 
@@ -24,18 +23,16 @@ function App({store}) {
                     borderRadius: '2px',
                 },
                 components: {
-                    divider:{
+                    divider: {
                         backgroundColor: '#DEDBE6',
                     }
                 },
                 algorithm: theme.darkAlgorithm,
             }}
         >
-            <Provider store={store}>
-                <Layout>
-                    <AppRouter/>
-                </Layout>
-            </Provider>
+            <Layout>
+                <AppRouter/>
+            </Layout>
         </ConfigProvider>
     );
 }

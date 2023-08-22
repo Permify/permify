@@ -26,7 +26,7 @@ func TestFilterQueryForSelectBuilder(t *testing.T) {
 		},
 	}
 
-	sl = utils.FilterQueryForSelectBuilder(sl, filter)
+	sl = utils.TuplesFilterQueryForSelectBuilder(sl, filter)
 
 	expectedSql := "SELECT * FROM test_table WHERE entity_id IN (?,?) AND entity_type = ? AND relation = ? AND subject_id IN (?,?) AND subject_relation = ? AND subject_type = ?"
 	expectedArgs := []interface{}{"1", "2", "entity_type", "relation", "3", "4", "subject_relation", "subject_type"}
@@ -50,7 +50,7 @@ func TestHalfEmptyFilterQueryForSelectBuilder(t *testing.T) {
 		},
 	}
 
-	sl = utils.FilterQueryForSelectBuilder(sl, filter)
+	sl = utils.TuplesFilterQueryForSelectBuilder(sl, filter)
 
 	expectedSql := "SELECT * FROM test_table WHERE entity_id IN (?,?) AND entity_type = ? AND subject_id IN (?,?) AND subject_type = ?"
 	expectedArgs := []interface{}{"1", "2", "entity_type", "3", "4", "subject_type"}
@@ -65,7 +65,7 @@ func TestEmptyFilterQueryForSelectBuilder(t *testing.T) {
 
 	filter := &base.TupleFilter{}
 
-	sl = utils.FilterQueryForSelectBuilder(sl, filter)
+	sl = utils.TuplesFilterQueryForSelectBuilder(sl, filter)
 
 	expectedSql := "SELECT * FROM test_table"
 
@@ -79,7 +79,7 @@ func TestEmptyFilterQueryForSelectBuilder(t *testing.T) {
 		},
 	}
 
-	sl = utils.FilterQueryForSelectBuilder(sl, filter)
+	sl = utils.TuplesFilterQueryForSelectBuilder(sl, filter)
 
 	expectedSql = "SELECT * FROM test_table"
 

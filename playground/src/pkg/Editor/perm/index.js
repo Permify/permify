@@ -3,7 +3,7 @@ import MonacoEditor from "@monaco-editor/react";
 import Theme from "./theme";
 import SyntaxDefinition from "./syntax-definition";
 
-function Editor(props) {
+function PermEditor(props) {
 
     const editorRef = useRef(null);
     const monacoRef = useRef(null);
@@ -61,7 +61,7 @@ function Editor(props) {
         if (editorRef.current !== null && monacoRef.current !== null){
             const model = editorRef.current.getModel();
             if (props.error !== null) {
-                updateMarkers(editorRef.current, model, [props.error], monacoRef.current);
+                updateMarkers(editorRef.current, model, [props.error.schemaError], monacoRef.current);
             }else{
                 updateMarkers(editorRef.current, model, [], monacoRef.current);
             }
@@ -80,12 +80,26 @@ function Editor(props) {
         monaco.editor.setModelMarkers(model, "perm", markers);
     }
 
+    const options = {
+        selectOnLineNumbers: true,
+        renderIndentGuides: true,
+        colorDecorators: true,
+        cursorBlinking: "smooth",
+        autoClosingQuotes: "always",
+        suggestOnTriggerCharacters: true,
+        acceptSuggestionOnEnter: "on",
+        folding: true,
+        lineNumbersMinChars: 3,
+        fontSize: 13,
+    };
+
     return (
         <MonacoEditor
             height="100vh"
             defaultLanguage="perm"
             theme="perm-theme"
             value={props.code}
+            options={options}
             beforeMount={handleEditorWillMount}
             onMount={handleEditorDidMount}
             onChange={handleEditorChange}
@@ -93,4 +107,4 @@ function Editor(props) {
     )
 }
 
-export default Editor
+export default PermEditor

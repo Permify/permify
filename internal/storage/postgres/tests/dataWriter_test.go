@@ -20,7 +20,7 @@ import (
 )
 
 var _ = Describe("RelationshipWriter", func() {
-	var relationshipWriter *postgres2.RelationshipWriter
+	var dataWriter *postgres2.DataWriter
 	var mock sqlmock.Sqlmock
 
 	BeforeEach(func() {
@@ -37,7 +37,7 @@ var _ = Describe("RelationshipWriter", func() {
 			Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 		}
 
-		relationshipWriter = postgres2.NewRelationshipWriter(pg, l)
+		dataWriter = postgres2.NewDataWriter(pg, l)
 	})
 
 	AfterEach(func() {
@@ -63,7 +63,7 @@ var _ = Describe("RelationshipWriter", func() {
 				Relation: "admin",
 				Subject:  &basev1.Subject{Type: "subject-1", Id: "sub-id", Relation: "admin-sub"},
 			})
-			_, err := relationshipWriter.WriteRelationships(context.Background(), "noop", tp)
+			_, err := dataWriter.Write(context.Background(), "noop", tp, &database.AttributeCollection{})
 
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -90,7 +90,7 @@ var _ = Describe("RelationshipWriter", func() {
 				},
 				Relation: "admin",
 			})
-			_, err := relationshipWriter.WriteRelationships(context.Background(), "noop", tp)
+			_, err := dataWriter.Write(context.Background(), "noop", tp, &database.AttributeCollection{})
 
 			Expect(err).ShouldNot(HaveOccurred())
 

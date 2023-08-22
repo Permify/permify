@@ -141,7 +141,7 @@ function Visualizer(props) {
     const events = {};
 
     return (
-        <div style={{height: "85vh"}}>
+        <div style={{height: "100vh"}}>
             {(graph.nodes.length > 0) &&
                 <Graph
                     graph={graph}
