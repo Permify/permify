@@ -176,14 +176,18 @@ func (c *GarbageCollector) executeCollector(ctx context.Context, tenantID string
 	// Convert the query into SQL format. If unsuccessful, rollback the transaction and return the error.
 	tuplesGarbageSQL, tuplesGarbageQueryArgs, err := tuplesGarbageQuery.ToSql()
 	if err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			c.logger.Error("failed to rollback transaction: %v", rollbackErr)
+		}
 		return err
 	}
 
 	// Execute the SQL query within the transaction. If unsuccessful, rollback the transaction and return the error.
 	_, err = tx.ExecContext(ctx, tuplesGarbageSQL, tuplesGarbageQueryArgs...)
 	if err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			c.logger.Error("failed to rollback transaction: %v", rollbackErr)
+		}
 		return err
 	}
 
@@ -193,14 +197,18 @@ func (c *GarbageCollector) executeCollector(ctx context.Context, tenantID string
 	// Convert the query into SQL format. If unsuccessful, rollback the transaction and return the error.
 	attributesGarbageSQL, attributesGarbageQueryArgs, err := attributesGarbageQuery.ToSql()
 	if err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			c.logger.Error("failed to rollback transaction: %v", rollbackErr)
+		}
 		return err
 	}
 
 	// Execute the SQL query within the transaction. If unsuccessful, rollback the transaction and return the error.
 	_, err = tx.ExecContext(ctx, attributesGarbageSQL, attributesGarbageQueryArgs...)
 	if err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			c.logger.Error("failed to rollback transaction: %v", rollbackErr)
+		}
 		return err
 	}
 
