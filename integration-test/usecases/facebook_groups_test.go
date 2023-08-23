@@ -151,6 +151,7 @@ var _ = Describe("facebook-groups-test", func() {
 							Metadata: &base.PermissionLookupSubjectRequestMetadata{
 								SchemaVersion: initialFacebookGroupsSchemaVersion,
 								SnapToken:     initialFacebookGroupsSnapToken,
+								Depth:         100,
 							},
 							Context: &base.Context{
 								Tuples: contextTuples,

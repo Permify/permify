@@ -151,6 +151,7 @@ var _ = Describe("notion-test", func() {
 							Metadata: &base.PermissionLookupSubjectRequestMetadata{
 								SchemaVersion: initialNotionSchemaVersion,
 								SnapToken:     initialNotionSnapToken,
+								Depth:         100,
 							},
 							Context: &base.Context{
 								Tuples: contextTuples,

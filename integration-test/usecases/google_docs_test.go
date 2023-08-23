@@ -151,6 +151,7 @@ var _ = Describe("google-docs-test", func() {
 							Metadata: &base.PermissionLookupSubjectRequestMetadata{
 								SchemaVersion: initialGoogleDocsSchemaVersion,
 								SnapToken:     initialGoogleDocsSnapToken,
+								Depth:         100,
 							},
 							Context: &base.Context{
 								Tuples: contextTuples,
