@@ -1,8 +1,10 @@
-# Attribute Based Access Control 
+# Attribute Based Access Control (Beta)
 
+:::info 
 Here is an update regarding Permify's support for ABAC in our [beta release](https://github.com/Permify/permify/pkgs/container/permify-beta). We are eager to hear your thoughts and looking forward to your feedback.
+:::
 
-# What is ABAC?
+# What is Attribute Based Access Control (ABAC)?
 
 Attribute-Based Access Control (ABAC) is like a security guard that decides who gets to access what based on specific characteristics or "attributes".
 
@@ -50,9 +52,9 @@ For attributes that represent a binary choice or state, such as a yes/no questio
 
 ```go
 entity post {
-		attribute is_public boolean
-		
-		permission view = is_public
+        attribute is_public boolean
+        
+        permission view = is_public
 }
 ```
 
@@ -74,16 +76,16 @@ String can be used as attribute data type in a variety of scenarios where text-b
 entity user {}
 
 entity organization {
-	
-	relation admin @user
+    
+    relation admin @user
 
-	attribute location string[]
+    attribute location string[]
 
-	permission view = check_location(request.current_location, location) or admin
+    permission view = check_location(request.current_location, location) or admin
 }
 
 rule check_location(current_location string, location string[]) {
-	current_location in location
+    current_location in location
 }
 ```
 
@@ -107,7 +109,7 @@ entity content {
 }
 
 rule check_age(age integer) {
-		age >= 18
+        age >= 18
 }
 ```
 
@@ -136,7 +138,7 @@ entity account {
 }
 
 rule check_balance(amount double, balance double) {
-	(balance >= amount) && (amount <= 5000)
+    (balance >= amount) && (amount <= 5000)
 }
 ```
 
@@ -151,7 +153,7 @@ Rules are structures that allow you to write specific conditions for the model. 
 
 ```sql
 rule check_ip_range(ip string, ip_range string[]) {
-	ip in ip_range
+    ip in ip_range
 }
 ```
 
@@ -163,16 +165,16 @@ rule check_ip_range(ip string, ip_range string[]) {
 entity user {}
 
 entity organization {
-	
-	relation admin @user
+    
+    relation admin @user
 
-	attribute ip_range string[]
+    attribute ip_range string[]
 
-	permission view = check_ip_range(request.ip_address, ip_range) or admin
+    permission view = check_ip_range(request.ip_address, ip_range) or admin
 }
 
 rule check_ip_range(ip_address string, ip_range string[]) {
-	ip in ip_range
+    ip in ip_range
 }
 ```
 
@@ -183,8 +185,8 @@ For instance,
 ```sql
 ...
 "context": {
-		"ip_address": "187.182.51.206",
-		"day_of_week": "monday"
+        "ip_address": "187.182.51.206",
+        "day_of_week": "monday"
 }
 ...
 ```
@@ -201,18 +203,18 @@ For instance,
 
 ```sql
 {
-	"entity": {
-		"type": "organization",
-		"id": "1"
-	},
-	"permission": "view",
-	"subject" : {
-		"type": "user",
-		"id": "1"
-	},
-	"context": {
-		"ip_address": "187.182.51.206"
-	}
+    "entity": {
+        "type": "organization",
+        "id": "1"
+    },
+    "permission": "view",
+    "subject" : {
+        "type": "user",
+        "id": "1"
+    },
+    "context": {
+        "ip_address": "187.182.51.206"
+    }
 }
 ```
 
@@ -241,9 +243,9 @@ entity post {
 
   relation owner  @user
 
-	attribute is_public boolean
+    attribute is_public boolean
 
-	permission view   = is_public or owner
+    permission view   = is_public or owner
   permission edit   = owner
 }
 ```
@@ -282,20 +284,20 @@ entity user {}
 
 entity organization {
 
-	relation member @user
+    relation member @user
 
-	permission view = is_weekday(request.day_of_week) and member
+    permission view = is_weekday(request.day_of_week) and member
 }
 
 entity repository {
 
     relation organization  @organization
 
-		permission view = organization.view
+        permission view = organization.view
 }
 
 rule is_weekday(day_of_week string) {
-	  day_of_week != "saturday" && day_of_week != "sunday"
+      day_of_week != "saturday" && day_of_week != "sunday"
 }
 ```
 
@@ -332,7 +334,7 @@ entity account {
 }
 
 rule check_balance(amount double, balance double) {
-	(balance >= amount) && (amount <= 5000)
+    (balance >= amount) && (amount <= 5000)
 }
 ```
 
@@ -385,11 +387,11 @@ entity department {
 }
 
 rule check_founding_year(founding_year integer) {
-		founding_year > 2000
+        founding_year > 2000
 }
 
 rule check_budget(budget double) {
-		budget > 10000
+        budget > 10000
 }
 ```
 
@@ -430,19 +432,19 @@ docker pull **ghcr.io/permify/permify-beta:latest**
 
 ```yaml
 schema: >-
-	{string schem}
+    {string schem}
 
 relationships:
-	- entity_name:entity_id#relation@subject_type:subject_id
+    - entity_name:entity_id#relation@subject_type:subject_id
 
 attributes:
-	- entity_name:entity_id#attribute@attribute_type:attribute_value
+    - entity_name:entity_id#attribute@attribute_type:attribute_value
 
 scenarios:
   - name: "name"
     description: "description"
     checks:
-			- entity: "entity_name:entity_id"
+            - entity: "entity_name:entity_id"
         subject: "subject_name:subject_id"
         context:
           tuples: []
@@ -452,7 +454,7 @@ scenarios:
         assertions:
           permission: result
     entity_filters:
-			- entity_type: "entity_name"
+            - entity_type: "entity_name"
         subject: "subject_name:subject_id"
         context:
           tuples: []
@@ -462,7 +464,7 @@ scenarios:
         assertions:
           permission: result_array
     subject_filters:
-			- subject_reference: "subject_name"
+            - subject_reference: "subject_name"
         entity: "entity_name:entity_id"
         context:
           tuples: []
@@ -479,10 +481,10 @@ scenarios:
 
 ```yaml
 context:
-	tuples: []
-	attributes: []
-	data:
-		day_of_week: "saturday"
+    tuples: []
+    attributes: []
+    data:
+        day_of_week: "saturday"
 ```
 
 This YAML snippet specifies a validation context with no tuples or attributes, and a data field indicating the day of the week is Saturday.
