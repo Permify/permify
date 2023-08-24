@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Modeling Authorization
 
-Permify has its own language that you can model your authorization logic with it. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like admin, manager, member and also dynamic attributes such as IP range, location, time period, etc.
+Permify has its own language that you can model your authorization logic with it. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like admin, manager, member and also dynamic attributes such as boolean variables, IP range, time period, etc.
 
 ![modeling-authorization](https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif)
 
@@ -290,7 +290,12 @@ entity repository {
 ```
 
 
-### Defining Attributes and Rules
+### Defining Attribute Based Permissions 
+
+:::success Beta
+Please keep in mind that this feature is still in the **beta stage**, and we're actively seeking user feedback to improve it. As a Beta feature, Permify ABAC support may have some limitations, and its functionality and interface could change in future updates.
+:::
+
 
 To support Attribute Based Access Control (ABAC) in Permify, we've added two main components into our DSL: **attributes** and **rules**.
 
