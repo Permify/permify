@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -37,13 +36,13 @@ logger:
 `)
 
 	// Create a temporary directory
-	tmpDir, err := ioutil.TempDir("", "new-config-test")
+	tmpDir, err := os.MkdirTemp("", "new-config-test")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir) // Clean up after the test
 
 	// Create a temporary config file
 	tmpFile := filepath.Join(tmpDir, "config.yaml")
-	err = ioutil.WriteFile(tmpFile, configContent, 0o666)
+	err = os.WriteFile(tmpFile, configContent, 0o666)
 	assert.NoError(t, err)
 
 	// Set the config path in viper to the temporary directory
@@ -73,13 +72,13 @@ invalid_config_content
 `)
 
 	// Create a temporary directory
-	tmpDir, err := ioutil.TempDir("", "invalid-config-test")
+	tmpDir, err := os.MkdirTemp("", "invalid-config-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpDir) // Clean up after the test
 
 	// Create a temporary config file
 	tmpFile := filepath.Join(tmpDir, "config.yaml")
-	err = ioutil.WriteFile(tmpFile, configContent, 0o666)
+	err = os.WriteFile(tmpFile, configContent, 0o666)
 	require.NoError(t, err)
 
 	// Set the config path in viper to the temporary directory
@@ -106,13 +105,13 @@ database:
 `)
 
 	// Create a temporary directory
-	tmpDir, err := ioutil.TempDir("", "partial-config-test")
+	tmpDir, err := os.MkdirTemp("", "partial-config-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpDir) // Clean up after the test
 
 	// Create a temporary config file
 	tmpFile := filepath.Join(tmpDir, "config.yaml")
-	err = ioutil.WriteFile(tmpFile, configContent, 0o666)
+	err = os.WriteFile(tmpFile, configContent, 0o666)
 	require.NoError(t, err)
 
 	// Set the config path in viper to the temporary directory
