@@ -169,3 +169,56 @@ func Test_isYAML(t *testing.T) {
 		})
 	}
 }
+
+func TestNewConfigWithFile(t *testing.T) {
+	configContent := []byte(`
+server:
+  http:
+    enabled: true
+    port: "8080"
+  grpc:
+    port: "9090"
+logger:
+  level: "debug"
+`)
+
+	// Create a temporary directory
+	tmpDir, err := os.MkdirTemp("", "new-config-test")
+	assert.NoError(t, err)
+	defer os.RemoveAll(tmpDir) // Clean up after the test
+
+	// Create a temporary config file
+	tmpFile := filepath.Join(tmpDir, "config.yaml")
+	err = os.WriteFile(tmpFile, configContent, 0o666)
+	assert.NoError(t, err)
+
+	cfg, err := NewConfigWithFile(tmpFile)
+	assert.NotNil(t, cfg)
+	assert.NoError(t, err)
+
+	assert.Equal(t, true, cfg.Server.Enabled)
+	assert.Equal(t, "8080", cfg.Server.HTTP.Port)
+	assert.Equal(t, "9090", cfg.GRPC.Port)
+	assert.Equal(t, "debug", cfg.Log.Level)
+
+}
+
+func TestNewConfigWithFile_InvalidConfig(t *testing.T) {
+	configContent := []byte(`
+invalid config
+`)
+
+	// Create a temporary directory
+	tmpDir, err := os.MkdirTemp("", "new-config-test")
+	assert.NoError(t, err)
+	defer os.RemoveAll(tmpDir) // Clean up after the test
+
+	// Create a temporary config file
+	tmpFile := filepath.Join(tmpDir, "config.yaml")
+	err = os.WriteFile(tmpFile, configContent, 0o666)
+	assert.NoError(t, err)
+
+	cfg, err := NewConfigWithFile(tmpFile)
+	assert.Nil(t, cfg)
+	assert.Error(t, err)
+}
