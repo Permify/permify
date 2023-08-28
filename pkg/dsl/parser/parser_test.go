@@ -572,7 +572,7 @@ var _ = Describe("parser", func() {
     			relation owner @user
     			attribute balance float
 
-    			permission withdraw = check_balance(context.amount, balance) and owner
+    			permission withdraw = check_balance(request.amount, balance) and owner
 			}
 	
 			rule check_balance(amount float, balance float) {
@@ -603,13 +603,61 @@ var _ = Describe("parser", func() {
 
 			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement)
 
-			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(context.amount, balance)"))
+			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(request.amount, balance)"))
 			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))
 
 			rs1 := schema.Statements[1].(*ast.RuleStatement)
 
 			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
 			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
+		})
+
+		It("Case 15 - Array", func() {
+			pr := NewParser(`
+				entity organization {
+					
+					relation admin @user
+				
+					attribute location string[]
+				
+					permission view = check_location(request.current_location, location) or admin
+				}
+				
+				rule check_location(current_location string, location string[]) {
+					current_location in location
+				}
+			`)
+
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			st := schema.Statements[0].(*ast.EntityStatement)
+
+			Expect(st.Name.Literal).Should(Equal("organization"))
+
+			r1 := st.RelationStatements[0].(*ast.RelationStatement)
+			Expect(r1.Name.Literal).Should(Equal("admin"))
+			for _, a := range r1.RelationTypes {
+				Expect(a.Type.Literal).Should(Equal("user"))
+			}
+
+			a1 := st.AttributeStatements[0].(*ast.AttributeStatement)
+			Expect(a1.Name.Literal).Should(Equal("location"))
+			Expect(a1.AttributeType.Type.Literal).Should(Equal("string"))
+			Expect(a1.AttributeType.IsArray).Should(Equal(true))
+
+			p1 := st.PermissionStatements[0].(*ast.PermissionStatement)
+			Expect(p1.Name.Literal).Should(Equal("view"))
+
+			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement)
+
+			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_location(request.current_location, location)"))
+			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("admin"))
+
+			rs1 := schema.Statements[1].(*ast.RuleStatement)
+
+			Expect(rs1.Name.Literal).Should(Equal("check_location"))
+			Expect(rs1.Expression).Should(Equal("\ncurrent_location in location\n\t\t\t"))
 		})
 	})
 })

@@ -28,15 +28,23 @@ enum AttributeType {
 
   // A boolean attribute type.
   ATTRIBUTE_TYPE_BOOLEAN = 1;
+  // A boolean array attribute type.
+  ATTRIBUTE_TYPE_BOOLEAN_ARRAY = 2;
 
   // A string attribute type.
-  ATTRIBUTE_TYPE_STRING = 2;
+  ATTRIBUTE_TYPE_STRING = 3;
+  // A string array attribute type.
+  ATTRIBUTE_TYPE_STRING_ARRAY = 4;
 
   // An integer attribute type.
-  ATTRIBUTE_TYPE_INTEGER = 3;
+  ATTRIBUTE_TYPE_INTEGER = 5;
+  // An integer array attribute type.
+  ATTRIBUTE_TYPE_INTEGER_ARRAY = 6;
 
   // A double attribute type.
-  ATTRIBUTE_TYPE_DOUBLE = 4;
+  ATTRIBUTE_TYPE_DOUBLE = 7;
+  // A double array attribute type.
+  ATTRIBUTE_TYPE_DOUBLE_ARRAY = 8;
 }
 
 // Context encapsulates the information related to a single operation,

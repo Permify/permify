@@ -36,12 +36,20 @@ func GetCelType(attributeType base.AttributeType) (*types.Type, error) {
 	switch attributeType {
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
 		return types.StringType, nil
+	case base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY:
+		return cel.ListType(cel.StringType), nil
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
 		return types.BoolType, nil
+	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY:
+		return cel.ListType(types.BoolType), nil
 	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER:
 		return types.IntType, nil
+	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER_ARRAY:
+		return cel.ListType(types.IntType), nil
 	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE:
 		return types.DoubleType, nil
+	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE_ARRAY:
+		return cel.ListType(types.DoubleType), nil
 	default:
 		return nil, errors.New("")
 	}
