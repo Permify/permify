@@ -45,6 +45,7 @@ However, since it communicates using standard protocols like gRPC and HTTP, it i
 - Check subject permissions with [Lookup Subject](./api-overview/permission/lookup-subject.md)
 - Delete relation tuples with [Delete Tuple](./api-overview/relationship/delete-relationships.md)
 - Expand schema actions with [Expand API](./api-overview/permission/expand-api.md)
+- Watch changes in the relation tuples in real-time with [Watch API](./api-overview/watch/watch-changes.md)
 
 ## Authentication
 
@@ -75,10 +76,7 @@ These credits are your sole remedy for any availability failures under our SLA.
 
 ## Request Rate Limits
 
-Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our documentation. 
-
-- doc: https://docs.permify.co/docs/reference/configuration
-- algorithm: https://en.wikipedia.org/wiki/Token_bucket
+Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our [documentation](https://docs.permify.co/docs/reference/configuration). We used [Token bucket](https://en.wikipedia.org/wiki/Token_bucket) algorithm for rate limiting.
 
 ## Need any help ?
 
