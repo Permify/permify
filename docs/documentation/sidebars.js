@@ -148,11 +148,6 @@ module.exports = {
 			label: "Permify Playground",
 		},
 		{
-			type: "doc",
-			id: "multi-tenancy",
-			label: "Multi Tenancy",
-		},
-		{
 			type: "category",
 			label: "Common Use Cases",
 			link: {
@@ -162,12 +157,10 @@ module.exports = {
 			items: [
 				"use-cases/simple-rbac",
 				"use-cases/abac",
-				"use-cases/organizational",
-				"use-cases/ownership",
 				"use-cases/custom-roles",
 				"use-cases/nested-hierarchies",
-				"use-cases/user-groups",
-				"use-cases/sharing",
+				"use-cases/multi-tenancy",
+				"use-cases/rebac",
 			],
 			collapsed: true,
 		},
