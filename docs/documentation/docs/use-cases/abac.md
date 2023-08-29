@@ -1,7 +1,11 @@
 # Attribute Based Access Control (Beta)
 
-:::info 
-Here is an update regarding Permify's support for ABAC in our [beta release](https://github.com/Permify/permify/pkgs/container/permify-beta). We are eager to hear your thoughts and looking forward to your feedback.
+This page explains design approach of Permify ABAC support as well as demonstrates how to create and use attribute based permissions in Permify.
+
+:::info  
+You can find Permify's support for ABAC in our [beta release](https://github.com/Permify/permify/pkgs/container/permify-beta) and explore the active [API documentation](https://permify.github.io/permify-swagger/) for the ***beta*** version. 
+
+We are eager to hear your thoughts and looking forward to your feedback!
 :::
 
 # What is Attribute Based Access Control (ABAC)?

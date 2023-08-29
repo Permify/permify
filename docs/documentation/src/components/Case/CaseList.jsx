@@ -19,40 +19,22 @@ export const CaseList = () => {
     },
     {
       id:3,
-      title:"Nested Hierarchies (ReBAC)",
-      description: "Define nested parent child relationships to control access of your resources and inherit/share permissions between your entites.",
-      link: "./use-cases/nested-hierarchies"
+      title:"Relationship Based Access Control (ReBAC)",
+      description: "Define permissions based on the relationships between resources and subjects in your system",
+      link: "./use-cases/rebac"
     },
     {
       id:4,
-      title:"Organization Specific Resources",
-      description: "Grant and manage user access to the organizational-wide resources; files, folders, repositories, etc.",
-      link: "./use-cases/organizational"
-    },
-    {
-      id:5,
       title:"Custom Roles",
       description: "Assign specific permissions to users based on the custom roles that they are assigned within the system.",
       link: "./use-cases/custom-roles"
     },
     {
-      id:6,
+      id:5,
       title:"Multi Tenancy",
       description: "Create custom authorization schema and relation tuples for the different tenants and manage them in a single place.",
-      link:  "./multi-tenancy"
+      link:  "./use-cases/multi-tenancy"
     },
-    {
-      id:7,
-      title:"User Groups & Teams",
-      description: "Grant permissions and privileges to the users according to the group or team that they belongs to.",
-      link: "./use-cases/user-groups"
-    },
-    {
-      id:8,
-      title:"Sharing and Collaboration",
-      description: "Invite a user or colleague to a resource and manage permissions accordingly.",
-      link: "./use-cases/sharing"
-    }
   ]
 
   return (
