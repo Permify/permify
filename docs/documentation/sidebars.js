@@ -158,7 +158,6 @@ module.exports = {
 				"use-cases/simple-rbac",
 				"use-cases/abac",
 				"use-cases/custom-roles",
-				"use-cases/nested-hierarchies",
 				"use-cases/multi-tenancy",
 				"use-cases/rebac",
 			],
