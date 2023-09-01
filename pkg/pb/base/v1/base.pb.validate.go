@@ -3361,8 +3361,6 @@ func (m *Attribute) validate(all bool) error {
 
 	// no validation rules for Attribute
 
-	// no validation rules for Type
-
 	if all {
 		switch v := interface{}(m.GetValue()).(type) {
 		case interface{ ValidateAll() error }:
@@ -6157,3 +6155,799 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DataChangeValidationError{}
+
+// Validate checks the field values on String with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *String) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on String with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in StringMultiError, or nil if none found.
+func (m *String) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *String) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return StringMultiError(errors)
+	}
+
+	return nil
+}
+
+// StringMultiError is an error wrapping multiple validation errors returned by
+// String.ValidateAll() if the designated constraints aren't met.
+type StringMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StringMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StringMultiError) AllErrors() []error { return m }
+
+// StringValidationError is the validation error returned by String.Validate if
+// the designated constraints aren't met.
+type StringValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StringValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StringValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StringValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StringValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StringValidationError) ErrorName() string { return "StringValidationError" }
+
+// Error satisfies the builtin error interface
+func (e StringValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sString.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StringValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StringValidationError{}
+
+// Validate checks the field values on Integer with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Integer) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Integer with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in IntegerMultiError, or nil if none found.
+func (m *Integer) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Integer) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return IntegerMultiError(errors)
+	}
+
+	return nil
+}
+
+// IntegerMultiError is an error wrapping multiple validation errors returned
+// by Integer.ValidateAll() if the designated constraints aren't met.
+type IntegerMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m IntegerMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m IntegerMultiError) AllErrors() []error { return m }
+
+// IntegerValidationError is the validation error returned by Integer.Validate
+// if the designated constraints aren't met.
+type IntegerValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e IntegerValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e IntegerValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e IntegerValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e IntegerValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e IntegerValidationError) ErrorName() string { return "IntegerValidationError" }
+
+// Error satisfies the builtin error interface
+func (e IntegerValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sInteger.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = IntegerValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = IntegerValidationError{}
+
+// Validate checks the field values on Double with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Double) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Double with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in DoubleMultiError, or nil if none found.
+func (m *Double) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Double) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return DoubleMultiError(errors)
+	}
+
+	return nil
+}
+
+// DoubleMultiError is an error wrapping multiple validation errors returned by
+// Double.ValidateAll() if the designated constraints aren't met.
+type DoubleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DoubleMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DoubleMultiError) AllErrors() []error { return m }
+
+// DoubleValidationError is the validation error returned by Double.Validate if
+// the designated constraints aren't met.
+type DoubleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DoubleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DoubleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DoubleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DoubleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DoubleValidationError) ErrorName() string { return "DoubleValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DoubleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDouble.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DoubleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DoubleValidationError{}
+
+// Validate checks the field values on Boolean with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Boolean) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Boolean with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in BooleanMultiError, or nil if none found.
+func (m *Boolean) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Boolean) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return BooleanMultiError(errors)
+	}
+
+	return nil
+}
+
+// BooleanMultiError is an error wrapping multiple validation errors returned
+// by Boolean.ValidateAll() if the designated constraints aren't met.
+type BooleanMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BooleanMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BooleanMultiError) AllErrors() []error { return m }
+
+// BooleanValidationError is the validation error returned by Boolean.Validate
+// if the designated constraints aren't met.
+type BooleanValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BooleanValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BooleanValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BooleanValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BooleanValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BooleanValidationError) ErrorName() string { return "BooleanValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BooleanValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBoolean.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BooleanValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BooleanValidationError{}
+
+// Validate checks the field values on StringArray with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *StringArray) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on StringArray with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in StringArrayMultiError, or
+// nil if none found.
+func (m *StringArray) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *StringArray) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return StringArrayMultiError(errors)
+	}
+
+	return nil
+}
+
+// StringArrayMultiError is an error wrapping multiple validation errors
+// returned by StringArray.ValidateAll() if the designated constraints aren't met.
+type StringArrayMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StringArrayMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StringArrayMultiError) AllErrors() []error { return m }
+
+// StringArrayValidationError is the validation error returned by
+// StringArray.Validate if the designated constraints aren't met.
+type StringArrayValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StringArrayValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StringArrayValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StringArrayValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StringArrayValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StringArrayValidationError) ErrorName() string { return "StringArrayValidationError" }
+
+// Error satisfies the builtin error interface
+func (e StringArrayValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sStringArray.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StringArrayValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StringArrayValidationError{}
+
+// Validate checks the field values on IntegerArray with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *IntegerArray) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on IntegerArray with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in IntegerArrayMultiError, or
+// nil if none found.
+func (m *IntegerArray) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *IntegerArray) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return IntegerArrayMultiError(errors)
+	}
+
+	return nil
+}
+
+// IntegerArrayMultiError is an error wrapping multiple validation errors
+// returned by IntegerArray.ValidateAll() if the designated constraints aren't met.
+type IntegerArrayMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m IntegerArrayMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m IntegerArrayMultiError) AllErrors() []error { return m }
+
+// IntegerArrayValidationError is the validation error returned by
+// IntegerArray.Validate if the designated constraints aren't met.
+type IntegerArrayValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e IntegerArrayValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e IntegerArrayValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e IntegerArrayValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e IntegerArrayValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e IntegerArrayValidationError) ErrorName() string { return "IntegerArrayValidationError" }
+
+// Error satisfies the builtin error interface
+func (e IntegerArrayValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sIntegerArray.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = IntegerArrayValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = IntegerArrayValidationError{}
+
+// Validate checks the field values on DoubleArray with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DoubleArray) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DoubleArray with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DoubleArrayMultiError, or
+// nil if none found.
+func (m *DoubleArray) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DoubleArray) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return DoubleArrayMultiError(errors)
+	}
+
+	return nil
+}
+
+// DoubleArrayMultiError is an error wrapping multiple validation errors
+// returned by DoubleArray.ValidateAll() if the designated constraints aren't met.
+type DoubleArrayMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DoubleArrayMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DoubleArrayMultiError) AllErrors() []error { return m }
+
+// DoubleArrayValidationError is the validation error returned by
+// DoubleArray.Validate if the designated constraints aren't met.
+type DoubleArrayValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DoubleArrayValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DoubleArrayValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DoubleArrayValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DoubleArrayValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DoubleArrayValidationError) ErrorName() string { return "DoubleArrayValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DoubleArrayValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDoubleArray.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DoubleArrayValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DoubleArrayValidationError{}
+
+// Validate checks the field values on BooleanArray with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *BooleanArray) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BooleanArray with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in BooleanArrayMultiError, or
+// nil if none found.
+func (m *BooleanArray) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BooleanArray) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return BooleanArrayMultiError(errors)
+	}
+
+	return nil
+}
+
+// BooleanArrayMultiError is an error wrapping multiple validation errors
+// returned by BooleanArray.ValidateAll() if the designated constraints aren't met.
+type BooleanArrayMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BooleanArrayMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BooleanArrayMultiError) AllErrors() []error { return m }
+
+// BooleanArrayValidationError is the validation error returned by
+// BooleanArray.Validate if the designated constraints aren't met.
+type BooleanArrayValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BooleanArrayValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BooleanArrayValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BooleanArrayValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BooleanArrayValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BooleanArrayValidationError) ErrorName() string { return "BooleanArrayValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BooleanArrayValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBooleanArray.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BooleanArrayValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BooleanArrayValidationError{}

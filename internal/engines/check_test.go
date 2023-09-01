@@ -1615,7 +1615,7 @@ var _ = Describe("check-engine", func() {
 			}{
 				relationships: []string{},
 				attributes: []string{
-					"repository:1#is_public@boolean:true",
+					"repository:1$is_public|boolean:true",
 				},
 				checks: []check{
 					{
@@ -1730,7 +1730,7 @@ var _ = Describe("check-engine", func() {
 					"repository:1#organization@organization:1",
 				},
 				attributes: []string{
-					"organization:1#balance@integer:7000",
+					"organization:1$balance|integer:7000",
 				},
 				checks: []check{
 					{
@@ -1874,7 +1874,7 @@ var _ = Describe("check-engine", func() {
 			}{
 				relationships: []string{},
 				attributes: []string{
-					"repository:1#is_public@boolean:true",
+					"repository:1$is_public|boolean:true",
 				},
 				checks: []check{
 					{
@@ -1945,6 +1945,157 @@ var _ = Describe("check-engine", func() {
 						},
 						Context: &base.Context{
 							Attributes: attributes,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(res).Should(Equal(response.GetCan()))
+				}
+			}
+		})
+	})
+
+	// IP RANGE SAMPLE
+	IpRangeSchema := `
+		entity user {}
+	
+		entity organization {
+	
+			relation admin @user
+	
+			attribute ip_range string[]
+	
+			permission view = check_ip_range(request.ip_address, ip_range) or admin
+		}
+	
+		rule check_ip_range(ip_address string, ip_range string[]) {
+			ip_address in ip_range
+		}
+		`
+
+	Context("Ip Range Sample: Check", func() {
+		It("Ip Range Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(IpRangeSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				context    map[string]interface{}
+				assertions map[string]base.CheckResult
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				checks        []check
+			}{
+				relationships: []string{},
+				attributes: []string{
+					"organization:1$ip_range|string[]:18.216.238.147,94.176.248.171,61.49.24.70",
+				},
+				checks: []check{
+					{
+						entity:  "organization:1",
+						subject: "user:1",
+						context: map[string]interface{}{
+							"ip_address": "18.216.238.147",
+						},
+						assertions: map[string]base.CheckResult{
+							"view": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
+			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
+			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+				nil,
+				telemetry.NewNoopMeter(),
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+			var attributes []*base.Attribute
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			for _, attr := range tests.attributes {
+				t, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range check.assertions {
+
+					ctx := &base.Context{
+						Tuples:     []*base.Tuple{},
+						Attributes: []*base.Attribute{},
+						Data:       &structpb.Struct{},
+					}
+
+					if check.context != nil {
+						value, err := structpb.NewStruct(check.context)
+						if err != nil {
+							fmt.Printf("Error creating struct: %v", err)
+						}
+						ctx.Data = value
+					}
+
+					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+						TenantId:   "t1",
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission,
+						Context:    ctx,
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         20,
 						},
 					})
 

@@ -200,7 +200,6 @@ logger:
 	assert.Equal(t, "8080", cfg.Server.HTTP.Port)
 	assert.Equal(t, "9090", cfg.GRPC.Port)
 	assert.Equal(t, "debug", cfg.Log.Level)
-
 }
 
 func TestNewConfigWithFile_InvalidConfig(t *testing.T) {

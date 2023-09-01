@@ -44,7 +44,6 @@ type Attribute struct {
 	EntityType string
 	EntityID   string
 	Attribute  string
-	Type       string
 	Value      *anypb.Any
 }
 
@@ -55,7 +54,6 @@ func (r Attribute) ToAttribute() *base.Attribute {
 			Id:   r.EntityID,
 		},
 		Attribute: r.Attribute,
-		Type:      r.Type,
 		Value:     r.Value,
 	}
 }

@@ -113,7 +113,7 @@ func (i *UniqueAttributeIterator) GetNext() (*base.Attribute, bool) {
 	// Check the first iterator for any next Tuples
 	for i.iterator1.HasNext() {
 		attr := i.iterator1.GetNext() // Get the next Tuple
-		key := attr.GetEntity().GetType() + ":" + attr.GetEntity().GetId() + "#" + attr.GetType()
+		key := attr.GetEntity().GetType() + ":" + attr.GetEntity().GetId() + "$" + attr.GetAttribute()
 		// If the Tuple hasn't been visited yet, mark it as visited and return it
 		if _, found := i.visited[key]; !found {
 			i.visited[key] = true
@@ -124,7 +124,7 @@ func (i *UniqueAttributeIterator) GetNext() (*base.Attribute, bool) {
 	// If no more unique Tuples are in the first iterator, check the second one
 	for i.iterator2.HasNext() {
 		attr := i.iterator2.GetNext() // Get the next Tuple
-		key := attr.GetEntity().GetType() + ":" + attr.GetEntity().GetId() + "#" + attr.GetType()
+		key := attr.GetEntity().GetType() + ":" + attr.GetEntity().GetId() + "$" + attr.GetAttribute()
 		// If the Tuple hasn't been visited yet, mark it as visited and return it
 		if _, found := i.visited[key]; !found {
 			i.visited[key] = true

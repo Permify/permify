@@ -2017,12 +2017,12 @@ entity organization {
 					"organization:2#member@user:1",
 				},
 				attributes: []string{
-					"repository:1#is_public@boolean:true",
-					"repository:2#is_public@boolean:false",
-					"repository:3#is_public@boolean:true",
+					"repository:1$is_public|boolean:true",
+					"repository:2$is_public|boolean:false",
+					"repository:3$is_public|boolean:true",
 
-					"organization:1#balance@integer:4000",
-					"organization:2#balance@integer:6000",
+					"organization:1$balance|integer:4000",
+					"organization:2$balance|integer:6000",
 				},
 				filters: []filter{
 					{

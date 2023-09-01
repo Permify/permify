@@ -315,9 +315,7 @@ message Attribute {
 
   string attribute = 2 [json_name = "attribute"]; // Name of the attribute
 
-  string type = 3 [json_name = "type"]; // Type of the attribute
-
-  google.protobuf.Any value = 4 [json_name = "value"]; // Value of the attribute
+  google.protobuf.Any value = 3 [json_name = "value"];
 }
 
 // Tuples is a collection of tuples.
@@ -536,4 +534,36 @@ message DataChange {
     Tuple tuple = 2 [json_name = "tuple"]; // If the change is a tuple.
     Attribute attribute = 3 [json_name = "attribute"]; // If the change is an attribute.
   }
+}
+
+message String {
+  string value = 1;
+}
+
+message Integer {
+  int32 value = 1;
+}
+
+message Double {
+  double value = 1;
+}
+
+message Boolean {
+  bool value = 1;
+}
+
+message StringArray {
+  repeated string values = 1;
+}
+
+message IntegerArray {
+  repeated int32 values = 1;
+}
+
+message DoubleArray {
+  repeated double values = 1;
+}
+
+message BooleanArray {
+  repeated bool values = 1;
 }
