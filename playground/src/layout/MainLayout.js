@@ -132,7 +132,7 @@ const MainLayout = ({children, ...rest}) => {
                     </div>
                     <div className="ml-auto">
                         <Button className="mr-8 text-white" type="link" target="_blank"
-                                href="https://www.permify.co/change-log/permify-playground">
+                                href="https://docs.permify.co/docs/playground">
                             How to use playground?
                         </Button>
                         <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}
