@@ -183,13 +183,13 @@ func AnyToString(any *anypb.Any) string {
 
 	// Convert the Any proto message into string based on its TypeUrl
 	switch any.TypeUrl {
-	case "type.googleapis.com/base.v1.Bool":
+	case "type.googleapis.com/base.v1.Boolean":
 		boolVal := &base.Boolean{}
 		if err := any.UnmarshalTo(boolVal); err != nil {
 			return "undefined"
 		}
 		str = strconv.FormatBool(boolVal.Value)
-	case "type.googleapis.com/base.v1.BoolArray":
+	case "type.googleapis.com/base.v1.BooleanArray":
 		boolVal := &base.BooleanArray{}
 		if err := any.UnmarshalTo(boolVal); err != nil {
 			return "undefined"
