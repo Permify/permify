@@ -2,7 +2,7 @@ package engines
 
 import (
 	"errors"
-	`reflect`
+	"reflect"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -160,7 +160,6 @@ var _ = Describe("utils", func() {
 
 	Context("getEmptyValueForType", func() {
 		It("getEmptyValueForType: Case 1", func() {
-
 			// String type
 			emptyString := getEmptyValueForType(base.AttributeType_ATTRIBUTE_TYPE_STRING)
 			Expect(emptyString).Should(Equal(""))
@@ -200,13 +199,11 @@ var _ = Describe("utils", func() {
 			// Test case for an unknown type (returns nil)
 			unknownType := getEmptyValueForType(base.AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED)
 			Expect(unknownType).Should(BeNil())
-
 		})
 	})
 
 	Context("getDuplicates", func() {
 		It("getDuplicates: Case 1", func() {
-
 			// Test case with duplicates
 			inputWithDuplicates := []string{"apple", "banana", "apple", "cherry", "banana", "date"}
 			expectedDuplicates := []string{"apple", "banana"}
@@ -230,7 +227,6 @@ var _ = Describe("utils", func() {
 			emptyResult := getDuplicates(emptyInput)
 
 			Expect(reflect.DeepEqual(emptyResult, expectedEmpty)).Should(Equal(true))
-
 		})
 	})
 })
