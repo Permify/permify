@@ -972,13 +972,8 @@
           "type": "string",
           "title": "Name of the attribute"
         },
-        "type": {
-          "type": "string",
-          "title": "Type of the attribute"
-        },
         "value": {
-          "$ref": "#/definitions/Any",
-          "title": "Value of the attribute"
+          "$ref": "#/definitions/Any"
         }
       },
       "description": "Attribute represents an attribute of an entity with a specific type and value."
