@@ -3,7 +3,7 @@ import "allotment/dist/style.css";
 import Schema from "./schema";
 import Visualizer from "./visualizer";
 import {Button, Radio, Tabs, Typography} from "antd";
-import {CopyOutlined} from "@ant-design/icons";
+import {CheckCircleOutlined, CopyOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import Relationships from "./particials/data/relationships";
 import Attributes from "./particials/data/attributes";
 import {useSearchParams} from 'react-router-dom';
@@ -21,7 +21,7 @@ function Output(props) {
 
     const [newScenarioModalVisibility, setNewScenarioModalVisibility] = React.useState(false);
 
-    const { run } = useShapeStore();
+    const { runAssertions, runLoading, scenariosError, assertionCount } = useShapeStore();
 
     const toggleNewScenarioModalVisibility = () => {
         setNewScenarioModalVisibility(!newScenarioModalVisibility);
@@ -83,8 +83,13 @@ function Output(props) {
                     <Button className="mr-12" onClick={() => {
                         toggleNewScenarioModalVisibility()
                     }}>New Scenario</Button>
-                    <Button className="mr-12" type="primary" onClick={() => {
-                       run()
+                    <Button
+                        icon={assertionCount === 0 ? null : scenariosError.length > 0 ? <ExclamationCircleOutlined/> : <CheckCircleOutlined/>}
+                        className="mr-12"
+                        type="primary"
+                        loading={runLoading}
+                        onClick={() => {
+                        runAssertions()
                     }}>Run</Button>
                 </div>
             );

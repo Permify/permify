@@ -7,7 +7,7 @@ import {
     AttributeEntityToKey,
     AttributeObjectToKey,
     StringAttributesToObjects,
-} from "../../../../utility/helpers/tuple";
+} from "../../../../utility/helpers/common";
 import {DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import {nanoid} from "nanoid";
 
