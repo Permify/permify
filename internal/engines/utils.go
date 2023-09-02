@@ -174,14 +174,13 @@ func getEmptyValueForType(typ base.AttributeType) interface{} {
 	}
 }
 
-// 'getEmptyProtoValueForType' is a function which creates an 'anypb.Any' value that
-// corresponds to the base value of the provided attribute type.
+// getEmptyProtoValueForType returns an empty protobuf value of the specified type.
+// It takes a base.AttributeType as input and generates an empty protobuf Any message
+// containing a default value for that type.
 func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
-	// Based on the provided attribute type, create a new 'anypb.Any' value that corresponds
-	// to the base value of that type.
 	switch typ {
-
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
+		// Create an empty protobuf String message
 		value, err := anypb.New(&base.String{Value: ""})
 		if err != nil {
 			return nil, err
@@ -189,6 +188,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 		return value, nil
 
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY:
+		// Create an empty protobuf StringArray message
 		value, err := anypb.New(&base.StringArray{Values: []string{}})
 		if err != nil {
 			return nil, err
@@ -196,6 +196,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 		return value, nil
 
 	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER:
+		// Create an empty protobuf Integer message
 		value, err := anypb.New(&base.Integer{Value: 0})
 		if err != nil {
 			return nil, err
@@ -203,6 +204,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 		return value, nil
 
 	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER_ARRAY:
+		// Create an empty protobuf IntegerArray message
 		value, err := anypb.New(&base.IntegerArray{Values: []int32{}})
 		if err != nil {
 			return nil, err
@@ -210,6 +212,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 		return value, nil
 
 	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE:
+		// Create an empty protobuf Double message
 		value, err := anypb.New(&base.Double{Value: 0.0})
 		if err != nil {
 			return nil, err
@@ -217,6 +220,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 		return value, nil
 
 	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE_ARRAY:
+		// Create an empty protobuf DoubleArray message
 		value, err := anypb.New(&base.DoubleArray{Values: []float64{}})
 		if err != nil {
 			return nil, err
@@ -224,6 +228,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 		return value, nil
 
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
+		// Create an empty protobuf Boolean message with a default value of false
 		value, err := anypb.New(&base.Boolean{Value: false})
 		if err != nil {
 			return nil, err
@@ -231,6 +236,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 		return value, nil
 
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY:
+		// Create an empty protobuf BooleanArray message
 		value, err := anypb.New(&base.BooleanArray{Values: []bool{}})
 		if err != nil {
 			return nil, err
@@ -238,6 +244,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 		return value, nil
 
 	default:
+		// Handle the case where the provided attribute type is unknown
 		return nil, errors.New("unknown type")
 	}
 }
