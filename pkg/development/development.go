@@ -159,6 +159,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 			Key:     "",
 			Message: err.Error(),
 		})
+		return
 	}
 
 	// Generate a new unique ID for this version of the schema
