@@ -118,6 +118,8 @@ const MainLayout = ({children, ...rest}) => {
                                 <Option key="mercury" value="mercury">Mercury <Text type="danger">(beta)</Text></Option>
                                 <Option key="instagram" value="instagram">Instagram <Text
                                     type="danger">(beta)</Text></Option>
+                                <Option key="disney-plus" value="disney-plus">Disney Plus <Text
+                                    type="danger">(beta)</Text></Option>
                             </OptGroup>
                         </Select>
                        {/* <Button className="mr-8" onClick={() => {
