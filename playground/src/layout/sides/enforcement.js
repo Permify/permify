@@ -23,7 +23,7 @@ export const convertDataToYAML = (data) => {
 
 function Enforcement() {
 
-    const {scenarios, setScenarios, scenariosError, removeScenario} = useShapeStore();
+    const {scenarios, setScenarios, scenariosError, removeScenario, assertionCount} = useShapeStore();
 
     const [activeKey, setActiveKey] = useState(null);
 
@@ -117,7 +117,7 @@ function Enforcement() {
 
                         return (
                             <Panel
-                                className={hasErrors ? 'error-row' : 'success-row'}
+                                className={assertionCount === 0 ? '' : hasErrors ? 'error-row' : 'success-row'}
                                 header={
                                     <div style={{
                                         display: 'flex',

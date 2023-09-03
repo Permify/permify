@@ -17,8 +17,8 @@ function NewScenario(props) {
                 description: values.description,
                 checks: [
                     {
-                        entity: "",
-                        subject: "",
+                        entity: null,
+                        subject: null,
                         context: null,
                         assertions: {}
                     }

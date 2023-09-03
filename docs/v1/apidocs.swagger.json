@@ -972,13 +972,8 @@
           "type": "string",
           "title": "Name of the attribute"
         },
-        "type": {
-          "type": "string",
-          "title": "Type of the attribute"
-        },
         "value": {
-          "$ref": "#/definitions/Any",
-          "title": "Value of the attribute"
+          "$ref": "#/definitions/Any"
         }
       },
       "description": "Attribute represents an attribute of an entity with a specific type and value."
@@ -1046,12 +1041,16 @@
       "enum": [
         "ATTRIBUTE_TYPE_UNSPECIFIED",
         "ATTRIBUTE_TYPE_BOOLEAN",
+        "ATTRIBUTE_TYPE_BOOLEAN_ARRAY",
         "ATTRIBUTE_TYPE_STRING",
+        "ATTRIBUTE_TYPE_STRING_ARRAY",
         "ATTRIBUTE_TYPE_INTEGER",
-        "ATTRIBUTE_TYPE_DOUBLE"
+        "ATTRIBUTE_TYPE_INTEGER_ARRAY",
+        "ATTRIBUTE_TYPE_DOUBLE",
+        "ATTRIBUTE_TYPE_DOUBLE_ARRAY"
       ],
       "default": "ATTRIBUTE_TYPE_UNSPECIFIED",
-      "description": "Enumerates the types of attribute.\n\n - ATTRIBUTE_TYPE_UNSPECIFIED: Not specified attribute type. This is the default value.\n - ATTRIBUTE_TYPE_BOOLEAN: A boolean attribute type.\n - ATTRIBUTE_TYPE_STRING: A string attribute type.\n - ATTRIBUTE_TYPE_INTEGER: An integer attribute type.\n - ATTRIBUTE_TYPE_DOUBLE: A double attribute type."
+      "description": "Enumerates the types of attribute.\n\n - ATTRIBUTE_TYPE_UNSPECIFIED: Not specified attribute type. This is the default value.\n - ATTRIBUTE_TYPE_BOOLEAN: A boolean attribute type.\n - ATTRIBUTE_TYPE_BOOLEAN_ARRAY: A boolean array attribute type.\n - ATTRIBUTE_TYPE_STRING: A string attribute type.\n - ATTRIBUTE_TYPE_STRING_ARRAY: A string array attribute type.\n - ATTRIBUTE_TYPE_INTEGER: An integer attribute type.\n - ATTRIBUTE_TYPE_INTEGER_ARRAY: An integer array attribute type.\n - ATTRIBUTE_TYPE_DOUBLE: A double attribute type.\n - ATTRIBUTE_TYPE_DOUBLE_ARRAY: A double array attribute type."
     },
     "CheckResult": {
       "type": "string",

@@ -74,7 +74,7 @@ const (
 	IDENT   = "IDENT"
 	STRING  = "STRING"
 	INTEGER = "INTEGER"
-	FLOAT   = "NUMBER"
+	DOUBLE  = "DOUBLE"
 	BOOLEAN = "BOOLEAN"
 
 	/*

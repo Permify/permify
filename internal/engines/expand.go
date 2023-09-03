@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"google.golang.org/protobuf/types/known/anypb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
@@ -520,7 +519,7 @@ func (engine *ExpandEngine) expandDirectAttribute(
 				},
 				Attribute: request.GetPermission(),
 			}
-			val.Value, err = anypb.New(wrapperspb.Bool(false))
+			val.Value, err = anypb.New(&base.Boolean{Value: false})
 			if err != nil {
 				expandChan <- expandFailResponse(err)
 				return

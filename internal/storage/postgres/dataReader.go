@@ -8,11 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/protobuf/jsonpb"
-
-	"google.golang.org/protobuf/types/known/anypb"
-
 	"github.com/Masterminds/squirrel"
+	"github.com/golang/protobuf/jsonpb"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"go.opentelemetry.io/otel/codes"
 
@@ -268,7 +266,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
-	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, type, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 
@@ -289,7 +287,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	var valueStr string
 
 	// Scan the row from the database into the fields of `rt` and `valueStr`.
-	err = row.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &rt.Type, &valueStr)
+	err = row.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -301,12 +299,12 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	}
 
 	// Unmarshal the JSON data from `valueStr` into `rt.Value`.
-	rt.Value = &anypb.Any{}
-	unmarshaler := &jsonpb.Unmarshaler{}
-	err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
-	if err != nil {
-		return nil, err
-	}
+	//rt.Value = &anypb.Any{}
+	//unmarshaler := &jsonpb.Unmarshaler{}
+	//err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	// Commit the transaction.
 	err = tx.Commit()
@@ -348,7 +346,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
-	builder := r.database.Builder.Select("entity_type, entity_id, attribute, type, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.Select("entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 
@@ -381,7 +379,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 		var valueStr string
 
 		// Scan the row from the database into the fields of `rt` and `valueStr`.
-		err := rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &rt.Type, &valueStr)
+		err := rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
@@ -500,7 +498,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 		var valueStr string
 
 		// Scan the row from the database into the fields of `rt` and `valueStr`.
-		err := rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &rt.Type, &valueStr)
+		err := rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())

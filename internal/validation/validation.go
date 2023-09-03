@@ -77,7 +77,7 @@ func ValidateAttribute(definition *base.EntityDefinition, reqAttribute *base.Att
 
 	// Check whether the type of the attribute in the request matches the type defined in the entity.
 	// If the types do not match, an error indicating a type mismatch is returned.
-	if attribute.TypeToString(attr.GetType()) != reqAttribute.GetType() {
+	if attribute.TypeToString(attr.GetType()) != attribute.TypeUrlToString(reqAttribute.GetValue().GetTypeUrl()) {
 		return errors.New(base.ErrorCode_ERROR_CODE_ATTRIBUTE_TYPE_MISMATCH.String())
 	}
 

@@ -149,11 +149,11 @@ func (l *Lexer) NextToken() (tok token.Token) {
 			tok.Type = token.LookupKeywords(tok.Literal)
 			return
 		} else if isDigit(l.ch) {
-			var isFloat bool
+			var isDouble bool
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
-			tok.Literal, isFloat = l.lexNumber()
-			if isFloat {
-				tok.Type = token.FLOAT
+			tok.Literal, isDouble = l.lexNumber()
+			if isDouble {
+				tok.Type = token.DOUBLE
 			} else {
 				tok.Type = token.INTEGER
 			}

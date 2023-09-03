@@ -273,7 +273,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 		return nil, p.Error()
 	}
 
-	arguments := map[token.Token]token.Token{}
+	arguments := map[token.Token]ast.AttributeTypeStatement{}
 	args := map[string]string{}
 
 	// Loop over the tokens until a right parenthesis ')' is encountered.
@@ -291,8 +291,23 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 			return nil, p.Error()
 		}
 
-		arguments[argument] = p.currentToken
-		args[arg] = p.currentToken.Literal
+		if p.peekTokenIs(token.LSB) { // Check if the next token is '['
+			arguments[argument] = ast.AttributeTypeStatement{
+				Type:    p.currentToken,
+				IsArray: true, // Marking the type as an array
+			}
+			args[arg] = p.currentToken.Literal + "[]" // Store the argument type as string with "[]" suffix
+			p.next()                                  // Move to the '[' token
+			if !p.expectAndNext(token.RSB) {          // Expect and move to the ']' token
+				return nil, p.Error()
+			}
+		} else {
+			arguments[argument] = ast.AttributeTypeStatement{
+				Type:    p.currentToken,
+				IsArray: false, // Marking the type as not an array
+			}
+			args[arg] = p.currentToken.Literal // Store the regular argument type
+		}
 
 		// If the next token is a comma, there are more parameters to parse.
 		// Continue to the next iteration.
@@ -371,6 +386,16 @@ func (p *Parser) parseAttributeStatement(entityName string) (*ast.AttributeState
 	}
 
 	atstmt := ast.AttributeTypeStatement{Type: p.currentToken}
+	atstmt.IsArray = false
+
+	if p.peekTokenIs(token.LSB) {
+		p.next()
+		if !p.expectAndNext(token.RSB) {
+			return nil, p.Error()
+		}
+		atstmt.IsArray = true
+	}
+
 	stmt.AttributeType = atstmt
 
 	key := utils.Key(entityName, stmt.Name.Literal)

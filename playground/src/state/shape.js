@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import axios from 'axios'; // Assuming you're using axios as the "client"
 import yaml from 'js-yaml';
-import { toast } from 'react-toastify';
+import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export const useShapeStore = create((set, get) => ({
@@ -12,7 +12,9 @@ export const useShapeStore = create((set, get) => ({
     scenarios: [],
 
     graph: {nodes: [], edges: []},
-    loading: false,
+    runLoading: false,
+
+    assertionCount: 0,
 
     // definitions
     definitions: {},
@@ -79,8 +81,25 @@ export const useShapeStore = create((set, get) => ({
         }, 500);
     },
 
-    run: () => {
+    runAsync: async () => {
+        try {
+            await get().run();
+        } catch (error) {
+            console.error(error);
+        }
+    },
 
+    runAssertions: () => {
+        set((state) => ({assertionCount: state.assertionCount + 1}))
+        set({runLoading: true});
+        setTimeout(() => {
+            get().runAsync().then(() => {
+                set({ runLoading: false });
+            })
+        }, 500);
+    },
+
+    run: () => {
         get().clearErrors()
 
         const shape = {
@@ -96,7 +115,7 @@ export const useShapeStore = create((set, get) => ({
                     const error = JSON.parse(rr[i]);
 
                     if (error.type === 'file_validation') {
-                        set({ systemError: error.message });
+                        set({systemError: error.message});
                         toast.error(`System Error: ${error.message}`);
                     }
 
@@ -225,12 +244,20 @@ export const useShapeStore = create((set, get) => ({
         switch (type) {
             case "ATTRIBUTE_TYPE_BOOLEAN":
                 return "boolean"
+            case "ATTRIBUTE_TYPE_BOOLEAN_ARRAY":
+                return "boolean][]"
             case "ATTRIBUTE_TYPE_STRING":
                 return "string"
+            case "ATTRIBUTE_TYPE_STRING_ARRAY":
+                return "string[]"
             case "ATTRIBUTE_TYPE_INTEGER":
                 return "integer"
+            case "ATTRIBUTE_TYPE_INTEGER_ARRAY":
+                return "integer[]"
             case "ATTRIBUTE_TYPE_DOUBLE":
                 return "double"
+            case "ATTRIBUTE_TYPE_DOUBLE_ARRAY":
+                return "double[]"
             default:
                 return ""
         }

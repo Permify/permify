@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/google/cel-go/cel"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
@@ -497,7 +496,7 @@ func (engine *CheckEngine) checkDirectAttribute(
 		}
 
 		// Unmarshal the attribute value into a BoolValue message.
-		var msg wrapperspb.BoolValue
+		var msg base.Boolean
 		if err := val.GetValue().UnmarshalTo(&msg); err != nil {
 			// If there was an error unmarshaling, return a denied response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
@@ -598,12 +597,12 @@ func (engine *CheckEngine) checkCall(
 			it := database.NewUniqueAttributeIterator(ait, cta)
 
 			for it.HasNext() {
-				// Get the next tuple's subject.
 				next, ok := it.GetNext()
 				if !ok {
 					break
 				}
-				arguments[next.GetAttribute()] = next.GetValue()
+
+				arguments[next.GetAttribute()] = utils.ConvertProtoAnyToInterface(next.GetValue())
 			}
 		}
 

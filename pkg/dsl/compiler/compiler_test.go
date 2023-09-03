@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/cel-go/cel"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -1927,13 +1926,155 @@ var _ = Describe("compiler", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			spew.Dump(err)
-
 			c := NewCompiler(true, sch)
 
 			_, _, err = c.Compile()
 
 			Expect(err.Error()).Should(Equal("8:31: missing argument"))
+		})
+
+		It("Case 20", func() {
+			sch, err := parser.NewParser(`
+				entity user {}
+				
+				entity organization {
+					
+					relation admin @user
+				
+					attribute location string[]
+				
+					permission view = check_location(request.current_location, location) or admin
+				}
+				
+				rule check_location(current_location string, location string[]) {
+					current_location in location
+				}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			var eIs []*base.EntityDefinition
+			var rIs []*base.RuleDefinition
+			eIs, rIs, err = c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			eI := []*base.EntityDefinition{
+				{
+					Name:        "user",
+					Relations:   map[string]*base.RelationDefinition{},
+					Attributes:  map[string]*base.AttributeDefinition{},
+					Permissions: map[string]*base.PermissionDefinition{},
+					References:  map[string]base.EntityDefinition_Reference{},
+				},
+				{
+					Name: "organization",
+					Relations: map[string]*base.RelationDefinition{
+						"admin": {
+							Name: "admin",
+							RelationReferences: []*base.RelationReference{
+								{
+									Type:     "user",
+									Relation: "",
+								},
+							},
+						},
+					},
+					Attributes: map[string]*base.AttributeDefinition{
+						"location": {
+							Name: "location",
+							Type: base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+						},
+					},
+					Permissions: map[string]*base.PermissionDefinition{
+						"view": {
+							Name: "view",
+							Child: &base.Child{
+								Type: &base.Child_Rewrite{
+									Rewrite: &base.Rewrite{
+										RewriteOperation: base.Rewrite_OPERATION_UNION,
+										Children: []*base.Child{
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Type: &base.Leaf_Call{
+															Call: &base.Call{
+																RuleName: "check_location",
+																Arguments: []*base.Argument{
+																	{
+																		Type: &base.Argument_ContextAttribute{
+																			ContextAttribute: &base.ContextAttribute{
+																				Name: "current_location",
+																			},
+																		},
+																	},
+																	{
+																		Type: &base.Argument_ComputedAttribute{
+																			ComputedAttribute: &base.ComputedAttribute{
+																				Name: "location",
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+											{
+												Type: &base.Child_Leaf{
+													Leaf: &base.Leaf{
+														Type: &base.Leaf_ComputedUserSet{
+															ComputedUserSet: &base.ComputedUserSet{
+																Relation: "admin",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					References: map[string]base.EntityDefinition_Reference{
+						"admin":    base.EntityDefinition_REFERENCE_RELATION,
+						"location": base.EntityDefinition_REFERENCE_ATTRIBUTE,
+						"view":     base.EntityDefinition_REFERENCE_PERMISSION,
+					},
+				},
+			}
+
+			env, err := cel.NewEnv(
+				cel.Variable("current_location", cel.StringType),
+				cel.Variable("location", cel.ListType(cel.StringType)),
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			compiledExp, issues := env.Compile("\ncurrent_location in location\n\t\t\t")
+			Expect(issues.Err()).ShouldNot(HaveOccurred())
+
+			expr, err := cel.AstToCheckedExpr(compiledExp)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			rI := []*base.RuleDefinition{
+				{
+					Name: "check_location",
+					Arguments: map[string]base.AttributeType{
+						"current_location": base.AttributeType_ATTRIBUTE_TYPE_STRING,
+						"location":         base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+					},
+					Expression: expr,
+				},
+			}
+
+			Expect(eIs).Should(Equal(eI))
+			Expect(rIs).Should(Equal(rI))
 		})
 	})
 })

@@ -39,11 +39,11 @@ export function RelationshipObjectToKey(tuple) {
 }
 
 export function AttributeObjectToKey(attribute) {
-    return `${attribute.entityType}:${attribute.entityID}#${attribute.attribute}@${attribute.type}:${attribute.value}`
+    return `${attribute.entityType}:${attribute.entityID}$${attribute.attribute}|${attribute.type}:${attribute.value}`
 }
 
 export function AttributeEntityToKey(attribute) {
-    return `${attribute.entityType}:${attribute.entityID}#${attribute.attribute}`
+    return `${attribute.entityType}:${attribute.entityID}$${attribute.attribute}`
 }
 
 export function StringRelationshipsToObjects(relationships) {

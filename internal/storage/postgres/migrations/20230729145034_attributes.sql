@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS attributes
     entity_type   VARCHAR NOT NULL,
     entity_id     VARCHAR NOT NULL,
     attribute     VARCHAR NOT NULL,
-    type          VARCHAR NOT NULL,
     value         jsonb   NOT NULL,
     tenant_id     VARCHAR NOT NULL,
     created_tx_id xid8 DEFAULT (pg_current_xact_id()),

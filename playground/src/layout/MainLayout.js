@@ -1,12 +1,12 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {Layout, Row, Button, Select, Typography} from 'antd';
 import {toAbsoluteUrl} from "../utility/helpers/asset";
 import {GithubOutlined, ShareAltOutlined, ExportOutlined, ImportOutlined} from "@ant-design/icons";
-import Share from "./components/modals/share";
 import Upload from "../services/s3";
 import {nanoid} from "nanoid";
 import yaml from "js-yaml";
 import {useShapeStore} from "../state/shape";
+import Share from "./components/modals/Share";
 
 const {Text} = Typography;
 const {Option, OptGroup} = Select;
@@ -21,7 +21,7 @@ const MainLayout = ({children, ...rest}) => {
         scenarios,
     } = useShapeStore();
 
-    const [selectedSample, setSelectedSample] = useState("View an Example");
+    const [label, setLabel] = useState("View an Example");
     const [shareModalVisibility, setShareModalVisibility] = React.useState(false);
 
     const toggleShareModalVisibility = () => {
@@ -31,11 +31,18 @@ const MainLayout = ({children, ...rest}) => {
     const [id, setId] = useState("");
 
     const handleSampleChange = (value) => {
-        setSelectedSample(value)
         const params = new URLSearchParams()
         params.append("s", value)
         window.location = window.location.href.split('?')[0] + `?${params.toString()}`
     };
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const sParam = searchParams.get('s');
+        if (sParam) {
+            setLabel(sParam);
+        }
+    }, []);
 
     const share = () => {
         let id = nanoid()
@@ -90,7 +97,7 @@ const MainLayout = ({children, ...rest}) => {
                         </a>
                     </div>
                     <div className="ml-12">
-                        <Select className="mr-8" value={selectedSample} style={{width: 220}}
+                        <Select className="mr-8" value={label} style={{width: 220}}
                                 onChange={handleSampleChange} showArrow={true}>
                             <OptGroup label="Use Cases">
                                 <Option key="empty" value="empty">Empty</Option>
@@ -111,6 +118,8 @@ const MainLayout = ({children, ...rest}) => {
                                 <Option key="mercury" value="mercury">Mercury <Text type="danger">(beta)</Text></Option>
                                 <Option key="instagram" value="instagram">Instagram <Text
                                     type="danger">(beta)</Text></Option>
+                                <Option key="disney-plus" value="disney-plus">Disney Plus <Text
+                                    type="danger">(beta)</Text></Option>
                             </OptGroup>
                         </Select>
                        {/* <Button className="mr-8" onClick={() => {
@@ -125,7 +134,7 @@ const MainLayout = ({children, ...rest}) => {
                     </div>
                     <div className="ml-auto">
                         <Button className="mr-8 text-white" type="link" target="_blank"
-                                href="https://www.permify.co/change-log/permify-playground">
+                                href="https://docs.permify.co/docs/playground">
                             How to use playground?
                         </Button>
                         <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}

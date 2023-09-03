@@ -131,7 +131,7 @@ func (t *Compiler) compileEntity(sc *ast.EntityStatement) (*base.EntityDefinitio
 			return nil, compileError(st.Attribute.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
-		typ, err := getArgumentTypeIfExist(st.AttributeType.Type)
+		typ, err := getArgumentTypeIfExist(st.AttributeType)
 		if err != nil {
 			return nil, err
 		}
@@ -634,23 +634,25 @@ func compileError(info token.PositionInfo, message string) error {
 // If the literal value matches one of these types, it returns the corresponding base.AttributeType and no error.
 // If the literal value does not match any of the known types, it returns an ATTRIBUTE_TYPE_UNSPECIFIED
 // and an error indicating an invalid argument type.
-func getArgumentTypeIfExist(tkn token.Token) (base.AttributeType, error) {
-	switch tkn.Literal {
+func getArgumentTypeIfExist(tkn ast.AttributeTypeStatement) (base.AttributeType, error) {
+	var attrType base.AttributeType
+
+	switch tkn.Type.Literal {
 	case "string":
-		// The token literal is "string", so return the STRING AttributeType and no error
-		return base.AttributeType_ATTRIBUTE_TYPE_STRING, nil
+		attrType = base.AttributeType_ATTRIBUTE_TYPE_STRING
 	case "boolean":
-		// The token literal is "boolean", so return the BOOLEAN AttributeType and no error
-		return base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN, nil
+		attrType = base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN
 	case "integer":
-		// The token literal is "integer", so return the INTEGER AttributeType and no error
-		return base.AttributeType_ATTRIBUTE_TYPE_INTEGER, nil
+		attrType = base.AttributeType_ATTRIBUTE_TYPE_INTEGER
 	case "double":
-		// The token literal is "double", so return the DOUBLE AttributeType and no error
-		return base.AttributeType_ATTRIBUTE_TYPE_DOUBLE, nil
+		attrType = base.AttributeType_ATTRIBUTE_TYPE_DOUBLE
 	default:
-		// The token literal is not one of the known types, so return an error
-		// and an UNSPECIFIED AttributeType
-		return base.AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED, compileError(tkn.PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+		return base.AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED, compileError(tkn.Type.PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
+
+	if tkn.IsArray {
+		return attrType + 1, nil
+	}
+
+	return attrType, nil
 }

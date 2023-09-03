@@ -100,7 +100,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 
 		if len(attributeCollection.GetAttributes()) > 0 {
 
-			attributesInsertBuilder := w.database.Builder.Insert(AttributesTable).Columns("entity_type, entity_id, attribute, type, value, tenant_id").Suffix("ON CONFLICT DO NOTHING")
+			attributesInsertBuilder := w.database.Builder.Insert(AttributesTable).Columns("entity_type, entity_id, attribute, value, tenant_id").Suffix("ON CONFLICT DO NOTHING")
 
 			aiter := attributeCollection.CreateAttributeIterator()
 			for aiter.HasNext() {
@@ -115,7 +115,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 				}
 
-				attributesInsertBuilder = attributesInsertBuilder.Values(a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), a.GetType(), jsonStr, tenantID)
+				attributesInsertBuilder = attributesInsertBuilder.Values(a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, tenantID)
 			}
 
 			var aquery string

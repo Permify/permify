@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/factories"
@@ -1323,8 +1322,8 @@ var _ = Describe("expand-engine", func() {
 				assertions map[string]*base.Expand
 			}
 
-			anyVal, _ := anypb.New(&wrapperspb.BoolValue{Value: true})
-			dow, _ := anypb.New(wrapperspb.String("monday"))
+			anyVal, _ := anypb.New(&base.Boolean{Value: true})
+			dow, _ := anypb.New(&base.String{Value: "monday"})
 
 			tests := struct {
 				relationships []string
@@ -1336,7 +1335,7 @@ var _ = Describe("expand-engine", func() {
 					"organization:1#member@user:1",
 				},
 				attributes: []string{
-					"repository:1#is_public@boolean:true",
+					"repository:1$is_public|boolean:true",
 				},
 				expands: []expand{
 					{

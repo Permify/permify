@@ -28,15 +28,23 @@ enum AttributeType {
 
   // A boolean attribute type.
   ATTRIBUTE_TYPE_BOOLEAN = 1;
+  // A boolean array attribute type.
+  ATTRIBUTE_TYPE_BOOLEAN_ARRAY = 2;
 
   // A string attribute type.
-  ATTRIBUTE_TYPE_STRING = 2;
+  ATTRIBUTE_TYPE_STRING = 3;
+  // A string array attribute type.
+  ATTRIBUTE_TYPE_STRING_ARRAY = 4;
 
   // An integer attribute type.
-  ATTRIBUTE_TYPE_INTEGER = 3;
+  ATTRIBUTE_TYPE_INTEGER = 5;
+  // An integer array attribute type.
+  ATTRIBUTE_TYPE_INTEGER_ARRAY = 6;
 
   // A double attribute type.
-  ATTRIBUTE_TYPE_DOUBLE = 4;
+  ATTRIBUTE_TYPE_DOUBLE = 7;
+  // A double array attribute type.
+  ATTRIBUTE_TYPE_DOUBLE_ARRAY = 8;
 }
 
 // Context encapsulates the information related to a single operation,
@@ -307,9 +315,7 @@ message Attribute {
 
   string attribute = 2 [json_name = "attribute"]; // Name of the attribute
 
-  string type = 3 [json_name = "type"]; // Type of the attribute
-
-  google.protobuf.Any value = 4 [json_name = "value"]; // Value of the attribute
+  google.protobuf.Any value = 3 [json_name = "value"];
 }
 
 // Tuples is a collection of tuples.
@@ -528,4 +534,36 @@ message DataChange {
     Tuple tuple = 2 [json_name = "tuple"]; // If the change is a tuple.
     Attribute attribute = 3 [json_name = "attribute"]; // If the change is an attribute.
   }
+}
+
+message String {
+  string value = 1;
+}
+
+message Integer {
+  int32 value = 1;
+}
+
+message Double {
+  double value = 1;
+}
+
+message Boolean {
+  bool value = 1;
+}
+
+message StringArray {
+  repeated string values = 1;
+}
+
+message IntegerArray {
+  repeated int32 values = 1;
+}
+
+message DoubleArray {
+  repeated double values = 1;
+}
+
+message BooleanArray {
+  repeated bool values = 1;
 }

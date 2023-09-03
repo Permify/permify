@@ -131,19 +131,25 @@ func (ls *RelationStatement) GetName() string {
 
 // AttributeTypeStatement represents a statement that defines the type of a relationship.
 type AttributeTypeStatement struct {
-	Type token.Token // token.IDENT
+	Type    token.Token // token.IDENT
+	IsArray bool
 }
 
 // String returns a string representation of the RelationTypeStatement.
 func (as *AttributeTypeStatement) String() string {
-	return as.Type.Literal
+	var sb strings.Builder
+	sb.WriteString(as.Type.Literal)
+	if as.IsArray {
+		sb.WriteString("[]")
+	}
+	return sb.String()
 }
 
 func (as *AttributeTypeStatement) GetName() string {
 	return ""
 }
 
-// RelationTypeStatement represents a statement that defines the type of a relationship.
+// RelationTypeStatement represents a statement that defines the type of relationship.
 type RelationTypeStatement struct {
 	Sign     token.Token // token.SIGN
 	Type     token.Token // token.IDENT
@@ -223,9 +229,9 @@ func (es *ExpressionStatement) GetName() string {
 
 // RuleStatement represents a rule statement, which consists of a rule name, a list of parameters and a body.
 type RuleStatement struct {
-	Rule       token.Token                 // token.RULE
-	Name       token.Token                 // token.IDENT
-	Arguments  map[token.Token]token.Token // token.IDENT
+	Rule       token.Token // token.RULE
+	Name       token.Token // token.IDENT
+	Arguments  map[token.Token]AttributeTypeStatement
 	Expression string
 }
 
@@ -245,7 +251,10 @@ func (rs *RuleStatement) String() string {
 		var pb strings.Builder
 		pb.WriteString(param.Literal)
 		pb.WriteString(" ")
-		pb.WriteString(typ.Literal)
+		pb.WriteString(typ.Type.Literal)
+		if typ.IsArray {
+			pb.WriteString("[]")
+		}
 		literals = append(literals, pb.String())
 	}
 
