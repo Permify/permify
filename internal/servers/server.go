@@ -290,7 +290,7 @@ func (s *Container) Run(
 			} else {
 				err = httpServer.ListenAndServe()
 			}
-			if err != http.ErrServerClosed {
+			if !errors.Is(err, http.ErrServerClosed) {
 				l.Error(err)
 			}
 		}()
