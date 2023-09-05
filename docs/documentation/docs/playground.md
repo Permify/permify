@@ -87,16 +87,26 @@ Hit the **New Scenario** button in the right side and a pop up will open. You ca
 
 ![empty-scenario](https://github.com/Permify/permify/assets/34595361/cf137f9c-a96a-47d2-9bf2-4e47054c2131) -->
 
-Let's check whether user:1 can edit the repository:1 as follows:
+Let's check **whether user:1 can edit the repository:1** as follows:
 
-![scenario-check](https://github.com/Permify/permify/assets/34595361/c819688d-627c-45a0-a4ed-63fc7ce6939d)
+![scenario-check](https://github.com/Permify/permify/assets/34595361/0168f013-45a0-49fe-8164-3f5f5311f15c)
 
 In the above YAML structure,
 
-- **entity** represents the resource for which we want to check access (`repository:1`) 
-- **subject** is the subject that performs the action or grants access (`user:1`). 
-- **context** refers to additional data provided during an access check to be evaluated for the access decision. It's primarily used for dynamic access checks, such as those involving time, date, or IP address, etc. In our case, we leave it empty as null.For our case we leave it empty as null. You can check the details from the [Contextual Tuples](./reference/contextual-tuples.md) section.
-- **assertions** stands for defining the expected result for specific action or an permission. In our case we're evaluating access for edit action. 
+#### entity
+Represents the resource for which we want to check access - `repository:1` 
+
+#### subject
+Represents the subject that performs the action or grants access - `user:1`.
+
+#### context 
+Refers to additional data provided during an access check to be evaluated for the access decision. It's primarily used for dynamic access checks, such as those involving time, date, or IP address, etc. 
+
+In our case, we leave it empty as null.For our case we leave it empty as null. You can check the details from the [Contextual Tuples](./reference/contextual-tuples.md) section.
+
+#### assertions
+
+Assertions stands for defining the expected result for specific action or an permission. In our case we're evaluating access for edit action.
 
 Since organization:1 is parent of repository:1 ( `‍repository:1#parent@organization:1#...` ) and user:1 has an admin role in organization:1 ( `‍organization:1#admin@user:1` ) user:1 should allow to edit the repository:1 because the we define rule of the edit permission as:
 
@@ -104,17 +114,21 @@ Since organization:1 is parent of repository:1 ( `‍repository:1#parent@organiz
 
 which `‍parent.admin`‍ indicates admin in the organization that repository belongs to. So user:1 should be able to edit resource:1, therefore expected outcome for that access request is true - `edit: true`
 
-Let's hit the **Run** button to run our scenario.
+:::info Create More Advanced Scenarios
+For simplicity, we've created a basic scenario. However, you can create more advanced scenarios using our validation YAML structure.
 
-:::info Create Complex Scenarios
-For to learn more about how to use that syntax to create complex scenarios please see [Testing & Validation](./getting-started/testing.md) section.
+To learn how to use this syntax for complex scenarios, refer to the [Creating Test Scenarios](./getting-started/testing#creating-test-scenarios) section in [Testing & Validation](./getting-started/testing.md) page.
 :::
+
+Let's click the Run button to execute our scenario. The scenario name should turn green once the scenario result is confirmed as correct.
+
+![scenario-check-true](https://github.com/Permify/permify/assets/34595361/208e1761-f202-449d-a9e0-498ab0d4ce6d)
 
 Let's change the expected outcome as false (`edit: false`) and hit the **Run** button again we'll see an error message.
 
-![scenario-check](https://github.com/Permify/permify-validate-action/assets/34595361/28a206ca-f7cb-42a8-a8c4-a18376ebf8f3)
+![scenario-check-false](https://github.com/Permify/permify-validate-action/assets/34595361/28a206ca-f7cb-42a8-a8c4-a18376ebf8f3)
 
-As we seen above this is how you can model your authorization and test it with sample data in Permify Playground. Check out our docs for different modeling use cases, creating and storing relational tuples and more. 
+As we seen above this is how you can model your authorization and test it with sample data in Permify Playground. 
 
 ## Need any help ?
 
