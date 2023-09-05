@@ -1,7 +1,7 @@
 export default function TupleToHumanLanguage(tuple) {
     const splitChar = '@';
     const subSplitChar = '#';
-    const continuationIndicator = '...';
+    const dots = '...';
 
     let [entity, subject] = tuple.split(splitChar);
 
@@ -16,18 +16,18 @@ export default function TupleToHumanLanguage(tuple) {
         return "";
     }
 
-    let subjectString = constructSubjectString(subjectComponents, continuationIndicator);
+    let subjectString = constructSubjectString(subjectComponents, dots);
     let entityString = `${entityComponents[1]} of ${entityComponents[0]}`;
 
     return `${subjectString}${entityString}`;
 }
 
-function constructSubjectString(subjectComponents, continuationIndicator) {
+function constructSubjectString(subjectComponents, dots) {
     if (subjectComponents.length === 1) {
         return `${subjectComponents[0]} is `;
     }
 
-    if (subjectComponents[1] === continuationIndicator) {
+    if (subjectComponents[1] === dots) {
         return `${subjectComponents[0]} is `;
     }
 
@@ -83,7 +83,7 @@ export function StringAttributesToObjects(attributes) {
 
 // StringAttributeToObject
 export function StringAttributeToObject(attribute) {
-    let s = attribute.trim().split("@");
+    let s = attribute.trim().split("|");
     if (s.length !== 2) {
         return null;
     }
@@ -122,7 +122,7 @@ function entityAndRelation(ear) {
 
 // entityAndAttribute
 function entityAndAttribute(ear) {
-    let s = ear.trim().split("#");
+    let s = ear.trim().split("$");
     if (s.length === 1) {
         let e = E(s[0]);
         return {

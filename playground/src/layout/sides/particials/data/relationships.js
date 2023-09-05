@@ -363,7 +363,7 @@ function Relationships() {
                 default:
                     inputElement = inputType === 'number'
                         ? <Input.Number/>
-                        : <Input />;
+                        : <Input/>;
                     break;
             }
 
