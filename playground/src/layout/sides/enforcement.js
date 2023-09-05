@@ -89,7 +89,7 @@ function Enforcement() {
                             height: 60,
                         }}
                         description={
-                            <>
+                            <div style={{color: "white"}}>
                                 <div>
                                     Need help creating a scenario?
                                 </div>
@@ -97,7 +97,7 @@ function Enforcement() {
                                     Check out our guidelines and examples in the <a
                                     href="https://docs.permify.co/docs/playground">docs</a>.
                                 </div>
-                            </>
+                            </div>
                         }
                     >
                     </Empty>
