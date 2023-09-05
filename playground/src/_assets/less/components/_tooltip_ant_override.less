@@ -1,11 +1,17 @@
 .ant-tooltip-inner {
   font-size: 14px !important;
-  background-color: var(--primary-color-6);
-  color: var(--primary-color);
+  border-radius: 6px;
+  background-color: black !important;
   font-weight: 400;
-  padding: 15px;
+  padding: 8px;
 }
 
-.ant-tooltip-arrow-content {
-  box-shadow: 3px 3px 7px @p-dark-black;
+/* CSS for the custom arrow */
+.custom-tooltip-arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 5px;
+  border-color: transparent transparent black transparent !important;
 }
