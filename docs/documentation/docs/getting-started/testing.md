@@ -14,9 +14,7 @@ We provide a GitHub action repository called [permify-validate-action] for testi
 If you don't know how to create Github action workflow and add a action to it, you can examine [related page](https://docs.github.com/en/actions/quickstart) on Github docs.
 :::
 
-## Usage 
-
-### Adding action to your workflow
+## Adding Validate Action To Your Workflow
 
 After adding [permify-validate-action] to your Github Action workflow, you need to define the schema validation yaml file as, 
 
@@ -40,9 +38,14 @@ steps:
 If you don't know how to create Github action workflow and add a action to it, you can examine [quickstart page](https://docs.github.com/en/actions/quickstart) on Github docs.
 :::
 
-### Creating Schema Validation File 
+## Schema Validation File 
 
-Below you can examine an example schema validation yaml file. It consists 3 parts; `schema` which is your new authorization model, sample `relationships` to test your model and lastly `assertions` which is the test access check questions and expected response - true or false.
+Below you can examine an example schema validation yaml file. It consists 3 parts; 
+- `schema` which is the authorization model you want to test,
+- `relationships` sample data to test your model,
+- `scenarios` to test access check queries within created scenarios.
+
+Here is an example Schema Validation file, 
 
 ```yaml
 schema: >-
@@ -93,7 +96,7 @@ scenarios:
           push : false
       - entity: "repository:3"
         subject: "user:1"
-        contextual_tuples:
+        context:
           - "repository:3#owner@user:1"
         assertions:
           push : true
@@ -104,7 +107,7 @@ scenarios:
     entity_filters:
       - entity_type: "repository"
         subject: "user:1"
-        contextual_tuples:
+        context:
           - "repository:3#owner@user:1"
           - "repository:4#owner@user:1"
           - "repository:5#owner@user:1"
@@ -114,12 +117,90 @@ scenarios:
     subject_filters:
       - subject_reference: "user"
         entity: "repository:1"
-        contextual_tuples:
+        context:
           - "organization:1#member@user:58"
         assertions:
           push : ["1", "43"]
           edit : ["58"]
 ```
+
+Assuming that you're well-familiar with the `schema` and `relationships` sections of the above YAML file. If not, please see the previous sections to learn how to create an authorization model (schema) and generate data (relationships) according to it.
+
+We'll continue by examining how to create scenarios.
+
+## Creating Test Scenarios
+
+You can create multiple access checks at once to test whether your authorization logic behaves as expected or not. 
+
+Besides simple access checks you can also test subject filtering queries and data (entity) filtering with it.
+
+Let's deconstruct the `scenarios`,
+
+### Scenarios
+
+```js
+scenarios:
+  - name: // name of the scenario
+    description: // description of the scenario
+    checks: // simple access check case/cases
+    entity_filters: // entity (data) filtering query/queries
+    subject_filters: // subject filtering query/queries
+```
+
+### Access Check
+
+You can create `check` inside `scenarios` to test multiple access check cases,
+
+```js
+checks:
+   - entity: "repository:3" // resource/entity that you want to check access for
+     subject: "user:1" // subject that performs the access check
+     context: // additional data provided during an access check to be evaluated
+       - "repository:3#owner@user:1" 
+     assertions: // expected result/results for specific action/s or an permission/s.
+       push : true
+```
+
+Semantics for above check is: whether `user:1` can push to `repository:3`, additional to stored tuples take account that user:1 is owner of repository:3 (`repository:3#owner@user:1`). Expected result for that check it **true** - `push : true` 
+
+:::info Contextual Tuples
+We use `context` (Contextual Tuples) with simple relational tuples for simplicity in this example. However, it is primarily used for dynamic access checks, such as those involving time, date, or IP address, etc. 
+
+To learn more about how `context` works, see the [Contextual Tuples](../reference/contextual-tuples.md) section.
+:::
+
+### Entity Filtering
+
+You can create `entity_filters` within `scenarios` to test your data filtering queries.
+
+```js
+entity_filters:
+      - entity_type: "repository" // entity that you want to filter 
+        subject: "user:1" // subject that you want to perform data filtering 
+        context: null // additional data provided during an access check to be evaluated
+        assertions: 
+          push : ["1", "3", "4", "5"] // IDs of the resources that we expected to return
+          edit : []
+```
+
+The major difference between `check` lies in the assertions part. Since we're performing data filtering with bulk data, instead of a true-false result, we enter the IDs of the resources that we expect to be returned
+
+### Subject Filtering
+
+You can create `subject_filters` within `scenarios` to test your subject filtering queries, a.k.a which users can perform action Y or have permission X on entity:Z?
+
+```js
+- subject_reference: "user"
+        entity: "repository:1"
+        context: null // additional data provided during an access check to be evaluated
+        assertions:
+          push : ["1", "43"] // IDs of the users that we expected to return
+          edit : ["58"]
+```
+
+:::info API Endpoints
+You can find the related API endpoints for `check`, `entity_filters`, and `subject_filters` in the Permission service in the [Using The API](../api-overview.md) section.
+:::
 
 ## Coverage Analysis
 
@@ -130,7 +211,6 @@ The coverage is calculated by analyzing the relationships and assertions in your
 The output of the example provided above is as follows.
 
 ![schema-coverage](https://user-images.githubusercontent.com/39353278/236303688-15cc2673-05e6-42d3-9ad4-0c538f546fb0.png)
-
 
 ## Testing in Local
 
@@ -144,7 +224,7 @@ If we use the above example schema validation file, after running `./permify val
 
 [permify-validate-action]: https://github.com/Permify/permify-validate-action
 
-## Unit tests for schema changes
+## Unit Tests For Schema Changes
 
 We recommend leveraging Permify's in-memory databases for a simplified and isolated testing environment. These in-memory databases can be easily created and disposed of for each individual unit test, ensuring that your tests do not interfere with each other and each one starts with a clean slate.
 
