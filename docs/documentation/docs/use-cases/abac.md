@@ -201,7 +201,7 @@ For instance,
 
 **Attributes**
 
-- organization:1#ip_range@string[]:[‘187.182.51.206’, ‘250.89.38.115’]
+- organization:1$ip_range|string[]:[‘187.182.51.206’, ‘250.89.38.115’]
 
 **Check request**
 
@@ -223,7 +223,7 @@ For instance,
 ```
 
 **Check Evolution Sub Queries Organization View**
-→ organization:1#check_ip_range(context.ip_address,ip_range)@user:1 → true
+→ organization:1$check_ip_range(context.ip_address,ip_range) → true
 → organization:1#admin@user:1 → true
 
 **Cache Mechanism**
@@ -232,7 +232,7 @@ The cache mechanism works by hashing the snapshot of the database, schema versio
 **Request keys before hash**
 
 - check_{snapshot}_{schema_version}_{context}_organization:1#admin@user:1 → true
-- check_{snapshot}_{schema_version}_{context}_organization:1#check_ip_range(ip_range)@user:1 → true
+- check_{snapshot}_{schema_version}_{context}_organization:1$check_ip_range(ip_range) → true
 
 ## Some **Use Cases**
 
@@ -268,15 +268,15 @@ This means that the 'view' permission is granted if either the repository is pub
 
 **attributes:**
 
-- post:1#is_public@boolean:true
+- post:1$is_public|boolean:true
 
 **Check Evolution Sub Queries Post View**
-→ post:1#is_public@user:1 → true
+→ post:1#is_public → true
 → post:1#admin@user:1 → true
 
 **Request keys before hash**
 
-- check_{snapshot}_{schema_version}_{context}_post:1#is_public@user:1 → true
+- check_{snapshot}_{schema_version}_{context}_post:1$is_public → true
 - check_{snapshot}_{schema_version}_{context}_post:1#admin@user:1 → true
 
 ## Example of Weekday
@@ -297,11 +297,11 @@ entity repository {
 
     relation organization  @organization
 
-        permission view = organization.view
+    permission view = organization.view
 }
 
 rule is_weekday(day_of_week string) {
-      day_of_week != "saturday" && day_of_week != "sunday"
+      day_of_week != 'saturday' && day_of_week != 'sunday'
 }
 ```
 
@@ -312,12 +312,12 @@ The permissions in this model state that to 'view' the repository, the user must
 - organization:1#member@user:1
 
 **Check Evolution Sub Queries Organization View**
-→ organization:1#is_weekday(context.day_of_week)@user:1 → true
+→ organization:1$is_weekday(context.day_of_week) → true
 → organization:1#member@user:1 → true
 
 **Request keys before hash**
 
-- check_{snapshot}_{schema_version}_{context}_organization:1#is_weekday(context.day_of_week)@user:1 → true
+- check_{snapshot}_{schema_version}_{context}_organization:1$is_weekday(context.day_of_week) → true
 - check_{snapshot}_{schema_version}_{context}_post:1#member@user:1 → true
 
 ## Example of Banking System
@@ -353,15 +353,15 @@ Both of these conditions need to be true for the **`withdraw`** permission to be
 
 **Attributes**
 
-- account:1#balance@double:4000
+- account:1$balance|double:4000
 
 **Check Evolution Sub Queries For Account Withdraw**
-→ account:1#check_balance(context.amount,balance)@user:1 → true
+→ account:1$check_balance(context.amount,balance) → true
 → account:1#owner@user:1 → true
 
 **Request keys before hash**
 
-- check_{snapshot}_{schema_version}_{context}_account:1#check_balance(context.amount,balance)@user:1 → true
+- check_{snapshot}_{schema_version}_{context}_account:1$check_balance(context.amount,balance) → true
 - check_{snapshot}_{schema_version}_{context}_account:1#owner@user:1 → true
 
 ## Hierarchical Usage
@@ -406,23 +406,20 @@ rule check_budget(budget double) {
 
 **Attributes**
 
-- department:1#budget@double:20000
-- organization:1#organization@int:2021
+- department:1$budget|double:20000
+- organization:1$organization|integer:2021
 
 **Check Evolution Sub Queries For Department View**
-→ department:1#check_budget(budget)@user:1 → true
-
-→ department:1#organization → true
-
-→ organization:2#check_founding_year(founding_year)@user:1 → false
-
-→ organization:1#check_founding_year(founding_year)@user:1 → true
+→ department:1$check_budget(budget) → true
+→ department:1#organization@user:1 → true
+    → organization:2$check_founding_year(founding_year) → false
+    → organization:1$check_founding_year(founding_year) → true
 
 **Request keys before hash**
 
-- check_{snapshot}_{schema_version}_{context}_department:1#check_budget(budget)@user:1 → true
-- check_{snapshot}_{schema_version}_{context}_organization:2#check_founding_year(founding_year)@user:1 → false
-- check_{snapshot}_{schema_version}_{context}_organization:1#check_founding_year(founding_year)@user:1 → true
+- check_{snapshot}_{schema_version}_{context}_department:1$check_budget(budget) → true
+- check_{snapshot}_{schema_version}_{context}_organization:2$check_founding_year(founding_year) → false
+- check_{snapshot}_{schema_version}_{context}_organization:1$check_founding_year(founding_year) → true
 
 ## **How To Use Demo**
 
@@ -540,8 +537,8 @@ relationships:
   - repository:1#organization@organization:1
 
 attributes:
-  - organization:1#credit@integer:6000
-  - repository:1#is_public@boolean:true
+  - organization:1$credit|integer:6000
+  - repository:1$is_public|boolean:true
 
 scenarios:
   - name: "scenario 1"
