@@ -80,10 +80,9 @@ database:
   max_connection_idle_time: 60s
   garbage_collection:
     enable: true
-    interval: 3m
-    timeout: 3m
-    window: 720h
-    number_of_threads: 1
+    interval: 200h
+    window: 200h
+    timeout: 5m
 
 distributed:
   enabled: true
