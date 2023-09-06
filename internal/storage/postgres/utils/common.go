@@ -3,7 +3,6 @@ package utils
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -93,30 +92,25 @@ func BulkEntityFilterQuery(tenantID, entityType string, snap uint64) string {
 	return fmt.Sprintf(BulkEntityFilterTemplate, tenantID, entityType, createdWhere, expiredWhere)
 }
 
-// TuplesGarbageCollectQuery -
-func TuplesGarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
-	return squirrel.Delete("relation_tuples").
-		Where(squirrel.Expr(fmt.Sprintf("created_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339)))).
-		Where(squirrel.And{
-			squirrel.Or{
-				squirrel.Expr("expired_tx_id = '0'::xid8"),
-				squirrel.Expr(fmt.Sprintf("expired_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339))),
-			},
-			squirrel.Expr(fmt.Sprintf("tenant_id = '%v'", tenantID)),
-		})
-}
+// GenerateGCQuery -
+func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
+	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
+	valStr := fmt.Sprintf("'%v'::xid8", value)
 
-// AttributesGarbageCollectQuery -
-func AttributesGarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
-	return squirrel.Delete("attributes").
-		Where(squirrel.Expr(fmt.Sprintf("created_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339)))).
-		Where(squirrel.And{
-			squirrel.Or{
-				squirrel.Expr("expired_tx_id = '0'::xid8"),
-				squirrel.Expr(fmt.Sprintf("expired_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339))),
-			},
-			squirrel.Expr(fmt.Sprintf("tenant_id = '%v'", tenantID)),
-		})
+	// Create a Squirrel DELETE builder for the specified table.
+	deleteBuilder := squirrel.Delete(table)
+
+	// Add the WHERE clause to filter and delete expired data.
+	// We assume that 'expired_tx_id' is of type xid8.
+	// We use sq.Eq to compare 'expired_tx_id' with '0' and sq.Lt to compare with the cutoff timestamp.
+	deleteBuilder = deleteBuilder.Where(
+		squirrel.And{
+			squirrel.NotEq{"expired_tx_id": "0"},
+			squirrel.Lt{"expired_tx_id": valStr},
+		},
+	)
+
+	return deleteBuilder
 }
 
 // Rollback - Rollbacks a transaction and logs the error
