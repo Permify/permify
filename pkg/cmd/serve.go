@@ -9,7 +9,7 @@ import (
 	"github.com/Permify/permify/internal/engines/consistent"
 	"github.com/Permify/permify/internal/engines/keys"
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/storage/postgres"
+	"github.com/Permify/permify/internal/storage/postgres/gc"
 	hash "github.com/Permify/permify/pkg/consistent"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
@@ -132,17 +132,22 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Garbage collection
-		if cfg.DatabaseGarbageCollection.Enabled && cfg.Database.Engine != "memory" {
+		if cfg.Database.GarbageCollection.Timeout > 0 && cfg.Database.GarbageCollection.Enabled && cfg.Database.Engine != "memory" {
 			l.Info("🗑️ starting database garbage collection...")
-			gc := postgres.NewGarbageCollector(ctx, db.(*PQDatabase.Postgres), l, cfg.DatabaseGarbageCollection)
 
-			err := gc.Start()
-			if err != nil {
-				l.Fatal(err)
-			}
+			garbageCollector := gc.NewGC(
+				db.(*PQDatabase.Postgres),
+				l,
+				gc.Interval(cfg.Database.GarbageCollection.Interval),
+				gc.Window(cfg.Database.GarbageCollection.Window),
+				gc.Timeout(cfg.Database.GarbageCollection.Timeout),
+			)
 
-			defer func() {
-				gc.Stop()
+			go func() {
+				err = garbageCollector.Start(ctx)
+				if err != nil {
+					l.Fatal(err)
+				}
 			}()
 		}
 
@@ -194,14 +199,14 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// schema cache
 		var schemaCache cache.Cache
-		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Schema.Cache.MaxCost))
+		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Service.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Service.Schema.Cache.MaxCost))
 		if err != nil {
 			l.Fatal(err)
 		}
 
 		// engines cache keys
 		var engineKeyCache cache.Cache
-		engineKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Permission.Cache.MaxCost))
+		engineKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Service.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Service.Permission.Cache.MaxCost))
 		if err != nil {
 			l.Fatal(err)
 		}
@@ -237,15 +242,15 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(schemaReader, dataReader)
 		massEntityFilter := engines.NewMassEntityFilter(dataReader)
 
-		schemaBaseSubjectFilter := engines.NewSchemaBasedSubjectFilter(schemaReader, dataReader, engines.SchemaBaseSubjectFilterConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		schemaBaseSubjectFilter := engines.NewSchemaBasedSubjectFilter(schemaReader, dataReader, engines.SchemaBaseSubjectFilterConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 		massSubjectFilter := engines.NewMassSubjectFilter(dataReader)
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader
-		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
-		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter, engines.LookupEntityConcurrencyLimit(cfg.Permission.BulkLimit))
-		lookupSubjectEngine := engines.NewLookupSubjectEngine(checkEngine, schemaReader, schemaBaseSubjectFilter, massSubjectFilter, engines.LookupSubjectConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
-		subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Permission.ConcurrencyLimit))
+		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter, engines.LookupEntityConcurrencyLimit(cfg.Service.Permission.BulkLimit))
+		lookupSubjectEngine := engines.NewLookupSubjectEngine(checkEngine, schemaReader, schemaBaseSubjectFilter, massSubjectFilter, engines.LookupSubjectConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
+		subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 
 		var check invoke.Check
 		if cfg.Distributed.Enabled {
@@ -302,7 +307,13 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// Add the container.Run function to the error group
 		g.Go(func() error {
-			return container.Run(ctx, &cfg.Server, &cfg.Authn, &cfg.Profiler, l)
+			return container.Run(
+				ctx,
+				&cfg.Server,
+				&cfg.Authn,
+				&cfg.Profiler,
+				l,
+			)
 		})
 
 		// Wait for the error group to finish and log any errors

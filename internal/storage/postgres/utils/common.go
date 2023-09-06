@@ -3,7 +3,6 @@ package utils
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -93,30 +92,24 @@ func BulkEntityFilterQuery(tenantID, entityType string, snap uint64) string {
 	return fmt.Sprintf(BulkEntityFilterTemplate, tenantID, entityType, createdWhere, expiredWhere)
 }
 
-// TuplesGarbageCollectQuery -
-func TuplesGarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
-	return squirrel.Delete("relation_tuples").
-		Where(squirrel.Expr(fmt.Sprintf("created_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339)))).
-		Where(squirrel.And{
-			squirrel.Or{
-				squirrel.Expr("expired_tx_id = '0'::xid8"),
-				squirrel.Expr(fmt.Sprintf("expired_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339))),
-			},
-			squirrel.Expr(fmt.Sprintf("tenant_id = '%v'", tenantID)),
-		})
-}
+// GenerateGCQuery generates a Squirrel DELETE query builder for garbage collection.
+// It constructs a query to delete expired records from the specified table
+// based on the provided value, which represents a transaction ID.
+func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
+	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
+	valStr := fmt.Sprintf("'%v'::xid8", value)
 
-// AttributesGarbageCollectQuery -
-func AttributesGarbageCollectQuery(window time.Duration, tenantID string) squirrel.DeleteBuilder {
-	return squirrel.Delete("attributes").
-		Where(squirrel.Expr(fmt.Sprintf("created_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339)))).
-		Where(squirrel.And{
-			squirrel.Or{
-				squirrel.Expr("expired_tx_id = '0'::xid8"),
-				squirrel.Expr(fmt.Sprintf("expired_tx_id IN (SELECT id FROM transactions WHERE timestamp < '%v')", time.Now().Add(-window).Format(time.RFC3339))),
-			},
-			squirrel.Expr(fmt.Sprintf("tenant_id = '%v'", tenantID)),
-		})
+	// Create a Squirrel DELETE builder for the specified table.
+	deleteBuilder := squirrel.Delete(table)
+
+	// Create an expression to check if 'expired_tx_id' is not equal to '0' (not expired).
+	expiredZeroExpr := squirrel.Expr("expired_tx_id <> '0'::xid8")
+
+	// Create an expression to check if 'expired_tx_id' is less than the provided value (before the cutoff).
+	beforeExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id < %s", valStr))
+
+	// Add the WHERE clauses to the DELETE query builder to filter and delete expired data.
+	return deleteBuilder.Where(expiredZeroExpr).Where(beforeExpr)
 }
 
 // Rollback - Rollbacks a transaction and logs the error

@@ -100,11 +100,11 @@ type (
 
 	// Service contains configuration for various service-level features.
 	Service struct {
-		CircuitBreaker bool         `mapstructure:"circuit_breaker"` // Whether to enable the circuit breaker pattern
-		Watch          Watch        `mapstructure:"watch"`           // Watch service configuration
-		Schema         Schema       `mapstructure:"schema"`          // Schema service configuration
-		Permission     Permission   `mapstructure:"permission"`      // Permission service configuration
-		Relationship   Relationship `mapstructure:"relationship"`    // Relationship service configuration
+		CircuitBreaker bool       `mapstructure:"circuit_breaker"` // Whether to enable the circuit breaker pattern
+		Watch          Watch      `mapstructure:"watch"`           // Watch service configuration
+		Schema         Schema     `mapstructure:"schema"`          // Schema service configuration
+		Permission     Permission `mapstructure:"permission"`      // Permission service configuration
+		Data           Data       `mapstructure:"data"`            // Data service configuration
 	}
 
 	// Watch contains configuration for the watch service.
@@ -124,8 +124,8 @@ type (
 		Cache            Cache `mapstructure:"cache"`             // Cache configuration for the permission service
 	}
 
-	// Relationship is a placeholder struct for the relationship service configuration.
-	Relationship struct{}
+	// Data is a placeholder struct for the data service configuration.
+	Data struct{}
 
 	// Cache contains configuration for caching.
 	Cache struct {
@@ -135,22 +135,21 @@ type (
 
 	// Database contains configuration for the database.
 	Database struct {
-		Engine                    string                    `mapstructure:"engine"`                  // Database engine type (e.g., "postgres" or "memory")
-		URI                       string                    `mapstructure:"uri"`                     // Database connection URI
-		AutoMigrate               bool                      `mapstructure:"auto_migrate"`            // Whether to enable automatic migration
-		MaxOpenConnections        int                       `mapstructure:"max_open_connections"`    // Maximum number of open connections to the database
-		MaxIdleConnections        int                       `mapstructure:"max_idle_connections"`    // Maximum number of idle connections to the database
-		MaxConnectionLifetime     time.Duration             `mapstructure:"max_connection_lifetime"` // Maximum duration a connection can be reused
-		MaxConnectionIdleTime     time.Duration             `mapstructure:"max_connection_idle_time"`
-		DatabaseGarbageCollection DatabaseGarbageCollection `mapstructure:"garbage_collection"`
+		Engine                string            `mapstructure:"engine"`                  // Database engine type (e.g., "postgres" or "memory")
+		URI                   string            `mapstructure:"uri"`                     // Database connection URI
+		AutoMigrate           bool              `mapstructure:"auto_migrate"`            // Whether to enable automatic migration
+		MaxOpenConnections    int               `mapstructure:"max_open_connections"`    // Maximum number of open connections to the database
+		MaxIdleConnections    int               `mapstructure:"max_idle_connections"`    // Maximum number of idle connections to the database
+		MaxConnectionLifetime time.Duration     `mapstructure:"max_connection_lifetime"` // Maximum duration a connection can be reused
+		MaxConnectionIdleTime time.Duration     `mapstructure:"max_connection_idle_time"`
+		GarbageCollection     GarbageCollection `mapstructure:"garbage_collection"`
 	}
 
-	DatabaseGarbageCollection struct {
-		Enabled         bool          `mapstructure:"enabled"`
-		Interval        time.Duration `mapstructure:"interval"`
-		Timeout         time.Duration `mapstructure:"timeout"`
-		Window          time.Duration `mapstructure:"window"`
-		NumberOfThreads int           `mapstructure:"number_of_threads"`
+	GarbageCollection struct {
+		Enabled  bool          `mapstructure:"enabled"`
+		Interval time.Duration `mapstructure:"interval"`
+		Timeout  time.Duration `mapstructure:"timeout"`
+		Window   time.Duration `mapstructure:"window"`
 	}
 
 	Distributed struct {
@@ -291,7 +290,7 @@ func DefaultConfig() *Config {
 					MaxCost:          "10MiB",
 				},
 			},
-			Relationship: Relationship{},
+			Data: Data{},
 		},
 		Authn: Authn{
 			Enabled:   false,
@@ -301,7 +300,7 @@ func DefaultConfig() *Config {
 		Database: Database{
 			Engine:      "memory",
 			AutoMigrate: true,
-			DatabaseGarbageCollection: DatabaseGarbageCollection{
+			GarbageCollection: GarbageCollection{
 				Enabled: false,
 			},
 		},

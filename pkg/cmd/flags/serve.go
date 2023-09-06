@@ -343,15 +343,15 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("database-garbage-collection-enabled", conf.Database.DatabaseGarbageCollection.Enabled, "use database garbage collection for expired relation tuples")
+	flags.Bool("database-garbage-collection-enabled", conf.Database.GarbageCollection.Enabled, "use database garbage collection for expired relationships and attributes")
 	if err = viper.BindPFlag("database.garbage_collection.enabled", flags.Lookup("database-garbage-collection-enabled")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("database.garbage_collection.enabled", "PERMIFY_DATABASE_GARBAGE_ENABLED"); err != nil {
+	if err = viper.BindEnv("database.garbage_collection.enabled", "PERMIFY_DATABASE_GARBAGE_COLLECTION_ENABLED"); err != nil {
 		panic(err)
 	}
 
-	flags.Duration("database-garbage-collection-interval", conf.Database.DatabaseGarbageCollection.Interval, "interval for database garbage collection")
+	flags.Duration("database-garbage-collection-interval", conf.Database.GarbageCollection.Interval, "interval for database garbage collection")
 	if err = viper.BindPFlag("database.garbage_collection.interval", flags.Lookup("database-garbage-collection-interval")); err != nil {
 		panic(err)
 	}
@@ -359,7 +359,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Duration("database-garbage-collection-timeout", conf.Database.DatabaseGarbageCollection.Timeout, "timeout for database garbage collection")
+	flags.Duration("database-garbage-collection-timeout", conf.Database.GarbageCollection.Timeout, "timeout for database garbage collection")
 	if err = viper.BindPFlag("database.garbage_collection.timeout", flags.Lookup("database-garbage-collection-timeout")); err != nil {
 		panic(err)
 	}
@@ -367,19 +367,11 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Duration("database-garbage-collection-window", conf.Database.DatabaseGarbageCollection.Window, "window for database garbage collection")
+	flags.Duration("database-garbage-collection-window", conf.Database.GarbageCollection.Window, "window for database garbage collection")
 	if err = viper.BindPFlag("database.garbage_collection.window", flags.Lookup("database-garbage-collection-window")); err != nil {
 		panic(err)
 	}
 	if err = viper.BindEnv("database.garbage_collection.window", "PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW"); err != nil {
-		panic(err)
-	}
-
-	flags.Int("database-garbage-collection-number-of-threads", conf.Database.DatabaseGarbageCollection.NumberOfThreads, "number of threads for database garbage collection")
-	if err = viper.BindPFlag("database.garbage_collection.number_of_threads", flags.Lookup("database-garbage-collection-number-of-threads")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("database.garbage_collection.number_of_threads", "PERMIFY_DATABASE_GARBAGE_COLLECTION_NUMBER_OF_THREADS"); err != nil {
 		panic(err)
 	}
 
