@@ -289,7 +289,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	// Scan the row from the database into the fields of `rt` and `valueStr`.
 	err = row.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		} else {
 			span.RecordError(err)
@@ -299,12 +299,12 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	}
 
 	// Unmarshal the JSON data from `valueStr` into `rt.Value`.
-	//rt.Value = &anypb.Any{}
-	//unmarshaler := &jsonpb.Unmarshaler{}
-	//err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
-	//if err != nil {
-	//	return nil, err
-	//}
+	rt.Value = &anypb.Any{}
+	unmarshaler := &jsonpb.Unmarshaler{}
+	err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
+	if err != nil {
+		return nil, err
+	}
 
 	// Commit the transaction.
 	err = tx.Commit()
