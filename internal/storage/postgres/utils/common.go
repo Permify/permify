@@ -92,7 +92,9 @@ func BulkEntityFilterQuery(tenantID, entityType string, snap uint64) string {
 	return fmt.Sprintf(BulkEntityFilterTemplate, tenantID, entityType, createdWhere, expiredWhere)
 }
 
-// GenerateGCQuery -
+// GenerateGCQuery generates a Squirrel DELETE query builder for garbage collection.
+// It constructs a query to delete expired records from the specified table
+// based on the provided value, which represents a transaction ID.
 func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
 	valStr := fmt.Sprintf("'%v'::xid8", value)
@@ -100,17 +102,14 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 	// Create a Squirrel DELETE builder for the specified table.
 	deleteBuilder := squirrel.Delete(table)
 
-	// Add the WHERE clause to filter and delete expired data.
-	// We assume that 'expired_tx_id' is of type xid8.
-	// We use sq.Eq to compare 'expired_tx_id' with '0' and sq.Lt to compare with the cutoff timestamp.
-	deleteBuilder = deleteBuilder.Where(
-		squirrel.And{
-			squirrel.NotEq{"expired_tx_id": "0"},
-			squirrel.Lt{"expired_tx_id": valStr},
-		},
-	)
+	// Create an expression to check if 'expired_tx_id' is not equal to '0' (not expired).
+	expiredZeroExpr := squirrel.Expr("expired_tx_id <> '0'::xid8")
 
-	return deleteBuilder
+	// Create an expression to check if 'expired_tx_id' is less than the provided value (before the cutoff).
+	beforeExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id < %s", valStr))
+
+	// Add the WHERE clauses to the DELETE query builder to filter and delete expired data.
+	return deleteBuilder.Where(expiredZeroExpr).Where(beforeExpr)
 }
 
 // Rollback - Rollbacks a transaction and logs the error
