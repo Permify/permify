@@ -77,7 +77,7 @@ Permify designed to answer these authorization questions efficiently and with mi
 - Implementing permission caching to not recompute repeated permission checks, and in memory cache to store authorization schema.
 - Using [Snap Tokens](../reference/snap-tokens) to achieve consistency and high performance in cache.
 
-Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisms](./cache.md) 
+Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisms](../reference/cache.md) 
 
 [writeDB]: ../getting-started/sync-data.md
 

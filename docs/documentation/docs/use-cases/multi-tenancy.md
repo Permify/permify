@@ -11,7 +11,7 @@ With version 0.3.x Permify moved to a tenancy-based infrastructure, which affect
 
 Multi-tenancy in Permify refers to an authorization architecture, where a single Permify authorization service serves multiple applications/organizations (tenants).
 
-This allows the ability to customize the authorization for each tenant's specific needs. With Multi-Tenancy support, you can create custom authorization schema and relation tuples accordingly for the different tenants and manage them in a single place - in [WriteDB](./getting-started/sync-data.md).
+This allows the ability to customize the authorization for each tenant's specific needs. With Multi-Tenancy support, you can create custom authorization schema and relation tuples accordingly for the different tenants and manage them in a single place.
 
 For the users that don't have/need multi-tenancy in their authorization structure, we created a pre-inserted tenant (id: **t1**) that comes default when you serve a Permify service.
 
@@ -112,11 +112,11 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 </TabItem>
 </Tabs>
 
-Users that come from version 0.2.x and users that have a single tenant can enter **t1** as tenant id. See changes on the other endpoints from [API Overview Section](./api-overview/).
+Users that come from version 0.2.x and users that have a single tenant can enter **t1** as tenant id. See changes on the other endpoints from [API Overview Section](../api-overview.md).
 
 ### Added Tenancy Service
 
-To manage tenants we have added a Tenancy service; you can create, delete and list tenants accordingly. See the [Tenancy Service](./api-overview/tenancy/) on Using The API section.
+To manage tenants we have added a Tenancy service; you can create, delete and list tenants accordingly. See the [Tenancy Service](../api-overview/tenancy) on Using The API section.
 
 ### WriteDB tenancy table and tenant id column
 
