@@ -135,8 +135,8 @@ Permify Engine to compute access decision in 2 steps,
 
 Let's turn back to above authorization question ( ***"Can the user 3 edit document 12 ?"*** ) to better understand how decision evaluation works. 
 
-[relational tuples]: ../getting-started/sync-data
-[Permify Schema]:  ../getting-started/modeling
+[relational tuples]: ../../getting-started/sync-data.md
+[Permify Schema]:  ../../getting-started/modeling.md
 
 When Permify Engine receives this question it directly looks up to authorization model to find document `‍edit` action. Let's say we have a model as follows
 
@@ -182,7 +182,7 @@ Rather than **or**, if we had an **and** relation then Permify Engine waits the 
 
 With the right architecture we expect **7-12 ms** latency. Depending on your load, cache usage and architecture you can get up to **30ms**.
 
-Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisims](./cache.md) 
+Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisims](../../reference/cache.md) 
 
 ## Need any help ?
 

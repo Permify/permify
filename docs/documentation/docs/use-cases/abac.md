@@ -50,7 +50,7 @@ attribute ip_range string[]
 
 There are different types of attributes you can use;
 
-### 1. Boolean
+### Boolean
 
 For attributes that represent a binary choice or state, such as a yes/no question, the `Boolean` data type is an excellent choice.
 
@@ -67,7 +67,7 @@ entity post {
 
 </aside>
 
-### 2. **String**
+### String
 
 String can be used as attribute data type in a variety of scenarios where text-based information is needed to make access control decisions. Here are a few examples:
 
@@ -98,7 +98,7 @@ rule check_location(current_location string, location string[]) {
 
 </aside>
 
-### 3. Integer
+### Integer
 
 Integer  can be used as attribute data type in several scenarios where numerical information is needed to make access control decisions. Here are a few examples:
 
@@ -122,7 +122,7 @@ rule check_age(age integer) {
 
 </aside>
 
-### 4. **Double**
+### Double
 
 Double can be used as attribute data type in several scenarios where precise numerical information is needed to make access control decisions. Here are a few examples:
 
@@ -234,7 +234,7 @@ The cache mechanism works by hashing the snapshot of the database, schema versio
 - check_{snapshot}_{schema_version}_{context}_organization:1#admin@user:1 → true
 - check_{snapshot}_{schema_version}_{context}_organization:1$check_ip_range(ip_range) → true
 
-## Some **Use Cases**
+## Some Use Cases
 
 ### Example of Public/Private Repository
 
@@ -279,7 +279,7 @@ This means that the 'view' permission is granted if either the repository is pub
 - check_{snapshot}_{schema_version}_{context}_post:1$is_public → true
 - check_{snapshot}_{schema_version}_{context}_post:1#admin@user:1 → true
 
-## Example of Weekday
+### Example of Weekday
 
 In this example, to be able to view the repository, it must not be a weekend, and the user must be a member of the organization.
 
@@ -320,7 +320,7 @@ The permissions in this model state that to 'view' the repository, the user must
 - check_{snapshot}_{schema_version}_{context}_organization:1$is_weekday(context.day_of_week) → true
 - check_{snapshot}_{schema_version}_{context}_post:1#member@user:1 → true
 
-## Example of Banking System
+### Example of Banking System
 
 This model represents a banking system with two entities: **`user`** and **`account`**.
 
@@ -364,7 +364,7 @@ Both of these conditions need to be true for the **`withdraw`** permission to be
 - check_{snapshot}_{schema_version}_{context}_account:1$check_balance(context.amount,balance) → true
 - check_{snapshot}_{schema_version}_{context}_account:1#owner@user:1 → true
 
-## Hierarchical Usage
+### Hierarchical Usage
 
 In this model:
 
@@ -421,7 +421,7 @@ rule check_budget(budget double) {
 - check_{snapshot}_{schema_version}_{context}_organization:2$check_founding_year(founding_year) → false
 - check_{snapshot}_{schema_version}_{context}_organization:1$check_founding_year(founding_year) → true
 
-## **How To Use Demo**
+## How To Use Demo
 
 **Install Permify nightly release**
 
