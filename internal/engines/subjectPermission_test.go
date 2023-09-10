@@ -131,7 +131,6 @@ var _ = Describe("subject-permission-engine", func() {
 				checkEngine,
 				nil,
 				nil,
-				nil,
 				subjectPermissionEngine,
 				telemetry.NewNoopMeter(),
 			)
@@ -256,7 +255,6 @@ var _ = Describe("subject-permission-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				subjectPermissionEngine,
@@ -386,7 +384,6 @@ var _ = Describe("subject-permission-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				subjectPermissionEngine,

@@ -111,7 +111,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -213,7 +212,6 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				nil,
@@ -320,7 +318,6 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				nil,
@@ -450,7 +447,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -555,7 +551,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -657,7 +652,6 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				nil,
@@ -796,7 +790,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -907,7 +900,6 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				nil,
@@ -1028,7 +1020,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1144,7 +1135,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1250,7 +1240,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1353,7 +1342,6 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				nil,
@@ -1501,7 +1489,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1640,7 +1627,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1772,7 +1758,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1895,7 +1880,6 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				nil,
@@ -2030,7 +2014,6 @@ var _ = Describe("check-engine", func() {
 				schemaReader,
 				dataReader,
 				checkEngine,
-				nil,
 				nil,
 				nil,
 				nil,

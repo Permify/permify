@@ -27,25 +27,7 @@ func NewSchemaReaderWithCache(delegate storage.SchemaReader, cache cache.Cache) 
 
 // ReadSchema  - Read schema from the repository
 func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error) {
-	var s interface{}
-	found := false
-	if version != "" {
-		s, found = r.cache.Get(fmt.Sprintf("%s|%s", tenantID, version))
-	}
-	if !found {
-		schema, err = r.delegate.ReadSchema(ctx, tenantID, version)
-		if err != nil {
-			return nil, err
-		}
-		size := reflect.TypeOf(schema).Size()
-		r.cache.Set(fmt.Sprintf("%s|%s", tenantID, version), schema, int64(size))
-		return schema, nil
-	}
-	def, ok := s.(*base.SchemaDefinition)
-	if !ok {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
-	}
-	return def, err
+	return r.delegate.ReadSchema(ctx, tenantID, version)
 }
 
 // ReadEntityDefinition - Read entity definition from the repository
