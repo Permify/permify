@@ -16,18 +16,21 @@ import (
 
 // SchemaBasedEntityFilter is a struct that performs permission checks on a set of entities
 type SchemaBasedEntityFilter struct {
-	// schemaReader is responsible for reading schema information
-	schemaReader storage.SchemaReader
 	// dataReader is responsible for reading relationship information
 	dataReader storage.DataReader
+
+	schema *base.SchemaDefinition
 }
 
 // NewSchemaBasedEntityFilter creates a new EntityFilter engine
-func NewSchemaBasedEntityFilter(schemaReader storage.SchemaReader, dataReader storage.DataReader) *SchemaBasedEntityFilter {
+func NewSchemaBasedEntityFilter(dataReader storage.DataReader) *SchemaBasedEntityFilter {
 	return &SchemaBasedEntityFilter{
-		schemaReader: schemaReader,
-		dataReader:   dataReader,
+		dataReader: dataReader,
 	}
+}
+
+func (engine *SchemaBasedEntityFilter) SetSchema(sch *base.SchemaDefinition) {
+	engine.schema = sch
 }
 
 // EntityFilter is a method of the EntityFilterEngine struct. It executes a permission request for linked entities.
@@ -52,14 +55,8 @@ func (engine *SchemaBasedEntityFilter) EntityFilter(
 		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
-	var sc *base.SchemaDefinition
-	sc, err = engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
-	if err != nil {
-		return err
-	}
-
 	// Retrieve linked entrances
-	cn := schema.NewLinkedGraph(sc) // Create a new linked graph from the schema definition.
+	cn := schema.NewLinkedGraph(engine.schema) // Create a new linked graph from the schema definition.
 	var entrances []*schema.LinkedEntrance
 	entrances, err = cn.RelationshipLinkedEntrances(
 		&base.RelationReference{
@@ -259,14 +256,8 @@ func (engine *SchemaBasedEntityFilter) l(
 
 	var err error
 
-	var sc *base.SchemaDefinition
-	sc, err = engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
-	if err != nil {
-		return err
-	}
-
 	// Retrieve linked entrances
-	cn := schema.NewLinkedGraph(sc)
+	cn := schema.NewLinkedGraph(engine.schema)
 	var entrances []*schema.LinkedEntrance
 	entrances, err = cn.RelationshipLinkedEntrances(
 		&base.RelationReference{

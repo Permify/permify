@@ -10,9 +10,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// LookupEntityEngine is a struct that performs permission checks on a set of entities
-// and returns the entities that have the requested permission.
-type LookupEntityEngine struct {
+type LookupEngine struct {
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
 	// checkEngine is responsible for performing permission checks
@@ -21,20 +19,34 @@ type LookupEntityEngine struct {
 	schemaBasedEntityFilter *SchemaBasedEntityFilter
 	// massEntityFilter is responsible for performing entity filter operations
 	massEntityFilter *MassEntityFilter
+	// schemaBasedEntityFilter is responsible for performing entity filter operations
+	schemaBasedSubjectFilter *SchemaBasedSubjectFilter
+	// massEntityFilter is responsible for performing entity filter operations
+	massSubjectFilter *MassSubjectFilter
+	// schemaMap is a map that keeps track of schema versions
+	schemaMap sync.Map
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
 }
 
-// NewLookupEntityEngine creates a new LookupEntityEngine instance.
-// engine: the CheckEngine to use for permission checks
-// reader: the RelationshipReader to retrieve entity relationships
-func NewLookupEntityEngine(check *CheckEngine, schemaReader storage.SchemaReader, schemaBasedEntityFilter *SchemaBasedEntityFilter, massEntityFilter *MassEntityFilter, opts ...LookupEntityOption) *LookupEntityEngine {
-	engine := &LookupEntityEngine{
-		schemaReader:            schemaReader,
-		checkEngine:             check,
-		schemaBasedEntityFilter: schemaBasedEntityFilter,
-		massEntityFilter:        massEntityFilter,
-		concurrencyLimit:        _defaultConcurrencyLimit,
+func NewLookupEngine(
+	check *CheckEngine,
+	schemaReader storage.SchemaReader,
+	schemaBasedEntityFilter *SchemaBasedEntityFilter,
+	massEntityFilter *MassEntityFilter,
+	schemaBasedSubjectFilter *SchemaBasedSubjectFilter,
+	massSubjectFilter *MassSubjectFilter,
+	opts ...LookupOption,
+) *LookupEngine {
+	engine := &LookupEngine{
+		schemaReader:             schemaReader,
+		checkEngine:              check,
+		schemaBasedEntityFilter:  schemaBasedEntityFilter,
+		massEntityFilter:         massEntityFilter,
+		schemaBasedSubjectFilter: schemaBasedSubjectFilter,
+		massSubjectFilter:        massSubjectFilter,
+		schemaMap:                sync.Map{},
+		concurrencyLimit:         _defaultConcurrencyLimit,
 	}
 
 	// options
@@ -47,7 +59,7 @@ func NewLookupEntityEngine(check *CheckEngine, schemaReader storage.SchemaReader
 
 // LookupEntity performs a permission check on a set of entities and returns a response
 // containing the IDs of the entities that have the requested permission.
-func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
+func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
 	// A mutex and slice are declared to safely store entity IDs from concurrent callbacks
 	var mu sync.Mutex
 	var entityIDs []string
@@ -71,7 +83,7 @@ func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *bas
 
 	// Retrieve the schema of the entity based on the tenantId and schema version
 	var sc *base.SchemaDefinition
-	sc, err = engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +102,11 @@ func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *bas
 		}
 	} else {
 
-		// Map to keep track of visited entities
+		// Create a map to keep track of visited entities
 		visits := &ERMap{}
+
+		// Set the schema for the schema-based entity filter in the engine
+		engine.schemaBasedEntityFilter.SetSchema(sc)
 
 		// Perform an entity filter operation based on the permission request
 		err = engine.schemaBasedEntityFilter.EntityFilter(ctx, &base.PermissionEntityFilterRequest{
@@ -129,7 +144,7 @@ func (engine *LookupEntityEngine) LookupEntity(ctx context.Context, request *bas
 
 // LookupEntityStream performs a permission check on a set of entities and streams the results
 // containing the IDs of the entities that have the requested permission.
-func (engine *LookupEntityEngine) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
+func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
 	// Define a callback function that will be called for each entity that passes the permission check.
 	// If the check result is allowed, it sends the entity ID to the server stream.
 	callback := func(entityID string, result base.CheckResult) {
@@ -153,7 +168,7 @@ func (engine *LookupEntityEngine) LookupEntityStream(ctx context.Context, reques
 
 	// Retrieve the entity definition schema based on the tenantId and schema version
 	var sc *base.SchemaDefinition
-	sc, err = engine.schemaReader.ReadSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return err
 	}
@@ -204,4 +219,105 @@ func (engine *LookupEntityEngine) LookupEntityStream(ctx context.Context, reques
 	}
 
 	return err
+}
+
+// LookupSubject checks if a subject has a particular permission based on the schema and version.
+// It returns a list of subjects that have the given permission.
+func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error) {
+	// Retrieve the schema of the entity based on the provided tenantId and schema version.
+	var sc *base.SchemaDefinition
+	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	if err != nil {
+		// Return an error if there was an issue retrieving the schema.
+		return nil, err
+	}
+
+	// Walk the entity schema to perform a permission check.
+	err = schema.NewWalker(sc).Walk(request.GetEntity().GetType(), request.GetPermission())
+	if err != nil {
+		// If the error indicates the schema walk is unimplemented, handle it with a MassEntityFilter.
+		if errors.Is(err, schema.ErrUnimplemented) {
+
+			// Use a mutex to protect concurrent writes to the subjectIDs slice.
+			var mu sync.Mutex
+			var subjectIDs []string
+
+			// Callback function to handle the results of permission checks.
+			// If an entity passes the permission check, its ID is stored in the subjectIDs slice.
+			callback := func(subjectID string, result base.CheckResult) {
+				if result == base.CheckResult_CHECK_RESULT_ALLOWED {
+					mu.Lock()         // Lock to prevent concurrent modification of the slice.
+					defer mu.Unlock() // Unlock after the ID is appended.
+					subjectIDs = append(subjectIDs, subjectID)
+				}
+			}
+
+			// Create and initiate a BulkChecker to perform permission checks in parallel.
+			checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
+			checker.Start(BULK_SUBJECT)
+
+			// Create and start a BulkPublisher to provide entities to the BulkChecker.
+			publisher := NewBulkSubjectPublisher(ctx, request, checker)
+
+			err = engine.massSubjectFilter.SubjectFilter(ctx, request, publisher)
+			if err != nil {
+				// Return an error if there was an issue with the subject filter.
+				return nil, err
+			}
+
+			// Stop the BulkChecker and ensure all entities have been processed.
+			checker.Stop()
+			err = checker.Wait()
+			if err != nil {
+				return nil, err
+			}
+
+			// Return the list of entity IDs that have the required permission.
+			return &base.PermissionLookupSubjectResponse{
+				SubjectIds: subjectIDs,
+			}, nil
+		}
+
+		// If the error wasn't due to unimplemented schema walking, return the error.
+		return nil, err
+	}
+
+	// Use the schema-based subject filter to get the list of subjects with the requested permission.
+	ids, err := engine.schemaBasedSubjectFilter.SubjectFilter(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the list of entity IDs that have the required permission.
+	return &base.PermissionLookupSubjectResponse{
+		SubjectIds: ids,
+	}, nil
+}
+
+// readSchema retrieves a SchemaDefinition for a given tenantID and schemaVersion.
+// It first checks a cache (schemaMap) for the schema, and if not found, reads it using the schemaReader.
+func (engine *LookupEngine) readSchema(ctx context.Context, tenantID, schemaVersion string) (*base.SchemaDefinition, error) {
+
+	// Create a unique cache key by combining the tenantID and schemaVersion.
+	// This ensures that different combinations of tenantID and schemaVersion get their own cache entries.
+	cacheKey := tenantID + "|" + schemaVersion
+
+	// Attempt to retrieve the schema from the cache (schemaMap) using the generated cacheKey.
+	if sch, ok := engine.schemaMap.Load(cacheKey); ok {
+		// If the schema is present in the cache, cast it to its correct type and return.
+		return sch.(*base.SchemaDefinition), nil
+	}
+
+	// If the schema is not present in the cache, use the schemaReader to read it from the source (e.g., a database or file).
+	sch, err := engine.schemaReader.ReadSchema(ctx, tenantID, schemaVersion)
+	if err != nil {
+		// If there's an error reading the schema (e.g., schema not found or database connection issue), return the error.
+		return nil, err
+	}
+
+	// Cache the newly read schema in schemaMap so that subsequent reads can be faster.
+	engine.schemaMap.Store(cacheKey, sch)
+
+	// Return the freshly read schema.
+	return sch, nil
 }

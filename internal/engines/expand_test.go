@@ -957,7 +957,6 @@ var _ = Describe("expand-engine", func() {
 				expandEngine,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1220,7 +1219,6 @@ var _ = Describe("expand-engine", func() {
 				expandEngine,
 				nil,
 				nil,
-				nil,
 				telemetry.NewNoopMeter(),
 			)
 
@@ -1450,7 +1448,6 @@ var _ = Describe("expand-engine", func() {
 				dataReader,
 				nil,
 				expandEngine,
-				nil,
 				nil,
 				nil,
 				telemetry.NewNoopMeter(),

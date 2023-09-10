@@ -23,8 +23,7 @@ var tracer = otel.Tracer("invoke")
 type Invoker interface {
 	Check
 	Expand
-	LookupEntity
-	LookupSubject
+	Lookup
 	SubjectPermission
 }
 
@@ -42,16 +41,9 @@ type Expand interface {
 	Expand(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error)
 }
 
-// LookupEntity is an interface that defines a method for looking up entities with permissions.
-// It requires an implementation of InvokeLookupEntity that takes a context and a PermissionLookupEntityRequest,
-// and returns a PermissionLookupEntityResponse and an error if any.
-type LookupEntity interface {
+type Lookup interface {
 	LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error)
 	LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error)
-}
-
-// LookupSubject -
-type LookupSubject interface {
 	LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error)
 }
 
@@ -72,9 +64,7 @@ type DirectInvoker struct {
 	// Expand engine for expanding permissions
 	ec Expand
 	// LookupEntity engine for looking up entities with permissions
-	le LookupEntity
-	// LookupSubject
-	ls LookupSubject
+	lo Lookup
 	// LookupSubject
 	sp SubjectPermission
 
@@ -93,8 +83,7 @@ func NewDirectInvoker(
 	dataReader storage.DataReader,
 	cc Check,
 	ec Expand,
-	le LookupEntity,
-	ls LookupSubject,
+	lo Lookup,
 	sp SubjectPermission,
 	meter api.Meter,
 ) *DirectInvoker {
@@ -127,8 +116,7 @@ func NewDirectInvoker(
 		dataReader:               dataReader,
 		cc:                       cc,
 		ec:                       ec,
-		le:                       le,
-		ls:                       ls,
+		lo:                       lo,
 		sp:                       sp,
 		checkCounter:             checkCounter,
 		lookupEntityCounter:      lookupEntityCounter,
@@ -295,7 +283,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 	// Increase the lookup entity count in the metrics.
 	invoker.lookupEntityCounter.Add(ctx, 1)
 
-	return invoker.le.LookupEntity(ctx, request)
+	return invoker.lo.LookupEntity(ctx, request)
 }
 
 // LookupEntityStream is a method that implements the LookupEntityStream interface.
@@ -335,7 +323,7 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 	// Increase the lookup entity count in the metrics.
 	invoker.lookupEntityCounter.Add(ctx, 1)
 
-	return invoker.le.LookupEntityStream(ctx, request, server)
+	return invoker.lo.LookupEntityStream(ctx, request, server)
 }
 
 // LookupSubject is a method of the DirectInvoker structure. It handles the task of looking up subjects
@@ -382,7 +370,7 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 
 	// Call the LookupSubject function of the ls field in the invoker, pass the context and request,
 	// and return its response and error
-	return invoker.ls.LookupSubject(ctx, request)
+	return invoker.lo.LookupSubject(ctx, request)
 }
 
 // SubjectPermission is a method of the DirectInvoker structure. It handles the task of subject's permissions

@@ -57,7 +57,7 @@ func NewContainer() *Development {
 	tenantWriter := factories.TenantWriterFactory(db, l)
 
 	// filters
-	schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(schemaReader, dataReader)
+	schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(dataReader)
 	massEntityFilter := engines.NewMassEntityFilter(dataReader)
 
 	schemaBaseSubjectFilter := engines.NewSchemaBasedSubjectFilter(schemaReader, dataReader)
@@ -66,8 +66,7 @@ func NewContainer() *Development {
 	// Create instances of engines
 	checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
 	expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
-	lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter)
-	lookupSubjectEngine := engines.NewLookupSubjectEngine(checkEngine, schemaReader, schemaBaseSubjectFilter, massSubjectFilter)
+	lookupEngine := engines.NewLookupEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter, schemaBaseSubjectFilter, massSubjectFilter)
 	subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader)
 
 	invoker := invoke.NewDirectInvoker(
@@ -75,8 +74,7 @@ func NewContainer() *Development {
 		dataReader,
 		checkEngine,
 		expandEngine,
-		lookupEntityEngine,
-		lookupSubjectEngine,
+		lookupEngine,
 		subjectPermissionEngine,
 		telemetry.NewNoopMeter(),
 	)

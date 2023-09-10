@@ -239,7 +239,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// filters
-		schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(schemaReader, dataReader)
+		schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(dataReader)
 		massEntityFilter := engines.NewMassEntityFilter(dataReader)
 
 		schemaBaseSubjectFilter := engines.NewSchemaBasedSubjectFilter(schemaReader, dataReader, engines.SchemaBaseSubjectFilterConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
@@ -248,8 +248,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Initialize the engines using the key manager, schema reader, and relationship reader
 		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
-		lookupEntityEngine := engines.NewLookupEntityEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter, engines.LookupEntityConcurrencyLimit(cfg.Service.Permission.BulkLimit))
-		lookupSubjectEngine := engines.NewLookupSubjectEngine(checkEngine, schemaReader, schemaBaseSubjectFilter, massSubjectFilter, engines.LookupSubjectConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
+		lookupEngine := engines.NewLookupEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter, schemaBaseSubjectFilter, massSubjectFilter, engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit))
 		subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 
 		var check invoke.Check
@@ -281,8 +280,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			dataReader,
 			check,
 			expandEngine,
-			lookupEntityEngine,
-			lookupSubjectEngine,
+			lookupEngine,
 			subjectPermissionEngine,
 			meter,
 		)

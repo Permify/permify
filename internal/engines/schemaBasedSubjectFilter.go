@@ -53,8 +53,8 @@ type SubjectFilterCombiner func(ctx context.Context, functions []SubjectFilterFu
 // It takes a context and a pointer to a PermissionSubjectFilterRequest
 // and returns a pointer to a PermissionSubjectFilterResponse and an error.
 func (engine *SchemaBasedSubjectFilter) SubjectFilter(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response []string, err error) {
-	// ReadSchemaDefinition method of the SchemaReader interface is used to retrieve the entity's schema definition.
-	// GetTenantId, GetType and GetSchemaVersion methods are used to provide necessary arguments to ReadSchemaDefinition.
+	// ReadEntityDefinition method of the SchemaReader interface is used to retrieve the entity's schema definition.
+	// GetTenantId, GetType and GetSchemaVersion methods are used to provide necessary arguments to ReadEntityDefinition.
 	var en *base.EntityDefinition
 	en, _, err = engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {

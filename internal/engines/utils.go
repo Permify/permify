@@ -24,22 +24,10 @@ func CheckConcurrencyLimit(limit int) CheckOption {
 	}
 }
 
-// LookupEntityOption - a functional option type for configuring the LookupEntityEngine.
-type LookupEntityOption func(engine *LookupEntityEngine)
+type LookupOption func(engine *LookupEngine)
 
-// LookupEntityConcurrencyLimit - a functional option that sets the concurrency limit for the LookupEntityEngine.
-func LookupEntityConcurrencyLimit(limit int) LookupEntityOption {
-	return func(c *LookupEntityEngine) {
-		c.concurrencyLimit = limit
-	}
-}
-
-// LookupSubjectOption - a functional option type for configuring the LookupSubjectEngine.
-type LookupSubjectOption func(engine *LookupSubjectEngine)
-
-// LookupSubjectConcurrencyLimit - a functional option that sets the concurrency limit for the LookupSubjectEngine.
-func LookupSubjectConcurrencyLimit(limit int) LookupSubjectOption {
-	return func(c *LookupSubjectEngine) {
+func LookupConcurrencyLimit(limit int) LookupOption {
+	return func(c *LookupEngine) {
 		c.concurrencyLimit = limit
 	}
 }
