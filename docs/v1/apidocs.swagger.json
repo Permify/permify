@@ -770,6 +770,106 @@
         ]
       }
     },
+    "/v1/tenants/{tenant_id}/relationships/delete": {
+      "post": {
+        "summary": "delete relationships",
+        "operationId": "relationships.delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/RelationshipDeleteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "filter": {
+                  "$ref": "#/definitions/TupleFilter"
+                }
+              },
+              "title": "RelationshipDeleteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Data"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/relationships/write": {
+      "post": {
+        "summary": "create new relationships",
+        "operationId": "relationships.write",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/RelationshipWriteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "Unique identifier for the tenant with specific constraints.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/RelationshipWriteRequestMetadata",
+                  "description": "Metadata for the request. It's required."
+                },
+                "tuples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Tuple"
+                  },
+                  "description": "List of tuples for the request. Must have between 1 and 100 items."
+                }
+              },
+              "description": "Represents a request to write relationship data."
+            }
+          }
+        ],
+        "tags": [
+          "Data"
+        ]
+      }
+    },
     "/v1/tenants/{tenant_id}/schemas/read": {
       "post": {
         "summary": "read your authorization model",
@@ -1924,6 +2024,15 @@
       },
       "description": "The RelationReference message provides a reference to a specific relation."
     },
+    "RelationshipDeleteResponse": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string"
+        }
+      },
+      "title": "RelationshipDeleteResponse"
+    },
     "RelationshipReadRequestMetadata": {
       "type": "object",
       "properties": {
@@ -1951,6 +2060,24 @@
         }
       },
       "description": "RelationshipReadResponse defines the structure of the response after reading relationships.\nIt includes the tuples representing the relationships and a continuous token for handling result pagination."
+    },
+    "RelationshipWriteRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "title": "RelationshipWriteRequestMetadata"
+    },
+    "RelationshipWriteResponse": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string"
+        }
+      },
+      "title": "RelationshipWriteResponse"
     },
     "Rewrite": {
       "type": "object",
