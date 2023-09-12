@@ -4639,6 +4639,439 @@ var _ interface {
 	ErrorName() string
 } = DataWriteResponseValidationError{}
 
+// Validate checks the field values on RelationshipWriteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RelationshipWriteRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RelationshipWriteRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RelationshipWriteRequestMultiError, or nil if none found.
+func (m *RelationshipWriteRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RelationshipWriteRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetTenantId()) > 64 {
+		err := RelationshipWriteRequestValidationError{
+			field:  "TenantId",
+			reason: "value length must be at most 64 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_RelationshipWriteRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
+		err := RelationshipWriteRequestValidationError{
+			field:  "TenantId",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetMetadata() == nil {
+		err := RelationshipWriteRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RelationshipWriteRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RelationshipWriteRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RelationshipWriteRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if l := len(m.GetTuples()); l < 1 || l > 100 {
+		err := RelationshipWriteRequestValidationError{
+			field:  "Tuples",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetTuples() {
+		_, _ = idx, item
+
+		if item == nil {
+			err := RelationshipWriteRequestValidationError{
+				field:  fmt.Sprintf("Tuples[%v]", idx),
+				reason: "value is required",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RelationshipWriteRequestValidationError{
+						field:  fmt.Sprintf("Tuples[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RelationshipWriteRequestValidationError{
+						field:  fmt.Sprintf("Tuples[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RelationshipWriteRequestValidationError{
+					field:  fmt.Sprintf("Tuples[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return RelationshipWriteRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RelationshipWriteRequestMultiError is an error wrapping multiple validation
+// errors returned by RelationshipWriteRequest.ValidateAll() if the designated
+// constraints aren't met.
+type RelationshipWriteRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RelationshipWriteRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RelationshipWriteRequestMultiError) AllErrors() []error { return m }
+
+// RelationshipWriteRequestValidationError is the validation error returned by
+// RelationshipWriteRequest.Validate if the designated constraints aren't met.
+type RelationshipWriteRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RelationshipWriteRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RelationshipWriteRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RelationshipWriteRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RelationshipWriteRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RelationshipWriteRequestValidationError) ErrorName() string {
+	return "RelationshipWriteRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RelationshipWriteRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRelationshipWriteRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RelationshipWriteRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RelationshipWriteRequestValidationError{}
+
+var _RelationshipWriteRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
+
+// Validate checks the field values on RelationshipWriteRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *RelationshipWriteRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RelationshipWriteRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// RelationshipWriteRequestMetadataMultiError, or nil if none found.
+func (m *RelationshipWriteRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RelationshipWriteRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(errors) > 0 {
+		return RelationshipWriteRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// RelationshipWriteRequestMetadataMultiError is an error wrapping multiple
+// validation errors returned by
+// RelationshipWriteRequestMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type RelationshipWriteRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RelationshipWriteRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RelationshipWriteRequestMetadataMultiError) AllErrors() []error { return m }
+
+// RelationshipWriteRequestMetadataValidationError is the validation error
+// returned by RelationshipWriteRequestMetadata.Validate if the designated
+// constraints aren't met.
+type RelationshipWriteRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RelationshipWriteRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RelationshipWriteRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RelationshipWriteRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RelationshipWriteRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RelationshipWriteRequestMetadataValidationError) ErrorName() string {
+	return "RelationshipWriteRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RelationshipWriteRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRelationshipWriteRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RelationshipWriteRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RelationshipWriteRequestMetadataValidationError{}
+
+// Validate checks the field values on RelationshipWriteResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RelationshipWriteResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RelationshipWriteResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RelationshipWriteResponseMultiError, or nil if none found.
+func (m *RelationshipWriteResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RelationshipWriteResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SnapToken
+
+	if len(errors) > 0 {
+		return RelationshipWriteResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RelationshipWriteResponseMultiError is an error wrapping multiple validation
+// errors returned by RelationshipWriteResponse.ValidateAll() if the
+// designated constraints aren't met.
+type RelationshipWriteResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RelationshipWriteResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RelationshipWriteResponseMultiError) AllErrors() []error { return m }
+
+// RelationshipWriteResponseValidationError is the validation error returned by
+// RelationshipWriteResponse.Validate if the designated constraints aren't met.
+type RelationshipWriteResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RelationshipWriteResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RelationshipWriteResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RelationshipWriteResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RelationshipWriteResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RelationshipWriteResponseValidationError) ErrorName() string {
+	return "RelationshipWriteResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RelationshipWriteResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRelationshipWriteResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RelationshipWriteResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RelationshipWriteResponseValidationError{}
+
 // Validate checks the field values on RelationshipReadRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -5884,6 +6317,265 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DataDeleteResponseValidationError{}
+
+// Validate checks the field values on RelationshipDeleteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RelationshipDeleteRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RelationshipDeleteRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RelationshipDeleteRequestMultiError, or nil if none found.
+func (m *RelationshipDeleteRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RelationshipDeleteRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetTenantId()) > 64 {
+		err := RelationshipDeleteRequestValidationError{
+			field:  "TenantId",
+			reason: "value length must be at most 64 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_RelationshipDeleteRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
+		err := RelationshipDeleteRequestValidationError{
+			field:  "TenantId",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetFilter()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RelationshipDeleteRequestValidationError{
+					field:  "Filter",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RelationshipDeleteRequestValidationError{
+					field:  "Filter",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetFilter()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RelationshipDeleteRequestValidationError{
+				field:  "Filter",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RelationshipDeleteRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RelationshipDeleteRequestMultiError is an error wrapping multiple validation
+// errors returned by RelationshipDeleteRequest.ValidateAll() if the
+// designated constraints aren't met.
+type RelationshipDeleteRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RelationshipDeleteRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RelationshipDeleteRequestMultiError) AllErrors() []error { return m }
+
+// RelationshipDeleteRequestValidationError is the validation error returned by
+// RelationshipDeleteRequest.Validate if the designated constraints aren't met.
+type RelationshipDeleteRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RelationshipDeleteRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RelationshipDeleteRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RelationshipDeleteRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RelationshipDeleteRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RelationshipDeleteRequestValidationError) ErrorName() string {
+	return "RelationshipDeleteRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RelationshipDeleteRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRelationshipDeleteRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RelationshipDeleteRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RelationshipDeleteRequestValidationError{}
+
+var _RelationshipDeleteRequest_TenantId_Pattern = regexp.MustCompile("^[a-zA-Z0-9]+$")
+
+// Validate checks the field values on RelationshipDeleteResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RelationshipDeleteResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RelationshipDeleteResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RelationshipDeleteResponseMultiError, or nil if none found.
+func (m *RelationshipDeleteResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RelationshipDeleteResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SnapToken
+
+	if len(errors) > 0 {
+		return RelationshipDeleteResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RelationshipDeleteResponseMultiError is an error wrapping multiple
+// validation errors returned by RelationshipDeleteResponse.ValidateAll() if
+// the designated constraints aren't met.
+type RelationshipDeleteResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RelationshipDeleteResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RelationshipDeleteResponseMultiError) AllErrors() []error { return m }
+
+// RelationshipDeleteResponseValidationError is the validation error returned
+// by RelationshipDeleteResponse.Validate if the designated constraints aren't met.
+type RelationshipDeleteResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RelationshipDeleteResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RelationshipDeleteResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RelationshipDeleteResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RelationshipDeleteResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RelationshipDeleteResponseValidationError) ErrorName() string {
+	return "RelationshipDeleteResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RelationshipDeleteResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRelationshipDeleteResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RelationshipDeleteResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RelationshipDeleteResponseValidationError{}
 
 // Validate checks the field values on TenantCreateRequest with the rules
 // defined in the proto definition for this message. If any rules are

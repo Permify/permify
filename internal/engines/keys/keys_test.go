@@ -391,7 +391,6 @@ func TestEngineKeys_SetCheckKeyWithContext(t *testing.T) {
 						Id:   "entity_id",
 					},
 					Attribute: "is_public",
-					Type:      "boolean",
 					Value:     value,
 				},
 			},

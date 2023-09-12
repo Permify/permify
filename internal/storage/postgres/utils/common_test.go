@@ -1,9 +1,7 @@
 package utils_test
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
 	"github.com/Masterminds/squirrel"
 
@@ -25,16 +23,11 @@ func TestSnapshotQuery(t *testing.T) {
 }
 
 func TestGarbageCollectQuery(t *testing.T) {
-	window := 24 * time.Hour
-	tenantID := "testTenant"
-
-	query := utils.TuplesGarbageCollectQuery(window, tenantID)
+	query := utils.GenerateGCQuery("relation_tuples", 100)
 	sql, _, err := query.ToSql()
 
 	assert.NoError(t, err)
 
-	now := time.Now()
-	arg := fmt.Sprintf("'%s'", now.Add(-window).Format(time.RFC3339))
-	expectedSQL := "DELETE FROM relation_tuples WHERE created_tx_id IN (SELECT id FROM transactions WHERE timestamp < " + arg + ") AND ((expired_tx_id = '0'::xid8 OR expired_tx_id IN (SELECT id FROM transactions WHERE timestamp < " + arg + ")) AND tenant_id = 'testTenant')"
+	expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> '0'::xid8 AND expired_tx_id < '100'::xid8"
 	assert.Equal(t, expectedSQL, sql)
 }

@@ -596,10 +596,12 @@ var Schema_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Data_Write_FullMethodName             = "/base.v1.Data/Write"
-	Data_ReadRelationships_FullMethodName = "/base.v1.Data/ReadRelationships"
-	Data_ReadAttributes_FullMethodName    = "/base.v1.Data/ReadAttributes"
-	Data_Delete_FullMethodName            = "/base.v1.Data/Delete"
+	Data_Write_FullMethodName               = "/base.v1.Data/Write"
+	Data_WriteRelationships_FullMethodName  = "/base.v1.Data/WriteRelationships"
+	Data_ReadRelationships_FullMethodName   = "/base.v1.Data/ReadRelationships"
+	Data_ReadAttributes_FullMethodName      = "/base.v1.Data/ReadAttributes"
+	Data_Delete_FullMethodName              = "/base.v1.Data/Delete"
+	Data_DeleteRelationships_FullMethodName = "/base.v1.Data/DeleteRelationships"
 )
 
 // DataClient is the client API for Data service.
@@ -608,12 +610,16 @@ const (
 type DataClient interface {
 	// The Write RPC method creates a new relation tuple.
 	Write(ctx context.Context, in *DataWriteRequest, opts ...grpc.CallOption) (*DataWriteResponse, error)
+	// RPC method to write relationships for a tenant. This can be accessed via a POST request to the given HTTP path. It's tagged under "Data" in OpenAPI documentation.
+	WriteRelationships(ctx context.Context, in *RelationshipWriteRequest, opts ...grpc.CallOption) (*RelationshipWriteResponse, error)
 	// The ReadRelationships RPC method reads relation tuple(s).
 	ReadRelationships(ctx context.Context, in *RelationshipReadRequest, opts ...grpc.CallOption) (*RelationshipReadResponse, error)
 	// The ReadAttributes RPC method reads attribute(s) of a relation.
 	ReadAttributes(ctx context.Context, in *AttributeReadRequest, opts ...grpc.CallOption) (*AttributeReadResponse, error)
 	// The Delete RPC method deletes a relation tuple.
 	Delete(ctx context.Context, in *DataDeleteRequest, opts ...grpc.CallOption) (*DataDeleteResponse, error)
+	// RPC method to delete relationships for a tenant, accessed via a POST request to the specified path, tagged as "Data" in OpenAPI documentation.
+	DeleteRelationships(ctx context.Context, in *RelationshipDeleteRequest, opts ...grpc.CallOption) (*RelationshipDeleteResponse, error)
 }
 
 type dataClient struct {
@@ -627,6 +633,15 @@ func NewDataClient(cc grpc.ClientConnInterface) DataClient {
 func (c *dataClient) Write(ctx context.Context, in *DataWriteRequest, opts ...grpc.CallOption) (*DataWriteResponse, error) {
 	out := new(DataWriteResponse)
 	err := c.cc.Invoke(ctx, Data_Write_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dataClient) WriteRelationships(ctx context.Context, in *RelationshipWriteRequest, opts ...grpc.CallOption) (*RelationshipWriteResponse, error) {
+	out := new(RelationshipWriteResponse)
+	err := c.cc.Invoke(ctx, Data_WriteRelationships_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -660,18 +675,31 @@ func (c *dataClient) Delete(ctx context.Context, in *DataDeleteRequest, opts ...
 	return out, nil
 }
 
+func (c *dataClient) DeleteRelationships(ctx context.Context, in *RelationshipDeleteRequest, opts ...grpc.CallOption) (*RelationshipDeleteResponse, error) {
+	out := new(RelationshipDeleteResponse)
+	err := c.cc.Invoke(ctx, Data_DeleteRelationships_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DataServer is the server API for Data service.
 // All implementations must embed UnimplementedDataServer
 // for forward compatibility
 type DataServer interface {
 	// The Write RPC method creates a new relation tuple.
 	Write(context.Context, *DataWriteRequest) (*DataWriteResponse, error)
+	// RPC method to write relationships for a tenant. This can be accessed via a POST request to the given HTTP path. It's tagged under "Data" in OpenAPI documentation.
+	WriteRelationships(context.Context, *RelationshipWriteRequest) (*RelationshipWriteResponse, error)
 	// The ReadRelationships RPC method reads relation tuple(s).
 	ReadRelationships(context.Context, *RelationshipReadRequest) (*RelationshipReadResponse, error)
 	// The ReadAttributes RPC method reads attribute(s) of a relation.
 	ReadAttributes(context.Context, *AttributeReadRequest) (*AttributeReadResponse, error)
 	// The Delete RPC method deletes a relation tuple.
 	Delete(context.Context, *DataDeleteRequest) (*DataDeleteResponse, error)
+	// RPC method to delete relationships for a tenant, accessed via a POST request to the specified path, tagged as "Data" in OpenAPI documentation.
+	DeleteRelationships(context.Context, *RelationshipDeleteRequest) (*RelationshipDeleteResponse, error)
 	mustEmbedUnimplementedDataServer()
 }
 
@@ -682,6 +710,9 @@ type UnimplementedDataServer struct {
 func (UnimplementedDataServer) Write(context.Context, *DataWriteRequest) (*DataWriteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
 }
+func (UnimplementedDataServer) WriteRelationships(context.Context, *RelationshipWriteRequest) (*RelationshipWriteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WriteRelationships not implemented")
+}
 func (UnimplementedDataServer) ReadRelationships(context.Context, *RelationshipReadRequest) (*RelationshipReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadRelationships not implemented")
 }
@@ -690,6 +721,9 @@ func (UnimplementedDataServer) ReadAttributes(context.Context, *AttributeReadReq
 }
 func (UnimplementedDataServer) Delete(context.Context, *DataDeleteRequest) (*DataDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedDataServer) DeleteRelationships(context.Context, *RelationshipDeleteRequest) (*RelationshipDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRelationships not implemented")
 }
 func (UnimplementedDataServer) mustEmbedUnimplementedDataServer() {}
 
@@ -718,6 +752,24 @@ func _Data_Write_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServer).Write(ctx, req.(*DataWriteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Data_WriteRelationships_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RelationshipWriteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServer).WriteRelationships(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Data_WriteRelationships_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServer).WriteRelationships(ctx, req.(*RelationshipWriteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -776,6 +828,24 @@ func _Data_Delete_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Data_DeleteRelationships_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RelationshipDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServer).DeleteRelationships(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Data_DeleteRelationships_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServer).DeleteRelationships(ctx, req.(*RelationshipDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Data_ServiceDesc is the grpc.ServiceDesc for Data service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -788,6 +858,10 @@ var Data_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Data_Write_Handler,
 		},
 		{
+			MethodName: "WriteRelationships",
+			Handler:    _Data_WriteRelationships_Handler,
+		},
+		{
 			MethodName: "ReadRelationships",
 			Handler:    _Data_ReadRelationships_Handler,
 		},
@@ -798,6 +872,10 @@ var Data_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _Data_Delete_Handler,
+		},
+		{
+			MethodName: "DeleteRelationships",
+			Handler:    _Data_DeleteRelationships_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

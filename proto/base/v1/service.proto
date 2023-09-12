@@ -611,6 +611,22 @@ service Data {
     };
   }
 
+  // RPC method to write relationships for a tenant. This can be accessed via a POST request to the given HTTP path. It's tagged under "Data" in OpenAPI documentation.
+  rpc WriteRelationships(RelationshipWriteRequest) returns (RelationshipWriteResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/relationships/write"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "create new relationships"
+      tags: [
+        "Data"
+      ]
+      operation_id: "relationships.write"
+    };
+  }
+
   // The ReadRelationships RPC method reads relation tuple(s).
   rpc ReadRelationships(RelationshipReadRequest) returns (RelationshipReadResponse) {
     option (google.api.http) = {
@@ -656,6 +672,22 @@ service Data {
         "Data"
       ]
       operation_id: "data.delete"
+    };
+  }
+
+  // RPC method to delete relationships for a tenant, accessed via a POST request to the specified path, tagged as "Data" in OpenAPI documentation.
+  rpc DeleteRelationships(RelationshipDeleteRequest) returns (RelationshipDeleteResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/relationships/delete"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "delete relationships"
+      tags: [
+        "Data"
+      ]
+      operation_id: "relationships.delete"
     };
   }
 }
@@ -708,6 +740,41 @@ message DataWriteRequestMetadata {
 // It contains the snap_token generated after the write operation.
 message DataWriteResponse {
   // snap_token is the token generated after the data write operation, representing a snapshot of the data.
+  string snap_token = 1 [json_name = "snap_token"];
+}
+
+// Represents a request to write relationship data.
+message RelationshipWriteRequest {
+
+  // Unique identifier for the tenant with specific constraints.
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern : "[a-zA-Z0-9-,]+",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  // Metadata for the request. It's required.
+  RelationshipWriteRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  // List of tuples for the request. Must have between 1 and 100 items.
+  repeated Tuple tuples = 3 [json_name = "tuples", (validate.rules).repeated = {
+    min_items : 1,
+    max_items : 100,
+    items : {
+      message : {
+        required : true,
+      },
+    },
+  }];
+}
+
+// RelationshipWriteRequestMetadata
+message RelationshipWriteRequestMetadata {
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
+// RelationshipWriteResponse
+message RelationshipWriteResponse {
   string snap_token = 1 [json_name = "snap_token"];
 }
 
@@ -781,6 +848,7 @@ message AttributeReadRequest {
   // continuous_token is used in case of paginated reads to get the next page of results.
   string continuous_token = 5 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
+
 // AttributeReadRequestMetadata defines the structure for the metadata of an attribute read request.
 // It includes the snap_token associated with a particular state of the database.
 message AttributeReadRequestMetadata {
@@ -819,6 +887,22 @@ message DataDeleteRequest {
 // It includes a snap_token representing the state of the database after the deletion.
 message DataDeleteResponse {
   // snap_token represents the state of the database after the requested deletions.
+  string snap_token = 1 [json_name = "snap_token"];
+}
+
+// RelationshipDeleteRequest
+message RelationshipDeleteRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern: "^[a-zA-Z0-9]+$",
+    max_bytes : 64,
+    ignore_empty: false,
+  }];
+
+  TupleFilter filter = 2 [json_name = "filter"];
+}
+
+// RelationshipDeleteResponse
+message RelationshipDeleteResponse {
   string snap_token = 1 [json_name = "snap_token"];
 }
 

@@ -122,7 +122,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 	}, nil
 }
 
-// Write - Write relation tuples to writeDB
+// Write - Write relationships and attributes to writeDB
 func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*v1.DataWriteResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.write")
 	defer span.End()
@@ -196,7 +196,61 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 	}, nil
 }
 
-// Delete - Delete data from writeDB
+// WriteRelationships - Write relation tuples to writeDB
+func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.RelationshipWriteRequest) (*v1.RelationshipWriteResponse, error) {
+	ctx, span := tracer.Start(ctx, "relationships.write")
+	defer span.End()
+
+	v := request.Validate()
+	if v != nil {
+		return nil, v
+	}
+
+	version := request.GetMetadata().GetSchemaVersion()
+	if version == "" {
+		v, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, err
+		}
+		version = v
+	}
+
+	relationships := make([]*v1.Tuple, 0, len(request.GetTuples()))
+
+	for _, tup := range request.GetTuples() {
+		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), tup.GetEntity().GetType(), version)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, err
+		}
+
+		err = validation.ValidateTuple(definition, tup)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return nil, err
+		}
+
+		relationships = append(relationships, tup)
+	}
+
+	snap, err := r.dw.Write(ctx, request.GetTenantId(), database.NewTupleCollection(relationships...), database.NewAttributeCollection())
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		r.logger.Error(err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	return &v1.RelationshipWriteResponse{
+		SnapToken: snap.String(),
+	}, nil
+}
+
+// Delete - Delete relationships and attributes from writeDB
 func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) (*v1.DataDeleteResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.delete")
 	defer span.End()
@@ -220,6 +274,34 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 	}
 
 	return &v1.DataDeleteResponse{
+		SnapToken: snap.String(),
+	}, nil
+}
+
+// DeleteRelationships - Delete relationships from writeDB
+func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.RelationshipDeleteRequest) (*v1.RelationshipDeleteResponse, error) {
+	ctx, span := tracer.Start(ctx, "relationships.delete")
+	defer span.End()
+
+	v := request.Validate()
+	if v != nil {
+		return nil, v
+	}
+
+	err := validation.ValidateTupleFilter(request.GetFilter())
+	if err != nil {
+		return nil, v
+	}
+
+	snap, err := r.dw.Delete(ctx, request.GetTenantId(), request.GetFilter(), &v1.AttributeFilter{})
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		r.logger.Error(err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	return &v1.RelationshipDeleteResponse{
 		SnapToken: snap.String(),
 	}, nil
 }
