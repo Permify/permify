@@ -79,7 +79,7 @@ database:
   max_connection_lifetime: 300s
   max_connection_idle_time: 60s
   garbage_collection:
-    enable: true
+    enabled: true
     interval: 200h
     window: 200h
     timeout: 5m
