@@ -297,7 +297,6 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 // readSchema retrieves a SchemaDefinition for a given tenantID and schemaVersion.
 // It first checks a cache (schemaMap) for the schema, and if not found, reads it using the schemaReader.
 func (engine *LookupEngine) readSchema(ctx context.Context, tenantID, schemaVersion string) (*base.SchemaDefinition, error) {
-
 	// Create a unique cache key by combining the tenantID and schemaVersion.
 	// This ensures that different combinations of tenantID and schemaVersion get their own cache entries.
 	cacheKey := tenantID + "|" + schemaVersion
