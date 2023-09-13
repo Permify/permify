@@ -58,7 +58,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse boolean: %v", err)
 		}
-		wrapped = &base.Boolean{Value: boolVal}
+		wrapped = &base.BoolValue{Data: boolVal}
 	case "boolean[]":
 		var ba []bool
 		val := strings.Split(v[1], ",")
@@ -69,22 +69,22 @@ func Attribute(attribute string) (*base.Attribute, error) {
 			}
 			ba = append(ba, boolVal)
 		}
-		wrapped = &base.BooleanArray{Values: ba}
+		wrapped = &base.BoolArrayValue{Data: ba}
 	case "string":
-		wrapped = &base.String{Value: v[1]}
+		wrapped = &base.StringValue{Data: v[1]}
 	case "string[]":
 		var sa []string
 		val := strings.Split(v[1], ",")
 		for _, value := range val {
 			sa = append(sa, value)
 		}
-		wrapped = &base.StringArray{Values: sa}
+		wrapped = &base.StringArrayValue{Data: sa}
 	case "double":
 		doubleVal, err := strconv.ParseFloat(v[1], 64)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse float: %v", err)
 		}
-		wrapped = &base.Double{Value: doubleVal}
+		wrapped = &base.DoubleValue{Data: doubleVal}
 	case "double[]":
 		var da []float64
 		val := strings.Split(v[1], ",")
@@ -95,13 +95,13 @@ func Attribute(attribute string) (*base.Attribute, error) {
 			}
 			da = append(da, doubleVal)
 		}
-		wrapped = &base.DoubleArray{Values: da}
+		wrapped = &base.DoubleArrayValue{Data: da}
 	case "integer":
 		intVal, err := strconv.ParseInt(v[1], 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse integer: %v", err)
 		}
-		wrapped = &base.Integer{Value: int32(intVal)}
+		wrapped = &base.IntegerValue{Data: int32(intVal)}
 	case "integer[]":
 
 		var ia []int32
@@ -113,7 +113,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 			}
 			ia = append(ia, int32(intVal))
 		}
-		wrapped = &base.IntegerArray{Values: ia}
+		wrapped = &base.IntegerArrayValue{Data: ia}
 	default:
 		return nil, ErrInvalidValue
 	}
@@ -184,66 +184,66 @@ func AnyToString(any *anypb.Any) string {
 	// Convert the Any proto message into string based on its TypeUrl
 	switch any.TypeUrl {
 	case "type.googleapis.com/base.v1.Boolean":
-		boolVal := &base.Boolean{}
+		boolVal := &base.BoolValue{}
 		if err := any.UnmarshalTo(boolVal); err != nil {
 			return "undefined"
 		}
-		str = strconv.FormatBool(boolVal.Value)
+		str = strconv.FormatBool(boolVal.Data)
 	case "type.googleapis.com/base.v1.BooleanArray":
-		boolVal := &base.BooleanArray{}
+		boolVal := &base.BoolArrayValue{}
 		if err := any.UnmarshalTo(boolVal); err != nil {
 			return "undefined"
 		}
 		var strs []string
-		for _, b := range boolVal.GetValues() {
+		for _, b := range boolVal.GetData() {
 			strs = append(strs, strconv.FormatBool(b))
 		}
 		str = strings.Join(strs, ",")
 	case "type.googleapis.com/base.v1.String":
-		stringVal := &base.String{}
+		stringVal := &base.StringValue{}
 		if err := any.UnmarshalTo(stringVal); err != nil {
 			return "undefined"
 		}
-		str = stringVal.Value
+		str = stringVal.Data
 	case "type.googleapis.com/base.v1.StringArray":
-		stringVal := &base.StringArray{}
+		stringVal := &base.StringArrayValue{}
 		if err := any.UnmarshalTo(stringVal); err != nil {
 			return "undefined"
 		}
 		var strs []string
-		for _, v := range stringVal.GetValues() {
+		for _, v := range stringVal.GetData() {
 			strs = append(strs, v)
 		}
 		str = strings.Join(strs, ",")
 	case "type.googleapis.com/base.v1.Double":
-		doubleVal := &base.Double{}
+		doubleVal := &base.DoubleValue{}
 		if err := any.UnmarshalTo(doubleVal); err != nil {
 			return "undefined"
 		}
-		str = strconv.FormatFloat(doubleVal.Value, 'f', -1, 64)
+		str = strconv.FormatFloat(doubleVal.Data, 'f', -1, 64)
 	case "type.googleapis.com/base.v1.DoubleArray":
-		doubleVal := &base.DoubleArray{}
+		doubleVal := &base.DoubleArrayValue{}
 		if err := any.UnmarshalTo(doubleVal); err != nil {
 			return "undefined"
 		}
 		var strs []string
-		for _, v := range doubleVal.GetValues() {
+		for _, v := range doubleVal.GetData() {
 			strs = append(strs, strconv.FormatFloat(v, 'f', -1, 64))
 		}
 		str = strings.Join(strs, ",")
 	case "type.googleapis.com/base.v1.Integer":
-		intVal := &base.Integer{}
+		intVal := &base.IntegerValue{}
 		if err := any.UnmarshalTo(intVal); err != nil {
 			return "undefined"
 		}
-		str = strconv.Itoa(int(intVal.Value))
+		str = strconv.Itoa(int(intVal.Data))
 	case "type.googleapis.com/base.v1.IntegerArray":
-		intVal := &base.IntegerArray{}
+		intVal := &base.IntegerArrayValue{}
 		if err := any.UnmarshalTo(intVal); err != nil {
 			return "undefined"
 		}
 		var strs []string
-		for _, v := range intVal.GetValues() {
+		for _, v := range intVal.GetData() {
 			strs = append(strs, strconv.Itoa(int(v)))
 		}
 		str = strings.Join(strs, ",")
@@ -293,21 +293,21 @@ func ValidateValue(any *anypb.Any, attributeType base.AttributeType) error {
 	// Depending on the expected attribute type, assign 'target' a new instance of the corresponding specific type.
 	switch attributeType {
 	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER:
-		target = &base.Integer{}
+		target = &base.IntegerValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER_ARRAY:
-		target = &base.IntegerArray{}
+		target = &base.IntegerArrayValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE:
-		target = &base.Double{}
+		target = &base.DoubleValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE_ARRAY:
-		target = &base.DoubleArray{}
+		target = &base.DoubleArrayValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
-		target = &base.String{}
+		target = &base.StringValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY:
-		target = &base.StringArray{}
+		target = &base.StringArrayValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
-		target = &base.Boolean{}
+		target = &base.BoolValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY:
-		target = &base.BooleanArray{}
+		target = &base.BoolArrayValue{}
 	default:
 		// If attributeType doesn't match any of the known types, return an error indicating invalid argument.
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())

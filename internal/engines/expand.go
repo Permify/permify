@@ -519,7 +519,7 @@ func (engine *ExpandEngine) expandDirectAttribute(
 				},
 				Attribute: request.GetPermission(),
 			}
-			val.Value, err = anypb.New(&base.Boolean{Value: false})
+			val.Value, err = anypb.New(&base.BoolValue{Data: false})
 			if err != nil {
 				expandChan <- expandFailResponse(err)
 				return
@@ -550,7 +550,7 @@ func (engine *ExpandEngine) expandDirectAttribute(
 // It takes a PermissionExpandRequest and a Call as parameters and returns an ExpandFunction.
 func (engine *ExpandEngine) expandCall(
 	request *base.PermissionExpandRequest, // The request object containing information necessary for the expansion.
-	call *base.Call, // The call object that defines the rule name and its arguments.
+	call *base.Call,                       // The call object that defines the rule name and its arguments.
 ) ExpandFunction { // The function returns an ExpandFunction.
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) { // defining the returned function.
 
@@ -688,7 +688,7 @@ func (engine *ExpandEngine) expandCall(
 // It takes a PermissionExpandRequest and a ComputedAttribute as parameters and returns an ExpandFunction.
 func (engine *ExpandEngine) expandComputedAttribute(
 	request *base.PermissionExpandRequest, // The request object containing necessary information for the expansion.
-	ca *base.ComputedAttribute, // The computed attribute object that has the name of the attribute to be computed.
+	ca *base.ComputedAttribute,            // The computed attribute object that has the name of the attribute to be computed.
 ) ExpandFunction { // The function returns an ExpandFunction.
 	return func(ctx context.Context, resultChan chan<- ExpandResponse) { // defining the returned function.
 
@@ -712,11 +712,11 @@ func (engine *ExpandEngine) expandComputedAttribute(
 // a slice of arguments, slice of ExpandFunctions, and an operation of type base.ExpandTreeNode_Operation.
 // It returns an ExpandResponse.
 func expandOperation(
-	ctx context.Context, // The context of this operation, which may carry deadlines, cancellation signals, etc.
-	entity *base.Entity, // The entity on which the operation will be performed.
-	permission string, // The permission string required for the operation.
-	arguments []*base.Argument, // A slice of arguments required for the operation.
-	functions []ExpandFunction, // A slice of functions that will be used to expand the operation.
+	ctx context.Context,              // The context of this operation, which may carry deadlines, cancellation signals, etc.
+	entity *base.Entity,              // The entity on which the operation will be performed.
+	permission string,                // The permission string required for the operation.
+	arguments []*base.Argument,       // A slice of arguments required for the operation.
+	functions []ExpandFunction,       // A slice of functions that will be used to expand the operation.
 	op base.ExpandTreeNode_Operation, // The operation to be performed.
 ) ExpandResponse { // The function returns an ExpandResponse.
 

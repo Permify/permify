@@ -536,34 +536,42 @@ message DataChange {
   }
 }
 
-message String {
-  string value = 1;
+// Wrapper for a single string value.
+message StringValue {
+  string data = 1; // The string value.
 }
 
-message Integer {
-  int32 value = 1;
+// Wrapper for a single integer value.
+message IntegerValue {
+  int32 data = 1; // The integer value.
 }
 
-message Double {
-  double value = 1;
+// Wrapper for a single double precision floating point value.
+message DoubleValue {
+  double data = 1; // The double value.
 }
 
-message Boolean {
-  bool value = 1;
+// Wrapper for a single boolean value.
+message BoolValue {
+  bool data = 1; // The boolean value.
 }
 
-message StringArray {
-  repeated string values = 1;
+// Wrapper for an array of strings.
+message StringArrayValue {
+  repeated string data = 1; // The array of strings.
 }
 
-message IntegerArray {
-  repeated int32 values = 1;
+// Wrapper for an array of integers.
+message IntegerArrayValue {
+  repeated int32 data = 1; // The array of integers.
 }
 
-message DoubleArray {
-  repeated double values = 1;
+// Wrapper for an array of double precision floating point values.
+message DoubleArrayValue {
+  repeated double data = 1; // The array of doubles.
 }
 
-message BooleanArray {
-  repeated bool values = 1;
+// Wrapper for an array of booleans.
+message BoolArrayValue {
+  repeated bool data = 1; // The array of booleans.
 }

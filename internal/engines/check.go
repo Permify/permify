@@ -412,7 +412,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 // ComputedUserSet data structure. It returns a CheckFunction closure that performs the check.
 func (engine *CheckEngine) checkComputedUserSet(
 	request *base.PermissionCheckRequest, // The request containing details about the permission to be checked
-	cu *base.ComputedUserSet, // The computed user set containing user set information
+	cu *base.ComputedUserSet,             // The computed user set containing user set information
 ) CheckFunction {
 	// The returned CheckFunction invokes a permission check with a new request that is almost the same
 	// as the incoming request, but changes the Permission to be the relation defined in the computed user set.
@@ -496,14 +496,14 @@ func (engine *CheckEngine) checkDirectAttribute(
 		}
 
 		// Unmarshal the attribute value into a BoolValue message.
-		var msg base.Boolean
+		var msg base.BoolValue
 		if err := val.GetValue().UnmarshalTo(&msg); err != nil {
 			// If there was an error unmarshaling, return a denied response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
 		}
 
 		// If the attribute's value is true, return an allowed response.
-		if msg.Value {
+		if msg.Data {
 			return allowed(&base.PermissionCheckResponseMetadata{}), nil
 		}
 
@@ -516,7 +516,7 @@ func (engine *CheckEngine) checkDirectAttribute(
 // It returns a function (CheckFunction) that when called, performs the permission check.
 func (engine *CheckEngine) checkCall(
 	request *base.PermissionCheckRequest, // The request containing the details for the permission check
-	call *base.Call, // The specific call to be checked
+	call *base.Call,                      // The specific call to be checked
 ) CheckFunction {
 	// The function returned by checkCall
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {

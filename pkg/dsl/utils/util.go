@@ -60,54 +60,54 @@ func GetCelType(attributeType base.AttributeType) (*types.Type, error) {
 
 func ConvertProtoAnyToInterface(a *anypb.Any) interface{} {
 	switch a.GetTypeUrl() {
-	case "type.googleapis.com/base.v1.String":
-		stringValue := &base.String{}
+	case "type.googleapis.com/base.v1.StringValue":
+		stringValue := &base.StringValue{}
 		if err := anypb.UnmarshalTo(a, stringValue, proto.UnmarshalOptions{}); err != nil {
 			return ""
 		}
-		return stringValue.GetValue()
-	case "type.googleapis.com/base.v1.Boolean":
-		boolValue := &base.Boolean{}
+		return stringValue.GetData()
+	case "type.googleapis.com/base.v1.BoolValue":
+		boolValue := &base.BoolValue{}
 		if err := anypb.UnmarshalTo(a, boolValue, proto.UnmarshalOptions{}); err != nil {
 			return false
 		}
-		return boolValue.GetValue()
-	case "type.googleapis.com/base.v1.Integer":
-		integerValue := &base.Integer{}
+		return boolValue.GetData()
+	case "type.googleapis.com/base.v1.IntegerValue":
+		integerValue := &base.IntegerValue{}
 		if err := anypb.UnmarshalTo(a, integerValue, proto.UnmarshalOptions{}); err != nil {
 			return 0
 		}
-		return integerValue.GetValue()
-	case "type.googleapis.com/base.v1.Double":
-		doubleValue := &base.Double{}
+		return integerValue.GetData()
+	case "type.googleapis.com/base.v1.DoubleValue":
+		doubleValue := &base.DoubleValue{}
 		if err := anypb.UnmarshalTo(a, doubleValue, proto.UnmarshalOptions{}); err != nil {
 			return 0.0
 		}
-		return doubleValue.GetValue()
-	case "type.googleapis.com/base.v1.StringArray":
-		stringArrayValue := &base.StringArray{}
+		return doubleValue.GetData()
+	case "type.googleapis.com/base.v1.StringArrayValue":
+		stringArrayValue := &base.StringArrayValue{}
 		if err := anypb.UnmarshalTo(a, stringArrayValue, proto.UnmarshalOptions{}); err != nil {
 			return []string{}
 		}
-		return stringArrayValue.GetValues()
-	case "type.googleapis.com/base.v1.BooleanArray":
-		booleanArrayValue := &base.BooleanArray{}
+		return stringArrayValue.GetData()
+	case "type.googleapis.com/base.v1.BoolArrayValue":
+		booleanArrayValue := &base.BoolArrayValue{}
 		if err := anypb.UnmarshalTo(a, booleanArrayValue, proto.UnmarshalOptions{}); err != nil {
 			return []bool{}
 		}
-		return booleanArrayValue.GetValues()
-	case "type.googleapis.com/base.v1.IntegerArray":
-		integerArrayValue := &base.IntegerArray{}
+		return booleanArrayValue.GetData()
+	case "type.googleapis.com/base.v1.IntegerArrayValue":
+		integerArrayValue := &base.IntegerArrayValue{}
 		if err := anypb.UnmarshalTo(a, integerArrayValue, proto.UnmarshalOptions{}); err != nil {
 			return []int32{}
 		}
-		return integerArrayValue.GetValues()
-	case "type.googleapis.com/base.v1.DoubleArray":
-		doubleArrayValue := &base.DoubleArray{}
+		return integerArrayValue.GetData()
+	case "type.googleapis.com/base.v1.DoubleArrayValue":
+		doubleArrayValue := &base.DoubleArrayValue{}
 		if err := anypb.UnmarshalTo(a, doubleArrayValue, proto.UnmarshalOptions{}); err != nil {
 			return []float64{}
 		}
-		return doubleArrayValue.GetValues()
+		return doubleArrayValue.GetData()
 	default:
 		return ""
 	}
