@@ -22,7 +22,7 @@ var _ = Describe("utils", func() {
 				{
 					typ: base.AttributeType_ATTRIBUTE_TYPE_STRING,
 					expectedAny: &anypb.Any{
-						TypeUrl: "type.googleapis.com/base.v1.String",
+						TypeUrl: "type.googleapis.com/base.v1.StringValue",
 						Value:   []byte(""),
 					},
 					expectedErr: nil,
@@ -30,7 +30,7 @@ var _ = Describe("utils", func() {
 				{
 					typ: base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
 					expectedAny: &anypb.Any{
-						TypeUrl: "type.googleapis.com/base.v1.StringArray",
+						TypeUrl: "type.googleapis.com/base.v1.StringArrayValue",
 						Value:   []byte(""),
 					},
 					expectedErr: nil,
@@ -38,7 +38,7 @@ var _ = Describe("utils", func() {
 				{
 					typ: base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
 					expectedAny: &anypb.Any{
-						TypeUrl: "type.googleapis.com/base.v1.Integer",
+						TypeUrl: "type.googleapis.com/base.v1.IntegerValue",
 						Value:   []byte(""),
 					},
 					expectedErr: nil,
@@ -46,7 +46,7 @@ var _ = Describe("utils", func() {
 				{
 					typ: base.AttributeType_ATTRIBUTE_TYPE_INTEGER_ARRAY,
 					expectedAny: &anypb.Any{
-						TypeUrl: "type.googleapis.com/base.v1.IntegerArray",
+						TypeUrl: "type.googleapis.com/base.v1.IntegerArrayValue",
 						Value:   []byte(""),
 					},
 					expectedErr: nil,
@@ -54,7 +54,7 @@ var _ = Describe("utils", func() {
 				{
 					typ: base.AttributeType_ATTRIBUTE_TYPE_DOUBLE,
 					expectedAny: &anypb.Any{
-						TypeUrl: "type.googleapis.com/base.v1.Double",
+						TypeUrl: "type.googleapis.com/base.v1.DoubleValue",
 						Value:   []byte(""),
 					},
 					expectedErr: nil,
@@ -62,7 +62,7 @@ var _ = Describe("utils", func() {
 				{
 					typ: base.AttributeType_ATTRIBUTE_TYPE_DOUBLE_ARRAY,
 					expectedAny: &anypb.Any{
-						TypeUrl: "type.googleapis.com/base.v1.DoubleArray",
+						TypeUrl: "type.googleapis.com/base.v1.DoubleArrayValue",
 						Value:   []byte(""),
 					},
 					expectedErr: nil,
@@ -70,7 +70,7 @@ var _ = Describe("utils", func() {
 				{
 					typ: base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
 					expectedAny: &anypb.Any{
-						TypeUrl: "type.googleapis.com/base.v1.Boolean",
+						TypeUrl: "type.googleapis.com/base.v1.BooleanValue",
 						Value:   []byte(""),
 					},
 					expectedErr: nil,
@@ -78,7 +78,7 @@ var _ = Describe("utils", func() {
 				{
 					typ: base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY,
 					expectedAny: &anypb.Any{
-						TypeUrl: "type.googleapis.com/base.v1.BooleanArray",
+						TypeUrl: "type.googleapis.com/base.v1.BooleanArrayValue",
 						Value:   []byte(""),
 					},
 					expectedErr: nil,
@@ -125,14 +125,14 @@ var _ = Describe("utils", func() {
 				value    interface{}
 				typeName string
 			}{
-				{true, "base.v1.Boolean"},
-				{boolArray, "base.v1.BooleanArray"},
-				{intValue, "base.v1.Integer"},
-				{intArray, "base.v1.IntegerArray"},
-				{floatValue, "base.v1.Double"},
-				{floatArray, "base.v1.DoubleArray"},
-				{stringValue, "base.v1.String"},
-				{stringArray, "base.v1.StringArray"},
+				{true, "base.v1.BooleanValue"},
+				{boolArray, "base.v1.BooleanArrayValue"},
+				{intValue, "base.v1.IntegerValue"},
+				{intArray, "base.v1.IntegerArrayValue"},
+				{floatValue, "base.v1.DoubleValue"},
+				{floatArray, "base.v1.DoubleArrayValue"},
+				{stringValue, "base.v1.StringValue"},
+				{stringArray, "base.v1.StringArrayValue"},
 			}
 
 			for _, testCase := range supportedTestCases {
@@ -210,7 +210,7 @@ var _ = Describe("utils", func() {
 
 			duplicates := getDuplicates(inputWithDuplicates)
 
-			Expect(reflect.DeepEqual(expectedDuplicates, duplicates)).Should(Equal(true))
+			Expect(isSameArray(expectedDuplicates, duplicates)).Should(Equal(true))
 
 			// Test case with no duplicates
 			inputWithoutDuplicates := []string{"apple", "banana", "cherry", "date"}
@@ -218,7 +218,7 @@ var _ = Describe("utils", func() {
 
 			noDuplicates := getDuplicates(inputWithoutDuplicates)
 
-			Expect(reflect.DeepEqual(expectedNoDuplicates, noDuplicates)).Should(Equal(true))
+			Expect(isSameArray(expectedNoDuplicates, noDuplicates)).Should(Equal(true))
 
 			// Test case with an empty input slice
 			emptyInput := []string{}

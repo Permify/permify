@@ -9,6 +9,8 @@ import (
 	"github.com/cespare/xxhash/v2"
 
 	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/internal/schema"
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/logger"
@@ -18,25 +20,50 @@ import (
 
 // CheckEngineWithKeys is a struct that holds an instance of a cache.Cache for managing engine keys.
 type CheckEngineWithKeys struct {
-	checker invoke.Check
-	cache   cache.Cache
-	l       *logger.Logger
+	// schemaReader is responsible for reading schema information
+	schemaReader storage.SchemaReader
+	checker      invoke.Check
+	cache        cache.Cache
+	l            *logger.Logger
 }
 
 // NewCheckEngineWithKeys creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineWithKeys(checker invoke.Check, cache cache.Cache, l *logger.Logger) invoke.Check {
+func NewCheckEngineWithKeys(checker invoke.Check, schemaReader storage.SchemaReader, cache cache.Cache, l *logger.Logger) invoke.Check {
 	return &CheckEngineWithKeys{
-		checker: checker,
-		cache:   cache,
-		l:       l,
+		schemaReader: schemaReader,
+		checker:      checker,
+		cache:        cache,
+		l:            l,
 	}
 }
 
 // Check performs a permission check for a given request, using the cached results if available.
 func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+	// Retrieve entity definition
+	var en *base.EntityDefinition
+	en, _, err = c.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	if err != nil {
+		return &base.PermissionCheckResponse{
+			Can: base.CheckResult_CHECK_RESULT_DENIED,
+			Metadata: &base.PermissionCheckResponseMetadata{
+				CheckCount: 0,
+			},
+		}, err
+	}
+
+	isRelational := false
+
+	// Determine the type of the reference by name in the given entity definition.
+	tor, err := schema.GetTypeOfReferenceByNameInEntityDefinition(en, request.GetPermission())
+	if err == nil {
+		if tor != base.EntityDefinition_REFERENCE_ATTRIBUTE {
+			isRelational = true
+		}
+	}
+
 	// Try to get the cached result for the given request.
-	res, found := c.getCheckKey(request)
+	res, found := c.getCheckKey(request, isRelational)
 
 	// If a cached result is found, handle exclusion and return the result.
 	if found {
@@ -63,7 +90,7 @@ func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.Permissio
 	c.setCheckKey(request, &base.PermissionCheckResponse{
 		Can:      res.GetCan(),
 		Metadata: &base.PermissionCheckResponseMetadata{},
-	})
+	}, isRelational)
 
 	// Return the result of the permission check.
 	return res, err
@@ -72,7 +99,7 @@ func (c *CheckEngineWithKeys) Check(ctx context.Context, request *base.Permissio
 // GetCheckKey retrieves the value for the given key from the EngineKeys cache.
 // It returns the PermissionCheckResponse if the key is found, and a boolean value
 // indicating whether the key was found or not.
-func (c *CheckEngineWithKeys) getCheckKey(key *base.PermissionCheckRequest) (*base.PermissionCheckResponse, bool) {
+func (c *CheckEngineWithKeys) getCheckKey(key *base.PermissionCheckRequest, isRelational bool) (*base.PermissionCheckResponse, bool) {
 	if key == nil {
 		// If either the key or value is nil, return false
 		return nil, false
@@ -82,7 +109,7 @@ func (c *CheckEngineWithKeys) getCheckKey(key *base.PermissionCheckRequest) (*ba
 	h := xxhash.New()
 
 	// Write the checkKey string to the hash object
-	_, err := h.Write([]byte(GenerateKey(key)))
+	_, err := h.Write([]byte(GenerateKey(key, isRelational)))
 	if err != nil {
 		// If there's an error, return nil and false
 		return nil, false
@@ -112,7 +139,7 @@ func (c *CheckEngineWithKeys) getCheckKey(key *base.PermissionCheckRequest) (*ba
 // setCheckKey is a function to set a check key in the cache of the CheckEngineWithKeys.
 // It takes a permission check request as a key, a permission check response as a value,
 // and returns a boolean value indicating if the operation was successful.
-func (c *CheckEngineWithKeys) setCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse) bool {
+func (c *CheckEngineWithKeys) setCheckKey(key *base.PermissionCheckRequest, value *base.PermissionCheckResponse, isRelational bool) bool {
 	// If either the key or the value is nil, return false.
 	if key == nil || value == nil {
 		return false
@@ -123,7 +150,7 @@ func (c *CheckEngineWithKeys) setCheckKey(key *base.PermissionCheckRequest, valu
 
 	// Generate a key string from the permission check request and write it to the hash.
 	// If there's an error while writing to the hash, return false.
-	size, err := h.Write([]byte(GenerateKey(key)))
+	size, err := h.Write([]byte(GenerateKey(key, isRelational)))
 	if err != nil {
 		return false
 	}
@@ -133,18 +160,12 @@ func (c *CheckEngineWithKeys) setCheckKey(key *base.PermissionCheckRequest, valu
 
 	// Set the hashed key and the check result in the cache, using the size of the hashed key as an expiry.
 	// The Set method should return true if the operation was successful, so return the result.
-	return c.cache.Set(k, value.Can, int64(size))
+	return c.cache.Set(k, value.GetCan(), int64(size))
 }
 
 // GenerateKey function takes a PermissionCheckRequest and generates a unique key
 // Key format: check|{tenant_id}|{schema_version}|{snap_token}|{context}|{entity:id#permission(optional_arguments)@subject:id#optional_relation}
-func GenerateKey(key *base.PermissionCheckRequest) string {
-	// Create a new EntityAndRelation object with the entity and permission from the key
-	entityRelation := &base.EntityAndRelation{
-		Entity:   key.GetEntity(),
-		Relation: key.GetPermission(),
-	}
-
+func GenerateKey(key *base.PermissionCheckRequest, isRelational bool) string {
 	// Initialize the parts slice with the string "check"
 	parts := []string{"check"}
 
@@ -168,12 +189,22 @@ func GenerateKey(key *base.PermissionCheckRequest) string {
 		parts = append(parts, ContextToString(ctx))
 	}
 
-	// Convert entity and relation to string with any optional arguments and append to parts
-	entityRelationString := tuple.EntityAndRelationToString(entityRelation, key.GetArguments()...)
-	subjectString := tuple.SubjectToString(key.GetSubject())
+	if isRelational {
+		// Convert entity and relation to string with any optional arguments and append to parts
+		entityRelationString := tuple.EntityAndRelationToString(key.GetEntity(), key.GetPermission())
 
-	if entityRelationString != "" {
-		parts = append(parts, fmt.Sprintf("%s@%s", entityRelationString, subjectString))
+		subjectString := tuple.SubjectToString(key.GetSubject())
+
+		if entityRelationString != "" {
+			parts = append(parts, fmt.Sprintf("%s@%s", entityRelationString, subjectString))
+		}
+
+	} else {
+		parts = append(parts, attribute.EntityAndCallOrAttributeToString(
+			key.GetEntity(),
+			key.GetPermission(),
+			key.GetArguments()...,
+		))
 	}
 
 	// Join all parts with "|" delimiter to generate the final key

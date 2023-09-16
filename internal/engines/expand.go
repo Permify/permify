@@ -81,11 +81,7 @@ func (engine *ExpandEngine) expand(ctx context.Context, request *base.Permission
 
 	var tor base.EntityDefinition_Reference
 	// Get the type of reference by name in the entity definition.
-	tor, err = schema.GetTypeOfReferenceByNameInEntityDefinition(en, request.GetPermission())
-	if err != nil {
-		// If an error occurred while getting the type of reference, return an ExpandResponse with the error.
-		return ExpandResponse{Err: err}
-	}
+	tor, _ = schema.GetTypeOfReferenceByNameInEntityDefinition(en, request.GetPermission())
 
 	// Depending on the type of reference, execute different branches of code.
 	switch tor {
@@ -114,10 +110,7 @@ func (engine *ExpandEngine) expand(ctx context.Context, request *base.Permission
 		fn = engine.expandDirectRelation(request)
 	default:
 		// If the reference is neither permission, attribute, nor relation, use the 'expandCall' method.
-		fn = engine.expandCall(request, &base.Call{
-			RuleName:  request.GetPermission(),
-			Arguments: request.GetArguments(),
-		})
+		fn = engine.expandDirectCall(request)
 	}
 
 	if fn == nil {
@@ -519,7 +512,7 @@ func (engine *ExpandEngine) expandDirectAttribute(
 				},
 				Attribute: request.GetPermission(),
 			}
-			val.Value, err = anypb.New(&base.Boolean{Value: false})
+			val.Value, err = anypb.New(&base.BooleanValue{Data: false})
 			if err != nil {
 				expandChan <- expandFailResponse(err)
 				return
@@ -546,11 +539,32 @@ func (engine *ExpandEngine) expandDirectAttribute(
 	}
 }
 
+// expandCall returns an ExpandFunction for the given request and call.
+// The returned function, when executed, sends the expanded permission result
+// to the provided result channel.
+func (engine *ExpandEngine) expandCall(
+	request *base.PermissionExpandRequest,
+	call *base.Call,
+) ExpandFunction {
+	return func(ctx context.Context, resultChan chan<- ExpandResponse) {
+		resultChan <- engine.expand(ctx, &base.PermissionExpandRequest{
+			TenantId: request.GetTenantId(),
+			Entity: &base.Entity{
+				Type: request.GetEntity().GetType(),
+				Id:   request.GetEntity().GetId(),
+			},
+			Permission: call.GetRuleName(),
+			Metadata:   request.GetMetadata(),
+			Context:    request.GetContext(),
+			Arguments:  call.GetArguments(),
+		})
+	}
+}
+
 // The function 'expandCall' is a method on the ExpandEngine struct.
 // It takes a PermissionExpandRequest and a Call as parameters and returns an ExpandFunction.
-func (engine *ExpandEngine) expandCall(
+func (engine *ExpandEngine) expandDirectCall(
 	request *base.PermissionExpandRequest, // The request object containing information necessary for the expansion.
-	call *base.Call, // The call object that defines the rule name and its arguments.
 ) ExpandFunction { // The function returns an ExpandFunction.
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) { // defining the returned function.
 
@@ -559,7 +573,7 @@ func (engine *ExpandEngine) expandCall(
 		var ru *base.RuleDefinition // variable to hold the rule definition.
 
 		// Read the rule definition based on the rule name in the call.
-		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), call.GetRuleName(), request.GetMetadata().GetSchemaVersion())
+		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
 		if err != nil {
 			// If there's an error in reading the rule definition, send a failure response through the channel and return from the function.
 			expandChan <- expandFailResponse(err)
@@ -573,7 +587,7 @@ func (engine *ExpandEngine) expandCall(
 		attributes := make([]string, 0)
 
 		// For each argument in the call...
-		for _, arg := range call.GetArguments() {
+		for _, arg := range request.GetArguments() {
 			switch actualArg := arg.Type.(type) { // Switch on the type of the argument.
 			case *base.Argument_ComputedAttribute: // If the argument is a ComputedAttribute...
 				attrName := actualArg.ComputedAttribute.GetName() // get the name of the attribute.
@@ -667,8 +681,8 @@ func (engine *ExpandEngine) expandCall(
 			Response: &base.PermissionExpandResponse{
 				Tree: &base.Expand{
 					Entity:     request.GetEntity(),
-					Permission: call.GetRuleName(),
-					Arguments:  call.GetArguments(),
+					Permission: request.GetPermission(),
+					Arguments:  request.GetArguments(),
 					Node: &base.Expand_Leaf{
 						Leaf: &base.ExpandLeaf{
 							Type: &base.ExpandLeaf_Values{

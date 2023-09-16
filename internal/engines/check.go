@@ -123,11 +123,7 @@ func (engine *CheckEngine) check(
 	var fn CheckFunction
 
 	// Determine the type of the reference by name in the given entity definition.
-	tor, err := schema.GetTypeOfReferenceByNameInEntityDefinition(en, request.GetPermission())
-	if err != nil {
-		// If an error is encountered while determining the type, a CheckFunction is returned that always fails with this error.
-		return checkFail(err)
-	}
+	tor, _ := schema.GetTypeOfReferenceByNameInEntityDefinition(en, request.GetPermission())
 
 	// Based on the type of the reference, define the CheckFunction in different ways.
 	switch tor {
@@ -155,11 +151,7 @@ func (engine *CheckEngine) check(
 		// If the reference is a relation, check the direct relation.
 		fn = engine.checkDirectRelation(request)
 	default:
-		// If the reference is not a permission, attribute or relation, check the call.
-		fn = engine.checkCall(request, &base.Call{
-			RuleName:  request.GetPermission(),
-			Arguments: request.GetArguments(),
-		})
+		fn = engine.checkDirectCall(request)
 	}
 
 	// If the CheckFunction is still undefined after the switch, return a CheckFunction that always fails with an error indicating an undefined child kind.
@@ -496,14 +488,14 @@ func (engine *CheckEngine) checkDirectAttribute(
 		}
 
 		// Unmarshal the attribute value into a BoolValue message.
-		var msg base.Boolean
+		var msg base.BooleanValue
 		if err := val.GetValue().UnmarshalTo(&msg); err != nil {
 			// If there was an error unmarshaling, return a denied response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
 		}
 
 		// If the attribute's value is true, return an allowed response.
-		if msg.Value {
+		if msg.Data {
 			return allowed(&base.PermissionCheckResponseMetadata{}), nil
 		}
 
@@ -512,13 +504,30 @@ func (engine *CheckEngine) checkDirectAttribute(
 	}
 }
 
-// checkCall is a function that validates a call using the CheckEngine.
-// It returns a function (CheckFunction) that when called, performs the permission check.
+// checkCall creates and returns a CheckFunction based on the provided request and call details.
+// It essentially constructs a new PermissionCheckRequest based on the call details and then invokes
+// the permission check using the engine's invoke method.
 func (engine *CheckEngine) checkCall(
-	request *base.PermissionCheckRequest, // The request containing the details for the permission check
-	call *base.Call, // The specific call to be checked
+	request *base.PermissionCheckRequest,
+	call *base.Call,
 ) CheckFunction {
-	// The function returned by checkCall
+	// Construct a new permission check request based on the input request and call details.
+	return engine.invoke(&base.PermissionCheckRequest{
+		TenantId:   request.GetTenantId(),
+		Entity:     request.GetEntity(),
+		Permission: call.GetRuleName(),
+		Subject:    request.GetSubject(),
+		Metadata:   request.GetMetadata(),
+		Context:    request.GetContext(),
+		Arguments:  call.GetArguments(),
+	})
+}
+
+// checkDirectCall creates and returns a CheckFunction that performs direct permission checking.
+// The function evaluates permissions based on rule definitions, arguments, and attributes.
+func (engine *CheckEngine) checkDirectCall(
+	request *base.PermissionCheckRequest,
+) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 		var err error
 
@@ -529,52 +538,44 @@ func (engine *CheckEngine) checkCall(
 
 		// Read the rule definition from the schema. If an error occurs, return the default denied response.
 		var ru *base.RuleDefinition
-		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), call.GetRuleName(), request.GetMetadata().GetSchemaVersion())
+		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
 		if err != nil {
 			return emptyResp, err
 		}
 
-		// Prepare the arguments map to be used in the CEL evaluation
+		// Initialize an arguments map to hold argument values.
 		arguments := make(map[string]interface{})
 
-		// Prepare a slice for attributes
+		// List to store computed attributes.
 		attributes := make([]string, 0)
 
-		// Populate the arguments map based on the type of argument in the call
-		for _, arg := range call.GetArguments() {
+		// Iterate over request arguments to classify and process them.
+		for _, arg := range request.GetArguments() {
 			switch actualArg := arg.Type.(type) {
 			case *base.Argument_ComputedAttribute:
-				// Get the name of the computed attribute
+				// Handle computed attributes: Set them to a default empty value.
 				attrName := actualArg.ComputedAttribute.GetName()
-
-				// Get the empty value for this attribute type
 				emptyValue := getEmptyValueForType(ru.GetArguments()[attrName])
-
-				// Add the attribute with its empty value to the arguments map
 				arguments[attrName] = emptyValue
-
-				// Append the attribute to the attributes slice
 				attributes = append(attributes, attrName)
-			case *base.Argument_ContextAttribute:
-				// Get the name of the context attribute
-				attrName := actualArg.ContextAttribute.GetName()
 
-				// Get the value of the context attribute if exists, else get an empty value
+			case *base.Argument_ContextAttribute:
+				// Handle context attributes: Use the value from context or default to an empty value.
+				attrName := actualArg.ContextAttribute.GetName()
 				value, exists := request.GetContext().GetData().AsMap()[attrName]
 				if !exists {
 					value = getEmptyValueForType(ru.GetArguments()[attrName])
 				}
-
-				// Add the attribute with its value to the arguments map
 				arguments[attrName] = value
+
 			default:
-				// Return an error for unhandled types
+				// Return an error for any unsupported argument types.
 				return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 		}
 
+		// If there are computed attributes, fetch them from the data source.
 		if len(attributes) > 0 {
-			// Prepare the filter for querying attributes from the database
 			filter := &base.AttributeFilter{
 				Entity: &base.EntityFilter{
 					Type: request.GetEntity().GetType(),
@@ -583,7 +584,6 @@ func (engine *CheckEngine) checkCall(
 				Attributes: attributes,
 			}
 
-			// Query the database for the attributes and add them to the arguments map
 			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
 			if err != nil {
 				return denied(&base.PermissionCheckResponseMetadata{}), err
@@ -594,38 +594,37 @@ func (engine *CheckEngine) checkCall(
 				return denied(&base.PermissionCheckResponseMetadata{}), err
 			}
 
+			// Combine attributes from different sources ensuring uniqueness.
 			it := database.NewUniqueAttributeIterator(ait, cta)
-
 			for it.HasNext() {
 				next, ok := it.GetNext()
 				if !ok {
 					break
 				}
-
 				arguments[next.GetAttribute()] = utils.ConvertProtoAnyToInterface(next.GetValue())
 			}
 		}
 
-		// Prepare the CEL environment using the arguments in the rule definition
+		// Prepare the CEL environment with the argument values.
 		env, err := utils.ArgumentsAsCelEnv(ru.Arguments)
 		if err != nil {
 			return nil, err
 		}
 
-		// Prepare the CEL program using the rule's expression
+		// Compile the rule expression into an executable form.
 		exp := cel.CheckedExprToAst(ru.Expression)
 		prg, err := env.Program(exp)
 		if err != nil {
 			return nil, err
 		}
 
-		// Evaluate the CEL program with the arguments. If an error occurs, return a "denied" response.
+		// Evaluate the rule expression with the provided arguments.
 		out, _, err := prg.Eval(arguments)
 		if err != nil {
 			return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf("failed to evaluate expression: %w", err)
 		}
 
-		// Check if the result of the CEL evaluation is a boolean
+		// Ensure the result of evaluation is boolean and decide on permission.
 		result, ok := out.Value().(bool)
 		if !ok {
 			return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf("expected boolean result, but got %T", out.Value())

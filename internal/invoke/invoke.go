@@ -132,7 +132,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	ctx, span := tracer.Start(ctx, "check", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
-		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(tuple.RelationToString(request.GetPermission()))},
+		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
@@ -208,7 +208,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	// Increase the check count in the metrics.
 	invoker.checkCounter.Add(ctx, 1)
 
-	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.Can.String())})
+	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
 	return
 }
 

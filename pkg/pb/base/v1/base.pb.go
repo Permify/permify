@@ -2797,16 +2797,17 @@ func (*DataChange_Tuple) isDataChange_Type() {}
 
 func (*DataChange_Attribute) isDataChange_Type() {}
 
-type String struct {
+// Wrapper for a single string value.
+type StringValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Value string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	Data string `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"` // The string value.
 }
 
-func (x *String) Reset() {
-	*x = String{}
+func (x *StringValue) Reset() {
+	*x = StringValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_base_v1_base_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2814,13 +2815,13 @@ func (x *String) Reset() {
 	}
 }
 
-func (x *String) String() string {
+func (x *StringValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*String) ProtoMessage() {}
+func (*StringValue) ProtoMessage() {}
 
-func (x *String) ProtoReflect() protoreflect.Message {
+func (x *StringValue) ProtoReflect() protoreflect.Message {
 	mi := &file_base_v1_base_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2832,28 +2833,29 @@ func (x *String) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use String.ProtoReflect.Descriptor instead.
-func (*String) Descriptor() ([]byte, []int) {
+// Deprecated: Use StringValue.ProtoReflect.Descriptor instead.
+func (*StringValue) Descriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{37}
 }
 
-func (x *String) GetValue() string {
+func (x *StringValue) GetData() string {
 	if x != nil {
-		return x.Value
+		return x.Data
 	}
 	return ""
 }
 
-type Integer struct {
+// Wrapper for a single integer value.
+type IntegerValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Value int32 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
+	Data int32 `protobuf:"varint,1,opt,name=data,proto3" json:"data,omitempty"` // The integer value.
 }
 
-func (x *Integer) Reset() {
-	*x = Integer{}
+func (x *IntegerValue) Reset() {
+	*x = IntegerValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_base_v1_base_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2861,13 +2863,13 @@ func (x *Integer) Reset() {
 	}
 }
 
-func (x *Integer) String() string {
+func (x *IntegerValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Integer) ProtoMessage() {}
+func (*IntegerValue) ProtoMessage() {}
 
-func (x *Integer) ProtoReflect() protoreflect.Message {
+func (x *IntegerValue) ProtoReflect() protoreflect.Message {
 	mi := &file_base_v1_base_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2879,28 +2881,29 @@ func (x *Integer) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Integer.ProtoReflect.Descriptor instead.
-func (*Integer) Descriptor() ([]byte, []int) {
+// Deprecated: Use IntegerValue.ProtoReflect.Descriptor instead.
+func (*IntegerValue) Descriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{38}
 }
 
-func (x *Integer) GetValue() int32 {
+func (x *IntegerValue) GetData() int32 {
 	if x != nil {
-		return x.Value
+		return x.Data
 	}
 	return 0
 }
 
-type Double struct {
+// Wrapper for a single double precision floating point value.
+type DoubleValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Value float64 `protobuf:"fixed64,1,opt,name=value,proto3" json:"value,omitempty"`
+	Data float64 `protobuf:"fixed64,1,opt,name=data,proto3" json:"data,omitempty"` // The double value.
 }
 
-func (x *Double) Reset() {
-	*x = Double{}
+func (x *DoubleValue) Reset() {
+	*x = DoubleValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_base_v1_base_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2908,13 +2911,13 @@ func (x *Double) Reset() {
 	}
 }
 
-func (x *Double) String() string {
+func (x *DoubleValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Double) ProtoMessage() {}
+func (*DoubleValue) ProtoMessage() {}
 
-func (x *Double) ProtoReflect() protoreflect.Message {
+func (x *DoubleValue) ProtoReflect() protoreflect.Message {
 	mi := &file_base_v1_base_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2926,28 +2929,29 @@ func (x *Double) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Double.ProtoReflect.Descriptor instead.
-func (*Double) Descriptor() ([]byte, []int) {
+// Deprecated: Use DoubleValue.ProtoReflect.Descriptor instead.
+func (*DoubleValue) Descriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{39}
 }
 
-func (x *Double) GetValue() float64 {
+func (x *DoubleValue) GetData() float64 {
 	if x != nil {
-		return x.Value
+		return x.Data
 	}
 	return 0
 }
 
-type Boolean struct {
+// Wrapper for a single boolean value.
+type BooleanValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Value bool `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
+	Data bool `protobuf:"varint,1,opt,name=data,proto3" json:"data,omitempty"` // The boolean value.
 }
 
-func (x *Boolean) Reset() {
-	*x = Boolean{}
+func (x *BooleanValue) Reset() {
+	*x = BooleanValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_base_v1_base_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2955,13 +2959,13 @@ func (x *Boolean) Reset() {
 	}
 }
 
-func (x *Boolean) String() string {
+func (x *BooleanValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Boolean) ProtoMessage() {}
+func (*BooleanValue) ProtoMessage() {}
 
-func (x *Boolean) ProtoReflect() protoreflect.Message {
+func (x *BooleanValue) ProtoReflect() protoreflect.Message {
 	mi := &file_base_v1_base_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2973,28 +2977,29 @@ func (x *Boolean) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Boolean.ProtoReflect.Descriptor instead.
-func (*Boolean) Descriptor() ([]byte, []int) {
+// Deprecated: Use BooleanValue.ProtoReflect.Descriptor instead.
+func (*BooleanValue) Descriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{40}
 }
 
-func (x *Boolean) GetValue() bool {
+func (x *BooleanValue) GetData() bool {
 	if x != nil {
-		return x.Value
+		return x.Data
 	}
 	return false
 }
 
-type StringArray struct {
+// Wrapper for an array of strings.
+type StringArrayValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Values []string `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+	Data []string `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"` // The array of strings.
 }
 
-func (x *StringArray) Reset() {
-	*x = StringArray{}
+func (x *StringArrayValue) Reset() {
+	*x = StringArrayValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_base_v1_base_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3002,13 +3007,13 @@ func (x *StringArray) Reset() {
 	}
 }
 
-func (x *StringArray) String() string {
+func (x *StringArrayValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StringArray) ProtoMessage() {}
+func (*StringArrayValue) ProtoMessage() {}
 
-func (x *StringArray) ProtoReflect() protoreflect.Message {
+func (x *StringArrayValue) ProtoReflect() protoreflect.Message {
 	mi := &file_base_v1_base_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3020,28 +3025,29 @@ func (x *StringArray) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StringArray.ProtoReflect.Descriptor instead.
-func (*StringArray) Descriptor() ([]byte, []int) {
+// Deprecated: Use StringArrayValue.ProtoReflect.Descriptor instead.
+func (*StringArrayValue) Descriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{41}
 }
 
-func (x *StringArray) GetValues() []string {
+func (x *StringArrayValue) GetData() []string {
 	if x != nil {
-		return x.Values
+		return x.Data
 	}
 	return nil
 }
 
-type IntegerArray struct {
+// Wrapper for an array of integers.
+type IntegerArrayValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Values []int32 `protobuf:"varint,1,rep,packed,name=values,proto3" json:"values,omitempty"`
+	Data []int32 `protobuf:"varint,1,rep,packed,name=data,proto3" json:"data,omitempty"` // The array of integers.
 }
 
-func (x *IntegerArray) Reset() {
-	*x = IntegerArray{}
+func (x *IntegerArrayValue) Reset() {
+	*x = IntegerArrayValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_base_v1_base_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3049,13 +3055,13 @@ func (x *IntegerArray) Reset() {
 	}
 }
 
-func (x *IntegerArray) String() string {
+func (x *IntegerArrayValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IntegerArray) ProtoMessage() {}
+func (*IntegerArrayValue) ProtoMessage() {}
 
-func (x *IntegerArray) ProtoReflect() protoreflect.Message {
+func (x *IntegerArrayValue) ProtoReflect() protoreflect.Message {
 	mi := &file_base_v1_base_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3067,28 +3073,29 @@ func (x *IntegerArray) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use IntegerArray.ProtoReflect.Descriptor instead.
-func (*IntegerArray) Descriptor() ([]byte, []int) {
+// Deprecated: Use IntegerArrayValue.ProtoReflect.Descriptor instead.
+func (*IntegerArrayValue) Descriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{42}
 }
 
-func (x *IntegerArray) GetValues() []int32 {
+func (x *IntegerArrayValue) GetData() []int32 {
 	if x != nil {
-		return x.Values
+		return x.Data
 	}
 	return nil
 }
 
-type DoubleArray struct {
+// Wrapper for an array of double precision floating point values.
+type DoubleArrayValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Values []float64 `protobuf:"fixed64,1,rep,packed,name=values,proto3" json:"values,omitempty"`
+	Data []float64 `protobuf:"fixed64,1,rep,packed,name=data,proto3" json:"data,omitempty"` // The array of doubles.
 }
 
-func (x *DoubleArray) Reset() {
-	*x = DoubleArray{}
+func (x *DoubleArrayValue) Reset() {
+	*x = DoubleArrayValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_base_v1_base_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3096,13 +3103,13 @@ func (x *DoubleArray) Reset() {
 	}
 }
 
-func (x *DoubleArray) String() string {
+func (x *DoubleArrayValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DoubleArray) ProtoMessage() {}
+func (*DoubleArrayValue) ProtoMessage() {}
 
-func (x *DoubleArray) ProtoReflect() protoreflect.Message {
+func (x *DoubleArrayValue) ProtoReflect() protoreflect.Message {
 	mi := &file_base_v1_base_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3114,28 +3121,29 @@ func (x *DoubleArray) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DoubleArray.ProtoReflect.Descriptor instead.
-func (*DoubleArray) Descriptor() ([]byte, []int) {
+// Deprecated: Use DoubleArrayValue.ProtoReflect.Descriptor instead.
+func (*DoubleArrayValue) Descriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{43}
 }
 
-func (x *DoubleArray) GetValues() []float64 {
+func (x *DoubleArrayValue) GetData() []float64 {
 	if x != nil {
-		return x.Values
+		return x.Data
 	}
 	return nil
 }
 
-type BooleanArray struct {
+// Wrapper for an array of booleans.
+type BooleanArrayValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Values []bool `protobuf:"varint,1,rep,packed,name=values,proto3" json:"values,omitempty"`
+	Data []bool `protobuf:"varint,1,rep,packed,name=data,proto3" json:"data,omitempty"` // The array of booleans.
 }
 
-func (x *BooleanArray) Reset() {
-	*x = BooleanArray{}
+func (x *BooleanArrayValue) Reset() {
+	*x = BooleanArrayValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_base_v1_base_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3143,13 +3151,13 @@ func (x *BooleanArray) Reset() {
 	}
 }
 
-func (x *BooleanArray) String() string {
+func (x *BooleanArrayValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BooleanArray) ProtoMessage() {}
+func (*BooleanArrayValue) ProtoMessage() {}
 
-func (x *BooleanArray) ProtoReflect() protoreflect.Message {
+func (x *BooleanArrayValue) ProtoReflect() protoreflect.Message {
 	mi := &file_base_v1_base_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3161,14 +3169,14 @@ func (x *BooleanArray) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BooleanArray.ProtoReflect.Descriptor instead.
-func (*BooleanArray) Descriptor() ([]byte, []int) {
+// Deprecated: Use BooleanArrayValue.ProtoReflect.Descriptor instead.
+func (*BooleanArrayValue) Descriptor() ([]byte, []int) {
 	return file_base_v1_base_proto_rawDescGZIP(), []int{44}
 }
 
-func (x *BooleanArray) GetValues() []bool {
+func (x *BooleanArrayValue) GetData() []bool {
 	if x != nil {
-		return x.Values
+		return x.Data
 	}
 	return nil
 }
@@ -3608,25 +3616,26 @@ var file_base_v1_base_proto_rawDesc = []byte{
 	0x10, 0x4f, 0x50, 0x45, 0x52, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x43, 0x52, 0x45, 0x41, 0x54,
 	0x45, 0x10, 0x01, 0x12, 0x14, 0x0a, 0x10, 0x4f, 0x50, 0x45, 0x52, 0x41, 0x54, 0x49, 0x4f, 0x4e,
 	0x5f, 0x44, 0x45, 0x4c, 0x45, 0x54, 0x45, 0x10, 0x02, 0x42, 0x0b, 0x0a, 0x04, 0x74, 0x79, 0x70,
-	0x65, 0x12, 0x03, 0xf8, 0x42, 0x01, 0x22, 0x1e, 0x0a, 0x06, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
-	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1f, 0x0a, 0x07, 0x49, 0x6e, 0x74, 0x65, 0x67, 0x65,
-	0x72, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
-	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1e, 0x0a, 0x06, 0x44, 0x6f, 0x75, 0x62, 0x6c,
-	0x65, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x01,
-	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1f, 0x0a, 0x07, 0x42, 0x6f, 0x6f, 0x6c, 0x65,
-	0x61, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x08, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x25, 0x0a, 0x0b, 0x53, 0x74, 0x72, 0x69,
-	0x6e, 0x67, 0x41, 0x72, 0x72, 0x61, 0x79, 0x12, 0x16, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65,
-	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x22,
-	0x26, 0x0a, 0x0c, 0x49, 0x6e, 0x74, 0x65, 0x67, 0x65, 0x72, 0x41, 0x72, 0x72, 0x61, 0x79, 0x12,
-	0x16, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x05, 0x52,
-	0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x22, 0x25, 0x0a, 0x0b, 0x44, 0x6f, 0x75, 0x62, 0x6c,
-	0x65, 0x41, 0x72, 0x72, 0x61, 0x79, 0x12, 0x16, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73,
-	0x18, 0x01, 0x20, 0x03, 0x28, 0x01, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x22, 0x26,
-	0x0a, 0x0c, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x41, 0x72, 0x72, 0x61, 0x79, 0x12, 0x16,
-	0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x08, 0x52, 0x06,
-	0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x2a, 0x5e, 0x0a, 0x0b, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52,
+	0x65, 0x12, 0x03, 0xf8, 0x42, 0x01, 0x22, 0x21, 0x0a, 0x0b, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
+	0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x22, 0x0a, 0x0c, 0x49, 0x6e, 0x74,
+	0x65, 0x67, 0x65, 0x72, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74,
+	0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x21, 0x0a,
+	0x0b, 0x44, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x12, 0x0a, 0x04,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x01, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61,
+	0x22, 0x22, 0x0a, 0x0c, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x56, 0x61, 0x6c, 0x75, 0x65,
+	0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x04,
+	0x64, 0x61, 0x74, 0x61, 0x22, 0x26, 0x0a, 0x10, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x41, 0x72,
+	0x72, 0x61, 0x79, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x27, 0x0a, 0x11,
+	0x49, 0x6e, 0x74, 0x65, 0x67, 0x65, 0x72, 0x41, 0x72, 0x72, 0x61, 0x79, 0x56, 0x61, 0x6c, 0x75,
+	0x65, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x05, 0x52,
+	0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x26, 0x0a, 0x10, 0x44, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x41,
+	0x72, 0x72, 0x61, 0x79, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74,
+	0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x01, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x27, 0x0a,
+	0x11, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x41, 0x72, 0x72, 0x61, 0x79, 0x56, 0x61, 0x6c,
+	0x75, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x08,
+	0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x2a, 0x5e, 0x0a, 0x0b, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52,
 	0x65, 0x73, 0x75, 0x6c, 0x74, 0x12, 0x1c, 0x0a, 0x18, 0x43, 0x48, 0x45, 0x43, 0x4b, 0x5f, 0x52,
 	0x45, 0x53, 0x55, 0x4c, 0x54, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45,
 	0x44, 0x10, 0x00, 0x12, 0x18, 0x0a, 0x14, 0x43, 0x48, 0x45, 0x43, 0x4b, 0x5f, 0x52, 0x45, 0x53,
@@ -3721,14 +3730,14 @@ var file_base_v1_base_proto_goTypes = []interface{}{
 	(*Tenant)(nil),                  // 41: base.v1.Tenant
 	(*DataChanges)(nil),             // 42: base.v1.DataChanges
 	(*DataChange)(nil),              // 43: base.v1.DataChange
-	(*String)(nil),                  // 44: base.v1.String
-	(*Integer)(nil),                 // 45: base.v1.Integer
-	(*Double)(nil),                  // 46: base.v1.Double
-	(*Boolean)(nil),                 // 47: base.v1.Boolean
-	(*StringArray)(nil),             // 48: base.v1.StringArray
-	(*IntegerArray)(nil),            // 49: base.v1.IntegerArray
-	(*DoubleArray)(nil),             // 50: base.v1.DoubleArray
-	(*BooleanArray)(nil),            // 51: base.v1.BooleanArray
+	(*StringValue)(nil),             // 44: base.v1.StringValue
+	(*IntegerValue)(nil),            // 45: base.v1.IntegerValue
+	(*DoubleValue)(nil),             // 46: base.v1.DoubleValue
+	(*BooleanValue)(nil),            // 47: base.v1.BooleanValue
+	(*StringArrayValue)(nil),        // 48: base.v1.StringArrayValue
+	(*IntegerArrayValue)(nil),       // 49: base.v1.IntegerArrayValue
+	(*DoubleArrayValue)(nil),        // 50: base.v1.DoubleArrayValue
+	(*BooleanArrayValue)(nil),       // 51: base.v1.BooleanArrayValue
 	nil,                             // 52: base.v1.SchemaDefinition.EntityDefinitionsEntry
 	nil,                             // 53: base.v1.SchemaDefinition.RuleDefinitionsEntry
 	nil,                             // 54: base.v1.SchemaDefinition.ReferencesEntry
@@ -4265,7 +4274,7 @@ func file_base_v1_base_proto_init() {
 			}
 		}
 		file_base_v1_base_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*String); i {
+			switch v := v.(*StringValue); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4277,7 +4286,7 @@ func file_base_v1_base_proto_init() {
 			}
 		}
 		file_base_v1_base_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Integer); i {
+			switch v := v.(*IntegerValue); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4289,7 +4298,7 @@ func file_base_v1_base_proto_init() {
 			}
 		}
 		file_base_v1_base_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Double); i {
+			switch v := v.(*DoubleValue); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4301,7 +4310,7 @@ func file_base_v1_base_proto_init() {
 			}
 		}
 		file_base_v1_base_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Boolean); i {
+			switch v := v.(*BooleanValue); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4313,7 +4322,7 @@ func file_base_v1_base_proto_init() {
 			}
 		}
 		file_base_v1_base_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StringArray); i {
+			switch v := v.(*StringArrayValue); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4325,7 +4334,7 @@ func file_base_v1_base_proto_init() {
 			}
 		}
 		file_base_v1_base_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IntegerArray); i {
+			switch v := v.(*IntegerArrayValue); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4337,7 +4346,7 @@ func file_base_v1_base_proto_init() {
 			}
 		}
 		file_base_v1_base_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DoubleArray); i {
+			switch v := v.(*DoubleArrayValue); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4349,7 +4358,7 @@ func file_base_v1_base_proto_init() {
 			}
 		}
 		file_base_v1_base_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BooleanArray); i {
+			switch v := v.(*BooleanArrayValue); i {
 			case 0:
 				return &v.state
 			case 1:

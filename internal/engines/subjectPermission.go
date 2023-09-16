@@ -7,23 +7,24 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 type SubjectPermissionEngine struct {
 	// checkEngine is responsible for performing permission checks
-	checkEngine *CheckEngine
+	checker invoke.Check
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
 }
 
-func NewSubjectPermission(check *CheckEngine, sr storage.SchemaReader, opts ...SubjectPermissionOption) *SubjectPermissionEngine {
+func NewSubjectPermission(checker invoke.Check, sr storage.SchemaReader, opts ...SubjectPermissionOption) *SubjectPermissionEngine {
 	// Initialize a CheckEngine with default concurrency limit and provided parameters
 	engine := &SubjectPermissionEngine{
-		checkEngine:      check,
+		checker:          checker,
 		schemaReader:     sr,
 		concurrencyLimit: _defaultConcurrencyLimit,
 	}
@@ -93,7 +94,7 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 
 			// The checkEngine's Check method is called with a new PermissionCheckRequest.
 			// The request is created using the data from the original request, and the permission from the current iteration.
-			cr, err := engine.checkEngine.Check(ctx, &base.PermissionCheckRequest{
+			cr, err := engine.checker.Check(ctx, &base.PermissionCheckRequest{
 				TenantId: request.GetTenantId(),
 				Metadata: &base.PermissionCheckRequestMetadata{
 					SchemaVersion: request.GetMetadata().GetSchemaVersion(),

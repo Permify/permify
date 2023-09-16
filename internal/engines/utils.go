@@ -79,8 +79,8 @@ type ERMap struct {
 	value sync.Map
 }
 
-func (s *ERMap) Add(onr *base.EntityAndRelation) bool {
-	key := tuple.EntityAndRelationToString(onr)
+func (s *ERMap) Add(entity *base.Entity, relation string) bool {
+	key := tuple.EntityAndRelationToString(entity, relation)
 	_, existed := s.value.LoadOrStore(key, struct{}{})
 	return !existed
 }
@@ -169,7 +169,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 	switch typ {
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
 		// Create an empty protobuf String message
-		value, err := anypb.New(&base.String{Value: ""})
+		value, err := anypb.New(&base.StringValue{Data: ""})
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +177,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY:
 		// Create an empty protobuf StringArray message
-		value, err := anypb.New(&base.StringArray{Values: []string{}})
+		value, err := anypb.New(&base.StringArrayValue{Data: []string{}})
 		if err != nil {
 			return nil, err
 		}
@@ -185,7 +185,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER:
 		// Create an empty protobuf Integer message
-		value, err := anypb.New(&base.Integer{Value: 0})
+		value, err := anypb.New(&base.IntegerValue{Data: 0})
 		if err != nil {
 			return nil, err
 		}
@@ -193,7 +193,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_INTEGER_ARRAY:
 		// Create an empty protobuf IntegerArray message
-		value, err := anypb.New(&base.IntegerArray{Values: []int32{}})
+		value, err := anypb.New(&base.IntegerArrayValue{Data: []int32{}})
 		if err != nil {
 			return nil, err
 		}
@@ -201,7 +201,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE:
 		// Create an empty protobuf Double message
-		value, err := anypb.New(&base.Double{Value: 0.0})
+		value, err := anypb.New(&base.DoubleValue{Data: 0.0})
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +209,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE_ARRAY:
 		// Create an empty protobuf DoubleArray message
-		value, err := anypb.New(&base.DoubleArray{Values: []float64{}})
+		value, err := anypb.New(&base.DoubleArrayValue{Data: []float64{}})
 		if err != nil {
 			return nil, err
 		}
@@ -217,7 +217,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
 		// Create an empty protobuf Boolean message with a default value of false
-		value, err := anypb.New(&base.Boolean{Value: false})
+		value, err := anypb.New(&base.BooleanValue{Data: false})
 		if err != nil {
 			return nil, err
 		}
@@ -225,7 +225,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY:
 		// Create an empty protobuf BooleanArray message
-		value, err := anypb.New(&base.BooleanArray{Values: []bool{}})
+		value, err := anypb.New(&base.BooleanArrayValue{Data: []bool{}})
 		if err != nil {
 			return nil, err
 		}
@@ -249,21 +249,21 @@ func ConvertToAnyPB(value interface{}) (*anypb.Any, error) {
 	// Use a type switch to handle different types of value.
 	switch v := value.(type) {
 	case bool:
-		anyValue, err = anypb.New(&base.Boolean{Value: v})
+		anyValue, err = anypb.New(&base.BooleanValue{Data: v})
 	case []bool:
-		anyValue, err = anypb.New(&base.BooleanArray{Values: v})
+		anyValue, err = anypb.New(&base.BooleanArrayValue{Data: v})
 	case int:
-		anyValue, err = anypb.New(&base.Integer{Value: int32(v)})
+		anyValue, err = anypb.New(&base.IntegerValue{Data: int32(v)})
 	case []int32:
-		anyValue, err = anypb.New(&base.IntegerArray{Values: v})
+		anyValue, err = anypb.New(&base.IntegerArrayValue{Data: v})
 	case float64:
-		anyValue, err = anypb.New(&base.Double{Value: v})
+		anyValue, err = anypb.New(&base.DoubleValue{Data: v})
 	case []float64:
-		anyValue, err = anypb.New(&base.DoubleArray{Values: v})
+		anyValue, err = anypb.New(&base.DoubleArrayValue{Data: v})
 	case string:
-		anyValue, err = anypb.New(&base.String{Value: v})
+		anyValue, err = anypb.New(&base.StringValue{Data: v})
 	case []string:
-		anyValue, err = anypb.New(&base.StringArray{Values: v})
+		anyValue, err = anypb.New(&base.StringArrayValue{Data: v})
 	default:
 		// In case of an unsupported or unknown type, we return an error.
 		return nil, errors.New("unknown type")

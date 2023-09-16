@@ -61,24 +61,8 @@ func SubjectToEAR(subject *base.Subject) *base.EntityAndRelation {
 }
 
 // EntityAndRelationToString converts an EntityAndRelation object to string format
-func EntityAndRelationToString(entityAndRelation *base.EntityAndRelation, arguments ...*base.Argument) string {
-	return EntityToString(entityAndRelation.GetEntity()) + fmt.Sprintf(RELATION, RelationToString(entityAndRelation.GetRelation(), arguments...))
-}
-
-// RelationToString converts a relation string to string format
-func RelationToString(relation string, arguments ...*base.Argument) string {
-	if len(arguments) > 0 {
-		var args []string
-		for _, arg := range arguments {
-			if arg.GetComputedAttribute() != nil {
-				args = append(args, arg.GetComputedAttribute().GetName())
-			} else {
-				args = append(args, "request."+arg.GetContextAttribute().GetName())
-			}
-		}
-		return fmt.Sprintf("%s(%s)", relation, strings.Join(args, ","))
-	}
-	return relation
+func EntityAndRelationToString(entity *base.Entity, relation string) string {
+	return EntityToString(entity) + fmt.Sprintf(RELATION, relation)
 }
 
 // EntityToString converts an Entity object to string format

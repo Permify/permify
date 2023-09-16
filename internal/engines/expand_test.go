@@ -1320,8 +1320,8 @@ var _ = Describe("expand-engine", func() {
 				assertions map[string]*base.Expand
 			}
 
-			anyVal, _ := anypb.New(&base.Boolean{Value: true})
-			dow, _ := anypb.New(&base.String{Value: "monday"})
+			anyVal, _ := anypb.New(&base.BooleanValue{Data: true})
+			dow, _ := anypb.New(&base.StringValue{Data: "monday"})
 
 			tests := struct {
 				relationships []string
