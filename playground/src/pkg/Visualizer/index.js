@@ -62,12 +62,38 @@ function Visualizer(props) {
                             }
                         })
                         break
+                    case "rule":
+                        edges.push({
+                            from: props.graph.edges[index].from.id,
+                            to: props.graph.edges[index].to.id,
+                            color: {color: 'rgba(99,24,255,0.4)', inherit: false},
+                            dashes: false,
+                            arrows: {
+                                to: {
+                                    enabled: false
+                                }
+                            }
+                        })
+                        break
                     case "relation":
                         edges.push({
                             from: props.graph.edges[index].from.id,
                             to: props.graph.edges[index].to.id,
                             color: {color: 'rgba(147,241,238,0.4)', inherit: false},
                             dashes: false
+                        })
+                        break
+                    case "attribute":
+                        edges.push({
+                            from: props.graph.edges[index].from.id,
+                            to: props.graph.edges[index].to.id,
+                            color: {color: 'rgba(255,165,0,0.4)', inherit: false},
+                            dashes: false,
+                            arrows: {
+                                to: {
+                                    enabled: false
+                                }
+                            }
                         })
                         break
                     case "permission":
