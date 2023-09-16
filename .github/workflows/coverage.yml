@@ -1,0 +1,29 @@
+name: Go Test and Coveralls
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.20
+
+    - name: Install Coveralls
+      run: go get github.com/mattn/goveralls
+
+    - name: Run Tests and Upload Coverage
+      run: |
+        go test -v ./cmd/... ./internal/... ./pkg/...
+        $GOPATH/bin/goveralls -service=github
+      env:
+        COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
