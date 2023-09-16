@@ -15,43 +15,29 @@
     <a href="https://scrutinizer-ci.com/g/Permify/permify/?branch=master" target="_blank"><img src="https://img.shields.io/scrutinizer/quality/g/Permify/permify/master?style=for-the-badge" alt="Scrutinizer code quality (GitHub/Bitbucket)" /></a>&nbsp;
 </p>
 
-<p align="center">
-    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif" alt="Permify - Open source authorization as a service" />
-</p>
-
 ## What is Permify?
 
-[Permify](https://github.com/Permify/permify) is a open-source relationship based authorization service for creating and maintaining fine-grained authorizations while ensuring least privilege across your organization.
+[Permify](https://github.com/Permify/permify) is a open-source authorization service for creating and managing fine-grained permissions in your applications and services. Inspired by Google’s consistent, global authorization system, [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
 
-With Permify, you can easily structure your authorization model, store authorization data in your preferred database, and interact with the Permify API to handle all authorization queries from your applications or services.
+### With Permify, you can:
 
-Permify inspired by Google’s consistent, global authorization system, [Google Zanzibar Paper](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf).
+🔮 Create permissions and policies using [Permify's flexible authorization language](https://docs.permify.co/docs/getting-started/modeling) that is compatible with traditional roles and permissions (RBAC), arbitrary relations between users and objects (ReBAC), and attributes (ABAC).
 
-**Looking for Permify Managed Service?** See our [pricing plans](https://permify.co/pricing/1).
+🔐 [Manage and store authorization data](https://docs.permify.co/docs/getting-started/sync-data) in your preferred database and [interact with the Permify API](https://docs.permify.co/docs/getting-started/enforcement) to perform access checks, filter your resources with specific permissions, and more.
 
-<br>
-<a href="https://docs.permify.co" target="_blank"><img src="https://img.shields.io/badge/view%20documentation-blue?style=for-the-badge" alt="View Documentation" /></a>&nbsp;
-<a href="https://play.permify.co" target="_blank"><img src="https://img.shields.io/badge/try%20playground-blueviolet?style=for-the-badge" alt="Try Playground" /></a>&nbsp;
+🧪 Test your authorization logic with [Permify's testing framework](https://docs.permify.co/docs/getting-started/testing). You can conduct scenario-based testing, policy coverage analysis, and IDL parser integration to achieve end-to-end validation for the desired authorization schema.
 
-## Key Features
-
-🛡️ **Production ready** authorization API that serve as **gRPC** and **REST**
-
-🔮 Domain Specific Authorization Language - Permify Schema - to **easily model** your authorization
-
-🔐 Database Configuration to store your permissions **in house** with **high availability**
-
-✅ Perform access control checks and get answers **down to 10ms** with **parallel graph engine**
-
-💪 Battle tested, robust **authorization architecture and data model** based on [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
-
-⚙️ Create custom permissions for your **tenants**, and manage them in single place with **Multi Tenancy**
+⚙️ Create custom authorization models for different applications using Permify [Multi-Tenancy](https://docs.permify.co/docs/use-cases/multi-tenancy) support, all managed within a single place - Permify instance.
 
 ⚡ Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin]
 
 [jaeger]: https://www.jaegertracing.io/
 [signoz]: https://signoz.io/
 [zipkin]: https://zipkin.io/
+
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png" alt="Permify - Open source authorization as a service" />
+</p>
 
 ### Cases that can benefit from Permify
 
@@ -67,11 +53,22 @@ Permify inspired by Google’s consistent, global authorization system, [Google 
 + Missing a specific use case? no problem, let's discuss it together! just open an issue. 
 ```
 
-## How it works
+## Learn 
 
-Permify stores access control relations on a database you choose and performs authorization checks based on the stored relations. We called that database Write Database (WriteDB) and it behaves as a centralized data source for your authorization system. You can model your authorization with Permify's DSL - Permify Schema and perform access checks with a single API call anywhere on your stack.
+- Follow a guide to model your authorization using [Permify's Authorization Language].
+- See our [Playground], build your authorization logic and test it with sample data.
+- Explore overview of [Permify API] and learn how to interact with it.
+- See [our article] to examine [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf) in a nutshell.
 
-![Value Chain Schema](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
+[Permify's Authorization Language]: https://docs.permify.co/docs/getting-started/modeling
+[playground]: https://play.permify.co/
+[Permify API]: https://docs.permify.co/docs/api-overview
+[our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
+
+## Community & Support
+If you have any inquiries regarding Permify or authorization in a broader sense, **you're welcome** to become a part of our community, which includes our engineering team and hundreds of other developers already utilizing Permify!
+
+<a href="https://discord.gg/JJnMeCh6qP" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord!" /></a>&nbsp;
 
 ## QuickStart
 
@@ -98,37 +95,18 @@ You can test your connection with creating an GET request,
 localhost:3476/healthz
 ```
 
-## Getting Started
-
-- [Set Up & Run Permify Service] in your environment.
-- Follow a guide to model your authorization using [Permify Schema].
-- See our [playground], build your authorization logic and test it with sample data.
-- Take a look at the overview of [Permify API].
-- See [our article] to examine Google Zanzibar In A Nutshell.
-
-[Set Up & Run Permify Service]: https://docs.permify.co/docs/installation
-[Permify Schema]: https://docs.permify.co/docs/getting-started/modeling
-[playground]: https://play.permify.co/
-[Permify API]: https://docs.permify.co/docs/api-overview
-[our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
-
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
-[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger)
-
-## Community & Support
-We would love to hear from you :heart:
-
-You can get immediate help on our Discord channel. This can be any kind of question-related to Permify, authorization, or authentication and identity management. We'd love to discuss anything related to access control space.
-
-For feature requests, bugs, or any improvements you can always open an issue. 
-
-### Want to Contribute? Here are the ways to contribute to Permify
+## Contribution
 
 * **Contribute to codebase:** We're collaboratively working with our community to make Permify the best it can be! You can develop new features, fix existing issues or make third-party integrations/packages. 
 * **Improve documentation:** Alongside our codebase, documentation one of the most significant part in our open-source journey. We're trying to give the best DX possible to explain ourselfs and Permify. And you can help on that with importing resources or adding new ones.
 * **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
 
 You can find more details about contributions on [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
+
+## Stargazers
+
+[![Stargazers repo roster for permify/permify](https://reporoster.com/stars/permify/permify)](https://github.com/permify/permify/stargazers)
+
 
 ## Communication Channels
 
@@ -145,7 +123,3 @@ If you like Permify, please consider giving us a :star:
   <img height="70px" width="70px" alt="permify | Linkedin" src="https://user-images.githubusercontent.com/39353278/187209321-03293a24-6f63-4321-b362-b0fc89fdd879.png" />
 </a>
 </p>
-
-## Stargazers
-
-[![Stargazers repo roster for permify/permify](https://reporoster.com/stars/permify/permify)](https://github.com/permify/permify/stargazers)
