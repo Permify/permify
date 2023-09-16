@@ -14,7 +14,7 @@ import (
 
 const (
 	ENTITY    = "%s:%s"
-	ATTRIBUTE = "#%s"
+	ATTRIBUTE = "$%s"
 	VALUE     = "%s:%s"
 )
 
@@ -58,7 +58,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse boolean: %v", err)
 		}
-		wrapped = &base.BoolValue{Data: boolVal}
+		wrapped = &base.BooleanValue{Data: boolVal}
 	case "boolean[]":
 		var ba []bool
 		val := strings.Split(v[1], ",")
@@ -69,7 +69,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 			}
 			ba = append(ba, boolVal)
 		}
-		wrapped = &base.BoolArrayValue{Data: ba}
+		wrapped = &base.BooleanArrayValue{Data: ba}
 	case "string":
 		wrapped = &base.StringValue{Data: v[1]}
 	case "string[]":
@@ -154,23 +154,44 @@ func EntityToString(entity *base.Entity) string {
 	return fmt.Sprintf(ENTITY, entity.GetType(), entity.GetId())
 }
 
+// EntityAndCallOrAttributeToString -
+func EntityAndCallOrAttributeToString(entity *base.Entity, attributeOrCall string, arguments ...*base.Argument) string {
+	return EntityToString(entity) + fmt.Sprintf(ATTRIBUTE, CallOrAttributeToString(attributeOrCall, arguments...))
+}
+
+// CallOrAttributeToString -
+func CallOrAttributeToString(attributeOrCall string, arguments ...*base.Argument) string {
+	if len(arguments) > 0 {
+		var args []string
+		for _, arg := range arguments {
+			if arg.GetComputedAttribute() != nil {
+				args = append(args, arg.GetComputedAttribute().GetName())
+			} else {
+				args = append(args, "request."+arg.GetContextAttribute().GetName())
+			}
+		}
+		return fmt.Sprintf("%s(%s)", attributeOrCall, strings.Join(args, ","))
+	}
+	return attributeOrCall
+}
+
 func TypeUrlToString(url string) string {
 	switch url {
-	case "type.googleapis.com/base.v1.String":
+	case "type.googleapis.com/base.v1.StringValue":
 		return "string"
-	case "type.googleapis.com/base.v1.Boolean":
+	case "type.googleapis.com/base.v1.BooleanValue":
 		return "boolean"
-	case "type.googleapis.com/base.v1.Integer":
+	case "type.googleapis.com/base.v1.IntegerValue":
 		return "integer"
-	case "type.googleapis.com/base.v1.Double":
+	case "type.googleapis.com/base.v1.DoubleValue":
 		return "double"
-	case "type.googleapis.com/base.v1.StringArray":
+	case "type.googleapis.com/base.v1.StringArrayValue":
 		return "string[]"
-	case "type.googleapis.com/base.v1.BooleanArray":
+	case "type.googleapis.com/base.v1.BooleanArrayValue":
 		return "boolean[]"
-	case "type.googleapis.com/base.v1.IntegerArray":
+	case "type.googleapis.com/base.v1.IntegerArrayValue":
 		return "integer[]"
-	case "type.googleapis.com/base.v1.DoubleArray":
+	case "type.googleapis.com/base.v1.DoubleArrayValue":
 		return "double[]"
 	default:
 		return ""
@@ -183,14 +204,14 @@ func AnyToString(any *anypb.Any) string {
 
 	// Convert the Any proto message into string based on its TypeUrl
 	switch any.TypeUrl {
-	case "type.googleapis.com/base.v1.Boolean":
-		boolVal := &base.BoolValue{}
+	case "type.googleapis.com/base.v1.BooleanValue":
+		boolVal := &base.BooleanValue{}
 		if err := any.UnmarshalTo(boolVal); err != nil {
 			return "undefined"
 		}
 		str = strconv.FormatBool(boolVal.Data)
-	case "type.googleapis.com/base.v1.BooleanArray":
-		boolVal := &base.BoolArrayValue{}
+	case "type.googleapis.com/base.v1.BooleanArrayValue":
+		boolVal := &base.BooleanArrayValue{}
 		if err := any.UnmarshalTo(boolVal); err != nil {
 			return "undefined"
 		}
@@ -199,13 +220,13 @@ func AnyToString(any *anypb.Any) string {
 			strs = append(strs, strconv.FormatBool(b))
 		}
 		str = strings.Join(strs, ",")
-	case "type.googleapis.com/base.v1.String":
+	case "type.googleapis.com/base.v1.StringValue":
 		stringVal := &base.StringValue{}
 		if err := any.UnmarshalTo(stringVal); err != nil {
 			return "undefined"
 		}
 		str = stringVal.Data
-	case "type.googleapis.com/base.v1.StringArray":
+	case "type.googleapis.com/base.v1.StringArrayValue":
 		stringVal := &base.StringArrayValue{}
 		if err := any.UnmarshalTo(stringVal); err != nil {
 			return "undefined"
@@ -215,13 +236,13 @@ func AnyToString(any *anypb.Any) string {
 			strs = append(strs, v)
 		}
 		str = strings.Join(strs, ",")
-	case "type.googleapis.com/base.v1.Double":
+	case "type.googleapis.com/base.v1.DoubleValue":
 		doubleVal := &base.DoubleValue{}
 		if err := any.UnmarshalTo(doubleVal); err != nil {
 			return "undefined"
 		}
 		str = strconv.FormatFloat(doubleVal.Data, 'f', -1, 64)
-	case "type.googleapis.com/base.v1.DoubleArray":
+	case "type.googleapis.com/base.v1.DoubleArrayValue":
 		doubleVal := &base.DoubleArrayValue{}
 		if err := any.UnmarshalTo(doubleVal); err != nil {
 			return "undefined"
@@ -231,13 +252,13 @@ func AnyToString(any *anypb.Any) string {
 			strs = append(strs, strconv.FormatFloat(v, 'f', -1, 64))
 		}
 		str = strings.Join(strs, ",")
-	case "type.googleapis.com/base.v1.Integer":
+	case "type.googleapis.com/base.v1.IntegerValue":
 		intVal := &base.IntegerValue{}
 		if err := any.UnmarshalTo(intVal); err != nil {
 			return "undefined"
 		}
 		str = strconv.Itoa(int(intVal.Data))
-	case "type.googleapis.com/base.v1.IntegerArray":
+	case "type.googleapis.com/base.v1.IntegerArrayValue":
 		intVal := &base.IntegerArrayValue{}
 		if err := any.UnmarshalTo(intVal); err != nil {
 			return "undefined"
@@ -305,9 +326,9 @@ func ValidateValue(any *anypb.Any, attributeType base.AttributeType) error {
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY:
 		target = &base.StringArrayValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
-		target = &base.BoolValue{}
+		target = &base.BooleanValue{}
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY:
-		target = &base.BoolArrayValue{}
+		target = &base.BooleanArrayValue{}
 	default:
 		// If attributeType doesn't match any of the known types, return an error indicating invalid argument.
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())

@@ -66,8 +66,8 @@ func ConvertProtoAnyToInterface(a *anypb.Any) interface{} {
 			return ""
 		}
 		return stringValue.GetData()
-	case "type.googleapis.com/base.v1.BoolValue":
-		boolValue := &base.BoolValue{}
+	case "type.googleapis.com/base.v1.BooleanValue":
+		boolValue := &base.BooleanValue{}
 		if err := anypb.UnmarshalTo(a, boolValue, proto.UnmarshalOptions{}); err != nil {
 			return false
 		}
@@ -90,8 +90,8 @@ func ConvertProtoAnyToInterface(a *anypb.Any) interface{} {
 			return []string{}
 		}
 		return stringArrayValue.GetData()
-	case "type.googleapis.com/base.v1.BoolArrayValue":
-		booleanArrayValue := &base.BoolArrayValue{}
+	case "type.googleapis.com/base.v1.BooleanArrayValue":
+		booleanArrayValue := &base.BooleanArrayValue{}
 		if err := anypb.UnmarshalTo(a, booleanArrayValue, proto.UnmarshalOptions{}); err != nil {
 			return []bool{}
 		}

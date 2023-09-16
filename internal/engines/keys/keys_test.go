@@ -3,11 +3,9 @@ package keys
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
-
-	"github.com/stretchr/testify/assert"
 
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/logger"
@@ -22,7 +20,7 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 	l := logger.New("debug")
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -51,7 +49,7 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 	}
 
 	// Set the value for the given key in the cache
-	success := engineKeys.setCheckKey(checkReq, checkResp)
+	success := engineKeys.setCheckKey(checkReq, checkResp, true)
 
 	cache.Wait()
 
@@ -59,7 +57,7 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 	assert.True(t, success)
 
 	// Retrieve the value for the given key from the cache
-	resp, found := engineKeys.getCheckKey(checkReq)
+	resp, found := engineKeys.getCheckKey(checkReq, true)
 
 	// Check that the key was found and the retrieved value is the same as the original value
 	assert.True(t, found)
@@ -74,7 +72,7 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 	l := logger.New("debug")
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -103,7 +101,7 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 	}
 
 	// Force an error while writing the key to the hash object by passing a nil key
-	success := engineKeys.setCheckKey(nil, checkResp)
+	success := engineKeys.setCheckKey(nil, checkResp, true)
 
 	cache.Wait()
 
@@ -111,7 +109,7 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 	assert.False(t, success)
 
 	// Retrieve the value for the given key from the cache
-	resp, found := engineKeys.getCheckKey(checkReq)
+	resp, found := engineKeys.getCheckKey(checkReq, true)
 
 	// Check that the key was not found
 	assert.False(t, found)
@@ -126,7 +124,7 @@ func TestEngineKeys_GetCheckKey_KeyNotFound(t *testing.T) {
 	l := logger.New("debug")
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
 
 	// Create a new PermissionCheckRequest
 	checkReq := &base.PermissionCheckRequest{
@@ -148,7 +146,7 @@ func TestEngineKeys_GetCheckKey_KeyNotFound(t *testing.T) {
 	}
 
 	// Retrieve the value for a non-existent key from the cache
-	resp, found := engineKeys.getCheckKey(checkReq)
+	resp, found := engineKeys.getCheckKey(checkReq, true)
 
 	// Check that the key was not found
 	assert.False(t, found)
@@ -163,7 +161,7 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 	l := logger.New("debug")
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
 
 	// Create some new PermissionCheckRequests and PermissionCheckResponses
 	checkReq1 := &base.PermissionCheckRequest{
@@ -239,9 +237,9 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 	}
 
 	// Set the values for the given keys in the cache
-	success1 := engineKeys.setCheckKey(checkReq1, checkResp1)
-	success2 := engineKeys.setCheckKey(checkReq2, checkResp2)
-	success3 := engineKeys.setCheckKey(checkReq3, checkResp3)
+	success1 := engineKeys.setCheckKey(checkReq1, checkResp1, true)
+	success2 := engineKeys.setCheckKey(checkReq2, checkResp2, true)
+	success3 := engineKeys.setCheckKey(checkReq3, checkResp3, true)
 
 	cache.Wait()
 
@@ -251,9 +249,9 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 	assert.True(t, success3)
 
 	// Retrieve the value for the given key from the cache
-	resp1, found1 := engineKeys.getCheckKey(checkReq1)
-	resp2, found2 := engineKeys.getCheckKey(checkReq2)
-	resp3, found3 := engineKeys.getCheckKey(checkReq3)
+	resp1, found1 := engineKeys.getCheckKey(checkReq1, true)
+	resp2, found2 := engineKeys.getCheckKey(checkReq2, true)
+	resp3, found3 := engineKeys.getCheckKey(checkReq3, true)
 
 	// Check that the key was not found
 	assert.True(t, found1)
@@ -274,7 +272,7 @@ func TestEngineKeys_SetCheckKeyWithArguments(t *testing.T) {
 	l := logger.New("debug")
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -319,7 +317,7 @@ func TestEngineKeys_SetCheckKeyWithArguments(t *testing.T) {
 	}
 
 	// Set the value for the given key in the cache
-	success := engineKeys.setCheckKey(checkReq, checkResp)
+	success := engineKeys.setCheckKey(checkReq, checkResp, true)
 
 	cache.Wait()
 
@@ -327,7 +325,7 @@ func TestEngineKeys_SetCheckKeyWithArguments(t *testing.T) {
 	assert.True(t, success)
 
 	// Retrieve the value for the given key from the cache
-	resp, found := engineKeys.getCheckKey(checkReq)
+	resp, found := engineKeys.getCheckKey(checkReq, true)
 
 	// Check that the key was found and the retrieved value is the same as the original value
 	assert.True(t, found)
@@ -335,7 +333,7 @@ func TestEngineKeys_SetCheckKeyWithArguments(t *testing.T) {
 }
 
 func TestEngineKeys_SetCheckKeyWithContext(t *testing.T) {
-	value, err := anypb.New(wrapperspb.Bool(true))
+	value, err := anypb.New(&base.BooleanValue{Data: true})
 	if err != nil {
 	}
 
@@ -407,5 +405,5 @@ func TestEngineKeys_SetCheckKeyWithContext(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, "check|t1|test_version|test_snap_token|entity_type:entity_id#relation@subject_type:subject_id,entity_type:entity_id#is_public@boolean:true,day_of_a_week:saturday,day_of_a_year:35|test-entity:e1#test-rule(test_argument_1,test_argument_2)@user:u1", GenerateKey(checkReq))
+	assert.Equal(t, "check|t1|test_version|test_snap_token|entity_type:entity_id#relation@subject_type:subject_id,entity_type:entity_id$is_public|boolean:true,day_of_a_week:saturday,day_of_a_year:35|test-entity:e1$test-rule(test_argument_1,test_argument_2)", GenerateKey(checkReq, false))
 }

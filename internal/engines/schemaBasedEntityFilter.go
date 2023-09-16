@@ -250,7 +250,7 @@ func (engine *SchemaBasedEntityFilter) l(
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
-	if !visits.Add(found) { // If the entity and relation has already been visited.
+	if !visits.Add(found.GetEntity(), found.GetRelation()) { // If the entity and relation has already been visited.
 		return nil
 	}
 

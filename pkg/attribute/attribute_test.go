@@ -18,9 +18,9 @@ func TestAttribute(t *testing.T) {
 
 var _ = Describe("attribute", func() {
 	Context("Attribute", func() {
-		isPublic, _ := anypb.New(&base.Boolean{Value: true})
-		double, _ := anypb.New(&base.Double{Value: 100})
-		integer, _ := anypb.New(&base.Integer{Value: 45})
+		isPublic, _ := anypb.New(&base.BooleanValue{Data: true})
+		double, _ := anypb.New(&base.DoubleValue{Data: 100})
+		integer, _ := anypb.New(&base.IntegerValue{Data: 45})
 
 		It("ToString", func() {
 			tests := []struct {

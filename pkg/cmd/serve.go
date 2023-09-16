@@ -248,17 +248,17 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Initialize the engines using the key manager, schema reader, and relationship reader
 		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
-		lookupEngine := engines.NewLookupEngine(checkEngine, schemaReader, schemaBaseEntityFilter, massEntityFilter, schemaBaseSubjectFilter, massSubjectFilter, engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit))
-		subjectPermissionEngine := engines.NewSubjectPermission(checkEngine, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 
-		var check invoke.Check
+		var checker invoke.Check
 		if cfg.Distributed.Enabled {
-			check, err = consistent.NewCheckEngineWithHashring(
+			checker, err = consistent.NewCheckEngineWithHashring(
 				keys.NewCheckEngineWithKeys(
 					checkEngine,
+					schemaReader,
 					engineKeyCache,
 					l,
 				),
+				schemaReader,
 				consistencyChecker,
 				gossipEngine,
 				cfg.Server.GRPC.Port,
@@ -268,17 +268,21 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				return err
 			}
 		} else {
-			check = keys.NewCheckEngineWithKeys(
+			checker = keys.NewCheckEngineWithKeys(
 				checkEngine,
+				schemaReader,
 				engineKeyCache,
 				l,
 			)
 		}
 
+		lookupEngine := engines.NewLookupEngine(checker, schemaReader, schemaBaseEntityFilter, massEntityFilter, schemaBaseSubjectFilter, massSubjectFilter, engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit))
+		subjectPermissionEngine := engines.NewSubjectPermission(checker, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
+
 		invoker := invoke.NewDirectInvoker(
 			schemaReader,
 			dataReader,
-			check,
+			checker,
 			expandEngine,
 			lookupEngine,
 			subjectPermissionEngine,

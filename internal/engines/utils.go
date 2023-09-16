@@ -79,8 +79,8 @@ type ERMap struct {
 	value sync.Map
 }
 
-func (s *ERMap) Add(onr *base.EntityAndRelation) bool {
-	key := tuple.EntityAndRelationToString(onr)
+func (s *ERMap) Add(entity *base.Entity, relation string) bool {
+	key := tuple.EntityAndRelationToString(entity, relation)
 	_, existed := s.value.LoadOrStore(key, struct{}{})
 	return !existed
 }
@@ -217,7 +217,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN:
 		// Create an empty protobuf Boolean message with a default value of false
-		value, err := anypb.New(&base.BoolValue{Data: false})
+		value, err := anypb.New(&base.BooleanValue{Data: false})
 		if err != nil {
 			return nil, err
 		}
@@ -225,7 +225,7 @@ func getEmptyProtoValueForType(typ base.AttributeType) (*anypb.Any, error) {
 
 	case base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY:
 		// Create an empty protobuf BooleanArray message
-		value, err := anypb.New(&base.BoolArrayValue{Data: []bool{}})
+		value, err := anypb.New(&base.BooleanArrayValue{Data: []bool{}})
 		if err != nil {
 			return nil, err
 		}
@@ -249,9 +249,9 @@ func ConvertToAnyPB(value interface{}) (*anypb.Any, error) {
 	// Use a type switch to handle different types of value.
 	switch v := value.(type) {
 	case bool:
-		anyValue, err = anypb.New(&base.BoolValue{Data: v})
+		anyValue, err = anypb.New(&base.BooleanValue{Data: v})
 	case []bool:
-		anyValue, err = anypb.New(&base.BoolArrayValue{Data: v})
+		anyValue, err = anypb.New(&base.BooleanArrayValue{Data: v})
 	case int:
 		anyValue, err = anypb.New(&base.IntegerValue{Data: int32(v)})
 	case []int32:
