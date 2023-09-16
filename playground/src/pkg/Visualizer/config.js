@@ -1,8 +1,8 @@
 function GraphOptions() {
     return  {
         autoResize: true,
-        clickToUse: false,
-        height: '90%',
+        clickToUse: true,
+        height: '80%',
         width: '100%',
         layout: {
             hierarchical: {
@@ -27,14 +27,7 @@ function GraphOptions() {
             hoverConnectedEdges: true
         },
         physics: {
-            maxVelocity: 30,
-            solver: "repulsion",
-            timestep: 0.5,
-            stabilization: {
-                enabled: true,
-                iterations: 1000,
-                updateInterval: 25
-            },
+            enabled: false,
         },
         nodes: {
             fixed: {
@@ -94,8 +87,20 @@ function GraphOptions() {
                 shape: "dot",
                 size: 30,
             },
+            rule: {
+                color: { background: "#f718ff", border: "#cd18ff" },
+                scaling: { min: 20 },
+                shape: "square",
+                size: 20,
+            },
             relation: {
                 color: { background: "#93F1EE", border: "#93F1EE" },
+                scaling: { min: 10 },
+                shape: "dot",
+                size: 20,
+            },
+            attribute: {
+                color: { background: "#FFA500", border: "#FFA500" },
                 scaling: { min: 10 },
                 shape: "dot",
                 size: 20,

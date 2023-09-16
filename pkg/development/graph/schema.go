@@ -29,6 +29,13 @@ func (b Builder) SchemaToGraph() (g Graph, err error) {
 		g.AddNodes(eg.Nodes())
 		g.AddEdges(eg.Edges())
 	}
+	for _, rule := range b.schema.GetRuleDefinitions() {
+		rg, err := b.RuleToGraph(rule)
+		if err != nil {
+			return Graph{}, fmt.Errorf("failed to convert entity to graph: %w", err)
+		}
+		g.AddNodes(rg.Nodes())
+	}
 	return
 }
 
@@ -93,47 +100,84 @@ func (b Builder) EntityToGraph(entity *base.EntityDefinition) (g Graph, err erro
 		g.AddNodes(ag.Nodes())
 		g.AddEdges(ag.Edges())
 	}
+
+	// Iterate through the relations in the entity
+	for _, at := range entity.GetAttributes() {
+		// Create a node for each relation
+		reNode := &Node{
+			Type:  "attribute",
+			ID:    fmt.Sprintf("%s$%s", entity.GetName(), at.GetName()),
+			Label: at.GetName(),
+		}
+
+		g.AddNode(reNode)
+		g.AddEdge(enNode, reNode)
+	}
+
 	return
 }
 
-// buildActionGraph creates a permission graph for the given entity and node,
-// and recursively processes the children of the node. Returns the created
-// graph and an error if any occurs.
+// RuleToGraph converts a RuleDefinition into a graph.
+// It takes a RuleDefinition as input and constructs a graph representing the rule.
+// The graph consists of a single node representing the rule itself.
+func (b Builder) RuleToGraph(rule *base.RuleDefinition) (g Graph, err error) {
+	// Create a node for the rule
+	enNode := &Node{
+		Type:  "rule",
+		ID:    rule.GetName(),
+		Label: rule.GetName(),
+	}
+
+	// Add the rule node to the graph
+	g.AddNode(enNode)
+
+	return
+}
+
+// buildPermissionGraph recursively builds a permission graph.
+// It takes an entity definition, a starting node, and a list of children as input.
+// It returns the constructed graph and any encountered errors.
 func (b Builder) buildPermissionGraph(entity *base.EntityDefinition, from *Node, children []*base.Child) (g Graph, err error) {
-	// Iterate through the children
+	// Iterate through the list of children
 	for _, child := range children {
 		switch child.GetType().(type) {
+		// Handle Rewrite type children
 		case *base.Child_Rewrite:
-			// Create a node for the rewrite operation
 			rw := &Node{
 				Type:  "operation",
 				ID:    xid.New().String(),
 				Label: child.GetRewrite().GetRewriteOperation().String(),
 			}
 
-			// Add the rewrite node to the graph and connect it to the parent node
+			// Add the Rewrite node to the graph
 			g.AddNode(rw)
+
+			// Connect the Rewrite node to the current 'from' node
 			g.AddEdge(from, rw)
-			// Recursively process the children of the rewrite node
+
+			// Recursively build the permission graph for Rewrite children
 			ag, err := b.buildPermissionGraph(entity, rw, child.GetRewrite().GetChildren())
 			if err != nil {
 				return Graph{}, err
 			}
-			// Add the nodes and edges from the child graph to the current graph
+
+			// Add the nodes and edges from the recursively built graph to the current graph
 			g.AddNodes(ag.Nodes())
 			g.AddEdges(ag.Edges())
+
+		// Handle Leaf type children
 		case *base.Child_Leaf:
-			// Process the leaf node
 			leaf := child.GetLeaf()
 
 			switch leaf.GetType().(type) {
+			// Handle TupleToUserSet type leaf
 			case *base.Leaf_TupleToUserSet:
-				// Find the relation in the entity definition
 				re, err := schema.GetRelationByNameInEntityDefinition(entity, leaf.GetTupleToUserSet().GetTupleSet().GetRelation())
 				if err != nil {
 					return Graph{}, errors.New(base.ErrorCode_ERROR_CODE_RELATION_DEFINITION_NOT_FOUND.String())
 				}
 
+				// Add edges from the current 'from' node to referenced relations
 				for _, r := range re.GetRelationReferences() {
 					ag, err := b.addEdgeFromRelation(from, r, leaf)
 					if err != nil {
@@ -142,13 +186,50 @@ func (b Builder) buildPermissionGraph(entity *base.EntityDefinition, from *Node,
 					g.AddNodes(ag.Nodes())
 					g.AddEdges(ag.Edges())
 				}
+
+			// Handle ComputedUserSet type leaf
 			case *base.Leaf_ComputedUserSet:
-				// Add an edge between the parent node and the computed user set relation node
 				g.AddEdge(from, &Node{
 					Type:  "relation",
 					ID:    fmt.Sprintf("%s#%s", entity.GetName(), leaf.GetComputedUserSet().GetRelation()),
 					Label: leaf.GetComputedUserSet().GetRelation(),
 				})
+
+			// Handle ComputedAttribute type leaf
+			case *base.Leaf_ComputedAttribute:
+				g.AddEdge(from, &Node{
+					Type:  "attribute",
+					ID:    fmt.Sprintf("%s$%s", entity.GetName(), leaf.GetComputedAttribute().GetName()),
+					Label: leaf.GetComputedAttribute().GetName(),
+				})
+
+			// Handle Call type leaf
+			case *base.Leaf_Call:
+				g.AddEdge(from, &Node{
+					Type:  "rule",
+					ID:    leaf.GetCall().GetRuleName(),
+					Label: leaf.GetCall().GetRuleName(),
+				})
+
+				// Add edges for arguments of Call type leaf
+				for _, arg := range leaf.GetCall().GetArguments() {
+					switch op := arg.GetType().(type) {
+					case *base.Argument_ComputedAttribute:
+						g.AddEdge(&Node{
+							Type:  "attribute",
+							ID:    fmt.Sprintf("%s$%s", entity.GetName(), op.ComputedAttribute.GetName()),
+							Label: op.ComputedAttribute.GetName(),
+						}, &Node{
+							Type:  "rule",
+							ID:    leaf.GetCall().GetRuleName(),
+							Label: leaf.GetCall().GetRuleName(),
+						})
+					case *base.Argument_ContextAttribute:
+						break
+					default:
+						break
+					}
+				}
 			default:
 				break
 			}
