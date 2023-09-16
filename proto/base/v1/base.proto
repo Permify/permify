@@ -552,7 +552,7 @@ message DoubleValue {
 }
 
 // Wrapper for a single boolean value.
-message BoolValue {
+message BooleanValue {
   bool data = 1; // The boolean value.
 }
 
@@ -572,6 +572,6 @@ message DoubleArrayValue {
 }
 
 // Wrapper for an array of booleans.
-message BoolArrayValue {
+message BooleanArrayValue {
   repeated bool data = 1; // The array of booleans.
 }
