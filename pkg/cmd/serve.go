@@ -238,13 +238,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
 		}
 
-		// filters
-		schemaBaseEntityFilter := engines.NewSchemaBasedEntityFilter(dataReader)
-		massEntityFilter := engines.NewMassEntityFilter(dataReader)
-
-		schemaBaseSubjectFilter := engines.NewSchemaBasedSubjectFilter(schemaReader, dataReader, engines.SchemaBaseSubjectFilterConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
-		massSubjectFilter := engines.NewMassSubjectFilter(dataReader)
-
 		// Initialize the engines using the key manager, schema reader, and relationship reader
 		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
@@ -276,7 +269,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			)
 		}
 
-		lookupEngine := engines.NewLookupEngine(checker, schemaReader, schemaBaseEntityFilter, massEntityFilter, schemaBaseSubjectFilter, massSubjectFilter, engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit))
+		lookupEngine := engines.NewLookupEngine(checker, schemaReader, dataReader, engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit))
 		subjectPermissionEngine := engines.NewSubjectPermission(checker, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 
 		invoker := invoke.NewDirectInvoker(

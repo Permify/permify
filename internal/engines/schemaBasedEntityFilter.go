@@ -23,14 +23,11 @@ type SchemaBasedEntityFilter struct {
 }
 
 // NewSchemaBasedEntityFilter creates a new EntityFilter engine
-func NewSchemaBasedEntityFilter(dataReader storage.DataReader) *SchemaBasedEntityFilter {
+func NewSchemaBasedEntityFilter(dataReader storage.DataReader, sch *base.SchemaDefinition) *SchemaBasedEntityFilter {
 	return &SchemaBasedEntityFilter{
 		dataReader: dataReader,
+		schema:     sch,
 	}
-}
-
-func (engine *SchemaBasedEntityFilter) SetSchema(sch *base.SchemaDefinition) {
-	engine.schema = sch
 }
 
 // EntityFilter is a method of the EntityFilterEngine struct. It executes a permission request for linked entities.
