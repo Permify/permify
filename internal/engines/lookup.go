@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -14,7 +15,7 @@ type LookupEngine struct {
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
 	// checkEngine is responsible for performing permission checks
-	checkEngine *CheckEngine
+	checkEngine invoke.Check
 	// schemaBasedEntityFilter is responsible for performing entity filter operations
 	schemaBasedEntityFilter *SchemaBasedEntityFilter
 	// massEntityFilter is responsible for performing entity filter operations
@@ -30,7 +31,7 @@ type LookupEngine struct {
 }
 
 func NewLookupEngine(
-	check *CheckEngine,
+	check invoke.Check,
 	schemaReader storage.SchemaReader,
 	schemaBasedEntityFilter *SchemaBasedEntityFilter,
 	massEntityFilter *MassEntityFilter,

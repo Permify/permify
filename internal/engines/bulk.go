@@ -6,6 +6,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 
+	"github.com/Permify/permify/internal/invoke"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -24,7 +25,7 @@ type BulkCheckerRequest struct {
 
 // BulkChecker is a struct for checking permissions in bulk.
 type BulkChecker struct {
-	checkEngine *CheckEngine
+	checker invoke.Check
 	// input queue for permission check requests
 	RequestChan chan BulkCheckerRequest
 	// context to manage goroutines and cancellation
@@ -42,10 +43,10 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, engine *CheckEngine, callback func(entityID string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
+func NewBulkChecker(ctx context.Context, checker invoke.Check, callback func(entityID string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
 	return &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
-		checkEngine:      engine,
+		checker:          checker,
 		g:                &errgroup.Group{},
 		concurrencyLimit: concurrencyLimit,
 		ctx:              ctx,
@@ -73,7 +74,7 @@ func (c *BulkChecker) Start(typ BulkCheckerType) {
 			c.g.Go(func() error {
 				defer sem.Release(1)
 				if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
-					result, err := c.checkEngine.Check(c.ctx, req.Request)
+					result, err := c.checker.Check(c.ctx, req.Request)
 					if err != nil {
 						return err
 					}
