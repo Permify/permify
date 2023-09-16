@@ -20,9 +20,8 @@ var _ = Describe("tuple", func() {
 	Context("TupleToString", func() {
 		It("EntityAndRelationToString", func() {
 			tests := []struct {
-				target    *base.EntityAndRelation
-				arguments []*base.Argument
-				expected  string
+				target   *base.EntityAndRelation
+				expected string
 			}{
 				{&base.EntityAndRelation{
 					Entity: &base.Entity{
@@ -30,55 +29,18 @@ var _ = Describe("tuple", func() {
 						Id:   "1",
 					},
 					Relation: "admin",
-				}, nil, "repository:1#admin"},
+				}, "repository:1#admin"},
 				{&base.EntityAndRelation{
 					Entity: &base.Entity{
 						Type: "doc",
 						Id:   "1",
 					},
 					Relation: "viewer",
-				}, nil, "doc:1#viewer"},
-				{&base.EntityAndRelation{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "check_balance",
-				}, []*base.Argument{
-					{
-						Type: &base.Argument_ComputedAttribute{
-							ComputedAttribute: &base.ComputedAttribute{
-								Name: "balance",
-							},
-						},
-					},
-				}, "doc:1#check_balance(balance)"},
-				{&base.EntityAndRelation{
-					Entity: &base.Entity{
-						Type: "doc",
-						Id:   "1",
-					},
-					Relation: "check_balance",
-				}, []*base.Argument{
-					{
-						Type: &base.Argument_ContextAttribute{
-							ContextAttribute: &base.ContextAttribute{
-								Name: "amount",
-							},
-						},
-					},
-					{
-						Type: &base.Argument_ComputedAttribute{
-							ComputedAttribute: &base.ComputedAttribute{
-								Name: "balance",
-							},
-						},
-					},
-				}, "doc:1#check_balance(request.amount,balance)"},
+				}, "doc:1#viewer"},
 			}
 
 			for _, tt := range tests {
-				Expect(EntityAndRelationToString(tt.target, tt.arguments...)).Should(Equal(tt.expected))
+				Expect(EntityAndRelationToString(tt.target.GetEntity(), tt.target.GetRelation())).Should(Equal(tt.expected))
 			}
 		})
 	})

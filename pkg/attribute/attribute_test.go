@@ -100,5 +100,69 @@ var _ = Describe("attribute", func() {
 				Expect(Attribute(tt.target)).Should(Equal(tt.attribute))
 			}
 		})
+
+		It("EntityAndCallOrAttributeToString", func() {
+			tests := []struct {
+				entity          *base.Entity
+				attributeOrCall string
+				arguments       []*base.Argument
+				result          string
+			}{
+				{
+					entity: &base.Entity{
+						Type: "organization",
+						Id:   "1",
+					},
+					attributeOrCall: "check_credit",
+					arguments: []*base.Argument{
+						{
+							Type: &base.Argument_ComputedAttribute{
+								ComputedAttribute: &base.ComputedAttribute{
+									Name: "credit",
+								},
+							},
+						},
+					},
+					result: "organization:1$check_credit(credit)",
+				},
+				{
+					entity: &base.Entity{
+						Type: "organization",
+						Id:   "1",
+					},
+					attributeOrCall: "is_public",
+					arguments:       nil,
+					result:          "organization:1$is_public",
+				},
+				{
+					entity: &base.Entity{
+						Type: "organization",
+						Id:   "877",
+					},
+					attributeOrCall: "check_balance",
+					arguments: []*base.Argument{
+						{
+							Type: &base.Argument_ContextAttribute{
+								ContextAttribute: &base.ContextAttribute{
+									Name: "amount",
+								},
+							},
+						},
+						{
+							Type: &base.Argument_ComputedAttribute{
+								ComputedAttribute: &base.ComputedAttribute{
+									Name: "balance",
+								},
+							},
+						},
+					},
+					result: "organization:877$check_balance(request.amount,balance)",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(EntityAndCallOrAttributeToString(tt.entity, tt.attributeOrCall, tt.arguments...)).Should(Equal(tt.result))
+			}
+		})
 	})
 })
