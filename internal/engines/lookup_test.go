@@ -107,19 +107,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -249,19 +240,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -376,19 +358,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -503,19 +476,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -633,19 +597,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -772,19 +727,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -973,19 +919,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -1269,19 +1206,10 @@ entity event {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -1494,19 +1422,10 @@ entity event {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -1699,19 +1618,10 @@ entity organization {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -1890,19 +1800,10 @@ entity organization {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -2013,19 +1914,10 @@ entity organization {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -2180,19 +2072,10 @@ entity organization {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -2339,19 +2222,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -2450,19 +2324,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -2568,19 +2433,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -2676,19 +2532,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -2786,19 +2633,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -2896,19 +2734,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -3011,19 +2840,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(
@@ -3176,19 +2996,10 @@ entity doc {
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
-			schemaBasedEntityFilter := NewSchemaBasedEntityFilter(dataReader)
-			schemaBasedSubjectFilter := NewSchemaBasedSubjectFilter(schemaReader, dataReader)
-
-			massEntityFilter := NewMassEntityFilter(dataReader)
-			massSubjectFilter := NewMassSubjectFilter(dataReader)
-
 			lookupEngine := NewLookupEngine(
 				checkEngine,
 				schemaReader,
-				schemaBasedEntityFilter,
-				massEntityFilter,
-				schemaBasedSubjectFilter,
-				massSubjectFilter,
+				dataReader,
 			)
 
 			invoker := invoke.NewDirectInvoker(

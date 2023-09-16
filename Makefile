@@ -60,7 +60,7 @@ security-scan: ## Scan code for security vulnerabilities using Gosec
 
 .PHONY: coverage
 coverage: ## Generate global code coverage report
-	go test -coverprofile=coverage.out ./internal/...
+	go test -coverprofile=coverage.out ./cmd/... ./internal/... ./pkg/...
 	go tool cover -html=coverage.out -o coverage.html
 
 .PHONY: clean

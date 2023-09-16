@@ -14,16 +14,10 @@ import (
 type LookupEngine struct {
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
+	// schemaReader is responsible for reading data
+	dataReader storage.DataReader
 	// checkEngine is responsible for performing permission checks
 	checkEngine invoke.Check
-	// schemaBasedEntityFilter is responsible for performing entity filter operations
-	schemaBasedEntityFilter *SchemaBasedEntityFilter
-	// massEntityFilter is responsible for performing entity filter operations
-	massEntityFilter *MassEntityFilter
-	// schemaBasedEntityFilter is responsible for performing entity filter operations
-	schemaBasedSubjectFilter *SchemaBasedSubjectFilter
-	// massEntityFilter is responsible for performing entity filter operations
-	massSubjectFilter *MassSubjectFilter
 	// schemaMap is a map that keeps track of schema versions
 	schemaMap sync.Map
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
@@ -33,21 +27,15 @@ type LookupEngine struct {
 func NewLookupEngine(
 	check invoke.Check,
 	schemaReader storage.SchemaReader,
-	schemaBasedEntityFilter *SchemaBasedEntityFilter,
-	massEntityFilter *MassEntityFilter,
-	schemaBasedSubjectFilter *SchemaBasedSubjectFilter,
-	massSubjectFilter *MassSubjectFilter,
+	dataReader storage.DataReader,
 	opts ...LookupOption,
 ) *LookupEngine {
 	engine := &LookupEngine{
-		schemaReader:             schemaReader,
-		checkEngine:              check,
-		schemaBasedEntityFilter:  schemaBasedEntityFilter,
-		massEntityFilter:         massEntityFilter,
-		schemaBasedSubjectFilter: schemaBasedSubjectFilter,
-		massSubjectFilter:        massSubjectFilter,
-		schemaMap:                sync.Map{},
-		concurrencyLimit:         _defaultConcurrencyLimit,
+		schemaReader:     schemaReader,
+		checkEngine:      check,
+		dataReader:       dataReader,
+		schemaMap:        sync.Map{},
+		concurrencyLimit: _defaultConcurrencyLimit,
 	}
 
 	// options
@@ -94,7 +82,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	if err != nil {
 		// If the error is unimplemented, handle it with a MassEntityFilter
 		if errors.Is(err, schema.ErrUnimplemented) {
-			err = engine.massEntityFilter.EntityFilter(ctx, request, publisher)
+			err = NewMassEntityFilter(engine.dataReader).EntityFilter(ctx, request, publisher)
 			if err != nil {
 				return nil, err
 			}
@@ -106,11 +94,8 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		// Create a map to keep track of visited entities
 		visits := &ERMap{}
 
-		// Set the schema for the schema-based entity filter in the engine
-		engine.schemaBasedEntityFilter.SetSchema(sc)
-
 		// Perform an entity filter operation based on the permission request
-		err = engine.schemaBasedEntityFilter.EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+		err = NewSchemaBasedEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 			TenantId: request.GetTenantId(),
 			Metadata: &base.PermissionEntityFilterRequestMetadata{
 				SnapToken:     request.GetMetadata().GetSnapToken(),
@@ -181,7 +166,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	if err != nil {
 		// If the error is unimplemented, handle it with a MassEntityFilter
 		if errors.Is(err, schema.ErrUnimplemented) {
-			err = engine.massEntityFilter.EntityFilter(ctx, request, publisher)
+			err = NewMassEntityFilter(engine.dataReader).EntityFilter(ctx, request, publisher)
 			if err != nil {
 				return err
 			}
@@ -192,7 +177,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 		visits := &ERMap{}
 
 		// Perform an entity filter operation based on the permission request
-		err = engine.schemaBasedEntityFilter.EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+		err = NewSchemaBasedEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 			TenantId: request.GetTenantId(),
 			Metadata: &base.PermissionEntityFilterRequestMetadata{
 				SnapToken:     request.GetMetadata().GetSnapToken(),
@@ -260,7 +245,7 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 			// Create and start a BulkPublisher to provide entities to the BulkChecker.
 			publisher := NewBulkSubjectPublisher(ctx, request, checker)
 
-			err = engine.massSubjectFilter.SubjectFilter(ctx, request, publisher)
+			err = NewMassSubjectFilter(engine.dataReader).SubjectFilter(ctx, request, publisher)
 			if err != nil {
 				// Return an error if there was an issue with the subject filter.
 				return nil, err
@@ -284,7 +269,7 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 	}
 
 	// Use the schema-based subject filter to get the list of subjects with the requested permission.
-	ids, err := engine.schemaBasedSubjectFilter.SubjectFilter(ctx, request)
+	ids, err := NewSchemaBasedSubjectFilter(engine.schemaReader, engine.dataReader, SchemaBaseSubjectFilterConcurrencyLimit(engine.concurrencyLimit)).SubjectFilter(ctx, request)
 	if err != nil {
 		return nil, err
 	}
