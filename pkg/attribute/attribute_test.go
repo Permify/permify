@@ -164,5 +164,31 @@ var _ = Describe("attribute", func() {
 				Expect(EntityAndCallOrAttributeToString(tt.entity, tt.attributeOrCall, tt.arguments...)).Should(Equal(tt.result))
 			}
 		})
+
+		It("EntityToString", func() {
+			tests := []struct {
+				entity *base.Entity
+				result string
+			}{
+				{
+					entity: &base.Entity{
+						Type: "organization",
+						Id:   "1",
+					},
+					result: "organization:1",
+				},
+				{
+					entity: &base.Entity{
+						Type: "repository",
+						Id:   "abc",
+					},
+					result: "repository:abc",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(EntityToString(tt.entity)).Should(Equal(tt.result))
+			}
+		})
 	})
 })
