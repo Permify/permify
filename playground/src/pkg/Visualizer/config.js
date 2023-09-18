@@ -2,7 +2,7 @@ function GraphOptions() {
     return  {
         autoResize: true,
         clickToUse: true,
-        height: '80%',
+        height: '90%',
         width: '100%',
         layout: {
             hierarchical: {

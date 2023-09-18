@@ -3,18 +3,23 @@ package schema
 import (
 	"errors"
 
+	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // Walker is a struct used for traversing a schema
 type Walker struct {
 	schema *base.SchemaDefinition
+
+	// map used to track visited nodes and avoid infinite recursion
+	visited map[string]struct{}
 }
 
 // NewWalker is a constructor for the Walker struct
 func NewWalker(schema *base.SchemaDefinition) *Walker {
 	return &Walker{
-		schema: schema,
+		schema:  schema,
+		visited: make(map[string]struct{}),
 	}
 }
 
@@ -23,6 +28,18 @@ func (w *Walker) Walk(
 	entityType string,
 	permission string,
 ) error {
+	// Generate a unique key for the entityType and permission combination
+	key := utils.Key(entityType, permission)
+
+	// Check if the entity-permission combination has already been visited
+	if _, ok := w.visited[key]; ok {
+		// If already visited, exit early to avoid redundant processing or infinite recursion
+		return nil
+	}
+
+	// Mark the entity-permission combination as visited
+	w.visited[key] = struct{}{}
+
 	// Lookup the entity definition in the schema
 	def, ok := w.schema.EntityDefinitions[entityType]
 	if !ok {
