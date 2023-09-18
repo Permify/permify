@@ -107,5 +107,47 @@ var _ = Describe("walker", func() {
 
 			Expect(err).Should(Equal(ErrUnimplemented))
 		})
+
+		It("Case 3", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity tag {
+				relation assignee @department
+				permission view_document = assignee.view_document
+			}
+
+			entity document {
+				relation owner @department
+			
+				permission edit = owner.edit_document
+				permission view = owner.view_document or owner.peek_document
+			}
+			
+			entity department {
+				relation parent @department
+				relation admin @user
+				relation viewer @user
+				relation assigned_tag @tag
+				
+				permission peek_document = assigned_tag.view_document or parent.peek_document
+				permission edit_document = admin or parent.edit_document
+				permission view_document = viewer or admin or parent.view_document
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			e, r, err := c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			w := NewWalker(NewSchemaFromEntityAndRuleDefinitions(e, r))
+
+			err = w.Walk("document", "view")
+
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 })
