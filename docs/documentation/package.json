@@ -69,7 +69,7 @@
     "react-waypoint": "10.3.0",
     "styled-components": "^5.3.6",
     "styled-system": "5.1.5",
-    "swiper": "^9.1.0"
+    "swiper": "^9.4.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^2.4.0",
