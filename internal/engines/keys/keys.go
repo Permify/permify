@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	`sort`
 	"strings"
 
 	"github.com/cespare/xxhash/v2"
@@ -237,15 +238,16 @@ func ContextToString(context *base.Context) string {
 
 // mapToString function takes a map[string]interface{} and converts it into a string
 func mapToString(m map[string]interface{}) string {
-	s := ""
-	for key, value := range m {
-		// This will work as long as `value` is a simple type;
-		// it won't work correctly for nested maps, etc.
-		s += fmt.Sprintf("%s:%v,", key, value)
+	var keys []string
+	for key := range m {
+		keys = append(keys, key)
 	}
-	// Remove the last comma and space
-	if len(s) > 0 {
-		s = s[:len(s)-2]
+	sort.Strings(keys)
+
+	var parts []string
+	for _, key := range keys {
+		value := m[key]
+		parts = append(parts, fmt.Sprintf("%s:%v", key, value))
 	}
-	return s
+	return strings.Join(parts, ",")
 }
