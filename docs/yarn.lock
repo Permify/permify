@@ -2343,10 +2343,10 @@
   resolved "https://registry.yarnpkg.com/@trysound/sax/-/sax-0.2.0.tgz#cccaab758af56761eb7bf37af6f03f326dd798ad"
   integrity sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==
 
-"@tsconfig/docusaurus@^1.0.4":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@tsconfig/docusaurus/-/docusaurus-1.0.7.tgz#a3ee3c8109b3fec091e3d61a61834e563aeee3c3"
-  integrity sha512-ffTXxGIP/IRMCjuzHd6M4/HdIrw1bMfC7Bv8hMkTadnePkpe0lG0oDSdbRpSDZb2rQMAgpbWiR10BvxvNYwYrg==
+"@tsconfig/docusaurus@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@tsconfig/docusaurus/-/docusaurus-2.0.1.tgz#a5fafa047c8383258e3c5aad960e332e27ecf5ea"
+  integrity sha512-7JrI61bTZ37DWrHx1qhOW+kPxSG95+/q+EiDCMIahh8Aqbk03+nVu+Z6YGOj3O5e6lXHJuf/LHJ/lc6j8IEQyA==
 
 "@types/body-parser@*":
   version "1.19.3"
