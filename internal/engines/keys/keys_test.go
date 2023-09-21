@@ -405,5 +405,5 @@ func TestEngineKeys_SetCheckKeyWithContext(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, "check|t1|test_version|test_snap_token|entity_type:entity_id#relation@subject_type:subject_id,entity_type:entity_id$is_public|boolean:true,day_of_a_week:saturday,day_of_a_year:35|test-entity:e1$test-rule(test_argument_1,test_argument_2)", GenerateKey(checkReq, false))
+	assert.Equal(t, "check|t1|test_version|test_snap_token|entity_type:entity_id#relation@subject_type:subject_id,entity_type:entity_id$is_public|boolean:true,day_of_a_week:saturday,day_of_a_year:356|test-entity:e1$test-rule(test_argument_1,test_argument_2)", GenerateKey(checkReq, false))
 }
