@@ -9,6 +9,6 @@
             pattern: /\\B@\\w+#?\\w+/,
             greedy: true
         },
-        'keyword': /\b(?:entity|permission|relation|action|or|not|and)\b(?!\s*=\s*\d)/,
+        'keyword': /\b(?:entity|permission|attribute|rule|relation|action|or|not|and)\b(?!\s*=\s*\d)/,
     });
 }(Prism));
