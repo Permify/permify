@@ -72,7 +72,7 @@
     "swiper": "^9.1.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^2.4.0",
+    "@docusaurus/module-type-aliases": "^2.4.1",
     "@tsconfig/docusaurus": "^1.0.4",
     "typescript": "^4.9.5"
   },
