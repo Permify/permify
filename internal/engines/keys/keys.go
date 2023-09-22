@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	`sort`
+	"sort"
 	"strings"
 
 	"github.com/cespare/xxhash/v2"

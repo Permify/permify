@@ -20,6 +20,9 @@ func main() {
 	coverage := cmd.NewCoverageCommand()
 	root.AddCommand(coverage)
 
+	ast := cmd.NewGenerateASTCommand()
+	root.AddCommand(ast)
+
 	migrate := cmd.NewMigrateCommand()
 	root.AddCommand(migrate)
 
