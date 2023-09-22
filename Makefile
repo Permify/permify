@@ -89,4 +89,4 @@ serve-playground:
 
 .PHONY: serve-docs
 serve-docs:
-	cd ./docs/documentation && yarn start
+	cd ./docs && yarn start
