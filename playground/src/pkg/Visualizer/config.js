@@ -11,7 +11,7 @@ function GraphOptions() {
                 sortMethod: "directed",
                 shakeTowards: "roots",
                 levelSeparation: 150,
-                nodeSpacing: 150,
+                nodeSpacing: 220,
                 treeSpacing: 150,
                 blockShifting: true,
                 edgeMinimization: true,
@@ -77,7 +77,7 @@ function GraphOptions() {
                 strokeWidth: 6,
                 strokeColor: "#141517"
             },
-            width: 2,
+            width: 3,
             smooth: true
         },
         groups: {

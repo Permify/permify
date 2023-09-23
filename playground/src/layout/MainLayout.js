@@ -1,14 +1,13 @@
 import React, {useState, useEffect} from "react";
-import {Layout, Row, Button, Select, Typography} from 'antd';
+import {Layout, Row, Button, Select} from 'antd';
 import {toAbsoluteUrl} from "../utility/helpers/asset";
-import {GithubOutlined, ShareAltOutlined, ExportOutlined, ImportOutlined} from "@ant-design/icons";
+import {GithubOutlined, ShareAltOutlined, ExportOutlined} from "@ant-design/icons";
 import Upload from "../services/s3";
 import {nanoid} from "nanoid";
 import yaml from "js-yaml";
 import {useShapeStore} from "../state/shape";
 import Share from "./components/modals/Share";
 
-const {Text} = Typography;
 const {Option, OptGroup} = Select;
 const {Content, Header} = Layout;
 
@@ -101,30 +100,22 @@ const MainLayout = ({children, ...rest}) => {
                                 onChange={handleSampleChange} showArrow={true}>
                             <OptGroup label="Use Cases">
                                 <Option key="empty" value="empty">Empty</Option>
-                                <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations
-                                    & Hierarchies</Option>
+                                <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations & Hierarchies</Option>
                                 <Option key="rbac" value="rbac">RBAC</Option>
                                 <Option key="custom-roles" value="custom-roles">Custom Roles</Option>
                                 <Option key="user-groups" value="user-groups">User Groups</Option>
-                                <Option key="weekday" value="weekday">Weekday <Text type="danger">(beta)</Text></Option>
-                                <Option key="banking-system" value="banking-system">Banking System <Text
-                                    type="danger">(beta)</Text></Option>
+                                <Option key="weekday" value="weekday">Weekday</Option>
+                                <Option key="banking-system" value="banking-system">Banking System</Option>
                             </OptGroup>
                             <OptGroup label="Sample Apps">
-                                <Option key="google-docs-simplified" value="google-docs-simplified">Google Docs
-                                    Simplified</Option>
+                                <Option key="google-docs-simplified" value="google-docs-simplified">Google Docs Simplified</Option>
                                 <Option key="facebook-groups" value="facebook-groups">Facebook Groups</Option>
                                 <Option key="notion" value="notion">Notion</Option>
-                                <Option key="mercury" value="mercury">Mercury <Text type="danger">(beta)</Text></Option>
-                                <Option key="instagram" value="instagram">Instagram <Text
-                                    type="danger">(beta)</Text></Option>
-                                <Option key="disney-plus" value="disney-plus">Disney Plus <Text
-                                    type="danger">(beta)</Text></Option>
+                                <Option key="mercury" value="mercury">Mercury</Option>
+                                <Option key="instagram" value="instagram">Instagram</Option>
+                                <Option key="disney-plus" value="disney-plus">Disney Plus</Option>
                             </OptGroup>
                         </Select>
-                       {/* <Button className="mr-8" onClick={() => {
-                            share()
-                        }} icon={<ImportOutlined/>}>Import</Button>*/}
                         <Button className="mr-8" onClick={() => {
                             exp()
                         }} icon={<ExportOutlined/>}>Export</Button>
@@ -139,7 +130,7 @@ const MainLayout = ({children, ...rest}) => {
                         </Button>
                         <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}
                                 href="https://github.com/Permify/permify">
-                            Get Started
+                            Star us on GitHub
                         </Button>
                         <Button type="primary" href="https://discord.com/invite/MJbUjwskdH" target="_blank">Join
                             Community</Button>

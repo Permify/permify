@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react'
 import "allotment/dist/style.css";
 import Schema from "./schema";
 import Visualizer from "./visualizer";
-import {Button, Radio, Tabs, Typography} from "antd";
+import {Button, Radio, Tabs} from "antd";
 import {CheckCircleOutlined, CopyOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import Relationships from "./particials/data/relationships";
 import Attributes from "./particials/data/attributes";
@@ -10,8 +10,6 @@ import {useSearchParams} from 'react-router-dom';
 import {useShapeStore} from "../../state/shape";
 import Enforcement from "./enforcement";
 import NewScenario from "../components/modals/newScenario";
-
-const {Text} = Typography;
 
 function Output(props) {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -68,7 +66,7 @@ function Output(props) {
                 <Radio.Group defaultValue="relationships" buttonStyle="solid" onChange={onDataSelectedChange}
                              value={dataSelected}>
                     <Radio value="relationships">Relationships</Radio>
-                    <Radio value="attributes">Attributes <Text type="danger">(beta)</Text></Radio>
+                    <Radio value="attributes">Attributes</Radio>
                 </Radio.Group>
             );
             break;
