@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # What is Permify?
 
-[Permify](https://github.com/Permify/permify) is a **relationship based authorization service** for creating and maintaining fine-grained authorizations while ensuring least privilege across your organization.
+[Permify](https://github.com/Permify/permify) is a **open source authorization service** for creating and maintaining fine-grained authorizations while ensuring least privilege across your organization.
 
 With Permify, you can easily structure your authorization model, store authorization data in your preferred database, and interact with the Permify API to handle all authorization queries from your applications or services.
 

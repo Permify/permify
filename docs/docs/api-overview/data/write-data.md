@@ -1,24 +1,24 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Write Relationships
+# Write Data
 
-In Permify, relations between your entities, objects and users stored as [relational tuples] in [writeDB]. Since relations and authorization data's are live instances these relational tuples can be created with an simple API call in runtime. 
+In Permify, relations between your entities, objects and users stored as [relational tuples] in a [preferred database]. Since relations and authorization data's are live instances these relational tuples can be created with an simple API call in runtime. 
 
-When using Permify, the application client should update writeDB about the changes happening in entities or resources that are related to the authorization structure. If we consider a document system; when some user joins a group that has edit access on some documents, the application side needs to write relational tuples to keep [writeDB] up-to-date. Besides, each relational tuple should be created according to its authorization model, Permify Schema.
+When using Permify, the application client should update preferred database about the changes happening in entities or resources that are related to the authorization structure. If we consider a document system; when some user joins a group that has edit access on some documents, the application side needs to write relational tuples to keep [preferred database] up-to-date. Besides, each relational tuple should be created according to its authorization model, Permify Schema.
 
-Another example: when one a company executive grant admin role to user (lets say with id = 3) on their organization, application side needs to tell that update to Permify in order to reform that as relation tuples and store in [writeDB].
+Another example: when one a company executive grant admin role to user (lets say with id = 3) on their organization, application side needs to tell that update to Permify in order to reform that as relation tuples and store in [preferred database].
 
 ![tuple-creation](https://user-images.githubusercontent.com/34595361/186637488-30838a3b-849a-4859-ae4f-d664137bb6ba.png)
 
 [relational tuples]: ../../getting-started/sync-data
-[writeDB]: ../../getting-started/sync-data#where-relational-tuples-used
+[preferred database]: ../../getting-started/sync-data#where-relational-tuples-used
 
 ## Request
 
-So if user:3 has been granted an admin role in organization:1, relational tuple `organization:1#admin@user:3` must be created by using **/v1/relationships/write** endpoint.
+So if user:3 has been granted an admin role in organization:1, relational tuple `organization:1#admin@user:3` must be created by using **/v1/data/write** endpoint.
 
-**Path:** POST /v1/tenants/{tenant_id}/relationships/write
+**Path:** POST /v1/tenants/{tenant_id}/data/write
 
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
@@ -34,9 +34,9 @@ So if user:3 has been granted an admin role in organization:1, relational tuple 
 <TabItem value="go" label="Go">
 
 ```go
-rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+rr, err: = client.Data.Write(context.Background(), & v1.DataWriteRequest {
     TenantId: "t1",
-    Metadata: &v1.RelationshipWriteRequestMetadata {
+    Metadata: &v1.DataWriteRequestMetadata {
         SchemaVersion: ""
     },
     Tuples: [] * v1.Tuple {
@@ -60,7 +60,7 @@ rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWrit
 <TabItem value="node" label="Node">
 
 ```javascript
-client.relationship.write({
+client.data.write({
     tenantId: "t1",
     metadata: {
         schemaVersion: ""
@@ -85,7 +85,7 @@ client.relationship.write({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "metadata": {
@@ -139,7 +139,7 @@ func CreateDocuments(db *gorm.DB) error {
     if r := recover(); r != nil {
       tx.Rollback()
       // if transaction fails, then delete malformed relation tuple 
-      permify.DeleteRelationships(...)
+      permify.DeleteData(...)
     }
   }()
 
@@ -150,21 +150,21 @@ func CreateDocuments(db *gorm.DB) error {
   if err := tx.Create(docs).Error; err != nil {
      tx.Rollback()
      // if transaction fails, then delete malformed relation tuple 
-     permify.DeleteRelationships(...)
+     permify.DeleteData(...)
      return err
   }
 
   // if transaction successful, write relation tuple to Permify 
-  permify.WriteRelationships(...)
+  permify.WriteData(...)
 
   return tx.Commit().Error
 }
 ```
 The key point to take way from above approach is if the transaction fails for any reason, the relation will also be deleted from Permify to provide maximum consistency.
 
-### Relationships that not stored in application database
+### Data that not stored in application database
 
-Although ownership generally stored in application databases, there are some relations that not needed to be stored in your actual database. Such as defining organizational roles, group members, project editors etc.
+Although ownership generally stored in application databases, there are some data that not needed to be stored in your actual database. Such as defining organizational roles, group members, project editors etc.
 
 For example, you can model a simple project management authorization in Permify as follows, 
 
@@ -189,7 +189,7 @@ entity project {
 }
 ```
 
-This **team member** relation won't need to be stored in the application database. Storing it only in Permify - WriteDB - is enough. In that situation, `WriteRelationships` can be performed in any logical place in your stack.
+This **team member** relation won't need to be stored in the application database. Storing it only in Permify - preferred database - is enough. In that situation, `WriteData` can be performed in any logical place in your stack.
 
 ## Need any help ?
 

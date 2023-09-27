@@ -127,7 +127,7 @@ Answering access checks is accomplished within Permify using a basic graph walki
 
 Access decisions are evaluated by stored [relational tuples] and your authorization model, [Permify Schema]. 
 
-In high level, access of an subject related with the relationships created between the subject and the resource. You can define this relationships in Permify Schema then create and store them as relational tuples, which is basically your authorization data. 
+In high level, access of an subject related with the relationships or attributes created between the subject and the resource. You can define this data in Permify Schema then create and store them as relational tuples and attributes, which is basically forms your authorization data. 
 
 Permify Engine to compute access decision in 2 steps, 
 1. Looking up authorization model for finding the given action's ( **edit**, **push**, **delete** etc.) relations.

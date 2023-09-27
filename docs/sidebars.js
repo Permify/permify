@@ -86,16 +86,16 @@ module.exports = {
 				  },
 				  {
 					type: 'category',
-					label: 'Relationship Service',
+					label: 'Data Service',
 					link: {
 						type: "generated-index",
-						title: "Relationship Service",
-						slug: "/api-overview/relationship",
+						title: "Data Service",
+						slug: "/api-overview/data",
 					},
 					items: [
-						"api-overview/relationship/write-relationships",
-						"api-overview/relationship/read-api", 
-						"api-overview/relationship/delete-relationships"
+						"api-overview/data/write-data",
+						"api-overview/data/read-relationships", 
+						"api-overview/data/delete-data"
 					],
 				  },
 				  {
