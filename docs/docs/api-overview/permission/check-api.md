@@ -25,7 +25,7 @@ In this section we'll look at the resource based check request of Permify. You c
 | [x]      | permission        | string  | -       | the action the user wants to perform on the resource                                                                                                                         |
 | [x]      | subject           | object  | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                   |
 | [x]      | depth             | integer | 8       | Timeout limit when if recursive database queries got in loop                                                                                                                 |
-| [ ]      | contextual_tuples | object  | -       | Contextual tuples are relations that can be dynamically added to permission request operations. , see more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context | object  | -       | Contextual tuples are relations that can be dynamically added to permission request operations. , see more details on [Contextual Tuples](../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">

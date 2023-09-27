@@ -27,7 +27,7 @@ In this endpoint you'll get directly the IDs' of the subjects that are authorize
 | [x]      | entity              | object   | -       | contains entity type and id of the entity. Example: repository:1                                                                                                           |
 | [x]      | permission          | string   | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject_reference   | object   | -       | the subject or subject reference who wants to take the action. It contains type and relation of the subject.                                                               |
-| [ ]      | contextual_tuples   | object   | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context   | object   | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">

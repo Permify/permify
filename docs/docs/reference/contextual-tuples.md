@@ -205,7 +205,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
     "id": "1",
     "relation": ""
   },
-  "contextual_tuples": [
+  "context": [
     {
       "entity": {
         "type": "organization",
