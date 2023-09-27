@@ -20,7 +20,7 @@ service:
 
 The cache library used is: https://github.com/dgraph-io/ristretto
 
-## Relationships Cache
+## Data Cache
 
 Permify applies the MVCC (Multi Version Concurrency Control) pattern for Postgres, creating a separate database snapshot for each write and delete operation. This both enhances performance and provides a consistent cache.
 
@@ -45,7 +45,7 @@ service:
 
 The cache library used is: https://github.com/dgraph-io/ristretto
 
-Note: Another advantage of the MVCC pattern is the ability to historically store data. However, it has a downside of accumulation of too many relationships. For this, we have developed a garbage collector that will delete old relationships at a time period you specify.
+Note: Another advantage of the MVCC pattern is the ability to historically store data. However, it has a downside of accumulation of too many relationships. For this, we have developed a garbage collector that will delete old data at a time period you specify.
 
 ## Distributed Cache
 

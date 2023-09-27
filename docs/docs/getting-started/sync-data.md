@@ -70,17 +70,17 @@ According to the schema above; when a user creates a document in an organization
 
 [WriteDB]: #write-database
 
-### Write Relationships API
+### Write Data API
 
-You can create relational tuples by using `Write Relationships API`. 
+You can create relational tuples by using `Write Data API`. 
 
 <Tabs>
 <TabItem value="go" label="Go">
 
 ```go
-rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+rr, err: = client.Data.Write(context.Background(), & v1.DataWriteRequest {
     TenantId: "t1",
-    Metadata: &v1.RelationshipWriteRequestMetadata {
+    Metadata: &v1.DataWriteRequestMetadata {
         SchemaVersion: ""
     },
     Tuples: [] * v1.Tuple {
@@ -104,7 +104,7 @@ rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWrit
 <TabItem value="node" label="Node">
 
 ```javascript
-client.relationship.write({
+client.data.write({
     tenantId: "t1",
     metadata: {
         schemaVersion: ""
@@ -129,7 +129,7 @@ client.relationship.write({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "metadata": {
@@ -156,7 +156,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationsh
 
 ### Snap Tokens
 
-In Write Relationships API response you'll get a snap token of the operation. 
+In Write Data API response you'll get a snap token of the operation. 
 
 ```json
 {
@@ -166,9 +166,9 @@ In Write Relationships API response you'll get a snap token of the operation.
 
 This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting to use snap tokens in production to prevent data inconsistency and optimize the performance. See more on [Snap Tokens](../reference/snap-tokens.md)
 
-## More Relationships
+## More Examples
 
-Let's create more relationships according to the schema we defined above.
+Let's create more example data according to the schema we defined above.
 
 ### Organization Admin
 
@@ -180,9 +180,9 @@ Let's create more relationships according to the schema we defined above.
 <TabItem value="go" label="Go">
 
 ```go
-rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+rr, err: = client.Data.Write(context.Background(), & v1.DataWriteRequest {
     TenantId: "t1",
-    Metadata: &v1.RelationshipWriteRequestMetadata {
+    Metadata: &v1.DataWriteRequestMetadata {
         SchemaVersion: ""
     },
     Tuples: [] * v1.Tuple {
@@ -206,7 +206,7 @@ rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWrit
 <TabItem value="node" label="Node">
 
 ```javascript
-client.relationship.write({
+client.data.write({
     tenantId: "t1",
     metadata: {
         schemaVersion: ""
@@ -231,7 +231,7 @@ client.relationship.write({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "metadata": {
@@ -266,9 +266,9 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationsh
 <TabItem value="go" label="Go">
 
 ```go
-rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+rr, err: = client.Data.Write(context.Background(), & v1.DataWriteRequest {
     TenantId: "t1",
-    Metadata: &v1.RelationshipWriteRequestMetadata {
+    Metadata: &v1.DataWriteRequestMetadata {
         SchemaVersion: ""
     },
     Tuples: [] * v1.Tuple {
@@ -293,7 +293,7 @@ rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWrit
 <TabItem value="node" label="Node">
 
 ```javascript
-client.relationship.write({
+client.data.write({
     tenantId: "t1",
     metadata: {
         schemaVersion: ""
@@ -319,7 +319,7 @@ client.relationship.write({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "metadata": {
@@ -360,9 +360,9 @@ Simply, the usage of ... is straightforward: if you're use user entity as an sub
 <TabItem value="go" label="Go">
 
 ```go
-rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWriteRequest {
+rr, err: = client.Data.Write(context.Background(), & v1.DataWriteRequest {
     TenantId: "t1",
-    Metadata: &v1.RelationshipWriteRequestMetadata {
+    Metadata: &v1.DataWriteRequestMetadata {
         SchemaVersion: ""
     },
     Tuples: [] * v1.Tuple {
@@ -387,7 +387,7 @@ rr, err: = client.Relationship.Write(context.Background(), & v1.RelationshipWrit
 <TabItem value="node" label="Node">
 
 ```javascript
-client.relationship.write({
+client.data.write({
     tenantId: "t1",
     metadata: {
         schemaVersion: ""
@@ -413,7 +413,7 @@ client.relationship.write({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationships/write' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "metadata": {
@@ -454,7 +454,7 @@ We have a strong foundation for permission baselining and review, thanks to MVCC
 
 **Current State Review:** You can review the current state of permissions by examining the latest versions of each permission setting.
 
-**Cleanup:** Your system incorporates a garbage collector for managing old relationships, which helps keep your permissions structure clean and optimized.
+**Cleanup:** Your system incorporates a garbage collector for managing old data, which helps keep your permissions structure clean and optimized.
 
 ## Next 
 

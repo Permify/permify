@@ -3,7 +3,7 @@ import TabItem from '@theme/TabItem';
 
 # Expand API 
 
-Retrieve all subjects (users and user sets) that have a relationship with given entity and permission
+Retrieve all subjects (users and user sets) that have a relationship or attribute with given entity and permission
 
 Expand API response is represented by a user set tree, whose leaf nodes are user IDs or user sets pointing to other ⟨object#relation⟩ pairs. 
 
@@ -123,7 +123,7 @@ We can use expand API to reason the access actions. If we want to reason access 
 | [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens)                                                                        |
 | [x]      | entity            | string | -       | Name and id of the entity. Example: repository:1”.                                                                                                                         |
 | [x]      | permission        | string | -       | The permission the user wants to perform on the resource                                                                                                                   |
-| [ ]      | contextual_tuples | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
 
 ### Expand Push Action 
 

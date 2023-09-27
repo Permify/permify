@@ -28,7 +28,7 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 | [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
 | [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
-| [ ]      | contextual_tuples | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -144,7 +144,7 @@ The difference between this endpoint from direct Lookup Entity is response of th
 | [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
 | [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
-| [ ]      | contextual_tuples | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">

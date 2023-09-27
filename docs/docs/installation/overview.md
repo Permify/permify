@@ -140,7 +140,7 @@ After you completed configuration of your authorization model via Permify Schema
 
 ### Create Relational Tuples
 
-You can create relational tuples as authorization rules at this writeDB by using [Write Relationships API](../api-overview/relationship/write-relationships.md)
+You can create relational tuples as authorization rules at this writeDB by using [Write Data API](../api-overview/data/write-data.md)
 
 For our guide let's grant one of the team members (Ashley) an admin role.
 
@@ -155,7 +155,7 @@ For our guide let's grant one of the team members (Ashley) an admin role.
 | [x]   | subject | string | - | User or user set who wants to take the action. |
 | [ ]   | schema_version | string | 8 | Version of the schema |
 
-**POST /v1/tenants/{tenant_id}relationships/write** 
+**POST /v1/tenants/{tenant_id}/data/write** 
 
 ```json
 {
@@ -179,7 +179,7 @@ For our guide let's grant one of the team members (Ashley) an admin role.
 }
 ```
 
-![write-relationships](https://user-images.githubusercontent.com/34595361/214458203-8264e141-642d-48b0-9242-416bbf6f8795.png)
+![write-data](https://user-images.githubusercontent.com/34595361/214458203-8264e141-642d-48b0-9242-416bbf6f8795.png)
 
 **Created relational tuple:** organization:1#admin@user:1
 

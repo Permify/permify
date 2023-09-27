@@ -28,7 +28,7 @@ In this endpoint, you'll receive a map of permissions and their statuses directl
 | [x]      | subject           | object  | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                                          |
 | [ ]      | depth             | integer | 8       | Timeout limit when if recursive database queries got in loop                                                                                                                                        |
 | [ ]      | only_permission   | bool    | false   | By default, the endpoint returns both permissions and relations associated with the user and entity. However, when the "only_permission" parameter is set to true, it returns only the permissions. |                                                                                                               |
-| [ ]      | contextual_tuples | object  | -       | Contextual tuples are relations that can be dynamically added to permission request operations. , see more details on [Contextual Tuples](../../reference/contextual-tuples)                        |
+| [ ]      | context | object  | -       | Contextual tuples are relations that can be dynamically added to permission request operations. , see more details on [Contextual Tuples](../../reference/contextual-tuples)                        |
 
 <Tabs>
 <TabItem value="go" label="Go">

@@ -12,14 +12,14 @@ Permify API provides various functionalities around authorization such as perfor
 We structured Permify API in 4 core parts:
 
 - [PermissionService]: Consists access control requests and options.
-- [RelationshipService]: Authorization data operations such as creating, deleting and reading relational tuples.
+- [DataService]: Authorization data operations such as creating, deleting and reading relational tuples.
 - [SchemaService]: Modeling and Permify Schema related functionalities including configuration and auditing.
 - [TenancyService]: Consists tenant operations such as creating, deleting and listing.
 
 Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/main:base.v1) - with [go] and [nodeJS] client options - and [REST](https://restfulapi.net/).
 
 [PermissionService]: ./api-overview/permission
-[RelationshipService]: ./api-overview/relationship
+[DataService]: ./api-overview/data
 [SchemaService]: ./api-overview/schema
 [TenancyService]: ./api-overview/tenancy
 [go]: https://github.com/Permify/permify-go
@@ -38,12 +38,12 @@ However, since it communicates using standard protocols like gRPC and HTTP, it i
 ## Core Paths
 
 - Configure your authorization model with [Schema Write](./api-overview/schema/write-schema.md)
-- Write relational tuples with [Write Relationships](./api-overview/relationship/write-relationships.md)
-- Read relation tuples and filter them with [Read API](./api-overview/relationship/read-api.md)
+- Write relational tuples with [Write Data](./api-overview/data/write-data.md)
+- Read relation tuples and filter them with [Read Relationships](./api-overview/data/read-relationships.md)
 - Check access with [Check API](./api-overview/permission/check-api.md)
 - Check entities permissions with [Lookup Entity](./api-overview/permission/lookup-entity.md)
 - Check subject permissions with [Lookup Subject](./api-overview/permission/lookup-subject.md)
-- Delete relation tuples with [Delete Tuple](./api-overview/relationship/delete-relationships.md)
+- Delete relation tuples with [Delete Tuple](./api-overview/data/delete-data.md)
 - Expand schema actions with [Expand API](./api-overview/permission/expand-api.md)
 - Watch changes in the relation tuples in real-time with [Watch API](./api-overview/watch/watch-changes.md)
 
