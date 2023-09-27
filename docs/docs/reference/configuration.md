@@ -8,6 +8,9 @@ this [example config file](https://github.com/Permify/permify/blob/master/exampl
 ***Example config.yaml file***
 
 ```yaml
+# The server section specifies the HTTP and gRPC server settings,
+# including whether or not TLS is enabled and the certificate and
+# key file locations.
 server:
   rate_limit: 100
   http:
@@ -24,28 +27,40 @@ server:
       cert: /etc/letsencrypt/live/yourdomain.com/fullchain.pem
       key: /etc/letsencrypt/live/yourdomain.com/privkey.pem
 
+# The logger section sets the logging level for the service.
 logger:
-  level: 'info'
+  level: info
 
+# The profiler section enables or disables the pprof profiler and
+# sets the port number for the profiler endpoint.
 profiler:
   enabled: true
   port: 6060
 
+# The authn section specifies the authentication method for the service.
 authn:
+  enabled: true
   method: preshared
-  enabled: false
-  keys: [ ]
+  preshared:
+    keys: []
 
+# The tracer section enables or disables distributed tracing and sets the
+# exporter and endpoint for the tracing data.
 tracer:
-  exporter: 'zipkin'
-  endpoint: 'http://localhost:9411/api/v2/spans'
+  exporter: zipkin
+  endpoint: http://localhost:9411/api/v2/spans
   enabled: true
 
+# The meter section enables or disables metrics collection and sets the
+# exporter and endpoint for the collected metrics.
 meter:
-  exporter: 'otlp'
-  endpoint: 'localhost:4318'
+  exporter: otlp
+  endpoint: localhost:4318
   enabled: true
 
+# The service section sets various service-level settings, including whether
+# or not to use a circuit breaker, and cache sizes for schema, permission,
+# and relationship data.
 service:
   circuit_breaker: false
   watch:
@@ -55,26 +70,35 @@ service:
       number_of_counters: 1_000
       max_cost: 10MiB
   permission:
+    bulk_limit: 100
     concurrency_limit: 100
     cache:
       number_of_counters: 10_000
       max_cost: 10MiB
   relationship:
 
+# The database section specifies the database engine and connection settings,
+# including the URI for the database, whether or not to auto-migrate the database,
+# and connection pool settings.
 database:
-  engine: 'postgres'
-  uri: 'postgres://user:password@host:5432/db_name'
+  engine: postgres
+  uri: postgres://user:password@host:5432/db_name
   auto_migrate: false
   max_open_connections: 20
   max_idle_connections: 1
   max_connection_lifetime: 300s
   max_connection_idle_time: 60s
   garbage_collection:
-    enable: true
-    interval: 3m
-    timeout: 3m
-    window: 720h
-    number_of_threads: 1
+    enabled: true
+    interval: 200h
+    window: 200h
+    timeout: 5m
+
+distributed:
+  enabled: true
+  node: serf:7946
+  node_name: main-serf
+  protocol: serf
 ```
 
 ## Options
@@ -344,7 +368,6 @@ audits, decision logs, authorization model)
 |       ├──interval: 3m
 |       ├──timeout: 3m
 |       ├──window: 720h
-|       ├──number_of_threads: 1
 ```
 
 #### Glossary
@@ -361,8 +384,7 @@ audits, decision logs, authorization model)
 | [ ]      | enable (for garbage collection) | false   | Switch option for garbage collection.                                                                             |               
 | [ ]      | interval                        | 3m      | Determines the run period of a Garbage Collection operation.                                                      |              
 | [ ]      | timeout                         | 3m      | Sets the duration of the Garbage Collection timeout.                                                              |             
-| [ ]      | window                          | 720h    | Determines how much backward cleaning the Garbage Collection process will perform.                                |            
-| [ ]      | number_of_threads               | 1       | Limits how many threads Garbage Collection processes concurrently with.                                           |           
+| [ ]      | window                          | 720h    | Determines how much backward cleaning the Garbage Collection process will perform.                                |                     
 
 #### ENV
 
@@ -379,7 +401,6 @@ audits, decision logs, authorization model)
 | database-garbage-collection-interval          | PERMIFY_DATABASE_GARBAGE_COLLECTION_INTERVAL           | duration |
 | database-garbage-collection-timeout           | PERMIFY_DATABASE_GARBAGE_COLLECTION_TIMEOUT            | duration |
 | database-garbage-collection-window            | PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW             | duration |
-| database-garbage-collection-number-of-threads | PERMIFY_DATABASE_GARBAGE_COLLECTION_NUMBER_OF_THREADS  | int      |
 
 </p>
 </details>
