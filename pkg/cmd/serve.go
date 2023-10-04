@@ -92,8 +92,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		defer stop()
 
 		// Run database migration if enabled
-		if cfg.AutoMigrate {
-			err = storage.Migrate(cfg.Database, l)
+		if cfg.Database.AutoMigrate {
+			err = storage.Migrate(cfg.Database)
 			if err != nil {
 				l.Fatal("failed to migrate database: %w", err)
 			}

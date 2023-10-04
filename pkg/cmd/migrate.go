@@ -1,15 +1,12 @@
 package cmd
 
 import (
-	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
 
-	"github.com/gookit/color"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
+
+	"github.com/Permify/permify/internal/storage"
 )
 
 const (
@@ -29,6 +26,7 @@ func NewMigrateCommand() *cobra.Command {
 	cmd.AddCommand(NewMigrateUpCommand())
 	cmd.AddCommand(NewMigrateDownCommand())
 	cmd.AddCommand(NewMigrateStatusCommand())
+	cmd.AddCommand(NewMigrateResetCommand())
 
 	return cmd
 }
@@ -37,7 +35,7 @@ func NewMigrateCommand() *cobra.Command {
 func NewMigrateUpCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "up",
-		Short: "migrate the database",
+		Short: "migrate the DB to the most recent version available",
 		RunE:  migrateUp(),
 		Args:  cobra.NoArgs,
 	}
@@ -71,8 +69,24 @@ func NewMigrateDownCommand() *cobra.Command {
 func NewMigrateStatusCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "migration status for the current database",
+		Short: "dump the migration status for the current DB",
 		RunE:  migrateStatus(),
+		Args:  cobra.NoArgs,
+	}
+
+	// add flags to the migration status command
+	cmd.PersistentFlags().String(databaseEngine, "", "database engine")
+	cmd.PersistentFlags().String(databaseURI, "", "database URI")
+
+	return cmd
+}
+
+// NewMigrateResetCommand - Creates new migrate reset command
+func NewMigrateResetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reset",
+		Short: "roll back all migrations",
+		RunE:  migrateReset(),
 		Args:  cobra.NoArgs,
 	}
 
@@ -91,40 +105,16 @@ func migrateUp() func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		switch flags[databaseEngine] {
-		case "postgres":
-			flags[databaseEngine] = "pgx"
-		}
-
-		db, err := goose.OpenDBWithDriver(flags[databaseEngine], flags[databaseURI])
+		p, err := strconv.ParseInt(flags[target], 10, 64)
 		if err != nil {
-			color.Warn.Println("migration failed: Database Connection Error")
-			return err
-		}
-
-		p, err := strconv.ParseInt(flags["target"], 10, 64)
-		if err != nil {
-			color.Warn.Println("migration failed: bad target input Error")
 			return err
 		}
 
 		if p == 0 {
-			if err := goose.Up(db, "internal/storage/postgres/migrations"); err != nil {
-				color.Warn.Println("migration failed: up error " + err.Error())
-				return nil
-			}
-
-			color.Success.Println("migration successfully up: ✓ ✅ ")
-			return nil
+			return storage.MigrateUp(flags[databaseEngine], flags[databaseURI])
 		}
 
-		if err := goose.UpTo(db, "internal/storage/postgres/migrations", p); err != nil {
-			color.Warn.Println("migration failed: Goose Up Error")
-			return nil
-		}
-
-		color.Success.Println("migration successfully up: ✓ ✅ ")
-		return nil
+		return storage.MigrateUpTo(flags[databaseEngine], flags[databaseURI], p)
 	}
 }
 
@@ -133,58 +123,31 @@ func migrateDown() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		flags, err := getFlags(cmd, []string{target, databaseEngine, databaseURI})
 		if err != nil {
-			color.Warn.Println("migration failed: flags error")
-			return nil
+			return err
 		}
 
-		switch flags[databaseEngine] {
-		case "postgres":
-			flags[databaseEngine] = "pgx"
-		}
-
-		db, err := goose.OpenDBWithDriver(flags[databaseEngine], flags[databaseURI])
-		if err != nil {
-			color.Warn.Println("migration failed: database connection error")
-			return nil
-		}
-
-		p, err := strconv.ParseInt(flags["target"], 10, 64)
+		p, err := strconv.ParseInt(flags[target], 10, 64)
 		if err != nil {
 			return nil
 		}
 
 		if p == 0 {
-			var count int
-			err = filepath.Walk("internal/storage/postgres/migrations", func(path string, info os.FileInfo, err error) error {
-				if !info.IsDir() && strings.HasSuffix(info.Name(), ".sql") {
-					count++
-				}
-				return nil
-			})
-			if err != nil {
-				color.Warn.Println("migration failed: down error " + err.Error())
-				return nil
-			}
-
-			for i := 0; i < count; i++ {
-				if err := goose.Down(db, "internal/storage/postgres/migrations"); err != nil {
-					color.Warn.Println("migration failed: down error " + err.Error())
-					return nil
-				}
-			}
-
-			color.Success.Println("migration successfully down: ✓ ✅ ")
-			return nil
+			return storage.MigrateDown(flags[databaseEngine], flags[databaseURI])
 		}
 
-		if err := goose.DownTo(db, "internal/storage/postgres/migrations", p); err != nil {
-			color.Warn.Println("migration failed: down error " + err.Error())
+		return storage.MigrateDownTo(flags[databaseEngine], flags[databaseURI], p)
+	}
+}
 
-			return nil
+// migrateReset - permify migrate reset command
+func migrateReset() func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		flags, err := getFlags(cmd, []string{databaseEngine, databaseURI})
+		if err != nil {
+			return err
 		}
 
-		color.Success.Println("migration successfully down: ✓ ✅ ")
-		return nil
+		return storage.MigrateReset(flags[databaseEngine], flags[databaseURI])
 	}
 }
 
@@ -193,27 +156,10 @@ func migrateStatus() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		flags, err := getFlags(cmd, []string{databaseEngine, databaseURI})
 		if err != nil {
-			color.Warn.Println("migration failed: flags error")
 			return err
 		}
 
-		switch flags[databaseEngine] {
-		case "postgres":
-			flags[databaseEngine] = "pgx"
-		}
-
-		db, err := goose.OpenDBWithDriver(flags[databaseEngine], flags[databaseURI])
-		if err != nil {
-			color.Warn.Println("migration failed: database connection error")
-			return nil
-		}
-
-		if err := goose.Status(db, "internal/storage/postgres/migrations"); err != nil {
-			color.Warn.Println("migration failed: check status error " + err.Error())
-			return nil
-		}
-
-		return nil
+		return storage.MigrateStatus(flags[databaseEngine], flags[databaseURI])
 	}
 }
 

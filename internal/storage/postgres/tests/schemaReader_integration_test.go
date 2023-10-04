@@ -21,7 +21,7 @@ func TestSchemaReaderHeadVersion_Integration(t *testing.T) {
 
 	l := logger.New("fatal")
 
-	err := storage.Migrate(cfg, l)
+	err := storage.Migrate(cfg)
 	require.NoError(t, err)
 
 	var db database.Database
