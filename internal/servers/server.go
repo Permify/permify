@@ -133,7 +133,7 @@ func (s *Container) Run(
 			unaryInterceptors = append(unaryInterceptors, oidc.UnaryServerInterceptor(authenticator))
 			streamingInterceptors = append(streamingInterceptors, oidc.StreamServerInterceptor(authenticator))
 		default:
-			return fmt.Errorf("unkown authentication method: '%s'", authentication.Method)
+			return fmt.Errorf("unknown authentication method: '%s'", authentication.Method)
 		}
 	}
 
