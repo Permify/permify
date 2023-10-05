@@ -36,9 +36,7 @@
 [signoz]: https://signoz.io/
 [zipkin]: https://zipkin.io/
 
-<p align="center">
-    <img src="https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png" alt="Permify - Open source authorization as a service" />
-</p>
+![Permify - Open source authorization as a service](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
 
 ### Cases that can benefit from Permify
 
