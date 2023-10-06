@@ -41,7 +41,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: 'us-east-1'
         SOURCE_DIR: 'docs/build/'
-        DEST_DIR: '/'
+        DEST_DIR: ''
 
     - name: Invalidate CloudFront Distribution
       uses: chetan/invalidate-cloudfront-action@master
