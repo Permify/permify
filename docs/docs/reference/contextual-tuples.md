@@ -1,7 +1,7 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Contextual Tuples (Dynamic Permissions)
+# Context (Dynamic Permissions)
 
 ## What is it ? 
 
@@ -97,27 +97,29 @@ cr, err: = client.Permission.Check(context.Background(), &v1.PermissionCheckRequ
         Type: "user",
         Id: "1",
     },
-    ContextualTuples: []*v1.Tuple{
-		{
-		    Entity: &v1.Entity {
-			    Type: "organization",
-                Id: "1",
+    Context: *v1.Context {
+        Tuples: []*v1.Tuple{
+		    {
+		        Entity: &v1.Entity {
+			        Type: "organization",
+                    Id: "1",
+                },
+		        Relation: "ip_address_range",
+		        Subject: &v1.Subject {
+			        Type: "ip_address_range",
+                    Id: "192.158.1.38",
+                },
             },
-		    relation: "ip_address_range",
-		    Subject: &v1.Subject {
-			    Type: "ip_address_range",
-                Id: "192.158.1.38",
-            },
-        },
-        {
-            Entity: &v1.Entity {
-                Type: "ip_address_range",
-                Id: "192.158.1.38",
-            },
-            relation: "user",
-            Subject: &v1.Subject {
-                Type: "user",
-                Id: "1",
+            {
+                Entity: &v1.Entity {
+                    Type: "ip_address_range",
+                    Id: "192.158.1.38",
+                },
+                Relation: "user",
+                Subject: &v1.Subject {
+                    Type: "user",
+                    Id: "1",
+                },
             },
         },
     }
@@ -150,30 +152,32 @@ client.permission.check({
         type: "user",
         id: "1"
     },
-    contextualTuples: [
-        {
-            entity: {
-                type: "organization",
-                id: "1"
+    context: {
+        tuples: [
+            {
+                entity: {
+                    type: "organization",
+                    id: "1"
+                },
+                relation: "ip_address_range",
+                subject: {
+                    type: "ip_address_range",
+                    id: "192.158.1.38",
+                }
             },
-            relation: "ip_address_range",
-            subject: {
-                type: "ip_address_range",
-                id: "192.158.1.38",
+            {
+                entity: {
+                    type: "ip_address_range",
+                    id: "192.158.1.38"
+                },
+                relation: "user",
+                subject: {
+                    type: "user",
+                    id: "1",
+                }
             }
-        },
-        {
-            entity: {
-                type: "ip_address_range",
-                id: "192.158.1.38"
-            },
-            relation: "user",
-            subject: {
-                type: "user",
-                id: "1",
-            }
-        }
-    ]
+        ]
+    }
 }).then((response) => {
     if (response.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {
         console.log("RESULT_ALLOWED")
@@ -205,30 +209,32 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
     "id": "1",
     "relation": ""
   },
-  "context": [
-    {
-      "entity": {
-        "type": "organization",
-        "id": "1"
+  "context": {
+    "tuples": [
+      {
+        "entity": {
+          "type": "organization",
+          "id": "1"
+        },
+        "relation": "ip_address_range",
+        "subject": {
+          "type": "ip_address_range",
+          "id": "192.158.1.38"
+        }
       },
-      "relation": "ip_address_range",
-      "subject": {
-        "type": "ip_address_range",
-        "id": "192.158.1.38"
+      {
+        "entity": {
+          "type": "ip_address_range",
+          "id": "192.158.1.38"
+        },
+        "relation": "user",
+        "subject": {
+          "type": "user",
+          "id": "1"
+        }
       }
-    },
-    {
-      "entity": {
-        "type": "ip_address_range",
-        "id": "192.158.1.38"
-      },
-      "relation": "user",
-      "subject": {
-        "type": "user",
-        "id": "1"
-      }
-    }
-  ]
+    ]
+  }
 }'
 ```
 
