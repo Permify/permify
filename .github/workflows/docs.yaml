@@ -32,15 +32,16 @@ jobs:
         yarn build
 
     # Move to root
-    - name: Move files
+    - name: Move build files to repository root
       run: |
-        mv docs/build/* .
+        rsync -a docs/build/ .
 
     - name: Deploy to S3
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: --acl public-read --follow-symlinks --delete
-        source_dir: . 
+        source_dir: .
+        destination_dir: /
       env:
         AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
