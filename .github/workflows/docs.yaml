@@ -30,6 +30,10 @@ jobs:
         cd docs
         yarn build
 
+    - name: Prepare files for deployment
+      run: |
+        cp -r docs/build/* .
+        
     - name: Deploy to S3
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
