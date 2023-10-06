@@ -18,7 +18,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '19'
+        node-version: '16'
 
     - name: Install Dependencies
       run: |
@@ -31,10 +31,10 @@ jobs:
         yarn build
 
     - name: Deploy to S3
-      uses: jakejarvis/s3-sync-action@master
+      uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: --acl public-read --follow-symlinks --delete
-        source_dir: docs/build
+        source_dir: ./docs/build
       env:
         AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
