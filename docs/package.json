@@ -67,7 +67,7 @@
     "react-tabs": "^6.0.0",
     "react-tsparticles": "^2.9.3",
     "react-waypoint": "10.3.0",
-    "styled-components": "^5.3.6",
+    "styled-components": "^6.0.8",
     "styled-system": "5.1.5",
     "swiper": "^9.1.0"
   },
