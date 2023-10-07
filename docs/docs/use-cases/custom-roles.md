@@ -1,7 +1,7 @@
 
 # Custom Roles
 
-This document highlights a solution for custom roles with [Permify Schema]. In this tutorial, we will create custom **admin** and **member** roles in a project. Then set the permissions of these roles according to their capabilities on the dashboard and tasks.
+This document highlights a solution for custom roles with the [Permify Schema]. In this tutorial, we will create custom **admin** and **member** roles in a project. Then set the permissions of these roles according to their capabilities on the dashboard and tasks.
 
 [Permify Schema]: ../getting-started/modeling
 
@@ -70,5 +70,5 @@ When we write these relationship, the final situation will be as follows.
 
 ## Need any help ?
 
-Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineers](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.
 
