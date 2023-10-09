@@ -16,6 +16,8 @@
     <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>
 </p>
 
+![Permify - Open source authorization as a service](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
+
 ## What is Permify?
 
 [Permify](https://github.com/Permify/permify) is a open-source authorization service for creating and managing fine-grained permissions in your applications and services. Inspired by Google’s consistent, global authorization system, [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
@@ -35,8 +37,6 @@
 [jaeger]: https://www.jaegertracing.io/
 [signoz]: https://signoz.io/
 [zipkin]: https://zipkin.io/
-
-![Permify - Open source authorization as a service](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
 
 ### Cases that can benefit from Permify
 
@@ -64,10 +64,13 @@
 [Permify API]: https://docs.permify.co/docs/api-overview
 [our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
 
-## Community & Support
-If you have any inquiries regarding Permify or authorization in a broader sense, **you're welcome** to become a part of our community, which includes our engineering team and hundreds of other developers already utilizing Permify!
+## Community ♥️
 
-<a href="https://discord.gg/JJnMeCh6qP" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord!" /></a>&nbsp;
+We would love to hear from you!
+
+Get the latest product updates, receive immediate assistance from our team members, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
+
+<a href="https://discord.gg/JJnMeCh6qP" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord" /></a>&nbsp;
 
 ## QuickStart
 
