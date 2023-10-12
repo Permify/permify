@@ -1,7 +1,7 @@
 
 # Relationship Based Access Control
 
-Permify has designed and structured as a true [Relational Based Access Control(ReBAC)](https://www.permify.co/post/relational-based-access-control-models/) solution, so besides roles and attributes Permify also supports indirect permission granting through relationships.
+Permify was designed and structured as a true [Relational Based Access Control(ReBAC)](https://www.permify.co/post/relational-based-access-control-models/) solution, so besides roles and attributes Permify also supports indirect permission granting through relationships.
 
 Here are some common use cases where you can benefit from using ReBAC models in your Permify Schema.
 
@@ -11,7 +11,7 @@ Here are some common use cases where you can benefit from using ReBAC models in 
 
 ## Protecting Organizational-Wide Resources
 
-This example demonstrate grouping the users by organization with giving them access organizational-wide resources. 
+This example demonstrates grouping the users by organization and giving them access to organizational-wide resources. 
 
 In this use case we'll follow a simplified version of Github's access control that shows how to model basic repository push, read and delete permissions with our authorization language DSL, [Permify Schema].
 
@@ -50,9 +50,9 @@ entity repository {
 
 #### Entities
 
-This schema consists 3 entities, 
+This schema consists of 3 entities, 
 
-- `user`, represents users. This entity is empty because its only responsible for referencing users.
+- `user`, represents users. This entity is empty because it's only responsible for referencing users.
 
 ```perm
   entity user {}
@@ -64,11 +64,11 @@ This schema consists 3 entities,
 
 #### Relations
 
-To define relation, **relations** needed to be created as entity attributes.
+To define a relation, **relations** need to be created as entity attributes.
 
 ##### organization entity
 
-In our schema we defined 2 relation in organization entity, respectively; ``admin`` and ``member`` 
+In our schema we defined 2 relations in the organization entity: ``admin`` and ``member``. 
 
 ```perm
 
@@ -81,38 +81,38 @@ entity organization {
 
 ```
 
-``admin`` indicates that the user got an administrative role in that organization and with the same logic ``member`` represents the default user that belongs to that organization.
+``admin`` indicates that the user got an administrative role in that organization and with the same logic ``member`` represents a default user that belongs to that organization.
 
 ##### repository entity
 
-Repository entities have 2 relations, these are ``parent`` and ``owner``. Both of these relations represents actual database relations with other entities rather than a role-based approach likewise to the **organization** entity above.
+Repository entities have 2 relations: ``parent`` and ``owner``. Both of these relations represent actual database relations with other entities rather than a role-based approach similar to the **organization** entity above.
 
 ```perm
 entity repository {
 
-    relation    parent   @organization 
-    relation    owner    @user           
+    relation parent @organization 
+    relation owner @user           
 
 } 
 ```
 
-``parent`` relation represents the parent organization with a repository. And ``owner`` represents the specific user, the repository's owner.
+The ``parent`` relation represents the parent organization of a repository. And ``owner`` represents the specific user, the repository's owner.
 
 #### Actions
 
-Actions describe what relations, or relation’s relation can do, think of actions as entities' permissions. Actions defines who can perform a specific action in which circumstances.
+Actions describe what relations, or relation's relation, can do. You can think of actions as entities' permissions. Actions define who can perform a specific action and in which circumstances.
 
 Permify Schema supports ***and***, ***or***, ***and not*** and ***or not*** operators to define actions. 
 
 ##### repository actions
 
-In our schema, we examined one of the main functionalities can the user make on any GitHub repository. These are pushing to the repo, reading & viewing the repo, and deleting that repo. 
+In our schema, we examined one of the main functionalities user can make on any GitHub repository. These are pushing to the repo, reading & viewing the repo, and deleting that repo. 
 
 We can say only,
 
 - Repository owners can  ``push`` to that repo.
-- Repository owners, who also need to have an administrative role or be an owner of the parent organization, can ``read``.
-- Repository owners or administrative roles in an organization can ``delete`` the repository.
+- Repository owners, who have an admin or member role of the parent organization, can ``read``.
+- Repository owners or admins of the parent organization can ``delete`` the repository.
 
 ```
 entity repository {
@@ -124,7 +124,7 @@ entity repository {
 } 
 ```
 
-Since ``parent` represents the parent organization of repository. It can reach repositories parent organization relations with comma. So, 
+Since `parent` represents the parent organization of a repository. It can reach repositories parent organization relations with comma. So, 
 
 - ``parent.admin``
 indicates admin role on organization
@@ -151,7 +151,7 @@ repository:12#owner@user:46
 .
 .
 
-For more details about how relational tuples created and stored your preferred database, see [Relational Tuples].
+For more details about how relational tuples are created and stored in your preferred database, see [Relational Tuples].
 
 [Relational Tuples]: ../getting-started/sync-data.md
 
@@ -161,7 +161,7 @@ An example of this would be granting a manager the same permissions as their sub
 
 ## Deeply Nested Hierarchies 
 
-This use case shows solving deeply nested hierarchies with [Permify Schema]. 
+This use case shows solving deeply nested hierarchies with the [Permify Schema]. 
 
 We have a unique **action** usage for nested hierarchies, where parent and child entities can share permissions between them. Let's follow the below team project authorization model to examine this case.
 
@@ -180,7 +180,7 @@ entity organization {
 
 entity team {
     
-    //refers to organization that team belongs to 
+    //refers to the organization that a team belongs to 
     relation org @organization
 
     // Only the organization administrator can edit
@@ -189,13 +189,13 @@ entity team {
 
 entity project {
 
-    //refers to team that project belongs to 
+    //refers to the team that a project belongs to 
     relation team @team
 
-    // This action responsible for nested permission inheritance
-    // team.edit refers edit action on the team entity which we defined above 
-    // Semantics of this is: Only the organization administrator, who has the 
-    // team, to which this project belongs can edit.
+    // This action is responsible for nested permission inheritance
+    // team.edit refers to the edit action on the team entity which we defined above 
+    // This means that the organization admin, who can edit the team
+    // can also edit the project related to the team.
     action edit = team.edit
 }
 ```
@@ -208,7 +208,7 @@ team:1#org@organization:1#...
 
 project:1#team@team:1#...
 
-Lets assume we created above [relational tuples]. If we try to enforce `Can user:1 edit project:1?` we will get **Allow** result since the `user:1` is organizational admin and `project:1` belongs to `team:1`, which belongs to `organization:1`.
+Lets assume we created the above [relational tuples]. If we try to enforce `Can user:1 edit project:1?` we will get **Allow** since the `user:1` is an admin of the `organization:1` and `project:1` belongs to `team:1`, which belongs to `organization:1`.
 
 [relational tuples]: ../getting-started/sync-data.md
 
@@ -223,11 +223,9 @@ entity project {
 }
 ```
 
-Above `team.edit` points out the **edit** action in the **team** (that project belongs to). 
+In the above `team.edit` points to the **edit** action in the **team** (that the project belongs to). That edit action on the team entity (`action edit = org.admin`) states that only admins of the **organization (which that team belongs to)** can edit. So our project inherits that action and conducts a result accordingly.
 
-And edit action on the team entity: `action edit = org.admin` states that only **organization (which that team belongs to) admins** can edit. So our project inherits that action and conducts a result accordingly.
-
-If we roll back to our enforcement: `Can user:1 edit project:1?` gives **Allow** result, because user:1 is admin in an organization that the projects' parent team belongs to.
+If we go back to our question: `Can user:1 edit project:1?` this will give an **Allow** result, because user:1 is an admin in an organization that the projects' parent team belongs to.
 
 ## User Groups & Team Permissions
 
@@ -256,24 +254,24 @@ entity team {
     // represents direct member of the team
 	relation member @user
 
-    // reference for organization that team belong
+    // represents the organization that the team belongs to
     relation org @organization
 
-    // organization admins or owners can edit, delete the team details
+    // organization admins or team owners can edit, delete the team details
     action edit = org.admin or owner
     action delete = org.admin or owner
 
-    // to invite someone you need to be admin and either owner or member of this team
+    // to invite someone you need to be an organization admin and either an owner or member of this team
     action invite = org.admin and (owner or member)
 
-    // only owners can remove users
+    // only team owners can remove users
     action remove_user =  owner
 
 }
 
 entity project {
 
-    // references for team and organization that project belongs
+    // represents team and organization that a project belongs to
 	relation team @team
     relation org @organization
 
@@ -288,7 +286,7 @@ entity project {
 
 #### Entities
 
-This schema consists 4 entity, 
+This schema consists of 4 entities, 
 
 - `user`, represents users. This entity is empty because its only responsible for referencing users.
 
@@ -296,11 +294,11 @@ This schema consists 4 entity,
   entity user {}
 ```
 
-- `organization`, represents organization that contain teams.
+- `organization`, represents an organization that contain teams.
 
-- `team`, represents teams, which belongs to a organization.
+- `team`, represents teams, which belong to an organization.
 
-- `project`, represents projects that belongs teams.
+- `project`, represents projects that belong to teams.
 
 #### Relations
 
@@ -320,11 +318,11 @@ entity organization {
 
 ```
 
-Roles (relations) can be scoped with different kinds of entities. But for simplicity, we follow a multi-tenancy approach, which demonstrates each organization has its own roles.
+Roles (relations) can be scoped with different kinds of entities. But for simplicity, we follow a multi-tenancy approach, which demonstrates that each organization has its own roles.
 
 ##### team entity
 
-The eeam entity has its own relations respectively,  ``owner``, ``member`` and ``org``
+The team entity has its own relations respectively,  ``owner``, ``member`` and ``org``
 
 ```perm
 entity team {
@@ -338,7 +336,7 @@ entity team {
 
 ##### project entity
 
-Project entity has  ``team`` and ``org`` relations. Both these relations represents parent relationship with other entites, parent team and parent organization.
+The project entity has ``team`` and ``org`` relations. Both these relations represent parent relationships with other entities, parent team and parent organization.
 
 ```perm
 entity project {
@@ -351,19 +349,19 @@ entity project {
 
 #### Actions
 
-Actions describe what relations, or relation’s relation can do, think of actions as entities' permissions. Actions defines who can perform a specific action in which circumstances.
+Actions describe what relations, or relation's relation, can do. You can think of actions as entities' permissions. Actions define who can perform a specific action and in which circumstances.
 
 Permify Schema supports ***and***, ***or*** and ***not*** operators to define actions. 
 
 ##### team actions
 
-- Only organization ***admin (admin role)*** and ***team owner*** can perform editing and deleting team spesific resources. 
+- Only organization ***admin (admin role)*** and ***team owner*** can edit and delete team specific resources. 
 
-- Moreover, for inviting a colleague to a team you must have ***admin role*** and either be a ***owner*** or ***member*** on that team. 
+- Moreover, to invite a colleague to a team you must have an organizational ***admin role*** and either be a ***owner*** or ***member*** of that team. 
 
-- To remove users in team you must be a ***owner*** of that team. 
+- To remove users in team you must be an ***owner*** of that team. 
 
-And these rules reflects Permify Schema as:
+And these rules are defined in Permify Schema as:
 
 ```perm
 entity team {
@@ -379,7 +377,7 @@ entity team {
 
 ##### project actions
 
-And there are the project actions below. It consists of checking access for basic operations such as viewing, editing, or deleting project resources.
+And here are the project actions. The actions consist of checking access for basic operations such as viewing, editing, or deleting project resources.
 
 ```perm
 entity project {
@@ -401,7 +399,7 @@ organization:12#admin@user:jack
 
 organization:51#member@user:jack
 
-organiation:41#member@team:42#member 
+organization:41#member@team:42#member 
 
 project:35#team@team:34#....
 
@@ -415,7 +413,7 @@ project:35#team@team:34#....
 
 organization:41#member@team:42#member 
 
-**--> represents members of team 42 also members in organization 41**
+**--> represents members of team 42 are also members of organization 41**
 
 project:35#team@team:34#....
 
@@ -423,4 +421,4 @@ project:35#team@team:34#....
 
 ## Need any help on Authorization ?
 
-Our team is happy to help you anything about authorization. If you'd like to learn more about using Permify in your app or have any questions, [schedule a call with one of our founders](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineers](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.

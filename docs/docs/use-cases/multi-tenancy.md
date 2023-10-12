@@ -9,9 +9,9 @@ With version 0.3.x Permify moved to a tenancy-based infrastructure, which affect
 
 ## Multi Tenancy on Permify
 
-Multi-tenancy in Permify refers to an authorization architecture, where a single Permify authorization service serves multiple applications/organizations (tenants).
+Multi-tenancy in Permify refers to an authorization architecture where a single Permify authorization service serves multiple applications/organizations (tenants).
 
-This allows the ability to customize the authorization for each tenant's specific needs. With Multi-Tenancy support, you can create custom authorization schema and relation tuples accordingly for the different tenants and manage them in a single place.
+This allows customization of the authorization for each tenant's specific needs. With Multi-Tenancy support, you can create a custom authorization schema and relation tuples for the different tenants and manage them in a single place.
 
 For the users that don't have/need multi-tenancy in their authorization structure, we created a pre-inserted tenant (id: **t1**) that comes default when you serve a Permify service.
 
@@ -116,13 +116,13 @@ Users that come from version 0.2.x and users that have a single tenant can enter
 
 ### Added Tenancy Service
 
-To manage tenants we have added a Tenancy service; you can create, delete and list tenants accordingly. See the [Tenancy Service](../api-overview/tenancy) on Using The API section.
+To manage tenants we have added a Tenancy service; you can create, delete and list tenants. See the [Tenancy Service](../api-overview/tenancy) in Using The API section.
 
 ### WriteDB tenancy table and tenant id column
 
 #### Tenant Table 
 
-Tenants table have added the Write DB to store tenant's details. The new WriteDB folder structure changed as follows:
+A tenants table has been added to the Write DB to store tenant's details. The new WriteDB folder structure changed as follows:
 ```
 tables
 ├── migrations       
@@ -134,7 +134,7 @@ tables
 
 #### Tenant ID Column
 
-Relation tuples and schema definition tables now have a tenant_id column, which stores the id of the tenant that data belongs.
+Relation tuples and schema definition tables now have a tenant_id column, which stores the id of the tenant that the data belongs.
 
 Let's take a look at a snapshot of the demo table on an example WriteDB.
 
@@ -146,4 +146,4 @@ Example Schema Definitions data table
 
 ## Need any help ?
 
-Our team is happy to help! If you struggle with migration or need help on using the multi-tenancy, [schedule a call with one of our Permify engineers](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineers](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.

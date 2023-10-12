@@ -1,6 +1,6 @@
 # Attribute Based Access Control (Beta)
 
-This page explains design approach of Permify ABAC support as well as demonstrates how to create and use attribute based permissions in Permify.
+This page explains the design approach of Permify's ABAC support as well as demonstrates how to create and use attribute based permissions in Permify.
 
 :::info  
 You can find Permify's support for ABAC in our [beta release](https://github.com/Permify/permify/pkgs/container/permify-beta) and explore the active [API documentation](https://permify.github.io/permify-swagger/) for the ***beta*** version. 
@@ -14,19 +14,19 @@ Attribute-Based Access Control (ABAC) is like a security guard that decides who 
 
 These attributes can be associated with users, resources, or the environment, and their values can influence the outcome of an access request.
 
-Let’s make an analogy, it’s the best of way to understanding complex ideas.
+Let’s make an analogy, it’s the best way to understand complex ideas.
 
-Think about an amusement park, and there are 3 different rides. In order to access each ride, you need to obtain different qualities. For the;
+Think about an amusement park, and there are 3 different rides. In order to access each ride, you need to have different qualities. For example:
 
-1. first ride you need to be over 6ft tall.
-2. second ride you need to be under 200lbs.
-3. third ride you need to be between 12 - 18 years old.
+1. ride one you need to be over 6ft tall.
+2. ride two you need to be under 200lbs.
+3. ride three you need to be between 12 - 18 years old.
 
-Similar to this ABAC check certain qualities that you defined on users, resources, or the environment.
+Similar to this ABAC checks certain qualities that you have defined on users, resources, or the environment.
 
 # Why Would Need ABAC?
 
-It’s obvious but simple answer is “use cases”… Sometimes, using ReBAC and RBAC isn't the best fit for the job. It's like using winter tires on a hot desert road, or summer tires in a snowstorm - they're just not the right tools for the conditions.
+It’s obvious but the simple answer is “use cases”… Sometimes, using ReBAC and RBAC isn't the best fit for the job. It's like using winter tires on a hot desert road, or summer tires in a snowstorm - they're just not the right tools for the conditions.
 
 1. **Geographically Restricted:** Think of ABAC like a bouncer at a club who only lets in people from certain towns. For example, a movie streaming service might only show certain movies in certain countries because of rules about who can watch what and where.
 2. **Time-Based:** ABAC can also act like a parent setting rules about when you can use the computer. For example, a system might only let you do certain things during office hours.
@@ -34,7 +34,7 @@ It’s obvious but simple answer is “use cases”… Sometimes, using ReBAC an
 4. **Limit Range:** ABAC can help you create a rules defining a number limit or range. For instance, a banking system might have limits for wiring or withdrawing money.
 5. **Device Information:** ABAC can control access based on attributes of the device, such as the device type, operating system version, or whether the device has the latest security patches.
 
-As you can see ABAC has more contextual approach. You can define access rights regarding context around subject and object in an application.
+As you can see ABAC has a more contextual approach. You can define access rights regarding context around subjects and objects in an application.
 
 # Introducing New Key Elements
 
@@ -63,13 +63,13 @@ entity post {
 ```
 
 <aside>
-⛔ If you don’t create the related attribute data, Permify accounts boolean as `FALSE`
+⛔ If you don’t create the related attribute data, Permify defaults booleans to `FALSE`
 
 </aside>
 
 ### String
 
-String can be used as attribute data type in a variety of scenarios where text-based information is needed to make access control decisions. Here are a few examples:
+String can be used as an attribute data type in a variety of scenarios where text-based information is needed to make access control decisions. Here are a few examples:
 
 - **Location:** If you need to control access based on geographical location, you might have a location attribute (e.g., "USA", "EU", "Asia") stored as a string.
 - **Device Type**: If access control decisions need to consider the type of device being used, a device type attribute (e.g., "mobile", "desktop", "tablet") could be stored as a string.
@@ -94,13 +94,13 @@ rule check_location(current_location string, location string[]) {
 ```
 
 <aside>
-⛔ If you don’t create the related attribute data, Permify accounts string as `""`
+⛔ If you don’t create the related attribute data, Permify defaults strings to `""`
 
 </aside>
 
 ### Integer
 
-Integer  can be used as attribute data type in several scenarios where numerical information is needed to make access control decisions. Here are a few examples:
+Integer can be used as an attribute data type in several scenarios where numerical information is needed to make access control decisions. Here are a few examples:
 
 - **Age:** If access to certain resources is age-restricted, an age attribute stored as an integer can be used to control access.
 - **Security Clearance Level:** In a system where users have different security clearance levels, these levels can be stored as integer attributes (e.g., 1, 2, 3 with 3 being the highest clearance).
@@ -118,13 +118,13 @@ rule check_age(age integer) {
 ```
 
 <aside>
-⛔ If you don’t create the related attribute data, Permify accounts integer as `0`
+⛔ If you don’t create the related attribute data, Permify defaults integers to `0`
 
 </aside>
 
 ### Double
 
-Double can be used as attribute data type in several scenarios where precise numerical information is needed to make access control decisions. Here are a few examples:
+Double can be used as an attribute data type in several scenarios where precise numerical information is needed to make access control decisions. Here are a few examples:
 
 - **Usage Limit:** If a user has a usage limit (like the amount of storage they can use or the amount of data they can download), and this limit needs to be represented with decimal precision, it can be stored as a double attribute.
 - **Transaction Amount:** In a financial system, if access control decisions need to consider the amount of a transaction, and this amount needs to be represented with decimal precision (like $100.50), these amounts can be stored as double attributes.
@@ -147,7 +147,7 @@ rule check_balance(amount double, balance double) {
 ```
 
 <aside>
-⛔ If you don’t create the related attribute data, Permify accounts double as `0.0`
+⛔ If you don’t create the related attribute data, Permify defaults doubles to `0.0`
 
 </aside>
 
@@ -182,7 +182,7 @@ rule check_ip_range(ip_address string, ip_range string[]) {
 }
 ```
 
-In this case, the part written as 'context' refers to the context within the request. Any type of data can be added from within the request and can be called within model.
+In this case, the part written as 'context' refers to the context within the request. Any type of data can be added from within the request and can be called within the model.
 
 For instance,
 
@@ -238,7 +238,7 @@ The cache mechanism works by hashing the snapshot of the database, schema versio
 
 ### Example of Public/Private Repository
 
-In this example, **`is_public`** is defined as a boolean attribute. If an attribute is boolean, it can be directly written without the need for a rule. This is only applicable for boolean types.
+In this example, **`is_public`** is defined as a boolean attribute. If an attribute is a boolean, it can be directly used without the need for a rule. This is only applicable for boolean types.
 
 ```sql
 entity user {}
@@ -247,10 +247,10 @@ entity post {
 
   relation owner  @user
 
-    attribute is_public boolean
+  attribute is_public boolean
 
-    permission view   = is_public or owner
-  permission edit   = owner
+  permission view = is_public or owner
+  permission edit = owner
 }
 ```
 
@@ -281,7 +281,7 @@ This means that the 'view' permission is granted if either the repository is pub
 
 ### Example of Weekday
 
-In this example, to be able to view the repository, it must not be a weekend, and the user must be a member of the organization.
+In this example, to be able to view the repository it must not be a weekend, and the user must be a member of the organization.
 
 ```sql
 entity user {}
@@ -433,7 +433,7 @@ docker pull **ghcr.io/permify/permify-beta:latest**
 
 ```yaml
 schema: >-
-    {string schem}
+    {string schema}
 
 relationships:
     - entity_name:entity_id#relation@subject_type:subject_id
@@ -587,4 +587,4 @@ docker run -v {your_config_folder}:/config **ghcr.io/permify/permify-beta:latest
 
 ## Need any help ?
 
-Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineers](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.

@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Role Based Access Control
 
-Want to implement role and permissions to your application ? Permify fully covers you at that point. Below example shows how to model simple role based access control for organizational roles and permissions with our authorization language, [Permify Schema].
+Want to implement roles and permissions in your application? Permify fully covers you at that point. The example below shows how to model simple role based access controls for organizational roles and permissions with our authorization language, [Permify Schema].
 
 [Permify Schema]: ../getting-started/modeling
 
@@ -38,21 +38,21 @@ entity organization {
 
 ### Entities
 
-This schema consists 2 entities, 
+This schema consists of 2 entities, 
 
-- `user`, represents users (maybe corresponds as employees). This entity is empty because it's only responsible for referencing users.
+- `user`, represents users (maybe corresponds to employees). This entity is empty because it's only responsible for referencing users.
 
 ```perm
   entity user {}
 ```
 
-- `organization`, representing the organization the user (employees) belongs. It has several roles and permissions related to the specific resources such as organization files and vendor files.
+- `organization`, represents the organization the user (employees) belongs. It has several roles and permissions related to the specific resources such as organization files and vendor files.
 
 ### Relations
 
 #### organization entity
 
-We can use **relations** to define roles. In this example, we have 4 organizational wide roles, respectively; admin, manager, member, and agent. 
+We can use **relations** to define roles. In this example, we have 4 organization wide roles: admin, manager, member, and agent. 
 
 ```perm
 entity organization {
@@ -66,13 +66,13 @@ entity organization {
 }
 ```
 
-Roles (relations) can be scoped with different kinds of entities. But for simplicity, we follow a multi-tenancy approach, which demonstrates each organization has its own roles.
+Roles (relations) can be scoped to different kinds of entities. But for simplicity, we follow a multi-tenancy approach, which demonstrates each organization has its own roles.
 
 ### Actions
 
-Actions describe what relations, or relation’s relation can do, think of actions as entities' permissions. Actions defines who can perform a specific action in which circumstances.
+Actions describe what relations, or relation's relation, can do. You can think of actions as entities' permissions. Actions define who can perform a specific action and in which circumstances.
 
-Permify Schema supports ***and***, ***or*** and ***not*** operators to define actions. 
+Permify Schema supports ***and***, ***or***, ***and not*** and ***or not*** operators to define actions. 
 
 #### organization actions
 
@@ -124,5 +124,5 @@ For more details about how relational tuples are created and stored in your pref
 
 ## Need any help ?
 
-Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineers](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.
 
