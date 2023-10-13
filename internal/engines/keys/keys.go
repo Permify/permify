@@ -14,7 +14,6 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/cache"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -25,17 +24,15 @@ type CheckEngineWithKeys struct {
 	schemaReader storage.SchemaReader
 	checker      invoke.Check
 	cache        cache.Cache
-	l            *logger.Logger
 }
 
 // NewCheckEngineWithKeys creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineWithKeys(checker invoke.Check, schemaReader storage.SchemaReader, cache cache.Cache, l *logger.Logger) invoke.Check {
+func NewCheckEngineWithKeys(checker invoke.Check, schemaReader storage.SchemaReader, cache cache.Cache) invoke.Check {
 	return &CheckEngineWithKeys{
 		schemaReader: schemaReader,
 		checker:      checker,
 		cache:        cache,
-		l:            l,
 	}
 }
 

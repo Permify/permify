@@ -12,7 +12,6 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -20,16 +19,13 @@ type TenantReader struct {
 	database *db.Postgres
 	// options
 	txOptions sql.TxOptions
-	// logger
-	logger logger.Interface
 }
 
 // NewTenantReader - Creates a new TenantReader
-func NewTenantReader(database *db.Postgres, logger logger.Interface) *TenantReader {
+func NewTenantReader(database *db.Postgres) *TenantReader {
 	return &TenantReader{
 		database:  database,
 		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: true},
-		logger:    logger,
 	}
 }
 

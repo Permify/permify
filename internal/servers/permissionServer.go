@@ -1,12 +1,13 @@
 package servers
 
 import (
+	"log/slog"
+
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/status"
 
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -15,14 +16,12 @@ type PermissionServer struct {
 	v1.UnimplementedPermissionServer
 
 	invoker invoke.Invoker
-	logger  logger.Interface
 }
 
 // NewPermissionServer - Creates new Permission Server
-func NewPermissionServer(i invoke.Invoker, l logger.Interface) *PermissionServer {
+func NewPermissionServer(i invoke.Invoker) *PermissionServer {
 	return &PermissionServer{
 		invoker: i,
-		logger:  l,
 	}
 }
 
@@ -40,7 +39,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -61,7 +60,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -82,7 +81,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -103,7 +102,7 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return status.Error(GetStatus(err), err.Error())
 	}
 
@@ -124,7 +123,7 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -145,7 +144,7 @@ func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.Pe
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 

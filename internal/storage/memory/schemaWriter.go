@@ -7,7 +7,6 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -23,15 +22,12 @@ func init() {
 // SchemaWriter - Structure for Schema Writer
 type SchemaWriter struct {
 	database *db.Memory
-	// logger
-	logger logger.Interface
 }
 
 // NewSchemaWriter creates a new SchemaWriter
-func NewSchemaWriter(database *db.Memory, logger logger.Interface) *SchemaWriter {
+func NewSchemaWriter(database *db.Memory) *SchemaWriter {
 	return &SchemaWriter{
 		database: database,
-		logger:   logger,
 	}
 }
 

@@ -14,7 +14,6 @@ import (
 	"github.com/Permify/permify/internal/storage/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 )
@@ -22,15 +21,12 @@ import (
 // DataReader -
 type DataReader struct {
 	database *db.Memory
-	// logger
-	logger logger.Interface
 }
 
 // NewDataReader - Creates a new DataReader
-func NewDataReader(database *db.Memory, logger logger.Interface) *DataReader {
+func NewDataReader(database *db.Memory) *DataReader {
 	return &DataReader{
 		database: database,
-		logger:   logger,
 	}
 }
 

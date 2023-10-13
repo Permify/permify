@@ -16,7 +16,6 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
@@ -29,17 +28,14 @@ type DataWriter struct {
 	txOptions       sql.TxOptions
 	maxDataPerWrite int
 	maxRetries      int
-	// logger
-	logger logger.Interface
 }
 
-func NewDataWriter(database *db.Postgres, logger logger.Interface) *DataWriter {
+func NewDataWriter(database *db.Postgres) *DataWriter {
 	return &DataWriter{
 		database:        database,
 		txOptions:       sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false},
 		maxDataPerWrite: _defaultMaxDataPerWrite,
 		maxRetries:      _defaultMaxRetries,
-		logger:          logger,
 	}
 }
 
@@ -79,7 +75,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 
 			tquery, targs, err = tuplesInsertBuilder.ToSql()
 			if err != nil {
-				utils.Rollback(tx, w.logger)
+				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -87,7 +83,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 
 			_, err = tx.ExecContext(ctx, tquery, targs...)
 			if err != nil {
-				utils.Rollback(tx, w.logger)
+				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
@@ -109,7 +105,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				m := jsonpb.Marshaler{}
 				jsonStr, err := m.MarshalToString(a.GetValue())
 				if err != nil {
-					utils.Rollback(tx, w.logger)
+					utils.Rollback(tx)
 					span.RecordError(err)
 					span.SetStatus(otelCodes.Error, err.Error())
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
@@ -123,7 +119,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 
 			aquery, aargs, err = attributesInsertBuilder.ToSql()
 			if err != nil {
-				utils.Rollback(tx, w.logger)
+				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -131,7 +127,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 
 			_, err = tx.ExecContext(ctx, aquery, aargs...)
 			if err != nil {
-				utils.Rollback(tx, w.logger)
+				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
@@ -147,7 +143,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			Values(tenantID).
 			Suffix("RETURNING id").RunWith(tx)
 		if err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -156,14 +152,14 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 		var xid types.XID8
 		err = transaction.QueryRowContext(ctx).Scan(&xid)
 		if err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 
 		if err = tx.Commit(); err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
@@ -196,7 +192,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 
 		tquery, targs, err = tbuilder.ToSql()
 		if err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -204,7 +200,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 
 		_, err = tx.ExecContext(ctx, tquery, targs...)
 		if err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			if strings.Contains(err.Error(), "could not serialize") {
@@ -221,7 +217,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 
 		aquery, aargs, err = abuilder.ToSql()
 		if err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -229,7 +225,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 
 		_, err = tx.ExecContext(ctx, aquery, aargs...)
 		if err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			if strings.Contains(err.Error(), "could not serialize") {
@@ -243,7 +239,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 			Values(tenantID).
 			Suffix("RETURNING id").RunWith(tx)
 		if err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
@@ -252,14 +248,14 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 		var xid types.XID8
 		err = transaction.QueryRowContext(ctx).Scan(&xid)
 		if err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 
 		if err = tx.Commit(); err != nil {
-			utils.Rollback(tx, w.logger)
+			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, err

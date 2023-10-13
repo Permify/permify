@@ -1,6 +1,8 @@
 package servers
 
 import (
+	"log/slog"
+
 	"github.com/rs/xid"
 	"google.golang.org/grpc/status"
 
@@ -10,7 +12,6 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
-	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -18,17 +19,15 @@ import (
 type SchemaServer struct {
 	v1.UnimplementedSchemaServer
 
-	sw     storage.SchemaWriter
-	sr     storage.SchemaReader
-	logger logger.Interface
+	sw storage.SchemaWriter
+	sr storage.SchemaReader
 }
 
 // NewSchemaServer - Creates new Schema Server
-func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader, l logger.Interface) *SchemaServer {
+func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader) *SchemaServer {
 	return &SchemaServer{
-		sw:     sw,
-		sr:     sr,
-		logger: l,
+		sw: sw,
+		sr: sr,
 	}
 }
 
@@ -67,7 +66,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -94,7 +93,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 

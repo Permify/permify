@@ -3,20 +3,20 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/Permify/permify/internal/engines/consistent"
 	"github.com/Permify/permify/internal/engines/keys"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage/postgres/gc"
-	hash "github.com/Permify/permify/pkg/consistent"
+	hash `github.com/Permify/permify/pkg/consistent`
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	`github.com/Permify/permify/pkg/gossip`
 
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel/sdk/metric"
-
-	"github.com/Permify/permify/pkg/gossip"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -32,7 +32,6 @@ import (
 	"github.com/Permify/permify/internal/storage/decorators"
 	"github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
-	"github.com/Permify/permify/pkg/logger"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/telemetry/meterexporters"
 	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
@@ -84,8 +83,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Print banner and initialize logger
 		red := color.New(color.FgGreen)
 		_, _ = red.Printf(internal.Banner, internal.Version)
-		l := logger.New(cfg.Log.Level)
-		l.Info("🚀 starting permify service...")
+
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+		slog.SetDefault(logger)
+
+		slog.Info("🚀 starting permify service...")
 
 		// Set up context and signal handling
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -95,18 +97,18 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		if cfg.Database.AutoMigrate {
 			err = storage.Migrate(cfg.Database)
 			if err != nil {
-				l.Fatal("failed to migrate database: %w", err)
+				slog.Error("failed to migrate database: %w", err)
 			}
 		}
 
 		// Initialize database
 		db, err := factories.DatabaseFactory(cfg.Database)
 		if err != nil {
-			l.Fatal("failed to initialize database: %w", err)
+			slog.Error("failed to initialize database: %w", err)
 		}
 		defer func() {
 			if err = db.Close(); err != nil {
-				l.Fatal("failed to close database: %v", err)
+				slog.Error("failed to close database: %v", err)
 			}
 		}()
 
@@ -119,25 +121,24 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Tracer.Insecure,
 			)
 			if err != nil {
-				l.Fatal(err)
+				slog.Error(err.Error())
 			}
 
 			shutdown := telemetry.NewTracer(exporter)
 
 			defer func() {
 				if err = shutdown(context.Background()); err != nil {
-					l.Fatal(err)
+					slog.Error(err.Error())
 				}
 			}()
 		}
 
 		// Garbage collection
 		if cfg.Database.GarbageCollection.Timeout > 0 && cfg.Database.GarbageCollection.Enabled && cfg.Database.Engine != "memory" {
-			l.Info("🗑️ starting database garbage collection...")
+			slog.Info("🗑️ starting database garbage collection...")
 
 			garbageCollector := gc.NewGC(
 				db.(*PQDatabase.Postgres),
-				l,
 				gc.Interval(cfg.Database.GarbageCollection.Interval),
 				gc.Window(cfg.Database.GarbageCollection.Window),
 				gc.Timeout(cfg.Database.GarbageCollection.Timeout),
@@ -146,7 +147,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			go func() {
 				err = garbageCollector.Start(ctx)
 				if err != nil {
-					l.Fatal(err)
+					slog.Error(err.Error())
 				}
 			}()
 		}
@@ -157,34 +158,36 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			var exporter metric.Exporter
 			exporter, err = meterexporters.ExporterFactory(cfg.Meter.Exporter, cfg.Meter.Endpoint)
 			if err != nil {
-				l.Fatal(err)
+				slog.Error(err.Error())
 			}
 
 			meter, err = telemetry.NewMeter(exporter)
 			if err != nil {
-				l.Fatal(err)
+				slog.Error(err.Error())
 			}
 		}
 
 		var gossipEngine gossip.IGossip
 		var consistencyChecker *hash.ConsistentHash
+
 		if cfg.Distributed.Enabled {
-			l.Info("🔗 starting distributed mode...")
+			slog.Info("🔗 starting distributed mode...")
 
 			consistencyChecker, err = hash.NewConsistentHash(100, nil, cfg.GRPC)
 			if err != nil {
-				l.Fatal(err)
+				slog.Error(err.Error())
 			}
 
 			externalIP, err := gossip.ExternalIP()
 			if err != nil {
-				l.Fatal(err)
+				slog.Error(err.Error())
 			}
-			l.Info("🔗 external IP: " + externalIP)
+
+			slog.Info("🔗 external IP: " + externalIP)
 
 			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.Node, cfg.Distributed.Protocol)
 			if err != nil {
-				l.Info("🔗 failed to start distributed mode: %s ", err.Error())
+				slog.Info("🔗 failed to start distributed mode: %s ", err.Error())
 				return err
 			}
 
@@ -192,7 +195,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 			defer func() {
 				if err = gossipEngine.Shutdown(); err != nil {
-					l.Fatal(err)
+					slog.Error(err.Error())
 				}
 			}()
 		}
@@ -201,28 +204,28 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		var schemaCache cache.Cache
 		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Service.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Service.Schema.Cache.MaxCost))
 		if err != nil {
-			l.Fatal(err)
+			slog.Error(err.Error())
 		}
 
 		// engines cache keys
 		var engineKeyCache cache.Cache
 		engineKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Service.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Service.Permission.Cache.MaxCost))
 		if err != nil {
-			l.Fatal(err)
+			slog.Error(err.Error())
 		}
 
 		watcher := storage.NewNoopWatcher()
 		if cfg.Service.Watch.Enabled {
-			watcher = factories.WatcherFactory(db, l)
+			watcher = factories.WatcherFactory(db)
 		}
 
 		// Initialize the storage with factory methods
-		dataReader := factories.DataReaderFactory(db, l)
-		dataWriter := factories.DataWriterFactory(db, l)
-		schemaReader := factories.SchemaReaderFactory(db, l)
-		schemaWriter := factories.SchemaWriterFactory(db, l)
-		tenantReader := factories.TenantReaderFactory(db, l)
-		tenantWriter := factories.TenantWriterFactory(db, l)
+		dataReader := factories.DataReaderFactory(db)
+		dataWriter := factories.DataWriterFactory(db)
+		schemaReader := factories.SchemaReaderFactory(db)
+		schemaWriter := factories.SchemaWriterFactory(db)
+		tenantReader := factories.TenantReaderFactory(db)
+		tenantWriter := factories.TenantWriterFactory(db)
 
 		// Add caching to the schema reader using a decorator
 		schemaReader = decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
@@ -243,34 +246,43 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
 
 		var checker invoke.Check
-		if cfg.Distributed.Enabled {
-			checker, err = consistent.NewCheckEngineWithHashring(
-				keys.NewCheckEngineWithKeys(
-					checkEngine,
-					schemaReader,
-					engineKeyCache,
-					l,
-				),
-				schemaReader,
-				consistencyChecker,
-				gossipEngine,
-				cfg.Server.GRPC.Port,
-				l,
-			)
-			if err != nil {
-				return err
-			}
-		} else {
-			checker = keys.NewCheckEngineWithKeys(
-				checkEngine,
-				schemaReader,
-				engineKeyCache,
-				l,
-			)
-		}
+		//if cfg.Distributed.Enabled {
+		//	checker, err = consistent.NewCheckEngineWithHashring(
+		//		keys.NewCheckEngineWithKeys(
+		//			checkEngine,
+		//			schemaReader,
+		//			engineKeyCache,
+		//			l,
+		//		),
+		//		schemaReader,
+		//		consistencyChecker,
+		//		gossipEngine,
+		//		cfg.Server.GRPC.Port,
+		//		l,
+		//	)
+		//	if err != nil {
+		//		return err
+		//	}
+		//} else {
+		checker = keys.NewCheckEngineWithKeys(
+			checkEngine,
+			schemaReader,
+			engineKeyCache,
+		)
+		//}
 
-		lookupEngine := engines.NewLookupEngine(checker, schemaReader, dataReader, engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit))
-		subjectPermissionEngine := engines.NewSubjectPermission(checker, schemaReader, engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
+		lookupEngine := engines.NewLookupEngine(
+			checker,
+			schemaReader,
+			dataReader,
+			engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit),
+		)
+
+		subjectPermissionEngine := engines.NewSubjectPermission(
+			checker,
+			schemaReader,
+			engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit),
+		)
 
 		invoker := invoke.NewDirectInvoker(
 			schemaReader,
@@ -307,13 +319,12 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				&cfg.Server,
 				&cfg.Authn,
 				&cfg.Profiler,
-				l,
 			)
 		})
 
 		// Wait for the error group to finish and log any errors
 		if err = g.Wait(); err != nil {
-			l.Error(err)
+			slog.Error(err.Error())
 		}
 
 		return nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -33,7 +34,6 @@ import (
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/middleware"
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/logger"
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -94,7 +94,6 @@ func (s *Container) Run(
 	cfg *config.Server,
 	authentication *config.Authn,
 	profiler *config.Profiler,
-	l *logger.Logger,
 ) error {
 	var err error
 
@@ -154,11 +153,11 @@ func (s *Container) Run(
 	// Create a new gRPC server with the configured interceptors and optional TLS credentials.
 	// Register the various service implementations.
 	grpcServer := grpc.NewServer(opts...)
-	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.Invoker, l))
-	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR, l))
-	grpcV1.RegisterDataServer(grpcServer, NewDataServer(s.DR, s.DW, s.SR, l))
-	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW, l))
-	grpcV1.RegisterWatchServer(grpcServer, NewWatchServer(s.W, s.DR, l))
+	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.Invoker))
+	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR))
+	grpcV1.RegisterDataServer(grpcServer, NewDataServer(s.DR, s.DW, s.SR))
+	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW))
+	grpcV1.RegisterWatchServer(grpcServer, NewWatchServer(s.W, s.DR))
 	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	reflection.Register(grpcServer)
 
@@ -172,7 +171,7 @@ func (s *Container) Run(
 		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
 		go func() {
-			l.Info(fmt.Sprintf("🚀 profiler server successfully started: %s", profiler.Port))
+			slog.Info(fmt.Sprintf("🚀 profiler server successfully started: %s", profiler.Port))
 
 			pprofserver := &http.Server{
 				Addr:         ":" + profiler.Port,
@@ -184,7 +183,7 @@ func (s *Container) Run(
 
 			if err = pprofserver.ListenAndServe(); err != nil {
 				if errors.Is(err, http.ErrServerClosed) {
-					l.Fatal("failed to start profiler", err)
+					slog.Error("failed to start profiler", err)
 				}
 			}
 		}()
@@ -199,11 +198,11 @@ func (s *Container) Run(
 	// Start the gRPC server.
 	go func() {
 		if err = grpcServer.Serve(lis); err != nil {
-			l.Error("failed to start grpc server", err)
+			slog.Error("failed to start grpc server", err)
 		}
 	}()
 
-	l.Info(fmt.Sprintf("🚀 grpc server successfully started: %s", cfg.GRPC.Port))
+	slog.Info(fmt.Sprintf("🚀 grpc server successfully started: %s", cfg.GRPC.Port))
 
 	var httpServer *http.Server
 
@@ -233,7 +232,7 @@ func (s *Container) Run(
 		}
 		defer func() {
 			if err = conn.Close(); err != nil {
-				l.Fatal("Failed to close gRPC connection: %v", err)
+				slog.Error("Failed to close gRPC connection: %v", err)
 			}
 		}()
 
@@ -291,11 +290,11 @@ func (s *Container) Run(
 				err = httpServer.ListenAndServe()
 			}
 			if !errors.Is(err, http.ErrServerClosed) {
-				l.Error(err)
+				slog.Error(err.Error())
 			}
 		}()
 
-		l.Info(fmt.Sprintf("🚀 http server successfully started: %s", cfg.HTTP.Port))
+		slog.Info(fmt.Sprintf("🚀 http server successfully started: %s", cfg.HTTP.Port))
 	}
 
 	// Wait for the context to be canceled (e.g., due to a signal).
@@ -307,7 +306,7 @@ func (s *Container) Run(
 
 	if httpServer != nil {
 		if err := httpServer.Shutdown(ctxShutdown); err != nil {
-			l.Error(err)
+			slog.Error(err.Error())
 			return err
 		}
 	}
@@ -315,7 +314,7 @@ func (s *Container) Run(
 	// Gracefully stop the gRPC server.
 	grpcServer.GracefulStop()
 
-	l.Info("gracefully shutting down")
+	slog.Info("gracefully shutting down")
 
 	return nil
 }

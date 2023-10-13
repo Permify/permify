@@ -7,22 +7,18 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // TenantWriter - Structure for Tenant Writer
 type TenantWriter struct {
 	database *db.Memory
-	// logger
-	logger logger.Interface
 }
 
 // NewTenantWriter creates a new TenantWriter
-func NewTenantWriter(database *db.Memory, logger logger.Interface) *TenantWriter {
+func NewTenantWriter(database *db.Memory) *TenantWriter {
 	return &TenantWriter{
 		database: database,
-		logger:   logger,
 	}
 }
 
