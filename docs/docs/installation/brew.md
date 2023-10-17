@@ -4,11 +4,11 @@ title: "Install with Brew"
 
 # Brew With Configurations
 
-This section shows how to intall and run Permify Service with using brew. 
+This section shows how to install and run Permify Service using brew. 
 
 ### Install Permify
 
-Open terminal and run following line,
+Open terminal and run the following line,
 
 ```shell
 brew install permify/tap/permify
@@ -16,25 +16,25 @@ brew install permify/tap/permify
 
 ### Run Permify Service 
 
-To run the Permify Service, `permify serve` command should be run with configurations.
+To run the Permify Service, `permify serve` command should be run.
 
-By default, the service is configured to listen on ports 3476 (HTTP) and 3478 (gRPC) and store the authorization data in memory rather then an actual database. You can override these with running the command with configuration flags. 
+By default, the service is configured to listen on ports 3476 (HTTP) and 3478 (gRPC) and store the authorization data in memory rather then an actual database. You can override these by running the command with configuration flags. 
 
-### Configure With Using Flags
+### Configure By Using Flags
 
-See all configuration flags with running,
+See all the configuration flags by running,
 
 ```shell
 permify serve --help
 ```
 
 :::info Environment Variables
-In addition to CLI flags, Permify also supports configuration via environment variables. You can replace any flags' argument with an environment variable by converting dashes into underscores and prefixing with PERMIFY_ (e.g. **--log-level** becomes **PERMIFY_LOG_LEVEL**). 
+In addition to CLI flags, Permify also supports configuration via environment variables. You can replace any flag with an environment variable by converting dashes into underscores and prefixing with PERMIFY_ (e.g. **--log-level** becomes **PERMIFY_LOG_LEVEL**). 
 :::
 
 ### Configure With Using Config File
 
-You can also configure Permify Service with using a configuration file.
+You can also configure Permify Service by using a configuration file.
 
 ```shell
  permify serve -c=config.yaml
@@ -48,7 +48,7 @@ or
 
 ### Test your connection.
 
-You can test your connection with creating an HTTP GET request,
+You can test your connection by making an HTTP GET request,
 
 ```shell
 localhost:3476/healthz
@@ -63,4 +63,4 @@ You can use our Postman Collection to work with the API. Also see the [Using the
 
 ### Need any help ?
 
-Our team is happy to help you get started with Permify, [schedule a call with an Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+Our team is happy to help you get started with Permify, [schedule a call with a Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
