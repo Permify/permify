@@ -759,7 +759,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	var xid types.XID8
 
 	// Build the query to find the highest transaction ID associated with the tenant.
-	builder := r.database.Builder.Select("MAX(id)").From(TransactionsTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.Select("id").From(TransactionsTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("id DESC").Limit(1)
 	query, args, err := builder.ToSql()
 	if err != nil {
 		span.RecordError(err)
