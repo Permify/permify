@@ -85,7 +85,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		red := color.New(color.FgGreen)
 		_, _ = red.Printf(internal.Banner, internal.Version)
 
-		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			Level: getLogLevel(cfg.Log.Level),
+		}))
+
 		slog.SetDefault(logger)
 
 		slog.Info("🚀 starting permify service...")
@@ -327,5 +330,21 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		return nil
+	}
+}
+
+// getLogLevel converts a string representation of log level to its corresponding slog.Level value.
+func getLogLevel(level string) slog.Level {
+	switch level {
+	case "info":
+		return slog.LevelInfo // Return Info level
+	case "warn":
+		return slog.LevelWarn // Return Warning level
+	case "error":
+		return slog.LevelError // Return Error level
+	case "debug":
+		return slog.LevelDebug // Return Debug level
+	default:
+		return slog.LevelInfo // Default to Info level if unrecognized
 	}
 }

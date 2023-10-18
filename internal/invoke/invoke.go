@@ -3,12 +3,11 @@ package invoke
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
 	api "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-
-	"go.opentelemetry.io/otel"
 
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
