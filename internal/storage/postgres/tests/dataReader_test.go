@@ -16,7 +16,6 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres/types"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -25,8 +24,6 @@ var _ = Describe("RelationshipReader", func() {
 	var mock sqlmock.Sqlmock
 
 	BeforeEach(func() {
-		l := logger.New("debug")
-
 		var db *sql.DB
 		var err error
 
@@ -38,7 +35,7 @@ var _ = Describe("RelationshipReader", func() {
 			Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 		}
 
-		dataReader = postgres2.NewDataReader(pg, l)
+		dataReader = postgres2.NewDataReader(pg)
 	})
 
 	AfterEach(func() {

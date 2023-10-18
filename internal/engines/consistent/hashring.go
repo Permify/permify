@@ -13,7 +13,6 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	hash "github.com/Permify/permify/pkg/consistent"
 	"github.com/Permify/permify/pkg/gossip"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -26,12 +25,11 @@ type Hashring struct {
 	consistent        hash.Consistent
 	localNodeAddress  string
 	connectionOptions []grpc.DialOption
-	l                 *logger.Logger
 }
 
 // NewCheckEngineWithHashring creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineWithHashring(checker invoke.Check, schemaReader storage.SchemaReader, consistent *hash.ConsistentHash, g gossip.IGossip, port string, l *logger.Logger) (invoke.Check, error) {
+func NewCheckEngineWithHashring(checker invoke.Check, schemaReader storage.SchemaReader, consistent *hash.ConsistentHash, g gossip.IGossip, port string) (invoke.Check, error) {
 	// Return a new instance of EngineKeys with the provided cache
 	ip, err := gossip.ExternalIP()
 	if err != nil {
@@ -44,7 +42,6 @@ func NewCheckEngineWithHashring(checker invoke.Check, schemaReader storage.Schem
 		localNodeAddress: ip + ":" + port,
 		gossip:           g,
 		consistent:       consistent,
-		l:                l,
 	}, nil
 }
 

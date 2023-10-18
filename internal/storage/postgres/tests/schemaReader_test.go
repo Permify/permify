@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	PQRepository "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 )
 
 var schemaExample = "entity user {}\\n\\nentity organization {\\n\\n    // relations\\n    relation admin @user\\n    relation member @user\\n\\n    // actions\\n    action create_repository = (admin or member)\\n    action delete = admin\\n}\\n\\nentity repository {\\n\\n    // relations\\n    relation owner @user @organization#member\\n    relation parent @organization\\n\\n    // actions\\n    action push = owner\\n    action read = (owner and (parent.admin and not parent.member))\\n    \\n    // parent.create_repository means user should be\\n    // organization admin or organization member\\n    action delete = (owner or (parent.create_repository))\\n}"
@@ -29,12 +28,9 @@ func TestHeadVersion_Test(t *testing.T) {
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	// Create Logger
-	log := logger.New("debug")
-
 	// Create SchemaWriter
-	writer := postgres.NewSchemaWriter(pg, log)
-	reader := postgres.NewSchemaReader(pg, log)
+	writer := postgres.NewSchemaWriter(pg)
+	reader := postgres.NewSchemaReader(pg)
 
 	ctx := context.Background()
 
@@ -74,12 +70,9 @@ func TestReadSchema_Test(t *testing.T) {
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	// Create Logger
-	log := logger.New("debug")
-
 	// Create SchemaWriter
-	writer := postgres.NewSchemaWriter(pg, log)
-	reader := postgres.NewSchemaReader(pg, log)
+	writer := postgres.NewSchemaWriter(pg)
+	reader := postgres.NewSchemaReader(pg)
 
 	ctx := context.Background()
 
@@ -120,12 +113,9 @@ func TestReadSchemaDefinition_Test(t *testing.T) {
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	// Create Logger
-	log := logger.New("debug")
-
 	// Create SchemaWriter
-	writer := postgres.NewSchemaWriter(pg, log)
-	reader := postgres.NewSchemaReader(pg, log)
+	writer := postgres.NewSchemaWriter(pg)
+	reader := postgres.NewSchemaReader(pg)
 
 	ctx := context.Background()
 

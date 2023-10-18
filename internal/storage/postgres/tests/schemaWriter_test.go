@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres"
 	PQRepository "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 )
 
 func TestWriteSchema_Test(t *testing.T) {
@@ -24,11 +23,8 @@ func TestWriteSchema_Test(t *testing.T) {
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	// Create Logger
-	log := logger.New("debug")
-
 	// Create SchemaWriter
-	writer := postgres.NewSchemaWriter(pg, log)
+	writer := postgres.NewSchemaWriter(pg)
 
 	ctx := context.Background()
 

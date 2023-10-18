@@ -8,12 +8,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/Permify/permify/internal/engines/consistent"
 	"github.com/Permify/permify/internal/engines/keys"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage/postgres/gc"
-	hash `github.com/Permify/permify/pkg/consistent`
+	hash "github.com/Permify/permify/pkg/consistent"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
-	`github.com/Permify/permify/pkg/gossip`
+	"github.com/Permify/permify/pkg/gossip"
 
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -246,30 +247,28 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
 
 		var checker invoke.Check
-		//if cfg.Distributed.Enabled {
-		//	checker, err = consistent.NewCheckEngineWithHashring(
-		//		keys.NewCheckEngineWithKeys(
-		//			checkEngine,
-		//			schemaReader,
-		//			engineKeyCache,
-		//			l,
-		//		),
-		//		schemaReader,
-		//		consistencyChecker,
-		//		gossipEngine,
-		//		cfg.Server.GRPC.Port,
-		//		l,
-		//	)
-		//	if err != nil {
-		//		return err
-		//	}
-		//} else {
-		checker = keys.NewCheckEngineWithKeys(
-			checkEngine,
-			schemaReader,
-			engineKeyCache,
-		)
-		//}
+		if cfg.Distributed.Enabled {
+			checker, err = consistent.NewCheckEngineWithHashring(
+				keys.NewCheckEngineWithKeys(
+					checkEngine,
+					schemaReader,
+					engineKeyCache,
+				),
+				schemaReader,
+				consistencyChecker,
+				gossipEngine,
+				cfg.Server.GRPC.Port,
+			)
+			if err != nil {
+				return err
+			}
+		} else {
+			checker = keys.NewCheckEngineWithKeys(
+				checkEngine,
+				schemaReader,
+				engineKeyCache,
+			)
+		}
 
 		lookupEngine := engines.NewLookupEngine(
 			checker,
