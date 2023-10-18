@@ -191,7 +191,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.Node, cfg.Distributed.Protocol)
 			if err != nil {
-				slog.Info("🔗 failed to start distributed mode: %s ", err.Error())
+				slog.Error(err.Error())
 				return err
 			}
 
