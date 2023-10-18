@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
@@ -61,7 +60,7 @@ var _ = Describe("subject-permission-engine", func() {
 			conf, err := newSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			schemaWriter := factories.SchemaWriterFactory(db)
 			err = schemaWriter.WriteSchema(context.Background(), conf)
 
 			Expect(err).ShouldNot(HaveOccurred())
@@ -117,9 +116,9 @@ var _ = Describe("subject-permission-engine", func() {
 				},
 			}
 
-			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
-			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
@@ -190,7 +189,7 @@ var _ = Describe("subject-permission-engine", func() {
 			conf, err := newSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			schemaWriter := factories.SchemaWriterFactory(db)
 			err = schemaWriter.WriteSchema(context.Background(), conf)
 
 			Expect(err).ShouldNot(HaveOccurred())
@@ -243,9 +242,9 @@ var _ = Describe("subject-permission-engine", func() {
 				},
 			}
 
-			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
-			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 
@@ -316,7 +315,7 @@ var _ = Describe("subject-permission-engine", func() {
 			conf, err := newSchema(driveSchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			schemaWriter := factories.SchemaWriterFactory(db, logger.New("debug"))
+			schemaWriter := factories.SchemaWriterFactory(db)
 			err = schemaWriter.WriteSchema(context.Background(), conf)
 
 			Expect(err).ShouldNot(HaveOccurred())
@@ -372,9 +371,9 @@ var _ = Describe("subject-permission-engine", func() {
 				},
 			}
 
-			schemaReader := factories.SchemaReaderFactory(db, logger.New("debug"))
-			dataReader := factories.DataReaderFactory(db, logger.New("debug"))
-			dataWriter := factories.DataWriterFactory(db, logger.New("debug"))
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
 
 			checkEngine := NewCheckEngine(schemaReader, dataReader)
 

@@ -3,6 +3,8 @@ package development
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"sort"
 	"strings"
 
@@ -24,7 +26,6 @@ import (
 	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
-	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
@@ -46,15 +47,16 @@ func NewContainer() *Development {
 	}
 
 	// Create a new logger instance
-	l := logger.New("debug")
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
 
 	// Create instances of storage using the factories package
-	dataReader := factories.DataReaderFactory(db, l)
-	dataWriter := factories.DataWriterFactory(db, l)
-	schemaReader := factories.SchemaReaderFactory(db, l)
-	schemaWriter := factories.SchemaWriterFactory(db, l)
-	tenantReader := factories.TenantReaderFactory(db, l)
-	tenantWriter := factories.TenantWriterFactory(db, l)
+	dataReader := factories.DataReaderFactory(db)
+	dataWriter := factories.DataWriterFactory(db)
+	schemaReader := factories.SchemaReaderFactory(db)
+	schemaWriter := factories.SchemaWriterFactory(db)
+	tenantReader := factories.TenantReaderFactory(db)
+	tenantWriter := factories.TenantWriterFactory(db)
 
 	// Create instances of engines
 	checkEngine := engines.NewCheckEngine(schemaReader, dataReader)

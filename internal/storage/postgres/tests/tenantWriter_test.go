@@ -13,8 +13,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/Permify/permify/pkg/logger"
 )
 
 func TestTenantWriter_CreateTenant(t *testing.T) {
@@ -27,11 +25,8 @@ func TestTenantWriter_CreateTenant(t *testing.T) {
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	// Create Logger
-	log := logger.New("debug")
-
 	// Create TenantWriter
-	writer := postgres.NewTenantWriter(pg, log)
+	writer := postgres.NewTenantWriter(pg)
 
 	ctx := context.Background()
 
@@ -61,11 +56,8 @@ func TestTenantWriter_DeleteTenant(t *testing.T) {
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	// Create Logger
-	log := logger.New("debug")
-
 	// Create TenantWriter
-	writer := postgres.NewTenantWriter(pg, log)
+	writer := postgres.NewTenantWriter(pg)
 
 	ctx := context.Background()
 

@@ -8,7 +8,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/Permify/permify/pkg/cache/ristretto"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -17,10 +16,8 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
-	l := logger.New("debug")
-
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -69,10 +66,8 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
-	l := logger.New("debug")
-
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -121,10 +116,8 @@ func TestEngineKeys_GetCheckKey_KeyNotFound(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
-	l := logger.New("debug")
-
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache}
 
 	// Create a new PermissionCheckRequest
 	checkReq := &base.PermissionCheckRequest{
@@ -158,10 +151,8 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
-	l := logger.New("debug")
-
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache}
 
 	// Create some new PermissionCheckRequests and PermissionCheckResponses
 	checkReq1 := &base.PermissionCheckRequest{
@@ -269,10 +260,8 @@ func TestEngineKeys_SetCheckKeyWithArguments(t *testing.T) {
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
-	l := logger.New("debug")
-
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache, l}
+	engineKeys := CheckEngineWithKeys{nil, nil, cache}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{

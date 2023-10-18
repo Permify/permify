@@ -12,7 +12,6 @@ import (
 	"github.com/Permify/permify/internal/storage/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
@@ -20,15 +19,12 @@ import (
 
 type DataWriter struct {
 	database *db.Memory
-	// logger
-	logger logger.Interface
 }
 
 // NewDataWriter - Create a new DataWriter
-func NewDataWriter(database *db.Memory, logger logger.Interface) *DataWriter {
+func NewDataWriter(database *db.Memory) *DataWriter {
 	return &DataWriter{
 		database: database,
-		logger:   logger,
 	}
 }
 

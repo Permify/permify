@@ -4,27 +4,23 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 type WatchServer struct {
 	v1.UnimplementedWatchServer
 
-	dr     storage.DataReader
-	w      storage.Watcher
-	logger logger.Interface
+	dr storage.DataReader
+	w  storage.Watcher
 }
 
 func NewWatchServer(
 	w storage.Watcher,
 	dr storage.DataReader,
-	l logger.Interface,
 ) *WatchServer {
 	return &WatchServer{
-		w:      w,
-		dr:     dr,
-		logger: l,
+		w:  w,
+		dr: dr,
 	}
 }
 

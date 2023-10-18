@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -12,15 +13,12 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 )
 
 // GC represents a Garbage Collector configuration for database cleanup.
 type GC struct {
 	// database is the database instance used for garbage collection.
 	database *db.Postgres
-	// logger is the logger used for logging GC activities.
-	logger logger.Interface
 	// interval is the duration between garbage collection runs.
 	interval time.Duration
 	// window is the time window for data considered for cleanup.
@@ -30,13 +28,12 @@ type GC struct {
 }
 
 // NewGC creates a new GC instance with the provided configuration.
-func NewGC(db *db.Postgres, logger logger.Interface, opts ...Option) *GC {
+func NewGC(db *db.Postgres, opts ...Option) *GC {
 	gc := &GC{
 		interval: _defaultInterval,
 		window:   _defaultWindow,
 		timeout:  _defaultTimeout,
 		database: db,
-		logger:   logger,
 	}
 
 	// Custom options
@@ -56,10 +53,10 @@ func (gc *GC) Start(ctx context.Context) error {
 		select {
 		case <-ticker.C: // Periodically trigger garbage collection.
 			if err := gc.Run(); err != nil {
-				gc.logger.Error("Garbage collection failed:", err)
+				slog.Error("Garbage collection failed:", err)
 				continue
 			} else {
-				gc.logger.Info("Garbage collection completed successfully")
+				slog.Info("Garbage collection completed successfully")
 			}
 		case <-ctx.Done():
 			return ctx.Err() // Return context error if cancellation is requested.
@@ -76,7 +73,7 @@ func (gc *GC) Run() error {
 	var dbNow time.Time
 	err := gc.database.DB.QueryRowContext(ctx, "SELECT NOW() AT TIME ZONE 'UTC'").Scan(&dbNow)
 	if err != nil {
-		gc.logger.Error("Failed to get current time from the database:", err)
+		slog.Error("Failed to get current time from the database:", err)
 		return err
 	}
 
@@ -86,7 +83,7 @@ func (gc *GC) Run() error {
 	// Retrieve the last transaction ID that occurred before the cutoff time.
 	lastTransactionID, err := gc.getLastTransactionID(ctx, cutoffTime)
 	if err != nil {
-		gc.logger.Error("Failed to retrieve last transaction ID:", err)
+		slog.Error("Failed to retrieve last transaction ID:", err)
 		return err
 	}
 
@@ -96,15 +93,15 @@ func (gc *GC) Run() error {
 
 	// Delete records in relation_tuples, attributes, and transactions tables based on the lastTransactionID.
 	if err := gc.deleteRecords(ctx, postgres.RelationTuplesTable, lastTransactionID); err != nil {
-		gc.logger.Error("Failed to delete records in relation_tuples:", err)
+		slog.Error("Failed to delete records in relation_tuples:", err)
 		return err
 	}
 	if err := gc.deleteRecords(ctx, postgres.AttributesTable, lastTransactionID); err != nil {
-		gc.logger.Error("Failed to delete records in attributes:", err)
+		slog.Error("Failed to delete records in attributes:", err)
 		return err
 	}
 	if err := gc.deleteTransactions(ctx, lastTransactionID); err != nil {
-		gc.logger.Error("Failed to delete transactions:", err)
+		slog.Error("Failed to delete transactions:", err)
 		return err
 	}
 

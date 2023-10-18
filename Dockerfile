@@ -1,5 +1,5 @@
 # Step 1: Builder
-FROM golang:1.20-alpine3.16 as permify-builder
+FROM golang:1.21-alpine3.18 as permify-builder
 WORKDIR /go/src/app
 RUN apk update && apk add --no-cache git
 COPY . .

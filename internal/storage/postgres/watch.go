@@ -16,7 +16,6 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
 	"github.com/Permify/permify/internal/storage/postgres/types"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -33,19 +32,13 @@ type Watch struct {
 
 	// options
 	bufferSize int
-
-	// logger is an instance of a logger that implements the logger.Interface
-	// and is used to log messages related to the operations performed by
-	// the RelationshipReader.
-	logger logger.Interface
 }
 
 // NewWatcher returns a new instance of the Watch.
-func NewWatcher(database *db.Postgres, logger logger.Interface) *Watch {
+func NewWatcher(database *db.Postgres) *Watch {
 	return &Watch{
 		database:   database,
 		txOptions:  sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true},
-		logger:     logger,
 		bufferSize: _defaultWatchBufferSize,
 	}
 }

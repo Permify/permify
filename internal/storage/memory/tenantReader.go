@@ -10,22 +10,18 @@ import (
 	"github.com/Permify/permify/internal/storage/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // TenantReader - Structure for Tenant Reader
 type TenantReader struct {
 	database *db.Memory
-	// logger
-	logger logger.Interface
 }
 
 // NewTenantReader creates a new TenantReader
-func NewTenantReader(database *db.Memory, logger logger.Interface) *TenantReader {
+func NewTenantReader(database *db.Memory) *TenantReader {
 	return &TenantReader{
 		database: database,
-		logger:   logger,
 	}
 }
 

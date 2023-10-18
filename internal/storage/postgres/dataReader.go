@@ -20,7 +20,6 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 )
@@ -28,18 +27,16 @@ import (
 // DataReader is a struct which holds a reference to the database, transaction options and a logger.
 // It is responsible for reading data from the database.
 type DataReader struct {
-	database  *db.Postgres     // database is an instance of the PostgreSQL database
-	txOptions sql.TxOptions    // txOptions specifies the isolation level for database transaction and sets it as read only
-	logger    logger.Interface // logger is used to record log messages for debugging and error handling purposes
+	database  *db.Postgres  // database is an instance of the PostgreSQL database
+	txOptions sql.TxOptions // txOptions specifies the isolation level for database transaction and sets it as read only
 }
 
 // NewDataReader is a constructor function for DataReader.
 // It initializes a new DataReader with a given database, a logger, and sets transaction options to be read-only with Repeatable Read isolation level.
-func NewDataReader(database *db.Postgres, logger logger.Interface) *DataReader {
+func NewDataReader(database *db.Postgres) *DataReader {
 	return &DataReader{
 		database:  database,                                                          // Set the database to the passed in PostgreSQL instance
 		txOptions: sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true}, // Set the transaction options
-		logger:    logger,                                                            // Set the logger
 	}
 }
 
@@ -68,7 +65,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	}
 
 	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx, r.logger)
+	defer utils.Rollback(tx)
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
@@ -151,7 +148,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	}
 
 	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx, r.logger)
+	defer utils.Rollback(tx)
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.Select("id, entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
@@ -262,7 +259,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	}
 
 	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx, r.logger)
+	defer utils.Rollback(tx)
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
@@ -342,7 +339,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	}
 
 	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx, r.logger)
+	defer utils.Rollback(tx)
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
@@ -439,7 +436,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	}
 
 	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx, r.logger)
+	defer utils.Rollback(tx)
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, type, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
@@ -564,7 +561,7 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	}
 
 	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx, r.logger)
+	defer utils.Rollback(tx)
 
 	query := utils.BulkEntityFilterQuery(tenantID, name, st.(snapshot.Token).Value.Uint)
 
@@ -665,7 +662,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	}
 
 	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx, r.logger)
+	defer utils.Rollback(tx)
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.Select("id, subject_id").Distinct().From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})

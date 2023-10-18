@@ -9,22 +9,18 @@ import (
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	db "github.com/Permify/permify/pkg/database/memory"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // SchemaReader - Structure for Schema Reader
 type SchemaReader struct {
 	database *db.Memory
-	// logger
-	logger logger.Interface
 }
 
 // NewSchemaReader - Creates a new SchemaReader
-func NewSchemaReader(database *db.Memory, logger logger.Interface) *SchemaReader {
+func NewSchemaReader(database *db.Memory) *SchemaReader {
 	return &SchemaReader{
 		database: database,
-		logger:   logger,
 	}
 }
 

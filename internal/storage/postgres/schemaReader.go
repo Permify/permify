@@ -11,7 +11,6 @@ import (
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -20,16 +19,13 @@ type SchemaReader struct {
 	database *db.Postgres
 	// options
 	txOptions sql.TxOptions
-	// logger
-	logger logger.Interface
 }
 
 // NewSchemaReader - Creates a new SchemaReader
-func NewSchemaReader(database *db.Postgres, logger logger.Interface) *SchemaReader {
+func NewSchemaReader(database *db.Postgres) *SchemaReader {
 	return &SchemaReader{
 		database:  database,
 		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: true},
-		logger:    logger,
 	}
 }
 

@@ -1,6 +1,8 @@
 package servers
 
 import (
+	"log/slog"
+
 	"google.golang.org/grpc/status"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
@@ -9,7 +11,6 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/logger"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -17,10 +18,9 @@ import (
 type DataServer struct {
 	v1.UnimplementedDataServer
 
-	sr     storage.SchemaReader
-	dr     storage.DataReader
-	dw     storage.DataWriter
-	logger logger.Interface
+	sr storage.SchemaReader
+	dr storage.DataReader
+	dw storage.DataWriter
 }
 
 // NewDataServer - Creates new Data Server
@@ -28,13 +28,11 @@ func NewDataServer(
 	dr storage.DataReader,
 	dw storage.DataWriter,
 	sr storage.SchemaReader,
-	l logger.Interface,
 ) *DataServer {
 	return &DataServer{
-		dr:     dr,
-		dw:     dw,
-		sr:     sr,
-		logger: l,
+		dr: dr,
+		dw: dw,
+		sr: sr,
 	}
 }
 
@@ -70,7 +68,7 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -112,7 +110,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -187,7 +185,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -241,7 +239,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -269,7 +267,7 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -297,7 +295,7 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		r.logger.Error(err.Error())
+		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 

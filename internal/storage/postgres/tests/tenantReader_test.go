@@ -13,8 +13,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/Permify/permify/pkg/logger"
 )
 
 func TestTenantReader_ListTenants(t *testing.T) {
@@ -27,9 +25,7 @@ func TestTenantReader_ListTenants(t *testing.T) {
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	// Create Fileds for Create Tenant
-	log := logger.New("debug")
-	writer := postgres.NewTenantWriter(pg, log)
+	writer := postgres.NewTenantWriter(pg)
 	// reader := NewTenantReader(pg, log)
 	ctx := context.Background()
 

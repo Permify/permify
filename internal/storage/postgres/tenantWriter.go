@@ -12,7 +12,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -21,16 +20,13 @@ type TenantWriter struct {
 	database *db.Postgres
 	// options
 	txOptions sql.TxOptions
-	// logger
-	logger logger.Interface
 }
 
 // NewTenantWriter - Creates a new TenantWriter
-func NewTenantWriter(database *db.Postgres, logger logger.Interface) *TenantWriter {
+func NewTenantWriter(database *db.Postgres) *TenantWriter {
 	return &TenantWriter{
 		database:  database,
 		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: false},
-		logger:    logger,
 	}
 }
 

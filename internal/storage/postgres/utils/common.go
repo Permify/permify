@@ -3,12 +3,11 @@ package utils
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/pkg/errors"
 
 	"github.com/Masterminds/squirrel"
-
-	"github.com/Permify/permify/pkg/logger"
 )
 
 const (
@@ -113,8 +112,8 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 }
 
 // Rollback - Rollbacks a transaction and logs the error
-func Rollback(tx *sql.Tx, logger logger.Interface) {
+func Rollback(tx *sql.Tx) {
 	if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) && err != nil {
-		logger.Error("failed to rollback transaction", err)
+		slog.Error("failed to rollback transaction", err)
 	}
 }

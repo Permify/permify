@@ -9,7 +9,6 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	db "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -18,16 +17,13 @@ type SchemaWriter struct {
 	database *db.Postgres
 	// options
 	txOptions sql.TxOptions
-	// logger
-	logger logger.Interface
 }
 
 // NewSchemaWriter creates a new SchemaWriter
-func NewSchemaWriter(database *db.Postgres, logger logger.Interface) *SchemaWriter {
+func NewSchemaWriter(database *db.Postgres) *SchemaWriter {
 	return &SchemaWriter{
 		database:  database,
 		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: false},
-		logger:    logger,
 	}
 }
 

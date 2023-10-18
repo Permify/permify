@@ -15,7 +15,6 @@ import (
 	postgres2 "github.com/Permify/permify/internal/storage/postgres"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 	basev1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -24,8 +23,6 @@ var _ = Describe("RelationshipWriter", func() {
 	var mock sqlmock.Sqlmock
 
 	BeforeEach(func() {
-		l := logger.New("debug")
-
 		var db *sql.DB
 		var err error
 
@@ -37,7 +34,7 @@ var _ = Describe("RelationshipWriter", func() {
 			Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 		}
 
-		dataWriter = postgres2.NewDataWriter(pg, l)
+		dataWriter = postgres2.NewDataWriter(pg)
 	})
 
 	AfterEach(func() {
