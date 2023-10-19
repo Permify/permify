@@ -2,44 +2,41 @@
 title: "Docker Container"
 ---
 
-# Deploy using Docker
+# Run using Docker
 
-This section shows how to run Permify Service from a docker container. You can run Permify service from a container with following steps.
+This section shows how to run Permify using our docker container. You can run Permify using Docker with following command.
 
-## Run following line on Terminal
+## Run in a terminal
 
 ```shell
 docker run -p 3476:3476 -p 3478:3478 -v {YOUR-CONFIG-PATH}:/config ghcr.io/permify/permify serve
 ```
 
-This will start an API server with the configuration options that pointed out on the **{YOUR-CONFIG-PATH}**.
+This will start a Permify server with the configuration that is in **{YOUR-CONFIG-PATH}**.
 
-### Configure With a YAML file
+### Configure with a YAML file
 
-This config path - `{YOUR-CONFIG-PATH}` - addresses the [config yaml file](../reference/configuration.md), where you can configure running options of the Permify Server as well as define the ***database*** to store your authorization related data.
-
-As an example if you had a "config.yaml" file at your Desktop, the path `{YOUR-CONFIG-PATH}:/config` would look like:
-`Users/your_user_name/Desktop:/config`.
+This config path - `{YOUR-CONFIG-PATH}` - should contain the [config yaml file](../reference/configuration.md), where you can configure the Permify Server as well as define the ***database*** to store your authorization related data in.
 
 :::info Talk to an Permify Engineer
 By default, the container is configured to listen on ports 3476 (HTTP) and 3478 (gRPC) and store the authorization data in memory rather than an actual database.
 :::
 
-### Configure With Using Flags
+### Configure Using Flags
 
-Alternatively, you can set configuration options with the respected flags when running the command. See all configuration flags with running,
+Alternatively, you can set configuration options using flags when running the command. See all the configuration flags by running,
 
 ```shell
-docker run -p 8080:8080 ghcr.io/permify/permify serve -help
+docker run -p 3476:3476 -p 3478:3478 ghcr.io/permify/permify serve -help
 ```
 
 :::info Environment Variables
-In addition to CLI flags, Permify also supports configuration via environment variables. You can replace any flags' argument with an environment variable by converting dashes into underscores and prefixing with PERMIFY_ (e.g. **--log-level** becomes **PERMIFY_LOG_LEVEL**). 
+In addition to CLI flags, Permify also supports configuration via environment variables. You can replace any flag with an environment variable by converting dashes into underscores and prefixing with PERMIFY_ (e.g. **--log-level** becomes **PERMIFY_LOG_LEVEL**). 
 :::
 
 ### Test your connection.
 
-You can test your connection with creating an HTTP GET request,
+You can test your connection by making an HTTP GET request,
 
 ```shell
 localhost:3476/healthz
@@ -55,4 +52,4 @@ You can use our Postman Collection to work with the API. Also see the [Using the
 
 ### Need any help ?
 
-Our team is happy to help you get started with Permify, [schedule a call with an Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
+Our team is happy to help you get started with Permify, [schedule a call with a Permify engineer](https://meetings-eu1.hubspot.com/ege-aytin/call-with-an-expert).
