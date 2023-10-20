@@ -341,7 +341,7 @@ message Entity {
   string id = 2 [
     json_name = "id",
     (validate.rules).string = {
-      pattern: "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
+      pattern: "^(?=.{1,128}$)[a-zA-Z0-9]+[~\/@#_.:=|-]?[a-zA-Z0-9_|-]+$",
       max_bytes: 128,
     }
   ];
@@ -376,7 +376,7 @@ message Subject {
   string id = 2 [
     json_name = "id",
     (validate.rules).string = {
-      pattern: "^(([a-zA-Z0-9_][a-zA-Z0-9_|-]{0,127})|\\*)$",
+      pattern: "^(?=.{1,128}$)[a-zA-Z0-9]+[~\/@#_.:=|-]?[a-zA-Z0-9_|-]+$",
       max_bytes: 128,
     }
   ];
