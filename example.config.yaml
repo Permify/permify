@@ -92,7 +92,7 @@ distributed:
   # The address of the distributed service.
   # Using a Kubernetes DNS name suggests this service runs in a Kubernetes cluster
   # under the 'default' namespace and is named 'permify'
-  address: "kubernetes:///permify.default"
+  address: "kubernetes:///permify.default:5000"
 
   # The port on which the service is exposed
   port: "5000"

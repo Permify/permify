@@ -73,8 +73,16 @@ Here is an example configuration:
 
 ```yaml 
 distributed:
-  enabled: false
-  nodes: ["permify-1:3480", "permify-2:3480", "permify-3:3480"]
+  # Indicates whether the distributed mode is enabled or not
+  enabled: true
+
+  # The address of the distributed service.
+  # Using a Kubernetes DNS name suggests this service runs in a Kubernetes cluster
+  # under the 'default' namespace and is named 'permify'
+  address: "kubernetes:///permify.default:5000"
+
+  # The port on which the service is exposed
+  port: "5000"
 ``` 
 
 Additional to that we’re using a [circuit breaker](https://blog.bitsrc.io/circuit-breaker-pattern-in-microservices-26bf6e5b21ff) pattern to detect and handle failures when the underlying database is unavailable. It prevents unnecessary calls when the database is down and handles the process on the rebooting phase.
