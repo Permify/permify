@@ -95,4 +95,4 @@ distributed:
   address: "kubernetes:///permify.default"
 
   # The port on which the service is exposed
-  port: "5053"
+  port: "5000"
