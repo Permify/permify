@@ -84,8 +84,15 @@ database:
     window: 200h
     timeout: 5m
 
+# distributed configuration settings
 distributed:
+  # Indicates whether the distributed mode is enabled or not
   enabled: true
-  node: serf:7946
-  node_name: main-serf
-  protocol: serf
+
+  # The address of the distributed service.
+  # Using a Kubernetes DNS name suggests this service runs in a Kubernetes cluster
+  # under the 'default' namespace and is named 'permify'
+  address: "kubernetes:///permify.default:5000"
+
+  # The port on which the service is exposed
+  port: "5000"

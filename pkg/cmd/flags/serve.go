@@ -384,27 +384,19 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("distributed-node", conf.Distributed.Node, "distributed node address")
-	if err = viper.BindPFlag("distributed.node", flags.Lookup("distributed-node")); err != nil {
+	flags.String("distributed-address", conf.Distributed.Address, "distributed address")
+	if err = viper.BindPFlag("distributed.address", flags.Lookup("distributed-address")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("distributed.node", "PERMIFY_DISTRIBUTED_NODES"); err != nil {
-		panic(err)
-	}
-
-	flags.String("distributed-node-name", conf.Distributed.NodeName, "distributed node name")
-	if err = viper.BindPFlag("distributed.node_name", flags.Lookup("distributed-node-name")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("distributed.node_name", "PERMIFY_DISTRIBUTED_NODE_NAME"); err != nil {
+	if err = viper.BindEnv("distributed.address", "PERMIFY_DISTRIBUTED_ADDRESS"); err != nil {
 		panic(err)
 	}
 
-	flags.String("distributed-protocol", conf.Distributed.Protocol, "distributed protocol name ")
-	if err = viper.BindPFlag("distributed.protocol", flags.Lookup("distributed-protocol")); err != nil {
+	flags.String("distributed-port", conf.Distributed.Port, "distributed port")
+	if err = viper.BindPFlag("distributed.port", flags.Lookup("distributed-port")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("distributed.protocol", "PERMIFY_DISTRIBUTED_PROTOCOL"); err != nil {
+	if err = viper.BindEnv("distributed.port", "PERMIFY_DISTRIBUTED_PORT"); err != nil {
 		panic(err)
 	}
 }

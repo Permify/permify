@@ -13,13 +13,10 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 )
 
 func TestSchemaReaderHeadVersion_Integration(t *testing.T) {
 	ctx := context.Background()
-
-	l := logger.New("fatal")
 
 	err := storage.Migrate(cfg)
 	require.NoError(t, err)
@@ -39,8 +36,8 @@ func TestSchemaReaderHeadVersion_Integration(t *testing.T) {
 	defer db.Close()
 
 	// Create a TenantWriter instance
-	schemaWriter := postgres.NewSchemaWriter(db.(*PQDatabase.Postgres), l)
-	schemaReader := postgres.NewSchemaReader(db.(*PQDatabase.Postgres), l)
+	schemaWriter := postgres.NewSchemaWriter(db.(*PQDatabase.Postgres))
+	schemaReader := postgres.NewSchemaReader(db.(*PQDatabase.Postgres))
 
 	v := xid.New().String()
 	schemas := []storage.SchemaDefinition{

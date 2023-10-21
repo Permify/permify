@@ -8,16 +8,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Permify/permify/internal/engines/consistent"
-	"github.com/Permify/permify/internal/engines/keys"
-	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/storage/postgres/gc"
-	hash "github.com/Permify/permify/pkg/consistent"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/gossip"
-
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel/sdk/metric"
+
+	"github.com/Permify/permify/internal/engines/balancer"
+	"github.com/Permify/permify/internal/engines/cache"
+	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/internal/storage/postgres/gc"
+	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -31,7 +29,7 @@ import (
 	"github.com/Permify/permify/internal/servers"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/decorators"
-	"github.com/Permify/permify/pkg/cache"
+	pkgcache "github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/telemetry/meterexporters"
@@ -171,48 +169,15 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		var gossipEngine gossip.IGossip
-		var consistencyChecker *hash.ConsistentHash
-
-		if cfg.Distributed.Enabled {
-			slog.Info("🔗 starting distributed mode...")
-
-			consistencyChecker, err = hash.NewConsistentHash(100, nil, cfg.GRPC)
-			if err != nil {
-				slog.Error(err.Error())
-			}
-
-			externalIP, err := gossip.ExternalIP()
-			if err != nil {
-				slog.Error(err.Error())
-			}
-
-			slog.Info("🔗 external IP: " + externalIP)
-
-			gossipEngine, err = gossip.InitMemberList(cfg.Distributed.Node, cfg.Distributed.Protocol)
-			if err != nil {
-				slog.Error(err.Error())
-				return err
-			}
-
-			go gossipEngine.SyncNodes(ctx, consistencyChecker, cfg.Distributed.NodeName, cfg.Server.GRPC.Port)
-
-			defer func() {
-				if err = gossipEngine.Shutdown(); err != nil {
-					slog.Error(err.Error())
-				}
-			}()
-		}
-
 		// schema cache
-		var schemaCache cache.Cache
+		var schemaCache pkgcache.Cache
 		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Service.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Service.Schema.Cache.MaxCost))
 		if err != nil {
 			slog.Error(err.Error())
 		}
 
-		// engines cache keys
-		var engineKeyCache cache.Cache
+		// engines cache cache
+		var engineKeyCache pkgcache.Cache
 		engineKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Service.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Service.Permission.Cache.MaxCost))
 		if err != nil {
 			slog.Error(err.Error())
@@ -249,43 +214,58 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
 
+		// Declare a variable `checker` of type `invoke.Check`.
 		var checker invoke.Check
+
+		// If distributed configuration is enabled, create a new checker with load balancing capabilities.
 		if cfg.Distributed.Enabled {
-			checker, err = consistent.NewCheckEngineWithHashring(
-				keys.NewCheckEngineWithKeys(
-					checkEngine,
-					schemaReader,
-					engineKeyCache,
-				),
+			checker, err = balancer.NewCheckEngineWithBalancer(
+				checkEngine,
 				schemaReader,
-				consistencyChecker,
-				gossipEngine,
-				cfg.Server.GRPC.Port,
+				&cfg.Distributed,
+				&cfg.Server.GRPC,
+				&cfg.Authn,
 			)
+			// Handle potential error during checker creation.
 			if err != nil {
 				return err
 			}
-		} else {
-			checker = keys.NewCheckEngineWithKeys(
-				checkEngine,
-				schemaReader,
-				engineKeyCache,
-			)
 		}
 
+		// Enhance the checker with caching capabilities.
+		checker = cache.NewCheckEngineWithCache(
+			checker,
+			schemaReader,
+			engineKeyCache,
+		)
+
+		// Create a localChecker which directly checks without considering distributed setup.
+		// This also includes caching capabilities.
+		localChecker := cache.NewCheckEngineWithCache(
+			checkEngine,
+			schemaReader,
+			engineKeyCache,
+		)
+
+		// Initialize the lookupEngine, which is responsible for looking up certain entities or values.
 		lookupEngine := engines.NewLookupEngine(
 			checker,
 			schemaReader,
 			dataReader,
+			// Set concurrency limit based on the configuration.
 			engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit),
 		)
 
+		// Initialize the subjectPermissionEngine, responsible for handling subject permissions.
 		subjectPermissionEngine := engines.NewSubjectPermission(
 			checker,
 			schemaReader,
+			// Set concurrency limit for the subject permission checks.
 			engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit),
 		)
 
+		// Create a new invoker that is used to directly call various functions or engines.
+		// It encompasses the schema, data, checker, and other engines.
 		invoker := invoke.NewDirectInvoker(
 			schemaReader,
 			dataReader,
@@ -296,9 +276,21 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			meter,
 		)
 
+		// Associate the invoker with the checkEngine.
 		checkEngine.SetInvoker(invoker)
 
-		// Create the container with engines, storage, and other dependencies
+		// Create a local invoker for local operations.
+		localInvoker := invoke.NewDirectInvoker(
+			schemaReader,
+			dataReader,
+			localChecker,
+			expandEngine,
+			lookupEngine,
+			subjectPermissionEngine,
+			meter,
+		)
+
+		// Initialize the container which brings together multiple components such as the invoker, data readers/writers, and schema handlers.
 		container := servers.NewContainer(
 			invoker,
 			dataReader,
@@ -319,8 +311,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			return container.Run(
 				ctx,
 				&cfg.Server,
+				&cfg.Distributed,
 				&cfg.Authn,
 				&cfg.Profiler,
+				localInvoker,
 			)
 		})
 
