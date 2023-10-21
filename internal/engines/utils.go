@@ -2,10 +2,14 @@ package engines
 
 import (
 	"errors"
+	"fmt"
+	"sort"
+	"strings"
 	"sync"
 
 	"google.golang.org/protobuf/types/known/anypb"
 
+	"github.com/Permify/permify/pkg/attribute"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -276,4 +280,92 @@ func ConvertToAnyPB(value interface{}) (*anypb.Any, error) {
 
 	// If the conversion was successful, return the converted value.
 	return anyValue, nil
+}
+
+// GenerateKey function takes a PermissionCheckRequest and generates a unique key
+// Key format: check|{tenant_id}|{schema_version}|{snap_token}|{context}|{entity:id#permission(optional_arguments)@subject:id#optional_relation}
+func GenerateKey(key *base.PermissionCheckRequest, isRelational bool) string {
+	// Initialize the parts slice with the string "check"
+	parts := []string{"check"}
+
+	// If tenantId is not empty, append it to parts
+	if tenantId := key.GetTenantId(); tenantId != "" {
+		parts = append(parts, tenantId)
+	}
+
+	// If Metadata exists, extract schema version and snap token and append them to parts if they are not empty
+	if meta := key.GetMetadata(); meta != nil {
+		if version := meta.GetSchemaVersion(); version != "" {
+			parts = append(parts, version)
+		}
+		if token := meta.GetSnapToken(); token != "" {
+			parts = append(parts, token)
+		}
+	}
+
+	// If Context exists, convert it to string and append it to parts
+	if ctx := key.GetContext(); ctx != nil {
+		parts = append(parts, ContextToString(ctx))
+	}
+
+	if isRelational {
+		// Convert entity and relation to string with any optional arguments and append to parts
+		entityRelationString := tuple.EntityAndRelationToString(key.GetEntity(), key.GetPermission())
+
+		subjectString := tuple.SubjectToString(key.GetSubject())
+
+		if entityRelationString != "" {
+			parts = append(parts, fmt.Sprintf("%s@%s", entityRelationString, subjectString))
+		}
+
+	} else {
+		parts = append(parts, attribute.EntityAndCallOrAttributeToString(
+			key.GetEntity(),
+			key.GetPermission(),
+			key.GetArguments()...,
+		))
+	}
+
+	// Join all parts with "|" delimiter to generate the final key
+	return strings.Join(parts, "|")
+}
+
+// ContextToString function takes a Context object and converts it into a string
+func ContextToString(context *base.Context) string {
+	// Initialize an empty slice to store parts of the context
+	var parts []string
+
+	// For each Tuple in the Context, convert it to a string and append to parts
+	for _, tup := range context.GetTuples() {
+		parts = append(parts, tuple.ToString(tup)) // replace with your function
+	}
+
+	// For each Attribute in the Context, convert it to a string and append to parts
+	for _, attr := range context.GetAttributes() {
+		parts = append(parts, attribute.ToString(attr)) // replace with your function
+	}
+
+	// If Data exists in the Context, convert it to JSON string and append to parts
+	if data := context.GetData(); data != nil {
+		parts = append(parts, mapToString(data.AsMap()))
+	}
+
+	// Join all parts with "," delimiter to generate the final context string
+	return strings.Join(parts, ",")
+}
+
+// mapToString function takes a map[string]interface{} and converts it into a string
+func mapToString(m map[string]interface{}) string {
+	var keys []string
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	var parts []string
+	for _, key := range keys {
+		value := m[key]
+		parts = append(parts, fmt.Sprintf("%s:%v", key, value))
+	}
+	return strings.Join(parts, ",")
 }

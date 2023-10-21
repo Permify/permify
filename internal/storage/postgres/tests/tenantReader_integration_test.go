@@ -13,13 +13,10 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
-	"github.com/Permify/permify/pkg/logger"
 )
 
 func TestTenantReader_Integration(t *testing.T) {
 	ctx := context.Background()
-
-	l := logger.New("fatal")
 
 	err := storage.Migrate(cfg)
 	require.NoError(t, err)
@@ -39,8 +36,8 @@ func TestTenantReader_Integration(t *testing.T) {
 	defer db.Close()
 
 	// Create a Tenant instances
-	tenantWriter := postgres.NewTenantWriter(db.(*PQDatabase.Postgres), l)
-	tenantReader := postgres.NewTenantReader(db.(*PQDatabase.Postgres), l)
+	tenantWriter := postgres.NewTenantWriter(db.(*PQDatabase.Postgres))
+	tenantReader := postgres.NewTenantReader(db.(*PQDatabase.Postgres))
 
 	// Test the CreateTenant method
 	createdTenant, err := tenantWriter.CreateTenant(ctx, "2", "Test Tenant")

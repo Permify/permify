@@ -1,4 +1,4 @@
-package keys
+package cache
 
 import (
 	"testing"
@@ -7,17 +7,18 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
 
+	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 func TestEngineKeys_SetCheckKey(t *testing.T) {
-	// Initialize a new Ristretto cache with a capacity of 10 keys
+	// Initialize a new Ristretto cache with a capacity of 10 cache
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache}
+	engineKeys := CheckEngineWithCache{nil, nil, cache}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -62,12 +63,12 @@ func TestEngineKeys_SetCheckKey(t *testing.T) {
 }
 
 func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
-	// Initialize a new Ristretto cache with a capacity of 10 keys
+	// Initialize a new Ristretto cache with a capacity of 10 cache
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache}
+	engineKeys := CheckEngineWithCache{nil, nil, cache}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -112,12 +113,12 @@ func TestEngineKeys_SetCheckKey_WithHashError(t *testing.T) {
 }
 
 func TestEngineKeys_GetCheckKey_KeyNotFound(t *testing.T) {
-	// Initialize a new Ristretto cache with a capacity of 10 keys
+	// Initialize a new Ristretto cache with a capacity of 10 cache
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache}
+	engineKeys := CheckEngineWithCache{nil, nil, cache}
 
 	// Create a new PermissionCheckRequest
 	checkReq := &base.PermissionCheckRequest{
@@ -147,12 +148,12 @@ func TestEngineKeys_GetCheckKey_KeyNotFound(t *testing.T) {
 }
 
 func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
-	// Initialize a new Ristretto cache with a capacity of 10 keys
+	// Initialize a new Ristretto cache with a capacity of 10 cache
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache}
+	engineKeys := CheckEngineWithCache{nil, nil, cache}
 
 	// Create some new PermissionCheckRequests and PermissionCheckResponses
 	checkReq1 := &base.PermissionCheckRequest{
@@ -227,7 +228,7 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 		},
 	}
 
-	// Set the values for the given keys in the cache
+	// Set the values for the given cache in the cache
 	success1 := engineKeys.setCheckKey(checkReq1, checkResp1, true)
 	success2 := engineKeys.setCheckKey(checkReq2, checkResp2, true)
 	success3 := engineKeys.setCheckKey(checkReq3, checkResp3, true)
@@ -256,12 +257,12 @@ func TestEngineKeys_SetAndGetMultipleKeys(t *testing.T) {
 }
 
 func TestEngineKeys_SetCheckKeyWithArguments(t *testing.T) {
-	// Initialize a new Ristretto cache with a capacity of 10 keys
+	// Initialize a new Ristretto cache with a capacity of 10 cache
 	cache, err := ristretto.New()
 	assert.Nil(t, err)
 
 	// Initialize a new EngineKeys struct with a new cache.Cache instance
-	engineKeys := CheckEngineWithKeys{nil, nil, cache}
+	engineKeys := CheckEngineWithCache{nil, nil, cache}
 
 	// Create a new PermissionCheckRequest and PermissionCheckResponse
 	checkReq := &base.PermissionCheckRequest{
@@ -394,5 +395,5 @@ func TestEngineKeys_SetCheckKeyWithContext(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, "check|t1|test_version|test_snap_token|entity_type:entity_id#relation@subject_type:subject_id,entity_type:entity_id$is_public|boolean:true,day_of_a_week:saturday,day_of_a_year:356|test-entity:e1$test-rule(test_argument_1,test_argument_2)", GenerateKey(checkReq, false))
+	assert.Equal(t, "check|t1|test_version|test_snap_token|entity_type:entity_id#relation@subject_type:subject_id,entity_type:entity_id$is_public|boolean:true,day_of_a_week:saturday,day_of_a_year:356|test-entity:e1$test-rule(test_argument_1,test_argument_2)", engines.GenerateKey(checkReq, false))
 }

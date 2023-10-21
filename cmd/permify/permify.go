@@ -3,11 +3,18 @@ package main
 import (
 	"os"
 
+	"github.com/sercand/kuberesolver/v5"
+	"google.golang.org/grpc/balancer"
+
+	consistentbalancer "github.com/Permify/permify/pkg/balancer"
 	"github.com/Permify/permify/pkg/cmd"
 	"github.com/Permify/permify/pkg/cmd/flags"
 )
 
 func main() {
+	kuberesolver.RegisterInCluster()
+	balancer.Register(consistentbalancer.NewConsistentHashBalancerBuilder())
+
 	root := cmd.NewRootCommand()
 
 	serve := cmd.NewServeCommand()
