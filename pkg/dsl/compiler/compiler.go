@@ -600,8 +600,9 @@ func (t *Compiler) validateTupleToUserSetReference(entityName string, identifier
 		typeCheckStack = typeCheckStack[:stackSize]
 
 		if currentType.Relation.Literal == "" {
+			typ, exist := t.schema.GetReferences().GetReferenceType(utils.Key(currentType.Type.Literal, identifier.Idents[1].Literal))
 			// If the relation type does not exist, check if it is a valid relational reference.
-			if !t.schema.GetReferences().IsReferenceExist(utils.Key(currentType.Type.Literal, identifier.Idents[1].Literal)) {
+			if !exist || typ == ast.ATTRIBUTE {
 				// If not, return an error.
 				return compileError(identifier.Idents[1].PositionInfo, base.ErrorCode_ERROR_CODE_UNDEFINED_RELATION_REFERENCE.String())
 			}
