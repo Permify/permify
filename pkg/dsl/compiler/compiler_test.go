@@ -2076,5 +2076,61 @@ var _ = Describe("compiler", func() {
 			Expect(eIs).Should(Equal(eI))
 			Expect(rIs).Should(Equal(rI))
 		})
+
+		It("Case 21", func() {
+			sch, err := parser.NewParser(`
+				entity user {}
+				
+				entity organization {
+				
+					attribute balance integer
+				
+				}
+				
+				entity account {
+					relation owner @user
+				
+					relation parent @organization
+				
+					permission withdraw = parent.balance and owner
+				}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+
+			Expect(err.Error()).Should(Equal("15:36: undefined relation reference"))
+		})
+
+		It("Case 22", func() {
+			sch, err := parser.NewParser(`
+				entity user {}
+				
+				entity organization {
+				
+					attribute balance integer
+				
+				}
+				
+				entity account {
+					relation owner @user
+				
+					attribute balance integer
+
+					permission withdraw = balance and owner
+				}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := NewCompiler(true, sch)
+
+			_, _, err = c.Compile()
+
+			Expect(err.Error()).Should(Equal("15:29: schema compile"))
+		})
 	})
 })
