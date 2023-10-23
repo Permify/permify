@@ -216,13 +216,24 @@ The output of the example provided above is as follows.
 
 You can also test your new authorization model in your local (Permify clone) without using [permify-validate-action] at all. 
 
-For that open up a new file and add a schema yaml file inside. Then build your project with, run `make serve` command and run `./permify validate {path of your schema validation file}`. 
+For that open up a new file and add a schema yaml file inside. Then build your project with, run `make build` command and run `./permify validate {path of your schema validation file}`. 
 
 If we use the above example schema validation file, after running `./permify validate {path of your schema validation file}` it gives a result on the terminal as:
 
 ![schema-validation](https://user-images.githubusercontent.com/39353278/236303542-930de83f-ebdd-4b0a-a09e-5c069744cc5c.png)
 
 [permify-validate-action]: https://github.com/Permify/permify-validate-action
+
+## AST Conversion
+
+By utilizing the command `permify ast {path of your schema validation file}`, you can effortlessly convert your model into an Abstract Syntax Tree (AST) representation.
+
+The conversion to AST provides a structured representation of your model, making it easier to navigate, modify, and analyze. This process ensures that your model is syntactically correct and can be processed by other tools without issues.
+
+The output after running the above example command is illustrated below.
+
+
+![ast-conversion](https://github.com/Permify/permify/assets/39353278/822902d7-9612-46a6-95e9-1cb09bc0ebb2)
 
 ## Unit Tests For Schema Changes
 
