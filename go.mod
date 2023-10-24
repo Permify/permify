@@ -32,6 +32,7 @@ require (
 	github.com/pressly/goose/v3 v3.15.0
 	github.com/rs/cors v1.10.1
 	github.com/rs/xid v1.5.0
+	github.com/sercand/kuberesolver/v5 v5.1.1
 	github.com/serialx/hashring v0.0.0-20200727003509-22c0c7ab6b1b
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
@@ -118,7 +119,6 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.11.0 // indirect
-	github.com/sercand/kuberesolver/v5 v5.1.1 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.8 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
