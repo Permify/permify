@@ -217,7 +217,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Declare a variable `checker` of type `invoke.Check`.
 		var checker invoke.Check
 
-		// If distributed configuration is enabled, create a new checker with load balancing capabilities.
+		// Create the checker either with load balancing or caching capabilities.
 		if cfg.Distributed.Enabled {
 			checker, err = balancer.NewCheckEngineWithBalancer(
 				checkEngine,
@@ -230,14 +230,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
+			checker = cache.NewCheckEngineWithCache(checker, schemaReader, engineKeyCache)
+		} else {
+			checker = cache.NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
 		}
-
-		// Enhance the checker with caching capabilities.
-		checker = cache.NewCheckEngineWithCache(
-			checker,
-			schemaReader,
-			engineKeyCache,
-		)
 
 		// Create a localChecker which directly checks without considering distributed setup.
 		// This also includes caching capabilities.

@@ -199,7 +199,7 @@ func (s *Container) Run(
 			}
 
 			// Start the profiler server.
-			if err = pprofserver.ListenAndServe(); err != nil {
+			if err := pprofserver.ListenAndServe(); err != nil {
 				// Check if the error was due to the server being closed, and log it.
 				if errors.Is(err, http.ErrServerClosed) {
 					slog.Error("failed to start profiler", err)
@@ -222,13 +222,13 @@ func (s *Container) Run(
 
 	// Start the gRPC server.
 	go func() {
-		if err = grpcServer.Serve(lis); err != nil {
+		if err := grpcServer.Serve(lis); err != nil {
 			slog.Error("failed to start grpc server", err)
 		}
 	}()
 
 	go func() {
-		if err = invokeServer.Serve(invokeLis); err != nil {
+		if err := invokeServer.Serve(invokeLis); err != nil {
 			slog.Error("failed to start invoke grpc server", err)
 		}
 	}()
