@@ -199,7 +199,7 @@ func (s *Container) Run(
 			}
 
 			// Start the profiler server.
-			if err = pprofserver.ListenAndServe(); err != nil {
+			if err := pprofserver.ListenAndServe(); err != nil {
 				// Check if the error was due to the server being closed, and log it.
 				if errors.Is(err, http.ErrServerClosed) {
 					slog.Error("failed to start profiler", err)
