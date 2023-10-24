@@ -222,13 +222,13 @@ func (s *Container) Run(
 
 	// Start the gRPC server.
 	go func() {
-		if err = grpcServer.Serve(lis); err != nil {
+		if err := grpcServer.Serve(lis); err != nil {
 			slog.Error("failed to start grpc server", err)
 		}
 	}()
 
 	go func() {
-		if err = invokeServer.Serve(invokeLis); err != nil {
+		if err := invokeServer.Serve(invokeLis); err != nil {
 			slog.Error("failed to start invoke grpc server", err)
 		}
 	}()
