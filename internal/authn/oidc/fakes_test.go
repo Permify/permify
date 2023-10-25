@@ -163,7 +163,7 @@ func (s *fakeOidcProvider) SignIDToken(unsignedToken *jwt.Token) (string, error)
 		signedToken, err = unsignedToken.SignedString(s.rsaPrivateKeyForPS)
 
 	default:
-		return "", fmt.Errorf("Incorrect signing method type, supported algorithms: HS256, RS256, ES256, PS256")
+		return "", fmt.Errorf("incorrect signing method type, supported algorithms: HS256, RS256, ES256, PS256")
 	}
 
 	if err != nil {
