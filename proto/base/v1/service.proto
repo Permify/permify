@@ -130,8 +130,8 @@ message PermissionCheckRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern : "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes : 128,
     ignore_empty: false,
   }];
 
@@ -143,7 +143,7 @@ message PermissionCheckRequest {
 
   // Name of the permission or relation, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [json_name = "permission", (validate.rules).string = {
-    pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
+    pattern : "^[a-zA-Z_]{1,64}$",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -208,7 +208,7 @@ message PermissionExpandRequest {
 
   // Name of the permission to be expanded, not required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [json_name = "permission", (validate.rules).string = {
-    pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
+    pattern : "^[a-zA-Z_]{1,64}$",
     max_bytes : 64,
     ignore_empty: true,
   }];
@@ -244,8 +244,8 @@ message PermissionLookupEntityRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern : "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes : 128,
     ignore_empty: false,
   }];
 
@@ -254,14 +254,14 @@ message PermissionLookupEntityRequest {
 
   // Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string entity_type = 3 [json_name = "entity_type", (validate.rules).string = {
-    pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
+    pattern : "^[a-zA-Z_]{1,64}$",
     max_bytes : 64,
     ignore_empty: false,
   }];
 
   // Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [json_name = "permission", (validate.rules).string = {
-    pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
+    pattern : "^[a-zA-Z_]{1,64}$",
     max_bytes : 64,
     ignore_empty: false,
   }];
@@ -307,8 +307,8 @@ message PermissionEntityFilterRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern : "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes : 128,
     ignore_empty: false,
   }];
 
@@ -345,8 +345,8 @@ message PermissionLookupSubjectRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -358,8 +358,8 @@ message PermissionLookupSubjectRequest {
 
   // Permission to be checked, can be a permission or relation. Required, and must match the pattern "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$", max 64 bytes.
   string permission = 4 [json_name = "permission", (validate.rules).string = {
-    pattern : "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$",
-    max_bytes : 64,
+    pattern: "^[a-zA-Z_]{1,64}$",
+    max_bytes: 64,
     ignore_empty: false,
   }];
 
@@ -397,8 +397,8 @@ message PermissionSubjectPermissionRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -539,8 +539,8 @@ message SchemaWriteRequest {
   // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
   // be a maximum of 64 bytes, and must not be empty.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -565,8 +565,8 @@ message SchemaReadRequest {
   // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
   // be a maximum of 64 bytes, and must not be empty.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -698,8 +698,8 @@ service Data {
 message DataWriteRequest {
   // tenant_id represents the unique identifier of the tenant for which data is written.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -748,8 +748,8 @@ message RelationshipWriteRequest {
 
   // Unique identifier for the tenant with specific constraints.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -783,8 +783,8 @@ message RelationshipWriteResponse {
 message RelationshipReadRequest {
   // tenant_id represents the unique identifier of the tenant for which relationships are read.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -827,8 +827,8 @@ message RelationshipReadResponse {
 message AttributeReadRequest {
   // tenant_id represents the unique identifier of the tenant from which the attributes are being read.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -871,8 +871,8 @@ message AttributeReadResponse {
 message DataDeleteRequest {
   // tenant_id represents the unique identifier of the tenant from which the data will be deleted.
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
@@ -893,8 +893,8 @@ message DataDeleteResponse {
 // RelationshipDeleteRequest
 message RelationshipDeleteRequest {
   string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^[a-zA-Z0-9]+$",
-    max_bytes : 64,
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
     ignore_empty: false,
   }];
 
