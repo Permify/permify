@@ -13,6 +13,8 @@ Expand is designed for reasoning the complete set of users that have access to t
 It is not designed to use as a check access. Expand request has a high latency which can cause a performance issues when its used as access check.
 :::
 
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.expand)
+
 <Tabs>
 <TabItem value="go" label="Go">
 

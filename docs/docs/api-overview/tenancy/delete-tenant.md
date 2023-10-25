@@ -9,6 +9,8 @@ You can delete a tenant with following API.
 
 **DELETE /v1/tenants/{id}** 
 
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Tenancy/tenants.delete)
+
 <Tabs>
 <TabItem value="go" label="Go">
 
