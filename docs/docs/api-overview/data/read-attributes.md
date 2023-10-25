@@ -1,23 +1,23 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Read Relational Tuples
+# Read Attributes
 
-Read API allows for directly querying the stored graph data to display and filter stored relational tuples.
+Read API allows for directly querying the stored graph data to display and filter stored attributes.
 
 ## Request
 
-**Path:** POST /v1/tenants/{tenant_id/data/relationships/read
+**Path:** POST /v1/tenants/{tenant_id}/data/attributes/read
 
-[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Data/data.relationships.read)
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Data/data.attributes.read)
 
-| Required | Argument | Type | Default | Description |
+| Required | Argument | Type | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
-| [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
-| [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
-| [x]   | relation | string | - | relation of the given entity |
-| [ ]   | subject | object | - | the user or user set. It containes type and id of the subject.  ||
+| [x]   | tenant_id | string | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
+| [ ]   | snap_token | string |  the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
+| [x]   | entity | object |  contains entity type and id of the entity. Example: repository:1”.
+| [x]   | attributes | string array |  attributes of the given entity |
+
 
 <Tabs>
 <TabItem value="go" label="Go">

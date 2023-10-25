@@ -21,6 +21,8 @@ Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for conf
 
 **POST** /v1/tenants/{tenant_id}/schemas/write
 
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Schema/schemas.write)
+
 | Required | Argument | Type | Default | Description |
 |----------|-------------------|--------|---------|-------------|
 | [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.

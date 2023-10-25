@@ -20,6 +20,8 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 
 **POST** /v1/permissions/lookup-entity
 
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.lookupEntity)
+
 | Required | Argument          | Type   | Default | Description                                                                                                                                                                |
 |----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [x]      | tenant_id         | string | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                           |
@@ -136,6 +138,8 @@ Then queries each of them with `user:1.`
 The difference between this endpoint from direct Lookup Entity is response of this entity gives the IDs' as stream. This could be useful if you have large data set that getting all of the authorized data can take long with direct lookup entity endpoint.
 
 **POST** /v1/permissions/lookup-entity-stream
+
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.lookupEntityStream)
 
 | Required | Argument          | Type   | Default | Description                                                                                                                                                                |
 |----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

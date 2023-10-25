@@ -72,6 +72,8 @@ service:
 
 **Path:** POST /v1/watch/watch
 
+[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Watch/watch.watch)
+
 | Required | Argument   | Type   | Default | Description                                                                                                                                                                                                                                                                                                                                   |
 |----------|------------|--------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [x]      | tenant_id  | string | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                                                                                                                                                                                              |
