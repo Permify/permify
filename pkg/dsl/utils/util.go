@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	"google.golang.org/protobuf/proto"
@@ -13,7 +13,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// Key -
+// Key concatenates two strings v1 and v2 with a "#" in between and returns the result.
 func Key(v1, v2 string) string {
 	var sb strings.Builder
 	sb.WriteString(v1)
@@ -22,6 +22,9 @@ func Key(v1, v2 string) string {
 	return sb.String()
 }
 
+// ArgumentsAsCelEnv converts a map of attributes to a CEL environment.
+// It iterates through the map, retrieves the CEL type for each attribute,
+// and appends it to an array of CEL environment options.
 func ArgumentsAsCelEnv(arguments map[string]base.AttributeType) (*cel.Env, error) {
 	opts := make([]cel.EnvOption, 0, len(arguments))
 	for name, typ := range arguments {
@@ -35,6 +38,8 @@ func ArgumentsAsCelEnv(arguments map[string]base.AttributeType) (*cel.Env, error
 	return cel.NewEnv(opts...)
 }
 
+// GetCelType maps a base.AttributeType to its equivalent CEL type.
+// Returns an error if the attribute type is not recognized.
 func GetCelType(attributeType base.AttributeType) (*types.Type, error) {
 	switch attributeType {
 	case base.AttributeType_ATTRIBUTE_TYPE_STRING:
@@ -54,10 +59,13 @@ func GetCelType(attributeType base.AttributeType) (*types.Type, error) {
 	case base.AttributeType_ATTRIBUTE_TYPE_DOUBLE_ARRAY:
 		return cel.ListType(types.DoubleType), nil
 	default:
-		return nil, errors.New("")
+		return nil, fmt.Errorf("unrecognized AttributeType: %v", attributeType)
 	}
 }
 
+// ConvertProtoAnyToInterface unmarshal a proto Any message into its specific type based on its TypeUrl.
+// It returns the data contained in the proto message as an interface{}.
+// In case of an error during unmarshalling or an unrecognized TypeUrl, it returns a default value.
 func ConvertProtoAnyToInterface(a *anypb.Any) interface{} {
 	switch a.GetTypeUrl() {
 	case "type.googleapis.com/base.v1.StringValue":
@@ -109,6 +117,6 @@ func ConvertProtoAnyToInterface(a *anypb.Any) interface{} {
 		}
 		return doubleArrayValue.GetData()
 	default:
-		return ""
+		return "" // Default value for unknown TypeUrls.
 	}
 }
