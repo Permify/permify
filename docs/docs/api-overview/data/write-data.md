@@ -153,7 +153,44 @@ Here are the available attribute value types:
 <TabItem value="go" label="Go">
 
 ```go
+// Convert the wrapped attribute value into Any proto message
+value, err := anypb.New(&v1.BooleanValue{
+    Data: true,
+})
+if err != nil {
+	// Handle error
+}
 
+cr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{
+    TenantId: "t1",,
+    Metadata: &v1.DataWriteRequestMetadata{
+        SchemaVersion: "",
+    },
+	Tuples: []*v1.Attribute{
+        {
+            Entity: &v1.Entity{
+                Type: "organization",
+                Id:   "1",
+            },
+            Relation: "admin",
+            Subject:  &v1.Subject{
+		        Type: "user",
+		        Id:   "1",
+				Relation: "",
+			},
+        },
+    },
+    Attributes: []*v1.Attribute{
+        {
+            Entity: &v1.Entity{
+                Type: "account",
+                Id:   "1",
+            },
+            Attribute: "public",
+            Value:     value,
+        },
+    },
+})
 ```
 
 </TabItem>
@@ -161,7 +198,40 @@ Here are the available attribute value types:
 <TabItem value="node" label="Node">
 
 ```javascript
+const booleanValue = BooleanValue.fromJSON({ data: true });
 
+const value = Any.fromJSON({
+    typeUrl: 'type.googleapis.com/base.v1.BooleanValue',
+    value: BooleanValue.encode(booleanValue).finish()
+});
+
+client.data.write({
+    tenantId: "t1",
+    metadata: {
+        schemaVersion: ""
+    },
+    tuples: [{
+        entity: {
+            type: "organization",
+            id: "1"
+        },
+        relation: "admin",
+        subject: {
+            type: "user",
+            id: "1"
+        }
+    }],
+    attributes: [{
+        entity: {
+            type: "document",
+            id: "1"
+        },
+        attribute: "public",
+        value: value,
+    }]
+}).then((response) => {
+    // handle response
+})
 ```
 
 </TabItem>
@@ -197,7 +267,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
             "attribute": "private",
             "value": {
                 "@type": "type.googleapis.com/base.v1.BooleanValue",
-                "value": "true"
+                "value": true
             }
         }
     ]

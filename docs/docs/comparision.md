@@ -31,7 +31,7 @@ This comparison table shows the differentiation between authorization solutions 
 | **Watch API**            | ✅        | ✅       | ✅       | ✅       |
 | **RBAC**                 | ✅        | ✅       | ✅       | ✅       |
 | **ReBAC**                | ✅        | ✅       | ✅       | ✅       |
-| **ABAC**                 | ⛔        | 🟡      | ✅       | ⛔       |
+| **ABAC**                 | ⛔        | 🟡      | ✅       | ✅       |
 | **Data Filtering**       | ⛔        | ✅       | ✅       | ✅       |
 | **Multi Tenancy**        | ⛔        | ✅       | ⛔       | ✅       |
 | **Testing & Validation** | ⛔        | 🟡      | ✅       | ✅       |

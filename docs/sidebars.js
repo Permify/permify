@@ -95,6 +95,7 @@ module.exports = {
 					items: [
 						"api-overview/data/write-data",
 						"api-overview/data/read-relationships", 
+						"api-overview/data/read-attributes",
 						"api-overview/data/delete-data"
 					],
 				  },

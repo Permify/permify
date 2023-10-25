@@ -25,20 +25,15 @@ Read API allows for directly querying the stored graph data to display and filte
 ```go
 rr, err: = client.Data.Relationship.Read(context.Background(), & v1.Data.RelationshipReadRequest {
     TenantId: "t1",
-    Metadata: &v1.Data.RelationshipReadRequestMetadata {
+    Metadata: &v1.Data.AttributeReadRequestMetadata {
         SnapToken: ""
     },
-    Filter: &v1.TupleFilter {
+    Filter: &v1.AttributeFilter {
         Entity: &v1.EntityFilter {
         Type: "organization",
         Ids: []string {"1"} ,
     },
-    Relation: "member",
-    Subject: &v1.SubjectFilter {
-        Type: "",
-        Id: []string {""},
-        Relation: ""
-    }}
+    Attributes: []string {"private"},
 })
 ```
 
@@ -59,12 +54,9 @@ client.data.relationship.read({
         "1"
       ]
     },
-    relation: "member",
-    subject: {
-      type: "",
-      ids: [],
-      relation: ""
-    }
+    attributes: [
+        "private"
+    ],
   }
 }).then((response) => {
     // handle response
@@ -88,12 +80,9 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/relat
         "1"
       ]
     },
-    relation: "member",
-    subject: {
-      type: "",
-      ids: [],
-      relation: ""
-    }
+    attributes: [
+        "private"
+      ],
   }
 }'
 ```
