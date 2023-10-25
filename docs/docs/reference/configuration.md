@@ -458,29 +458,26 @@ A consistent hashing ring ensures data distribution that minimizes reorganizatio
 ```
 ├── distributed
 |   ├── enabled
-|   ├── node
-|   ├── node-name
-|   ├── protocol
+|   ├── address
+|   ├── port
 ```
 
 #### Glossary
 
-| Required | Argument  | Default | Description                                                              |
-|----------|-----------|---------|--------------------------------------------------------------------------|
-| [x]      | enabled   | false   | switch option for distributed.                                           |
-| [x]      | node      | -       | endpoint definition for distributed                                      |
-| [x]      | node-name | -       | node name definition for  protocol agent (for example serf node name)    |
-| [x]      | protocol  | -       | a field where you specify which gossip protocol to use, for example serf |
+| Required | Argument    | Default | Description                          |
+|----------|-------------|---------|--------------------------------------|
+| [x]      | enabled     | false   | switch option for distributed.       |
+| []       | address     | -       | address of the distributed service   |
+| []       | port        | 5000    | port on which the service is exposed |
 
 
 #### ENV
 
-| Argument               | ENV                           | Type    |
-|------------------------|-------------------------------|---------|
-| distributed-enabled    | PERMIFY_DISTRIBUTED_ENABLED   | boolean |
-| distributed-node       | PERMIFY_DISTRIBUTED_NODE      | string  |
-| distributed-node-name  | PERMIFY_DISTRIBUTED_NODE_NAME | string  |
-| distributed-protocol   | PERMIFY_DISTRIBUTED_PROTOCOL  | string  |
+| Argument             | ENV                         | Type    |
+|----------------------|-----------------------------|---------|
+| distributed-enabled  | PERMIFY_DISTRIBUTED_ENABLED | boolean |
+| distributed-address  | PERMIFY_DISTRIBUTED_ADDRESS | string  |
+| distributed-port     | PERMIFY_DISTRIBUTED_PORT    | string  |
 
 </p>
 </details>
