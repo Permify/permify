@@ -149,7 +149,7 @@ message EntityDefinition {
 
   // The name of the entity, which follows a specific string pattern and has a maximum byte size.
   string name = 1 [(validate.rules).string = {
-    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }];
 
@@ -170,7 +170,7 @@ message EntityDefinition {
 message RuleDefinition {
   // The name of the rule, which follows a specific string pattern and has a maximum byte size.
   string name = 1 [(validate.rules).string = {
-    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }];
 
@@ -185,7 +185,7 @@ message RuleDefinition {
 message AttributeDefinition {
   // The name of the attribute, which follows a specific string pattern and has a maximum byte size.
   string name = 1 [(validate.rules).string = {
-    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }];
 
@@ -197,7 +197,7 @@ message AttributeDefinition {
 message RelationDefinition {
   // The name of the relation, which follows a specific string pattern and has a maximum byte size.
   string name = 1 [(validate.rules).string = {
-    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }];
 
@@ -209,7 +209,7 @@ message RelationDefinition {
 message PermissionDefinition {
   // The name of the permission, which follows a specific string pattern and has a maximum byte size.
   string name = 1 [(validate.rules).string = {
-    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }];
 
@@ -221,13 +221,13 @@ message PermissionDefinition {
 message RelationReference {
   // The type of the referenced entity, which follows a specific string pattern and has a maximum byte size.
   string type = 1 [(validate.rules).string = {
-    pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }];
 
   // The name of the referenced relation, which follows a specific string pattern and has a maximum byte size.
   string relation = 2 [(validate.rules).string = {
-    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
     ignore_empty: true,
   }];
@@ -250,7 +250,7 @@ message Call {
 // ComputedAttribute defines a computed attribute which includes its name.
 message ComputedAttribute {
   string name = 1 [(validate.rules).string = {
-    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }]; // Name of the computed attribute
 }
@@ -258,7 +258,7 @@ message ComputedAttribute {
 // ContextAttribute defines a context attribute which includes its name.
 message ContextAttribute {
   string name = 1 [(validate.rules).string = {
-    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }]; // Name of the context attribute
 }
@@ -266,7 +266,7 @@ message ContextAttribute {
 // ComputedUserSet defines a set of computed users which includes the relation name.
 message ComputedUserSet {
   string relation = 1 [(validate.rules).string = {
-    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }]; // Relation name
 }
@@ -280,7 +280,7 @@ message TupleToUserSet {
 // TupleSet represents a set of tuples associated with a specific relation.
 message TupleSet {
   string relation = 1 [(validate.rules).string = {
-    pattern: "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    pattern: "^[a-zA-Z_]{1,64}$",
     max_bytes: 64,
   }];
 }
@@ -295,7 +295,7 @@ message Tuple {
   string relation = 2 [
     json_name = "relation",
     (validate.rules).string = {
-      pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+      pattern: "^[a-zA-Z_]{1,64}$",
       max_bytes: 64,
     }
   ];
@@ -333,7 +333,7 @@ message Entity {
   string type = 1 [
     json_name = "type",
     (validate.rules).string = {
-      pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+      pattern: "^[a-zA-Z_]{1,64}$",
       max_bytes: 64,
     }
   ];
@@ -341,7 +341,7 @@ message Entity {
   string id = 2 [
     json_name = "id",
     (validate.rules).string = {
-      pattern: "^(?=.{1,128}$)[a-zA-Z0-9]+[~\/@#_.:=|-]?[a-zA-Z0-9_|-]+$",
+      pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
       max_bytes: 128,
     }
   ];
@@ -357,7 +357,7 @@ message EntityAndRelation {
   string relation = 2 [
     json_name = "relation",
     (validate.rules).string = {
-      pattern: "^([a-z][a-z0-9_]{1,64}[a-z0-9])$",
+      pattern: "^[a-zA-Z_]{1,64}$",
       max_bytes: 64,
     }
   ];
@@ -368,7 +368,7 @@ message Subject {
   string type = 1 [
     json_name = "type",
     (validate.rules).string = {
-      pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+      pattern: "^[a-zA-Z_]{1,64}$",
       max_bytes: 64,
     }
   ];
@@ -376,7 +376,7 @@ message Subject {
   string id = 2 [
     json_name = "id",
     (validate.rules).string = {
-      pattern: "^(?=.{1,128}$)[a-zA-Z0-9]+[~\/@#_.:=|-]?[a-zA-Z0-9_|-]+$",
+      pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
       max_bytes: 128,
     }
   ];
@@ -384,7 +384,7 @@ message Subject {
   string relation = 3 [
     json_name = "relation",
     (validate.rules).string = {
-      pattern: "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
+      pattern: "^[a-zA-Z_]{1,64}$",
       max_bytes: 64,
       ignore_empty: true,
     }
@@ -411,7 +411,7 @@ message TupleFilter {
   string relation = 2 [
     json_name = "relation",
     (validate.rules).string = {
-      pattern: "^([a-z][a-z0-9_]{1,62}[a-z0-9])$",
+      pattern: "^[a-zA-Z_]{1,64}$",
       max_bytes: 64,
       ignore_empty: true,
     }
@@ -436,7 +436,7 @@ message SubjectFilter {
   string relation = 3 [
     json_name = "relation",
     (validate.rules).string = {
-      pattern: "^([.&a-z][.&a-z0-9_]{1,62}[.&a-z0-9])$",
+      pattern: "^[a-zA-Z_]{1,64}$",
       max_bytes: 64,
       ignore_empty: true,
     }
