@@ -267,7 +267,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
             "attribute": "private",
             "value": {
                 "@type": "type.googleapis.com/base.v1.BooleanValue",
-                "value": true
+                "data": true
             }
         }
     ]
