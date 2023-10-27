@@ -127,7 +127,7 @@ entity user {}
 entity organization {
 	relation admin @user
     relation member @user
-	action create_repository = admin or member
+	action create_repository = admin or member;
 	action delete = admin
 }`
 
@@ -185,11 +185,12 @@ entity organization {
 				{token.OR, "or"},
 				{token.SPACE, " "},
 				{token.IDENT, "member"},
+				{token.NEWLINE, ";"},
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.PERMISSION, "action"},
-				{token.SPACE, " "},
 				// --
+				{token.SPACE, " "},
 				{token.IDENT, "delete"},
 				{token.SPACE, " "},
 				{token.ASSIGN, "="},
@@ -676,6 +677,143 @@ entity organization {
 				{token.NEWLINE, "\n"},
 				{token.TAB, "\t"},
 				{token.RCB, "}"},
+				{token.EOF, ""},
+			}
+
+			l := NewLexer(str)
+
+			for i, tt := range tests {
+				lexeme := l.NextToken()
+				index := strconv.Itoa(i) + ": "
+				Expect(index + lexeme.Type.String()).Should(Equal(index + tt.expectedType.String()))
+				Expect(index + lexeme.Literal).Should(Equal(index + tt.expectedLiteral))
+			}
+		})
+
+		It("Case 8", func() {
+			str := `
+entity user {}
+
+entity organization {
+	relation admin @user
+    relation member @user
+	action create_repository = admin or member;
+	action delete = admin
+}
+
+rule is_weekday(day_of_week string) {
+	day_of_week != 'saturday' && day_of_week != 'sunday'
+}
+`
+
+			tests := []struct {
+				expectedType    token.Type
+				expectedLiteral string
+			}{
+				{token.NEWLINE, "\n"},
+				{token.ENTITY, "entity"},
+				{token.SPACE, " "},
+				{token.IDENT, "user"},
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.ENTITY, "entity"},
+				// --
+				{token.SPACE, " "},
+				{token.IDENT, "organization"},
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.RELATION, "relation"},
+				{token.SPACE, " "},
+				{token.IDENT, "admin"},
+				{token.SPACE, " "},
+				// --
+				{token.SIGN, "@"},
+				{token.IDENT, "user"},
+				{token.NEWLINE, "\n"},
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.RELATION, "relation"},
+				{token.SPACE, " "},
+				{token.IDENT, "member"},
+				// --
+				{token.SPACE, " "},
+				{token.SIGN, "@"},
+				{token.IDENT, "user"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.PERMISSION, "action"},
+				{token.SPACE, " "},
+				{token.IDENT, "create_repository"},
+				{token.SPACE, " "},
+				{token.ASSIGN, "="},
+				// --
+				{token.SPACE, " "},
+				{token.IDENT, "admin"},
+				{token.SPACE, " "},
+				{token.OR, "or"},
+				{token.SPACE, " "},
+				{token.IDENT, "member"},
+				{token.NEWLINE, ";"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.PERMISSION, "action"},
+				// --
+				{token.SPACE, " "},
+				{token.IDENT, "delete"},
+				{token.SPACE, " "},
+				{token.ASSIGN, "="},
+				{token.SPACE, " "},
+				{token.IDENT, "admin"},
+				{token.NEWLINE, "\n"},
+				{token.RCB, "}"},
+				// --
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.RULE, "rule"},
+				{token.SPACE, " "},
+				{token.IDENT, "is_weekday"},
+				{token.LP, "("},
+				{token.IDENT, "day_of_week"},
+				{token.SPACE, " "},
+				{token.IDENT, "string"},
+				{token.RP, ")"},
+				// --
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.IDENT, "day_of_week"},
+				{token.SPACE, " "},
+				{token.EXCL, "!"},
+				{token.ASSIGN, "="},
+				{token.SPACE, " "},
+				{token.APOS, "'"},
+				// --
+				{token.IDENT, "saturday"},
+				{token.APOS, "'"},
+				{token.SPACE, " "},
+				{token.AMPERSAND, "&"},
+				{token.AMPERSAND, "&"},
+				{token.SPACE, " "},
+				{token.IDENT, "day_of_week"},
+				{token.SPACE, " "},
+				{token.EXCL, "!"},
+				{token.ASSIGN, "="},
+				// --
+				{token.SPACE, " "},
+				{token.APOS, "'"},
+				{token.IDENT, "sunday"},
+				{token.APOS, "'"},
+				{token.NEWLINE, "\n"},
+				{token.RCB, "}"},
+				{token.NEWLINE, "\n"},
 				{token.EOF, ""},
 			}
 
