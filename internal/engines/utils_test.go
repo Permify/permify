@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	"github.com/Permify/permify/internal/schema"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -227,6 +228,39 @@ var _ = Describe("utils", func() {
 			emptyResult := getDuplicates(emptyInput)
 
 			Expect(reflect.DeepEqual(emptyResult, expectedEmpty)).Should(Equal(true))
+		})
+	})
+
+	Context("IsRelational", func() {
+		It("IsRelational: Case 1", func() {
+			sch, err := schema.NewSchemaFromStringDefinitions(false, `
+			entity user {}
+	
+			entity repository {
+	
+				relation admin @user
+	
+				attribute ip_range string[]
+				attribute public boolean
+	
+				permission edit = public
+				permission view = check_ip_range(request.ip_address, ip_range) or admin
+				permission delete = view and admin
+			}
+	
+			rule check_ip_range(ip_address string, ip_range string[]) {
+				ip_address in ip_range
+			}`)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(IsRelational(sch.EntityDefinitions["repository"], "view")).Should(Equal(true))
+			Expect(IsRelational(sch.EntityDefinitions["repository"], "delete")).Should(Equal(true))
+			Expect(IsRelational(sch.EntityDefinitions["repository"], "admin")).Should(Equal(true))
+			Expect(IsRelational(sch.EntityDefinitions["repository"], "edit")).Should(Equal(true))
+			Expect(IsRelational(sch.EntityDefinitions["repository"], "public")).Should(Equal(false))
+			Expect(IsRelational(sch.EntityDefinitions["repository"], "ip_range")).Should(Equal(false))
+			Expect(IsRelational(sch.EntityDefinitions["repository"], "check_ip_range")).Should(Equal(false))
 		})
 	})
 })

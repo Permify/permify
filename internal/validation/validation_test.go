@@ -408,7 +408,6 @@ var _ = Describe("validation", func() {
 		})
 
 		It("Case 5", func() {
-
 			err := ValidateTupleFilter(&base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
