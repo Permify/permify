@@ -1,6 +1,7 @@
 package attribute
 
 import (
+	"errors"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -17,11 +18,16 @@ func TestAttribute(t *testing.T) {
 }
 
 var _ = Describe("attribute", func() {
-	Context("Attribute", func() {
-		isPublic, _ := anypb.New(&base.BooleanValue{Data: true})
-		double, _ := anypb.New(&base.DoubleValue{Data: 100})
-		integer, _ := anypb.New(&base.IntegerValue{Data: 45})
+	isPublic, _ := anypb.New(&base.BooleanValue{Data: true})
+	boolArrayValue, _ := anypb.New(&base.BooleanArrayValue{Data: []bool{false, true}})
+	stringValue, _ := anypb.New(&base.StringValue{Data: "string_value"})
+	stringArrayValue, _ := anypb.New(&base.StringArrayValue{Data: []string{"127.0.0.1", "127.0.0.2"}})
+	doubleValue, _ := anypb.New(&base.DoubleValue{Data: 100.01})
+	doubleArrayValue, _ := anypb.New(&base.DoubleArrayValue{Data: []float64{100, 200}})
+	integerValue, _ := anypb.New(&base.IntegerValue{Data: 45})
+	integerArrayValue, _ := anypb.New(&base.IntegerArrayValue{Data: []int32{45, 55}})
 
+	Context("Attribute", func() {
 		It("ToString", func() {
 			tests := []struct {
 				target *base.Attribute
@@ -45,9 +51,9 @@ var _ = Describe("attribute", func() {
 							Id:   "1",
 						},
 						Attribute: "balance",
-						Value:     double,
+						Value:     doubleValue,
 					},
-					str: "organization:1$balance|double:100",
+					str: "organization:1$balance|double:100.01",
 				},
 			}
 
@@ -60,6 +66,7 @@ var _ = Describe("attribute", func() {
 			tests := []struct {
 				target    string
 				attribute *base.Attribute
+				error     error
 			}{
 				{
 					target: "organization:1$is_public|boolean:true",
@@ -71,17 +78,151 @@ var _ = Describe("attribute", func() {
 						Attribute: "is_public",
 						Value:     isPublic,
 					},
+					error: nil,
 				},
 				{
-					target: "organization:1$balance|double:100",
+					target: "organization:1$is_public|boolean[]:false,true",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "is_public",
+						Value:     boolArrayValue,
+					},
+					error: nil,
+				},
+				{
+					target: "organization:1$val|string:string_value",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "val",
+						Value:     stringValue,
+					},
+					error: nil,
+				},
+				{
+					target: "organization:1$addresses|string[]:127.0.0.1,127.0.0.2",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "addresses",
+						Value:     stringArrayValue,
+					},
+					error: nil,
+				},
+				{
+					target: "organization:1$local|string:string_value",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "local",
+						Value:     stringValue,
+					},
+					error: nil,
+				},
+				{
+					target: "organization:1$balance|double:100.01",
 					attribute: &base.Attribute{
 						Entity: &base.Entity{
 							Type: "organization",
 							Id:   "1",
 						},
 						Attribute: "balance",
-						Value:     double,
+						Value:     doubleValue,
 					},
+					error: nil,
+				},
+				{
+					target: "organization:1$is_public|boolean:asa",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "is_public",
+						Value:     isPublic,
+					},
+					error: errors.New("failed to parse boolean: strconv.ParseBool: parsing \"asa\": invalid syntax"),
+				},
+				{
+					target: "organization:1$is_public|boolean[]:asa",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "is_public",
+						Value:     isPublic,
+					},
+					error: errors.New("failed to parse boolean: strconv.ParseBool: parsing \"asa\": invalid syntax"),
+				},
+				{
+					target: "organization:1$balance|double:4eew",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "balance",
+						Value:     doubleValue,
+					},
+					error: errors.New("failed to parse float: strconv.ParseFloat: parsing \"4eew\": invalid syntax"),
+				},
+				{
+					target: "organization:1$balance|double[]:4eew",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "balance",
+						Value:     doubleValue,
+					},
+					error: errors.New("failed to parse float: strconv.ParseFloat: parsing \"4eew\": invalid syntax"),
+				},
+				{
+					target: "organization:1$balance|double[]:100,200",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "balance",
+						Value:     doubleArrayValue,
+					},
+					error: nil,
+				},
+				{
+					target: "organization:1$age|integer:4eew",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "age",
+						Value:     doubleValue,
+					},
+					error: errors.New("failed to parse integer: strconv.ParseInt: parsing \"4eew\": invalid syntax"),
+				},
+				{
+					target: "organization:1$age|integer[]:4eew",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Attribute: "age",
+						Value:     doubleValue,
+					},
+					error: errors.New("failed to parse integer: strconv.ParseInt: parsing \"4eew\": invalid syntax"),
 				},
 				{
 					target: "user:1$age|integer:45",
@@ -91,13 +232,67 @@ var _ = Describe("attribute", func() {
 							Id:   "1",
 						},
 						Attribute: "age",
-						Value:     integer,
+						Value:     integerValue,
 					},
+					error: nil,
+				},
+				{
+					target: "user:1$ages|integer[]:45,55",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "user",
+							Id:   "1",
+						},
+						Attribute: "ages",
+						Value:     integerArrayValue,
+					},
+					error: nil,
+				},
+				{
+					target: "user:1$age-integer:45",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "user",
+							Id:   "1",
+						},
+						Attribute: "age",
+						Value:     integerValue,
+					},
+					error: ErrInvalidAttribute,
+				},
+				{
+					target: "user:1-age|integer:45",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "user",
+							Id:   "1",
+						},
+						Attribute: "age",
+						Value:     integerValue,
+					},
+					error: ErrInvalidEntity,
+				},
+				{
+					target: "user:1$age|integer,45",
+					attribute: &base.Attribute{
+						Entity: &base.Entity{
+							Type: "user",
+							Id:   "1",
+						},
+						Attribute: "age",
+						Value:     integerValue,
+					},
+					error: ErrInvalidAttribute,
 				},
 			}
 
 			for _, tt := range tests {
-				Expect(Attribute(tt.target)).Should(Equal(tt.attribute))
+				attr, err := Attribute(tt.target)
+				if tt.error != nil {
+					Expect(err.Error()).Should(Equal(tt.error.Error()))
+				} else {
+					Expect(attr).Should(Equal(tt.attribute))
+				}
 			}
 		})
 
@@ -188,6 +383,212 @@ var _ = Describe("attribute", func() {
 
 			for _, tt := range tests {
 				Expect(EntityToString(tt.entity)).Should(Equal(tt.result))
+			}
+		})
+
+		It("TypeUrlToString", func() {
+			tests := []struct {
+				url    string
+				result string
+			}{
+				{
+					url:    "type.googleapis.com/base.v1.StringValue",
+					result: "string",
+				},
+				{
+					url:    "type.googleapis.com/base.v1.BooleanValue",
+					result: "boolean",
+				},
+				{
+					url:    "type.googleapis.com/base.v1.IntegerValue",
+					result: "integer",
+				},
+				{
+					url:    "type.googleapis.com/base.v1.DoubleValue",
+					result: "double",
+				},
+				{
+					url:    "type.googleapis.com/base.v1.StringArrayValue",
+					result: "string[]",
+				},
+				{
+					url:    "type.googleapis.com/base.v1.BooleanArrayValue",
+					result: "boolean[]",
+				},
+				{
+					url:    "type.googleapis.com/base.v1.IntegerArrayValue",
+					result: "integer[]",
+				},
+				{
+					url:    "type.googleapis.com/base.v1.DoubleArrayValue",
+					result: "double[]",
+				},
+				{
+					url:    "aa",
+					result: "",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(TypeUrlToString(tt.url)).Should(Equal(tt.result))
+			}
+		})
+
+		It("AnyToString", func() {
+			tests := []struct {
+				any    *anypb.Any
+				result string
+			}{
+				{
+					any:    isPublic,
+					result: "true",
+				},
+				{
+					any:    boolArrayValue,
+					result: "false,true",
+				},
+				{
+					any:    stringValue,
+					result: "string_value",
+				},
+				{
+					any:    stringArrayValue,
+					result: "127.0.0.1,127.0.0.2",
+				},
+				{
+					any:    doubleValue,
+					result: "100.01",
+				},
+				{
+					any:    doubleArrayValue,
+					result: "100,200",
+				},
+				{
+					any:    integerValue,
+					result: "45",
+				},
+				{
+					any:    integerArrayValue,
+					result: "45,55",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(AnyToString(tt.any)).Should(Equal(tt.result))
+			}
+		})
+
+		It("TypeToString", func() {
+			tests := []struct {
+				typ    base.AttributeType
+				result string
+			}{
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
+					result: "integer",
+				},
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_INTEGER_ARRAY,
+					result: "integer[]",
+				},
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_DOUBLE,
+					result: "double",
+				},
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_DOUBLE_ARRAY,
+					result: "double[]",
+				},
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_STRING,
+					result: "string",
+				},
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+					result: "string[]",
+				},
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
+					result: "boolean",
+				},
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY,
+					result: "boolean[]",
+				},
+				{
+					typ:    base.AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED,
+					result: "undefined",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(TypeToString(tt.typ)).Should(Equal(tt.result))
+			}
+		})
+
+		It("ValidateValue", func() {
+			tests := []struct {
+				any           *anypb.Any
+				attributeType base.AttributeType
+				err           error
+			}{
+				{
+					any:           isPublic,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
+					err:           nil,
+				},
+				{
+					any:           boolArrayValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN_ARRAY,
+					err:           nil,
+				},
+				{
+					any:           stringValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_STRING,
+					err:           nil,
+				},
+				{
+					any:           stringArrayValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+					err:           nil,
+				},
+				{
+					any:           doubleValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_DOUBLE,
+					err:           nil,
+				},
+				{
+					any:           doubleArrayValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_DOUBLE_ARRAY,
+					err:           nil,
+				},
+				{
+					any:           integerValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
+					err:           nil,
+				},
+				{
+					any:           integerArrayValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_INTEGER_ARRAY,
+					err:           nil,
+				},
+				{
+					any:           integerValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_INTEGER_ARRAY,
+					err:           errors.New("mismatched message type: got \"base.v1.IntegerArrayValue\", want \"base.v1.IntegerValue\""),
+				},
+				{
+					any:           integerValue,
+					attributeType: base.AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED,
+					err:           errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String()),
+				},
+			}
+
+			for _, tt := range tests {
+				err := ValidateValue(tt.any, tt.attributeType)
+				if err != nil {
+					Expect(err.Error()).Should(ContainSubstring(tt.err.Error()))
+				}
 			}
 		})
 	})
