@@ -89,11 +89,38 @@ var _ = Describe("Utils", func() {
 				strResult := ConvertProtoAnyToInterface(str)
 				Expect(strResult).To(Equal("string_data"))
 
+				str2, err := anypb.New(&base.StringValue{Data: "string_data"})
+				str2.Value = []byte("asd")
+				Expect(err).NotTo(HaveOccurred())
+
+				strResult2 := ConvertProtoAnyToInterface(str2)
+				Expect(strResult2).To(Equal(""))
+
+				bo, err := anypb.New(&base.BooleanValue{Data: true})
+				Expect(err).NotTo(HaveOccurred())
+
+				boResult := ConvertProtoAnyToInterface(bo)
+				Expect(boResult).To(Equal(true))
+
+				bo2, err := anypb.New(&base.BooleanValue{Data: true})
+				bo2.Value = []byte("asd")
+				Expect(err).NotTo(HaveOccurred())
+
+				boResult2 := ConvertProtoAnyToInterface(bo2)
+				Expect(boResult2).To(Equal(false))
+
 				integer, err := anypb.New(&base.IntegerValue{Data: 97})
 				Expect(err).NotTo(HaveOccurred())
 
 				integerResult := ConvertProtoAnyToInterface(integer)
 				Expect(integerResult).To(Equal(int32(97)))
+
+				integer2, err := anypb.New(&base.IntegerValue{Data: 97})
+				integer2.Value = []byte("123")
+				Expect(err).NotTo(HaveOccurred())
+
+				integerResult2 := ConvertProtoAnyToInterface(integer2)
+				Expect(integerResult2).To(Equal(0))
 
 				double, err := anypb.New(&base.DoubleValue{Data: 90.234})
 				Expect(err).NotTo(HaveOccurred())
@@ -101,11 +128,25 @@ var _ = Describe("Utils", func() {
 				doubleResult := ConvertProtoAnyToInterface(double)
 				Expect(doubleResult).To(Equal(90.234))
 
+				double2, err := anypb.New(&base.DoubleValue{Data: 90.234})
+				double2.Value = []byte("80")
+				Expect(err).NotTo(HaveOccurred())
+
+				doubleResult2 := ConvertProtoAnyToInterface(double2)
+				Expect(doubleResult2).To(Equal(0.0))
+
 				strArray, err := anypb.New(&base.StringArrayValue{Data: []string{"string_data_1", "string_data_2", "string_data_3"}})
 				Expect(err).NotTo(HaveOccurred())
 
 				strArrayResult := ConvertProtoAnyToInterface(strArray)
 				Expect(strArrayResult).To(Equal([]string{"string_data_1", "string_data_2", "string_data_3"}))
+
+				strArray2, err := anypb.New(&base.StringArrayValue{Data: []string{"string_data_1", "string_data_2", "string_data_3"}})
+				strArray2.Value = []byte("asd")
+				Expect(err).NotTo(HaveOccurred())
+
+				strArrayResult2 := ConvertProtoAnyToInterface(strArray2)
+				Expect(strArrayResult2).To(Equal([]string{}))
 
 				integerArray, err := anypb.New(&base.IntegerArrayValue{Data: []int32{97, 23, 234, 564, 43, 3}})
 				Expect(err).NotTo(HaveOccurred())
@@ -113,11 +154,38 @@ var _ = Describe("Utils", func() {
 				integerArrayResult := ConvertProtoAnyToInterface(integerArray)
 				Expect(integerArrayResult).To(Equal([]int32{97, 23, 234, 564, 43, 3}))
 
+				integerArray2, err := anypb.New(&base.IntegerArrayValue{Data: []int32{97, 23, 234, 564, 43, 3}})
+				integerArray2.Value = []byte("213")
+				Expect(err).NotTo(HaveOccurred())
+
+				integerArrayResul2 := ConvertProtoAnyToInterface(integerArray2)
+				Expect(integerArrayResul2).To(Equal([]int32{}))
+
 				doubleArray, err := anypb.New(&base.DoubleArrayValue{Data: []float64{90.234, 4234, 234, 4532, 23, 543.43}})
 				Expect(err).NotTo(HaveOccurred())
 
 				doubleArrayResult := ConvertProtoAnyToInterface(doubleArray)
 				Expect(doubleArrayResult).To(Equal([]float64{90.234, 4234, 234, 4532, 23, 543.43}))
+
+				doubleArray2, err := anypb.New(&base.DoubleArrayValue{Data: []float64{90.234, 4234, 234, 4532, 23, 543.43}})
+				doubleArray2.Value = []byte("213")
+				Expect(err).NotTo(HaveOccurred())
+
+				doubleArrayResult2 := ConvertProtoAnyToInterface(doubleArray2)
+				Expect(doubleArrayResult2).To(Equal([]float64{}))
+
+				boArray, err := anypb.New(&base.BooleanArrayValue{Data: []bool{false, true}})
+				Expect(err).NotTo(HaveOccurred())
+
+				boArrayResult := ConvertProtoAnyToInterface(boArray)
+				Expect(boArrayResult).To(Equal([]bool{false, true}))
+
+				boArray2, err := anypb.New(&base.BooleanArrayValue{Data: []bool{false, true}})
+				boArray2.Value = []byte("213")
+				Expect(err).NotTo(HaveOccurred())
+
+				boArrayResult2 := ConvertProtoAnyToInterface(boArray2)
+				Expect(boArrayResult2).To(Equal([]bool{}))
 			})
 		})
 

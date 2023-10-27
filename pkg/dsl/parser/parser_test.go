@@ -659,5 +659,117 @@ var _ = Describe("parser", func() {
 			Expect(rs1.Name.Literal).Should(Equal("check_location"))
 			Expect(rs1.Expression).Should(Equal("\ncurrent_location in location\n\t\t\t"))
 		})
+
+		It("Case 16", func() {
+			pr := NewParser(`
+			entity & {
+			`)
+
+			_, err := pr.Parse()
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("2:13:expected next token to be IDENT, got AMPERSAND instead"))
+		})
+
+		It("Case 17", func() {
+			pr := NewParser(`
+			entity asd 
+			`)
+
+			_, err := pr.Parse()
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("3:2:expected next token to be LCB, got NEWLINE instead"))
+		})
+
+		It("Case 18", func() {
+			pr := NewParser(`
+			entity asd {
+			`)
+
+			_, err := pr.Parse()
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("3:7:expected token to be RCB, got EOF instead"))
+		})
+
+		It("Case 19", func() {
+			pr := NewParser(`
+			entity asd {
+
+				attribute 987d bool				
+
+			`)
+
+			_, err := pr.Parse()
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("4:19:expected next token to be IDENT, got INTEGER instead"))
+		})
+
+		It("Case 20", func() {
+			pr := NewParser(`
+			entity asd {
+
+				relation user user				
+
+			`)
+
+			_, err := pr.Parse()
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("4:24:expected next token to be SIGN, got IDENT instead"))
+		})
+
+		It("Case 21", func() {
+			pr := NewParser(`
+			entity asd {
+
+				relation user @
+				relation admin @user
+
+			`)
+
+			_, err := pr.Parse()
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("5:2:expected next token to be IDENT, got NEWLINE instead"))
+		})
+
+		It("Case 22", func() {
+			pr := NewParser(`
+			entity asd {
+
+				relation admin @user
+
+				permission = admin
+			`)
+
+			_, err := pr.Parse()
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("6:18:expected next token to be IDENT, got ASSIGN instead"))
+		})
 	})
 })
