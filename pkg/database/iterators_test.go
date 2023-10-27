@@ -1,9 +1,10 @@
 package database
 
 import (
-	`github.com/stretchr/testify/assert`
-	`google.golang.org/protobuf/types/known/anypb`
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -215,7 +216,6 @@ func TestUniqueTupleIterator(t *testing.T) {
 }
 
 func TestAttributeIterator(t *testing.T) {
-
 	isPublic, err := anypb.New(&base.BooleanValue{Data: true})
 	assert.NoError(t, err)
 
