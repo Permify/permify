@@ -14,7 +14,7 @@ const config = {
   favicon: 'img/favicon.ico',
   organizationName: 'Permify', // Usually your GitHub org/user name.
   projectName: 'permify', // Usually your repo name.
-  trailingSlash: false,
+  trailingSlash: true,
 
   onBrokenLinks: 'warn',
 
