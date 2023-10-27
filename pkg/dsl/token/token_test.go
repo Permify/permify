@@ -63,4 +63,66 @@ var _ = Describe("token", func() {
 			}
 		})
 	})
+
+	Context("String", func() {
+		It("Case 1", func() {
+			tests := []struct {
+				target   Type
+				expected string
+			}{
+				{target: MULTI_LINE_COMMENT, expected: "MULTI_LINE_COMMENT"},
+				{target: SPACE, expected: "SPACE"},
+				{target: TAB, expected: "TAB"},
+				{target: RULE, expected: "RULE"},
+			}
+
+			for _, tt := range tests {
+				Expect(tt.target.String()).Should(Equal(tt.expected))
+			}
+		})
+	})
+
+	Context("New", func() {
+		It("Case 1", func() {
+			tests := []struct {
+				positionInfo PositionInfo
+				typ          Type
+				ch           byte
+				result       Token
+			}{
+				{
+					positionInfo: PositionInfo{
+						LinePosition:   1,
+						ColumnPosition: 2,
+					}, typ: RP, ch: ')',
+					result: Token{
+						PositionInfo: PositionInfo{
+							LinePosition:   1,
+							ColumnPosition: 2,
+						},
+						Type:    RP,
+						Literal: ")",
+					},
+				},
+				{
+					positionInfo: PositionInfo{
+						LinePosition:   1,
+						ColumnPosition: 5,
+					}, typ: AMPERSAND, ch: '\'',
+					result: Token{
+						PositionInfo: PositionInfo{
+							LinePosition:   1,
+							ColumnPosition: 5,
+						},
+						Type:    AMPERSAND,
+						Literal: "'",
+					},
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(New(tt.positionInfo, tt.typ, tt.ch)).Should(Equal(tt.result))
+			}
+		})
+	})
 })

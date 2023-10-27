@@ -826,5 +826,159 @@ rule is_weekday(day_of_week string) {
 				Expect(index + lexeme.Literal).Should(Equal(index + tt.expectedLiteral))
 			}
 		})
+
+		It("Case 9", func() {
+			str := `
+entity user {}
+
+entity organization {
+	relation admin @user
+    relation member @user
+
+	attribute ip_addresses string[]
+
+	action create_repository = admin or member
+	action delete = admin or check_ip_address(ip_addresses)
+}
+
+rule check_ip_address(ip_addresses string[]) {
+	"127.0.0.1" in ip_addresses && 100 > 89
+}
+`
+
+			tests := []struct {
+				expectedType    token.Type
+				expectedLiteral string
+			}{
+				{token.NEWLINE, "\n"},
+				{token.ENTITY, "entity"},
+				{token.SPACE, " "},
+				{token.IDENT, "user"},
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.ENTITY, "entity"},
+				// --
+				{token.SPACE, " "},
+				{token.IDENT, "organization"},
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.RELATION, "relation"},
+				{token.SPACE, " "},
+				{token.IDENT, "admin"},
+				{token.SPACE, " "},
+				// --
+				{token.SIGN, "@"},
+				{token.IDENT, "user"},
+				{token.NEWLINE, "\n"},
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.RELATION, "relation"},
+				{token.SPACE, " "},
+				{token.IDENT, "member"},
+				// --
+				{token.SPACE, " "},
+				{token.SIGN, "@"},
+				{token.IDENT, "user"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.ATTRIBUTE, "attribute"},
+				{token.SPACE, " "},
+				{token.IDENT, "ip_addresses"},
+				{token.SPACE, " "},
+				// --
+				{token.IDENT, "string"},
+				{token.LSB, "["},
+				{token.RSB, "]"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.PERMISSION, "action"},
+				{token.SPACE, " "},
+				{token.IDENT, "create_repository"},
+				{token.SPACE, " "},
+				// --
+				{token.ASSIGN, "="},
+				{token.SPACE, " "},
+				{token.IDENT, "admin"},
+				{token.SPACE, " "},
+				{token.OR, "or"},
+				{token.SPACE, " "},
+				{token.IDENT, "member"},
+				{token.NEWLINE, "\n"},
+				{token.TAB, "\t"},
+				{token.PERMISSION, "action"},
+				// --
+				{token.SPACE, " "},
+				{token.IDENT, "delete"},
+				{token.SPACE, " "},
+				{token.ASSIGN, "="},
+				{token.SPACE, " "},
+				{token.IDENT, "admin"},
+				{token.SPACE, " "},
+				{token.OR, "or"},
+				{token.SPACE, " "},
+				{token.IDENT, "check_ip_address"},
+				// --
+				{token.LP, "("},
+				{token.IDENT, "ip_addresses"},
+				{token.RP, ")"},
+				{token.NEWLINE, "\n"},
+				{token.RCB, "}"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				{token.RULE, "rule"},
+				{token.SPACE, " "},
+				{token.IDENT, "check_ip_address"},
+				// --
+				{token.LP, "("},
+				{token.IDENT, "ip_addresses"},
+				{token.SPACE, " "},
+				{token.IDENT, "string"},
+				{token.LSB, "["},
+				{token.RSB, "]"},
+				{token.RP, ")"},
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.NEWLINE, "\n"},
+				// --
+				{token.TAB, "\t"},
+				{token.STRING, "127.0.0.1"},
+				{token.SPACE, " "},
+				{token.IN, "in"},
+				{token.SPACE, " "},
+				{token.IDENT, "ip_addresses"},
+				{token.SPACE, " "},
+				{token.AMPERSAND, "&"},
+				{token.AMPERSAND, "&"},
+				{token.SPACE, " "},
+				// --
+				{token.INTEGER, "100"},
+				{token.SPACE, " "},
+				{token.GT, ">"},
+				{token.SPACE, " "},
+				{token.INTEGER, "89"},
+				{token.NEWLINE, "\n"},
+				{token.RCB, "}"},
+				{token.NEWLINE, "\n"},
+				{token.EOF, ""},
+			}
+
+			l := NewLexer(str)
+
+			for i, tt := range tests {
+				lexeme := l.NextToken()
+				index := strconv.Itoa(i) + ": "
+				Expect(index + lexeme.Type.String()).Should(Equal(index + tt.expectedType.String()))
+				Expect(index + lexeme.Literal).Should(Equal(index + tt.expectedLiteral))
+			}
+		})
 	})
 })
