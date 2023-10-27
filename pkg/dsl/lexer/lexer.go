@@ -115,6 +115,10 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.HASH, l.ch)
 	case '.':
 		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.DOT, l.ch)
+	case '\'':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.APOS, l.ch)
+	case '&':
+		tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.AMPERSAND, l.ch)
 	case 0:
 		tok = token.Token{PositionInfo: positionInfo(l.linePosition, l.columnPosition), Type: token.EOF, Literal: ""}
 	case '/':

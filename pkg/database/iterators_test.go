@@ -3,6 +3,9 @@ package database
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/anypb"
+
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -208,6 +211,71 @@ func TestUniqueTupleIterator(t *testing.T) {
 		t.Error("Expected tuple5 for GetNext(), but got something else")
 	}
 	if uniqueIterator.HasNext() {
+		t.Error("Expected false for HasNext(), but got true")
+	}
+}
+
+func TestAttributeIterator(t *testing.T) {
+	isPublic, err := anypb.New(&base.BooleanValue{Data: true})
+	assert.NoError(t, err)
+
+	isPublic2, err := anypb.New(&base.BooleanValue{Data: false})
+	assert.NoError(t, err)
+
+	// Create some attributes
+	attribute1 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e1",
+		},
+		Attribute: "public",
+		Value:     isPublic,
+	}
+
+	attribute2 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e2",
+		},
+		Attribute: "public",
+		Value:     isPublic2,
+	}
+
+	attribute3 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e3",
+		},
+		Attribute: "public",
+		Value:     isPublic,
+	}
+
+	// Create an attribute collection and add the tuples
+	attributeCollection := NewAttributeCollection(attribute1, attribute2, attribute3)
+
+	// Create a attribute iterator
+	attributeIterator := attributeCollection.CreateAttributeIterator()
+
+	// Test HasNext() and GetNext() methods
+	if !attributeIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	if attributeIterator.GetNext() != attribute1 {
+		t.Error("Expected tuple1 for GetNext(), but got something else")
+	}
+	if !attributeIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	if attributeIterator.GetNext() != attribute2 {
+		t.Error("Expected tuple2 for GetNext(), but got something else")
+	}
+	if !attributeIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	if attributeIterator.GetNext() != attribute3 {
+		t.Error("Expected tuple3 for GetNext(), but got something else")
+	}
+	if attributeIterator.HasNext() {
 		t.Error("Expected false for HasNext(), but got true")
 	}
 }

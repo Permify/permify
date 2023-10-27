@@ -330,6 +330,14 @@ var _ = Describe("tuple", func() {
 					},
 					expected: true,
 				},
+				{
+					target: &base.Subject{
+						Type:     "organization",
+						Id:       "",
+						Relation: "admin",
+					},
+					expected: false,
+				},
 			}
 
 			for _, tt := range tests {
@@ -401,6 +409,15 @@ var _ = Describe("tuple", func() {
 					},
 					expected: errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_TYPE_NOT_FOUND.String()),
 				},
+				{
+					target: &base.Subject{
+						Type:     "test",
+						Id:       "u3",
+						Relation: "mem",
+					},
+					relationTypes: []string{},
+					expected:      errors.New(base.ErrorCode_ERROR_CODE_SUBJECT_TYPE_NOT_FOUND.String()),
+				},
 			}
 
 			for _, tt := range tests {
@@ -450,6 +467,321 @@ var _ = Describe("tuple", func() {
 
 			for _, tt := range tests {
 				Expect(ToString(tt.target)).Should(Equal(tt.str))
+			}
+		})
+
+		It("AreRelationReferencesEqual", func() {
+			tests := []struct {
+				target1 *base.RelationReference
+				target2 *base.RelationReference
+				result  bool
+			}{
+				{
+					target1: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+					target2: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+					result: true,
+				},
+				{
+					target1: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+					target2: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+					result: true,
+				},
+				{
+					target1: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+					target2: &base.RelationReference{
+						Type:     "organization",
+						Relation: "admin",
+					},
+					result: false,
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(AreRelationReferencesEqual(tt.target1, tt.target2)).Should(Equal(tt.result))
+			}
+		})
+
+		It("RelationReference", func() {
+			tests := []struct {
+				target string
+				result *base.RelationReference
+			}{
+				{
+					target: "organization#member",
+					result: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+				},
+				{
+					target: "repository",
+					result: &base.RelationReference{
+						Type:     "repository",
+						Relation: "",
+					},
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(RelationReference(tt.target)).Should(Equal(tt.result))
+			}
+		})
+
+		It("ReferenceToString", func() {
+			tests := []struct {
+				target *base.RelationReference
+				result string
+			}{
+				{
+					target: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+					result: "organization#member",
+				},
+				{
+					target: &base.RelationReference{
+						Type:     "repository",
+						Relation: "",
+					},
+					result: "repository",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(ReferenceToString(tt.target)).Should(Equal(tt.result))
+			}
+		})
+
+		It("ReferenceToString", func() {
+			tests := []struct {
+				target *base.RelationReference
+				result string
+			}{
+				{
+					target: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+					result: "organization#member",
+				},
+				{
+					target: &base.RelationReference{
+						Type:     "repository",
+						Relation: "",
+					},
+					result: "repository",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(ReferenceToString(tt.target)).Should(Equal(tt.result))
+			}
+		})
+
+		It("IsEntityAndSubjectEquals", func() {
+			tests := []struct {
+				target *base.Tuple
+				result bool
+			}{
+				{
+					target: &base.Tuple{
+						Entity: &base.Entity{
+							Type: "account",
+							Id:   "1",
+						},
+						Relation: "member",
+						Subject: &base.Subject{
+							Type:     "account",
+							Id:       "1",
+							Relation: "member",
+						},
+					},
+					result: true,
+				},
+				{
+					target: &base.Tuple{
+						Entity: &base.Entity{
+							Type: "account",
+							Id:   "1",
+						},
+						Relation: "member",
+						Subject: &base.Subject{
+							Type:     "account",
+							Id:       "1",
+							Relation: "admin",
+						},
+					},
+					result: false,
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(IsEntityAndSubjectEquals(tt.target)).Should(Equal(tt.result))
+			}
+		})
+
+		It("NormalizeRelation", func() {
+			tests := []struct {
+				target string
+				result string
+			}{
+				{
+					target: "",
+					result: "",
+				},
+				{
+					target: "...",
+					result: "",
+				},
+				{
+					target: ELLIPSIS,
+					result: "",
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(NormalizeRelation(tt.target)).Should(Equal(tt.result))
+			}
+		})
+
+		It("AreSubjectsEqual", func() {
+			tests := []struct {
+				target1 *base.Subject
+				target2 *base.Subject
+				result  bool
+			}{
+				{
+					target1: &base.Subject{
+						Type:     "organization",
+						Id:       "1",
+						Relation: "member",
+					},
+					target2: &base.Subject{
+						Type:     "organization",
+						Id:       "1",
+						Relation: "member",
+					},
+					result: true,
+				},
+				{
+					target1: &base.Subject{
+						Type:     "repository",
+						Id:       "3",
+						Relation: "...",
+					},
+					target2: &base.Subject{
+						Type:     "repository",
+						Id:       "3",
+						Relation: "",
+					},
+					result: true,
+				},
+				{
+					target1: &base.Subject{
+						Type:     "repository",
+						Id:       "3",
+						Relation: "...",
+					},
+					target2: &base.Subject{
+						Type:     "repository",
+						Id:       "4",
+						Relation: "",
+					},
+					result: false,
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(AreSubjectsEqual(tt.target1, tt.target2)).Should(Equal(tt.result))
+			}
+		})
+
+		It("EAREqual", func() {
+			tests := []struct {
+				target1 *base.EntityAndRelation
+				target2 *base.EntityAndRelation
+				result  bool
+			}{
+				{
+					target1: &base.EntityAndRelation{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Relation: "member",
+					},
+					target2: &base.EntityAndRelation{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Relation: "member",
+					},
+					result: true,
+				},
+				{
+					target1: &base.EntityAndRelation{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "3",
+						},
+						Relation: "admin",
+					},
+					target2: &base.EntityAndRelation{
+						Entity: &base.Entity{
+							Type: "repository",
+							Id:   "3",
+						},
+						Relation: "member",
+					},
+					result: false,
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(EAREqual(tt.target1, tt.target2)).Should(Equal(tt.result))
+			}
+		})
+
+		It("SubjectToEAR", func() {
+			tests := []struct {
+				subject *base.Subject
+				result  *base.EntityAndRelation
+			}{
+				{
+					subject: &base.Subject{
+						Type:     "organization",
+						Id:       "1",
+						Relation: "member",
+					},
+					result: &base.EntityAndRelation{
+						Entity: &base.Entity{
+							Type: "organization",
+							Id:   "1",
+						},
+						Relation: "member",
+					},
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(SubjectToEAR(tt.subject)).Should(Equal(tt.result))
 			}
 		})
 	})
