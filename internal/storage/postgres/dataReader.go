@@ -439,7 +439,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	defer utils.Rollback(tx)
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
-	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, type, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 

@@ -23,7 +23,7 @@ Read API allows for directly querying the stored graph data to display and filte
 <TabItem value="go" label="Go">
 
 ```go
-rr, err: = client.Data.Relationship.Read(context.Background(), & v1.Data.RelationshipReadRequest {
+rr, err: = client.Data.ReadAttributes(context.Background(), & v1.Data.AttributeReadRequest {
     TenantId: "t1",
     Metadata: &v1.Data.AttributeReadRequestMetadata {
         SnapToken: ""
@@ -42,7 +42,7 @@ rr, err: = client.Data.Relationship.Read(context.Background(), & v1.Data.Relatio
 <TabItem value="node" label="Node">
 
 ```javascript
-client.data.relationship.read({
+client.data.readAttributes.read({
   tenantId: "t1",
   metadata: {
      snap_token: "",
@@ -67,7 +67,7 @@ client.data.relationship.read({
 <TabItem value="curl" label="cURL">
 
 ```curl
-curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/relationships/read' \
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/attributes/read' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   metadata: {
