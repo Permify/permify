@@ -8,7 +8,6 @@ import (
 
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/cache"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -46,15 +45,7 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 		}, err
 	}
 
-	isRelational := false
-
-	// Determine the type of the reference by name in the given entity definition.
-	tor, err := schema.GetTypeOfReferenceByNameInEntityDefinition(en, request.GetPermission())
-	if err == nil {
-		if tor != base.EntityDefinition_REFERENCE_ATTRIBUTE {
-			isRelational = true
-		}
-	}
+	isRelational := engines.IsRelational(en, request.GetPermission())
 
 	// Try to get the cached result for the given request.
 	res, found := c.getCheckKey(request, isRelational)

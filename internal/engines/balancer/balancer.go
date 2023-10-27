@@ -15,7 +15,6 @@ import (
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 
 	"github.com/Permify/permify/pkg/balancer"
@@ -97,23 +96,7 @@ func (c *Balancer) Check(ctx context.Context, request *base.PermissionCheckReque
 		}, err
 	}
 
-	// Assume the request is not relational by default.
-	isRelational := false
-
-	// Check if the permission requested matches any reference attribute in the entity definition.
-	tor, err := schema.GetTypeOfReferenceByNameInEntityDefinition(en, request.GetPermission())
-	if err == nil && tor != base.EntityDefinition_REFERENCE_ATTRIBUTE {
-		isRelational = true
-	}
-
-	if err != nil {
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_CHECK_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, err
-	}
+	isRelational := engines.IsRelational(en, request.GetPermission())
 
 	// Create a new xxhash instance.
 	h := xxhash.New()

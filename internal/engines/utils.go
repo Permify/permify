@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 
+	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/attribute"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -368,4 +369,21 @@ func mapToString(m map[string]interface{}) string {
 		parts = append(parts, fmt.Sprintf("%s:%v", key, value))
 	}
 	return strings.Join(parts, ",")
+}
+
+// IsRelational determines if a given permission corresponds to a relational attribute
+// in the provided entity definition.
+func IsRelational(en *base.EntityDefinition, permission string) bool {
+	// Default to non-relational
+	isRelational := false
+
+	// Attempt to get the type of reference for the given permission in the entity definition
+	tor, err := schema.GetTypeOfReferenceByNameInEntityDefinition(en, permission)
+	if err == nil && tor != base.EntityDefinition_REFERENCE_ATTRIBUTE {
+		// If the type of reference is anything other than REFERENCE_ATTRIBUTE,
+		// treat it as a relational attribute
+		isRelational = true
+	}
+
+	return isRelational
 }
