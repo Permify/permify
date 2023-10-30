@@ -210,7 +210,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 		}
 
 		abuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", squirrel.Expr("pg_current_xact_id()")).Where(squirrel.Eq{"expired_tx_id": "0"})
-		abuilder = utils.AttributesFilterQueryForUpdateBuilder(tbuilder, attributeFilter)
+		abuilder = utils.AttributesFilterQueryForUpdateBuilder(abuilder, attributeFilter)
 
 		var aquery string
 		var aargs []interface{}
