@@ -272,5 +272,148 @@ var _ = Describe("DataWriter", func() {
 			Expect(ct5.String()).Should(Equal(""))
 			Expect(len(col4.GetAttributes())).Should(Equal(1))
 		})
+
+		It("tenants should be isolated", func() {
+			ctx := context.Background()
+
+			attr1, err := attribute.Attribute("organization:organization-1$public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			attr2, err := attribute.Attribute("organization:organization-1$ip_addresses|string[]:127.0.0.1,127.0.0.2")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			attr3, err := attribute.Attribute("organization:organization-3$balance|double:234.344")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup1, err := tuple.Tuple("organization:organization-1#admin@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup2, err := tuple.Tuple("organization:organization-1#admin@user:user-4")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup3, err := tuple.Tuple("organization:organization-1#admin@user:user-2")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			attributes1 := database.NewAttributeCollection([]*base.Attribute{
+				attr1,
+				attr2,
+				attr3,
+			}...)
+
+			tuples1 := database.NewTupleCollection([]*base.Tuple{
+				tup1,
+				tup2,
+				tup3,
+			}...)
+
+			token1, err := dataWriter.Write(ctx, "t1", tuples1, attributes1)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token1.String()).ShouldNot(Equal(""))
+
+			tokenT21, err := dataWriter.Write(ctx, "t2", tuples1, attributes1)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(tokenT21.String()).ShouldNot(Equal(""))
+
+			col1, ct1, err := dataReader.ReadRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"organization-1"},
+				},
+			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ct1.String()).Should(Equal(""))
+			Expect(len(col1.GetTuples())).Should(Equal(3))
+
+			col2, ct2, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"organization-1"},
+				},
+			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ct2.String()).Should(Equal(""))
+			Expect(len(col2.GetAttributes())).Should(Equal(2))
+
+			colT21, ctT21, err := dataReader.ReadRelationships(ctx, "t2", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"organization-1"},
+				},
+			}, tokenT21.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ctT21.String()).Should(Equal(""))
+			Expect(len(colT21.GetTuples())).Should(Equal(3))
+
+			colT22, ctT22, err := dataReader.ReadAttributes(ctx, "t2", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"organization-1"},
+				},
+			}, tokenT21.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ctT22.String()).Should(Equal(""))
+			Expect(len(colT22.GetAttributes())).Should(Equal(2))
+
+			token2, err := dataWriter.Delete(ctx, "t1",
+				&base.TupleFilter{
+					Entity: &base.EntityFilter{
+						Type: "organization",
+						Ids:  []string{"organization-1"},
+					},
+					Relation: "admin",
+					Subject: &base.SubjectFilter{
+						Type: "user",
+						Ids:  []string{"user-1"},
+					},
+				},
+				&base.AttributeFilter{
+					Entity: &base.EntityFilter{
+						Type: "organization",
+						Ids:  []string{"organization-1"},
+					},
+					Attributes: []string{"public"},
+				})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			col3, ct3, err := dataReader.ReadRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"organization-1"},
+				},
+			}, token2.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ct3.String()).Should(Equal(""))
+			Expect(len(col3.GetTuples())).Should(Equal(2))
+
+			col4, ct5, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"organization-1"},
+				},
+			}, token2.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ct5.String()).Should(Equal(""))
+			Expect(len(col4.GetAttributes())).Should(Equal(1))
+
+			colT23, ctT23, err := dataReader.ReadRelationships(ctx, "t2", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"organization-1"},
+				},
+			}, token2.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ctT23.String()).Should(Equal(""))
+			Expect(len(colT23.GetTuples())).Should(Equal(3))
+
+			colT24, ctT25, err := dataReader.ReadAttributes(ctx, "t2", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"organization-1"},
+				},
+			}, token2.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ctT25.String()).Should(Equal(""))
+			Expect(len(colT24.GetAttributes())).Should(Equal(2))
+		})
 	})
 })
