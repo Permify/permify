@@ -45,7 +45,7 @@
     "react-graph-vis": "^1.0.7",
     "react-hot-toast": "^2.1.0",
     "react-infinite-scroll-component": "^6.1.0",
-    "react-inlinesvg": "^3.0.1",
+    "react-inlinesvg": "^4.1.0",
     "react-moment": "^1.1.1",
     "react-router": "6.16.0",
     "react-router-dom": "^6.11.1",
