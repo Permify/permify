@@ -289,7 +289,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 		}
 
 		if !validation.IsTupleFilterEmpty(tupleFilter) {
-			tbuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0"})
+			tbuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID})
 			tbuilder = utils.TuplesFilterQueryForUpdateBuilder(tbuilder, tupleFilter)
 
 			var tquery string
@@ -316,7 +316,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 		}
 
 		if !validation.IsAttributeFilterEmpty(attributeFilter) {
-			abuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0"})
+			abuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID})
 			abuilder = utils.AttributesFilterQueryForUpdateBuilder(abuilder, attributeFilter)
 
 			var aquery string
