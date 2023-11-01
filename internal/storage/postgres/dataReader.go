@@ -263,7 +263,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
-	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.Select("entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 
@@ -284,7 +284,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	var valueStr string
 
 	// Scan the row from the database into the fields of `rt` and `valueStr`.
-	err = row.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
+	err = row.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -376,7 +376,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 		var valueStr string
 
 		// Scan the row from the database into the fields of `rt` and `valueStr`.
-		err := rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
+		err := rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
@@ -665,7 +665,11 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	defer utils.Rollback(tx)
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
-	builder := r.database.Builder.Select("id, subject_id").Distinct().From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.
+		Select("MIN(id) as id, subject_id"). // This will pick the smallest `id` for each unique `subject_id`.
+		From(RelationTuplesTable).
+		Where(squirrel.Eq{"tenant_id": tenantID}).
+		GroupBy("subject_id")
 	builder = utils.TuplesFilterQueryForSelectBuilder(builder, &base.TupleFilter{Subject: &base.SubjectFilter{Type: subjectReference.GetType(), Relation: subjectReference.GetRelation()}})
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
 

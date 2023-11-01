@@ -258,7 +258,7 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 		return nil, v
 	}
 
-	err := validation.ValidateTupleFilter(request.GetTupleFilter())
+	err := validation.ValidateFilters(request.GetTupleFilter(), request.GetAttributeFilter())
 	if err != nil {
 		return nil, v
 	}
