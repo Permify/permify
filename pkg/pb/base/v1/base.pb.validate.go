@@ -4240,17 +4240,6 @@ func (m *AttributeFilter) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetEntity() == nil {
-		err := AttributeFilterValidationError{
-			field:  "Entity",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if all {
 		switch v := interface{}(m.GetEntity()).(type) {
 		case interface{ ValidateAll() error }:
@@ -4379,17 +4368,6 @@ func (m *TupleFilter) validate(all bool) error {
 	}
 
 	var errors []error
-
-	if m.GetEntity() == nil {
-		err := TupleFilterValidationError{
-			field:  "Entity",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
 
 	if all {
 		switch v := interface{}(m.GetEntity()).(type) {

@@ -394,8 +394,7 @@ message Subject {
 // AttributeFilter is used to filter attributes based on the entity and attribute names.
 message AttributeFilter {
   EntityFilter entity = 1 [
-    json_name = "entity",
-    (validate.rules).message.required = true
+    json_name = "entity"
   ];
 
   repeated string attributes = 2 [json_name = "attributes"]; // Names of the attributes to be filtered
@@ -404,8 +403,7 @@ message AttributeFilter {
 // TupleFilter is used to filter tuples based on the entity, relation and the subject.
 message TupleFilter {
   EntityFilter entity = 1 [
-    json_name = "entity",
-    (validate.rules).message.required = true
+    json_name = "entity"
   ];
 
   string relation = 2 [

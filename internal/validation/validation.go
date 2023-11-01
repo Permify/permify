@@ -48,10 +48,24 @@ func ValidateTuple(definition *base.EntityDefinition, tup *base.Tuple) (err erro
 }
 
 // ValidateTupleFilter checks if the provided filter conforms to the entity definition
-func ValidateTupleFilter(filter *base.TupleFilter) (err error) {
-	if filter.GetEntity().GetType() == "" {
-		return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_TYPE_REQUIRED.String())
+func ValidateTupleFilter(tupleFilter *base.TupleFilter) (err error) {
+	if IsTupleFilterEmpty(tupleFilter) {
+		return errors.New(base.ErrorCode_ERROR_CODE_VALIDATION.String())
 	}
+	return nil
+}
+
+// ValidateFilters checks if both provided filters, tupleFilter and attributeFilter, are empty.
+// It returns an error if both filters are empty, as at least one filter should contain criteria for the operation to be valid.
+func ValidateFilters(tupleFilter *base.TupleFilter, attributeFilter *base.AttributeFilter) (err error) {
+	// Check if both tupleFilter and attributeFilter are empty using the respective functions.
+	// If both are empty, then there is nothing to validate, and an error is returned.
+	if IsTupleFilterEmpty(tupleFilter) && IsAttributeFilterEmpty(attributeFilter) {
+		// The error returned indicates a validation error due to both filters being empty.
+		return errors.New(base.ErrorCode_ERROR_CODE_VALIDATION.String())
+	}
+
+	// If at least one of the filters is not empty, then the validation is successful, and no error is returned.
 	return nil
 }
 
@@ -90,4 +104,64 @@ func ValidateAttribute(definition *base.EntityDefinition, reqAttribute *base.Att
 
 	// If all checks pass without returning, the attribute is considered valid and the function returns nil.
 	return nil
+}
+
+// IsTupleFilterEmpty checks whether any of the fields in a TupleFilter are filled.
+// It assumes that a filter is "empty" if all its fields are unset or have zero values.
+func IsTupleFilterEmpty(filter *base.TupleFilter) bool {
+	// If the entity type is set, the filter is not empty.
+	if filter.GetEntity().GetType() != "" {
+		return false // Entity type is present, therefore filter is not empty.
+	}
+
+	// If the entity IDs slice is not empty, the filter is not empty.
+	if len(filter.GetEntity().GetIds()) > 0 {
+		return false // Entity IDs are present, therefore filter is not empty.
+	}
+
+	// If the relation is set, the filter is not empty.
+	if filter.GetRelation() != "" {
+		return false // Relation is present, therefore filter is not empty.
+	}
+
+	// If the subject type is set, the filter is not empty.
+	if filter.GetSubject().GetType() != "" {
+		return false // Subject type is present, therefore filter is not empty.
+	}
+
+	// If the subject IDs slice is not empty, the filter is not empty.
+	if len(filter.GetSubject().GetIds()) > 0 {
+		return false // Subject IDs are present, therefore filter is not empty.
+	}
+
+	// If the subject relation is set, the filter is not empty.
+	if filter.GetSubject().GetRelation() != "" {
+		return false // Subject relation is present, therefore filter is not empty.
+	}
+
+	// If none of the above conditions are met, then all fields are unset or have zero values,
+	// which means the filter is empty.
+	return true
+}
+
+// IsAttributeFilterEmpty checks if the provided AttributeFilter object is empty.
+// An AttributeFilter is considered empty if none of its fields have been set.
+func IsAttributeFilterEmpty(filter *base.AttributeFilter) bool {
+	// Check if the Entity type field of the filter is set. If it is, the filter is not empty.
+	if filter.GetEntity().GetType() != "" {
+		return false // Entity type is specified, hence the filter is not empty.
+	}
+
+	// Check if the Entity IDs field of the filter has any IDs. If it does, the filter is not empty.
+	if len(filter.GetEntity().GetIds()) > 0 {
+		return false // Entity IDs are specified, hence the filter is not empty.
+	}
+
+	// Check if the Attributes field of the filter has any attributes set. If it does, the filter is not empty.
+	if len(filter.GetAttributes()) > 0 {
+		return false // Attributes are specified, hence the filter is not empty.
+	}
+
+	// If none of the above fields are set, then the filter is considered empty.
+	return true
 }

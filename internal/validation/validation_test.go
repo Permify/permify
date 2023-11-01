@@ -421,12 +421,99 @@ var _ = Describe("validation", func() {
 			err = ValidateTupleFilter(&base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "",
-					Ids:  []string{"1"},
+					Ids:  []string{},
 				},
-				Relation: "admin",
+				Relation: "",
 				Subject:  &base.SubjectFilter{},
 			})
-			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ENTITY_TYPE_REQUIRED.String()))
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_VALIDATION.String()))
+		})
+
+		It("Case 6", func() {
+			is := IsAttributeFilterEmpty(&base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"1"},
+				},
+				Attributes: []string{"public"},
+			})
+			Expect(is).Should(BeFalse())
+
+			is = IsAttributeFilterEmpty(&base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "",
+					Ids:  []string{},
+				},
+				Attributes: []string{},
+			})
+			Expect(is).Should(BeTrue())
+		})
+
+		It("Case 7", func() {
+			is := IsAttributeFilterEmpty(&base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"1"},
+				},
+				Attributes: []string{},
+			})
+			Expect(is).Should(BeFalse())
+
+			err := ValidateFilters(
+				&base.TupleFilter{}, &base.AttributeFilter{
+					Entity: &base.EntityFilter{
+						Type: "",
+						Ids:  []string{},
+					},
+					Attributes: []string{},
+				})
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_VALIDATION.String()))
+		})
+
+		It("Case 8", func() {
+			is := IsAttributeFilterEmpty(&base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"1"},
+				},
+				Attributes: []string{},
+			})
+			Expect(is).Should(BeFalse())
+
+			is = IsAttributeFilterEmpty(&base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{},
+				},
+				Attributes: []string{},
+			})
+			Expect(is).Should(BeFalse())
+
+			is = IsAttributeFilterEmpty(&base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "",
+					Ids:  []string{"1"},
+				},
+				Attributes: []string{},
+			})
+			Expect(is).Should(BeFalse())
+
+			err := ValidateFilters(
+				&base.TupleFilter{
+					Entity: &base.EntityFilter{
+						Type: "",
+						Ids:  []string{},
+					},
+					Relation: "",
+					Subject:  &base.SubjectFilter{},
+				}, &base.AttributeFilter{
+					Entity: &base.EntityFilter{
+						Type: "",
+						Ids:  []string{},
+					},
+					Attributes: []string{},
+				})
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_VALIDATION.String()))
 		})
 	})
 })
