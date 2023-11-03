@@ -16,7 +16,7 @@
     <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>
 </p>
 
-![Permify - Open source authorization as a service](https://user-images.githubusercontent.com/34595361/186108668-4c6cb98c-e777-472b-bf05-d8760add82d2.png)
+![Permify - Open source authorization as a service](https://github.com/Permify/permify/assets/39353278/c3625624-7ce1-4485-9235-0a8566dd0f1e)
 
 ## What is Permify?
 
