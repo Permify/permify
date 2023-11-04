@@ -16,7 +16,13 @@
     <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>
 </p>
 
-![Permify - Open source authorization as a service](https://github.com/Permify/permify/assets/39353278/c3625624-7ce1-4485-9235-0a8566dd0f1e)
+![Permify - Open source authorization as a service](https://github.com/Permify/permify/assets/39353278/06262e07-84ba-4a1c-b859-870344396600)
+
+## Join Our Team
+
+Permify is on the lookout for engineers eager to tackle challenges in authorization. Join us!
+
+<a href="http://permify.co/company/career/" target="_blank"><img src="https://img.shields.io/badge/We%20Are%20Hiring!-blue?style=for-the-badge" alt="We are hiring" /></a>&nbsp;
 
 ## What is Permify?
 
