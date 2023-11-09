@@ -70,7 +70,7 @@ func NewCheckEngineWithBalancer(
 		options,
 		grpc.WithDefaultServiceConfig(grpcServicePolicy),
 		grpc.WithTransportCredentials(creds),
-		grpc.WithPerRPCCredentials(createPresharedKeyAuthN)
+		grpc.WithPerRPCCredentials(createPresharedKeyAuthN),
 	)
 
 	conn, err := grpc.Dial(dst.Address, options...)
