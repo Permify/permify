@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/Permify/permify/internal/authn/preshared"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/invoke"
