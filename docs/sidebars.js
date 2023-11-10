@@ -40,7 +40,8 @@ module.exports = {
 					items: [
 						"getting-started/examples/google-docs",
 						"getting-started/examples/facebook-groups",
-						"getting-started/examples/notion"
+						"getting-started/examples/notion",
+						"getting-started/examples/instagram"
 					],
 				},
 			],
@@ -83,8 +84,8 @@ module.exports = {
 					items: [
 						"api-overview/schema/write-schema"
 					],
-				  },
-				  {
+				},
+				{
 					type: 'category',
 					label: 'Data Service',
 					link: {
@@ -94,12 +95,12 @@ module.exports = {
 					},
 					items: [
 						"api-overview/data/write-data",
-						"api-overview/data/read-relationships", 
+						"api-overview/data/read-relationships",
 						"api-overview/data/read-attributes",
 						"api-overview/data/delete-data"
 					],
-				  },
-				  {
+				},
+				{
 					type: 'category',
 					label: 'Permission Service',
 					link: {
@@ -114,8 +115,8 @@ module.exports = {
 						"api-overview/permission/expand-api",
 						"api-overview/permission/subject-permission"
 					],
-				  },
-				  {
+				},
+				{
 					type: 'category',
 					label: 'Tenancy Service',
 					link: {
@@ -127,7 +128,7 @@ module.exports = {
 						"api-overview/tenancy/create-tenant",
 						"api-overview/tenancy/delete-tenant",
 					],
-				  },
+				},
 				{
 					type: 'category',
 					label: 'Watch Service',
@@ -182,5 +183,5 @@ module.exports = {
 			],
 			collapsed: true
 		},
-  ],
+	],
 };
