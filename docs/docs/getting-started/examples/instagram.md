@@ -43,7 +43,8 @@ entity post {
 
 ## Brief Examination of the Model
 
-The Instagram Authorization Schema models the relationships between users, accounts, and posts in the Instagram platform. Users can own accounts, follow other accounts, and be followed by other users. Accounts can have public or private settings, and access to view an account is determined by ownership, followers, and privacy settings. Posts are associated with accounts and can have restricted comments and likes based on account privacy.
+The Instagram Authorization Schema models the relationships between users, accounts, and posts in the Instagram platform.
+Users can own accounts, follow other accounts, and be followed by other users. Accounts can have public or private settings, and access to view an account is determined by ownership, followers, and privacy settings. Posts are associated with accounts and can have restricted comments and likes based on account privacy.
 
 ### Entities & Relations
 
