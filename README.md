@@ -28,37 +28,21 @@ Permify is on the lookout for engineers eager to tackle challenges in authorizat
 
 [Permify](https://github.com/Permify/permify) is a open-source authorization service for creating and managing fine-grained permissions in your applications and services. Inspired by Google’s consistent, global authorization system, [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf)
 
+Our goal is to make Google's Zanzibar available to everyone and help them build robust, flexible, and easily auditable authorization systems that perform well in scaled environments.
+
 ### With Permify, you can:
 
 🔮 Create permissions and policies using [Permify's flexible authorization language](https://docs.permify.co/docs/getting-started/modeling) that is compatible with traditional roles and permissions (RBAC), arbitrary relations between users and objects (ReBAC), and attributes (ABAC).
 
-🔐 [Manage and store authorization data](https://docs.permify.co/docs/getting-started/sync-data) in your preferred database and [interact with the Permify API](https://docs.permify.co/docs/getting-started/enforcement) to perform access checks, filter your resources with specific permissions, and more.
+🔐 [Manage and store authorization data](https://docs.permify.co/docs/getting-started/sync-data) in your preferred database with high availability and consistency.
 
-🧪 Test your authorization logic with [Permify's testing framework](https://docs.permify.co/docs/getting-started/testing). You can conduct scenario-based testing, policy coverage analysis, and IDL parser integration to achieve end-to-end validation for the desired authorization schema.
+✅ [Interact with the Permify API](https://docs.permify.co/docs/getting-started/enforcement) to perform access checks, filter your resources with specific permissions, perform bulk permission checks for various resources, and more.
 
-⚙️ Create custom authorization models for different applications using Permify [Multi-Tenancy](https://docs.permify.co/docs/use-cases/multi-tenancy) support, all managed within a single place - Permify instance.
+🧪 Test your authorization logic with [Permify's schema testing](https://docs.permify.co/docs/getting-started/testing). You can conduct scenario-based testing, policy coverage analysis, and IDL parser integration to achieve end-to-end validations for your desired authorization schema.
 
-⚡ Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin]
+⚙️ Create custom and isolated authorization models for different applications using Permify [Multi-Tenancy](https://docs.permify.co/docs/use-cases/multi-tenancy) support, all managed within a single place, Permify instance.
 
-[jaeger]: https://www.jaegertracing.io/
-[signoz]: https://signoz.io/
-[zipkin]: https://zipkin.io/
-
-### Cases that can benefit from Permify
-
-- If you already have an identity/auth solution and want to plug in fine-grained authorization on top of that.
-- If you want to create a unified access control mechanism to use across your individual applications.
-- If you want to make future-proof authorization system and don't want to spend engineering effort for it.
-- If you’re managing authorization for growing micro-service infrastructure.
-- If your authorization logic is cluttering your code base.
-- If your data model is getting too complicated to handle your authorization within the service.
-- If your authorization is growing too complex to handle within code or API gateway.
-
-```diff
-+ Missing a specific use case? no problem, let's discuss it together! just open an issue. 
-```
-
-## Learn 
+## Getting Started 
 
 - Follow a guide to model your authorization using [Permify's Authorization Language].
 - See our [Playground], build your authorization logic and test it with sample data.
@@ -70,15 +54,7 @@ Permify is on the lookout for engineers eager to tackle challenges in authorizat
 [Permify API]: https://docs.permify.co/docs/api-overview
 [our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
 
-## Community ♥️
-
-We would love to hear from you!
-
-Get the latest product updates, receive immediate assistance from our team members, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
-
-<a href="https://discord.gg/JJnMeCh6qP" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord" /></a>&nbsp;
-
-## QuickStart
+### QuickStart
 
 You can quickly start Permify on your local with running the docker command below:
 
@@ -95,7 +71,7 @@ See [all of the options] that you can use to set up and deploy Permify in your s
 
 [all of the options]: https://docs.permify.co/docs/installation
 
-### Test your connection
+#### Test your connection
 
 You can test your connection with creating an GET request,
 
@@ -103,7 +79,17 @@ You can test your connection with creating an GET request,
 localhost:3476/healthz
 ```
 
-## Contribution
+## Community ♥️
+
+We would love to hear from you!
+
+Get the latest product updates, receive immediate assistance from our team members, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
+
+<a href="https://discord.gg/JJnMeCh6qP" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord" /></a>&nbsp;
+
+### Want to Contribute?
+
+Here are the ways to contribute to Permify
 
 * **Contribute to codebase:** We're collaboratively working with our community to make Permify the best it can be! You can develop new features, fix existing issues or make third-party integrations/packages. 
 * **Improve documentation:** Alongside our codebase, documentation one of the most significant part in our open-source journey. We're trying to give the best DX possible to explain ourselfs and Permify. And you can help on that with importing resources or adding new ones.
@@ -111,10 +97,13 @@ localhost:3476/healthz
 
 You can find more details about contributions on [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
 
+## Roadmap
+
+You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/projects/1)!
+
 ## Stargazers
 
 [![Stargazers repo roster for permify/permify](https://reporoster.com/stars/permify/permify)](https://github.com/permify/permify/stargazers)
-
 
 ## Communication Channels
 
