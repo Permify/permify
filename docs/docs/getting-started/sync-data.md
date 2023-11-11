@@ -7,9 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # Managing Authorization Data
 
-Permify unifies your authorization data in a database you prefer. We named that database as Write Database, shortly **WriteDB**.
-
-Permify API provides various functionalities - checking access, reasoning permissions, etc - to maintain separate access control mechanisms for individual applications. And **WriteDB** stands as a source of truth for these authorization functionalities.
+Permify unifies your authorization data in a database of your preference, which serves as the single source of truth for all authorization queries and requests via the Permify API.
 
 ## Access Control as Relations - Relational Tuples
 
@@ -30,7 +28,6 @@ Permify stores your relational tuples (authorization data) in a database you pre
 Stored relational tuples are queried and utilized in Permify APIs, including the check API, which is an access control check request used to determine whether a user's action is authorized.
 
 As an example; to decide whether a user could view a protected resource, Permify looks up the relations between that specific user and the protected resource. These relation types could be ownership, parent-child relation, or even a role such as an admin or manager.
-[WriteDB]: #write-database
 
 ## Creating Relational Tuples 
 
@@ -67,8 +64,6 @@ entity document {
 According to the schema above; when a user creates a document in an organization, more specifically let's say, when user:1 create a document:2 we need to create the following relational tuple,
 
 - `document:2#owner@user:1`
-
-[WriteDB]: #write-database
 
 ### Write Data API
 

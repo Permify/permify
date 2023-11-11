@@ -4,11 +4,17 @@ sidebar_position: 1
 
 # Modeling Authorization
 
+Permify was designed and structured as a true ReBAC solution, so besides roles and attributes Permify also supports indirect permission granting through relationships. 
+
+With Permify, you can define that a user has certain permissions because of their relation to other entities. An example of this would be granting a manager the same permissions as their subordinates, or giving a user access to a resource because they belong to a certain group. 
+
+This is facilitated by our relationship-based access control, which allows the definition of complex permission structures based on the relationships between users, roles, and resources.
+
+## Permify Schema
+
 Permify has its own language that you can model your authorization logic with it. The language allows to define arbitrary relations between users and objects, such as owner, editor, commenter or roles like admin, manager, member and also dynamic attributes such as boolean variables, IP range, time period, etc.
 
 ![modeling-authorization](https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif)
-
-## Permify Schema
 
 You can define your entities, relations between them and access control decisions with using Permify Schema. It includes set-algebraic operators such as intersection and union for specifying potentially complex access control policies in terms of those user-object relations.
 

@@ -19,7 +19,7 @@ Several things changed when we moved to tenant based infrastructure, these are:
 
 * [API endpoints now have Tenant ID field](#api-endpoints-now-have-tenant-id-field)
 * [Added Tenancy Service](#added-tenancy-service)
-* [WriteDB tables and tenant id column](#writedb-tables-and-tenant-id-column)
+* [Permission Database tables and tenant id column](#permission-database-tenancy-table-and-tenant-id-column)
 
 ### API endpoints now have Tenant ID field 
 
@@ -118,11 +118,11 @@ Users that come from version 0.2.x and users that have a single tenant can enter
 
 To manage tenants we have added a Tenancy service; you can create, delete and list tenants. See the [Tenancy Service](../api-overview/tenancy) in Using The API section.
 
-### WriteDB tenancy table and tenant id column
+### Permission Database Tenancy Table and Tenant Id column
 
 #### Tenant Table 
 
-A tenants table has been added to the Write DB to store tenant's details. The new WriteDB folder structure changed as follows:
+A tenants table has been added to the Permission database to store tenant's details. The new folder structure changed as follows:
 ```
 tables
 ├── migrations       
@@ -136,7 +136,7 @@ tables
 
 Relation tuples and schema definition tables now have a tenant_id column, which stores the id of the tenant that the data belongs.
 
-Let's take a look at a snapshot of the demo table on an example WriteDB.
+Let's take a look at a snapshot of the demo table on an example Permission Database.
 
 Example Relation Tuples data table:
 ![tenant-id-tuples](https://user-images.githubusercontent.com/34595361/214724165-a3775756-0649-4869-b994-d837fadd271d.png)

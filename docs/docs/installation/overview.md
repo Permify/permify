@@ -140,7 +140,7 @@ After you completed configuration of your authorization model via Permify Schema
 
 ### Create Relational Tuples
 
-You can create relational tuples as authorization rules at this writeDB by using [Write Data API](../api-overview/data/write-data.md)
+You can create relational tuples as authorization rules by using [Write Data API](../api-overview/data/write-data.md)
 
 For our guide let's grant one of the team members (Ashley) an admin role.
 
@@ -186,7 +186,7 @@ For our guide let's grant one of the team members (Ashley) an admin role.
 **Semantics:** User 1 (Ashley) has admin role on organization 1.
 
 :::tip
-In ideal production usage Permify stores your authorization data in a database you prefer. We called that database as WriteDB, and you can configure it with using [configuration yaml file](https://github.com/Permify/permify/blob/master/example.config.yaml) or CLI flag options. 
+In ideal production usage Permify stores your authorization data in a database you prefer. You can configure the database with using [configuration yaml file](https://github.com/Permify/permify/blob/master/example.config.yaml) or CLI flag options. 
 
 But in this tutorial Permify Service running default configurations on local, so authorization data will be stored in memory. You can find more detailed explanation how Permify stores authorization data in [Managing Authorization Data] section.
 
