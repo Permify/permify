@@ -1,22 +1,20 @@
 
-# What is Authorization Service?
-
-Authorization is an important part of software development. There are many different ways to implement authorization, but it's important for all apps to have some form of it in order to protect the user from malicious actors and unauthorized access attempts.
+# Authorization As A Service
 
 An authorization service is a module that allows you to manage access to your application and ease the development and maintenance of your authorization system. It works in run time and respond to all authorization questions from any of your apps.
 
 ![authz-service](https://user-images.githubusercontent.com/34595361/196884110-147862c9-3657-4f07-831c-3e0d0e39eccf.png)
 
-[Permify] is a fully open source authorization service that offers a variety of binding and crafting options to secure your applications.
+[Permify] is a fully open source **authorization service** that offers a variety of binding and crafting options to secure your applications. It's designed to be deployed as a authorization service rather than a library compiled into an application.
 
 [Permify]: https://github.com/Permify/permify
 
-## Why should I use Authorization Service instead of doing from scratch?
+## Benefits of using an Authorization Service
 
 ### Move & Iterate Faster 
 Avoid the hassle of building your a new authorization system, save time and money by leveraging existing, battle-tested code that has been developed by a team rather than starting from scratch. You can get started quickly with a simple API that you can easily integrate into your application to move and iterate faster.
 
-### Do Not Reinvent The Wheel
+### Scale As You Wish
 Permify based on [Google Zanzibar], which is the global authorization system used at Google for handling authorization for hundreds of its services and products including; YouTube, Drive, Calendar, Cloud and Maps. Building a scalable and robust authorization system is hard and needs a quite engineering time. Zanzibar system achieved more than 95% of the access checks responded in 10 milliseconds and has maintained more than 99.999% availability for the 3 year period. Permify applies proven techniques that Google used. We’re trying to make Zanzibar available to everyone to use and benefit in their applications and services.
 
 [Google Zanzibar]: https://www.permify.co/post/google-zanzibar-in-a-nutshell
