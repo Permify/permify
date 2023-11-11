@@ -30,9 +30,9 @@ In Permify, relationship between your entities, objects, and users builds up a c
 
 These ACLs called relational tuples: the underlying data form that represents object-to-object and object-to-subject relations. The simplest form of relational tuple structured as `entity # relation @ user` and each relational tuple represents an action that a specific user or user set can do on a resource and takes form of `user U has relation R to object O`, where user U could be a simple user or a user set such as team X members.
 
-## Write Database - WriteDB
+## Permission Database 
 
-Permify stores your relational tuples (authorization data) in **WriteDB**. You can configure it **WriteDB** when running Permify Service with using both [configuration flags](../installation/brew#configuration-flags)  or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
+Permify stores your relational tuples (authorization data) in a database you prefer. You can configure it when running Permify Service with using both [configuration flags](../installation/brew#configuration-flags)  or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
 
 ## Relationship Based Access Control (ReBAC)
 

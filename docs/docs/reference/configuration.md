@@ -352,7 +352,7 @@ os, arch.
 </p>
 </details>
 
-<details><summary>database | Database (WriteDB) Configurations</summary>
+<details><summary>database | Database Configurations</summary>
 <p>
 
 #### Definition
