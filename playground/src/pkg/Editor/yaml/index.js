@@ -15,33 +15,35 @@ function YamlEditor(props) {
         monaco.editor.defineTheme('dark-theme', Theme())
     }
 
+    function handleEditorChange(value, event) {
+        if (value !== props.code) {
+            props.setCode(value);
+        }
+    }
+
     const options = {
-        selectOnLineNumbers: true,
-        renderIndentGuides: true,
-        colorDecorators: true,
+        selectOnLineNumbers: false,
+        renderIndentGuides: false,
+        colorDecorators: false,
         cursorBlinking: "smooth",
         autoClosingQuotes: "always",
-        suggestOnTriggerCharacters: true,
+        suggestOnTriggerCharacters: false,
         acceptSuggestionOnEnter: "on",
-        folding: true,
+        folding: false,
         lineNumbersMinChars: 3,
-        fontSize: 13,
+        fontSize: 12,
     };
-
-    function handleEditorChange(value, event) {
-        props.setCode(value);
-    }
 
     return (
         <MonacoEditor
-            height="50vh"
+            height="100vh"
             language="yaml"
             theme="dark-theme"
             value={props.code}
             options={options}
-            onChange={handleEditorChange}
             beforeMount={handleEditorWillMount}
             onMount={handleEditorDidMount}
+            onChange={handleEditorChange}
         />
     );
 }

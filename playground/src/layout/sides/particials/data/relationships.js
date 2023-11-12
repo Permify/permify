@@ -286,9 +286,7 @@ function Relationships() {
 
     // A cell component for editing
     const EditableCell = ({editing, dataIndex, title, inputType, record, index, children, ...restProps}) => {
-
         let inputElement;
-
         if (editing) {
             switch (dataIndex) {
                 case 'entityType':
@@ -296,7 +294,6 @@ function Relationships() {
                         <Select
                             showSearch
                             allowClear
-                            showArrow={false}
                             placeholder="Entity Type"
                             notFoundContent={null}
                             onChange={(value) => handleEntityTypeChange(value, record.key)}
@@ -314,7 +311,6 @@ function Relationships() {
                         <Select
                             showSearch
                             allowClear
-                            showArrow={false}
                             placeholder="Relation"
                             notFoundContent={null}
                             onChange={(value) => handleRelationChange(value, record.key)}
@@ -328,7 +324,6 @@ function Relationships() {
                         <Select
                             showSearch
                             allowClear
-                            showArrow={false}
                             placeholder="Subject Type"
                             notFoundContent={null}
                             onChange={(value) => handleSubjectTypeChange(value, record.key)}
@@ -342,7 +337,6 @@ function Relationships() {
                         <Select
                             showSearch
                             allowClear
-                            showArrow={false}
                             placeholder="Subject Relation"
                             notFoundContent={null}
                         >
@@ -491,7 +485,7 @@ function Relationships() {
                                         </Button>
                                     </div>
                                 )}
-                                scroll={{y: 'calc(100vh - 260px)'}}
+                                scroll={{y: 'calc(100vh - 270px)'}}
                             />
                         </RelationshipErrorContext.Provider>
                     </Form>

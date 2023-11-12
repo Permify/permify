@@ -1,11 +1,7 @@
-import './wasm_exec.js';
-import './wasmTypes.d.ts';
-
 import React, {useEffect} from 'react';
-
-import SVG from "react-inlinesvg";
 import {toAbsoluteUrl} from "../utility/helpers/asset";
-
+import './wasm_exec.js';
+import './wasm_types.d.ts';
 async function loadWasm(): Promise<void> {
     const goWasm = new window.Go();
     const result = await WebAssembly.instantiateStreaming(fetch('play.wasm'), goWasm.importObject);
@@ -25,7 +21,7 @@ export const LoadWasm: React.FC<React.PropsWithChildren<{}>> = (props) => {
         return (
             <div className="wasm-loader-background h-screen">
                 <div className="center-of-screen">
-                    <SVG src={toAbsoluteUrl("/media/svg/rocket.svg")}/>
+                    <img alt="rocket loader" src={toAbsoluteUrl("/media/svg/rocket.svg")}/>
                 </div>
             </div>
         );
