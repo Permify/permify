@@ -1,29 +1,26 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState} from 'react'
+import {Allotment} from 'allotment'
 import "allotment/dist/style.css";
 import Schema from "./schema";
 import Visualizer from "./visualizer";
-import {Button, Radio, Tabs} from "antd";
-import {CheckCircleOutlined, CopyOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
+import {Button, Card, Radio} from "antd";
+import {
+    CheckCircleOutlined,
+    CopyOutlined,
+    ExclamationCircleOutlined,
+    ExpandOutlined, FullscreenExitOutlined,
+} from "@ant-design/icons";
 import Relationships from "./particials/data/relationships";
 import Attributes from "./particials/data/attributes";
-import {useSearchParams} from 'react-router-dom';
 import {useShapeStore} from "../../state/shape";
 import Enforcement from "./enforcement";
-import NewScenario from "../components/modals/newScenario";
 
 function Output(props) {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const initialTab = searchParams.get("tab") || "schema";
-    const [selected, setSelected] = useState(initialTab);
     const [dataSelected, setDataSelected] = useState('relationships');
+    const [schemaSelected, setSchemaSelected] = useState('schema');
+    const [isOpen, setIsOpen] = useState(false);
 
-    const [newScenarioModalVisibility, setNewScenarioModalVisibility] = React.useState(false);
-
-    const { runAssertions, runLoading, scenariosError, assertionCount } = useShapeStore();
-
-    const toggleNewScenarioModalVisibility = () => {
-        setNewScenarioModalVisibility(!newScenarioModalVisibility);
-    };
+    const {runAssertions, runLoading, scenariosError, assertionCount} = useShapeStore();
 
     const {schema} = useShapeStore();
 
@@ -31,14 +28,8 @@ function Output(props) {
         setDataSelected(value);
     };
 
-    useEffect(() => {
-        if (selected) {
-            setSearchParams({...Object.fromEntries(searchParams), tab: selected});
-        }
-    }, [selected, setSearchParams, searchParams]);
-
-    const handleTabChange = (key) => {
-        setSelected(key);
+    const onSchemaSelectedChange = ({target: {value}}) => {
+        setSchemaSelected(value);
     };
 
     const [isSchemaCopied, setIsSchemaCopied] = useState(false);
@@ -52,51 +43,6 @@ function Output(props) {
         }
     }
 
-    let tabBarExtra;
-    switch (selected) {
-        case "schema":
-            tabBarExtra = (
-                <Button className="mr-12" onClick={() => {
-                    copySchema(schema)
-                }} icon={<CopyOutlined/>}>{isSchemaCopied ? 'Copied!' : 'Copy'}</Button>
-            );
-            break;
-        case "data":
-            tabBarExtra = (
-                <Radio.Group defaultValue="relationships" buttonStyle="solid" onChange={onDataSelectedChange}
-                             value={dataSelected}>
-                    <Radio value="relationships">Relationships</Radio>
-                    <Radio value="attributes">Attributes</Radio>
-                </Radio.Group>
-            );
-            break;
-        case "visualizer":
-            tabBarExtra = (
-                <></>
-            );
-            break;
-        case "enforcement":
-            tabBarExtra = (
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Button className="mr-12" onClick={() => {
-                        toggleNewScenarioModalVisibility()
-                    }}>New Scenario</Button>
-                    <Button
-                        icon={assertionCount === 0 ? null : scenariosError.length > 0 ? <ExclamationCircleOutlined/> : <CheckCircleOutlined/>}
-                        className="mr-12"
-                        type="primary"
-                        loading={runLoading}
-                        onClick={() => {
-                        runAssertions()
-                    }}>Run</Button>
-                </div>
-            );
-            break;
-        default:
-            tabBarExtra = null;
-    }
-
-
     const renderDataComponent = () => {
         switch (dataSelected) {
             case "relationships":
@@ -108,42 +54,91 @@ function Output(props) {
         }
     }
 
-    const tabs = [
-        {
-            key: 'schema',
-            label: 'Schema',
-            children: <Schema />
-        },
-        {
-            key: 'data',
-            label: 'Data',
-            children: renderDataComponent()
-        },
-        {
-            key: 'visualizer',
-            label: 'Visualizer',
-            children: <Visualizer />
-        },
-        {
-            key: 'enforcement',
-            label: 'Enforcement',
-            children: <Enforcement />
+    const renderSchemaComponent = () => {
+        switch (schemaSelected) {
+            case "schema":
+                return <Schema/>;
+            case "visualizer":
+                return <Visualizer/>;
+            default:
+                return null;
         }
-    ];
+    }
+
+    const [allotmentStatus, setAllotmentStatus] = React.useState("default");
+
+    const open = () => {
+        setAllotmentStatus("open")
+        setIsOpen(!isOpen)
+    };
+
+    const reset = () => {
+        setAllotmentStatus("default")
+        setIsOpen(!isOpen)
+    };
 
     return (
         <div>
             {!props.loading &&
                 <>
-                    <NewScenario visible={newScenarioModalVisibility} toggle={toggleNewScenarioModalVisibility}></NewScenario>
-                    <Tabs
-                        className="custom-card-tabs"
-                        activeKey={selected}
-                        onChange={handleTabChange}
-                        type="card"
-                        items={tabs}
-                        tabBarExtraContent={tabBarExtra}
-                    />
+                    <div style={{height: '100vh'}} className="ml-10 mr-10">
+                        <Allotment vertical defaultSizes={[100, 100]} >
+                            <Allotment.Pane snap visible={!isOpen}>
+                                <Allotment>
+                                    <Allotment.Pane snap>
+                                        <Card title={
+                                            <Radio.Group defaultValue="schema" buttonStyle="solid"
+                                                         onChange={onSchemaSelectedChange}
+                                                         value={schemaSelected} optionType="button">
+                                                <Radio.Button value="schema">Schema</Radio.Button>
+                                                <Radio.Button value="visualizer">Visualizer</Radio.Button>
+                                            </Radio.Group>
+                                        } className="mr-10" extra={<Button onClick={() => {
+                                            copySchema(schema)
+                                        }} icon={<CopyOutlined/>}>{isSchemaCopied ? 'Copied!' : 'Copy'}</Button>}>
+                                            {renderSchemaComponent()}
+                                        </Card>
+                                    </Allotment.Pane>
+                                    <Allotment.Pane snap>
+                                        <Card title="Enforcement" className="ml-10"
+                                              extra={<div style={{display: 'flex', alignItems: 'center'}}>
+                                                  <Button
+                                                      icon={assertionCount === 0 ? null : scenariosError.length > 0 ?
+                                                          <ExclamationCircleOutlined/> :
+                                                          <CheckCircleOutlined/>}
+                                                      type="primary"
+                                                      loading={runLoading}
+                                                      onClick={() => {
+                                                          runAssertions()
+                                                      }}>Run</Button>
+                                              </div>}>
+                                            <Enforcement/>
+                                        </Card>
+                                    </Allotment.Pane>
+                                </Allotment>
+                            </Allotment.Pane>
+                            <Allotment.Pane snap>
+                                <Card title={
+                                    <Radio.Group
+                                        defaultValue="relationships"
+                                        buttonStyle="solid"
+                                        onChange={onDataSelectedChange}
+                                        value={dataSelected}
+                                    >
+                                        <Radio.Button value="relationships">Relationships</Radio.Button>
+                                        <Radio.Button value="attributes">Attributes</Radio.Button>
+                                    </Radio.Group>} className="mt-10" extra={
+                                    allotmentStatus === "default" ?
+                                        <Button className="ml-auto" icon={<ExpandOutlined/>} onClick={open}/>
+                                        :
+                                        <Button className="ml-auto" icon={<FullscreenExitOutlined/>}
+                                                onClick={reset}/>
+                                }>
+                                    {renderDataComponent()}
+                                </Card>
+                            </Allotment.Pane>
+                        </Allotment>
+                    </div>
                 </>
             }
         </div>

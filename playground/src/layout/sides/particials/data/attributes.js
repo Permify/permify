@@ -269,9 +269,7 @@ function Attributes() {
     };
 
     const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-
         let inputElement;
-
         if (editing) {
             switch (dataIndex) {
                 case 'entityType':
@@ -279,7 +277,6 @@ function Attributes() {
                         <Select
                             showSearch
                             allowClear
-                            showArrow={false}
                             placeholder="Entity Type"
                             notFoundContent={null}
                             onChange={(value) => handleEntityTypeChange(value, record.key)}
@@ -297,7 +294,6 @@ function Attributes() {
                         <Select
                             showSearch
                             allowClear
-                            showArrow={false}
                             placeholder="Attribute"
                             notFoundContent={null}
                             onChange={(value) => handleAttributeChange(value, record.key)}
@@ -440,7 +436,7 @@ function Attributes() {
                                         </Button>
                                     </div>
                                 )}
-                                scroll={{y: 'calc(100vh - 260px)'}}
+                                scroll={{y: 'calc(100vh - 270px)'}}
                             />
                         </AttributeErrorContext.Provider>
                     </Form>

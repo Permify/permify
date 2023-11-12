@@ -47,12 +47,6 @@ export const useShapeStore = create((set, get) => ({
         set({scenarios: scenarios});
     },
 
-    removeScenario: (index) => {
-        set((state) => ({
-            scenarios: state.scenarios.filter((_, idx) => idx !== index)
-        }));
-    },
-
     removeRelationship: (relationship) => {
         set((state) => ({
             relationships: state.relationships.filter(rid => rid !== relationship)
@@ -195,8 +189,8 @@ export const useShapeStore = create((set, get) => ({
             get().setScenarios(result.scenarios ?? []);
 
         } catch (error) {
-            toast.error(`System Error: ${error.message}`);
-            set({systemError: error})
+            const baseUrl = window.location.href.split('?')[0];
+            window.location = `${baseUrl}404`;
         }
     },
 
@@ -245,7 +239,7 @@ export const useShapeStore = create((set, get) => ({
             case "ATTRIBUTE_TYPE_BOOLEAN":
                 return "boolean"
             case "ATTRIBUTE_TYPE_BOOLEAN_ARRAY":
-                return "boolean][]"
+                return "boolean[]"
             case "ATTRIBUTE_TYPE_STRING":
                 return "string"
             case "ATTRIBUTE_TYPE_STRING_ARRAY":

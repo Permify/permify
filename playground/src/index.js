@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './_assets/less/index.less';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import {LoadWasm} from './loadWasm';
+import {LoadWasm} from './wasm';
 
 ReactDOM.render(
     <React.StrictMode>
