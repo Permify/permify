@@ -16,20 +16,24 @@ function YamlEditor(props) {
     }
 
     function handleEditorChange(value, event) {
-        if (value !== props.code) {
-            props.setCode(value);
+        try {
+            if (value !== props.code) {
+                props.setCode(value);
+            }
+        } catch (error) {
+            console.error("Error while editing YAML: ", error);
         }
     }
 
     const options = {
-        selectOnLineNumbers: false,
-        renderIndentGuides: false,
-        colorDecorators: false,
+        selectOnLineNumbers: true,
+        renderIndentGuides: true,
+        colorDecorators: true,
         cursorBlinking: "smooth",
         autoClosingQuotes: "always",
-        suggestOnTriggerCharacters: false,
+        suggestOnTriggerCharacters: true,
         acceptSuggestionOnEnter: "on",
-        folding: false,
+        folding: true,
         lineNumbersMinChars: 3,
         fontSize: 12,
     };
