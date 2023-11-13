@@ -1,14 +1,14 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import YamlEditor from "../../pkg/Editor/yaml";
 import "allotment/dist/style.css";
 import {useShapeStore} from "../../state/shape";
 import yaml, {dump} from 'js-yaml';
-import {CheckCircleOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
+import {Alert} from "antd";
 
 function Enforcement() {
 
-    const {scenarios, setScenarios, scenariosError, assertionCount} = useShapeStore();
-    const yamlData = dump(scenarios);
+    const {scenarios, setScenarios, scenariosError, assertionCount, runLoading} = useShapeStore();
+    const [yamlData, setYamlData] = useState("");
 
     const handleYamlChange = (newCode) => {
         try {
@@ -19,31 +19,19 @@ function Enforcement() {
         }
     };
 
+    useEffect(() => {
+        setYamlData(dump(scenarios))
+    }, []);
+
     return (
         <>
-            {scenariosError && scenariosError.length > 0 && (
-                <div style={{
-                    padding: '5px',
-                    borderRadius: '0',
-                    background: 'rgba(255,0,0,0.1)'
-                }}>
-                    {scenariosError.map((error, index) => (
-                        <div key={index} style={{color: 'red'}}>
-                            <ExclamationCircleOutlined/> {error.message}
-                        </div>
-                    ))}
-                </div>
+            {!runLoading && scenariosError && scenariosError.length > 0 && (
+                scenariosError.map((error, index) => (
+                    <Alert type="error" message={error.message} banner closable/>
+                ))
             )}
-            {assertionCount > 0 && scenariosError.length < 1 && (
-                <div style={{
-                    padding: '5px',
-                    borderRadius: '0',
-                    background: 'rgba(78,223,67,0.1)'
-                }}>
-                    <div style={{color: '#4edf43'}}>
-                       <CheckCircleOutlined/> Success
-                    </div>
-                </div>
+            {!runLoading && assertionCount > 0 && scenariosError.length < 1 && (
+                <Alert type="success" message="Success" banner closable/>
             )}
             <YamlEditor
                 code={yamlData}

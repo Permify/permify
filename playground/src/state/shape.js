@@ -109,8 +109,7 @@ export const useShapeStore = create((set, get) => ({
                     const error = JSON.parse(rr[i]);
 
                     if (error.type === 'file_validation') {
-                        set({systemError: error.message});
-                        toast.error(`System Error: ${error.message}`);
+                        set((state) => ({scenariosError: [...state.scenariosError, error]}));
                     }
 
                     if (error.type === 'schema') {
