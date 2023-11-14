@@ -38,7 +38,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.25.0
 	github.com/zitadel/oidc v1.13.5
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.43.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.0
 	go.opentelemetry.io/contrib/instrumentation/host v0.46.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.43.0
 	go.opentelemetry.io/otel v1.20.0
@@ -56,7 +56,7 @@ require (
 	golang.org/x/net v0.17.0
 	golang.org/x/sync v0.4.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230913181813-007df8e322eb
-	google.golang.org/grpc v1.58.3
+	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -81,7 +81,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/glog v1.1.1 // indirect
+	github.com/golang/glog v1.1.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/pprof v0.0.0-20221118152302-e6195bd50e26 // indirect
 	github.com/google/uuid v1.3.1 // indirect
