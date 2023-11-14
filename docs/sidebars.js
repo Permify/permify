@@ -41,7 +41,8 @@ module.exports = {
 						"getting-started/examples/google-docs",
 						"getting-started/examples/facebook-groups",
 						"getting-started/examples/notion",
-						"getting-started/examples/instagram"
+						"getting-started/examples/instagram",
+						"getting-started/examples/mercury"
 					],
 				},
 			],

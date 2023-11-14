@@ -2,7 +2,7 @@
 
 This example presents an Instagram Authorization Schema, outlining the intricate relationships between users, accounts, and posts on the platform. It defines user access levels, privacy settings, and interactions, offering insights into how followers, account owners, and post restrictions are managed within the Instagram ecosystem.
 
-### Schema | [Open in playground](https://play.permify.co/?s=instagram&tab=schema)
+## Schema | [Open in playground](https://play.permify.co/?s=instagram&tab=schema)
 
 ```perm
 entity user {}
@@ -44,6 +44,7 @@ entity post {
 ## Brief Examination of the Model
 
 The Instagram Authorization Schema models the relationships between users, accounts, and posts in the Instagram platform.
+
 Users can own accounts, follow other accounts, and be followed by other users. Accounts can have public or private settings, and access to view an account is determined by ownership, followers, and privacy settings. Posts are associated with accounts and can have restricted comments and likes based on account privacy.
 
 ### Entities & Relations
@@ -226,7 +227,7 @@ According to the schema, `post:2` is linked with `account:2`, and it is restrict
 </p>
 </details>
 
-### Checking Post Commenting Permissions
+### Test 3: Checking Post Commenting Permissions
 
 <details><summary>Can <strong>user:george</strong> comment <strong>post:1</strong>?</summary>
 <p>
@@ -358,7 +359,7 @@ scenarios:
           comment: false
 ```
 
-### Using Schema Validator in Local
+## Using Schema Validator in Local
 
 After cloning [Permify](https://github.com/Permify/permify), open up a new file and copy the **schema yaml file** content inside. Then, build and run Permify instance using the command `make serve`
 
