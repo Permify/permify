@@ -239,9 +239,48 @@ func references(entity *base.EntityDefinition) (coverage SchemaCoverage) {
 		// Format and append the permission to the coverage struct
 		formattedPermission := fmt.Sprintf("%s#%s", entity.GetName(), permission.GetName())
 		coverage.Assertions = append(coverage.Assertions, formattedPermission)
+		conditionsAssertions(permission.GetChild(), entity.GetName(), &coverage.Assertions)
 	}
 	// Return the coverage struct
 	return
+}
+
+// Get assertions from permission condition
+func conditionsAssertions(child *base.Child, entityName string, assertions *[]string) {
+	leaf := child.GetLeaf()
+	if leaf != nil {
+		compUserSet := leaf.GetComputedUserSet()
+		if compUserSet != nil {
+			relation := fmt.Sprintf("%s#%s", entityName, compUserSet.GetRelation())
+			if !slices.Contains(*assertions, relation) {
+				*assertions = append(*assertions, relation)
+			}
+		}
+		tupleToUserSet := leaf.GetTupleToUserSet()
+		if tupleToUserSet != nil {
+			tupComp := tupleToUserSet.GetComputed()
+			if tupComp != nil {
+				relation := fmt.Sprintf("%s#%s", entityName, tupComp.GetRelation())
+				if !slices.Contains(*assertions, relation) {
+					*assertions = append(*assertions, relation)
+				}
+			}
+			tupSet := tupleToUserSet.GetTupleSet()
+			if tupSet != nil {
+				relation := fmt.Sprintf("%s#%s", entityName, tupSet.GetRelation())
+				if !slices.Contains(*assertions, relation) {
+					*assertions = append(*assertions, relation)
+				}
+			}
+		}
+	}
+	rewrite := child.GetRewrite()
+	if rewrite != nil {
+		children := rewrite.GetChildren()
+		for _, child := range children {
+			conditionsAssertions(child, entityName, assertions)
+		}
+	}
 }
 
 // relationships - Get relationships for a given entity
