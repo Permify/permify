@@ -6,6 +6,8 @@ import (
 	"errors"
 	"strings"
 
+	"log/slog"
+
 	"github.com/golang/protobuf/jsonpb"
 
 	"github.com/Masterminds/squirrel"
@@ -44,6 +46,8 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 	ctx, span := tracer.Start(ctx, "data-writer.write")
 	defer span.End()
 
+	slog.Info("Writing data to the database. TenantID: ", slog.String("tenant_id", tenantID), "Max Retries: ", slog.Any("max_retries", w.maxRetries))
+
 	if len(tupleCollection.GetTuples())+len(attributeCollection.GetAttributes()) > w.maxDataPerWrite {
 		return nil, errors.New("max data per write exceeded")
 	}
@@ -54,8 +58,13 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
+
+			slog.Error("Failed to begin transaction: ", slog.Any("error", err))
+
 			return nil, err
 		}
+
+		slog.Debug("Inserting transaction record for tenant: ", slog.String("tenant_id", tenantID))
 
 		transaction := w.database.Builder.Insert("transactions").
 			Columns("tenant_id").
@@ -65,6 +74,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
+
+			slog.Error("Failed to insert transaction record for tenant: ", slog.Any("error", err))
+
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 		}
 
@@ -74,9 +86,15 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
+
+			slog.Error("Failed to query row context: ", slog.Any("error", err))
+
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 
+		slog.Debug("Retrieved transaction: ", slog.Any("transaction", transaction), "for tenant: ", slog.Any("tenant_id", tenantID))
+
+		slog.Debug("Processing tuples and executing insert query. ")
 		if len(tupleCollection.GetTuples()) > 0 {
 
 			tuplesInsertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id")
@@ -120,6 +138,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
+
+				slog.Error("Failed to build SQL query for tuple deletion: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 			}
 
@@ -131,6 +152,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
+
+				slog.Error("Failed to execute context query: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
 
@@ -142,6 +166,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
+
+				slog.Error("Failed to build SQL query for tuples insert: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 			}
 
@@ -153,6 +180,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
+
+				slog.Error("Failed to execute context query: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
 		}
@@ -173,6 +203,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 					utils.Rollback(tx)
 					span.RecordError(err)
 					span.SetStatus(otelCodes.Error, err.Error())
+
+					slog.Error("Failed to convert the value to string: ", slog.Any("error", err))
+
 					return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 				}
 
@@ -202,6 +235,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
+
+				slog.Error("Failed to build SQL query for attribute delete: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 			}
 
@@ -213,6 +249,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
+
+				slog.Error("Failed to execute context query: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
 
@@ -224,6 +263,9 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
+
+				slog.Error("Failed to build query for attribute insertion: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 			}
 
@@ -235,6 +277,8 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
+				slog.Error("Failed to execute context query: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
 		}
@@ -246,11 +290,17 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			if strings.Contains(err.Error(), "could not serialize") {
 				continue
 			}
+			slog.Error("Failed to commiting database transaction: ", slog.Any("error", err))
+
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 
+		slog.Info("Data successfully written to the database.")
+
 		return snapshot.NewToken(xid).Encode(), nil
 	}
+
+	slog.Error("Failed to write data to the database. Max retries reached. Aborting operation. ", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
 
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
 }
@@ -259,14 +309,21 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 	ctx, span := tracer.Start(ctx, "data-writer.delete")
 	defer span.End()
 
+	slog.Info("Deleting data from the database. TenantID: ", slog.String("tenant_id", tenantID), "Max Retries: ", slog.Any("max_retries", w.maxRetries))
+
 	for i := 0; i <= w.maxRetries; i++ {
 		var tx *sql.Tx
 		tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
+
+			slog.Error("Failed to begin transaction: ", slog.Any("error", err))
+
 			return nil, err
 		}
+
+		slog.Debug("Deleting transaction record for tenant: ", slog.String("tenant_id", tenantID))
 
 		transaction := w.database.Builder.Insert("transactions").
 			Columns("tenant_id").
@@ -276,6 +333,9 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
+
+			slog.Error("Failed to insert transaction record for tenant: ", slog.Any("error", err))
+
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 		}
 
@@ -285,8 +345,15 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 			utils.Rollback(tx)
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
+
+			slog.Error("Failed to query row context: ", slog.Any("error", err))
+
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
+
+		slog.Debug("Retrieved transaction: ", slog.Any("transaction", transaction), "for tenant: ", slog.Any("tenant_id", tenantID))
+
+		slog.Debug("Processing tuple and executing update query. ")
 
 		if !validation.IsTupleFilterEmpty(tupleFilter) {
 			tbuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID})
@@ -300,6 +367,9 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
+
+				slog.Error("Failed to build SQL query for tuple updation: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 			}
 
@@ -311,9 +381,14 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
+
+				slog.Error("Failed to execute context query: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
 		}
+
+		slog.Debug("Processing attribute and executing update query.")
 
 		if !validation.IsAttributeFilterEmpty(attributeFilter) {
 			abuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID})
@@ -327,6 +402,9 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 				utils.Rollback(tx)
 				span.RecordError(err)
 				span.SetStatus(otelCodes.Error, err.Error())
+
+				slog.Error("Failed to build SQL query for attribute updation: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
 			}
 
@@ -338,6 +416,9 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
+
+				slog.Error("Failed to execute context query: ", slog.Any("error", err))
+
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
 		}
@@ -349,11 +430,18 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 			if strings.Contains(err.Error(), "could not serialize") {
 				continue
 			}
+
+			slog.Error("Failed to commiting database transaction: ", slog.Any("error", err))
+
 			return nil, err
 		}
 
+		slog.Info("Data successfully deleted from the database.")
+
 		return snapshot.NewToken(xid).Encode(), nil
 	}
+
+	slog.Error("Failed to delete data from the database. Max retries reached. Aborting operation. ", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
 
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
 }
