@@ -96,6 +96,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// if debug is true, print schema is creating with color blue
+		color.Notice.Println("schema is creating... 🚀")
 		loader := schema.NewSchemaLoader()
 		schema, err := loader.LoadSchema(s.Schema)
 		if err != nil {
