@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -49,12 +50,17 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 	changes := make(chan *base.DataChanges, w.bufferSize)
 	errs := make(chan error, 1)
 
+	slog.Info("Watching for changes in the database. ", slog.Any("tenant_id", tenantID), slog.Any("snapshot", snap))
+
 	// Decode the snapshot value.
 	// The snapshot value represents a point in the history of the database.
 	st, err := snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
 		// If there is an error in decoding the snapshot, send the error and return.
 		errs <- err
+
+		slog.Error("Failed to decode snapshot.", slog.Any("error", err))
+
 		return changes, errs
 	}
 
@@ -73,6 +79,9 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 			recentIDs, err := w.getRecentXIDs(ctx, cr, tenantID)
 			if err != nil {
 				// If there is an error in getting recent transaction IDs, send the error and return.
+
+				slog.Error("Error getting recent transaction. ", slog.Any("error", err))
+
 				errs <- err
 				return
 			}
@@ -83,6 +92,9 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 				updates, err := w.getChanges(ctx, id, tenantID)
 				if err != nil {
 					// If there is an error in getting the changes, send the error and return.
+
+					slog.Error("Failed to get changes for transaction. ", slog.Any("id", id), slog.Any("error", err))
+
 					errs <- err
 					return
 				}
@@ -90,7 +102,9 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 				// Send the changes, but respect the context cancellation.
 				select {
 				case changes <- updates: // Send updates to the changes channel.
+					slog.Info("Sent updates to the changes channel for transaction. ", slog.Any("id", id))
 				case <-ctx.Done(): // If the context is done, send an error and return.
+					slog.Error("Context canceled, stopping watch.")
 					errs <- errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 					return
 				}
@@ -105,13 +119,17 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 
 				select {
 				case <-sleep.C: // If the timer is done, continue the loop.
+					slog.Info("No recent transaction IDs, waiting for changes...")
 				case <-ctx.Done(): // If the context is done, send an error and return.
+					slog.Error("Context canceled, stopping watch.")
 					errs <- errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 					return
 				}
 			}
 		}
 	}()
+
+	slog.Info("Watch started successfully.")
 
 	// Return the channels that the caller will listen to for changes and errors.
 	return changes, errs
@@ -146,12 +164,20 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 	// Convert the builder to a SQL query and arguments.
 	query, args, err := builder.ToSql()
 	if err != nil {
+
+		slog.Error("Error while building SQL query. ", slog.Any("error", err))
+
 		return nil, err
 	}
+
+	slog.Debug("Executing SQL query to get recent transaction: ", slog.Any("query", query), slog.Any("arguments", args))
 
 	// Execute the SQL query.
 	rows, err := w.database.DB.QueryContext(ctx, query, args...)
 	if err != nil {
+
+		slog.Error("Failed to execute SQL query. ", slog.Any("error", err))
+
 		return nil, err
 	}
 	defer rows.Close()
@@ -162,6 +188,9 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 		var xid types.XID8
 		err := rows.Scan(&xid)
 		if err != nil {
+
+			slog.Error("Error while scanning row. ", slog.Any("error", err))
+
 			return nil, err
 		}
 		xids = append(xids, xid)
@@ -170,9 +199,13 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 	// Check for errors that could have occurred during iteration.
 	err = rows.Err()
 	if err != nil {
+
+		slog.Error("Failed to iterate over rows. ", slog.Any("error", err))
+
 		return nil, err
 	}
 
+	slog.Info("Successfully retrieved recent transaction. ", slog.Any("ids", xids))
 	return xids, nil
 }
 
@@ -188,6 +221,8 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 	// Initialize a new TupleChanges instance.
 	changes := &base.DataChanges{}
 
+	slog.Info("Retrieving changes for transaction. ", slog.Any("id", value), slog.Any("tenant_id", tenantID))
+
 	// Construct the SQL SELECT statement for retrieving the changes from the RelationTuplesTable.
 	tbuilder := w.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, expired_tx_id").
 		From(RelationTuplesTable).
@@ -199,13 +234,17 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 	// Generate the SQL query and arguments.
 	tquery, targs, err := tbuilder.ToSql()
 	if err != nil {
+		slog.Error("Error while building SQL query for relation tuples", slog.Any("error", err))
 		return nil, err
 	}
+
+	slog.Debug("Executing SQL query for relation tuples. ", slog.Any("query", tquery), slog.Any("arguments", targs))
 
 	// Execute the SQL query and retrieve the result rows.
 	var trows *sql.Rows
 	trows, err = w.database.DB.QueryContext(ctx, tquery, targs...)
 	if err != nil {
+		slog.Error("Failed to execute SQL query for relation tuples. ", slog.Any("error", err))
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	// Ensure the rows are closed after processing.
@@ -220,12 +259,16 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 
 	aquery, aargs, err := abuilder.ToSql()
 	if err != nil {
+		slog.Error("Error while building SQL query for attributes. ", slog.Any("error", err))
 		return nil, err
 	}
+
+	slog.Debug("Executing SQL query for attributes. ", slog.Any("query", aquery), slog.Any("arguments", aargs))
 
 	var arows *sql.Rows
 	arows, err = w.database.DB.QueryContext(ctx, aquery, aargs...)
 	if err != nil {
+		slog.Error("Error while executing SQL query for attributes. ", slog.Any("error", err))
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	// Ensure the rows are closed after processing.
@@ -242,6 +285,7 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 		// Scan the result row into a RelationTuple instance.
 		err = trows.Scan(&rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation, &expiredXID)
 		if err != nil {
+			slog.Error("Error while scanning row for relation tuples. ", slog.Any("error", err))
 			return nil, err
 		}
 
@@ -271,12 +315,14 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 		// Scan the result row into a RelationTuple instance.
 		err = trows.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueBytes, &expiredXID)
 		if err != nil {
+			slog.Error("Error while scanning row for attributes", slog.Any("error", err))
 			return nil, err
 		}
 
 		rt.Value = &anypb.Any{}
 		err = proto.Unmarshal(valueBytes, rt.Value)
 		if err != nil {
+			slog.Error("Failed to unmarshal attribute value", slog.Any("error", err))
 			return nil, err
 		}
 
@@ -294,6 +340,8 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 			},
 		})
 	}
+
+	slog.Info("Successfully retrieved changes for transaction. ", slog.Any("id", value))
 
 	// Return the changes and no error.
 	return changes, nil

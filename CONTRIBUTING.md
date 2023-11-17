@@ -2,9 +2,9 @@
 
 Welcome to Permify contribution guidelines, happy to see you here :blush:
 
-Before participating in the community, we must spesificy that all of the contributions must follow our [Code of Conduct](https://github.com/Permify/permify/blob/master/CODE_OF_CONDUCT.md). Please read it before you make any contributions.
+Before participating in the community, we must specify that all of the contributions must follow our [Code of Conduct](https://github.com/Permify/permify/blob/master/CODE_OF_CONDUCT.md). Please read it before you make any contributions.
 
-If you need any help or want to talk about about a spesific issue, you can always reach out to me from my mail:ege@permify.co.
+If you need any help or want to talk about about a specific issue, you can always reach out to me from my mail:ege@permify.co.
 
 You're always more than welcome to our other communication channels.
 
@@ -25,14 +25,14 @@ You're always more than welcome to our other communication channels.
 ## Ways to contribute
 
 * **Contribute to codebase:** We're collaboratively working with our community to make Permify the best it can be! You can develop new features, fix existing issues or make third-party integrations/packages. 
-* **Improve documentation:** Alongside our codebase, documentation one of the most significant things in our open-source journey. We're trying to give the best DX possible to explain ourselfs and Permify. And you can help on that with importing resources or adding new ones.
+* **Improve documentation:** Alongside our codebase, documentation is one of the most significant things in our open-source journey. We're trying to give the best DX possible to explain ourselves and Permify. And you can help on that by improving resources or adding new ones.
 * **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
 
 ### Contribution Steps
 
 - Fork this repository.
 - Clone the repository you forked.
-- Create a branch with spesified name. Its better to related with your issue title.
+- Create a branch with specified name. It's better to relate it with your issue title.
 - Make necessary changes and commit those changes. Make sure to test your changes. 
 - Push changes to your branch.
 - Submit your changes for review.
@@ -78,10 +78,10 @@ If you found any bug, have feature request or just want to improve our code base
 ### When opening a issue
 
 - If you plan to work on a problem, please check that same problem or topic does not already exist.
-- If you plan to work on a new feature, our advice it discuss it with other community members/maintainers who might give you a idea or support.
-- If you stuck anywhere, ask for help in our discord community.
+- If you plan to work on a new feature, our advise is to discuss it with other community members/maintainers who might give you an idea or support.
+- If you're stuck anywhere, ask for help in our discord community.
 - Please relate one bug with one issue, do not use issues as bug lists. 
 
-You can create an issue and contribute about anything you want but following above steps. We will definitely ease your work and help on anything when needed.
+You can create an issue and contribute to anything you want, but please ensure to follow the steps above. We will definitely ease your work and help on anything when needed.
 
 

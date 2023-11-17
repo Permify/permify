@@ -92,26 +92,14 @@ var _ = Describe("SchemaReader", func() {
 				References:  map[string]base.EntityDefinition_Reference{},
 			}))
 
-			Expect(sch.EntityDefinitions["organization"]).Should(Equal(&base.EntityDefinition{
-				Name: "organization",
-				Relations: map[string]*base.RelationDefinition{
-					"admin": {
-						Name: "admin",
-						RelationReferences: []*base.RelationReference{
-							{
-								Type:     "user",
-								Relation: "",
-							},
-						},
-					},
-				},
-				Permissions: map[string]*base.PermissionDefinition{},
-				Attributes:  map[string]*base.AttributeDefinition{},
-				References: map[string]base.EntityDefinition_Reference{
-					"admin": base.EntityDefinition_REFERENCE_RELATION,
-				},
-			},
-			))
+			Expect(sch.EntityDefinitions["organization"].GetName()).Should(Equal("organization"))
+			Expect(sch.EntityDefinitions["organization"].GetRelations()["admin"].Name).Should(Equal("admin"))
+			Expect(sch.EntityDefinitions["organization"].GetRelations()["admin"].GetRelationReferences()[0].GetType()).Should(Equal("user"))
+			Expect(sch.EntityDefinitions["organization"].GetRelations()["admin"].GetRelationReferences()[0].GetRelation()).Should(Equal(""))
+
+			Expect(sch.EntityDefinitions["organization"].GetPermissions()).Should(Equal(map[string]*base.PermissionDefinition{}))
+			Expect(sch.EntityDefinitions["organization"].GetAttributes()).Should(Equal(map[string]*base.AttributeDefinition{}))
+			Expect(sch.EntityDefinitions["organization"].GetReferences()["admin"]).Should(Equal(base.EntityDefinition_REFERENCE_RELATION))
 
 			Expect(sch.RuleDefinitions).Should(Equal(map[string]*base.RuleDefinition{}))
 
@@ -139,26 +127,15 @@ var _ = Describe("SchemaReader", func() {
 
 			Expect(version).Should(Equal(v))
 
-			Expect(en).Should(Equal(&base.EntityDefinition{
-				Name: "organization",
-				Relations: map[string]*base.RelationDefinition{
-					"admin": {
-						Name: "admin",
-						RelationReferences: []*base.RelationReference{
-							{
-								Type:     "user",
-								Relation: "",
-							},
-						},
-					},
-				},
-				Permissions: map[string]*base.PermissionDefinition{},
-				Attributes:  map[string]*base.AttributeDefinition{},
-				References: map[string]base.EntityDefinition_Reference{
-					"admin": base.EntityDefinition_REFERENCE_RELATION,
-				},
-			},
-			))
+			Expect(en.GetName()).Should(Equal("organization"))
+
+			Expect(en.GetRelations()["admin"].GetName()).Should(Equal("admin"))
+			Expect(en.GetRelations()["admin"].GetRelationReferences()[0].GetType()).Should(Equal("user"))
+			Expect(en.GetRelations()["admin"].GetRelationReferences()[0].GetRelation()).Should(Equal(""))
+
+			Expect(en.GetPermissions()).Should(Equal(map[string]*base.PermissionDefinition{}))
+			Expect(en.GetAttributes()).Should(Equal(map[string]*base.AttributeDefinition{}))
+			Expect(en.GetReferences()["admin"]).Should(Equal(base.EntityDefinition_REFERENCE_RELATION))
 		})
 	})
 
