@@ -4,10 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 	"strings"
 	"time"
-
-	"log/slog"
 
 	"github.com/Masterminds/squirrel"
 	otelCodes "go.opentelemetry.io/otel/codes"

@@ -136,7 +136,6 @@ var _ = Describe("SchemaReader", func() {
 			Expect(en.GetPermissions()).Should(Equal(map[string]*base.PermissionDefinition{}))
 			Expect(en.GetAttributes()).Should(Equal(map[string]*base.AttributeDefinition{}))
 			Expect(en.GetReferences()["admin"]).Should(Equal(base.EntityDefinition_REFERENCE_RELATION))
-
 		})
 	})
 
