@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-
 	"log/slog"
 
 	"github.com/Masterminds/squirrel"
