@@ -83,8 +83,8 @@ Permify implements several cache mechanisms in order to achieve low latency in s
 
 Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our documentation. 
 
-- doc: https://docs.permify.co/docs/reference/configuration
-- algorithm: https://en.wikipedia.org/wiki/Token_bucket
+- [Configuration reference](../../reference/configuration)
+- [Algorithm](https://en.wikipedia.org/wiki/Token_bucket)
 
 ## Need any help ?
 
