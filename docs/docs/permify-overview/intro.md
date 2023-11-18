@@ -42,9 +42,9 @@ In Permify, authorization is divided into 3 core aspects; **modeling**, **storin
 - Learn how Permify will [Store Authorization Data] as relations.
 - Perform [Access Checks] anywhere in your stack.
 
-[Model your Authorization]: ../getting-started/modeling
-[Store Authorization Data]: ../getting-started/sync-data
-[Access Checks]: ../getting-started/enforcement
+[Model your Authorization]: ../../getting-started/modeling
+[Store Authorization Data]: ../../getting-started/sync-data
+[Access Checks]: ../../getting-started/enforcement
 
 This document explains how Permify handles these aspects to provide a robust and scalable authorization system for your applications. For the ones that want to try it out and examine it instantly, 
 
@@ -57,7 +57,7 @@ This document explains how Permify handles these aspects to provide a robust and
            <div className="thumb-txt">Use our Playground to test your authorization in a browser. </div>
         </div>
     </a>
-    <a href="https://docs.permify.co/docs/installation/overview">
+    <a href="./installation/overview">
         <div className="btn-thumb">
             <div className="thumbnail">
                  <img src="https://user-images.githubusercontent.com/34595361/199695094-872d50fc-c33b-4d15-ad1d-a3899911a16a.png"/>
