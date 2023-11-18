@@ -100,12 +100,12 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		color.Notice.Println("schema is creating... 🚀")
 
 		loader := schema.NewSchemaLoader()
-		schema, err := loader.LoadSchema(s.Schema)
+		loaded, err := loader.LoadSchema(s.Schema)
 		if err != nil {
 			return err
 		}
 
-		sch, err := parser.NewParser(schema).Parse()
+		sch, err := parser.NewParser(loaded).Parse()
 		if err != nil {
 			return err
 		}

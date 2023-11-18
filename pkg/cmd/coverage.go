@@ -12,6 +12,7 @@ import (
 	"github.com/Permify/permify/pkg/cmd/flags"
 	cov "github.com/Permify/permify/pkg/development/coverage"
 	"github.com/Permify/permify/pkg/development/file"
+	"github.com/Permify/permify/pkg/schema"
 )
 
 // NewCoverageCommand - creates a new coverage command
@@ -61,6 +62,14 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+
+		loader := schema.NewSchemaLoader()
+		loaded, err := loader.LoadSchema(s.Schema)
+		if err != nil {
+			return err
+		}
+
+		s.Schema = loaded
 
 		color.Notice.Println("initiating coverage analysis... 🚀")
 

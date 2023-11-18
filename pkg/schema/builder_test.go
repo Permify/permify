@@ -1,21 +1,13 @@
 package schema
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// TestBuilder -
-func TestBuilder(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "builder-suite")
-}
-
-var _ = Describe("compiler", func() {
+var _ = Describe("schema", func() {
 	Context("Schema", func() {
 		It("Case 1", func() {
 			is := Schema(
