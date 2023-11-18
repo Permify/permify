@@ -11,7 +11,9 @@ var _ = Describe("Loader", func() {
 	Context("LoadSchema function", func() {
 		It("should load schema from URL", func() {
 			loader := NewSchemaLoader()
-			schema, _ := loader.LoadSchema("https://gist.githubusercontent.com/neo773/d50f089c141bf61776c22157413ddbac/raw/ed2eb12108e49fce11be27d0387b8b01912b9d98/gistfile1.txt")
+			schema, err := loader.LoadSchema("https://gist.githubusercontent.com/neo773/d50f089c141bf61776c22157413ddbac/raw/ed2eb12108e49fce11be27d0387b8b01912b9d98/gistfile1.txt")
+			Expect(err).ShouldNot(HaveOccurred())
+
 			expectedSchema := `
 			entity userhttp {}
 
@@ -40,7 +42,9 @@ var _ = Describe("Loader", func() {
 
 		It("should load schema from file", func() {
 			loader := NewSchemaLoader()
-			schema, _ := loader.LoadSchema("./schema.txt")
+			schema, err := loader.LoadSchema("./schema.txt")
+			Expect(err).ShouldNot(HaveOccurred())
+
 			expectedSchema := `
 			entity userfs {}
 
@@ -69,7 +73,7 @@ var _ = Describe("Loader", func() {
 
 		It("should load inline schema", func() {
 			loader := NewSchemaLoader()
-			schema, _ := loader.LoadSchema(`entity userinline {}
+			schema, err := loader.LoadSchema(`entity userinline {}
 
 			entity organization {
 		   
@@ -90,6 +94,8 @@ var _ = Describe("Loader", func() {
 			   action delete = (parent.member and (parent.admin or owner))
 			   action edit = parent.member not owner
 		   }`)
+
+			Expect(err).ShouldNot(HaveOccurred())
 
 			expectedSchema := `
 			entity userinline {}
