@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 )
 
 // Type defines an enumeration for different schema types.
@@ -93,11 +92,6 @@ func isURL(input string) bool {
 }
 
 func isFilePath(input string) (bool, error) {
-	// Regex to validate the path format
-	if match, _ := regexp.MatchString(`^[a-zA-Z0-9_\- /]+$`, input); !match {
-		return false, errors.New("path format is not valid")
-	}
-
 	_, err := os.Stat(input)
 	if err != nil {
 		if os.IsNotExist(err) {
