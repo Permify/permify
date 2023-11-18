@@ -1,0 +1,21 @@
+entity userfs {}
+
+ entity organization {
+
+    relation admin @userfs
+    relation member @userfs
+
+    action create_repository = (admin or member)
+    action delete = admin
+}
+
+ entity repository {
+
+    relation owner @userfs @organization#member
+    relation parent @organization
+
+    action push = owner
+    action read = (owner and (parent.admin and parent.member))
+    action delete = (parent.member and (parent.admin or owner))
+    action edit = parent.member not owner
+}
