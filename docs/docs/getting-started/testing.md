@@ -45,6 +45,31 @@ Below you can examine an example schema validation yaml file. It consists 3 part
 - `relationships` sample data to test your model,
 - `scenarios` to test access check queries within created scenarios.
 
+### Defining the Schema:
+
+You can define the `schema` in the YAML file in one of two ways:
+
+1. **Directly in the File:** Define the schema directly within the YAML file.
+
+   ```yaml
+   schema: >-
+     entity user {}
+     entity organization {
+       ...
+     }
+   
+2. **Via URL or File Path:** Specify a URL or a file path to an external schema file.
+   **Example with URL:**
+
+    ```yaml
+    schema: https://example.com/path/to/schema.txt
+    ```
+
+    **Example with File Path:**
+    ```yaml
+    schema: /path/to/your/schema/file.txt
+    ```
+
 Here is an example Schema Validation file, 
 
 ```yaml
