@@ -2,19 +2,13 @@ package schema
 
 import (
 	"strings"
-	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-func TestLoader(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Loader Suite")
-}
-
 var _ = Describe("Loader", func() {
-	Describe("LoadSchema function", func() {
+	Context("LoadSchema function", func() {
 		It("should load schema from URL", func() {
 			loader := NewSchemaLoader()
 			schema, _ := loader.LoadSchema("https://gist.githubusercontent.com/neo773/d50f089c141bf61776c22157413ddbac/raw/ed2eb12108e49fce11be27d0387b8b01912b9d98/gistfile1.txt")
