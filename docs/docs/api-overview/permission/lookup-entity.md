@@ -11,8 +11,10 @@ Lookup Entity endpoint lets you ask questions in form of **“Which resources ca
 
 So, we provide 2 separate endpoints for data filtering check request,
 
-- [/v1/permissions/lookup-entity](#lookup-entity)
-- [/v1/permissions/lookup-entity-stream](#lookup-entity-streaming)
+- [Entity Filtering](#entity-filtering)
+  - [Lookup Entity](#lookup-entity)
+  - [How Lookup Operations Evaluated](#how-lookup-operations-evaluated)
+    - [Lookup Entity (Streaming)](#lookup-entity-streaming)
 
 ## Lookup Entity 
 
@@ -26,11 +28,11 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 |----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [x]      | tenant_id         | string | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                           |
 | [ ]      | schema_version    | string | 8       | Version of the schema                                                                                                                                                      |
-| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens)                                                                        |
+| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../../reference/snap-tokens)                                                                        |
 | [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
 | [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
-| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -148,7 +150,7 @@ The difference between this endpoint from direct Lookup Entity is response of th
 | [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
 | [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
-| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">

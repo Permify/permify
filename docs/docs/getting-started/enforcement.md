@@ -15,10 +15,10 @@ We structured Permify API in 4 core parts:
 
 Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/main:base.v1) - with [go] and [nodeJS] client options - and [REST](https://restfulapi.net/).
 
-[PermissionService]: ../api-overview/permission
-[DataService]: ../api-overview/data
-[SchemaService]: ../api-overview/schema
-[TenancyService]: ../api-overview/tenancy
+[PermissionService]: ../../api-overview/permission
+[DataService]: ../../api-overview/data
+[SchemaService]: ../../api-overview/schema
+[TenancyService]: ../../api-overview/tenancy
 [go]: https://github.com/Permify/permify-go
 [nodeJS]: https://github.com/Permify/permify-node
 
@@ -75,7 +75,7 @@ Permify designed to answer these authorization questions efficiently and with mi
 - Using its parallel graph engine. 
 - Storing the relationships between resources beforehand in preferred data store, rather than providing these relationships at “check” time.
 - Implementing permission caching to not recompute repeated permission checks, and in memory cache to store authorization schema.
-- Using [Snap Tokens](../reference/snap-tokens) to achieve consistency and high performance in cache.
+- Using [Snap Tokens](../../reference/snap-tokens) to achieve consistency and high performance in cache.
 
 Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisms](../reference/cache.md) 
 

@@ -43,7 +43,7 @@ This will start Permify with the default configuration options:
 :::info
 You can examine [Deploy using Docker] section to get more about the configuration options and learn the full integration to run Permify Service from docker container.
 
-[Deploy using Docker]: ../installation/container
+[Deploy using Docker]: ../container
 :::
 
 ### Test your connection
@@ -110,7 +110,7 @@ Lets roll back our example,
 For implementation sake we'll not dive more deep about modeling but you can find more information about modeling on [Modeling Authorization with Permify] section. Also can check out [example use cases] to better understand some basic use cases modeled with Permify Schema. 
 
 [Modeling Authorization with Permify]: ../getting-started/modeling
-[example use cases]: ../use-cases/simple-rbac
+[example use cases]: ../../use-cases/simple-rbac
 :::
 
 ### Configuring Schema via API 
@@ -190,7 +190,7 @@ In ideal production usage Permify stores your authorization data in a database y
 
 But in this tutorial Permify Service running default configurations on local, so authorization data will be stored in memory. You can find more detailed explanation how Permify stores authorization data in [Managing Authorization Data] section.
 
-[Managing Authorization Data]: ../getting-started/sync-data
+[Managing Authorization Data]: ../../getting-started/sync-data
 :::
 
 ## Perform Access Check
@@ -199,8 +199,8 @@ Finally we're ready to control authorization. Access decision results computed a
 
 Lets get back to our example and perform an example access check via [Check API]. We want to check whether an specific user has an access to view files in a organization.
 
-[Check API]: ../api-overview/permission/check-api
-[Permify Schema]: ../getting-started/modeling
+[Check API]: ../../api-overview/permission/check-api
+[Permify Schema]: ../../getting-started/modeling
 
 #### Example HTTP Request: 
 

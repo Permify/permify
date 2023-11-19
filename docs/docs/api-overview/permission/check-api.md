@@ -10,7 +10,7 @@ In Permify, you can perform two different types access checks,
 
 In this section we'll look at the resource based check request of Permify. You can find subject based access checks in [Entity (Data) Filtering] section.
 
-[Entity (Data) Filtering]: ./lookup-entity
+[Entity (Data) Filtering]: ../lookup-entity
 
 ## Request
 
