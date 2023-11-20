@@ -9,31 +9,31 @@ export const CaseList = () => {
       id:1,
       title:"Role Based Access Control (RBAC)",
       description: "Want to implement role to your application ? Define an entity and manage your roles throught your applications.",
-      link: "./use-cases/simple-rbac"
+      link: "./simple-rbac"
     },
     {
       id:2,
       title:"Attribute Based Access Control (ABAC)",
       description: "Grant access what based on specific characteristics or attributes.",
-      link: "./use-cases/abac"
+      link: "./abac"
     },
     {
       id:3,
       title:"Relationship Based Access Control (ReBAC)",
       description: "Define permissions based on the relationships between resources and subjects in your system",
-      link: "./use-cases/rebac"
+      link: "./rebac"
     },
     {
       id:4,
       title:"Custom Roles",
       description: "Assign specific permissions to users based on the custom roles that they are assigned within the system.",
-      link: "./use-cases/custom-roles"
+      link: "./custom-roles"
     },
     {
       id:5,
       title:"Multi Tenancy",
       description: "Create custom authorization schema and relation tuples for the different tenants and manage them in a single place.",
-      link:  "./use-cases/multi-tenancy"
+      link:  "./multi-tenancy"
     },
   ]
 

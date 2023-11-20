@@ -3,7 +3,7 @@
 
 This document highlights a solution for custom roles with the [Permify Schema]. In this tutorial, we will create custom **admin** and **member** roles in a project. Then set the permissions of these roles according to their capabilities on the dashboard and tasks.
 
-[Permify Schema]: ../getting-started/modeling
+[Permify Schema]: ../../getting-started/modeling
 
 Before we get started, here's the final schema that we will create in this tutorial.
 

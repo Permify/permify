@@ -11,8 +11,8 @@ Another example: when one a company executive grant admin role to user (lets say
 
 ![tuple-creation](https://user-images.githubusercontent.com/34595361/186637488-30838a3b-849a-4859-ae4f-d664137bb6ba.png)
 
-[relational tuples]: ../../getting-started/sync-data
-[preferred database]: ../../getting-started/sync-data#where-relational-tuples-used
+[relational tuples]: ../../../getting-started/sync-data
+[preferred database]: ../../../getting-started/sync-data#where-relational-tuples-used
 
 ## Write Request
 
