@@ -117,7 +117,7 @@ which `‍parent.admin`‍ indicates admin in the organization that repository b
 :::info Create More Advanced Scenarios
 For simplicity, we've created a basic scenario. However, you can create more advanced scenarios using our validation YAML structure.
 
-To learn how to use this syntax for complex scenarios, refer to the [Creating Test Scenarios](./getting-started/testing#creating-test-scenarios) section in [Testing & Validation](./getting-started/testing.md) page.
+To learn how to use this syntax for complex scenarios, refer to the [Creating Test Scenarios](../getting-started/testing#creating-test-scenarios) section in [Testing & Validation](../getting-started/testing) page.
 :::
 
 Let's click the Run button to execute our scenario. The scenario name should turn green once the scenario result is confirmed as correct.
