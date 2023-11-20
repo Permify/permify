@@ -17,14 +17,9 @@ For the users that don't have/need multi-tenancy in their authorization structur
 
 Several things changed when we moved to tenant based infrastructure, these are:
 
-- [Multi Tenancy on Permify](#multi-tenancy-on-permify)
-  - [API endpoints now have Tenant ID field](#api-endpoints-now-have-tenant-id-field)
-    - [Check API](#check-api)
-  - [Added Tenancy Service](#added-tenancy-service)
-  - [WriteDB tenancy table and tenant id column](#writedb-tenancy-table-and-tenant-id-column)
-    - [Tenant Table](#tenant-table)
-    - [Tenant ID Column](#tenant-id-column)
-- [Need any help ?](#need-any-help-)
+* [API endpoints now have Tenant ID field](#api-endpoints-now-have-tenant-id-field)
+* [Added Tenancy Service](#added-tenancy-service)
+* [WriteDB tables and tenant id column](#writedb-tables-and-tenant-id-column)
 
 ### API endpoints now have Tenant ID field 
 
