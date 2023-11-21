@@ -1,0 +1,96 @@
+schema: |-
+    entity user {}
+
+    entity account {
+        // users have accounts
+        relation owner @user
+        
+        // accounts can follow other users/accounts.
+        relation following @user
+
+        // other users/accounts can follow account.
+        relation follower @user
+
+        // accounts can be private or public.
+        attribute public boolean
+
+        // users can view an account if they're followers, owners, or if the account is not private.
+        action view = (owner or follower) or public
+        
+    }
+
+    entity post {
+        // posts are linked with accounts.
+        relation account @account
+
+        // comments are limited to people followed by the parent account.
+        attribute restricted boolean
+
+        // users can view the posts, if they have access to view the linked accounts.
+        action view = account.view
+
+        // users can comment and like on unrestricted posts or posts by owners who follow them.
+        action comment = account.following not restricted
+        action like = account.following not restricted
+    }
+
+relationships:
+  - account:1#owner@user:kevin
+  - account:2#owner@user:george
+  - account:1#following@user:george 
+  - account:2#follower@user:kevin  
+  - post:1#account@account:1      
+  - post:2#account@account:2 
+
+attributes:
+  - account:1$public|boolean:true
+  - account:2$public|boolean:false 
+  - post:1$restricted|boolean:false
+  - post:2$restricted|boolean:true 
+
+scenarios:
+  - name: "Account Viewing Permissions"
+    description: "Evaluate account viewing permissions for 'kevin' and 'george'."
+    checks:
+      - entity: "account:1"
+        subject: "user:kevin"
+        assertions:
+            view: true
+      - entity: "account:2"
+        subject: "user:kevin"
+        assertions:
+            view: true
+      - entity: "account:1"
+        subject: "user:george"
+        assertions:
+            view: true
+      - entity: "account:2"
+        subject: "user:george"
+        assertions:
+            view: true
+  - name: "Post Viewing Permissions"
+    description: "Determine post viewing permissions for 'kevin' and 'george'."
+    checks:
+      - entity: "post:1"
+        subject: "user:george"
+        assertions:
+            view: true
+      - entity: "post:2"
+        subject: "user:kevin"
+        assertions:
+            view: true
+      - entity: "post:2"
+        subject: "user:george"
+        assertions:
+            view: true
+  - name: "Post Commenting Permissions"
+    description: "Evaluate post commenting permissions for 'kevin' and 'george'."
+    checks:
+      - entity: "post:1"
+        subject: "user:george"
+        assertions:
+            comment: true
+      - entity: "post:2"
+        subject: "user:kevin"
+        assertions:
+            comment: false

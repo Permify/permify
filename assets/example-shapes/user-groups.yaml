@@ -1,0 +1,50 @@
+schema: |-
+    entity user {}
+
+    entity organization {
+
+        // organizational roles
+        relation admin @user
+        relation member @user
+
+    }
+
+    entity team {
+
+        // represents owner or creator of the team
+        relation owner @user
+
+        // represents direct member of the team
+        relation member @user
+
+        // reference for organization that team belong
+        relation org @organization
+
+        // organization admins or owners can edit, delete the team details
+        permission edit = org.admin or owner
+        permission delete = org.admin or owner
+
+        // to invite someone you need to be admin and either owner or member of this team
+        permission invite = org.admin and (owner or member)
+
+        // only owners can remove users
+        permission remove_user =  owner
+    }
+
+    entity project {
+
+        // references for team and organization that project belongs
+        relation team @team
+        relation org @organization
+
+        permission view = org.admin or team.member
+        permission edit = org.admin or team.member
+        permission delete = team.member
+    }
+
+relationships:
+   - "team:1#owner@user:1"
+
+attributes:
+
+scenarios:
