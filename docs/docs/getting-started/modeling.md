@@ -373,6 +373,50 @@ Permissions can be inherited as relations in other entities. This allows to form
 
 In this example, a comment belongs to a post which is part of a group. Since there is a **'member'** relation defined for the group entity, we can use the **'group_member'** permission to inherit the **member** relation from the group in the post and then use it in the comment.
 
+### Recursive ReBAC
+
+With Permify DSL, you can define recursive relationship-based permissions within the same entity.
+
+As an example, consider a system where there are multiple organizations within a company, some of which may have a parent-child relationship between them.
+
+As expected, organization members are also granted permission to view their organization details. You can model that as follows: 
+
+```perm
+entity user {}
+
+entity organization {
+    relation parent @organization
+    relation member @user @organization#member
+
+    action view = member or parent.member
+}
+```
+
+Let's extend the scenario by adding a rule allowing parent organization members to view details of child organizations. Specifically, a member of **Organization Alpha** could view the details of **Organization Beta** if **Organization Beta** belongs to **Organization Alpha**.
+
+![modeling-authorization](https://user-images.githubusercontent.com/58391988/279456032-485a0aef-b83b-4257-af48-0fcbe6fa2e64.png)
+
+First authorization schema that we provide won't solve this issue because `parent.member` accommodate single upward traversal in a hierarchy. 
+
+Instead of `parent.member` we can call the parent view permission on the same entity - `parent.view` to achieve multiple levels of upward traversal, as follows: 
+
+```perm
+entity user {}
+
+entity organization {
+    relation parent @organization
+    relation member @user @organization#member
+
+    action view = member or parent.view
+}
+```
+
+This way, we achieve a recursive relationship between parent-child organizations.
+
+:::note
+*Credits to [Léo](https://github.com/LeoFVO) for the illustration and for [highlighting](https://github.com/Permify/permify/issues/790) this use case.*
+:::
+
 ## Attribute Based Permissions (ABAC)
 
 :::success Beta
