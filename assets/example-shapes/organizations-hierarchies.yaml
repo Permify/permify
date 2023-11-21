@@ -1,0 +1,47 @@
+schema: |-
+    entity user {}
+
+    entity organization {
+
+        // organizational roles
+        relation admin @user
+        relation member @user
+
+    }
+
+    entity repository {
+
+        // represents repositories parent organization
+        relation parent @organization
+
+        // represents owner of this repository
+        relation owner  @user
+
+        // permissions
+        permission edit   = parent.admin or owner
+        permission delete = owner
+    } 
+
+relationships:
+   - "organization:tech_corp#admin@user:admin_user"
+   - "repository:core_system#parent@organization:tech_corp"
+
+attributes:
+    
+scenarios:
+  - name: admin_access_test
+    checks:
+      - entity: repository:core_system
+        subject: user:admin_user
+        context: null
+        assertions:
+          edit: true
+          delete: false
+      - entity: repository:dev_portal
+        subject: user:dev_member
+        context: null
+        assertions:
+          edit: false 
+          delete: false
+    entity_filters: []
+    subject_filters: []

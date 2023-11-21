@@ -1,0 +1,56 @@
+schema: |-
+    entity user {}
+
+    entity account {
+        // users own an account.
+        relation owner @user
+
+        action create_profile = owner
+    }
+
+    entity profile {
+        // accounts can own a multiple profiles.
+        relation owner @account
+
+        action edit = owner 
+        action delete = owner
+        action create_watchlist = owner 
+
+    }
+
+    entity watchlist {
+        // each profile can own a multiple watch-list.
+        relation owner @profile
+        
+        action edit = owner
+        action delete = owner
+        action remove_content = owner
+        
+    }
+
+    entity content {
+        // contents can be a part of watch_lists
+        relation watchlist @watchlist
+        relation user @profile
+        
+        attribute age_rating integer
+        attribute allowed_region string[]
+
+        action view = check_age(request.age, age_rating) and check_region(request.region, allowed_region)
+        action add_watchlist = user 
+
+    }
+
+    rule check_age(age integer, age_rating integer) {
+        age >= age_rating
+    }
+
+    rule check_region(region string, allowed_region string[]) {
+        region in allowed_region
+    }
+
+relationships:
+
+attributes:
+
+scenarios:
