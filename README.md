@@ -87,15 +87,23 @@ Get the latest product updates, receive immediate assistance from our team membe
 
 <a href="https://discord.gg/JJnMeCh6qP" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord" /></a>&nbsp;
 
-### Want to Contribute?
+## Contributing
 
-Here are the ways to contribute to Permify
+[![Open Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fpermify%2Fbounties%3Fstatus%3Dopen)](https://console.algora.io/org/permify/bounties?status=open)
+
+The open source community thrives on contributions, offering an incredible space for learning, inspiration, and creation. Your contributions are immensely valued and appreciated!
+
+Here are the ways to contribute to Permify:
 
 * **Contribute to codebase:** We're collaboratively working with our community to make Permify the best it can be! You can develop new features, fix existing issues or make third-party integrations/packages. 
 * **Improve documentation:** Alongside our codebase, documentation one of the most significant part in our open-source journey. We're trying to give the best DX possible to explain ourselves and Permify. And you can help on that with importing resources or adding new ones.
 * **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
 
-You can find more details about contributions on [CONTRIBUTING.md](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
+Before start please see our [contributing guide](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md).
+
+### Good First Issues
+
+Don't know where to start? We have a list of [good first issues](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md) consisting of small features and bugs. This presents an excellent starting point to gain experience, and get familiar with our contribution process.
 
 ## Roadmap
 
