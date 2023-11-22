@@ -98,7 +98,7 @@ Here are the ways to contribute to Permify:
 * **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
 
 ### Bounties 
-[![Open Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fpermify%2Fbounties%3Fstatus%3Dopen)](https://console.algora.io/org/permify/bounties?status=open)
+[![Open Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fpermify%2Fbounties%3Fstatus%3Dopen&style=for-the-badge)](https://console.algora.io/org/permify/bounties?status=open)
 
 We have a list of [issues](https://github.com/Permify/permify/blob/master/CONTRIBUTING.md) where you can contribute and gain bounty award! Bounties will be awarded for fixing issues via accepted Pull Requests (PR).
 
