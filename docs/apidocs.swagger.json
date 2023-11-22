@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open source authorization service for creating fine-grained and scalable authorization systems.",
-    "version": "v0.5.9",
+    "version": "v0.6.0",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
@@ -26,6 +26,9 @@
     },
     {
       "name": "Data"
+    },
+    {
+      "name": "Bundle"
     },
     {
       "name": "Tenancy"
@@ -138,6 +141,142 @@
         ],
         "tags": [
           "Tenancy"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/bundle/delete": {
+      "post": {
+        "summary": "delete bundle",
+        "operationId": "bundle.delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/BundleDeleteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the bundle to be deleted."
+                }
+              },
+              "description": "BundleDeleteRequest is used to request the deletion of a bundle.\nIt contains the tenant_id to specify the tenant and the name of the bundle to be deleted."
+            }
+          }
+        ],
+        "tags": [
+          "Bundle"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/bundle/read": {
+      "post": {
+        "summary": "read bundle",
+        "operationId": "bundle.read",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/BundleReadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Bundle"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/bundle/write": {
+      "post": {
+        "summary": "write bundle",
+        "operationId": "bundle.write",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/BundleWriteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "bundles": {
+                  "$ref": "#/definitions/Bundles",
+                  "description": "Contains the bundle data to be written."
+                }
+              },
+              "description": "BundleWriteRequest is used to request the writing of a bundle.\nIt contains the tenant_id to identify the tenant and the Bundles object."
+            }
+          }
+        ],
+        "tags": [
+          "Bundle"
         ]
       }
     },
@@ -304,6 +443,59 @@
                 }
               },
               "description": "RelationshipReadRequest defines the structure of a request for reading relationships.\nIt contains the necessary information such as tenant_id, metadata, and filter for the read operation."
+            }
+          }
+        ],
+        "tags": [
+          "Data"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/data/run-bundle": {
+      "post": {
+        "summary": "run bundle",
+        "operationId": "bundle.run",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/BundleRunResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the bundle to be executed."
+                },
+                "arguments": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Additional key-value pairs for execution arguments."
+                }
+              },
+              "description": "BundleRunRequest is used to request the execution of a bundle.\nIt includes tenant_id, the name of the bundle, and additional arguments for execution."
             }
           }
         ],
@@ -1152,6 +1344,58 @@
       "default": "ATTRIBUTE_TYPE_UNSPECIFIED",
       "description": "Enumerates the types of attribute.\n\n - ATTRIBUTE_TYPE_UNSPECIFIED: Not specified attribute type. This is the default value.\n - ATTRIBUTE_TYPE_BOOLEAN: A boolean attribute type.\n - ATTRIBUTE_TYPE_BOOLEAN_ARRAY: A boolean array attribute type.\n - ATTRIBUTE_TYPE_STRING: A string attribute type.\n - ATTRIBUTE_TYPE_STRING_ARRAY: A string array attribute type.\n - ATTRIBUTE_TYPE_INTEGER: An integer attribute type.\n - ATTRIBUTE_TYPE_INTEGER_ARRAY: An integer array attribute type.\n - ATTRIBUTE_TYPE_DOUBLE: A double attribute type.\n - ATTRIBUTE_TYPE_DOUBLE_ARRAY: A double array attribute type."
     },
+    "BundleDeleteResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "BundleReadResponse": {
+      "type": "object",
+      "properties": {
+        "bundle": {
+          "$ref": "#/definitions/DataBundle"
+        }
+      }
+    },
+    "BundleRunResponse": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string",
+          "description": "Token related to the bundle execution."
+        }
+      },
+      "description": "BundleRunResponse is the response for a BundleRunRequest.\nIt includes a snap_token, which may be used for tracking the execution or its results."
+    },
+    "BundleWriteResponse": {
+      "type": "object",
+      "properties": {
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Identifier or acknowledgment of the written bundle."
+        }
+      },
+      "description": "BundleWriteResponse is the response for a BundleWriteRequest.\nIt includes a name which could be used as an identifier or acknowledgment."
+    },
+    "Bundles": {
+      "type": "object",
+      "properties": {
+        "bundles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/DataBundle"
+          }
+        }
+      },
+      "description": "Bundles message acts as a container for multiple Package messages.\nIt corresponds to the top-level \"bundles\" array in the JSON."
+    },
     "CheckResult": {
       "type": "string",
       "enum": [
@@ -1384,6 +1628,31 @@
         }
       },
       "description": "A map or message creation expression.\n\nMaps are constructed as `{'key_name': 'value'}`. Message construction is\nsimilar, but prefixed with a type name and composed of field ids:\n`types.MyType{field_id: 'value'}`."
+    },
+    "DataBundle": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "'name' holds the identifier of the bundle, such as \"project_created\" or \"project_deleted\"."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "'arguments' is a repeated field representing an array of argument strings.\nThese correspond to the \"arguments\" array in each bundle of the JSON."
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1.Operation"
+          },
+          "description": "'operations' is a repeated field containing the operation objects in the bundle.\nEach Operation includes write and delete operations."
+        }
+      },
+      "description": "DataBundle message represents each bundle in the \"bundles\" array of the JSON structure.\nIt includes the name of the package, a list of arguments, and a list of operations."
     },
     "DataChange": {
       "type": "object",
@@ -2508,6 +2777,26 @@
         }
       },
       "description": "Call represents a call to a rule. It includes the name of the rule and the arguments passed to it."
+    },
+    "v1.Operation": {
+      "type": "object",
+      "properties": {
+        "write": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "'write' is a repeated field representing an array of write operations.\nEach string in the array is a write operation."
+        },
+        "delete": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "'delete' is a repeated field representing an array of delete operations.\nEach string in the array is a delete operation."
+        }
+      },
+      "description": "Operation message represents a set of operations within a bundle.\nThis includes both write and delete operations as arrays of strings."
     },
     "v1alpha1.Reference": {
       "type": "object",
