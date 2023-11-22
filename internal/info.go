@@ -14,7 +14,7 @@ var Identifier = xid.New().String()
 🐙 GitHub: https://github.com/Permify/permify
 📝 Blog: https://permify.co/blog
 
-💬 Discord: https://discord.gg/MJbUjwskdH
+💬 Discord: https://discord.gg/n6KfzYxhPp
 🐦 Twitter: https://twitter.com/GetPermify
 💼 LinkedIn: https://www.linkedin.com/company/permifyco
 */

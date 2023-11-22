@@ -11,7 +11,7 @@ You're always more than welcome to our other communication channels.
 ## Communication Channels
 
 <p align="left">
-<a href="https://discord.gg/MJbUjwskdH">
+<a href="https://discord.gg/n6KfzYxhPp">
  <img height="70px" width="70px" alt="permify | Discord" src="https://user-images.githubusercontent.com/39353278/187209316-3d01a799-c51b-4eaa-8f52-168047078a14.png" />
 </a>
 <a href="https://twitter.com/GetPermify">
