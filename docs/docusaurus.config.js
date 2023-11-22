@@ -81,7 +81,7 @@ const config = {
               className: 'header-github-link'
             },
             {
-              href: 'https://discord.gg/MJbUjwskdH',
+              href: 'https://discord.gg/n6KfzYxhPp',
               position: 'right',
               className: 'header-discord-link'
             },

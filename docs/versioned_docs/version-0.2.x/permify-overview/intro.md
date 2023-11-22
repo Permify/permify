@@ -76,7 +76,7 @@ This document explains how Permify handles these aspects to provide a robust and
 
 We love to talk about authorization also we would love to hear from you :heart:
 
-You can get immediate help on our [Discord](https://discord.gg/MJbUjwskdH) channel. This can be any kind of questions related to Permify, authorization, or even from authentication or identity access control. We'd love to discuss anything related with access control space.
+You can get immediate help on our [Discord](https://discord.gg/n6KfzYxhPp) channel. This can be any kind of questions related to Permify, authorization, or even from authentication or identity access control. We'd love to discuss anything related with access control space.
 
 For feature requests, bugs or any improvements you can always open an [issue] on Github. If you like Permify, please consider giving us a :star:️ on [Github](https://github.com/Permify/permify)
 
@@ -85,7 +85,7 @@ For feature requests, bugs or any improvements you can always open an [issue] on
 <h3 align="left">Let's get connected</h3>
 
 <p align="left">
-<a href="https://discord.gg/MJbUjwskdH">
+<a href="https://discord.gg/n6KfzYxhPp">
  <img height="70px" width="70px" alt="permify | Discord" src="https://user-images.githubusercontent.com/39353278/187209316-3d01a799-c51b-4eaa-8f52-168047078a14.png" />
 </a>
 <a href="https://twitter.com/GetPermify">
