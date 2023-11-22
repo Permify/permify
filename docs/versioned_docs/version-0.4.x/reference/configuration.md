@@ -458,7 +458,7 @@ A consistent hashing ring ensures data distribution that minimizes reorganizatio
 
 [jaeger]: https://www.jaegertracing.io/
 
-[otlp]: (https://opentelemetry.io/)
+[otlp]: https://opentelemetry.io/
 
 [zipkin]: https://zipkin.io/
 

@@ -419,7 +419,7 @@ rule check_balance(amount double, balance double) {
 ⛔ If you don’t create the related attribute data, Permify accounts double as `0.0`
 :::
 
-See more details on [Attribute Based Access Control](../use-cases/abac) section to learn our approach on ABAC as well as how it operates in Permify.
+See more details on [Attribute Based Access Control](../../use-cases/abac) section to learn our approach on ABAC as well as how it operates in Permify.
 
 ## Permission Capabilities
 
@@ -439,4 +439,4 @@ We utilize ReBAC and Google Zanzibar to create natural linkage between business 
 
 This example shows almost all aspects of the Permify Schema.
 
-You can check out more schema examples from the [Real World Examples](./examples) section with their detailed examination.
+You can check out more schema examples from the [Real World Examples](../examples) section with their detailed examination.

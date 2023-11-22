@@ -11,8 +11,8 @@ Another example: when one a company executive grant admin role to user (lets say
 
 ![tuple-creation](https://user-images.githubusercontent.com/34595361/186637488-30838a3b-849a-4859-ae4f-d664137bb6ba.png)
 
-[relational tuples]: ../../getting-started/sync-data
-[writeDB]: ../../getting-started/sync-data#where-relational-tuples-used
+[relational tuples]: ../../../getting-started/sync-data
+[writeDB]: ../../../getting-started/sync-data#where-relational-tuples-used
 
 ## Request
 
@@ -120,7 +120,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/relationsh
 
 You can store that snap token alongside with the resource in your relational database, then use it used in endpoints to get fresh results from the API's. For example it can be used in access control check with sending via `snap_token` field to ensure getting check result as fresh as previous request.
 
-See more details on what is [Snap Tokens](../../reference/snap-tokens) and how its avoiding stale cache.
+See more details on what is [Snap Tokens](../../../reference/snap-tokens) and how its avoiding stale cache.
 
 ## Suggested Workflow 
 

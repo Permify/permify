@@ -116,7 +116,7 @@ Users that come from version 0.2.x and users that have a single tenant can enter
 
 ### Added Tenancy Service
 
-To manage tenants we have added a Tenancy service; you can create, delete and list tenants accordingly. See the [Tenancy Service](../api-overview/tenancy) on Using The API section.
+To manage tenants we have added a Tenancy service; you can create, delete and list tenants accordingly. See the [Tenancy Service](../../api-overview/tenancy) on Using The API section.
 
 ### WriteDB tenancy table and tenant id column
 
