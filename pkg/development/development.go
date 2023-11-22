@@ -277,6 +277,103 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	// Each item in the Scenarios slice is processed individually
 	for i, scenario := range s.Scenarios {
 
+		var createdScenarioRelationshipsTups []*v1.Tuple
+		// Add scenario specific local relationships
+		for _, t := range scenario.Relationships {
+			tup, err := tuple.Tuple(t)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "relationships",
+					Key:     t,
+					Message: err.Error(),
+				})
+				continue
+			}
+
+			// Read the schema definition for this relationship
+			definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "relationships",
+					Key:     t,
+					Message: err.Error(),
+				})
+				continue
+			}
+
+			// Validate the relationship tuple against the schema definition
+			err = validation.ValidateTuple(definition, tup)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "relationships",
+					Key:     t,
+					Message: err.Error(),
+				})
+				continue
+			}
+
+			// Write the relationship to the database
+			_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
+			// Continue to the next relationship if an error occurred
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "relationships",
+					Key:     t,
+					Message: err.Error(),
+				})
+				continue
+			}
+			createdScenarioRelationshipsTups = append(createdScenarioRelationshipsTups, tup)
+		}
+
+		// Add scenario specific attributes
+		var createdScenarioAttributes []*v1.Attribute
+		for _, a := range scenario.Attributes {
+			attr, err := attribute.Attribute(a)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "attributes",
+					Key:     a,
+					Message: err.Error(),
+				})
+				continue
+			}
+
+			// Read the schema definition for this attribute
+			definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "attributes",
+					Key:     a,
+					Message: err.Error(),
+				})
+				continue
+			}
+
+			// Validate the attribute against the schema definition
+			err = validation.ValidateAttribute(definition, attr)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "attributes",
+					Key:     a,
+					Message: err.Error(),
+				})
+				continue
+			}
+
+			// Write the attribute to the database
+			_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
+			// Continue to the next attribute if an error occurred
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "attributes",
+					Key:     a,
+					Message: err.Error(),
+				})
+				continue
+			}
+			createdScenarioAttributes = append(createdScenarioAttributes, attr)
+		}
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
 			entity, err := tuple.E(check.Entity)
@@ -517,6 +614,54 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 						Message: errorMsg,
 					})
 				}
+			}
+		}
+
+		// Once the scenarios are tested, delete created scenario specific relationships.
+		for _, t := range createdScenarioRelationshipsTups {
+			// Write the relationship to the database
+			_, err = c.Container.DW.Delete(ctx, "t1", &v1.TupleFilter{
+				Entity: &v1.EntityFilter{
+					Type: t.GetEntity().Type,
+					Ids:  []string{t.Entity.Id},
+				},
+				Relation: t.GetRelation(),
+			},
+				&v1.AttributeFilter{},
+			)
+			// Continue to the next relationship if an error occurred
+			if err != nil {
+				// If an error occurs, add it to the list and continue to the next filter.
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: err.Error(),
+				})
+				continue
+			}
+		}
+
+		// Once the scenarios are tested, delete created scenario specific attributes.
+		for _, a := range createdScenarioAttributes {
+			// Write the relationship to the database
+			_, err = c.Container.DW.Delete(ctx, "t1", &v1.TupleFilter{},
+				&v1.AttributeFilter{
+					Entity: &v1.EntityFilter{
+						Type: a.GetEntity().Type,
+						Ids:  []string{a.Entity.Id},
+					},
+					Attributes: []string{a.GetAttribute()},
+				},
+			)
+			// Continue to the next relationship if an error occurred
+			if err != nil {
+				// If an error occurs, add it to the list and continue to the next filter.
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: err.Error(),
+				})
+				continue
 			}
 		}
 	}
