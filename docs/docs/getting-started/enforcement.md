@@ -8,7 +8,7 @@ Permify API provides various functionalities around authorization such as perfor
 
 We structured Permify API in 4 core parts:
 
-- [PermissionService]: Consists access control requests, permission checks and their configurations.
+- [PermissionService]: Consists access control requests and options.
 - [DataService]: Authorization data operations such as creating, deleting and reading relational tuples.
 - [SchemaService]: Modeling and Permify Schema related functionalities including configuration and auditing.
 - [TenancyService]: Consists tenant operations such as creating, deleting and listing.
@@ -25,6 +25,7 @@ Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/)
 
+
 :::info Integration with a Service Mesh
 Our software does not include built-in support for service meshes (eg. Istio). 
 
@@ -35,16 +36,17 @@ However, since it communicates using standard protocols like gRPC and HTTP, it i
 
 - Configure your authorization model with [Schema Write](../api-overview/schema/write-schema.md)
 - Write relational tuples with [Write Data](../api-overview/data/write-data.md)
-- Read relation tuples and filter them with [Read API](../api-overview/data/read-relationships.md)
+- Read relation tuples and filter them with [Read Relationships](../api-overview/data/read-relationships.md)
 - Check access with [Check API](../api-overview/permission/check-api.md)
 - Check entities permissions with [Lookup Entity](../api-overview/permission/lookup-entity.md)
 - Check subject permissions with [Lookup Subject](../api-overview/permission/lookup-subject.md)
-- Delete relation tuples with [Delete API](../api-overview/data/delete-data.md)
+- Delete relation tuples with [Delete Tuple](../api-overview/data/delete-data.md)
 - Expand schema actions with [Expand API](../api-overview/permission/expand-api.md)
+- Watch changes in the relation tuples in real-time with [Watch API](../api-overview/watch/watch-changes.md)
 
 ## Authentication
 
-You can secure APIs with our authentication methods; **Open ID Connect** or **Pre Shared Keys**. They can be configurable with flags or using configuration yaml file. See more details how to enable authentication from [Configuration Options](../reference/configuration.md)
+You can secure APIs with our authentication methods; **Open ID Connect** or **Pre Shared Keys**. They can be configurable with flags or using configuration yaml file. See more details how to enable authentication from [Configuration Options](../reference/configuration)
 
 To access the endpoints after enabling authentication, it's necessary to provide a Bearer Token for identification. If your using golang or nodeJs client library, an authentication token can be provided via interceptors. You can find details in the clients' documentation.
 
@@ -69,22 +71,9 @@ In case of availability failures, Permify's Service Level Agreement (SLA) provid
 
 These credits are your sole remedy for any availability failures under our SLA.
 
-## Performance & Latency
-
-Permify designed to answer these authorization questions efficiently and with minimal complexity while providing low latency with:
-- Using its parallel graph engine. 
-- Storing the relationships between resources beforehand in preferred data store, rather than providing these relationships at “check” time.
-- Implementing permission caching to not recompute repeated permission checks, and in memory cache to store authorization schema.
-- Using [Snap Tokens](../../reference/snap-tokens) to achieve consistency and high performance in cache.
-
-Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisms](../reference/cache.md) 
-
 ## Request Rate Limits
 
-Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our documentation. 
-
-- [Configuration reference](../../reference/configuration)
-- [Algorithm](https://en.wikipedia.org/wiki/Token_bucket)
+Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our [documentation](https://docs.permify.co/docs/reference/configuration). We used [Token bucket](https://en.wikipedia.org/wiki/Token_bucket) algorithm for rate limiting.
 
 ## Need any help ?
 
