@@ -81,12 +81,18 @@ func (f *NoopDataReader) HeadSnapshot(_ context.Context, _ string) (token.SnapTo
 	return token.NewNoopToken(), nil
 }
 
-// DataWriter - Writes relation tuples to the storage.
 type DataWriter interface {
-	// Write writes relation tuples to the storage.
+	// Write inserts a new TupleCollection and AttributeCollection into the database for a specified tenant.
+	// Returns an encoded snapshot token representing the state of the database after the write operation and any error encountered.
 	Write(ctx context.Context, tenantID string, tupleCollection *database.TupleCollection, attributesCollection *database.AttributeCollection) (token token.EncodedSnapToken, err error)
-	// Delete deletes relation tuples from the storage.
+
+	// Delete removes data from the database based on the provided tuple and attribute filters for a specified tenant.
+	// Returns an encoded snapshot token representing the state of the database after the delete operation and any error encountered.
 	Delete(ctx context.Context, tenantID string, tupleFilter *base.TupleFilter, attributeFilter *base.AttributeFilter) (token token.EncodedSnapToken, err error)
+
+	// RunBundle executes a specified data bundle for a given tenant.
+	// Returns an encoded snapshot token representing the state of the database after running the bundle and any error encountered.
+	RunBundle(ctx context.Context, tenantID string, arguments map[string]string, bundle *base.DataBundle) (token token.EncodedSnapToken, err error)
 }
 
 type NoopDataWriter struct{}
@@ -101,6 +107,10 @@ func (n *NoopDataWriter) Write(_ context.Context, _ string, _ *database.TupleCol
 
 func (n *NoopDataWriter) Delete(_ context.Context, _ string, _ *base.TupleFilter, _ *base.AttributeFilter) (token.EncodedSnapToken, error) {
 	return token.NewNoopToken().Encode(), nil
+}
+
+func (n *NoopDataWriter) RunBundle(_ context.Context, _ string, _ map[string]string, _ *base.DataBundle) (token.EncodedSnapToken, error) {
+	return nil, nil
 }
 
 // SchemaReader - Reads schema definitions from the storage.
@@ -150,6 +160,45 @@ func NewNoopSchemaWriter() SchemaWriter {
 }
 
 func (n *NoopSchemaWriter) WriteSchema(_ context.Context, _ []SchemaDefinition) error {
+	return nil
+}
+
+// BundleReader - Reads data bundles from storage.
+type BundleReader interface {
+	// Read retrieves a data bundle based on tenant ID and name.
+	Read(ctx context.Context, tenantID, name string) (bundle *base.DataBundle, err error)
+}
+
+type NoopBundleReader struct{}
+
+func NewNoopBundleReader() BundleReader {
+	return &NoopBundleReader{}
+}
+
+func (n *NoopBundleReader) Read(_ context.Context, _, _ string) (*base.DataBundle, error) {
+	return nil, nil
+}
+
+// BundleWriter - Manages writing and deletion of data bundles.
+type BundleWriter interface {
+	// Write stores bundles in storage for a tenant.
+	Write(ctx context.Context, tenantID string, bundles []*base.DataBundle) (names []string, err error)
+
+	// Delete removes a bundle from storage for a tenant.
+	Delete(ctx context.Context, tenantID, name string) (err error)
+}
+
+type NoopBundleWriter struct{}
+
+func NewNoopBundleWriter() BundleWriter {
+	return &NoopBundleWriter{}
+}
+
+func (n *NoopBundleWriter) Write(_ context.Context, _ string, _ []*base.DataBundle) (names []string, err error) {
+	return nil, nil
+}
+
+func (n *NoopBundleWriter) Delete(_ context.Context, _, _ string) error {
 	return nil
 }
 

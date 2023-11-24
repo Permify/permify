@@ -73,3 +73,29 @@ func (r *DataWriterWithCircuitBreaker) Delete(ctx context.Context, tenantID stri
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
 	}
 }
+
+// RunBundle -
+func (r *DataWriterWithCircuitBreaker) RunBundle(ctx context.Context, tenantID string, arguments map[string]string, b *base.DataBundle) (token.EncodedSnapToken, error) {
+	type circuitBreakerResponse struct {
+		Token token.EncodedSnapToken
+		Error error
+	}
+
+	output := make(chan circuitBreakerResponse, 1)
+
+	hystrix.ConfigureCommand("dataWriter.runBundle", hystrix.CommandConfig{Timeout: 1000})
+	bErrors := hystrix.Go("dataWriter.runBundle", func() error {
+		t, err := r.delegate.RunBundle(ctx, tenantID, arguments, b)
+		output <- circuitBreakerResponse{Token: t, Error: err}
+		return nil
+	}, func(err error) error {
+		return nil
+	})
+
+	select {
+	case out := <-output:
+		return out.Token, out.Error
+	case <-bErrors:
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_CIRCUIT_BREAKER.String())
+	}
+}

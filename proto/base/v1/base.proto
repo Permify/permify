@@ -573,3 +573,38 @@ message DoubleArrayValue {
 message BooleanArrayValue {
   repeated bool data = 1; // The array of booleans.
 }
+
+// DataBundle is a message representing a bundle of data, which includes a name,
+// a list of arguments, and a series of operations.
+message DataBundle {
+  // 'name' is a simple string field representing the name of the DataBundle.
+  string name = 1;
+
+  // 'arguments' is a repeated field, which means it can contain multiple strings.
+  // These are used to store a list of arguments related to the DataBundle.
+  repeated string arguments = 2;
+
+  // 'operations' is a repeated field containing multiple Operation messages.
+  // Each Operation represents a specific action or set of actions to be performed.
+  repeated Operation operations = 3;
+}
+
+// Operation is a message representing a series of operations that can be performed.
+// It includes fields for writing and deleting relationships and attributes.
+message Operation {
+  // 'relationships_write' is a repeated string field for storing relationship keys
+  // that are to be written or created.
+  repeated string relationships_write = 1;
+
+  // 'relationships_delete' is a repeated string field for storing relationship keys
+  // that are to be deleted or removed.
+  repeated string relationships_delete = 2;
+
+  // 'attributes_write' is a repeated string field for storing attribute keys
+  // that are to be written or created.
+  repeated string attributes_write = 3;
+
+  // 'attributes_delete' is a repeated string field for storing attribute keys
+  // that are to be deleted or removed.
+  repeated string attributes_delete = 4;
+}

@@ -129,3 +129,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 	txn.Commit()
 	return snapshot.NewToken(time.Now()).Encode(), nil
 }
+
+func (r *DataWriter) RunBundle(_ context.Context, _ string, _ map[string]string, _ *base.DataBundle) (token token.EncodedSnapToken, err error) {
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_NOT_IMPLEMENTED.String())
+}

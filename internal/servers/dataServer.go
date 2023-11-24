@@ -20,6 +20,7 @@ type DataServer struct {
 
 	sr storage.SchemaReader
 	dr storage.DataReader
+	br storage.BundleReader
 	dw storage.DataWriter
 }
 
@@ -27,11 +28,13 @@ type DataServer struct {
 func NewDataServer(
 	dr storage.DataReader,
 	dw storage.DataWriter,
+	br storage.BundleReader,
 	sr storage.SchemaReader,
 ) *DataServer {
 	return &DataServer{
 		dr: dr,
 		dw: dw,
+		br: br,
 		sr: sr,
 	}
 }
@@ -300,6 +303,42 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 	}
 
 	return &v1.RelationshipDeleteResponse{
+		SnapToken: snap.String(),
+	}, nil
+}
+
+// RunBundle executes a bundle and returns its snapshot token.
+func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest) (*v1.BundleRunResponse, error) {
+	ctx, span := tracer.Start(ctx, "bundle.run")
+	defer span.End()
+
+	v := request.Validate()
+	if v != nil {
+		return nil, v
+	}
+
+	bundle, err := r.br.Read(ctx, request.GetTenantId(), request.GetName())
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		slog.Error(err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	err = validation.ValidateBundleArguments(bundle.GetArguments(), request.GetArguments())
+	if err != nil {
+		return nil, err
+	}
+
+	snap, err := r.dw.RunBundle(ctx, request.GetTenantId(), request.GetArguments(), bundle)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		slog.Error(err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	return &v1.BundleRunResponse{
 		SnapToken: snap.String(),
 	}, nil
 }

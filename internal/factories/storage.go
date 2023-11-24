@@ -113,3 +113,25 @@ func TenantWriterFactory(db database.Database) (repo storage.TenantWriter) {
 		return MMRepository.NewTenantWriter(db.(*MMDatabase.Memory))
 	}
 }
+
+func BundleReaderFactory(db database.Database) (repo storage.BundleReader) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewBundleReader(db.(*PQDatabase.Postgres))
+	case "memory":
+		return MMRepository.NewBundleReader(db.(*MMDatabase.Memory))
+	default:
+		return MMRepository.NewBundleReader(db.(*MMDatabase.Memory))
+	}
+}
+
+func BundleWriterFactory(db database.Database) (repo storage.BundleWriter) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewBundleWriter(db.(*PQDatabase.Postgres))
+	case "memory":
+		return MMRepository.NewBundleWriter(db.(*MMDatabase.Memory))
+	default:
+		return MMRepository.NewBundleWriter(db.(*MMDatabase.Memory))
+	}
+}

@@ -144,3 +144,23 @@ func (t *AttributeCollection) CreateAttributeIterator() *AttributeIterator {
 func (t *AttributeCollection) Add(attribute *base.Attribute) {
 	t.attributes = append(t.attributes, attribute)
 }
+
+// TupleBundle defines a structure for managing collections of tuples,
+// with separate collections for write (create/update) and delete operations.
+type TupleBundle struct {
+	// Write is a TupleCollection intended to hold tuples that are to be created or updated.
+	Write TupleCollection
+
+	// Delete is a TupleCollection intended to hold tuples that are to be deleted.
+	Delete TupleCollection
+}
+
+// AttributeBundle defines a structure for managing collections of attributes,
+// with separate collections for write (create/update) and delete operations.
+type AttributeBundle struct {
+	// Write is an AttributeCollection intended to hold attributes that are to be created or updated.
+	Write AttributeCollection
+
+	// Delete is an AttributeCollection intended to hold attributes that are to be deleted.
+	Delete AttributeCollection
+}

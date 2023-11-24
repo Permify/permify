@@ -6577,6 +6577,991 @@ var _ interface {
 	ErrorName() string
 } = RelationshipDeleteResponseValidationError{}
 
+// Validate checks the field values on BundleRunRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *BundleRunRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BundleRunRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BundleRunRequestMultiError, or nil if none found.
+func (m *BundleRunRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BundleRunRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetTenantId()) > 128 {
+		err := BundleRunRequestValidationError{
+			field:  "TenantId",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_BundleRunRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
+		err := BundleRunRequestValidationError{
+			field:  "TenantId",
+			reason: "value does not match regex pattern \"^([a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}|\\\\*)$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Name
+
+	// no validation rules for Arguments
+
+	if len(errors) > 0 {
+		return BundleRunRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BundleRunRequestMultiError is an error wrapping multiple validation errors
+// returned by BundleRunRequest.ValidateAll() if the designated constraints
+// aren't met.
+type BundleRunRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BundleRunRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BundleRunRequestMultiError) AllErrors() []error { return m }
+
+// BundleRunRequestValidationError is the validation error returned by
+// BundleRunRequest.Validate if the designated constraints aren't met.
+type BundleRunRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BundleRunRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BundleRunRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BundleRunRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BundleRunRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BundleRunRequestValidationError) ErrorName() string { return "BundleRunRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BundleRunRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBundleRunRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BundleRunRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BundleRunRequestValidationError{}
+
+var _BundleRunRequest_TenantId_Pattern = regexp.MustCompile("^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$")
+
+// Validate checks the field values on BundleRunResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *BundleRunResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BundleRunResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BundleRunResponseMultiError, or nil if none found.
+func (m *BundleRunResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BundleRunResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SnapToken
+
+	if len(errors) > 0 {
+		return BundleRunResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// BundleRunResponseMultiError is an error wrapping multiple validation errors
+// returned by BundleRunResponse.ValidateAll() if the designated constraints
+// aren't met.
+type BundleRunResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BundleRunResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BundleRunResponseMultiError) AllErrors() []error { return m }
+
+// BundleRunResponseValidationError is the validation error returned by
+// BundleRunResponse.Validate if the designated constraints aren't met.
+type BundleRunResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BundleRunResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BundleRunResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BundleRunResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BundleRunResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BundleRunResponseValidationError) ErrorName() string {
+	return "BundleRunResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BundleRunResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBundleRunResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BundleRunResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BundleRunResponseValidationError{}
+
+// Validate checks the field values on BundleWriteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BundleWriteRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BundleWriteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BundleWriteRequestMultiError, or nil if none found.
+func (m *BundleWriteRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BundleWriteRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetTenantId()) > 128 {
+		err := BundleWriteRequestValidationError{
+			field:  "TenantId",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_BundleWriteRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
+		err := BundleWriteRequestValidationError{
+			field:  "TenantId",
+			reason: "value does not match regex pattern \"^([a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}|\\\\*)$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBundles() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, BundleWriteRequestValidationError{
+						field:  fmt.Sprintf("Bundles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, BundleWriteRequestValidationError{
+						field:  fmt.Sprintf("Bundles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return BundleWriteRequestValidationError{
+					field:  fmt.Sprintf("Bundles[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return BundleWriteRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BundleWriteRequestMultiError is an error wrapping multiple validation errors
+// returned by BundleWriteRequest.ValidateAll() if the designated constraints
+// aren't met.
+type BundleWriteRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BundleWriteRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BundleWriteRequestMultiError) AllErrors() []error { return m }
+
+// BundleWriteRequestValidationError is the validation error returned by
+// BundleWriteRequest.Validate if the designated constraints aren't met.
+type BundleWriteRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BundleWriteRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BundleWriteRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BundleWriteRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BundleWriteRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BundleWriteRequestValidationError) ErrorName() string {
+	return "BundleWriteRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BundleWriteRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBundleWriteRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BundleWriteRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BundleWriteRequestValidationError{}
+
+var _BundleWriteRequest_TenantId_Pattern = regexp.MustCompile("^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$")
+
+// Validate checks the field values on BundleWriteResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BundleWriteResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BundleWriteResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BundleWriteResponseMultiError, or nil if none found.
+func (m *BundleWriteResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BundleWriteResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return BundleWriteResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// BundleWriteResponseMultiError is an error wrapping multiple validation
+// errors returned by BundleWriteResponse.ValidateAll() if the designated
+// constraints aren't met.
+type BundleWriteResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BundleWriteResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BundleWriteResponseMultiError) AllErrors() []error { return m }
+
+// BundleWriteResponseValidationError is the validation error returned by
+// BundleWriteResponse.Validate if the designated constraints aren't met.
+type BundleWriteResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BundleWriteResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BundleWriteResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BundleWriteResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BundleWriteResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BundleWriteResponseValidationError) ErrorName() string {
+	return "BundleWriteResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BundleWriteResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBundleWriteResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BundleWriteResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BundleWriteResponseValidationError{}
+
+// Validate checks the field values on BundleReadRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *BundleReadRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BundleReadRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BundleReadRequestMultiError, or nil if none found.
+func (m *BundleReadRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BundleReadRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetTenantId()) > 128 {
+		err := BundleReadRequestValidationError{
+			field:  "TenantId",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_BundleReadRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
+		err := BundleReadRequestValidationError{
+			field:  "TenantId",
+			reason: "value does not match regex pattern \"^([a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}|\\\\*)$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Name
+
+	if len(errors) > 0 {
+		return BundleReadRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BundleReadRequestMultiError is an error wrapping multiple validation errors
+// returned by BundleReadRequest.ValidateAll() if the designated constraints
+// aren't met.
+type BundleReadRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BundleReadRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BundleReadRequestMultiError) AllErrors() []error { return m }
+
+// BundleReadRequestValidationError is the validation error returned by
+// BundleReadRequest.Validate if the designated constraints aren't met.
+type BundleReadRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BundleReadRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BundleReadRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BundleReadRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BundleReadRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BundleReadRequestValidationError) ErrorName() string {
+	return "BundleReadRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BundleReadRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBundleReadRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BundleReadRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BundleReadRequestValidationError{}
+
+var _BundleReadRequest_TenantId_Pattern = regexp.MustCompile("^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$")
+
+// Validate checks the field values on BundleReadResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BundleReadResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BundleReadResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BundleReadResponseMultiError, or nil if none found.
+func (m *BundleReadResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BundleReadResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetBundle()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BundleReadResponseValidationError{
+					field:  "Bundle",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BundleReadResponseValidationError{
+					field:  "Bundle",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBundle()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BundleReadResponseValidationError{
+				field:  "Bundle",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return BundleReadResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// BundleReadResponseMultiError is an error wrapping multiple validation errors
+// returned by BundleReadResponse.ValidateAll() if the designated constraints
+// aren't met.
+type BundleReadResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BundleReadResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BundleReadResponseMultiError) AllErrors() []error { return m }
+
+// BundleReadResponseValidationError is the validation error returned by
+// BundleReadResponse.Validate if the designated constraints aren't met.
+type BundleReadResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BundleReadResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BundleReadResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BundleReadResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BundleReadResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BundleReadResponseValidationError) ErrorName() string {
+	return "BundleReadResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BundleReadResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBundleReadResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BundleReadResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BundleReadResponseValidationError{}
+
+// Validate checks the field values on BundleDeleteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BundleDeleteRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BundleDeleteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BundleDeleteRequestMultiError, or nil if none found.
+func (m *BundleDeleteRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BundleDeleteRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetTenantId()) > 128 {
+		err := BundleDeleteRequestValidationError{
+			field:  "TenantId",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_BundleDeleteRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
+		err := BundleDeleteRequestValidationError{
+			field:  "TenantId",
+			reason: "value does not match regex pattern \"^([a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}|\\\\*)$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Name
+
+	if len(errors) > 0 {
+		return BundleDeleteRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BundleDeleteRequestMultiError is an error wrapping multiple validation
+// errors returned by BundleDeleteRequest.ValidateAll() if the designated
+// constraints aren't met.
+type BundleDeleteRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BundleDeleteRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BundleDeleteRequestMultiError) AllErrors() []error { return m }
+
+// BundleDeleteRequestValidationError is the validation error returned by
+// BundleDeleteRequest.Validate if the designated constraints aren't met.
+type BundleDeleteRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BundleDeleteRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BundleDeleteRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BundleDeleteRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BundleDeleteRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BundleDeleteRequestValidationError) ErrorName() string {
+	return "BundleDeleteRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BundleDeleteRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBundleDeleteRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BundleDeleteRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BundleDeleteRequestValidationError{}
+
+var _BundleDeleteRequest_TenantId_Pattern = regexp.MustCompile("^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$")
+
+// Validate checks the field values on BundleDeleteResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BundleDeleteResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BundleDeleteResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BundleDeleteResponseMultiError, or nil if none found.
+func (m *BundleDeleteResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BundleDeleteResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	if len(errors) > 0 {
+		return BundleDeleteResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// BundleDeleteResponseMultiError is an error wrapping multiple validation
+// errors returned by BundleDeleteResponse.ValidateAll() if the designated
+// constraints aren't met.
+type BundleDeleteResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BundleDeleteResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BundleDeleteResponseMultiError) AllErrors() []error { return m }
+
+// BundleDeleteResponseValidationError is the validation error returned by
+// BundleDeleteResponse.Validate if the designated constraints aren't met.
+type BundleDeleteResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BundleDeleteResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BundleDeleteResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BundleDeleteResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BundleDeleteResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BundleDeleteResponseValidationError) ErrorName() string {
+	return "BundleDeleteResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BundleDeleteResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBundleDeleteResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BundleDeleteResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BundleDeleteResponseValidationError{}
+
 // Validate checks the field values on TenantCreateRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

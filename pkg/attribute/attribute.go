@@ -22,28 +22,28 @@ const (
 func Attribute(attribute string) (*base.Attribute, error) {
 	// Splitting the attribute string by "@" delimiter
 	s := strings.Split(strings.TrimSpace(attribute), "|")
-	if len(s) != 2 {
+	if len(s) != 2 || s[0] == "" || s[1] == "" {
 		// The attribute string should have exactly two parts
 		return nil, ErrInvalidAttribute
 	}
 
 	// Splitting the entity part of the string by "#" delimiter
 	e := strings.Split(s[0], "$")
-	if len(e) != 2 {
+	if len(e) != 2 || e[0] == "" || e[1] == "" {
 		// The entity string should have exactly two parts
 		return nil, ErrInvalidEntity
 	}
 
 	// Splitting the entity type and id by ":" delimiter
 	et := strings.Split(e[0], ":")
-	if len(et) != 2 {
+	if len(et) != 2 || et[0] == "" || et[1] == "" {
 		// The entity type and id should have exactly two parts
 		return nil, ErrInvalidAttribute
 	}
 
 	// Splitting the attribute value part of the string by ":" delimiter
 	v := strings.Split(s[1], ":")
-	if len(v) != 2 {
+	if len(v) != 2 || v[0] == "" || v[1] == "" {
 		// The attribute value string should have exactly two parts
 		return nil, ErrInvalidAttribute
 	}
