@@ -191,6 +191,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Initialize the storage with factory methods
 		dataReader := factories.DataReaderFactory(db)
 		dataWriter := factories.DataWriterFactory(db)
+		bundleReader := factories.BundleReaderFactory(db)
+		bundleWriter := factories.BundleWriterFactory(db)
 		schemaReader := factories.SchemaReaderFactory(db)
 		schemaWriter := factories.SchemaWriterFactory(db)
 		tenantReader := factories.TenantReaderFactory(db)
@@ -291,6 +293,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			invoker,
 			dataReader,
 			dataWriter,
+			bundleReader,
+			bundleWriter,
 			schemaReader,
 			schemaWriter,
 			tenantReader,

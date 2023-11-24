@@ -6,6 +6,7 @@ const (
 	SchemaDefinitionTable = "schema_definitions"
 	TransactionsTable     = "transactions"
 	TenantsTable          = "tenants"
+	BundlesTable          = "bundles"
 )
 
 const (

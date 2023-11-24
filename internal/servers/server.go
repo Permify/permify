@@ -39,7 +39,7 @@ import (
 
 var tracer = otel.Tracer("servers")
 
-// Container is a struct that holds the invoker and various storage storage
+// Container is a struct that holds the invoker and various storage
 // for permission-related operations. It serves as a central point of access
 // for interacting with the underlying data and services.
 type Container struct {
@@ -49,6 +49,10 @@ type Container struct {
 	DR storage.DataReader
 	// DataWriter for writing data to storage
 	DW storage.DataWriter
+	// BundleReader for reading bundle from storage
+	BR storage.BundleReader
+	// BundleWriter for writing bundle to storage
+	BW storage.BundleWriter
 	// SchemaReader for reading schemas from storage
 	SR storage.SchemaReader
 	// SchemaWriter for writing schemas to storage
@@ -68,6 +72,8 @@ func NewContainer(
 	invoker invoke.Invoker,
 	dr storage.DataReader,
 	dw storage.DataWriter,
+	br storage.BundleReader,
+	bw storage.BundleWriter,
 	sr storage.SchemaReader,
 	sw storage.SchemaWriter,
 	tr storage.TenantReader,
@@ -78,6 +84,8 @@ func NewContainer(
 		Invoker: invoker,
 		DR:      dr,
 		DW:      dw,
+		BR:      br,
+		BW:      bw,
 		SR:      sr,
 		SW:      sw,
 		TR:      tr,
@@ -158,7 +166,8 @@ func (s *Container) Run(
 	// Register various gRPC services to the server.
 	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.Invoker))
 	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR))
-	grpcV1.RegisterDataServer(grpcServer, NewDataServer(s.DR, s.DW, s.SR))
+	grpcV1.RegisterDataServer(grpcServer, NewDataServer(s.DR, s.DW, s.BR, s.SR))
+	grpcV1.RegisterBundleServer(grpcServer, NewBundleServer(s.BR, s.BW))
 	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW))
 	grpcV1.RegisterWatchServer(grpcServer, NewWatchServer(s.W, s.DR))
 
@@ -295,6 +304,9 @@ func (s *Container) Run(
 		if err = grpcV1.RegisterDataHandler(ctx, mux, conn); err != nil {
 			return err
 		}
+		if err = grpcV1.RegisterBundleHandler(ctx, mux, conn); err != nil {
+			return err
+		}
 		if err = grpcV1.RegisterTenancyHandler(ctx, mux, conn); err != nil {
 			return err
 		}
@@ -345,6 +357,7 @@ func (s *Container) Run(
 
 	// Gracefully stop the gRPC server.
 	grpcServer.GracefulStop()
+	// Gracefully stop the invoke server.
 	invokeServer.GracefulStop()
 
 	slog.Info("gracefully shutting down")

@@ -602,6 +602,7 @@ const (
 	Data_ReadAttributes_FullMethodName      = "/base.v1.Data/ReadAttributes"
 	Data_Delete_FullMethodName              = "/base.v1.Data/Delete"
 	Data_DeleteRelationships_FullMethodName = "/base.v1.Data/DeleteRelationships"
+	Data_RunBundle_FullMethodName           = "/base.v1.Data/RunBundle"
 )
 
 // DataClient is the client API for Data service.
@@ -620,6 +621,8 @@ type DataClient interface {
 	Delete(ctx context.Context, in *DataDeleteRequest, opts ...grpc.CallOption) (*DataDeleteResponse, error)
 	// RPC method to delete relationships for a tenant, accessed via a POST request to the specified path, tagged as "Data" in OpenAPI documentation.
 	DeleteRelationships(ctx context.Context, in *RelationshipDeleteRequest, opts ...grpc.CallOption) (*RelationshipDeleteResponse, error)
+	// Executes or runs a specific bundle. This method is useful for processing or triggering actions based on the bundle's data.
+	RunBundle(ctx context.Context, in *BundleRunRequest, opts ...grpc.CallOption) (*BundleRunResponse, error)
 }
 
 type dataClient struct {
@@ -684,6 +687,15 @@ func (c *dataClient) DeleteRelationships(ctx context.Context, in *RelationshipDe
 	return out, nil
 }
 
+func (c *dataClient) RunBundle(ctx context.Context, in *BundleRunRequest, opts ...grpc.CallOption) (*BundleRunResponse, error) {
+	out := new(BundleRunResponse)
+	err := c.cc.Invoke(ctx, Data_RunBundle_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DataServer is the server API for Data service.
 // All implementations must embed UnimplementedDataServer
 // for forward compatibility
@@ -700,6 +712,8 @@ type DataServer interface {
 	Delete(context.Context, *DataDeleteRequest) (*DataDeleteResponse, error)
 	// RPC method to delete relationships for a tenant, accessed via a POST request to the specified path, tagged as "Data" in OpenAPI documentation.
 	DeleteRelationships(context.Context, *RelationshipDeleteRequest) (*RelationshipDeleteResponse, error)
+	// Executes or runs a specific bundle. This method is useful for processing or triggering actions based on the bundle's data.
+	RunBundle(context.Context, *BundleRunRequest) (*BundleRunResponse, error)
 	mustEmbedUnimplementedDataServer()
 }
 
@@ -724,6 +738,9 @@ func (UnimplementedDataServer) Delete(context.Context, *DataDeleteRequest) (*Dat
 }
 func (UnimplementedDataServer) DeleteRelationships(context.Context, *RelationshipDeleteRequest) (*RelationshipDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRelationships not implemented")
+}
+func (UnimplementedDataServer) RunBundle(context.Context, *BundleRunRequest) (*BundleRunResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunBundle not implemented")
 }
 func (UnimplementedDataServer) mustEmbedUnimplementedDataServer() {}
 
@@ -846,6 +863,24 @@ func _Data_DeleteRelationships_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Data_RunBundle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BundleRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServer).RunBundle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Data_RunBundle_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServer).RunBundle(ctx, req.(*BundleRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Data_ServiceDesc is the grpc.ServiceDesc for Data service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -876,6 +911,180 @@ var Data_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRelationships",
 			Handler:    _Data_DeleteRelationships_Handler,
+		},
+		{
+			MethodName: "RunBundle",
+			Handler:    _Data_RunBundle_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "base/v1/service.proto",
+}
+
+const (
+	Bundle_Write_FullMethodName  = "/base.v1.Bundle/Write"
+	Bundle_Read_FullMethodName   = "/base.v1.Bundle/Read"
+	Bundle_Delete_FullMethodName = "/base.v1.Bundle/Delete"
+)
+
+// BundleClient is the client API for Bundle service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type BundleClient interface {
+	// Writes a bundle of data for a specific operation. This is a general purpose method to handle writing data bundles.
+	Write(ctx context.Context, in *BundleWriteRequest, opts ...grpc.CallOption) (*BundleWriteResponse, error)
+	// Reads a data bundle based on a specified request. This method is tailored for retrieving data bundles.
+	Read(ctx context.Context, in *BundleReadRequest, opts ...grpc.CallOption) (*BundleReadResponse, error)
+	// Deletes a specific data bundle. This method is used to remove existing bundles from the system.
+	Delete(ctx context.Context, in *BundleDeleteRequest, opts ...grpc.CallOption) (*BundleDeleteResponse, error)
+}
+
+type bundleClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewBundleClient(cc grpc.ClientConnInterface) BundleClient {
+	return &bundleClient{cc}
+}
+
+func (c *bundleClient) Write(ctx context.Context, in *BundleWriteRequest, opts ...grpc.CallOption) (*BundleWriteResponse, error) {
+	out := new(BundleWriteResponse)
+	err := c.cc.Invoke(ctx, Bundle_Write_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bundleClient) Read(ctx context.Context, in *BundleReadRequest, opts ...grpc.CallOption) (*BundleReadResponse, error) {
+	out := new(BundleReadResponse)
+	err := c.cc.Invoke(ctx, Bundle_Read_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bundleClient) Delete(ctx context.Context, in *BundleDeleteRequest, opts ...grpc.CallOption) (*BundleDeleteResponse, error) {
+	out := new(BundleDeleteResponse)
+	err := c.cc.Invoke(ctx, Bundle_Delete_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BundleServer is the server API for Bundle service.
+// All implementations must embed UnimplementedBundleServer
+// for forward compatibility
+type BundleServer interface {
+	// Writes a bundle of data for a specific operation. This is a general purpose method to handle writing data bundles.
+	Write(context.Context, *BundleWriteRequest) (*BundleWriteResponse, error)
+	// Reads a data bundle based on a specified request. This method is tailored for retrieving data bundles.
+	Read(context.Context, *BundleReadRequest) (*BundleReadResponse, error)
+	// Deletes a specific data bundle. This method is used to remove existing bundles from the system.
+	Delete(context.Context, *BundleDeleteRequest) (*BundleDeleteResponse, error)
+	mustEmbedUnimplementedBundleServer()
+}
+
+// UnimplementedBundleServer must be embedded to have forward compatible implementations.
+type UnimplementedBundleServer struct {
+}
+
+func (UnimplementedBundleServer) Write(context.Context, *BundleWriteRequest) (*BundleWriteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
+}
+func (UnimplementedBundleServer) Read(context.Context, *BundleReadRequest) (*BundleReadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
+}
+func (UnimplementedBundleServer) Delete(context.Context, *BundleDeleteRequest) (*BundleDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedBundleServer) mustEmbedUnimplementedBundleServer() {}
+
+// UnsafeBundleServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to BundleServer will
+// result in compilation errors.
+type UnsafeBundleServer interface {
+	mustEmbedUnimplementedBundleServer()
+}
+
+func RegisterBundleServer(s grpc.ServiceRegistrar, srv BundleServer) {
+	s.RegisterService(&Bundle_ServiceDesc, srv)
+}
+
+func _Bundle_Write_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BundleWriteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BundleServer).Write(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Bundle_Write_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BundleServer).Write(ctx, req.(*BundleWriteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bundle_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BundleReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BundleServer).Read(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Bundle_Read_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BundleServer).Read(ctx, req.(*BundleReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bundle_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BundleDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BundleServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Bundle_Delete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BundleServer).Delete(ctx, req.(*BundleDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Bundle_ServiceDesc is the grpc.ServiceDesc for Bundle service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Bundle_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "base.v1.Bundle",
+	HandlerType: (*BundleServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Write",
+			Handler:    _Bundle_Write_Handler,
+		},
+		{
+			MethodName: "Read",
+			Handler:    _Bundle_Read_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _Bundle_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -690,6 +690,22 @@ service Data {
       operation_id: "relationships.delete"
     };
   }
+
+  // Executes or runs a specific bundle. This method is useful for processing or triggering actions based on the bundle's data.
+  rpc RunBundle(BundleRunRequest) returns (BundleRunResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/data/run-bundle"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "run bundle"
+      tags: [
+        "Data"
+      ]
+      operation_id: "bundle.run"
+    };
+  }
 }
 
 // DataWriteRequest defines the structure of a request for writing data.
@@ -904,6 +920,126 @@ message RelationshipDeleteRequest {
 // RelationshipDeleteResponse
 message RelationshipDeleteResponse {
   string snap_token = 1 [json_name = "snap_token"];
+}
+
+// BundleRunRequest is used to request the execution of a bundle.
+// It includes tenant_id, the name of the bundle, and additional arguments for execution.
+message BundleRunRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
+    ignore_empty: false,
+  }];
+
+  string name = 2 [json_name = "name"]; // Name of the bundle to be executed.
+
+  map<string, string> arguments = 3; // Additional key-value pairs for execution arguments.
+}
+
+// BundleRunResponse is the response for a BundleRunRequest.
+// It includes a snap_token, which may be used for tracking the execution or its results.
+message BundleRunResponse {
+  string snap_token = 1 [json_name = "snap_token"]; // Token related to the bundle execution.
+}
+
+// ** BUNDLE SERVICE **
+
+service Bundle {
+  // Writes a bundle of data for a specific operation. This is a general purpose method to handle writing data bundles.
+  rpc Write(BundleWriteRequest) returns (BundleWriteResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/bundle/write"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "write bundle"
+      tags: [
+        "Bundle"
+      ]
+      operation_id: "bundle.write"
+    };
+  }
+
+  // Reads a data bundle based on a specified request. This method is tailored for retrieving data bundles.
+  rpc Read(BundleReadRequest) returns (BundleReadResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/bundle/read"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "read bundle"
+      tags: [
+        "Bundle"
+      ]
+      operation_id: "bundle.read"
+    };
+  }
+
+  // Deletes a specific data bundle. This method is used to remove existing bundles from the system.
+  rpc Delete(BundleDeleteRequest) returns (BundleDeleteResponse) {
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/bundle/delete"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "delete bundle"
+      tags: [
+        "Bundle"
+      ]
+      operation_id: "bundle.delete"
+    };
+  }
+}
+
+// BundleWriteRequest is used to request the writing of a bundle.
+// It contains the tenant_id to identify the tenant and the Bundles object.
+message BundleWriteRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
+    ignore_empty: false,
+  }];
+
+  repeated DataBundle bundles = 2; // Contains the bundle data to be written.
+}
+
+// BundleWriteResponse is the response for a BundleWriteRequest.
+// It includes a name which could be used as an identifier or acknowledgment.
+message BundleWriteResponse {
+  repeated string names = 1 [json_name = "names"]; // Identifier or acknowledgment of the written bundle.
+}
+
+message BundleReadRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
+    ignore_empty: false,
+  }];
+
+  string name = 2 [json_name = "name"];
+}
+
+message BundleReadResponse {
+  DataBundle bundle = 1 [json_name = "bundle"];
+}
+
+// BundleDeleteRequest is used to request the deletion of a bundle.
+// It contains the tenant_id to specify the tenant and the name of the bundle to be deleted.
+message BundleDeleteRequest {
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
+    ignore_empty: false,
+  }];
+
+  string name = 2 [json_name = "name"]; // Name of the bundle to be deleted.
+}
+
+message BundleDeleteResponse {
+  string name = 1 [json_name = "name"];
 }
 
 // ** TENANCY SERVICE **

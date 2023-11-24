@@ -18,6 +18,8 @@ var _ = Describe("DataWriter", func() {
 	var db database.Database
 	var dataWriter *DataWriter
 	var dataReader *DataReader
+	var bundleWriter *BundleWriter
+	var bundleReader *BundleReader
 
 	BeforeEach(func() {
 		version := os.Getenv("POSTGRES_VERSION")
@@ -29,6 +31,8 @@ var _ = Describe("DataWriter", func() {
 		db = postgresDB(version)
 		dataWriter = NewDataWriter(db.(*PQDatabase.Postgres))
 		dataReader = NewDataReader(db.(*PQDatabase.Postgres))
+		bundleWriter = NewBundleWriter(db.(*PQDatabase.Postgres))
+		bundleReader = NewBundleReader(db.(*PQDatabase.Postgres))
 	})
 
 	AfterEach(func() {
@@ -37,7 +41,7 @@ var _ = Describe("DataWriter", func() {
 	})
 
 	Context("Write", func() {
-		It("The test case verifies that an attribute's value for an entity can be updated and subsequently retrieved correctly using MVCC tokens", func() {
+		It("the test case verifies that an attribute's value for an entity can be updated and subsequently retrieved correctly using MVCC tokens", func() {
 			ctx := context.Background()
 
 			attr1, err := attribute.Attribute("organization:organization-1$public|boolean:true")
@@ -414,6 +418,63 @@ var _ = Describe("DataWriter", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(ctT25.String()).Should(Equal(""))
 			Expect(len(colT24.GetAttributes())).Should(Equal(2))
+		})
+	})
+
+	Context("RunBundle", func() {
+		It("", func() {
+			ctx := context.Background()
+
+			bundles := []*base.DataBundle{
+				{
+					Name: "user_created",
+					Arguments: []string{
+						"organizationID",
+						"userID",
+					},
+					Operations: []*base.Operation{
+						{
+							RelationshipsWrite: []string{
+								"organization:{{.organizationID}}#member@user:{{.userID}}",
+								"organization:{{.organizationID}}#admin@user:{{.userID}}",
+							},
+							RelationshipsDelete: []string{},
+							AttributesWrite: []string{
+								"organization:{{.organizationID}}$public|boolean:true",
+							},
+							AttributesDelete: []string{},
+						},
+					},
+				},
+			}
+
+			_, err := bundleWriter.Write(ctx, "t1", bundles)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			bundle, err := bundleReader.Read(ctx, "t1", "user_created")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			token1, err := dataWriter.RunBundle(ctx, "t1", map[string]string{
+				"organizationID": "12",
+				"userID":         "190",
+			}, bundle)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			colT1, _, err := dataReader.ReadRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"12"},
+				},
+			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(len(colT1.GetTuples())).Should(Equal(2))
+
+			colA2, _, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"12"},
+				},
+			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(len(colA2.GetAttributes())).Should(Equal(1))
 		})
 	})
 })

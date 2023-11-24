@@ -165,3 +165,84 @@ func IsAttributeFilterEmpty(filter *base.AttributeFilter) bool {
 	// If none of the above fields are set, then the filter is considered empty.
 	return true
 }
+
+// ValidateBundleOperation checks for duplicate keys in various operations of a bundle.
+func ValidateBundleOperation(op *base.Operation) error {
+	// Initialize a map to store keys for write operations on relationships.
+	relationshipsWrite := map[string]struct{}{}
+
+	// Iterate over all keys obtained from the GetRelationshipsWrite method.
+	for _, rw := range op.GetRelationshipsWrite() {
+		// Check if the key already exists in the relationshipsWrite map.
+		if _, exists := relationshipsWrite[rw]; exists {
+			// If the key exists, return an error indicating a duplicate key.
+			return errors.New(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String())
+		}
+
+		// Add the key to the relationshipsWrite map.
+		relationshipsWrite[rw] = struct{}{}
+	}
+
+	// Initialize a map to store keys for delete operations on relationships.
+	relationshipsDelete := map[string]struct{}{}
+
+	// Iterate over all keys obtained from the GetRelationshipsDelete method.
+	for _, rd := range op.GetRelationshipsDelete() {
+		// Check if the key already exists in the relationshipsDelete map.
+		if _, exists := relationshipsDelete[rd]; exists {
+			// If the key exists, return an error indicating a duplicate key.
+			return errors.New(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String())
+		}
+
+		// Add the key to the relationshipsDelete map.
+		relationshipsDelete[rd] = struct{}{}
+	}
+
+	// Initialize a map to store keys for write operations on attributes.
+	attributesWrite := map[string]struct{}{}
+
+	// Iterate over all keys obtained from the GetAttributesWrite method.
+	for _, aw := range op.GetAttributesWrite() {
+		// Check if the key already exists in the attributesWrite map.
+		if _, exists := attributesWrite[aw]; exists {
+			// If the key exists, return an error indicating a duplicate key.
+			return errors.New(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String())
+		}
+
+		// Add the key to the attributesWrite map.
+		attributesWrite[aw] = struct{}{}
+	}
+
+	// Initialize a map to store keys for delete operations on attributes.
+	attributesDelete := map[string]struct{}{}
+
+	// Iterate over all keys obtained from the GetAttributesWrite method.
+	// Note: Should this be GetAttributesDelete instead of GetAttributesWrite?
+	for _, ad := range op.GetAttributesDelete() {
+		// Check if the key already exists in the attributesDelete map.
+		if _, exists := attributesDelete[ad]; exists {
+			// If the key exists, return an error indicating a duplicate key.
+			return errors.New(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String())
+		}
+
+		// Add the key to the attributesDelete map.
+		attributesDelete[ad] = struct{}{}
+	}
+
+	// Return nil if no duplicates were found in any of the operations.
+	return nil
+}
+
+// ValidateBundleArguments checks if all strings in slice 'a' are keys in map 'b'.
+func ValidateBundleArguments(a []string, b map[string]string) error {
+	// Iterate through each string in slice 'a'.
+	for _, str := range a {
+		// Check if the current string is a key in map 'b'.
+		if _, exists := b[str]; !exists {
+			// If the string is not a key in the map, return an error.
+			return errors.New(base.ErrorCode_ERROR_CODE_MISSING_ARGUMENT.String())
+		}
+	}
+	// If all strings in 'a' are keys in 'b', return nil indicating success.
+	return nil
+}

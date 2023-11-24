@@ -6941,3 +6941,237 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BooleanArrayValueValidationError{}
+
+// Validate checks the field values on DataBundle with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DataBundle) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DataBundle with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DataBundleMultiError, or
+// nil if none found.
+func (m *DataBundle) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DataBundle) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	for idx, item := range m.GetOperations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DataBundleValidationError{
+						field:  fmt.Sprintf("Operations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DataBundleValidationError{
+						field:  fmt.Sprintf("Operations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DataBundleValidationError{
+					field:  fmt.Sprintf("Operations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return DataBundleMultiError(errors)
+	}
+
+	return nil
+}
+
+// DataBundleMultiError is an error wrapping multiple validation errors
+// returned by DataBundle.ValidateAll() if the designated constraints aren't met.
+type DataBundleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DataBundleMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DataBundleMultiError) AllErrors() []error { return m }
+
+// DataBundleValidationError is the validation error returned by
+// DataBundle.Validate if the designated constraints aren't met.
+type DataBundleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DataBundleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DataBundleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DataBundleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DataBundleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DataBundleValidationError) ErrorName() string { return "DataBundleValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DataBundleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDataBundle.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DataBundleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DataBundleValidationError{}
+
+// Validate checks the field values on Operation with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Operation) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Operation with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in OperationMultiError, or nil
+// if none found.
+func (m *Operation) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Operation) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return OperationMultiError(errors)
+	}
+
+	return nil
+}
+
+// OperationMultiError is an error wrapping multiple validation errors returned
+// by Operation.ValidateAll() if the designated constraints aren't met.
+type OperationMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m OperationMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m OperationMultiError) AllErrors() []error { return m }
+
+// OperationValidationError is the validation error returned by
+// Operation.Validate if the designated constraints aren't met.
+type OperationValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e OperationValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e OperationValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e OperationValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e OperationValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e OperationValidationError) ErrorName() string { return "OperationValidationError" }
+
+// Error satisfies the builtin error interface
+func (e OperationValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sOperation.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = OperationValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = OperationValidationError{}
