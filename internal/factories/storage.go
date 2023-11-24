@@ -114,24 +114,36 @@ func TenantWriterFactory(db database.Database) (repo storage.TenantWriter) {
 	}
 }
 
+// BundleReaderFactory is a factory function that creates and returns a BundleReader
+// based on the type of database engine being used.
 func BundleReaderFactory(db database.Database) (repo storage.BundleReader) {
+	// The switch statement determines the type of database engine.
 	switch db.GetEngineType() {
 	case "postgres":
+		// If the engine type is "postgres", create and return a PostgreSQL specific BundleReader.
 		return PQRepository.NewBundleReader(db.(*PQDatabase.Postgres))
 	case "memory":
+		// If the engine type is "memory", create and return a memory-based BundleReader.
 		return MMRepository.NewBundleReader(db.(*MMDatabase.Memory))
 	default:
+		// For any other engine type, default to using a memory-based BundleReader.
 		return MMRepository.NewBundleReader(db.(*MMDatabase.Memory))
 	}
 }
 
+// BundleWriterFactory is a factory function that creates and returns a BundleWriter
+// based on the type of database engine being used.
 func BundleWriterFactory(db database.Database) (repo storage.BundleWriter) {
+	// The switch statement determines the type of database engine.
 	switch db.GetEngineType() {
 	case "postgres":
+		// If the engine type is "postgres", create and return a PostgreSQL specific BundleWriter.
 		return PQRepository.NewBundleWriter(db.(*PQDatabase.Postgres))
 	case "memory":
+		// If the engine type is "memory", create and return a memory-based BundleWriter.
 		return MMRepository.NewBundleWriter(db.(*MMDatabase.Memory))
 	default:
+		// For any other engine type, default to using a memory-based BundleWriter.
 		return MMRepository.NewBundleWriter(db.(*MMDatabase.Memory))
 	}
 }
