@@ -92,5 +92,12 @@ var _ = Describe("BundleReader", func() {
 				"organization:{{.organizationID}}$balance|integer[]:120,568",
 			}))
 		})
+
+		It("should get error on non-existing bundle", func() {
+			ctx := context.Background()
+
+			_, err := bundleReader.Read(ctx, "t1", "user_created")
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String()))
+		})
 	})
 })

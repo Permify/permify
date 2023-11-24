@@ -59,7 +59,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String())
 		}
 
 		slog.Error("Error scanning rows: ", slog.Any("error", err))
