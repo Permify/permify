@@ -42,7 +42,7 @@ localhost:3476/healthz
 
 You can use our Postman Collection to work with the API. Also see the [Using the API] section for details of core functions.
 
-[Using the API]: ../api-overview/
+[Using the API]: ../../api-overview/
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/)
