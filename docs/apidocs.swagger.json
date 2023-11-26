@@ -2772,28 +2772,28 @@
     "v1.Operation": {
       "type": "object",
       "properties": {
-        "relationshipsWrite": {
+        "relationships_write": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "description": "'relationships_write' is a repeated string field for storing relationship keys\nthat are to be written or created."
         },
-        "relationshipsDelete": {
+        "relationships_delete": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "description": "'relationships_delete' is a repeated string field for storing relationship keys\nthat are to be deleted or removed."
         },
-        "attributesWrite": {
+        "attributes_write": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "description": "'attributes_write' is a repeated string field for storing attribute keys\nthat are to be written or created."
         },
-        "attributesDelete": {
+        "attributes_delete": {
           "type": "array",
           "items": {
             "type": "string"
