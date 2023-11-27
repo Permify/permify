@@ -1,7 +1,7 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Run Bundle
+# Run Bundle [Beta]
 
 The "Run Bundle" API provides a straightforward way to execute predefined bundles within your application's tenant
 environment. By sending a POST request to this endpoint, you can activate specific functionalities or processes
