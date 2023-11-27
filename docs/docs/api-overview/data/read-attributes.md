@@ -42,7 +42,7 @@ rr, err: = client.Data.ReadAttributes(context.Background(), & v1.Data.AttributeR
 <TabItem value="node" label="Node">
 
 ```javascript
-client.data.readAttributes.read({
+client.data.readAttributes({
   tenantId: "t1",
   metadata: {
      snap_token: "",

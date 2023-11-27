@@ -98,7 +98,22 @@ module.exports = {
 						"api-overview/data/write-data",
 						"api-overview/data/read-relationships",
 						"api-overview/data/read-attributes",
+						"api-overview/data/run-bundle",
 						"api-overview/data/delete-data"
+					],
+				},
+				{
+					type: 'category',
+					label: 'Bundle Service',
+					link: {
+						type: "generated-index",
+						title: "Bundle Service",
+						slug: "/api-overview/bundle",
+					},
+					items: [
+						"api-overview/bundle/write-bundle",
+						"api-overview/bundle/read-bundle",
+						"api-overview/bundle/delete-bundle"
 					],
 				},
 				{

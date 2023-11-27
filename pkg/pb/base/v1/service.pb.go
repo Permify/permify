@@ -2673,9 +2673,11 @@ type BundleRunRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TenantId  string            `protobuf:"bytes,1,opt,name=tenant_id,proto3" json:"tenant_id,omitempty"`
-	Name      string            `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                                                                                                   // Name of the bundle to be executed.
-	Arguments map[string]string `protobuf:"bytes,3,rep,name=arguments,proto3" json:"arguments,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"` // Additional key-value pairs for execution arguments.
+	TenantId string `protobuf:"bytes,1,opt,name=tenant_id,proto3" json:"tenant_id,omitempty"`
+	// Name of the bundle to be executed.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Additional key-value pairs for execution arguments.
+	Arguments map[string]string `protobuf:"bytes,3,rep,name=arguments,proto3" json:"arguments,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *BundleRunRequest) Reset() {

@@ -931,9 +931,11 @@ message BundleRunRequest {
     ignore_empty: false,
   }];
 
-  string name = 2 [json_name = "name"]; // Name of the bundle to be executed.
+  // Name of the bundle to be executed.
+  string name = 2 [json_name = "name"];
 
-  map<string, string> arguments = 3; // Additional key-value pairs for execution arguments.
+  // Additional key-value pairs for execution arguments.
+  map<string, string> arguments = 3 [json_name = "arguments"];
 }
 
 // BundleRunResponse is the response for a BundleRunRequest.
