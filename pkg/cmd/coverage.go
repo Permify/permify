@@ -24,7 +24,7 @@ func NewCoverageCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 	}
 
-	// register flags for validation
+	// register flags for coverage
 	flags.RegisterCoverageFlags(command)
 
 	return command
