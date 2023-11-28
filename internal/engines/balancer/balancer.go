@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/Permify/permify/internal/authn/preshared"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/invoke"
@@ -61,11 +62,16 @@ func NewCheckEngineWithBalancer(
 	// 1. Initialize the KeyAuthn structure using the provided configuration.
 	// 2. Convert the KeyAuthn instance into PerRPCCredentials.
 	// 3. Append grpc.WithPerRPCCredentials() to the options slice.
+	createPresharedKeyAuthN, err := preshared.NewKeyAuthn(context.Background(), authn.Preshared)
+    if err != nil {
+        return nil, fmt.Errorf("could not create authentication key: %s", err)
+    }
 
 	options = append(
 		options,
 		grpc.WithDefaultServiceConfig(grpcServicePolicy),
 		grpc.WithTransportCredentials(creds),
+		grpc.WithPerRPCCredentials(createPresharedKeyAuthN),
 	)
 
 	conn, err := grpc.Dial(dst.Address, options...)

@@ -48,3 +48,17 @@ func (a *KeyAuthn) Authenticate(ctx context.Context) error {
 	}
 	return status.Error(codes.Unauthenticated, base.ErrorCode_ERROR_CODE_INVALID_KEY.String())
 }
+
+// Get Request Metadata - gets the current request metadata, refreshing tokens
+// if required
+func (a *KeyAuthn) GetRequestMetadata(_ context.Context, uri ...string) (map[string]string, error) {
+    return map[string]string{
+        "Authorization": "Bearer " + "test",
+    }, nil
+}
+
+// RequireTransportSecurity indicates whether the credentials requires
+// transport security.
+func (a *KeyAuthn) RequireTransportSecurity() bool {
+    return true
+}
