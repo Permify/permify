@@ -15,6 +15,7 @@ import (
 	"github.com/Permify/permify/internal/engines/cache"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage/postgres/gc"
+	"github.com/Permify/permify/pkg/cmd/flags"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
 	"github.com/fatih/color"
@@ -40,12 +41,17 @@ import (
 // The command takes no arguments and runs the serve() function to start the Permify service.
 // The command has a short description of what it does.
 func NewServeCommand() *cobra.Command {
-	return &cobra.Command{
+	command := &cobra.Command{
 		Use:   "serve",
 		Short: "serve the Permify server",
 		RunE:  serve(),
 		Args:  cobra.NoArgs,
 	}
+
+	// register flags for serve
+	flags.RegisterServeFlags(command)
+
+	return command
 }
 
 // serve is the main function for the "permify serve" command. It starts the Permify service by configuring and starting the necessary components.
