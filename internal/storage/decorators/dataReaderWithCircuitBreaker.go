@@ -15,11 +15,12 @@ import (
 // DataReaderWithCircuitBreaker - Add circuit breaker behaviour to data reader
 type DataReaderWithCircuitBreaker struct {
 	delegate storage.DataReader
+	timeout  int
 }
 
 // NewDataReaderWithCircuitBreaker - Add circuit breaker behaviour to new data reader
-func NewDataReaderWithCircuitBreaker(delegate storage.DataReader) *DataReaderWithCircuitBreaker {
-	return &DataReaderWithCircuitBreaker{delegate: delegate}
+func NewDataReaderWithCircuitBreaker(delegate storage.DataReader, timeout int) *DataReaderWithCircuitBreaker {
+	return &DataReaderWithCircuitBreaker{delegate: delegate, timeout: timeout}
 }
 
 // QueryRelationships - Reads relation tuples from the repository
@@ -30,7 +31,7 @@ func (r *DataReaderWithCircuitBreaker) QueryRelationships(ctx context.Context, t
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("dataReader.queryRelationships", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataReader.queryRelationships", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataReader.queryRelationships", func() error {
 		tup, err := r.delegate.QueryRelationships(ctx, tenantID, filter, token)
 		output <- circuitBreakerResponse{Iterator: tup, Error: err}
@@ -56,7 +57,7 @@ func (r *DataReaderWithCircuitBreaker) ReadRelationships(ctx context.Context, te
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("dataReader.readRelationships", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataReader.readRelationships", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataReader.readRelationships", func() error {
 		tup, ct, err := r.delegate.ReadRelationships(ctx, tenantID, filter, token, pagination)
 		output <- circuitBreakerResponse{Collection: tup, ContinuousToken: ct, Error: err}
@@ -81,7 +82,7 @@ func (r *DataReaderWithCircuitBreaker) QuerySingleAttribute(ctx context.Context,
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("dataReader.querySingleAttribute", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataReader.querySingleAttribute", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataReader.querySingleAttribute", func() error {
 		attr, err := r.delegate.QuerySingleAttribute(ctx, tenantID, filter, token)
 		output <- circuitBreakerResponse{Attribute: attr, Error: err}
@@ -106,7 +107,7 @@ func (r *DataReaderWithCircuitBreaker) QueryAttributes(ctx context.Context, tena
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("dataReader.queryAttributes", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataReader.queryAttributes", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataReader.queryAttributes", func() error {
 		attr, err := r.delegate.QueryAttributes(ctx, tenantID, filter, token)
 		output <- circuitBreakerResponse{Iterator: attr, Error: err}
@@ -132,7 +133,7 @@ func (r *DataReaderWithCircuitBreaker) ReadAttributes(ctx context.Context, tenan
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("dataReader.readAttributes", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataReader.readAttributes", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataReader.readAttributes", func() error {
 		attr, ct, err := r.delegate.ReadAttributes(ctx, tenantID, filter, token, pagination)
 		output <- circuitBreakerResponse{Collection: attr, ContinuousToken: ct, Error: err}
@@ -158,7 +159,7 @@ func (r *DataReaderWithCircuitBreaker) QueryUniqueEntities(ctx context.Context, 
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("dataReader.queryUniqueEntities", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataReader.queryUniqueEntities", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataReader.queryUniqueEntities", func() error {
 		ids, ct, err := r.delegate.QueryUniqueEntities(ctx, tenantID, name, token, pagination)
 		output <- circuitBreakerResponse{IDs: ids, ContinuousToken: ct, Error: err}
@@ -184,7 +185,7 @@ func (r *DataReaderWithCircuitBreaker) QueryUniqueSubjectReferences(ctx context.
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("dataReader.queryUniqueSubjectReferences", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataReader.queryUniqueSubjectReferences", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataReader.queryUniqueSubjectReferences", func() error {
 		ids, ct, err := r.delegate.QueryUniqueSubjectReferences(ctx, tenantID, subjectReference, token, pagination)
 		output <- circuitBreakerResponse{IDs: ids, ContinuousToken: ct, Error: err}
@@ -209,7 +210,7 @@ func (r *DataReaderWithCircuitBreaker) HeadSnapshot(ctx context.Context, tenantI
 	}
 
 	output := make(chan circuitBreakerResponse, 1)
-	hystrix.ConfigureCommand("relationshipReader.headSnapshot", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("relationshipReader.headSnapshot", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("relationshipReader.headSnapshot", func() error {
 		tok, err := r.delegate.HeadSnapshot(ctx, tenantID)
 		output <- circuitBreakerResponse{Token: tok, Error: err}
