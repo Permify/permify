@@ -204,12 +204,20 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Check if circuit breaker should be enabled for services
 		if cfg.Service.CircuitBreaker {
 			// Add circuit breaker to the relationship reader and writer using decorators
-			dataWriter = decorators.NewDataWriterWithCircuitBreaker(dataWriter)
-			dataReader = decorators.NewDataReaderWithCircuitBreaker(dataReader)
+			dataWriter = decorators.NewDataWriterWithCircuitBreaker(dataWriter, 1000)
+			dataReader = decorators.NewDataReaderWithCircuitBreaker(dataReader, 1000)
+
+			// Add circuit breaker to the bundle reader and writer using decorators
+			bundleWriter = decorators.NewBundleWriterWithCircuitBreaker(bundleWriter, 1000)
+			bundleReader = decorators.NewBundleReaderWithCircuitBreaker(bundleReader, 1000)
 
 			// Add circuit breaker to the schema reader and writer using decorators
-			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
-			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
+			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter, 1000)
+			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader, 1000)
+
+			// Add circuit breaker to the tenant reader and writer using decorators
+			tenantWriter = decorators.NewTenantWriterWithCircuitBreaker(tenantWriter, 1000)
+			tenantReader = decorators.NewTenantReaderWithCircuitBreaker(tenantReader, 1000)
 		}
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader

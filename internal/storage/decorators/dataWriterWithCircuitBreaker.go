@@ -15,11 +15,12 @@ import (
 // DataWriterWithCircuitBreaker - Add circuit breaker behaviour to data writer
 type DataWriterWithCircuitBreaker struct {
 	delegate storage.DataWriter
+	timeout  int
 }
 
 // NewDataWriterWithCircuitBreaker - Add circuit breaker behaviour to new data writer
-func NewDataWriterWithCircuitBreaker(delegate storage.DataWriter) *DataWriterWithCircuitBreaker {
-	return &DataWriterWithCircuitBreaker{delegate: delegate}
+func NewDataWriterWithCircuitBreaker(delegate storage.DataWriter, timeout int) *DataWriterWithCircuitBreaker {
+	return &DataWriterWithCircuitBreaker{delegate: delegate, timeout: timeout}
 }
 
 // WriteRelationships - Write relation tuples from the repository
@@ -31,7 +32,7 @@ func (r *DataWriterWithCircuitBreaker) Write(ctx context.Context, tenantID strin
 
 	output := make(chan circuitBreakerResponse, 1)
 
-	hystrix.ConfigureCommand("dataWriter.write", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataWriter.write", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataWriter.write", func() error {
 		t, err := r.delegate.Write(ctx, tenantID, tupleCollection, attributeCollection)
 		output <- circuitBreakerResponse{Token: t, Error: err}
@@ -57,7 +58,7 @@ func (r *DataWriterWithCircuitBreaker) Delete(ctx context.Context, tenantID stri
 
 	output := make(chan circuitBreakerResponse, 1)
 
-	hystrix.ConfigureCommand("dataWriter.deleteRelationships", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataWriter.deleteRelationships", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataWriter.deleteRelationships", func() error {
 		t, err := r.delegate.Delete(ctx, tenantID, tupleFilter, attrFilter)
 		output <- circuitBreakerResponse{Token: t, Error: err}
@@ -83,7 +84,7 @@ func (r *DataWriterWithCircuitBreaker) RunBundle(ctx context.Context, tenantID s
 
 	output := make(chan circuitBreakerResponse, 1)
 
-	hystrix.ConfigureCommand("dataWriter.runBundle", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("dataWriter.runBundle", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("dataWriter.runBundle", func() error {
 		t, err := r.delegate.RunBundle(ctx, tenantID, arguments, b)
 		output <- circuitBreakerResponse{Token: t, Error: err}
