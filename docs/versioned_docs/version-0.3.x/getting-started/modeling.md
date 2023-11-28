@@ -284,4 +284,4 @@ entity repository {
 
 This example shows almost all aspects of the Permify Schema. 
 
-You can check out more schema examples from the [Real World Examples](./examples) section with their detailed examination.
+You can check out more schema examples from the [Real World Examples](../examples) section with their detailed examination.

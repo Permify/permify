@@ -116,11 +116,11 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 </TabItem>
 </Tabs>
 
-Users that come from version 0.2.x and users that have a single tenant can enter **t1** as tenant id. See changes on the other endpoints from [API Overview Section](./api-overview/).
+Users that come from version 0.2.x and users that have a single tenant can enter **t1** as tenant id. See changes on the other endpoints from [API Overview Section](../api-overview/).
 
 ### Added Tenancy Service
 
-To manage tenants we have added a Tenancy service; you can create, delete and list tenants accordingly. See the [Tenancy Service](./api-overview/tenancy/) on Using The API section.
+To manage tenants we have added a Tenancy service; you can create, delete and list tenants accordingly. See the [Tenancy Service](../api-overview/tenancy/) on Using The API section.
 
 ### WriteDB tenancy table and tenant id column
 
