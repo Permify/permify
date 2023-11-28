@@ -8,7 +8,6 @@ import (
 
 	consistentbalancer "github.com/Permify/permify/pkg/balancer"
 	"github.com/Permify/permify/pkg/cmd"
-	"github.com/Permify/permify/pkg/cmd/flags"
 )
 
 func main() {
@@ -18,7 +17,6 @@ func main() {
 	root := cmd.NewRootCommand()
 
 	serve := cmd.NewServeCommand()
-	flags.RegisterServeFlags(serve)
 	root.AddCommand(serve)
 
 	validate := cmd.NewValidateCommand()
