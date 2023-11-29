@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/cespare/xxhash/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -74,7 +72,6 @@ func NewCheckEngineWithBalancer(
 	// Handle authentication if enabled
 	if authn != nil && authn.Enabled {
 		token, err := setupAuthn(ctx, authn)
-		spew.Dump(token)
 		if err != nil {
 			return nil, err
 		}
