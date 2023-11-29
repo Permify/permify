@@ -236,6 +236,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Create the checker either with load balancing or caching capabilities.
 		if cfg.Distributed.Enabled {
 			checker, err = balancer.NewCheckEngineWithBalancer(
+				context.Background(),
 				checkEngine,
 				schemaReader,
 				&cfg.Distributed,
