@@ -26,7 +26,7 @@ require (
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/juju/ratelimit v1.0.2
 	github.com/onsi/ginkgo/v2 v2.13.1
-	github.com/onsi/gomega v1.29.0
+	github.com/onsi/gomega v1.30.0
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.15.0
 	github.com/rs/cors v1.10.1
