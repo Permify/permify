@@ -32,7 +32,7 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 | [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
 | [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
-| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../reference/contextual-tuples.md) |
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -146,11 +146,11 @@ The difference between this endpoint from direct Lookup Entity is response of th
 | Required | Argument          | Type   | Default | Description                                                                                                                                                                |
 |----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [ ]      | schema_version    | string | 8       | Version of the schema                                                                                                                                                      |
-| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens)                                                                        |
+| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens.md)                                                                        |
 | [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
 | [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
-| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../reference/contextual-tuples.md) |
 
 <Tabs>
 <TabItem value="go" label="Go">

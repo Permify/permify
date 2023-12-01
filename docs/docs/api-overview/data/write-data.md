@@ -3,11 +3,15 @@ import TabItem from '@theme/TabItem';
 
 # Write Authorization Data
 
-In Permify, relations between your entities, objects and users stored as [relational tuples] in a [preferred database]. Since relations and authorization data's are live instances these relational tuples can be created with an simple API call in runtime.
+In Permify, attributes and relations between your entities, objects and users represents your authorization data. These data stored as tuples in a [preferred database]. 
 
-When using Permify, the application client should update preferred database about the changes happening in entities or resources that are related to the authorization structure. If we consider a document system; when some user joins a group that has edit access on some documents, the application side needs to write relational tuples to keep [preferred database] up-to-date. Besides, each relational tuple should be created according to its authorization model, Permify Schema.
+Since these attributes and relations are live instances, meaning they can be affected by specific user actions within the application, they can be created/deleted with a simple Permify API call at runtime.
 
-Another example: when one a company executive grant admin role to user (lets say with id = 3) on their organization, application side needs to tell that update to Permify in order to reform that as relation tuples and store in [preferred database].
+More specifically, the application client should update preferred database about the changes happening in entities or resources that are related to the authorization structure. 
+
+If we consider a document system; when some user joins a group that has edit access on some documents, the application side needs to write relational tuples to keep [preferred database] up-to-date. Besides, each attribute or relationship should be created according to its authorization model, Permify Schema.
+
+Another example: when one a company executive grant admin role to user (lets say with id = 3) on their organization, application side needs to tell that update to Permify in order to reform that as tuples and store in [preferred database].
 
 ![tuple-creation](https://user-images.githubusercontent.com/34595361/186637488-30838a3b-849a-4859-ae4f-d664137bb6ba.png)
 
@@ -130,23 +134,17 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
 
 ### Creating Attribute Data
 
-You can use `attributes` argument to create attribute/attributes, similarly the `tuples`. 
+You can use `attributes` argument to create attribute/attributes with a single API call, similarly creating a `relational tuple`. 
 
-Let's conitnue with an example: Assume user:1 has been granted an admin role in organization:1 and organization:1 is a private (boolean) organization:
+Assume we want to both create relational tuple and attribute within in single request. Let's say **user:1** has been granted as editor in **document:1** and **document:1** is a **private (boolean)** document, that only specific users have view access.
 
-:::warning **value** field
-**value** field is mandatory on attribute data creation.
+Following tuples will be created, respectively,
 
-Here are the available attribute value types:
+-  `document:1#editor@user:1`
+-  `document:1$is_private|boolean:true`
 
-- **type.googleapis.com/base.v1.StringValue**
-- **type.googleapis.com/base.v1.BooleanValue**
-- **type.googleapis.com/base.v1.IntegerValue**
-- **type.googleapis.com/base.v1.DoubleValue**
-- **type.googleapis.com/base.v1.StringArrayValue**
-- **type.googleapis.com/base.v1.BooleanArrayValue**
-- **type.googleapis.com/base.v1.IntegerArrayValue**
-- **type.googleapis.com/base.v1.DoubleArrayValue**
+:::info Attribute Data Syntax
+As you noticed, the attribute tuple syntax differs from the relationship syntax, structured as: `entity $ attribute | value`
 :::
 
 <Tabs>
@@ -169,10 +167,10 @@ cr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{
 	Tuples: []*v1.Attribute{
         {
             Entity: &v1.Entity{
-                Type: "organization",
+                Type: "document",
                 Id:   "1",
             },
-            Relation: "admin",
+            Relation: "editor",
             Subject:  &v1.Subject{
 		        Type: "user",
 		        Id:   "1",
@@ -183,10 +181,10 @@ cr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{
     Attributes: []*v1.Attribute{
         {
             Entity: &v1.Entity{
-                Type: "account",
+                Type: "document",
                 Id:   "1",
             },
-            Attribute: "public",
+            Attribute: "is_private",
             Value:     value,
         },
     },
@@ -212,10 +210,10 @@ client.data.write({
     },
     tuples: [{
         entity: {
-            type: "organization",
+            type: "document",
             id: "1"
         },
-        relation: "admin",
+        relation: "editor",
         subject: {
             type: "user",
             id: "1"
@@ -226,7 +224,7 @@ client.data.write({
             type: "document",
             id: "1"
         },
-        attribute: "public",
+        attribute: "is_private",
         value: value,
     }]
 }).then((response) => {
@@ -248,10 +246,10 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
     "tuples": [
       {
         "entity": {
-          "type": "organization",
+          "type": "document",
           "id": "1"
         },
-        "relation": "admin",
+        "relation": "editor",
         "subject": {
           "type": "user",
           "id": "1"
@@ -261,10 +259,10 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
     "attributes": [
         {
             "entity": {
-                "type": "organization",
+                "type": "document",
                 "id": "1"
             },
-            "attribute": "private",
+            "attribute": "is_private",
             "value": {
                 "@type": "type.googleapis.com/base.v1.BooleanValue",
                 "data": true
@@ -277,6 +275,21 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
 
 </TabItem>
 </Tabs>
+
+:::warning Attribute **value** field
+**value** field is mandatory on attribute data creation.
+
+Here are the available attribute value types:
+
+- **type.googleapis.com/base.v1.StringValue**
+- **type.googleapis.com/base.v1.BooleanValue**
+- **type.googleapis.com/base.v1.IntegerValue**
+- **type.googleapis.com/base.v1.DoubleValue**
+- **type.googleapis.com/base.v1.StringArrayValue**
+- **type.googleapis.com/base.v1.BooleanArrayValue**
+- **type.googleapis.com/base.v1.IntegerArrayValue**
+- **type.googleapis.com/base.v1.DoubleArrayValue**
+:::
 
 ## Response
 
@@ -332,7 +345,7 @@ func CreateDocuments(db *gorm.DB) error {
 
 The key point to take way from above approach is if the transaction fails for any reason, the relation will also be deleted from Permify to provide maximum consistency.
 
-### Data that not stored in application database
+### Data That Not Stored In Application Database
 
 Although ownership generally stored in application databases, there are some data that not needed to be stored in your actual database. Such as defining organizational roles, group members, project editors etc.
 
