@@ -587,8 +587,22 @@ rule check_balance(amount double, balance double) {
 ⛔ If you don’t create the related attribute data, Permify accounts double as `0.0`
 :::
 
-See more details on [Attribute Based Access Control](#attribute-based-permissions-abac) section to learn our approach on ABAC as well as how it operates in Permify. you can see more Comprehensive ABAC examples in the [Example ABAC Use Cases](../use-cases/abac/#example-use-cases) section in related page.
+See more details on [Attribute Based Access Control](#attribute-based-permissions-abac) section to learn our approach on ABAC as well as how it operates in Permify. you can see more comprehensive ABAC examples in the [Example ABAC Use Cases](../use-cases/abac/#example-use-cases) section in related page.
 
-## Real World Examples
+## More Comprehensive Examples
 
-You can check out more comprehensive schema examples from the [Real World Examples](https://docs.permify.co/docs/getting-started/examples/) section.
+You can check out more comprehensive schema examples from the [Real World Examples](../examples.md) section.
+
+Here is what each example focuses on,
+
+*  [Google Docs]: how users can gain direct access to a document through **organizational roles** or through **inherited/nested permissions**.
+*  [Facebook Groups]: how users can perform various actions based on the **roles and permissions within the groups** they belong.
+*  [Notion]: how **one global entity (workspace) can manage access rights** in the child entities that belong to it.
+*  [Instagram]: how **public/private attributes** play role in granting access to specific users.
+*  [Mercury]: how **attributes and rules interact within the hierarchical relationships**.
+
+[Google Docs]:./examples/google-docs.md
+[Facebook Groups]:./examples/facebook-groups.md
+[Notion]:./examples/notion.md
+[Instagram]:./examples/instagram.md
+[Mercury]:./examples/mercury.md
