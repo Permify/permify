@@ -10,7 +10,6 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 
 	"github.com/Masterminds/squirrel"
-	otelCodes "go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
 	"github.com/Permify/permify/internal/storage/postgres/types"
@@ -56,12 +55,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 		var tx *sql.Tx
 		tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-
-			slog.Error("Failed to begin transaction: ", slog.Any("error", err))
-
-			return nil, err
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 
 		slog.Debug("Inserting transaction record for tenant: ", slog.String("tenant_id", tenantID))
@@ -72,24 +66,14 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			Suffix("RETURNING id").RunWith(tx)
 		if err != nil {
 			utils.Rollback(tx)
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-
-			slog.Error("Failed to insert transaction record for tenant: ", slog.Any("error", err))
-
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 		}
 
 		var xid types.XID8
 		err = transaction.QueryRowContext(ctx).Scan(&xid)
 		if err != nil {
 			utils.Rollback(tx)
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-
-			slog.Error("Failed to query row context: ", slog.Any("error", err))
-
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 		}
 
 		slog.Debug("Retrieved transaction: ", slog.Any("transaction", transaction), "for tenant: ", slog.Any("tenant_id", tenantID))
@@ -137,26 +121,16 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			tdquery, tdargs, err = tDeleteBuilder.ToSql()
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to build SQL query for tuple deletion: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 			}
 
 			_, err = tx.ExecContext(ctx, tdquery, tdargs...)
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
-
-				slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
 
 			var tiquery string
@@ -165,26 +139,16 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			tiquery, tiargs, err = tuplesInsertBuilder.ToSql()
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to build SQL query for tuples insert: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 			}
 
 			_, err = tx.ExecContext(ctx, tiquery, tiargs...)
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
-
-				slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
 		}
 
@@ -202,12 +166,7 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 				jsonStr, err := m.MarshalToString(a.GetValue())
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
-
-					slog.Error("Failed to convert the value to string: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
 				}
 
 				// Build the condition for this tuple.
@@ -234,26 +193,16 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			adquery, adargs, err = aDeleteBuilder.ToSql()
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to build SQL query for attribute delete: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 			}
 
 			_, err = tx.ExecContext(ctx, adquery, adargs...)
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
-
-				slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
 
 			var aquery string
@@ -262,38 +211,25 @@ func (w *DataWriter) Write(ctx context.Context, tenantID string, tupleCollection
 			aquery, aargs, err = attributesInsertBuilder.ToSql()
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to build query for attribute insertion: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 			}
 
 			_, err = tx.ExecContext(ctx, aquery, aargs...)
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
-				slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
 		}
 
 		if err = tx.Commit(); err != nil {
 			utils.Rollback(tx)
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
 			if strings.Contains(err.Error(), "could not serialize") {
 				continue
 			}
-			slog.Error("Failed to committing database transaction: ", slog.Any("error", err))
-
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 		}
 
 		slog.Info("Data successfully written to the database.")
@@ -316,12 +252,7 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 		var tx *sql.Tx
 		tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-
-			slog.Error("Failed to begin transaction: ", slog.Any("error", err))
-
-			return nil, err
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 
 		slog.Debug("Deleting transaction record for tenant: ", slog.String("tenant_id", tenantID))
@@ -332,24 +263,14 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 			Suffix("RETURNING id").RunWith(tx)
 		if err != nil {
 			utils.Rollback(tx)
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-
-			slog.Error("Failed to insert transaction record for tenant: ", slog.Any("error", err))
-
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 		}
 
 		var xid types.XID8
 		err = transaction.QueryRowContext(ctx).Scan(&xid)
 		if err != nil {
 			utils.Rollback(tx)
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-
-			slog.Error("Failed to query row context: ", slog.Any("error", err))
-
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 		}
 
 		slog.Debug("Retrieved transaction: ", slog.Any("transaction", transaction), "for tenant: ", slog.Any("tenant_id", tenantID))
@@ -366,26 +287,16 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 			tquery, targs, err = tbuilder.ToSql()
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to build SQL query for tuple update: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 			}
 
 			_, err = tx.ExecContext(ctx, tquery, targs...)
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
-
-				slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
 		}
 
@@ -401,40 +312,25 @@ func (w *DataWriter) Delete(ctx context.Context, tenantID string, tupleFilter *b
 			aquery, aargs, err = abuilder.ToSql()
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to build SQL query for attribute updation: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 			}
 
 			_, err = tx.ExecContext(ctx, aquery, aargs...)
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
-
-				slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
 		}
 
 		if err = tx.Commit(); err != nil {
 			utils.Rollback(tx)
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
 			if strings.Contains(err.Error(), "could not serialize") {
 				continue
 			}
-
-			slog.Error("Failed to committing database transaction: ", slog.Any("error", err))
-
-			return nil, err
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 		}
 
 		slog.Info("Data successfully deleted from the database.")
@@ -464,12 +360,7 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 			var tx *sql.Tx
 			tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to begin transaction: ", slog.Any("error", err))
-
-				return nil, err
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 			}
 
 			slog.Debug("Inserting transaction record for tenant: ", slog.String("tenant_id", tenantID))
@@ -480,24 +371,14 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 				Suffix("RETURNING id").RunWith(tx)
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to insert transaction record for tenant: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 			}
 
 			var xid types.XID8
 			err = transaction.QueryRowContext(ctx).Scan(&xid)
 			if err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
-
-				slog.Error("Failed to query row context: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
 
 			slog.Debug("Retrieved transaction: ", slog.Any("transaction", transaction), "for tenant: ", slog.Any("tenant_id", tenantID))
@@ -545,26 +426,16 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 				tdquery, tdargs, err = tDeleteBuilder.ToSql()
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
-
-					slog.Error("Failed to build SQL query for tuple deletion: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 				}
 
 				_, err = tx.ExecContext(ctx, tdquery, tdargs...)
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
 					if strings.Contains(err.Error(), "could not serialize") {
 						continue
 					}
-
-					slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 				}
 
 				var tiquery string
@@ -573,26 +444,16 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 				tiquery, tiargs, err = tuplesInsertBuilder.ToSql()
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
-
-					slog.Error("Failed to build SQL query for tuples insert: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 				}
 
 				_, err = tx.ExecContext(ctx, tiquery, tiargs...)
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
 					if strings.Contains(err.Error(), "could not serialize") {
 						continue
 					}
-
-					slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 				}
 			}
 
@@ -610,12 +471,7 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 					jsonStr, err := m.MarshalToString(a.GetValue())
 					if err != nil {
 						utils.Rollback(tx)
-						span.RecordError(err)
-						span.SetStatus(otelCodes.Error, err.Error())
-
-						slog.Error("Failed to convert the value to string: ", slog.Any("error", err))
-
-						return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+						return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
 					}
 
 					// Build the condition for this tuple.
@@ -642,26 +498,16 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 				adquery, adargs, err = tDeleteBuilder.ToSql()
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
-
-					slog.Error("Failed to build SQL query for attribute delete: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 				}
 
 				_, err = tx.ExecContext(ctx, adquery, adargs...)
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
 					if strings.Contains(err.Error(), "could not serialize") {
 						continue
 					}
-
-					slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 				}
 
 				var aquery string
@@ -670,25 +516,16 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 				aquery, aargs, err = attributesInsertBuilder.ToSql()
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
-
-					slog.Error("Failed to build query for attribute insertion: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 				}
 
 				_, err = tx.ExecContext(ctx, aquery, aargs...)
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
 					if strings.Contains(err.Error(), "could not serialize") {
 						continue
 					}
-					slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 				}
 			}
 
@@ -729,26 +566,16 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 				tquery, targs, err = tDeleteBuilder.ToSql()
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
-
-					slog.Error("Failed to build SQL query for tuple update: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 				}
 
 				_, err = tx.ExecContext(ctx, tquery, targs...)
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
 					if strings.Contains(err.Error(), "could not serialize") {
 						continue
 					}
-
-					slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 				}
 			}
 
@@ -783,39 +610,25 @@ func (w *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments m
 				tquery, targs, err = aDeleteBuilder.ToSql()
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
-
-					slog.Error("Failed to build SQL query for tuple update: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 				}
 
 				_, err = tx.ExecContext(ctx, tquery, targs...)
 				if err != nil {
 					utils.Rollback(tx)
-					span.RecordError(err)
-					span.SetStatus(otelCodes.Error, err.Error())
 					if strings.Contains(err.Error(), "could not serialize") {
 						continue
 					}
-
-					slog.Error("Failed to execute context query: ", slog.Any("error", err))
-
-					return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+					return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 				}
 			}
 
 			if err = tx.Commit(); err != nil {
 				utils.Rollback(tx)
-				span.RecordError(err)
-				span.SetStatus(otelCodes.Error, err.Error())
 				if strings.Contains(err.Error(), "could not serialize") {
 					continue
 				}
-				slog.Error("Failed to committing database transaction: ", slog.Any("error", err))
-
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
 
 			slog.Info("Bundle successfully worked.")
