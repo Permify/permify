@@ -33,7 +33,7 @@ There are two main deployment patterns that you can follow, integrate Permify in
 
 Permify can be deployed as a sole service that abstracts authorization logic from core applications and behaves as a single source of truth for authorization. Gathering authorization logic in a central place offers important advantages over maintaining separate access control mechanisms for individual applications. See the [What is Authorization Service] Section for a detailed explanation of those advantages.
 
-[What is Authorization Service]: ./authorization-service
+[What is Authorization Service]: ../authorization-service
 
 ![load-balancer](https://user-images.githubusercontent.com/34595361/201173835-6f6b67cd-d65b-4239-b695-04ecf1bad5bc.png)
 
