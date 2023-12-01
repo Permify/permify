@@ -28,7 +28,7 @@
     "animate.css": "^4.1.1",
     "clsx": "^1.1.1",
     "polished": "^4.2.2",
-    "prism-react-renderer": "^1.2.1",
+    "prism-react-renderer": "^2.3.0",
     "prop-types": "^15.8.1",
     "query-string": "^8.1.0",
     "rc-collapse": "^3.5.2",
