@@ -419,12 +419,9 @@ This way, we achieve a recursive relationship between parent-child organizations
 
 ## Attribute Based Permissions (ABAC)
 
-:::success Beta
-Please keep in mind that this feature is still in the **beta stage**, and we're actively seeking user feedback to improve it. As a Beta feature, Permify ABAC support may have some limitations, and its functionality and interface could change in future updates.
-:::
+To support Attribute Based Access Control (ABAC) in Permify, we've added two main components into our schema language: `attribute` and `rule`.
 
-
-To support Attribute Based Access Control (ABAC) in Permify, we've added two main components into our DSL: **attributes** and **rules**.
+### Defining Attributes
 
 Attributes are used to define properties for entities in specific data types. For instance, an attribute could be an IP range associated with an organization, defined as a string array:
 
@@ -432,7 +429,64 @@ Attributes are used to define properties for entities in specific data types. Fo
 attribute ip_range string[]
 ```
 
-There are different types of attributes you can use;
+Here are the all attribute types that you use when defining an `attribute`.
+
+```perm
+// A boolean attribute type
+boolean
+
+// A boolean array attribute type.
+boolean[]
+
+// A string attribute type.
+string
+
+// A string array attribute type.
+string[]
+
+// An integer attribute type.
+integer 
+
+// An integer array attribute type.
+integer[]
+
+// A double attribute type.
+double
+
+// A double array attribute type.
+double[]
+```
+
+### Defining Rules
+
+Rules are structures that allow you to write specific conditions for the model. You can think rules as simple functions of every software language have. They accept parameters and are based on condition to return a true/false result.
+
+In the following example schema, a rule could be used to check if a given IP address falls within a specified IP range:
+
+```perm
+entity user {}
+
+entity organization {
+	
+	relation admin @user
+
+	attribute ip_range string[]
+
+	permission view = check_ip_range(request.ip, ip_range) or admin
+}
+
+rule check_ip_range(ip string, ip_range string[]) {
+	ip in ip_range
+}
+```
+
+:::info Syntax 
+We design our schema language based on [Common Expression Language (CEL)](https://github.com/google/cel-go). So the syntax looks nearly identical to equivalent expressions in C++, Go, Java, and TypeScript. 
+
+Please let us know via our [Discord channel](https://discord.gg/n6KfzYxhPp) if you have questions regarding syntax, definitions or any operator you identify not working as expected.
+:::
+
+Let's examine some of common usage of ABAC with small schema examples.
 
 ### Boolean - True/False Conditions
 
@@ -478,21 +532,6 @@ rule check_location(current_location string, location string[]) {
 
 :::caution
 ⛔ If you don’t create the related attribute data, Permify accounts string as `""`
-:::
-
-:::info Defining Rules
-
-In above we defined a function called with **rule** keyword.
-
-Rules are structures that allow you to write specific conditions for the model. They accept parameters and are based on conditions. 
-
-Another example, a rule could be used to check if a given IP address falls within a specified IP range:
-
-```perm
-rule check_ip_range(ip string, ip_range string[]) {
-	ip in ip_range
-}
-```
 :::
 
 ### Numerical Conditions
@@ -548,8 +587,8 @@ rule check_balance(amount double, balance double) {
 ⛔ If you don’t create the related attribute data, Permify accounts double as `0.0`
 :::
 
-See more details on [Attribute Based Access Control](#attribute-based-permissions-abac) section to learn our approach on ABAC as well as how it operates in Permify.
+See more details on [Attribute Based Access Control](#attribute-based-permissions-abac) section to learn our approach on ABAC as well as how it operates in Permify. you can see more Comprehensive ABAC examples in the [Example ABAC Use Cases](../use-cases/abac/#example-use-cases) section in related page.
 
-## More Advanced Examples
+## Real World Examples
 
-You can check out more advanced and completed schema examples from the [Real World Examples](https://docs.permify.co/docs/getting-started/examples/) section with their detailed examination.
+You can check out more comprehensive schema examples from the [Real World Examples](https://docs.permify.co/docs/getting-started/examples/) section.
