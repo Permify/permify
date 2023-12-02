@@ -1,4 +1,4 @@
----
+ d---
 id: api-overview
 title: API Overview
 sidebar_label: Using the API
@@ -79,6 +79,14 @@ These credits are your sole remedy for any availability failures under our SLA.
 ## Request Rate Limits
 
 Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our [documentation](https://docs.permify.co/docs/reference/configuration). We used [Token bucket](https://en.wikipedia.org/wiki/Token_bucket) algorithm for rate limiting.
+
+## Error Handling
+
+Permify API uses a set of defined error codes to indicate various types of failures or issues. 
+Understanding these error codes and their implications is vital for effective error handling and troubleshooting within the Permify API. 
+Each error code is designed to provide clear insights into what went wrong and how to resolve it, ensuring a smoother integration and operation of the API in your applications
+Refer to the [Error Codes](https://github.com/Permify/permify/blob/master/proto/base/v1/errors.proto) documentation for detailed descriptions and resolution steps for each error code.
+
 
 ## Need any help ?
 
