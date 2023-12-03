@@ -6,19 +6,18 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/Permify/permify/internal/storage/postgres/utils"
+	db "github.com/Permify/permify/pkg/database/memory"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/golang/protobuf/jsonpb"
 	"go.opentelemetry.io/otel/codes"
-
-	"github.com/Permify/permify/internal/storage/postgres/utils"
-	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/hashicorp/go-memdb"
 )
 
 type BundleReader struct {
-	database *memdb.MemDB
+	database *db.Memory
 }
 
-func NewBundleReader(database *memdb.MemDB) *BundleReader {
+func NewBundleReader(database *db.Memory) *BundleReader {
 	return &BundleReader{
 		database: database,
 	}
@@ -30,7 +29,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 
 	slog.Info("Reading bundle: ", slog.Any("tenant_id", tenantID), slog.Any("name", name))
 
-	txn := b.database.Txn(false)
+	txn := b.database.DB.Txn(false)
 	defer txn.Abort()
 
 	raw, err := txn.First("bundle", "id", tenantID, name)

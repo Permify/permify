@@ -4,16 +4,17 @@ import (
 	"context"
 	"log/slog"
 
+	db "github.com/Permify/permify/pkg/database/memory"
+
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/hashicorp/go-memdb"
 )
 
 type BundleWriter struct {
-	database *memdb.MemDB
+	database *db.Memory
 }
 
-func NewBundleWriter(database *memdb.MemDB) *BundleWriter {
+func NewBundleWriter(database *db.Memory) *BundleWriter {
 	return &BundleWriter{
 		database: database,
 	}
@@ -25,7 +26,7 @@ func (b *BundleWriter) Write(ctx context.Context, tenantID string, bundles []*ba
 
 	slog.Info("Writing bundles to the database", slog.Any("number_of_bundles", len(bundles)))
 
-	txn := b.database.Txn(true)
+	txn := b.database.DB.Txn(true)
 
 	for _, bundle := range bundles {
 
@@ -48,7 +49,7 @@ func (b *BundleWriter) Delete(ctx context.Context, tenantID string) (err error) 
 
 	slog.Info("Deleting bundle: ", slog.Any("bundle", tenantID))
 
-	txn := b.database.Txn(true)
+	txn := b.database.DB.Txn(true)
 
 	raw, err := txn.First("bundle", "TenantID", tenantID)
 	if err != nil {
