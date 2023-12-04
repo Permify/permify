@@ -2,7 +2,7 @@
 id: bundle
 title: Bundle Service
 sidebar_label: Data Bundles
-slug: /getting-started/examples
+slug: /api-overview/bundle
 ---
 
 We introduce a new services to model how relationships and attributes are created and deleted when actions occur on resources. Managing these data centrally promises better transparency and consistent modeling.
