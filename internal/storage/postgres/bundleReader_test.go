@@ -12,7 +12,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var _ = Describe("BundleReader", func() {
+var _ = Describe("BundleReader[Postgress]", func() {
 	var db database.Database
 	var bundleWriter *BundleWriter
 	var bundleReader *BundleReader

@@ -1,0 +1,101 @@
+package memory
+
+import (
+	"context"
+
+	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/database/memory"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+var _ = Describe("BundlerReader[Memory]", func() {
+
+	var db database.Database
+	var bundleWriter *BundleWriter
+	var bundleReader *BundleReader
+
+	BeforeEach(func() {
+
+		bundleReader = NewBundleReader(db.(*memory.Memory))
+		bundleWriter = NewBundleWriter(db.(*memory.Memory))
+
+	})
+
+	AfterEach(func() {
+		err := db.Close()
+		Expect(err).ShouldNot(HaveOccurred())
+	})
+
+	Context("Read", func() {
+		It("should write and read Databundle", func() {
+			ctx := context.Background()
+
+			bundles := []*base.DataBundle{
+				{
+					Name: "user_created",
+					Arguments: []string{
+						"organizationID",
+						"userID",
+					},
+					Operations: []*base.Operation{
+						{
+							RelationshipsWrite: []string{
+								"organization:{{.organizationID}}#member@user:{{.userID}}",
+								"organization:{{.organizationID}}#admin@user:{{.userID}}",
+							},
+							RelationshipsDelete: []string{},
+							AttributesWrite: []string{
+								"organization:{{.organizationID}}$public|boolean:true",
+							},
+							AttributesDelete: []string{
+								"organization:{{.organizationID}}$balance|integer[]:120,568",
+							},
+						},
+					},
+				},
+			}
+		
+			names,err := bundleWriter.Write(ctx,"t",bundles)
+			
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(names).Should(Equal([]string{"user_created"}))
+
+			bundle, err := bundleReader.Read(ctx, "t1", "user_created")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(bundle.GetName()).Should(Equal("user_created"))
+			Expect(bundle.GetArguments()).Should(Equal([]string{
+				"organizationID",
+				"userID",
+			}))
+
+			Expect(bundle.GetOperations()[0].RelationshipsWrite).Should(Equal([]string{
+				"organization:{{.organizationID}}#member@user:{{.userID}}",
+				"organization:{{.organizationID}}#admin@user:{{.userID}}",
+			}))
+
+			Expect(bundle.GetOperations()[0].RelationshipsDelete).Should(BeNil())
+
+			Expect(bundle.GetOperations()[0].AttributesWrite).Should(Equal([]string{
+				"organization:{{.organizationID}}$public|boolean:true",
+			}))
+
+			Expect(bundle.GetOperations()[0].AttributesDelete).Should(Equal([]string{
+				"organization:{{.organizationID}}$balance|integer[]:120,568",
+			}))
+
+		})
+
+		It("should get error on non-existing bundle", func() {
+			ctx := context.Background()
+
+			_, err := bundleReader.Read(ctx, "t1", "user_created")
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String()))
+		})
+
+
+	})
+
+})

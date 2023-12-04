@@ -4,9 +4,9 @@ import (
 	"context"
 	"log/slog"
 
-	db "github.com/Permify/permify/pkg/database/memory"
+	db "github.com/Permify/permify/pkg/database/memory" 
 
-	"github.com/Permify/permify/internal/storage/postgres/utils"
+	"github.com/Permify/permify/internal/storage/memory/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -43,15 +43,15 @@ func (b *BundleWriter) Write(ctx context.Context, tenantID string, bundles []*ba
 	return
 }
 
-func (b *BundleWriter) Delete(ctx context.Context, tenantID string) (err error) {
+func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err error) {
 	ctx, span := tracer.Start(ctx, "bundle-writer.delete-bundle")
 	defer span.End()
 
-	slog.Info("Deleting bundle: ", slog.Any("bundle", tenantID))
+	slog.Info("Deleting bundle: ", slog.Any("bundle", name))
 
 	txn := b.database.DB.Txn(true)
 
-	raw, err := txn.First("bundle", "TenantID", tenantID)
+	raw, err := txn.First("bundle", "id", tenantID)
 	if err != nil {
 		txn.Abort()
 		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)

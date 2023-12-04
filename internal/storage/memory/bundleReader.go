@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/Permify/permify/internal/storage/postgres/utils"
+	"github.com/Permify/permify/internal/storage/memory/utils"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/golang/protobuf/jsonpb"
