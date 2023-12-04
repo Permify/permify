@@ -105,9 +105,8 @@ module.exports = {
 					type: 'category',
 					label: 'Bundle Service',
 					link: {
-						type: "generated-index",
-						title: "Bundle Service",
-						slug: "/api-overview/bundle",
+						type: "doc",
+						id: "bundle",
 					},
 					items: [
 						"api-overview/bundle/write-bundle",
