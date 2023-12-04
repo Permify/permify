@@ -6,7 +6,7 @@ sidebar_position: 1
 
 Want to implement roles and permissions in your application? Permify fully covers you at that point. The example below shows how to model simple role based access controls for organizational roles and permissions with our authorization language, [Permify Schema].
 
-[Permify Schema]: ../getting-started/modeling
+[Permify Schema]: ../../getting-started/modeling
 
 Before we get started, here's the final schema that we will create in this tutorial.
 
