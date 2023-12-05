@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"database/sql"
 	"fmt"
 	"log/slog"
 
@@ -116,13 +115,8 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 	return deleteBuilder.Where(expiredZeroExpr).Where(beforeExpr)
 }
 
-// Rollback - Rollbacks a transaction and logs the error
-func Rollback(tx *sql.Tx) {
-	if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) && err != nil {
-		slog.Error("failed to rollback transaction", err)
-	}
-}
-
+// HandleError records an error in the given span, logs the error, and returns a standardized error.
+// This function is used for consistent error handling across different parts of the application.
 func HandleError(span trace.Span, err error, errorCode base.ErrorCode) error {
 	// Record the error on the span
 	span.RecordError(err)

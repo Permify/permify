@@ -61,8 +61,9 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
@@ -107,7 +108,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.Info("Successfully retrieved relationship tuples from the database.")
+	slog.Info("Successfully retrieved relation tuples from the database.")
 
 	// Return a TupleIterator created from the TupleCollection.
 	return collection.CreateTupleIterator(), nil
@@ -135,8 +136,9 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.Select("id, entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
@@ -202,7 +204,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.Info("Successfully read relationships from database.")
+	slog.Info("Successfully read relation tuples from database.")
 
 	// Return the results and encoded continuous token for pagination.
 	if len(tuples) > int(pagination.PageSize()) {
@@ -233,8 +235,9 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
@@ -309,8 +312,9 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
@@ -397,8 +401,9 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
@@ -508,8 +513,9 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	query := utils.BulkEntityFilterQuery(tenantID, name, st.(snapshot.Token).Value.Uint)
 
@@ -595,8 +601,9 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	// Rollback the transaction in case of any error.
-	defer utils.Rollback(tx)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.
@@ -693,14 +700,13 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	}
 
 	// Execute the query and retrieve the highest transaction ID.
-	row := r.database.DB.QueryRowContext(ctx, query, args...)
-	err = row.Scan(&xid)
+	err = r.database.DB.QueryRowContext(ctx, query, args...).Scan(&xid)
 	if err != nil {
 		// If no rows are found, return a snapshot token with a value of 0.
 		if errors.Is(err, sql.ErrNoRows) {
 			return snapshot.Token{Value: types.XID8{Uint: 0}}, nil
 		}
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	slog.Info("Successfully retrieved latest snapshot token")
