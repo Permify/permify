@@ -1,9 +1,8 @@
 package migrations
 
 import (
-	"github.com/hashicorp/go-memdb"
-
 	"github.com/Permify/permify/internal/storage/memory"
+	"github.com/hashicorp/go-memdb"
 )
 
 // Schema - Database schema for memory db
@@ -159,6 +158,21 @@ var Schema = &memdb.DBSchema{
 							&memdb.StringFieldIndex{Field: "ID"},
 						},
 					},
+				},
+			},
+		},
+		memory.BundlesTable: {
+			Name: memory.BundlesTable,
+			Indexes: map[string]*memdb.IndexSchema{
+				"name": {
+					Name:    "name",
+					Unique:  false,
+					Indexer: &memdb.StringFieldIndex{Field: "Name"},
+				},
+				"tenant_id": {
+					Name:    "tenant_id",
+					Unique:  false,
+					Indexer: &memdb.StringFieldIndex{Field: "TenantID"},
 				},
 			},
 		},

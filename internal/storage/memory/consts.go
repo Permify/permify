@@ -5,4 +5,5 @@ const (
 	AttributesTable        = "attributes"
 	SchemaDefinitionsTable = "schema_definitions"
 	TenantsTable           = "tenants"
+	BundlesTable           = "bundles"
 )

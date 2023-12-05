@@ -10,6 +10,7 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/memory/snapshot"
 	"github.com/Permify/permify/internal/storage/memory/utils"
+	"github.com/Permify/permify/pkg/bundle"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -130,6 +131,23 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 	return snapshot.NewToken(time.Now()).Encode(), nil
 }
 
-func (r *DataWriter) RunBundle(_ context.Context, _ string, _ map[string]string, _ *base.DataBundle) (token token.EncodedSnapToken, err error) {
-	return nil, errors.New(base.ErrorCode_ERROR_CODE_NOT_IMPLEMENTED.String())
+func (r *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments map[string]string, b *base.DataBundle) (token token.EncodedSnapToken, err error) {
+	for _, op := range b.GetOperations() {
+		tupleCollection, attributeCollection, err := bundle.Operation(arguments, op)
+		if err != nil {
+			return nil, err
+		}
+
+		// Write operation
+		if _, err = r.Write(ctx, tenantID, &tupleCollection.Write, &attributeCollection.Write); err != nil {
+			return nil, err
+		}
+
+		// Delete operation
+		// if _, err = r.Delete(ctx, tenantID, &tupleCollection.Delete, &attributeCollection.Delete); err != nil {
+		// 	return nil, err
+		// }
+	}
+
+	return snapshot.NewToken(time.Now()).Encode(), nil
 }
