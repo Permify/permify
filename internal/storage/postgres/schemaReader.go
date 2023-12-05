@@ -7,7 +7,6 @@ import (
 	"log/slog"
 
 	"github.com/Masterminds/squirrel"
-	"go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
@@ -62,12 +61,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 		sd := storage.SchemaDefinition{}
 		err = rows.Scan(&sd.Name, &sd.SerializedDefinition, &sd.Version)
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, err.Error())
-
-			slog.Error("Error scanning rows: ", slog.Any("error", err))
-
-			return nil, err
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 		definitions = append(definitions, sd.Serialized())
 	}
