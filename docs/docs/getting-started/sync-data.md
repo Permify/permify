@@ -9,7 +9,11 @@ import TabItem from '@theme/TabItem';
 
 Permify unifies your authorization data in a database of your preference, which serves as the single source of truth for all authorization queries and requests via the Permify API.
 
-## Access Control as Relations - Relational Tuples
+In Permify, you can store authorization data in two different forms: as **relationships** and as **attributes**.
+
+Let's examine relationships first.
+
+## Access Control as Relationships 
 
 In Permify, relationship between your entities, objects, and users builds up a collection of access control lists (ACLs). 
 
@@ -19,19 +23,39 @@ In Permify, the simplest form of relational tuple structured as: `entity # relat
 
 ![relational-tuples](https://user-images.githubusercontent.com/34595361/183959294-149fcbb9-7f10-4c1e-8d66-20a839893909.png)
 
-## Where Relational Tuples Used ?
+## Attributes
 
-In Permify, these relational tuples represents your authorization data. 
+Besides creating and storing your authorization-related data as relationships, you can also create attributes along with your resources and users.
 
-Permify stores your relational tuples (authorization data) in a database you prefer. You can configure the database when running Permify Service with using both [configuration flags](../../installation/brew#configuration-flags) or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
+For certain use cases, using relationships (ReBAC) or roles (RBAC) might not be the best fit. For example, geo-based permissions where access is granted only if associated with a geographical or regional attribute. Or consider time-based permissions, restricting certain actions to office hours. A simpler scenario involves defining certain individuals as banned, filtering them out from access despite meeting other requirements.
 
-Stored relational tuples are queried and utilized in Permify APIs, including the check API, which is an access control check request used to determine whether a user's action is authorized.
+Attribute-Based Access Control takes a more contextual approach, allowing you to define access rights based on the context around subjects and objects in an application.
 
-As an example; to decide whether a user could view a protected resource, Permify looks up the relations between that specific user and the protected resource. These relation types could be ownership, parent-child relation, or even a role such as an admin or manager.
+In Permify, the form of attributes are similar to relational tuples but with a small syntax differentiation: 
 
-## Creating Relational Tuples 
+`subject $ attribute | value`
 
-Relational tuples can be created with an simple API call in runtime, since relations and authorization data's are live instances. Each relational tuple should be created according to its authorization model, [Permify Schema]. 
+Here are some attributes with semantics,
+
+* `account:1$balance|double:4000` - account:1's balance is defined as 4000.
+* `post:546$is_restricted|boolean:true` - post:546 is labeled as restricted post within the system.
+* `user:122$regions|string[]:US,MEX` - user:122 is associated with regions United States and Mexico.
+
+## Where is the stored Authorization Data used?
+
+These relational tuples and attributes represents your authorization data. 
+
+Permify stores your these data in a database you prefer. You can configure the database when running Permify Service with using both [configuration flags](../../installation/brew#configuration-flags) or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
+
+Stored data are queried and utilized in Permify APIs, including the check API, which is an access control check request used to determine whether a user's action is authorized.
+
+As an example; to decide whether a user could view a protected resource, Permify looks up the relations between that specific user and the protected resource. These relation types could be ownership, parent-child relation, a role such as an admin or manager or even an attribute.
+
+## Creating Authorization Data
+
+Relationships and attributes can be created with an simple API call, Since these attributes and relations are live instances, meaning they can be affected by specific user actions within the application, they should be created/deleted with a simple Permify API call at runtime.
+
+Each relational tuple or attribute should be created according to its authorization model, [Permify Schema]. 
 
 [Permify Schema]: ../modeling
 
