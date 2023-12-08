@@ -191,7 +191,7 @@ Semantics for above check is: whether `user:1` can push to `repository:3`, addit
 :::info Contextual Tuples
 We use `context` (Contextual Tuples) with simple relational tuples for simplicity in this example. However, it is primarily used for dynamic access checks, such as those involving time, date, or IP address, etc. 
 
-To learn more about how `context` works, see the [Contextual Tuples](../reference/contextual-tuples.md) section.
+To learn more about how `context` works, see the [Contextual Tuples](../../reference/contextual-tuples) section.
 :::
 
 ### Entity Filtering
@@ -224,7 +224,7 @@ You can create `subject_filters` within `scenarios` to test your subject filteri
 ```
 
 :::info API Endpoints
-You can find the related API endpoints for `check`, `entity_filters`, and `subject_filters` in the Permission service in the [Using The API](../api-overview.md) section.
+You can find the related API endpoints for `check`, `entity_filters`, and `subject_filters` in the Permission service in the [Using The API](../../api-overview) section.
 :::
 
 ## Coverage Analysis
@@ -268,7 +268,7 @@ For managing permission/relation changes, we suggest storing schema in an abstra
 
 We recommend adding our [schema validator](https://github.com/Permify/permify-validate-action) to the pipeline to ensure that any changes are automatically validated. 
 
-You can find more details about our suggested workflow to handle schema changes in [Write Schema](hhttps://docs.permify.co/docs/api-overview/schema/write-schema#suggested-workflow-for-schema-changes) section.
+You can find more details about our suggested workflow to handle schema changes in [Write Schema](../../api-overview/schema/write-schema#suggested-workflow-for-schema-changes) section.
 
 ## Need any help ?
 

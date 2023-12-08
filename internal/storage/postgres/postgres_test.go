@@ -17,7 +17,7 @@ import (
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
-func TestPostgres14(t *testing.T) {
+func TestPostgres(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "postgres-suite")
 }

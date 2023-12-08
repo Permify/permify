@@ -19,7 +19,7 @@ Permify designed to answer these authorization questions efficiently and with mi
 - Using its parallel graph engine. 
 - Storing the relationships between resources beforehand in Permify data store: [writeDB], rather than providing these relationships at “check” time.
 - Implementing permission caching to not recompute repeated permission checks, and in memory cache to store authorization schema.
-- Using [Snap Tokens](../reference/snap-tokens) to achieve consistency and high performance in cache.
+- Using [Snap Tokens](../../reference/snap-tokens) to achieve consistency and high performance in cache.
 
 Performance and availability of the API calls - especially access checks - are crucial for us and we're ongoingly improving and testing it with various methods.   
 
@@ -41,8 +41,8 @@ Permify Engine to compute access decision in 2 steps,
 
 Let's turn back to above authorization question ( ***"Can the user 3 edit document 12 ?"*** ) to better understand how decision evaluation works. 
 
-[relational tuples]: ../getting-started/sync-data
-[Permify Schema]:  ../getting-started/modeling
+[relational tuples]: ../../getting-started/sync-data
+[Permify Schema]:  ../../getting-started/modeling
 
 When Permify Engine receives this question it directly looks up to authorization model to find document `‍edit` action. Let's say we have a model as follows
 

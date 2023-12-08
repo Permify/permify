@@ -15,6 +15,7 @@ import (
 	"github.com/Permify/permify/internal/engines/cache"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage/postgres/gc"
+	"github.com/Permify/permify/pkg/cmd/flags"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
 	"github.com/fatih/color"
@@ -40,12 +41,17 @@ import (
 // The command takes no arguments and runs the serve() function to start the Permify service.
 // The command has a short description of what it does.
 func NewServeCommand() *cobra.Command {
-	return &cobra.Command{
+	command := &cobra.Command{
 		Use:   "serve",
 		Short: "serve the Permify server",
 		RunE:  serve(),
 		Args:  cobra.NoArgs,
 	}
+
+	// register flags for serve
+	flags.RegisterServeFlags(command)
+
+	return command
 }
 
 // serve is the main function for the "permify serve" command. It starts the Permify service by configuring and starting the necessary components.
@@ -204,12 +210,20 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Check if circuit breaker should be enabled for services
 		if cfg.Service.CircuitBreaker {
 			// Add circuit breaker to the relationship reader and writer using decorators
-			dataWriter = decorators.NewDataWriterWithCircuitBreaker(dataWriter)
-			dataReader = decorators.NewDataReaderWithCircuitBreaker(dataReader)
+			dataWriter = decorators.NewDataWriterWithCircuitBreaker(dataWriter, 1000)
+			dataReader = decorators.NewDataReaderWithCircuitBreaker(dataReader, 1000)
+
+			// Add circuit breaker to the bundle reader and writer using decorators
+			bundleWriter = decorators.NewBundleWriterWithCircuitBreaker(bundleWriter, 1000)
+			bundleReader = decorators.NewBundleReaderWithCircuitBreaker(bundleReader, 1000)
 
 			// Add circuit breaker to the schema reader and writer using decorators
-			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter)
-			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader)
+			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter, 1000)
+			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader, 1000)
+
+			// Add circuit breaker to the tenant reader and writer using decorators
+			tenantWriter = decorators.NewTenantWriterWithCircuitBreaker(tenantWriter, 1000)
+			tenantReader = decorators.NewTenantReaderWithCircuitBreaker(tenantReader, 1000)
 		}
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader
@@ -222,6 +236,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Create the checker either with load balancing or caching capabilities.
 		if cfg.Distributed.Enabled {
 			checker, err = balancer.NewCheckEngineWithBalancer(
+				context.Background(),
 				checkEngine,
 				schemaReader,
 				&cfg.Distributed,

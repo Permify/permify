@@ -4,7 +4,7 @@
 
 Group your users by organization with giving them access organizational-wide resources. In this use case we'll follow a simplified version of Github's access control that shows how to model basic repository push, read and delete permissions with our authorization language DSL, [Permify Schema].
 
-[Permify Schema]: ../getting-started/modeling
+[Permify Schema]: ../../getting-started/modeling
 
 Before we get started, here's the final schema that we will create in this tutorial.
 

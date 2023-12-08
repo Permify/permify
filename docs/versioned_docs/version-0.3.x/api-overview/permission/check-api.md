@@ -10,7 +10,7 @@ In Permify, you can perform two different types access checks,
 
 In this section we'll look at the resource based check request of Permify. You can find subject based access checks in [Check Entities' Permissions] section.
 
-[Check Entities' Permissions]: ./lookup-entity
+[Check Entities' Permissions]: ../lookup-entity
 
 ## Request
 
@@ -20,7 +20,7 @@ In this section we'll look at the resource based check request of Permify. You c
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
 | [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
 | [ ]   | schema_version | string | 8 | Version of the schema |
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
+| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../../reference/snap-tokens) |
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | permission | string | - | the action the user wants to perform on the resource |
 | [x]   | subject | object | - | the user or user set who wants to take the action. It contains type and id of the subject.  |
@@ -123,7 +123,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 
 Answering access checks is accomplished within Permify using a basic graph walking mechanism. See how [access decisions evaluated] in Permify.
 
-[access decisions evaluated]: ../../getting-started/enforcement#how-access-decisions-evaluated
+[access decisions evaluated]: ../../../getting-started/enforcement#how-access-decisions-evaluated
 
 ## Need any help ?
 

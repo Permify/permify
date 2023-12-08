@@ -7,9 +7,8 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/pkg/errors"
-	otelCodes "go.opentelemetry.io/otel/codes"
 
+	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -44,12 +43,7 @@ func (b *BundleWriter) Write(ctx context.Context, tenantID string, bundles []*ba
 		m := jsonpb.Marshaler{}
 		jsonStr, err := m.MarshalToString(bundle)
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-
-			slog.Error("Failed to convert the value to string: ", slog.Any("error", err))
-
-			return names, errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+			return names, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
 		}
 
 		insertBuilder = insertBuilder.Values(bundle.Name, jsonStr, tenantID)
@@ -60,24 +54,14 @@ func (b *BundleWriter) Write(ctx context.Context, tenantID string, bundles []*ba
 
 	query, args, err = insertBuilder.ToSql()
 	if err != nil {
-
-		slog.Error("Error while building SQL query: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return names, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return names, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("Executing SQL insert query: ", slog.Any("query", query), slog.Any("arguments", args))
 
 	_, err = b.database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-
-		slog.Error("Failed to execute insert query: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return
+		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Info("Successfully wrote bundles to the database. ", slog.Any("number_of_bundles", len(bundles)))
@@ -98,22 +82,12 @@ func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err e
 
 	query, args, err = deleteBuilder.ToSql()
 	if err != nil {
-
-		slog.Error("Error while building SQL query: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	_, err = b.database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-
-		slog.Error("Failed to execute insert query: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return
+		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Info("Successfully deleted Bundle")

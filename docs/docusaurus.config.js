@@ -39,6 +39,9 @@ const config = {
               label: '0.6.x',
             },
           },
+          editUrl: ({ docPath }) => {
+            return `https://holocron.so/github/pr/Permify/permify/master/editor/docs/docs/${docPath}`
+          },
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

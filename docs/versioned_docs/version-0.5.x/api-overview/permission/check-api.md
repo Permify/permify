@@ -22,12 +22,12 @@ In this section we'll look at the resource based check request of Permify. You c
 |----------|-------------------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [x]      | tenant_id         | string  | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                             |
 | [ ]      | schema_version    | string  | 8       | Version of the schema                                                                                                                                                        |
-| [ ]      | snap_token        | string  | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens).                                                                         |
+| [ ]      | snap_token        | string  | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../../reference/snap-tokens).                                                                         |
 | [x]      | entity            | object  | -       | contains entity type and id of the entity. Example: repository:1.                                                                                                            |
 | [x]      | permission        | string  | -       | the action the user wants to perform on the resource                                                                                                                         |
 | [x]      | subject           | object  | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                   |
 | [x]      | depth             | integer | 8       | Timeout limit when if recursive database queries got in loop                                                                                                                 |
-| [ ]      | context | object  | -       | Contextual tuples are relations that can be dynamically added to permission request operations. , see more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context | object  | -       | Contextual tuples are relations that can be dynamically added to permission request operations. , see more details on [Contextual Tuples](../../../reference/contextual-tuples) |
 
 <Tabs>
 <TabItem value="go" label="Go">

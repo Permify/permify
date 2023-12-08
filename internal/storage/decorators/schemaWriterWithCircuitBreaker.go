@@ -13,11 +13,12 @@ import (
 // SchemaWriterWithCircuitBreaker - Add circuit breaker behaviour to schema writer
 type SchemaWriterWithCircuitBreaker struct {
 	delegate storage.SchemaWriter
+	timeout  int
 }
 
 // NewSchemaWriterWithCircuitBreaker - Add circuit breaker behaviour to new schema writer
-func NewSchemaWriterWithCircuitBreaker(delegate storage.SchemaWriter) *SchemaWriterWithCircuitBreaker {
-	return &SchemaWriterWithCircuitBreaker{delegate: delegate}
+func NewSchemaWriterWithCircuitBreaker(delegate storage.SchemaWriter, timeout int) *SchemaWriterWithCircuitBreaker {
+	return &SchemaWriterWithCircuitBreaker{delegate: delegate, timeout: timeout}
 }
 
 // WriteSchema - Write schema to repository
@@ -28,7 +29,7 @@ func (r *SchemaWriterWithCircuitBreaker) WriteSchema(ctx context.Context, defini
 
 	output := make(chan circuitBreakerResponse, 1)
 
-	hystrix.ConfigureCommand("schemaWriter.writeSchema", hystrix.CommandConfig{Timeout: 1000})
+	hystrix.ConfigureCommand("schemaWriter.writeSchema", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("schemaWriter.writeSchema", func() error {
 		err := r.delegate.WriteSchema(ctx, definitions)
 		output <- circuitBreakerResponse{Error: err}

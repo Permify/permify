@@ -33,22 +33,27 @@ type Balancer struct {
 	options      []grpc.DialOption
 }
 
-// NewCheckEngineWithBalancer
-// struct with the provided cache.Cache instance.
+// NewCheckEngineWithBalancer creates a new check engine with a load balancer.
+// It takes a Check interface, SchemaReader, distributed config, gRPC config, and authn config as input.
+// It returns a Check interface and an error if any.
 func NewCheckEngineWithBalancer(
+	ctx context.Context,
 	checker invoke.Check,
 	schemaReader storage.SchemaReader,
 	dst *config.Distributed,
 	srv *config.GRPC,
 	authn *config.Authn,
 ) (invoke.Check, error) {
-	var err error
+	var (
+		creds    credentials.TransportCredentials
+		options  []grpc.DialOption
+		isSecure bool
+		err      error
+	)
 
-	var options []grpc.DialOption
-
-	var creds credentials.TransportCredentials
-
+	// Set up TLS credentials if paths are provided
 	if srv.TLSConfig.CertPath != "" && srv.TLSConfig.KeyPath != "" {
+		isSecure = true
 		creds, err = credentials.NewClientTLSFromFile(srv.TLSConfig.CertPath, srv.TLSConfig.KeyPath)
 		if err != nil {
 			return nil, fmt.Errorf("could not load TLS certificate: %s", err)
@@ -57,16 +62,25 @@ func NewCheckEngineWithBalancer(
 		creds = insecure.NewCredentials()
 	}
 
-	// TODO: Add client-side authentication using a key from KeyAuthn.
-	// 1. Initialize the KeyAuthn structure using the provided configuration.
-	// 2. Convert the KeyAuthn instance into PerRPCCredentials.
-	// 3. Append grpc.WithPerRPCCredentials() to the options slice.
-
+	// Append common options
 	options = append(
 		options,
 		grpc.WithDefaultServiceConfig(grpcServicePolicy),
 		grpc.WithTransportCredentials(creds),
 	)
+
+	// Handle authentication if enabled
+	if authn != nil && authn.Enabled {
+		token, err := setupAuthn(ctx, authn)
+		if err != nil {
+			return nil, err
+		}
+		if isSecure {
+			options = append(options, grpc.WithPerRPCCredentials(secureTokenCredentials{"authorization": "Bearer " + token}))
+		} else {
+			options = append(options, grpc.WithPerRPCCredentials(nonSecureTokenCredentials{"authorization": "Bearer " + token}))
+		}
+	}
 
 	conn, err := grpc.Dial(dst.Address, options...)
 	if err != nil {
