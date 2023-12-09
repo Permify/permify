@@ -11,10 +11,8 @@ Lookup Entity endpoint lets you ask questions in form of **“Which resources ca
 
 So, we provide 2 separate endpoints for data filtering check request,
 
-- [Entity Filtering](#entity-filtering)
-  - [Lookup Entity](#lookup-entity)
-  - [How Lookup Operations Evaluated](#how-lookup-operations-evaluated)
-    - [Lookup Entity (Streaming)](#lookup-entity-streaming)
+- [Lookup Entity](#lookup-entity)
+- [Lookup Entity (Streaming)](#lookup-entity-streaming)
 
 ## Lookup Entity 
 
@@ -135,7 +133,7 @@ Lets say we called (reverse) lookup API to find the documents that user:1 can vi
 
 Then queries each of them with `user:1.`
 
-### Lookup Entity (Streaming)
+## Lookup Entity (Streaming)
 
 The difference between this endpoint from direct Lookup Entity is response of this entity gives the IDs' as stream. This could be useful if you have large data set that getting all of the authorized data can take long with direct lookup entity endpoint.
 
