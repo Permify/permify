@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	db "github.com/Permify/permify/pkg/database/memory"
@@ -23,26 +22,30 @@ func NewBundleWriter(database *db.Memory) *BundleWriter {
 func (b *BundleWriter) Write(ctx context.Context, tenantID string, bundles []*base.DataBundle) (names []string, err error) {
 	for _, bundle := range bundles {
 		names = append(names, bundle.Name)
+		b.database.Lock()
 
-		jsonStr, err := json.Marshal(bundle)
+		txn := b.database.DB.Txn(true)
+		err = txn.Insert(BundlesTable, bundle)
 		if err != nil {
-			return names, errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
+			b.database.Unlock()
+			return names, errors.New(err.Error())
 		}
-
-		err = b.database.Set(BundlesTable, bundle.Name, jsonStr)
-		if err != nil {
-			return names, errors.New(base.ErrorCode_ERROR_CODE_INTERNAL.String())
-		}
+		txn.Commit()
+		b.database.Unlock()
 	}
 
 	return names, nil
 }
 
-func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err error) {
-	err = b.database.Delete(BundlesTable, name)
-	if err != nil {
-		return errors.New(base.ErrorCode_ERROR_CODE_NOT_FOUND.String())
+func (b *BundleWriter) Delete(ctx context.Context, tenantID, tenantName string) (err error) {
+	txn := b.database.DB.Txn(true)
+	existing, _ := txn.First(BundlesTable, "id", tenantName)
+
+	if existing == nil {
+		return errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String())
 	}
+	txn.Delete(BundlesTable, existing)
+	txn.Commit()
 
 	return nil
 }

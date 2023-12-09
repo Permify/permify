@@ -164,15 +164,12 @@ var Schema = &memdb.DBSchema{
 		memory.BundlesTable: {
 			Name: memory.BundlesTable,
 			Indexes: map[string]*memdb.IndexSchema{
-				"name": {
-					Name:    "name",
-					Unique:  false,
-					Indexer: &memdb.StringFieldIndex{Field: "Name"},
-				},
-				"tenant_id": {
-					Name:    "tenant_id",
-					Unique:  false,
-					Indexer: &memdb.StringFieldIndex{Field: "TenantID"},
+				"id": {
+					Name:   "id",
+					Unique: true,
+					Indexer: &memdb.StringFieldIndex{
+						Field: "Name",
+					},
 				},
 			},
 		},
