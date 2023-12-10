@@ -89,9 +89,21 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		red := color.New(color.FgGreen)
 		_, _ = red.Printf(internal.Banner, internal.Version)
 
-		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level: getLogLevel(cfg.Log.Level),
-		}))
+		var handler slog.Handler
+		switch cfg.Log.Output {
+		case "json":
+			handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			})
+		case "text":
+			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			})
+		default:
+			return fmt.Errorf("invalid log output: %s", cfg.Log.Output)
+		}
+
+		logger := slog.New(handler)
 
 		slog.SetDefault(logger)
 
