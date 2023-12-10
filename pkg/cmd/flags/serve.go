@@ -138,6 +138,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.String("log-output", conf.Log.Output, "logger output valid values json, text")
+	if err = viper.BindPFlag("logger.output", flags.Lookup("log-output")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("logger.output", "PERMIFY_LOG_OUTPUT"); err != nil {
+		panic(err)
+	}
+
 	// AUTHN
 	flags.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	if err = viper.BindPFlag("authn.enabled", flags.Lookup("authn-enabled")); err != nil {
