@@ -100,7 +100,9 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				Level: getLogLevel(cfg.Log.Level),
 			})
 		default:
-			return fmt.Errorf("invalid log output: %s", cfg.Log.Output)
+			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			})
 		}
 
 		logger := slog.New(handler)
