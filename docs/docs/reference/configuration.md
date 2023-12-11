@@ -185,12 +185,14 @@ Real time logs of authorization. Permify uses [zerolog] as a logger.
 | Required | Argument | Default | Description                                      |
 |----------|----------|---------|--------------------------------------------------|
 | [x]      | level    | info    | logger levels: `error`, `warn`, `info` , `debug` |
+| [x]      | output   | text    | logger output: `json`, `text`                    |
 
 #### ENV
 
 | Argument                  | ENV                             | Type   |
 |---------------------------|---------------------------------|--------|
 | log-level                 | PERMIFY_LOG_LEVEL               | string |
+| log-output                | PERMIFY_LOG_OUTPUT              | string |
 
 </p>
 </details>
