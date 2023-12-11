@@ -1,4 +1,4 @@
-package memory
+package constants
 
 const (
 	RelationTuplesTable    = "relation_tuples"

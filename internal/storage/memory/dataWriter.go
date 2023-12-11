@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/memory/constants"
 	"github.com/Permify/permify/internal/storage/memory/snapshot"
 	"github.com/Permify/permify/internal/storage/memory/utils"
 	"github.com/Permify/permify/pkg/bundle"
@@ -58,7 +59,7 @@ func (r *DataWriter) Write(_ context.Context, tenantID string, tupleCollection *
 			SubjectID:       bt.GetSubject().GetId(),
 			SubjectRelation: srelation,
 		}
-		if err = txn.Insert(RelationTuplesTable, t); err != nil {
+		if err = txn.Insert(constants.RelationTuplesTable, t); err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}
@@ -74,7 +75,7 @@ func (r *DataWriter) Write(_ context.Context, tenantID string, tupleCollection *
 			Attribute:  at.GetAttribute(),
 			Value:      at.GetValue(),
 		}
-		if err = txn.Insert(AttributesTable, t); err != nil {
+		if err = txn.Insert(constants.AttributesTable, t); err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}
@@ -91,7 +92,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 
 	tIndex, tArgs := utils.GetRelationTuplesIndexNameAndArgsByFilters(tenantID, tupleFilter)
 	var tit memdb.ResultIterator
-	tit, err = txn.Get(RelationTuplesTable, tIndex, tArgs...)
+	tit, err = txn.Get(constants.RelationTuplesTable, tIndex, tArgs...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -102,7 +103,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 		if !ok {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		err = txn.Delete(RelationTuplesTable, t)
+		err = txn.Delete(constants.RelationTuplesTable, t)
 		if err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
@@ -110,7 +111,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 
 	aIndex, args := utils.GetAttributesIndexNameAndArgsByFilters(tenantID, attributeFilter)
 	var aIt memdb.ResultIterator
-	aIt, err = txn.Get(AttributesTable, aIndex, args...)
+	aIt, err = txn.Get(constants.AttributesTable, aIndex, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -121,7 +122,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 		if !ok {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		err = txn.Delete(RelationTuplesTable, t)
+		err = txn.Delete(constants.RelationTuplesTable, t)
 		if err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}

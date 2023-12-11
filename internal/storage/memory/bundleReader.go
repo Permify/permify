@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Permify/permify/internal/storage/memory/constants"
+
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -23,7 +25,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, tenantName string) (b
 	b.database.RLock()
 	defer b.database.RUnlock()
 	txn := b.database.DB.Txn(false)
-	raw, _ := txn.First(BundlesTable, "id", tenantName)
+	raw, _ := txn.First(constants.BundlesTable, "id", tenantName)
 	bundle, ok := raw.(*base.DataBundle)
 	if !ok {
 
