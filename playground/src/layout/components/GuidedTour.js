@@ -2,7 +2,13 @@ import React, { useState } from "react";
 import { Tour } from "antd";
 
 export default function GuidedTour({ refSchemaEditor, refRelationshipsAndAttributes, refEnforcement }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(!(localStorage.getItem("hasSeenGuidedTour") === "true"));
+
+  const onTourClose = () => {
+    localStorage.setItem("hasSeenGuidedTour", "true");
+    setOpen(false);
+  };
+
   const steps = [
     {
       title: "Welcome to the Permify Playground!",
@@ -57,5 +63,5 @@ export default function GuidedTour({ refSchemaEditor, refRelationshipsAndAttribu
       ),
     },
   ];
-  return <Tour open={open} steps={steps} onClose={() => setOpen(false)} />;
+  return <Tour open={open} steps={steps} onClose={onTourClose} />;
 }
