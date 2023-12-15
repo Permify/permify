@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useRef} from 'react'
 import {Allotment} from 'allotment'
 import "allotment/dist/style.css";
 import Schema from "./schema";
@@ -14,8 +14,13 @@ import Relationships from "./particials/data/relationships";
 import Attributes from "./particials/data/attributes";
 import {useShapeStore} from "../../state/shape";
 import Enforcement from "./enforcement";
+import GuidedTour from '../components/GuidedTour';
 
 function Output(props) {
+    const refSchemaEditor = useRef(null);
+    const refRelationshipsAndAttributes = useRef(null);
+    const refEnforcement = useRef(null);
+
     const [dataSelected, setDataSelected] = useState('relationships');
     const [schemaSelected, setSchemaSelected] = useState('schema');
     const [isOpen, setIsOpen] = useState(false);
@@ -81,11 +86,12 @@ function Output(props) {
         <div>
             {!props.loading &&
                 <>
+                    <GuidedTour refSchemaEditor={refSchemaEditor} refRelationshipsAndAttributes={refRelationshipsAndAttributes} refEnforcement={refEnforcement}/>
                     <div style={{height: '100vh'}} className="ml-10 mr-10">
                         <Allotment vertical defaultSizes={[100, 100]} >
                             <Allotment.Pane snap visible={!isOpen}>
                                 <Allotment>
-                                    <Allotment.Pane snap>
+                                    <Allotment.Pane snap ref={refSchemaEditor}>
                                         <Card title={
                                             <Radio.Group defaultValue="schema" buttonStyle="solid"
                                                          onChange={onSchemaSelectedChange}
@@ -99,7 +105,7 @@ function Output(props) {
                                             {renderSchemaComponent()}
                                         </Card>
                                     </Allotment.Pane>
-                                    <Allotment.Pane snap>
+                                    <Allotment.Pane snap ref={refEnforcement}>
                                         <Card title="Enforcement" className="ml-10"
                                               extra={<div style={{display: 'flex', alignItems: 'center'}}>
                                                   <Button
@@ -117,7 +123,7 @@ function Output(props) {
                                     </Allotment.Pane>
                                 </Allotment>
                             </Allotment.Pane>
-                            <Allotment.Pane snap>
+                            <Allotment.Pane snap ref={refRelationshipsAndAttributes}>
                                 <Card title={
                                     <Radio.Group
                                         defaultValue="relationships"
