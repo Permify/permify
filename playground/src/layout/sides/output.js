@@ -14,7 +14,7 @@ import Relationships from "./particials/data/relationships";
 import Attributes from "./particials/data/attributes";
 import {useShapeStore} from "../../state/shape";
 import Enforcement from "./enforcement";
-import GuidedTour from '../components/GuidedTour';
+import GuidedTour from '../components/guidedTour';
 
 function Output(props) {
     const refSchemaEditor = useRef(null);
@@ -123,13 +123,14 @@ function Output(props) {
                                     </Allotment.Pane>
                                 </Allotment>
                             </Allotment.Pane>
-                            <Allotment.Pane snap ref={refRelationshipsAndAttributes}>
+                            <Allotment.Pane snap>
                                 <Card title={
                                     <Radio.Group
                                         defaultValue="relationships"
                                         buttonStyle="solid"
                                         onChange={onDataSelectedChange}
                                         value={dataSelected}
+                                        ref={refRelationshipsAndAttributes}
                                     >
                                         <Radio.Button value="relationships">Relationships</Radio.Button>
                                         <Radio.Button value="attributes">Attributes</Radio.Button>
