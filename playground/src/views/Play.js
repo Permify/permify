@@ -1,7 +1,7 @@
 import React, {Suspense, useEffect, useState} from 'react'
 import {useLocation} from "react-router-dom";
 import {Skeleton} from "antd";
-import {ContextLayout} from "../utility/context/Layout";
+import {ContextLayout} from "../utility/context/layout";
 import Output from "../layout/sides/output";
 import {useShapeStore} from "../state/shape";
 import {ToastContainer} from 'react-toastify';
