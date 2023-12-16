@@ -148,7 +148,7 @@ function Relationships() {
             render: (_, record) => {
                 const editable = isEditing(record);
                 return editable ? (
-                    <span>
+                    <span className="flex flex-col" style={{ width: "fit-content" }}>
                         <Button type="primary" onClick={() => save(record.key)}>Save</Button>
                         <Button className="ml-8 text-white" type="link"
                                 onClick={() => cancel(record.key)}>Cancel</Button>
