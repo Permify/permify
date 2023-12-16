@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open source authorization service for creating fine-grained and scalable authorization systems.",
-    "version": "v0.6.2",
+    "version": "v0.6.4",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",

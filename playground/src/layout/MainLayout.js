@@ -6,7 +6,7 @@ import Upload from "../services/s3";
 import {nanoid} from "nanoid";
 import yaml from "js-yaml";
 import {useShapeStore} from "../state/shape";
-import Share from "./components/modals/Share";
+import Share from "./components/modals/share";
 
 const {Option, OptGroup} = Select;
 const {Content} = Layout;
@@ -95,7 +95,7 @@ const MainLayout = ({children, ...rest}) => {
                 </div>
                 <div className="ml-12">
                     <Select className="mr-8" value={label} style={{width: 220}}
-                            onChange={handleSampleChange} showArrow={true}>
+                            onChange={handleSampleChange}>
                         <OptGroup label="Use Cases">
                             <Option key="empty" value="empty">Empty</Option>
                             <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations & Hierarchies</Option>
