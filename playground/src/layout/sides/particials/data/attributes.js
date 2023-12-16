@@ -136,7 +136,7 @@ function Attributes() {
                 return editable ? (
                     <span className="flex flex-col" style={{ width: "fit-content" }}>
                         <Button type="primary" onClick={() => save(record.key)}>Save</Button>
-                        <Button className="ml-8 text-white" type="link"
+                        <Button className="text-white" type="link"
                                 onClick={() => cancel(record.key)}>Cancel</Button>
                     </span>
                 ) : (
