@@ -6,4 +6,9 @@ const (
 	SchemaDefinitionsTable = "schema_definitions"
 	TenantsTable           = "tenants"
 	BundlesTable           = "bundles"
+	TransactionsTable      = "transactions"
+)
+
+const (
+	DefaultMaxRetries = 10
 )

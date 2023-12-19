@@ -173,5 +173,15 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
+		constants.TransactionsTable: {
+			Name: constants.TransactionsTable,
+			Indexes: map[string]*memdb.IndexSchema{
+				"id": {
+					Name:    "id",
+					Unique:  true,
+					Indexer: &memdb.IntFieldIndex{Field: "ID"},
+				},
+			},
+		},
 	},
 }

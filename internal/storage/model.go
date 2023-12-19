@@ -10,6 +10,14 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// Transaction - Structure for Transaction Tuple
+type Transaction struct {
+	ID          int64
+	TenantID    string
+	Timestamp   time.Time
+	ExpiredTxID int64
+}
+
 // RelationTuple - Structure for Relational Tuple
 type RelationTuple struct {
 	ID              uint64
@@ -20,6 +28,7 @@ type RelationTuple struct {
 	SubjectType     string
 	SubjectID       string
 	SubjectRelation string
+	ExpiredTxID     string
 }
 
 // ToTuple - Convert database relation tuple to base relation tuple
@@ -39,12 +48,13 @@ func (r RelationTuple) ToTuple() *base.Tuple {
 }
 
 type Attribute struct {
-	ID         uint64
-	TenantID   string
-	EntityType string
-	EntityID   string
-	Attribute  string
-	Value      *anypb.Any
+	ID          uint64
+	TenantID    string
+	EntityType  string
+	EntityID    string
+	Attribute   string
+	Value       *anypb.Any
+	ExpiredTxID string
 }
 
 func (r Attribute) ToAttribute() *base.Attribute {
