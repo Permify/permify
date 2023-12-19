@@ -218,6 +218,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindEnv("tracer.insecure", "PERMIFY_TRACER_INSECURE"); err != nil {
 		panic(err)
 	}
+
 	flags.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
 	if err = viper.BindPFlag("tracer.urlpath", flags.Lookup("tracer-urlpath")); err != nil {
 		panic(err)
@@ -250,11 +251,20 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	if err = viper.BindEnv("meter.endpoint", "PERMIFY_METER_ENDPOINT"); err != nil {
 		panic(err)
 	}
+
 	flags.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
 	if err = viper.BindPFlag("meter.insecure", flags.Lookup("meter-insecure")); err != nil {
 		panic(err)
 	}
 	if err = viper.BindEnv("meter.insecure", "PERMIFY_METER_INSECURE"); err != nil {
+		panic(err)
+	}
+
+	flags.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
+	if err = viper.BindPFlag("meter.urlpath", flags.Lookup("meter-urlpath")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("meter.urlpath", "PERMIFY_METER_URL_PATH"); err != nil {
 		panic(err)
 	}
 

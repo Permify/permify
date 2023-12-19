@@ -99,6 +99,7 @@ type (
 		Exporter string `mapstructure:"exporter"` // Exporter for metrics data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the metrics exporter
 		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		URLPath  string `mapstructure:"path"`     // Path for the metrics exporter, if not defined /v1/metrics will be used
 	}
 
 	// Service contains configuration for various service-level features.

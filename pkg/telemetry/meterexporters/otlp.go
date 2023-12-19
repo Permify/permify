@@ -8,10 +8,14 @@ import (
 )
 
 // NewOTLP - Creates new OTLP exporter
-func NewOTLP(endpoint string, insecure bool) (metric.Exporter, error) {
+func NewOTLP(endpoint string, insecure bool, urlpath string) (metric.Exporter, error) {
 	options := []otlpmetrichttp.Option{
 		otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression),
 		otlpmetrichttp.WithEndpoint(endpoint),
+	}
+
+	if urlpath != "" {
+		options = append(options, otlpmetrichttp.WithURLPath(urlpath))
 	}
 
 	if insecure {

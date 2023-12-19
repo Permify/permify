@@ -295,6 +295,8 @@ authorization when using Permify.
 |   ├── exporter
 |   ├── endpoint
 |   ├── enabled
+|   ├── insecure
+|   ├── urlpath
 ```
 
 #### Glossary
@@ -335,6 +337,8 @@ os, arch.
 |   ├── exporter
 |   ├── endpoint
 |   ├── enabled
+|   ├── insecure
+|   ├── urlpath
 ```
 
 #### Glossary
@@ -352,6 +356,7 @@ os, arch.
 | meter-enabled      | PERMIFY_METER_ENABLED   | boolean      |
 | meter-exporter     | PERMIFY_METER_EXPORTER  | string       |
 | meter-endpoint     | PERMIFY_METER_ENDPOINT  | string       |
+| meter-urlpath      | PERMIFY_METER_URL_PATH       | string       |
 | meter-insecure     | PERMIFY_METER_INSECURE  | string       |
 
 </p>
