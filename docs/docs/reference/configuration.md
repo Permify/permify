@@ -357,7 +357,7 @@ os, arch.
 | meter-exporter     | PERMIFY_METER_EXPORTER  | string       |
 | meter-endpoint     | PERMIFY_METER_ENDPOINT  | string       |
 | meter-urlpath      | PERMIFY_METER_URL_PATH       | string       |
-| meter-insecure     | PERMIFY_METER_INSECURE  | string       |
+| meter-insecure     | PERMIFY_METER_INSECURE  | boolean       |
 
 </p>
 </details>
