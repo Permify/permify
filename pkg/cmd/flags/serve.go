@@ -219,7 +219,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	flags.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
-	if err = viper.BindPFlag("tracer.insecure", flags.Lookup("tracer-urlpath")); err != nil {
+	if err = viper.BindPFlag("tracer.urlpath", flags.Lookup("tracer-urlpath")); err != nil {
 		panic(err)
 	}
 	if err = viper.BindEnv("tracer.urlpath", "PERMIFY_TRACER_URL_PATH"); err != nil {
