@@ -65,7 +65,7 @@ service:
     cache:
       number_of_counters: 10_000
       max_cost: 10MiB
-  relationship:
+  data:
 
 # The database section specifies the database engine and connection settings,
 # including the URI for the database, whether or not to auto-migrate the database,

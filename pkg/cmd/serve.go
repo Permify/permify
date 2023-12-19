@@ -141,6 +141,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Tracer.Exporter,
 				cfg.Tracer.Endpoint,
 				cfg.Tracer.Insecure,
+				cfg.Tracer.URLPath,
 			)
 			if err != nil {
 				slog.Error(err.Error())
@@ -178,7 +179,12 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		meter := telemetry.NewNoopMeter()
 		if cfg.Meter.Enabled {
 			var exporter metric.Exporter
-			exporter, err = meterexporters.ExporterFactory(cfg.Meter.Exporter, cfg.Meter.Endpoint)
+			exporter, err = meterexporters.ExporterFactory(
+				cfg.Meter.Exporter,
+				cfg.Meter.Endpoint,
+				cfg.Meter.Insecure,
+				cfg.Meter.URLPath,
+			)
 			if err != nil {
 				slog.Error(err.Error())
 			}
