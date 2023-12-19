@@ -350,6 +350,7 @@ os, arch.
 | meter-enabled      | PERMIFY_METER_ENABLED   | boolean      |
 | meter-exporter     | PERMIFY_METER_EXPORTER  | string       |
 | meter-endpoint     | PERMIFY_METER_ENDPOINT  | string       |
+| meter-insecure     | PERMIFY_METER_INSECURE  | string       |
 
 </p>
 </details>

@@ -97,6 +97,7 @@ type (
 		Enabled  bool   `mapstructure:"enabled"`  // Whether metrics collection is enabled
 		Exporter string `mapstructure:"exporter"` // Exporter for metrics data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the metrics exporter
+		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
 	}
 
 	// Service contains configuration for various service-level features.

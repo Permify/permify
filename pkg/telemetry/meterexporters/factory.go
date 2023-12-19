@@ -7,10 +7,10 @@ import (
 )
 
 // ExporterFactory - Create meter exporter according to given params
-func ExporterFactory(name, endpoint string) (metric.Exporter, error) {
+func ExporterFactory(name, endpoint string, insecure bool) (metric.Exporter, error) {
 	switch name {
 	case "otlp":
-		return NewOTLP(endpoint)
+		return NewOTLP(endpoint, insecure)
 	default:
 		return nil, fmt.Errorf("%s meter exporter is unsupported", name)
 	}
