@@ -141,6 +141,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Tracer.Exporter,
 				cfg.Tracer.Endpoint,
 				cfg.Tracer.Insecure,
+				cfg.Tracer.URLPath,
 			)
 			if err != nil {
 				slog.Error(err.Error())

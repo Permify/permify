@@ -304,6 +304,7 @@ authorization when using Permify.
 | [x]      | exporter | -       | Tracer exporter, the options are `jaeger`, `otlp`, `signoz`, and `zipkin`. |
 | [x]      | endpoint | -       | export uri for tracing data.                                               |
 | [ ]      | enabled  | false   | switch option for tracing.                                                 |
+| [ ]      | urlpath  |         | allows one to override the default URL path for otlp, used for sending traces. If unset, default ("/v1/traces") will be used.                                              |
 | [ ]      | insecure | false   | Whether to use HTTP instead of HTTPs for exporting the traces.             |
 
 #### ENV
@@ -313,6 +314,7 @@ authorization when using Permify.
 | tracer-enabled       | PERMIFY_TRACER_ENABLED        | boolean      |
 | tracer-exporter      | PERMIFY_TRACER_EXPORTER       | string       |
 | tracer-endpoint      | PERMIFY_TRACER_ENDPOINT       | string       |
+| tracer-urlpath       | PERMIFY_TRACER_URL_PATH       | string       |
 | tracer-insecure      | PERMIFY_TRACER_INSECURE       | boolean      |
 
 </p>
