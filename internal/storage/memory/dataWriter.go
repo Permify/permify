@@ -8,8 +8,10 @@ import (
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/memory/constants"
 	"github.com/Permify/permify/internal/storage/memory/snapshot"
 	"github.com/Permify/permify/internal/storage/memory/utils"
+	"github.com/Permify/permify/pkg/bundle"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -57,7 +59,7 @@ func (r *DataWriter) Write(_ context.Context, tenantID string, tupleCollection *
 			SubjectID:       bt.GetSubject().GetId(),
 			SubjectRelation: srelation,
 		}
-		if err = txn.Insert(RelationTuplesTable, t); err != nil {
+		if err = txn.Insert(constants.RelationTuplesTable, t); err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}
@@ -73,7 +75,7 @@ func (r *DataWriter) Write(_ context.Context, tenantID string, tupleCollection *
 			Attribute:  at.GetAttribute(),
 			Value:      at.GetValue(),
 		}
-		if err = txn.Insert(AttributesTable, t); err != nil {
+		if err = txn.Insert(constants.AttributesTable, t); err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 	}
@@ -90,7 +92,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 
 	tIndex, tArgs := utils.GetRelationTuplesIndexNameAndArgsByFilters(tenantID, tupleFilter)
 	var tit memdb.ResultIterator
-	tit, err = txn.Get(RelationTuplesTable, tIndex, tArgs...)
+	tit, err = txn.Get(constants.RelationTuplesTable, tIndex, tArgs...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -101,7 +103,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 		if !ok {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		err = txn.Delete(RelationTuplesTable, t)
+		err = txn.Delete(constants.RelationTuplesTable, t)
 		if err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
@@ -109,7 +111,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 
 	aIndex, args := utils.GetAttributesIndexNameAndArgsByFilters(tenantID, attributeFilter)
 	var aIt memdb.ResultIterator
-	aIt, err = txn.Get(AttributesTable, aIndex, args...)
+	aIt, err = txn.Get(constants.AttributesTable, aIndex, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -120,7 +122,7 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 		if !ok {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		err = txn.Delete(RelationTuplesTable, t)
+		err = txn.Delete(constants.RelationTuplesTable, t)
 		if err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
@@ -130,6 +132,23 @@ func (r *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 	return snapshot.NewToken(time.Now()).Encode(), nil
 }
 
-func (r *DataWriter) RunBundle(_ context.Context, _ string, _ map[string]string, _ *base.DataBundle) (token token.EncodedSnapToken, err error) {
-	return nil, errors.New(base.ErrorCode_ERROR_CODE_NOT_IMPLEMENTED.String())
+func (r *DataWriter) RunBundle(ctx context.Context, tenantID string, arguments map[string]string, b *base.DataBundle) (token token.EncodedSnapToken, err error) {
+	for _, op := range b.GetOperations() {
+		tupleCollection, attributeCollection, err := bundle.Operation(arguments, op)
+		if err != nil {
+			return nil, err
+		}
+
+		// Write operation
+		if _, err = r.Write(ctx, tenantID, &tupleCollection.Write, &attributeCollection.Write); err != nil {
+			return nil, err
+		}
+
+		// Delete operation
+		// if _, err = r.Delete(ctx, tenantID, &tupleCollection.Delete, &attributeCollection.Delete); err != nil {
+		// 	return nil, err
+		// }
+	}
+
+	return snapshot.NewToken(time.Now()).Encode(), nil
 }

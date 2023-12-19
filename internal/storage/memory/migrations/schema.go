@@ -1,16 +1,15 @@
 package migrations
 
 import (
+	"github.com/Permify/permify/internal/storage/memory/constants"
 	"github.com/hashicorp/go-memdb"
-
-	"github.com/Permify/permify/internal/storage/memory"
 )
 
 // Schema - Database schema for memory db
 var Schema = &memdb.DBSchema{
 	Tables: map[string]*memdb.TableSchema{
-		memory.SchemaDefinitionsTable: {
-			Name: memory.SchemaDefinitionsTable,
+		constants.SchemaDefinitionsTable: {
+			Name: constants.SchemaDefinitionsTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -44,8 +43,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		memory.AttributesTable: {
-			Name: memory.AttributesTable,
+		constants.AttributesTable: {
+			Name: constants.AttributesTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -82,8 +81,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		memory.RelationTuplesTable: {
-			Name: memory.RelationTuplesTable,
+		constants.RelationTuplesTable: {
+			Name: constants.RelationTuplesTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -148,8 +147,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		memory.TenantsTable: {
-			Name: memory.TenantsTable,
+		constants.TenantsTable: {
+			Name: constants.TenantsTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -158,6 +157,18 @@ var Schema = &memdb.DBSchema{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "ID"},
 						},
+					},
+				},
+			},
+		},
+		constants.BundlesTable: {
+			Name: constants.BundlesTable,
+			Indexes: map[string]*memdb.IndexSchema{
+				"id": {
+					Name:   "id",
+					Unique: true,
+					Indexer: &memdb.StringFieldIndex{
+						Field: "Name",
 					},
 				},
 			},

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/memory/constants"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -41,7 +42,7 @@ func (w *SchemaWriter) WriteSchema(_ context.Context, definitions []storage.Sche
 	var version string
 
 	for _, definition := range definitions {
-		if err = txn.Insert(SchemaDefinitionsTable, definition); err != nil {
+		if err = txn.Insert(constants.SchemaDefinitionsTable, definition); err != nil {
 			return errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
 		tenantID = definition.TenantID
