@@ -1,0 +1,56 @@
+schema: |-
+    entity user {}
+
+    entity account {
+
+        // Defines a relation where an account has an owner of type 'user'.
+        relation owner @user
+        
+        // Attribute to store the balance information of the account.
+        attribute balance integer
+
+        // Permission to withdraw from an account.
+        // A user can withdraw from an account if the requested amount is less than or equal to the current balance,
+        // the requested amount is less than or equal to 5000, and the user is the owner of the account.
+        permission withdraw = check_balance(request.amount, balance) and owner
+    }
+
+    // Rule to verify if a withdrawal is possible.
+    // The withdrawal is allowed if the current balance can cover the requested amount,
+    // and if the requested amount doesn't exceed a limit of 5000.
+    rule check_balance(amount integer, balance integer) {
+        (balance >= amount) && (amount <= 5000)
+    }
+
+relationships:
+  - account:1#owner@user:andrew
+  - account:2#owner@user:steven
+
+attributes:
+  - account:1$balance|integer:4000
+
+scenarios:
+  - name: "Account Owner Withdrawal Test"
+    description: "Tests the ability of 'andrew', the owner of 'account:1', to withdraw 3000. As the owner, he should be allowed."
+    checks:
+      - entity: "account:1"
+        subject: "user:andrew"
+        context:
+          tuples: []
+          attributes: []
+          data:
+            amount: 3000
+        assertions:
+          withdraw: true
+  - name: "Non-owner Withdrawal Test"
+    description: "Tests the ability of 'steven', a non-owner of 'account:1', to withdraw 3000. Being a non-owner, he should be denied."
+    checks:
+      - entity: "account:1"
+        subject: "user:steven"
+        context:
+          tuples: []
+          attributes: []
+          data:
+            amount: 3000
+        assertions:
+          withdraw: false

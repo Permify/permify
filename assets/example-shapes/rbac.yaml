@@ -1,0 +1,35 @@
+schema: |-
+    entity user {} 
+
+    entity organization {
+
+        // roles 
+        relation admin @user    
+        relation member @user    
+        relation manager @user    
+        relation agent @user  
+
+        // organization files access permissions
+        permission view_files = admin or manager or (member not agent)
+        permission delete_file = admin 
+
+        // vendor files access permissions
+        permission view_vendor_files = admin or manager or agent
+        permission delete_vendor_file = agent
+
+    } 
+
+relationships:
+   - "organization:1#admin@user:1"
+
+attributes:
+    
+scenarios:
+  - name: "scenario 1"
+    description: "test description"
+    checks:
+      - entity: "organization:1"
+        subject: "user:1"
+        context:
+        assertions:
+          view_files: true

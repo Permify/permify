@@ -1,0 +1,108 @@
+linters-settings:
+  gci:
+    local-prefixes: github.com/Permify/permify
+  gosec:
+    excludes:
+      - 'G404'
+  goimports:
+    local-prefixes: 'github.com/Permify/permify'
+  maligned:
+      suggest-new: true
+  dupl:
+    threshold: 100
+  errorlint:
+    errorf: true
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  exhaustive:
+    check-generated: false
+    default-signifies-exhaustive: false
+  funlen:
+    lines: 65
+    statements: 40
+  gocognit:
+    min-complexity: 15
+  gocyclo:
+    min-complexity: 10
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - unnecessaryBlock
+  gofumpt:
+    extra-rules: true
+  gomnd:
+    settings:
+      mnd:
+        checks:
+          - argument
+          - case
+          - condition
+          - operation
+          - return
+  govet:
+    check-shadowing: true
+  misspell:
+    locale: US
+  nestif:
+    min-complexity: 4
+  nolintlint:
+    require-explanation: true
+    require-specific: true
+
+linters:
+  enable:
+    - bidichk
+    - bodyclose
+    - errcheck
+    - errname
+    - errorlint
+    - gofumpt
+    - goimports
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - importas
+    - ineffassign
+    - makezero
+    - prealloc
+    - predeclared
+    - promlinter
+    - revive
+    - staticcheck
+    - stylecheck
+    - tenv
+    - typecheck
+    - unconvert
+    - unused
+    - whitespace
+
+issues:
+  exclude-rules:
+    - path: integration-test
+      linters:
+        - paralleltest
+        - godot
+    - text: 'tx.Rollback()'
+      linters:
+        - 'errcheck'
+    - path: 'internal/repositories/mocks'
+      linters:
+        - 'errcheck'
+run:
+  tests: false
+  skip-dirs:
+    - docs
+
+output:
+  sort-results: true

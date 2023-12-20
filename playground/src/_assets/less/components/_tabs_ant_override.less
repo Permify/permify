@@ -1,0 +1,73 @@
+
+.ant-tabs-tab {
+  border-radius: var(--border-radius-base) var(--border-radius-base) 0 0 !important;
+  border: none !important;
+  margin-right: 5px !important;
+}
+
+.ant-tabs-nav {
+  margin: 0 !important;
+}
+
+.ant-tabs-tab-active {
+  border: none !important;
+  background: var(--background-base) !important;
+}
+
+.ant-tabs-nav::before {
+  display: none !important;
+}
+
+.ant-tabs-tabpane {
+  background-color: var(--background-base) !important;
+  border-radius: var(--border-radius-base) !important;
+}
+
+/* Base appearance of the tab navigation */
+.custom-card-tabs .ant-tabs-nav {
+  background-color: var(--background-base); /* Background matching the card color */
+  border-radius: 4px 4px 0 0;
+}
+
+/* Appearance of each individual tab */
+.custom-card-tabs .ant-tabs-tab {
+  font-weight: bold !important;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+  border-bottom: none !important;
+  min-height: 60px !important;
+  margin: 0 12px;
+  border-radius: 4px 4px 0 0; /* Rounded top corners */
+  font-size: 18px;
+  background-color: var(--background-base) !important;
+  transition: all 0.3s ease; /* Ensuring a smooth transition for effects */
+}
+
+.custom-card-tabs .ant-tabs-tab:last-child {
+  border-right: none;
+}
+
+/* Appearance and effect on the active tab */
+.custom-card-tabs .ant-tabs-tab-active {
+  background-color: #141517;  /* Matching with card background color */
+  color: #ffffff;   /* Pure white color for active tab text */
+  border: 1px solid transparent; /* Remove border from active tab */
+  box-shadow: 0 4px 12px rgba(20, 21, 23, 0.5); /* Shadow effect on the active tab */
+}
+
+/* Border for the content area */
+.custom-card-tabs .ant-tabs-content {
+  border-top: 1px solid #303030;
+}
+
+.ant-tabs-nav{
+  border-radius: 0 !important;
+}
+
+.ant-collapse>.ant-collapse-item{
+  border-bottom: 1px solid #303030 !important;
+}
+
+.ant-collapse{
+  background-color: transparent !important;
+}

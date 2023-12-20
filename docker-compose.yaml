@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  permify:
+    image: "ghcr.io/permify/permify:latest"
+    command: "serve --database-engine postgres --database-uri postgres://postgres:secret@database:5432/permify --database-max-open-connections 20"
+    restart: "always"
+    ports:
+      - "3476:3476"
+      - "3478:3478"
+    depends_on:
+      - "database"
+
+  database:
+    image: "postgres"
+    ports:
+      - "5432:5432"
+    environment:
+      - "POSTGRES_PASSWORD=secret"
+      - "POSTGRES_DB=permify"
+
+  integration:
+    build:
+      context: .
+      dockerfile: integration-test/Dockerfile
+    container_name: integration
+    image: integration
+    depends_on:
+      - permify
+
+volumes:
+  pg-data:

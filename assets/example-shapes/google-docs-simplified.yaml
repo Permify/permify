@@ -1,0 +1,71 @@
+schema: |-
+    entity user {}
+    
+    entity organization {
+        relation group @group
+        relation document @document
+        relation administrator @user @group#direct_member @group#manager
+        relation direct_member @user
+
+        permission admin = administrator
+        permission member = direct_member or administrator or group.member
+    }
+
+    entity group {
+        relation manager @user @group#direct_member @group#manager
+        relation direct_member @user @group#direct_member @group#manager
+
+        permission member = direct_member or manager
+    }
+
+    entity document {
+        relation org @organization
+
+        relation viewer  @user  @group#direct_member @group#manager
+        relation manager @user @group#direct_member @group#manager
+
+        action edit = manager or org.admin
+        action view = viewer or manager or org.admin
+    }
+
+relationships:
+  - group:tech#manager@user:ashley
+  - group:tech#direct_member@user:david
+  - group:marketing#manager@user:john
+  - group:marketing#direct_member@user:jenny
+  - group:hr#manager@user:josh
+  - group:hr#direct_member@user:joe
+  - group:tech#direct_member@group:marketing#direct_member
+  - group:tech#direct_member@group:hr#direct_member
+  - organization:acme#group@group:tech
+  - organization:acme#group@group:marketing
+  - organization:acme#group@group:hr
+  - organization:acme#document@document:product_database
+  - organization:acme#document@document:marketing_materials
+  - organization:acme#document@document:hr_documents
+  - organization:acme#administrator@group:tech#manager
+  - organization:acme#administrator@user:jenny
+  - document:product_database#manager@group:tech#manager
+  - document:product_database#viewer@group:tech#direct_member
+  - document:marketing_materials#viewer@group:marketing#direct_member
+  - document:hr_documents#manager@group:hr#manager
+  - document:hr_documents#viewer@group:hr#direct_member
+
+attributes:
+
+scenarios:
+  - name: "Document Access Verification"
+    description: "This scenario verifies the editing and viewing permissions of specific users on different categories of documents."
+    checks:
+      - entity: "document:product_database"
+        subject: "user:ashley"
+        assertions:
+          edit: true
+      - entity: "document:hr_documents"
+        subject: "user:joe"
+        assertions:
+          view: true
+      - entity: "document:marketing_materials"
+        subject: "user:david"
+        assertions:
+          view: false

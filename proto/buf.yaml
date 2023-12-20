@@ -1,0 +1,14 @@
+version: v1
+name: buf.build/permifyco/permify
+deps:
+  - buf.build/envoyproxy/protoc-gen-validate:6607b10f00ed4a3d98f906807131c44a
+  - buf.build/grpc-ecosystem/grpc-gateway:a1ecdc58eccd49aa8bea2a7a9022dc27
+  - buf.build/googleapis/googleapis:75b4300737fb4efca0831636be94e517
+breaking:
+  ignore_unstable_packages: true
+lint:
+  allow_comment_ignores: true
+  except:
+    - PACKAGE_VERSION_SUFFIX
+    - FIELD_LOWER_SNAKE_CASE
+    - SERVICE_SUFFIX

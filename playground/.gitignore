@@ -1,0 +1,17 @@
+### react ###
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+.idea
+yarn.lock
+node_modules
+bower_components
+build
+
+*.sublime*
+
+psd
+thumb
+sketch

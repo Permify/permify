@@ -1,0 +1,62 @@
+---
+builds:
+  -
+    env:
+      - CGO_ENABLED=0
+    goarch:
+      - amd64
+      - arm64
+    goos:
+      - linux
+    ldflags:
+      - "-s -w"
+    main: ./cmd/permify
+    mod_timestamp: "{{ .CommitTimestamp }}"
+docker_manifests:
+  -
+    image_templates:
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    name_template: "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}"
+  -
+    image_templates:
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    name_template: "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:latest"
+  -
+    image_templates:
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    name_template: "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}"
+  -
+    image_templates:
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    name_template: "permify/permify{{ if .IsNightly }}-beta{{ end }}:latest"
+dockers:
+  -
+    build_flag_templates:
+      - "--platform=linux/arm64"
+    dockerfile: Dockerfile.release
+    goarch: arm64
+    goos: linux
+    image_templates:
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-arm64"
+    use: buildx
+  -
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    dockerfile: Dockerfile.release
+    goarch: amd64
+    goos: linux
+    image_templates:
+      - "ghcr.io/permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+      - "permify/permify{{ if .IsNightly }}-beta{{ end }}:v{{ .Version }}-amd64"
+    use: buildx
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+nightly:
+  name_template: "{{ incpatch .Version }}-{{ .ShortCommit }}"

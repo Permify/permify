@@ -1,0 +1,17 @@
+schema: |-
+    entity user {}
+            
+    entity post {
+
+        relation owner  @user
+        attribute is_public boolean
+
+        permission view = is_public or owner
+        permission edit = owner
+    }
+
+relationships:
+
+attributes:
+    
+scenarios:
