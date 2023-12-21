@@ -17,7 +17,10 @@ In this endpoint, you'll receive a map of permissions and their statuses directl
 
 ## Request
 
-**Path:** POST /v1/permissions/subject-permission
+**Path:** 
+```javascript
+POST /v1/permissions/subject-permission
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.subjectPermission)
 
@@ -28,7 +31,7 @@ In this endpoint, you'll receive a map of permissions and their statuses directl
 | [ ]      | snap_token        | string  | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens.md).                                                                                                |
 | [x]      | entity            | object  | -       | contains entity type and id of the entity. Example: repository:1.                                                                                                                                   |
 | [x]      | subject           | object  | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                                          |
-| [ ]      | depth             | integer | 8       | Timeout limit when if recursive database queries got in loop                                                                                                                                        |
+| [x]      | depth             | integer | 8       | Timeout limit when if recursive database queries got in loop                                                                                                                                        |
 | [ ]      | only_permission   | bool    | false   | By default, the endpoint returns both permissions and relations associated with the user and entity. However, when the "only_permission" parameter is set to true, it returns only the permissions. |                                                                                                               |
 | [ ]      | context | object  | -       | Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../reference/contextual-tuples.md)                        |
 

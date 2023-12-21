@@ -24,7 +24,10 @@ Another example: when one a company executive grant admin role to user (lets say
 You can use the **/v1/tenants/{tenant_id}/data/write** endpoint for both creating **relation tuples** and for creating **attribute data**.
 :::
 
-**Path:** POST /v1/tenants/{tenant_id}/data/write
+**Path:**
+```javascript
+ POST /v1/tenants/{tenant_id}/data/write
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Data/data.write)
 
@@ -136,16 +139,126 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
 
 You can use `attributes` argument to create attribute/attributes with a single API call, similarly creating a `relational tuple`. 
 
-Assume we want to both create relational tuple and attribute within in single request. Let's say **user:1** has been granted as editor in **document:1** and **document:1** is a **private (boolean)** document, that only specific users have view access.
+Let's say **document:1** is a **private (boolean)** document, that only specific users have view access - `document:1$is_private|boolean:true`.
 
-Following tuples will be created, respectively,
+:::info Attribute Data Syntax
+As you noticed, the attribute tuple syntax differs from the relationship syntax, structured similarly as: 
+`entity $ attribute | value`
+:::
+
+<Tabs>
+<TabItem value="go" label="Go">
+
+```go
+// Convert the wrapped attribute value into Any proto message
+value, err := anypb.New(&v1.BooleanValue{
+    Data: true,
+})
+if err != nil {
+	// Handle error
+}
+
+cr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{
+    TenantId: "t1",,
+    Metadata: &v1.DataWriteRequestMetadata{
+        SchemaVersion: "",
+    },
+    Attributes: []*v1.Attribute{
+        {
+            Entity: &v1.Entity{
+                Type: "document",
+                Id:   "1",
+            },
+            Attribute: "is_private",
+            Value:     value,
+        },
+    },
+})
+```
+
+</TabItem>
+
+<TabItem value="node" label="Node">
+
+```javascript
+const booleanValue = BooleanValue.fromJSON({ data: true });
+
+const value = Any.fromJSON({
+    typeUrl: 'type.googleapis.com/base.v1.BooleanValue',
+    value: BooleanValue.encode(booleanValue).finish()
+});
+
+client.data.write({
+    tenantId: "t1",
+    metadata: {
+        schemaVersion: ""
+    },
+    attributes: [{
+        entity: {
+            type: "document",
+            id: "1"
+        },
+        attribute: "is_private",
+        value: value,
+    }]
+}).then((response) => {
+    // handle response
+})
+```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+{
+    "metadata": {
+        "schema_version": ""
+    },
+    "attributes": [
+        {
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "attribute": "is_private",
+            "value": {
+                "@type": "type.googleapis.com/base.v1.BooleanValue",
+                "data": true
+            }
+        }
+    ]
+}
+}'
+```
+
+</TabItem>
+</Tabs>
+
+:::warning Attribute **value** field
+**value** field is mandatory on attribute data creation.
+
+Here are the available attribute value types:
+
+- **type.googleapis.com/base.v1.StringValue**
+- **type.googleapis.com/base.v1.BooleanValue**
+- **type.googleapis.com/base.v1.IntegerValue**
+- **type.googleapis.com/base.v1.DoubleValue**
+- **type.googleapis.com/base.v1.StringArrayValue**
+- **type.googleapis.com/base.v1.BooleanArrayValue**
+- **type.googleapis.com/base.v1.IntegerArrayValue**
+- **type.googleapis.com/base.v1.DoubleArrayValue**
+:::
+
+#### Creating Attributes and Relations In Single Request
+
+Assume we want to both create relational tuple and attribute within in single request. Specifically we want to create following tuples,
 
 -  `document:1#editor@user:1`
 -  `document:1$is_private|boolean:true`
 
-:::info Attribute Data Syntax
-As you noticed, the attribute tuple syntax differs from the relationship syntax, structured as: `entity $ attribute | value`
-:::
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -275,21 +388,6 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
 
 </TabItem>
 </Tabs>
-
-:::warning Attribute **value** field
-**value** field is mandatory on attribute data creation.
-
-Here are the available attribute value types:
-
-- **type.googleapis.com/base.v1.StringValue**
-- **type.googleapis.com/base.v1.BooleanValue**
-- **type.googleapis.com/base.v1.IntegerValue**
-- **type.googleapis.com/base.v1.DoubleValue**
-- **type.googleapis.com/base.v1.StringArrayValue**
-- **type.googleapis.com/base.v1.BooleanArrayValue**
-- **type.googleapis.com/base.v1.IntegerArrayValue**
-- **type.googleapis.com/base.v1.DoubleArrayValue**
-:::
 
 ## Response
 

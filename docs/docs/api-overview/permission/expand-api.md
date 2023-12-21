@@ -116,7 +116,10 @@ According to above authorization model, let's create 3 example relation tuples f
 
 We can use expand API to reason the access actions. If we want to reason access structure for actions of repository entity, we can use expand API with ***POST "/v1/permissions/expand"***. 
 
-**Path:** POST /v1/tenants/{tenant_id}/permissions/expand
+**Path:** 
+```javascript
+POST /v1/tenants/{tenant_id}/permissions/expand
+```
 
 | Required | Argument          | Type   | Default | Description                                                                                                                                                                |
 |----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
