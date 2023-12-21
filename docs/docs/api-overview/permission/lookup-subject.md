@@ -17,7 +17,10 @@ So, we provide 1 endpoint for subject filtering request,
 
 In this endpoint you'll get directly the IDs' of the subjects that are authorized in an array.
 
-**POST** /v1/permissions/lookup-subject
+**POST** 
+```javascript
+/v1/permissions/lookup-subject
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.lookupSubject)
 

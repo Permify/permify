@@ -14,7 +14,10 @@ In this section we'll look at the resource based check request of Permify. You c
 
 ## Request
 
-**Path:** POST /v1/permissions/check
+**Path:** 
+```javascript
+POST /v1/permissions/check
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.check)
 

@@ -18,7 +18,10 @@ So, we provide 2 separate endpoints for data filtering check request,
 
 In this endpoint you'll get directly the IDs' of the entities that are authorized in an array.
 
-**POST** /v1/permissions/lookup-entity
+**Path** 
+```javascript
+ POST /v1/permissions/lookup-entity
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.lookupEntity)
 
@@ -138,7 +141,10 @@ Then queries each of them with `user:1.`
 
 The difference between this endpoint from direct Lookup Entity is response of this entity gives the IDs' as stream. This could be useful if you have large data set that getting all of the authorized data can take long with direct lookup entity endpoint.
 
-**POST** /v1/permissions/lookup-entity-stream
+**Path** 
+```javascript
+ POST /v1/permissions/lookup-entity-stream
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.lookupEntityStream)
 

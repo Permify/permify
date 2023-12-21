@@ -17,7 +17,10 @@ In this endpoint, you'll receive a map of permissions and their statuses directl
 
 ## Request
 
-**Path:** POST /v1/permissions/subject-permission
+**Path:** 
+```javascript
+POST /v1/permissions/subject-permission
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.subjectPermission)
 
