@@ -7,8 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Permify/permify/internal/storage/memory/constants"
 	"github.com/hashicorp/go-memdb"
+
+	"github.com/Permify/permify/internal/storage/memory/constants"
 
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/memory/snapshot"
@@ -198,7 +199,7 @@ func (r *DataReader) ReadAttributes(_ context.Context, tenantID string, filter *
 
 	// Get the result iterator using lower bound.
 	var result memdb.ResultIterator
-	result, err = txn.LowerBound(constants.RelationTuplesTable, index, args...)
+	result, err = txn.LowerBound(constants.AttributesTable, index, args...)
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
