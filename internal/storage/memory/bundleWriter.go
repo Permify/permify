@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/memory/constants"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -20,32 +21,32 @@ func NewBundleWriter(database *db.Memory) *BundleWriter {
 	}
 }
 
-func (b *BundleWriter) Write(ctx context.Context, tenantID string, bundles []*base.DataBundle) (names []string, err error) {
-	for _, bundle := range bundles {
-		names = append(names, bundle.Name)
-		b.database.Lock()
+func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (names []string, err error) {
+	txn := b.database.DB.Txn(true)
+	defer txn.Abort()
 
-		txn := b.database.DB.Txn(true)
-		err = txn.Insert(constants.BundlesTable, bundle)
-		if err != nil {
-			b.database.Unlock()
-			return names, errors.New(err.Error())
+	for _, bundle := range bundles {
+		if err = txn.Insert(constants.BundlesTable, bundle); err != nil {
+			return []string{}, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
-		txn.Commit()
-		b.database.Unlock()
+		names = append(names, bundle.Name)
 	}
+	txn.Commit()
 
 	return names, nil
 }
 
-func (b *BundleWriter) Delete(ctx context.Context, tenantID, tenantName string) (err error) {
+func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err error) {
 	txn := b.database.DB.Txn(true)
-	existing, _ := txn.First(constants.BundlesTable, "id", tenantName)
+	raw, err := txn.First(constants.BundlesTable, "id", tenantID, name)
 
-	if existing == nil {
+	if raw == nil {
 		return errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String())
 	}
-	txn.Delete(constants.BundlesTable, existing)
+	err = txn.Delete(constants.BundlesTable, raw)
+	if err != nil {
+		return err
+	}
 	txn.Commit()
 
 	return nil
