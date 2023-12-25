@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Permify/permify/internal/storage/memory/constants"
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/storage"
@@ -42,7 +43,7 @@ func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filt
 
 	// Get the result iterator based on the index and arguments.
 	var result memdb.ResultIterator
-	result, err = txn.Get(RelationTuplesTable, index, args...)
+	result, err = txn.Get(constants.RelationTuplesTable, index, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -82,7 +83,7 @@ func (r *DataReader) ReadRelationships(_ context.Context, tenantID string, filte
 
 	// Get the result iterator using lower bound.
 	var result memdb.ResultIterator
-	result, err = txn.LowerBound(RelationTuplesTable, index, args...)
+	result, err = txn.LowerBound(constants.RelationTuplesTable, index, args...)
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -126,7 +127,7 @@ func (r *DataReader) QuerySingleAttribute(_ context.Context, tenantID string, fi
 
 	// Get the result iterator based on the index and arguments.
 	var result memdb.ResultIterator
-	result, err = txn.Get(AttributesTable, index, args...)
+	result, err = txn.Get(constants.AttributesTable, index, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -156,7 +157,7 @@ func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter 
 
 	// Get the result iterator based on the index and arguments.
 	var result memdb.ResultIterator
-	result, err = txn.Get(AttributesTable, index, args...)
+	result, err = txn.Get(constants.AttributesTable, index, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -197,7 +198,7 @@ func (r *DataReader) ReadAttributes(_ context.Context, tenantID string, filter *
 
 	// Get the result iterator using lower bound.
 	var result memdb.ResultIterator
-	result, err = txn.LowerBound(RelationTuplesTable, index, args...)
+	result, err = txn.LowerBound(constants.RelationTuplesTable, index, args...)
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -241,7 +242,7 @@ func (r *DataReader) QueryUniqueEntities(_ context.Context, tenantID, name, _ st
 
 	// Query the database for entities matching the given tenant ID and name
 	var entityResult memdb.ResultIterator
-	entityResult, err = txn.Get(RelationTuplesTable, "entity-type-index", tenantID, name)
+	entityResult, err = txn.Get(constants.RelationTuplesTable, "entity-type-index", tenantID, name)
 	if err != nil {
 		// Returns an error if execution fails
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
@@ -261,7 +262,7 @@ func (r *DataReader) QueryUniqueEntities(_ context.Context, tenantID, name, _ st
 
 	// Query the database for attributes matching the given tenant ID and name
 	var attributeResult memdb.ResultIterator
-	attributeResult, err = txn.Get(AttributesTable, "entity-type-index", tenantID, name)
+	attributeResult, err = txn.Get(constants.AttributesTable, "entity-type-index", tenantID, name)
 	if err != nil {
 		// Returns an error if execution fails
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
@@ -289,7 +290,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID st
 	ids := make(map[string]bool)
 
 	// Get the result iterator based on the index and arguments.
-	result, err := txn.Get(RelationTuplesTable, "id")
+	result, err := txn.Get(constants.RelationTuplesTable, "id")
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}

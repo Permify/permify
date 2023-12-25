@@ -1,33 +1,29 @@
-package postgres
+package memory
 
 import (
 	"context"
-	"os"
+
+	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/memory/migrations"
+	"github.com/Permify/permify/pkg/database/memory"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var _ = Describe("BundleReader", func() {
-	var db database.Database
+var _ = Describe("BundleReader memory", func() {
+	var db *memory.Memory
 	var bundleWriter *BundleWriter
 	var bundleReader *BundleReader
 
 	BeforeEach(func() {
-		version := os.Getenv("POSTGRES_VERSION")
-
-		if version == "" {
-			version = "14"
-		}
-
-		db = postgresDB(version)
-		bundleWriter = NewBundleWriter(db.(*PQDatabase.Postgres))
-		bundleReader = NewBundleReader(db.(*PQDatabase.Postgres))
+		database, err := memory.New(migrations.Schema)
+		Expect(err).ShouldNot(HaveOccurred())
+		db = database
+		bundleWriter = NewBundleWriter(db)
+		bundleReader = NewBundleReader(db)
 	})
 
 	AfterEach(func() {
@@ -92,7 +88,7 @@ var _ = Describe("BundleReader", func() {
 				"organization:{{.organizationID}}#admin@user:{{.userID}}",
 			}))
 
-			Expect(bundle.GetOperations()[0].RelationshipsDelete).Should(BeNil())
+			Expect(bundle.GetOperations()[0].RelationshipsDelete).Should(BeEmpty())
 
 			Expect(bundle.GetOperations()[0].AttributesWrite).Should(Equal([]string{
 				"organization:{{.organizationID}}$public|boolean:true",

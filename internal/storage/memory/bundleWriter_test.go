@@ -1,33 +1,28 @@
-package postgres
+package memory
 
 import (
 	"context"
-	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/internal/storage/memory/migrations"
+	"github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 var _ = Describe("BundleWriter", func() {
-	var db database.Database
+	var db *memory.Memory
 	var bundleWriter *BundleWriter
 	var bundleReader *BundleReader
 
 	BeforeEach(func() {
-		version := os.Getenv("POSTGRES_VERSION")
-
-		if version == "" {
-			version = "14"
-		}
-
-		db = postgresDB(version)
-		bundleWriter = NewBundleWriter(db.(*PQDatabase.Postgres))
-		bundleReader = NewBundleReader(db.(*PQDatabase.Postgres))
+		database, err := memory.New(migrations.Schema)
+		Expect(err).ShouldNot(HaveOccurred())
+		db = database
+		bundleWriter = NewBundleWriter(db)
+		bundleReader = NewBundleReader(db)
 	})
 
 	AfterEach(func() {
@@ -167,9 +162,9 @@ var _ = Describe("BundleWriter", func() {
 				"company:{{.companyID}}#admin@user:{{.userID}}",
 			}))
 
-			Expect(bundle2.GetOperations()[0].AttributesWrite).Should(BeNil())
+			Expect(bundle2.GetOperations()[0].AttributesWrite).Should(BeEmpty())
 
-			Expect(bundle2.GetOperations()[0].AttributesDelete).Should(BeNil())
+			Expect(bundle2.GetOperations()[0].AttributesDelete).Should(BeEmpty())
 		})
 	})
 
