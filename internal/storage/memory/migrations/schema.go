@@ -1,8 +1,9 @@
 package migrations
 
 import (
-	"github.com/Permify/permify/internal/storage/memory/constants"
 	"github.com/hashicorp/go-memdb"
+
+	"github.com/Permify/permify/internal/storage/memory/constants"
 )
 
 // Schema - Database schema for memory db
@@ -167,8 +168,11 @@ var Schema = &memdb.DBSchema{
 				"id": {
 					Name:   "id",
 					Unique: true,
-					Indexer: &memdb.StringFieldIndex{
-						Field: "Name",
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "TenantID"},
+							&memdb.StringFieldIndex{Field: "Name"},
+						},
 					},
 				},
 			},
