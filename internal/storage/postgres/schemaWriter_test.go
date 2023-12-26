@@ -15,7 +15,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var _ = Describe("SchemaReader", func() {
+var _ = Describe("SchemaWriter", func() {
 	var db database.Database
 	var schemaWriter *SchemaWriter
 	var schemaReader *SchemaReader
