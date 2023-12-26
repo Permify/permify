@@ -20,7 +20,7 @@ var Identifier = xid.New().String()
 */
 const (
 	// Version is the last release of the Permify (e.g. v0.1.0)
-	Version = "v0.6.5"
+	Version = "v0.6.6"
 
 	// Banner is the view for terminal.
 	Banner = `
