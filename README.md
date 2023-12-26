@@ -102,9 +102,11 @@ Before start please see our [contributing guide](https://github.com/Permify/perm
 
 You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/projects/1)!
 
-## Stargazers
+## Contributors ♥️
 
-[![Stargazers repo roster for permify/permify](https://reporoster.com/stars/permify/permify)](https://github.com/permify/permify/stargazers)
+<a href="https://github.com/permify/Permify/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=permify/Permify&anon=1" />
+</a>
 
 ## Communication Channels
 
