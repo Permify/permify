@@ -14,7 +14,7 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/protobuf v1.5.3
-	github.com/google/cel-go v0.18.1
+	github.com/google/cel-go v0.18.2
 	github.com/gookit/color v1.5.4
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
@@ -66,7 +66,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
-	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 // indirect
+	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/containerd/containerd v1.7.11 // indirect
 	github.com/containerd/log v0.1.0 // indirect
