@@ -11,6 +11,7 @@ import (
 	"github.com/Permify/permify/internal/storage/memory/constants"
 	"github.com/Permify/permify/internal/storage/memory/snapshot"
 	"github.com/Permify/permify/internal/storage/memory/utils"
+	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/bundle"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
@@ -87,41 +88,45 @@ func (w *DataWriter) Delete(_ context.Context, tenantID string, tupleFilter *bas
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
 
-	tIndex, tArgs := utils.GetRelationTuplesIndexNameAndArgsByFilters(tenantID, tupleFilter)
-	var tit memdb.ResultIterator
-	tit, err = txn.Get(constants.RelationTuplesTable, tIndex, tArgs...)
-	if err != nil {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-	}
-
-	tFit := memdb.NewFilterIterator(tit, utils.FilterRelationTuplesQuery(tenantID, tupleFilter))
-	for obj := tFit.Next(); obj != nil; obj = tFit.Next() {
-		t, ok := obj.(storage.RelationTuple)
-		if !ok {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
-		}
-		err = txn.Delete(constants.RelationTuplesTable, t)
+	if !validation.IsTupleFilterEmpty(tupleFilter) {
+		tIndex, tArgs := utils.GetRelationTuplesIndexNameAndArgsByFilters(tenantID, tupleFilter)
+		var tit memdb.ResultIterator
+		tit, err = txn.Get(constants.RelationTuplesTable, tIndex, tArgs...)
 		if err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 		}
-	}
 
-	aIndex, args := utils.GetAttributesIndexNameAndArgsByFilters(tenantID, attributeFilter)
-	var aIt memdb.ResultIterator
-	aIt, err = txn.Get(constants.AttributesTable, aIndex, args...)
-	if err != nil {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-	}
-
-	fit := memdb.NewFilterIterator(aIt, utils.FilterAttributesQuery(tenantID, attributeFilter))
-	for obj := fit.Next(); obj != nil; obj = fit.Next() {
-		t, ok := obj.(storage.Attribute)
-		if !ok {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		tFit := memdb.NewFilterIterator(tit, utils.FilterRelationTuplesQuery(tenantID, tupleFilter))
+		for obj := tFit.Next(); obj != nil; obj = tFit.Next() {
+			t, ok := obj.(storage.RelationTuple)
+			if !ok {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+			}
+			err = txn.Delete(constants.RelationTuplesTable, t)
+			if err != nil {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+			}
 		}
-		err = txn.Delete(constants.AttributesTable, t)
+	}
+
+	if !validation.IsAttributeFilterEmpty(attributeFilter) {
+		aIndex, args := utils.GetAttributesIndexNameAndArgsByFilters(tenantID, attributeFilter)
+		var aIt memdb.ResultIterator
+		aIt, err = txn.Get(constants.AttributesTable, aIndex, args...)
 		if err != nil {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		}
+
+		fit := memdb.NewFilterIterator(aIt, utils.FilterAttributesQuery(tenantID, attributeFilter))
+		for obj := fit.Next(); obj != nil; obj = fit.Next() {
+			t, ok := obj.(storage.Attribute)
+			if !ok {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+			}
+			err = txn.Delete(constants.AttributesTable, t)
+			if err != nil {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+			}
 		}
 	}
 

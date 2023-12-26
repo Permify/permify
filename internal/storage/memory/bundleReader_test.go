@@ -13,7 +13,7 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var _ = Describe("BundleReader memory", func() {
+var _ = Describe("BundleReader", func() {
 	var db *memory.Memory
 	var bundleWriter *BundleWriter
 	var bundleReader *BundleReader

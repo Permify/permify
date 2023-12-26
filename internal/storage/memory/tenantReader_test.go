@@ -1,31 +1,29 @@
-package postgres
+package memory
 
 import (
 	"context"
-	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/Permify/permify/internal/storage/memory/migrations"
 	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/database/memory"
 )
 
 var _ = Describe("TenantReader", func() {
-	var db database.Database
+	var db *memory.Memory
+
 	var tenantWriter *TenantWriter
 	var tenantReader *TenantReader
 
 	BeforeEach(func() {
-		version := os.Getenv("POSTGRES_VERSION")
+		database, err := memory.New(migrations.Schema)
+		Expect(err).ShouldNot(HaveOccurred())
+		db = database
 
-		if version == "" {
-			version = "14"
-		}
-
-		db = postgresDB(version)
-		tenantWriter = NewTenantWriter(db.(*PQDatabase.Postgres))
-		tenantReader = NewTenantReader(db.(*PQDatabase.Postgres))
+		tenantWriter = NewTenantWriter(db)
+		tenantReader = NewTenantReader(db)
 	})
 
 	AfterEach(func() {
@@ -61,7 +59,7 @@ var _ = Describe("TenantReader", func() {
 
 			col2, ct2, err := tenantReader.ListTenants(ctx, database.NewPagination(database.Size(4), database.Token(ct1.String())))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(len(col2)).Should(Equal(4))
+			Expect(len(col2)).Should(Equal(3))
 			Expect(ct2.String()).Should(Equal(""))
 		})
 	})
