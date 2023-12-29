@@ -22,7 +22,7 @@ func NewBundleWriterWithCircuitBreaker(delegate storage.BundleWriter, timeout in
 }
 
 // Write - Write bundles from the repository
-func (r *BundleWriterWithCircuitBreaker) Write(ctx context.Context, tenantID string, bundles []*base.DataBundle) (names []string, err error) {
+func (r *BundleWriterWithCircuitBreaker) Write(ctx context.Context, bundles []storage.Bundle) (names []string, err error) {
 	type circuitBreakerResponse struct {
 		Names []string
 		Error error
@@ -31,7 +31,7 @@ func (r *BundleWriterWithCircuitBreaker) Write(ctx context.Context, tenantID str
 	output := make(chan circuitBreakerResponse, 1)
 	hystrix.ConfigureCommand("bundleWriter.write", hystrix.CommandConfig{Timeout: r.timeout})
 	bErrors := hystrix.Go("bundleWriter.write", func() error {
-		names, err := r.delegate.Write(ctx, tenantID, bundles)
+		names, err := r.delegate.Write(ctx, bundles)
 		output <- circuitBreakerResponse{Names: names, Error: err}
 		return nil
 	}, func(err error) error {

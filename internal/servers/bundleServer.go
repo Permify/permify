@@ -49,7 +49,16 @@ func (r *BundleServer) Write(ctx context.Context, request *v1.BundleWriteRequest
 		}
 	}
 
-	names, err := r.bw.Write(ctx, request.GetTenantId(), request.GetBundles())
+	var bundles []storage.Bundle
+	for _, b := range request.GetBundles() {
+		bundles = append(bundles, storage.Bundle{
+			Name:       b.GetName(),
+			DataBundle: b,
+			TenantID:   request.GetTenantId(),
+		})
+	}
+
+	names, err := r.bw.Write(ctx, bundles)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())

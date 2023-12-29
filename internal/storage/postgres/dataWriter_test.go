@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -448,7 +449,16 @@ var _ = Describe("DataWriter", func() {
 				},
 			}
 
-			_, err := bundleWriter.Write(ctx, "t1", bundles)
+			var sBundles []storage.Bundle
+			for _, b := range bundles {
+				sBundles = append(sBundles, storage.Bundle{
+					Name:       b.Name,
+					DataBundle: b,
+					TenantID:   "t1",
+				})
+			}
+
+			_, err := bundleWriter.Write(ctx, sBundles)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			bundle, err := bundleReader.Read(ctx, "t1", "user_created")

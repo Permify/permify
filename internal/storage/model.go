@@ -86,3 +86,10 @@ func (r Tenant) ToTenant() *base.Tenant {
 		CreatedAt: timestamppb.New(r.CreatedAt),
 	}
 }
+
+// Bundle - Structure for Bundle
+type Bundle struct {
+	Name       string
+	DataBundle *base.DataBundle
+	TenantID   string
+}

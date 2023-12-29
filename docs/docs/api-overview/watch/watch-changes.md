@@ -70,7 +70,10 @@ service:
 
 ## Request
 
-**Path:** POST /v1/watch/watch
+**Path:**
+```javascript
+POST /v1/watch/watch
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Watch/watch.watch)
 

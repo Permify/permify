@@ -90,6 +90,7 @@ type (
 		Exporter string `mapstructure:"exporter"` // Exporter for tracing data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the tracing exporter
 		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		URLPath  string `mapstructure:"path"`     // Path for the tracing exporter, if not defined /v1/trace will be used
 	}
 
 	// Meter contains configuration for metrics collection and reporting.
@@ -97,6 +98,8 @@ type (
 		Enabled  bool   `mapstructure:"enabled"`  // Whether metrics collection is enabled
 		Exporter string `mapstructure:"exporter"` // Exporter for metrics data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the metrics exporter
+		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		URLPath  string `mapstructure:"path"`     // Path for the metrics exporter, if not defined /v1/metrics will be used
 	}
 
 	// Service contains configuration for various service-level features.

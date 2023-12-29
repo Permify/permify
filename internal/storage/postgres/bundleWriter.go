@@ -8,6 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/jsonpb"
 
+	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -26,7 +27,7 @@ func NewBundleWriter(database *db.Postgres) *BundleWriter {
 	}
 }
 
-func (b *BundleWriter) Write(ctx context.Context, tenantID string, bundles []*base.DataBundle) (names []string, err error) {
+func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (names []string, err error) {
 	ctx, span := tracer.Start(ctx, "bundle-writer.write-bundle")
 	defer span.End()
 
@@ -41,12 +42,12 @@ func (b *BundleWriter) Write(ctx context.Context, tenantID string, bundles []*ba
 		names = append(names, bundle.Name)
 
 		m := jsonpb.Marshaler{}
-		jsonStr, err := m.MarshalToString(bundle)
+		jsonStr, err := m.MarshalToString(bundle.DataBundle)
 		if err != nil {
 			return names, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
 		}
 
-		insertBuilder = insertBuilder.Values(bundle.Name, jsonStr, tenantID)
+		insertBuilder = insertBuilder.Values(bundle.Name, jsonStr, bundle.TenantID)
 	}
 
 	var query string
