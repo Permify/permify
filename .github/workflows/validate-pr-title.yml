@@ -6,6 +6,9 @@ on:
       - opened
       - edited
       - synchronize
+permissions:
+  contents: read
+
 jobs:
   validate:
     name: Validate PR title
