@@ -8,6 +8,11 @@ jobs:
     name: Test with Coverage
     runs-on: ubuntu-latest
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
