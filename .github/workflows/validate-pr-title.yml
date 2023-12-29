@@ -1,0 +1,37 @@
+---
+name: "Conventional Commits"
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+jobs:
+  validate:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            chore
+            docs
+            enhancement
+            revert
+            build
+            ci
+            style
+            refactor
+            perf
+            test
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.
