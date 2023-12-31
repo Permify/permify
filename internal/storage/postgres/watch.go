@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
-	"google.golang.org/protobuf/proto"
+	"github.com/golang/protobuf/jsonpb"
+
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/Masterminds/squirrel"
@@ -310,17 +312,19 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 
 		rt := storage.Attribute{}
 
-		var valueBytes []byte
+		var valueStr string
 
 		// Scan the result row into a RelationTuple instance.
-		err = trows.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueBytes, &expiredXID)
+		err = arows.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr, &expiredXID)
 		if err != nil {
 			slog.Error("Error while scanning row for attributes", slog.Any("error", err))
 			return nil, err
 		}
 
+		// Unmarshal the JSON data from `valueStr` into `rt.Value`.
 		rt.Value = &anypb.Any{}
-		err = proto.Unmarshal(valueBytes, rt.Value)
+		unmarshaler := &jsonpb.Unmarshaler{}
+		err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
 		if err != nil {
 			slog.Error("Failed to unmarshal attribute value", slog.Any("error", err))
 			return nil, err
