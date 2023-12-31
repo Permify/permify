@@ -423,66 +423,77 @@ var _ = Describe("DataWriter", func() {
 	})
 
 	Context("RunBundle", func() {
-		It("", func() {
+		It("should run the bundle successfully and return an encoded snapshot token", func() {
 			ctx := context.Background()
 
-			bundles := []*base.DataBundle{
-				{
-					Name: "user_created",
-					Arguments: []string{
-						"organizationID",
-						"userID",
-					},
-					Operations: []*base.Operation{
-						{
-							RelationshipsWrite: []string{
-								"organization:{{.organizationID}}#member@user:{{.userID}}",
-								"organization:{{.organizationID}}#admin@user:{{.userID}}",
-							},
-							RelationshipsDelete: []string{},
-							AttributesWrite: []string{
-								"organization:{{.organizationID}}$public|boolean:true",
-							},
-							AttributesDelete: []string{},
+			// Create a valid DataBundle
+			bundle := &base.DataBundle{
+				Name: "user_created",
+				Arguments: []string{
+					"organizationID",
+					"companyID",
+					"userID",
+				},
+				Operations: []*base.Operation{
+					{
+						RelationshipsWrite: []string{
+							"organization:{{.organizationID}}#member@company:{{.companyID}}#admin",
+							"organization:{{.organizationID}}#member@user:{{.userID}}",
+							"organization:{{.organizationID}}#admin@user:{{.userID}}",
+						},
+						RelationshipsDelete: []string{
+							"organization:{{.organizationID}}#admin@user:{{.userID}}",
+						},
+						AttributesWrite: []string{
+							"organization:{{.organizationID}}$public|boolean:true",
+							"company:{{.companyID}}$public|boolean:true",
+						},
+						AttributesDelete: []string{
+							"organization:{{.organizationID}}$balance|double:120.900",
 						},
 					},
 				},
 			}
 
-			var sBundles []storage.Bundle
-			for _, b := range bundles {
-				sBundles = append(sBundles, storage.Bundle{
-					Name:       b.Name,
-					DataBundle: b,
+			_, err := bundleWriter.Write(ctx, []storage.Bundle{
+				{
+					Name:       bundle.Name,
+					DataBundle: bundle,
 					TenantID:   "t1",
-				})
-			}
-
-			_, err := bundleWriter.Write(ctx, sBundles)
+				},
+			})
 			Expect(err).ShouldNot(HaveOccurred())
 
-			bundle, err := bundleReader.Read(ctx, "t1", "user_created")
+			dataBundle, err := bundleReader.Read(ctx, "t1", "user_created")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			token1, err := dataWriter.RunBundle(ctx, "t1", map[string]string{
-				"organizationID": "12",
-				"userID":         "190",
-			}, bundle)
+				"organizationID": "1",
+				"companyID":      "4",
+				"userID":         "1",
+			}, dataBundle)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			colT1, _, err := dataReader.ReadRelationships(ctx, "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
-					Ids:  []string{"12"},
+					Ids:  []string{"1"},
+				},
+				Relation: "",
+				Subject: &base.SubjectFilter{
+					Type:     "",
+					Ids:      []string{},
+					Relation: "",
 				},
 			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
 			Expect(len(colT1.GetTuples())).Should(Equal(2))
 
 			colA2, _, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
 				Entity: &base.EntityFilter{
-					Type: "organization",
-					Ids:  []string{"12"},
+					Type: "company",
+					Ids:  []string{"4"},
 				},
+				Attributes: []string{},
 			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
 			Expect(len(colA2.GetAttributes())).Should(Equal(1))
 		})
