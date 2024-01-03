@@ -14,7 +14,7 @@ jobs:
         egress-policy: audit
 
     - name: Set up Go
-      uses: actions/setup-go@bfdd3570ce990073878bf10f6b2d79082de49492 # v2.2.0
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         go-version: '1.21'
     - name: Check out code
