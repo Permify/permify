@@ -3,20 +3,17 @@ import TabItem from '@theme/TabItem';
 
 # Write Authorization Data
 
-In Permify, attributes and relations between your entities, objects and users represents your authorization data. These data stored as tuples in a [preferred database]. 
+In Permify, attributes and relations between your entities, objects and users represents your authorization data. These data stored as tuples in a .
 
 Since these attributes and relations are live instances, meaning they can be affected by specific user actions within the application, they can be created/deleted with a simple Permify API call at runtime.
 
 More specifically, the application client should update preferred database about the changes happening in entities or resources that are related to the authorization structure. 
 
-If we consider a document system; when some user joins a group that has edit access on some documents, the application side needs to write relational tuples to keep [preferred database] up-to-date. Besides, each attribute or relationship should be created according to its authorization model, Permify Schema.
+If we consider a document system; when some user joins a group that has edit access on some documents, the application side needs to write relational tuples to keep  up-to-date. Besides, each attribute or relationship should be created according to its authorization model, Permify Schema.
 
-Another example: when one a company executive grant admin role to user (lets say with id = 3) on their organization, application side needs to tell that update to Permify in order to reform that as tuples and store in [preferred database].
+Another example: when one a company executive grant admin role to user (lets say with id = 3) on their organization, application side needs to tell that update to Permify in order to reform that as tuples and store in .
 
 ![tuple-creation](https://user-images.githubusercontent.com/34595361/186637488-30838a3b-849a-4859-ae4f-d664137bb6ba.png)
-
-[relational tuples]: ../../../getting-started/sync-data
-[preferred database]: ../../../getting-started/sync-data#where-relational-tuples-used
 
 ## Write Request
 
@@ -25,11 +22,14 @@ You can use the **/v1/tenants/{tenant_id}/data/write** endpoint for both creatin
 :::
 
 **Path:**
+
 ```javascript
  POST /v1/tenants/{tenant_id}/data/write
 ```
 
-[![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Data/data.write)
+![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)
+
+
 
 #### Glossary for parameters & payload objects:
 
@@ -44,7 +44,6 @@ You can use the **/v1/tenants/{tenant_id}/data/write** endpoint for both creatin
 | [x] | relation | string | - | Custom relation name. Eg. admin, manager, viewer etc. |
 | [x] | attribute | string | - | Custom attribute name. |
 | [x] | value     | object | - | Represents value and type of the attribute data. |
-
 
 ### Creating Relational Tuple
 
@@ -67,7 +66,7 @@ rr, err: = client.Data.Write(context.Background(), & v1.DataWriteRequest {
             },
             Relation: "admin",
             Subject: & v1.Subject {
-                Type: "admin",
+                Type: "user",
                 Id: "3",
             },
         }
@@ -258,7 +257,6 @@ Assume we want to both create relational tuple and attribute within in single re
 
 -  `document:1#editor@user:1`
 -  `document:1$is_private|boolean:true`
-
 
 <Tabs>
 <TabItem value="go" label="Go">
