@@ -3,7 +3,7 @@ FROM golang:1.21-alpine3.18@sha256:d8b99943fb0587b79658af03d4d4e8b57769b21dcf08a
 WORKDIR /go/src/app
 RUN apk update && apk add --no-cache git
 COPY . .
-RUN CGO_ENABLED=0 go build -v ./cmd/permify/
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -v ./cmd/permify/
 
 # Step 2: Final
 FROM cgr.dev/chainguard/static:latest@sha256:a2f525dac2f9ec900283ead64eb88a6037b2989630615ee8de8a2dc7bfcf152b
