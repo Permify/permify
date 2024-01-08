@@ -6,7 +6,7 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -v ./cmd/permify/
 
 # Step 2: Final
-FROM cgr.dev/chainguard/static:latest@sha256:a2f525dac2f9ec900283ead64eb88a6037b2989630615ee8de8a2dc7bfcf152b
+FROM cgr.dev/chainguard/static:latest@sha256:fd59d10894f38ce93eb6e587595ccdd8570bfd9c8f6fde7df4c589a5cefd82e2
 COPY --from=ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.19 /ko-app/grpc-health-probe /usr/local/bin/grpc_health_probe
 COPY --from=permify-builder /go/src/app/permify /usr/local/bin/permify
 ENV PATH="$PATH:/usr/local/bin"
