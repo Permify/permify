@@ -310,6 +310,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.Int("service-permission-bulk-limit", conf.Service.Permission.BulkLimit, "bulk operations limit")
+	if err = viper.BindPFlag("service.permission.bulk_limit", flags.Lookup("service-permission-bulk-limit")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("service.permission.bulk_limit", "PERMIFY_SERVICE_PERMISSION_BULK_LIMIT"); err != nil {
+		panic(err)
+	}
+
 	flags.Int("service-permission-concurrency-limit", conf.Service.Permission.ConcurrencyLimit, "concurrency limit")
 	if err = viper.BindPFlag("service.permission.concurrency_limit", flags.Lookup("service-permission-concurrency-limit")); err != nil {
 		panic(err)
