@@ -21,6 +21,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.String("account-id", conf.AccountID, "account id")
+	if err = viper.BindPFlag("account_id", flags.Lookup("account-id")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("account_id", "PERMIFY_ACCOUNT_ID"); err != nil {
+		panic(err)
+	}
+
 	// Server
 	flags.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
 	if err = viper.BindPFlag("server.rate_limit", flags.Lookup("server-rate-limit")); err != nil {

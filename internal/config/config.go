@@ -13,6 +13,7 @@ import (
 type (
 	// Config is the main configuration structure containing various sections for different aspects of the application.
 	Config struct {
+		AccountID   string                       `mapstructure:"account_id"`
 		Server      `mapstructure:"server"`      // Server configuration for both HTTP and gRPC
 		Log         `mapstructure:"logger"`      // Logging configuration
 		Profiler    `mapstructure:"profiler"`    // Profiler configuration
@@ -242,6 +243,7 @@ func NewConfigWithFile(dir string) (*Config, error) {
 // DefaultConfig - Creates default config.
 func DefaultConfig() *Config {
 	return &Config{
+		AccountID: "",
 		Server: Server{
 			HTTP: HTTP{
 				Enabled: true,

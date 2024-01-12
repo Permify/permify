@@ -1,3 +1,5 @@
+account_id: ""
+
 # The server section specifies the HTTP and gRPC server settings,
 # including whether or not TLS is enabled and the certificate and
 # key file locations.

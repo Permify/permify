@@ -89,6 +89,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		red := color.New(color.FgGreen)
 		_, _ = red.Printf(internal.Banner, internal.Version)
 
+		internal.Identifier = cfg.AccountID
+		if internal.Identifier == "" {
+			slog.Warn("Account ID is not set. Please fill in the Account ID for better support. Get your Account ID from https://permify.co/account")
+		}
+
 		var handler slog.Handler
 		switch cfg.Log.Output {
 		case "json":
