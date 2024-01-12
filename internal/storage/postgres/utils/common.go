@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -124,9 +125,22 @@ func HandleError(span trace.Span, err error, errorCode base.ErrorCode) error {
 	// Set the status of the span
 	span.SetStatus(codes.Error, err.Error())
 
-	// Log the error
-	slog.Error("Error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
+	// Check if the error is context-related
+	if IsContextRelatedError(err) {
+		// Use debug level logging for context-related errors
+		slog.Debug("Context-related error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
+	} else {
+		// Use error level logging for all other errors
+		slog.Error("Error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
+	}
 
 	// Return a new standardized error with the provided error code
 	return errors.New(errorCode.String())
+}
+
+// IsContextRelatedError checks if the error is due to context cancellation, deadline exceedance, or closed connection
+func IsContextRelatedError(err error) bool {
+	return errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) ||
+		err.Error() == "conn closed"
 }
