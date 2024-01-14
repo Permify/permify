@@ -9,7 +9,9 @@ encapsulated in a bundle.
 
 ## Request
 
-**Path:** POST /v1/tenants/{tenant_id}/data/run-bundle
+```javascript
+ POST /v1/tenants/{tenant_id}/data/run-bundle
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Data/bundle.run)
 

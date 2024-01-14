@@ -42,11 +42,17 @@ Then this snap token can be used in endpoints. For example it can be used in acc
 [Write API]: ../../api-overview/data/write-data/
 [Check API]: ../../api-overview/permission/check-api
 
-#### All endpoints that used snap token 
+### When Snap Token is NOT Provided
 
-- [Write API](../../api-overview/data/write-data/)
-- [Expand API](../../api-overview/permission/expand-api)
+In Permify, every transaction is recorded in the 'transactions' table, and when a Snap Token is not provided, it retrieves the ID of the latest transaction from this table. This ID represents the most current snapshot of the database. After a query is executed with this ID, the results are then cached using this ID.
 
+When two identical requests are made and neither specifies a Snap Token, the latest transaction ID will be requested from the database for both requests. Subsequently, the first request will write its result to the cache using a key and value like this:
+
+```
+check_{TRANSACTION_ID}_{schema_version}_{context}_organization:1#admin@user:1 -> true
+```
+
+When the second request arrives, since a transaction ID was not provided, the latest transaction ID will again be requested from the database. However, since the first request has already written the example above to the cache, and the second request will generate the same hash, this result will be retrieved from the cache.
 
 ## More on Cache Mechanism 
 

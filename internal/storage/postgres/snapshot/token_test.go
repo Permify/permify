@@ -50,6 +50,51 @@ var _ = Describe("token", func() {
 				Expect(tt.target.Encode().String()).ShouldNot(Equal(tt.expected))
 			}
 		})
+
+		It("Case 3: Eg Success", func() {
+			tests := []struct {
+				token  token.SnapToken
+				target token.SnapToken
+			}{
+				{NewToken(types.XID8{Uint: 4, Status: pgtype.Present}), NewToken(types.XID8{Uint: 4, Status: pgtype.Present})},
+			}
+
+			for _, tt := range tests {
+				Expect(tt.token.Eg(tt.target)).Should(BeTrue())
+			}
+		})
+
+		It("Case 4: Gt Success", func() {
+			tests := []struct {
+				token  token.SnapToken
+				target token.SnapToken
+			}{
+				{
+					NewToken(types.XID8{Uint: 6, Status: pgtype.Present}),
+					NewToken(types.XID8{Uint: 4, Status: pgtype.Present}),
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(tt.token.Gt(tt.target)).Should(BeTrue())
+			}
+		})
+
+		It("Case 5: Lt Success", func() {
+			tests := []struct {
+				token  token.SnapToken
+				target token.SnapToken
+			}{
+				{
+					NewToken(types.XID8{Uint: 4, Status: pgtype.Present}),
+					NewToken(types.XID8{Uint: 6, Status: pgtype.Present}),
+				},
+			}
+
+			for _, tt := range tests {
+				Expect(tt.token.Lt(tt.target)).Should(BeTrue())
+			}
+		})
 	})
 
 	Context("Decode", func() {

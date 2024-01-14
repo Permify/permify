@@ -11,7 +11,7 @@ import (
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
-var _ = Describe("TenantWriter", func() {
+var _ = Describe("TenantReader", func() {
 	var db database.Database
 	var tenantWriter *TenantWriter
 	var tenantReader *TenantReader

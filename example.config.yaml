@@ -1,3 +1,5 @@
+account_id: ""
+
 # The server section specifies the HTTP and gRPC server settings,
 # including whether or not TLS is enabled and the certificate and
 # key file locations.
@@ -65,7 +67,7 @@ service:
     cache:
       number_of_counters: 10_000
       max_cost: 10MiB
-  relationship:
+  data:
 
 # The database section specifies the database engine and connection settings,
 # including the URI for the database, whether or not to auto-migrate the database,

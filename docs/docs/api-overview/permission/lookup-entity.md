@@ -11,16 +11,17 @@ Lookup Entity endpoint lets you ask questions in form of **“Which resources ca
 
 So, we provide 2 separate endpoints for data filtering check request,
 
-- [Entity Filtering](#entity-filtering)
-  - [Lookup Entity](#lookup-entity)
-  - [How Lookup Operations Evaluated](#how-lookup-operations-evaluated)
-    - [Lookup Entity (Streaming)](#lookup-entity-streaming)
+- [Lookup Entity](#lookup-entity)
+- [Lookup Entity (Streaming)](#lookup-entity-streaming)
 
 ## Lookup Entity 
 
 In this endpoint you'll get directly the IDs' of the entities that are authorized in an array.
 
-**POST** /v1/permissions/lookup-entity
+**Path** 
+```javascript
+ POST /v1/permissions/lookup-entity
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.lookupEntity)
 
@@ -29,10 +30,11 @@ In this endpoint you'll get directly the IDs' of the entities that are authorize
 | [x]      | tenant_id         | string | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                           |
 | [ ]      | schema_version    | string | 8       | Version of the schema                                                                                                                                                      |
 | [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../../reference/snap-tokens)                                                                        |
+| [x]      | depth             | integer | 8       | Timeout limit when if recursive database queries got in loop                                                                                                                 |
 | [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
 | [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
-| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../reference/contextual-tuples.md) |
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -135,22 +137,26 @@ Lets say we called (reverse) lookup API to find the documents that user:1 can vi
 
 Then queries each of them with `user:1.`
 
-### Lookup Entity (Streaming)
+## Lookup Entity (Streaming)
 
 The difference between this endpoint from direct Lookup Entity is response of this entity gives the IDs' as stream. This could be useful if you have large data set that getting all of the authorized data can take long with direct lookup entity endpoint.
 
-**POST** /v1/permissions/lookup-entity-stream
+**Path** 
+```javascript
+ POST /v1/permissions/lookup-entity-stream
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.lookupEntityStream)
 
 | Required | Argument          | Type   | Default | Description                                                                                                                                                                |
 |----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [ ]      | schema_version    | string | 8       | Version of the schema                                                                                                                                                      |
-| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens)                                                                        |
+| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens.md)                                                                        |
+| [x]      | depth             | integer | 8       | Timeout limit when if recursive database queries got in loop                                                                                                                 |
 | [x]      | entity_type       | object | -       | type of the  entity. Example: repository”.                                                                                                                                 |
 | [x]      | permission        | string | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject           | object | -       | the user or user set who wants to take the action. It contains type and id of the subject.                                                                                 |
-| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../reference/contextual-tuples.md) |
 
 <Tabs>
 <TabItem value="go" label="Go">

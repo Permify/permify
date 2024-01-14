@@ -7,14 +7,14 @@ import (
 )
 
 // ExporterFactory - Create tracer exporter according to given params
-func ExporterFactory(name, url string, insecure bool) (trace.SpanExporter, error) {
+func ExporterFactory(name, url string, insecure bool, urlpath string) (trace.SpanExporter, error) {
 	switch name {
 	case "zipkin":
 		return NewZipkin(url)
 	case "jaeger":
 		return NewJaegar(url)
 	case "otlp":
-		return NewOTLP(url, insecure)
+		return NewOTLP(url, insecure, urlpath)
 	case "signoz":
 		return NewSigNoz(url, insecure)
 	default:
