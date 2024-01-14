@@ -11,6 +11,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"go.opentelemetry.io/otel/codes"
 
+	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -40,12 +41,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 
 	query, args, err = builder.ToSql()
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error in building SQL query: ", slog.Any("error", err))
-
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("Executing SQL query: ", slog.Any("query", query), slog.Any("arguments", args))
@@ -56,15 +52,10 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 	var jsonData string
 	err = row.Scan(&jsonData)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String())
 		}
-
-		slog.Error("Error scanning rows: ", slog.Any("error", err))
-
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
+		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	m := jsonpb.Unmarshaler{}

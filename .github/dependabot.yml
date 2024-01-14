@@ -21,3 +21,18 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /integration-test
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /tools
+    schedule:
+      interval: daily

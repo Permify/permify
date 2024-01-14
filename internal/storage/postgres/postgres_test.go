@@ -17,7 +17,7 @@ import (
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
-func TestPostgres14(t *testing.T) {
+func TestPostgres(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "postgres-suite")
 }
@@ -40,9 +40,15 @@ func postgresDB(postgresVersion string) database.Database {
 		Expect(err).ShouldNot(HaveOccurred())
 	}
 
+	// Execute the command in the container
+	_, _, execErr := postgres.Exec(ctx, []string{"psql", "-U", "postgres", "-c", "ALTER SYSTEM SET track_commit_timestamp = on;"})
+	if execErr != nil {
+		Expect(execErr).ShouldNot(HaveOccurred())
+	}
+
 	cmd := []string{"sh", "-c", "export PGPASSWORD=postgres" + "; psql -U postgres -d permify -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'"}
 
-	_, _, err = postgres.Exec(context.Background(), cmd)
+	_, _, err = postgres.Exec(ctx, cmd)
 	if err != nil {
 		Expect(err).ShouldNot(HaveOccurred())
 	}

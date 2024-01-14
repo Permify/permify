@@ -15,6 +15,8 @@ The "Write Bundle" API is designed for handling data in a multi-tenant applicati
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
 | [x]   | tenant_id | string | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field. |
 | [x]   | name | string | unique name identifying the bundle. |
+| [x]   | operations | object | Represent actions that can be performed on data, such as adding or deleting relationships or attributes when certain events occur. |
+| [x]   | arguments | string[] | Parameters that will be used in the operations |
 
 <Tabs>
 <TabItem value="go" label="Go">

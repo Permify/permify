@@ -13,7 +13,8 @@ No problem, let's discuss it together! just open an [issue](https://github.com/P
 :::
 
 ```mdx-code-block
-import {CaseList} from '../src/components/Case';
+import {CaseList} from '@site/src/components/Case';
+import list from './use-cases/_list.json';
 
-<CaseList />
+<CaseList list={list}/>
 ```

@@ -1,14 +1,8 @@
-# Attribute Based Access Control (Beta)
+# Attribute Based Access Control
 
 This page explains the design approach of Permify's ABAC support as well as demonstrates how to create and use attribute based permissions in Permify.
 
-:::info  
-You can find Permify's support for ABAC in our [beta release](https://github.com/Permify/permify/pkgs/container/permify-beta) and explore the active [API documentation](https://permify.github.io/permify-swagger/) for the ***beta*** version. 
-
-We are eager to hear your thoughts and looking forward to your feedback!
-:::
-
-# What is Attribute Based Access Control (ABAC)?
+## What is Attribute Based Access Control (ABAC)?
 
 Attribute-Based Access Control (ABAC) is like a security guard that decides who gets to access what based on specific characteristics or "attributes".
 
@@ -24,7 +18,7 @@ Think about an amusement park, and there are 3 different rides. In order to acce
 
 Similar to this ABAC checks certain qualities that you have defined on users, resources, or the environment.
 
-# Why Would Need ABAC?
+## Why Would Need ABAC?
 
 It’s obvious but the simple answer is “use cases”… Sometimes, using ReBAC and RBAC isn't the best fit for the job. It's like using winter tires on a hot desert road, or summer tires in a snowstorm - they're just not the right tools for the conditions.
 
@@ -36,102 +30,158 @@ It’s obvious but the simple answer is “use cases”… Sometimes, using ReBA
 
 As you can see ABAC has a more contextual approach. You can define access rights regarding context around subjects and objects in an application.
 
-# Introducing New Key Elements
+## Modeling ABAC
 
 To support ABAC in Permify, we've added two main components into our DSL: attributes and rules.
 
-## Attribute
+### Defining Attributes
 
 Attributes are used to define properties for entities in specific data types. For instance, an attribute could be an IP range associated with an organization, defined as a string array:
 
-```sql
+```perm
 attribute ip_range string[]
 ```
 
-There are different types of attributes you can use;
+Here are the all attribute types that you use when defining an `attribute`.
 
-### Boolean
+```perm
+// A boolean attribute type
+boolean
 
-For attributes that represent a binary choice or state, such as a yes/no question, the `Boolean` data type is an excellent choice.
+// A boolean array attribute type.
+boolean[]
 
-```go
-entity post {
-        attribute is_public boolean
-        
-        permission view = is_public
+// A string attribute type.
+string
+
+// A string array attribute type.
+string[]
+
+// An integer attribute type.
+integer
+
+// An integer array attribute type.
+integer[]
+
+// A double attribute type.
+double
+
+// A double array attribute type.
+double[]
+```
+
+### Defining Rules
+
+Rules are structures that allow you to write specific conditions for the model. You can think rules as simple functions of every software language have. They accept parameters and are based on condition to return a true/false result.
+
+In the following example schema, a rule could be used to check if a given IP address falls within a specified IP range:
+
+```perm
+entity user {}
+
+entity organization {
+
+	relation admin @user
+
+	attribute ip_range string[]
+
+	permission view = check_ip_range(request.ip, ip_range) or admin
+}
+
+rule check_ip_range(ip string, ip_range string[]) {
+	ip in ip_range
 }
 ```
 
-<aside>
-⛔ If you don’t create the related attribute data, Permify defaults booleans to `FALSE`
+:::info Syntax
+We design our schema language based on [Common Expression Language (CEL)](https://github.com/google/cel-go). So the syntax looks nearly identical to equivalent expressions in C++, Go, Java, and TypeScript.
 
-</aside>
+Please let us know via our [Discord channel](https://discord.gg/n6KfzYxhPp) if you have questions regarding syntax, definitions or any operator you identify not working as expected.
+:::
 
-### String
+Let's examine some of common usage of ABAC with small schema examples.
 
-String can be used as an attribute data type in a variety of scenarios where text-based information is needed to make access control decisions. Here are a few examples:
+### Boolean - True/False Conditions
+
+For attributes that represent a binary choice or state, such as a yes/no question, the `Boolean` data type is an excellent choice.
+
+```perm
+entity post {
+		attribute is_public boolean
+
+		permission view = is_public
+}
+```
+
+:::caution
+⛔ If you don’t create the related attribute data, Permify accounts boolean as `FALSE`
+:::
+
+### Text & Object Based Conditions
+
+String can be used as attribute data type in a variety of scenarios where text-based information is needed to make access control decisions. Here are a few examples:
 
 - **Location:** If you need to control access based on geographical location, you might have a location attribute (e.g., "USA", "EU", "Asia") stored as a string.
 - **Device Type**: If access control decisions need to consider the type of device being used, a device type attribute (e.g., "mobile", "desktop", "tablet") could be stored as a string.
 - **Time Zone**: If access needs to be controlled based on time zones, a time zone attribute (e.g., "EST", "PST", "GMT") could be stored as a string.
 - **Day of the Week:** In a scenario where access to certain resources is determined by the day of the week, the string data type can be used to represent these days (e.g., "Monday", "Tuesday", etc.) as attributes!
 
-```sql
+```perm
 entity user {}
 
 entity organization {
-    
-    relation admin @user
 
-    attribute location string[]
+	relation admin @user
 
-    permission view = check_location(request.current_location, location) or admin
+	attribute location string[]
+
+	permission view = check_location(request.current_location, location) or admin
 }
 
 rule check_location(current_location string, location string[]) {
-    current_location in location
+	current_location in location
 }
 ```
 
-<aside>
-⛔ If you don’t create the related attribute data, Permify defaults strings to `""`
+:::caution
+⛔ If you don’t create the related attribute data, Permify accounts string as `""`
+:::
 
-</aside>
+### Numerical Conditions
 
-### Integer
+#### Integers
 
-Integer can be used as an attribute data type in several scenarios where numerical information is needed to make access control decisions. Here are a few examples:
+Integer can be used as attribute data type in several scenarios where numerical information is needed to make access control decisions. Here are a few examples:
 
 - **Age:** If access to certain resources is age-restricted, an age attribute stored as an integer can be used to control access.
 - **Security Clearance Level:** In a system where users have different security clearance levels, these levels can be stored as integer attributes (e.g., 1, 2, 3 with 3 being the highest clearance).
 - **Resource Size or Length:** If access to resources is controlled based on their size or length (like a document's length or a file's size), these can be stored as integer attributes.
 - **Version Number:** If access control decisions need to consider the version number of a resource (like a software version or a document revision), these can be stored as integer attributes.
 
-```jsx
+```perm
 entity content {
     permission view = check_age(request.age)
 }
 
 rule check_age(age integer) {
-        age >= 18
+		age >= 18
 }
 ```
 
-<aside>
-⛔ If you don’t create the related attribute data, Permify defaults integers to `0`
+:::caution
+⛔ If you don’t create the related attribute data, Permify accounts integer as `0`
+:::
 
-</aside>
+#### Double - Precise numerical information
 
-### Double
-
-Double can be used as an attribute data type in several scenarios where precise numerical information is needed to make access control decisions. Here are a few examples:
+Double can be used as attribute data type in several scenarios where precise numerical information is needed to make access control decisions. Here are a few examples:
 
 - **Usage Limit:** If a user has a usage limit (like the amount of storage they can use or the amount of data they can download), and this limit needs to be represented with decimal precision, it can be stored as a double attribute.
 - **Transaction Amount:** In a financial system, if access control decisions need to consider the amount of a transaction, and this amount needs to be represented with decimal precision (like $100.50), these amounts can be stored as double attributes.
 - **User Rating:** If access control decisions need to consider a user's rating (like a rating out of 5 with decimal points, such as 4.7), these ratings can be stored as double attributes.
 - **Geolocation:** If access control decisions need to consider precise geographical coordinates (like latitude and longitude, which are often represented with decimal points), these coordinates can be stored as double attributes.
 
-```sql
+```perm
 entity user {}
 
 entity account {
@@ -142,107 +192,23 @@ entity account {
 }
 
 rule check_balance(amount double, balance double) {
-    (balance >= amount) && (amount <= 5000)
+	(balance >= amount) && (amount <= 5000)
 }
 ```
 
-<aside>
-⛔ If you don’t create the related attribute data, Permify defaults doubles to `0.0`
+:::caution
+⛔ If you don’t create the related attribute data, Permify accounts double as `0.0`
+:::
 
-</aside>
-
-## Rule
-
-Rules are structures that allow you to write specific conditions for the model. They accept parameters and are based on conditions. For example, a rule could be used to check if a given IP address falls within a specified IP range:
-
-```sql
-rule check_ip_range(ip string, ip_range string[]) {
-    ip in ip_range
-}
-```
-
-## Evaluation
-
-**Model**
-
-```sql
-entity user {}
-
-entity organization {
-    
-    relation admin @user
-
-    attribute ip_range string[]
-
-    permission view = check_ip_range(request.ip_address, ip_range) or admin
-}
-
-rule check_ip_range(ip_address string, ip_range string[]) {
-    ip in ip_range
-}
-```
-
-In this case, the part written as 'context' refers to the context within the request. Any type of data can be added from within the request and can be called within the model.
-
-For instance,
-
-```sql
-...
-"context": {
-        "ip_address": "187.182.51.206",
-        "day_of_week": "monday"
-}
-...
-```
-
-**Relationships**
-
-- organization:1#admin@user:1
-
-**Attributes**
-
-- organization:1$ip_range|string[]:[‘187.182.51.206’, ‘250.89.38.115’]
-
-**Check request**
-
-```sql
-{
-    "entity": {
-        "type": "organization",
-        "id": "1"
-    },
-    "permission": "view",
-    "subject" : {
-        "type": "user",
-        "id": "1"
-    },
-    "context": {
-        "ip_address": "187.182.51.206"
-    }
-}
-```
-
-**Check Evolution Sub Queries Organization View**
-→ organization:1$check_ip_range(context.ip_address,ip_range) → true
-→ organization:1#admin@user:1 → true
-
-**Cache Mechanism**
-The cache mechanism works by hashing the snapshot of the database, schema version, and sub-queries as keys and adding their results, so it will operate in the same way in calls as in relationships. For example,
-
-**Request keys before hash**
-
-- check_{snapshot}_{schema_version}_{context}_organization:1#admin@user:1 → true
-- check_{snapshot}_{schema_version}_{context}_organization:1$check_ip_range(ip_range) → true
-
-## Some Use Cases
+## Example Use Cases
 
 ### Example of Public/Private Repository
 
 In this example, **`is_public`** is defined as a boolean attribute. If an attribute is a boolean, it can be directly used without the need for a rule. This is only applicable for boolean types.
 
-```sql
+```perm
 entity user {}
-        
+
 entity post {
 
   relation owner  @user
@@ -276,14 +242,14 @@ This means that the 'view' permission is granted if either the repository is pub
 
 **Request keys before hash**
 
-- check_{snapshot}_{schema_version}_{context}_post:1$is_public → true
-- check_{snapshot}_{schema_version}_{context}_post:1#admin@user:1 → true
+- check*{snapshot}*{schema*version}*{context}\_post:1$is_public → true
+- check*{snapshot}*{schema*version}*{context}\_post:1#admin@user:1 → true
 
 ### Example of Weekday
 
 In this example, to be able to view the repository it must not be a weekend, and the user must be a member of the organization.
 
-```sql
+```perm
 entity user {}
 
 entity organization {
@@ -317,8 +283,8 @@ The permissions in this model state that to 'view' the repository, the user must
 
 **Request keys before hash**
 
-- check_{snapshot}_{schema_version}_{context}_organization:1$is_weekday(context.day_of_week) → true
-- check_{snapshot}_{schema_version}_{context}_post:1#member@user:1 → true
+- check*{snapshot}*{schema*version}*{context}\_organization:1$is_weekday(context.day_of_week) → true
+- check*{snapshot}*{schema*version}*{context}\_post:1#member@user:1 → true
 
 ### Example of Banking System
 
@@ -327,7 +293,7 @@ This model represents a banking system with two entities: **`user`** and **`acco
 1. **`user`**: Represents a customer of the bank.
 2. **`account`**: Represents a bank account that has an **`owner`** (which is a **`user`**), and a **`balance`** (amount of money in the account).
 
-```sql
+```perm
 entity user {}
 
 entity account {
@@ -361,8 +327,8 @@ Both of these conditions need to be true for the **`withdraw`** permission to be
 
 **Request keys before hash**
 
-- check_{snapshot}_{schema_version}_{context}_account:1$check_balance(context.amount,balance) → true
-- check_{snapshot}_{schema_version}_{context}_account:1#owner@user:1 → true
+- check*{snapshot}*{schema*version}*{context}\_account:1$check_balance(context.amount,balance) → true
+- check*{snapshot}*{schema*version}*{context}\_account:1#owner@user:1 → true
 
 ### Hierarchical Usage
 
@@ -374,7 +340,7 @@ In this model:
 
 Note: In this model, permissions can refer to higher-level permissions (like **`organization.view`**). However, you cannot use the attribute of a relation in this way. For example, you cannot directly reference **`organization.founding_year`** in a permission expression. Permissions can depend on permissions in a related entity, but not directly on the related entity's attributes.
 
-```sql
+```perm
 entity employee {}
 
 entity organization {
@@ -413,23 +379,98 @@ rule check_budget(budget double) {
 → department:1$check_budget(budget) → true
 → department:1#organization@user:1 → true
     → organization:2$check_founding_year(founding_year) → false
-    → organization:1$check_founding_year(founding_year) → true
+→ organization:1$check_founding_year(founding_year) → true
 
 **Request keys before hash**
 
-- check_{snapshot}_{schema_version}_{context}_department:1$check_budget(budget) → true
-- check_{snapshot}_{schema_version}_{context}_organization:2$check_founding_year(founding_year) → false
-- check_{snapshot}_{schema_version}_{context}_organization:1$check_founding_year(founding_year) → true
+- check*{snapshot}*{schema*version}*{context}\_department:1$check_budget(budget) → true
+- check*{snapshot}*{schema*version}*{context}\_organization:2$check_founding_year(founding_year) → false
+- check*{snapshot}*{schema*version}*{context}\_organization:1$check_founding_year(founding_year) → true
 
-## How To Use Demo
+## Evaluation of ABAC Access Checks
 
-**Install Permify nightly release**
+**Model**
 
-```yaml
-docker pull **ghcr.io/permify/permify-beta:latest**
+```perm
+entity user {}
+
+entity organization {
+
+    relation admin @user
+
+    attribute ip_range string[]
+
+    permission view = check_ip_range(request.ip_address, ip_range) or admin
+}
+
+rule check_ip_range(ip_address string, ip_range string[]) {
+    ip in ip_range
+}
 ```
 
-**New Validation Yaml Structure**
+In this case, the part written as 'context' refers to the context within the request. Any type of data can be added from within the request and can be called within the model.
+
+For instance,
+
+```json
+"context": {
+	"data": {
+		"ip_address": "187.182.51.206",
+    "day_of_week": "monday"
+    },
+}
+```
+
+**Relationships**
+
+- organization:1#admin@user:1
+
+**Attributes**
+
+- organization:1$ip_range|string[]:[‘187.182.51.206’, ‘250.89.38.115’]
+
+**Check request**
+
+```json
+{
+  "entity": {
+    "type": "organization",
+    "id": "1"
+  },
+  "permission": "view",
+  "subject": {
+    "type": "user",
+    "id": "1"
+  },
+  "context": {
+    "data": {
+      "ip_address": "187.182.51.206"
+    }
+  }
+}
+```
+
+**Check Evolution Sub Queries Organization View**
+→ organization:1$check_ip_range(context.ip_address,ip_range) → true
+→ organization:1#admin@user:1 → true
+
+**Cache Mechanism**
+The cache mechanism works by hashing the snapshot of the database, schema version, and sub-queries as keys and adding their results, so it will operate in the same way in calls as in relationships. For example,
+
+**Request keys before hash**
+
+- check*{snapshot}*{schema*version}*{context}\_organization:1#admin@user:1 → true
+- check*{snapshot}*{schema*version}*{context}\_organization:1$check_ip_range(ip_range) → true
+
+## How To Use ABAC
+
+**Install Permify**
+
+```yaml
+docker pull **ghcr.io/permify/permify:latest**
+```
+
+**Validation Yaml Structure**
 
 ```yaml
 schema: >-
@@ -478,14 +519,14 @@ scenarios:
 
 **Note:** The 'data' field within the 'context' can be assigned a desired value as a key-value pair. Later, this value can be retrieved within the model using 'request.key'.
 
-**Example in validation file:** 
+**Example in validation file:**
 
 ```yaml
 context:
-    tuples: []
-    attributes: []
-    data:
-        day_of_week: "saturday"
+  tuples: []
+  attributes: []
+  data:
+    day_of_week: "saturday"
 ```
 
 This YAML snippet specifies a validation context with no tuples or attributes, and a data field indicating the day of the week is Saturday.
@@ -502,35 +543,35 @@ In the model, a **`delete`** permission rule is set. It calls the function **`is
 
 ```yaml
 schema: >-
-    entity user {}
+  entity user {}
 
-    entity organization {
+  entity organization {
 
-        relation member @user
+      relation member @user
 
-        attribute credit integer
+      attribute credit integer
 
-        permission view = check_credit(credit) and member
-    }
+      permission view = check_credit(credit) and member
+  }
 
-    entity repository {
+  entity repository {
 
-        relation organization  @organization
+      relation organization  @organization
 
-        attribute is_public boolean
+      attribute is_public boolean
 
-        permission view = is_public
-        permission edit = organization.view
-        permission delete = is_weekday(request.day_of_week)
-    }
+      permission view = is_public
+      permission edit = organization.view
+      permission delete = is_weekday(request.day_of_week)
+  }
 
-    rule check_credit(credit integer) {
-        credit > 5000
-    }
+  rule check_credit(credit integer) {
+      credit > 5000
+  }
 
-    rule is_weekday(day_of_week string) {
-          day_of_week != 'saturday' && day_of_week != 'sunday'
-    }
+  rule is_weekday(day_of_week string) {
+        day_of_week != 'saturday' && day_of_week != 'sunday'
+  }
 
 relationships:
   - organization:1#member@user:1
@@ -569,14 +610,14 @@ scenarios:
         subject: "user:1"
         context:
         assertions:
-          view : ["1"]
+          view: ["1"]
     subject_filters:
       - subject_reference: "user"
         entity: "repository:1"
         context:
         assertions:
-          view : ["1"]
-          edit : ["1"]
+          view: ["1"]
+          edit: ["1"]
 ```
 
 **Run validation command**

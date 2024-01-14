@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "title": "Role Based Access Control (RBAC)",
+        "description": "Want to implement role to your application ? Define an entity and manage your roles throught your applications.",
+        "link": "./simple-rbac"
+    },
+    {
+        "id": 2,
+        "title": "Nested Hierarchies",
+        "description": "Define a hierarchy of roles and permissions to inherit permissions from higher level roles.",
+        "link": "./nested-hierarchies"
+    },
+    {
+        "id": 3,
+        "title": "Organizational",
+        "description": "Group your users by organization with giving them access organizational-wide resources.",
+        "link": "./organizational"
+    },
+    {
+        "id": 4,
+        "title": "User Groups & Teams permissions",
+        "description": "Organize permissions based on groupings of users or resources.",
+        "link": "./user-groups"
+    },
+    {
+        "id": 5,
+        "title": "Sharing & Collaboration",
+        "description": "For sharing resources with other users, you can use the invite action.",
+        "link": "./sharing"
+    },
+    {
+        "id": 6,
+        "title": "Ownership",
+        "description": "Ownership is a special case of sharing where the owner of a resource has full access to it.",
+        "link": "./ownership"
+    }
+]
