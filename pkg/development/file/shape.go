@@ -36,7 +36,7 @@ type Scenario struct {
 // Context represents a structure with context data.
 type Context struct {
 	// Tuples is a slice of strings, each representing a tuple in the context.
-	Tuples []string `yaml:"context"`
+	Tuples []string `yaml:"tuples"`
 
 	// Attributes is a slice of strings, each representing an attribute in the context.
 	Attributes []string `yaml:"attributes"`

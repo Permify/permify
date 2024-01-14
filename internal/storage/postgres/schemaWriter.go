@@ -3,12 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"log/slog"
 
-	otelCodes "go.opentelemetry.io/otel/codes"
-
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -46,24 +44,14 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.Schema
 
 	query, args, err = insertBuilder.ToSql()
 	if err != nil {
-
-		slog.Error("Error while building SQL query: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("Executing SQL insert query: ", slog.Any("query", query), slog.Any("arguments", args))
 
 	_, err = w.database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-
-		slog.Error("Failed to execute insert query: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(otelCodes.Error, err.Error())
-		return err
+		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Info("Successfully wrote schemas to the database. ", slog.Any("number_of_schemas", len(schemas)))

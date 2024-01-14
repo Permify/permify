@@ -4,6 +4,8 @@ import (
 	"errors"
 	"reflect"
 
+	"google.golang.org/protobuf/types/known/structpb"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -261,6 +263,126 @@ var _ = Describe("utils", func() {
 			Expect(IsRelational(sch.EntityDefinitions["repository"], "public")).Should(Equal(false))
 			Expect(IsRelational(sch.EntityDefinitions["repository"], "ip_range")).Should(Equal(false))
 			Expect(IsRelational(sch.EntityDefinitions["repository"], "check_ip_range")).Should(Equal(false))
+		})
+	})
+
+	Context("GenerateKey", func() {
+		It("GenerateKey: Case 1", func() {
+			k1 := GenerateKey(&base.PermissionCheckRequest{
+				TenantId: "t1",
+				Entity: &base.Entity{
+					Type: "organization",
+					Id:   "1",
+				},
+				Permission: "view",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "12",
+				},
+			}, true)
+
+			Expect(k1).Should(Equal("check|t1|organization:1#view@user:12"))
+
+			ss, err := structpb.NewStruct(map[string]interface{}{
+				"balance": 1000,
+				"public":  true,
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			k2 := GenerateKey(&base.PermissionCheckRequest{
+				TenantId: "t1",
+				Context: &base.Context{
+					Tuples: []*base.Tuple{
+						{
+							Entity: &base.Entity{
+								Type: "organization",
+								Id:   "1",
+							},
+							Relation: "context_user",
+							Subject: &base.Subject{
+								Type: "user",
+								Id:   "12",
+							},
+						},
+					},
+					Data: ss,
+				},
+				Entity: &base.Entity{
+					Type: "organization",
+					Id:   "1",
+				},
+				Permission: "view",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "12",
+				},
+			}, true)
+
+			Expect(k2).Should(Equal("check|t1|organization:1#context_user@user:12,balance:1000,public:true|organization:1#view@user:12"))
+
+			any1, err := anypb.New(&base.IntegerValue{
+				Data: 1000,
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			k3 := GenerateKey(&base.PermissionCheckRequest{
+				TenantId: "t1",
+				Context: &base.Context{
+					Tuples: []*base.Tuple{
+						{
+							Entity: &base.Entity{
+								Type: "organization",
+								Id:   "1",
+							},
+							Relation: "context_user",
+							Subject: &base.Subject{
+								Type: "user",
+								Id:   "12",
+							},
+						},
+					},
+					Attributes: []*base.Attribute{
+						{
+							Entity: &base.Entity{
+								Type: "organization",
+								Id:   "1",
+							},
+							Attribute: "public",
+							Value:     any1,
+						},
+					},
+					Data: ss,
+				},
+				Entity: &base.Entity{
+					Type: "organization",
+					Id:   "1",
+				},
+				Permission: "view",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "12",
+				},
+			}, true)
+
+			Expect(k3).Should(Equal("check|t1|organization:1#context_user@user:12,organization:1$public|integer:1000,balance:1000,public:true|organization:1#view@user:12"))
+
+			k4 := GenerateKey(&base.PermissionCheckRequest{
+				TenantId: "t1",
+				Context: &base.Context{
+					Data: ss,
+				},
+				Entity: &base.Entity{
+					Type: "organization",
+					Id:   "1",
+				},
+				Permission: "public",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "12",
+				},
+			}, false)
+
+			Expect(k4).Should(Equal("check|t1|balance:1000,public:true|organization:1$public"))
 		})
 	})
 })

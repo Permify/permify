@@ -17,9 +17,7 @@ function YamlEditor(props) {
 
     function handleEditorChange(value, event) {
         try {
-            if (value !== props.code) {
-                props.setCode(value);
-            }
+            props.setCode(value);
         } catch (error) {
             console.error("Error while editing YAML: ", error);
         }

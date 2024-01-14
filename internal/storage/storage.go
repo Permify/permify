@@ -182,7 +182,7 @@ func (n *NoopBundleReader) Read(_ context.Context, _, _ string) (*base.DataBundl
 // BundleWriter - Manages writing and deletion of data bundles.
 type BundleWriter interface {
 	// Write stores bundles in storage for a tenant.
-	Write(ctx context.Context, tenantID string, bundles []*base.DataBundle) (names []string, err error)
+	Write(ctx context.Context, bundles []Bundle) (names []string, err error)
 
 	// Delete removes a bundle from storage for a tenant.
 	Delete(ctx context.Context, tenantID, name string) (err error)
@@ -194,7 +194,7 @@ func NewNoopBundleWriter() BundleWriter {
 	return &NoopBundleWriter{}
 }
 
-func (n *NoopBundleWriter) Write(_ context.Context, _ string, _ []*base.DataBundle) (names []string, err error) {
+func (n *NoopBundleWriter) Write(_ context.Context, _ []Bundle) (names []string, err error) {
 	return nil, nil
 }
 

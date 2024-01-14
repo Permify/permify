@@ -22,7 +22,7 @@ In Permify, the simplest form of relational tuple structured as: `entity # relat
 
 In Permify, these relational tuples represents your authorization data. 
 
-Permify stores your relational tuples (authorization data) in **WriteDB**. You can configure it **WriteDB** when running Permify Service with using both [configuration flags](../installation/brew#configuration-flags)  or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
+Permify stores your relational tuples (authorization data) in **WriteDB**. You can configure it **WriteDB** when running Permify Service with using both [configuration flags](../../installation/brew#configuration-flags)  or [configuration YAML file](https://github.com/Permify/permify/blob/master/example.config.yaml).
 
 Stored relational tuples are queried on access control check requests to decide whether user action is authorized. 
 
@@ -33,7 +33,7 @@ As an example; to decide whether a user could view a protected resource, Permify
 
 Relational tuples can be created with an simple API call in runtime, since relations and authorization data's are live instances. Each relational tuple should be created according to its authorization model, [Permify Schema]. 
 
-[Permify Schema]: ../getting-started/modeling
+[Permify Schema]: ../../getting-started/modeling
 
 ![tuple-creation](https://user-images.githubusercontent.com/34595361/186637488-30838a3b-849a-4859-ae4f-d664137bb6ba.png)
 

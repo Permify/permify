@@ -70,14 +70,17 @@ service:
 
 ## Request
 
-**Path:** POST /v1/watch/watch
+**Path:**
+```javascript
+POST /v1/watch/watch
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Watch/watch.watch)
 
 | Required | Argument   | Type   | Default | Description                                                                                                                                                                                                                                                                                                                                   |
 |----------|------------|--------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [x]      | tenant_id  | string | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                                                                                                                                                                                              |
-| [ ]      | snap_token | string | -       | specifies the starting point for broadcasting changes. If a snap_token is provided, all changes following that specific snapshot will be broadcasted. If a snap_token is not provided, the Watch API will broadcast all changes that occur after the Watch API is initiated., see more details on [Snap Tokens](../../reference/snap-tokens). |
+| [ ]      | snap_token | string | -       | specifies the starting point for broadcasting changes. If a snap_token is provided, all changes following that specific snapshot will be broadcasted. If a snap_token is not provided, the Watch API will broadcast all changes that occur after the Watch API is initiated., see more details on [Snap Tokens](../../../reference/snap-tokens). |
 
 
 [//]: # (<Tabs>)
