@@ -16,7 +16,17 @@
     <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>
 </p>
 
+<p align="center">
+    <a href="https://app.fossa.com/projects/git%2Bgithub.com%2FPermify%2Fpermify?ref=badge_large&issueType=license" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FPermify%2Fpermify.svg?type=large&issueType=license"/></a>
+</p>
+
 ![Permify - Open source authorization as a service](https://github.com/Permify/permify/assets/39353278/06262e07-84ba-4a1c-b859-870344396600)
+
+## Join Our Team
+
+Permify is on the lookout for engineers eager to tackle challenges in authorization. Join us!
+
+<a href="http://permify.co/company/career/" target="_blank"><img src="https://img.shields.io/badge/We%20Are%20Hiring!-blue?style=for-the-badge" alt="We are hiring" /></a>&nbsp;
 
 ## What is Permify?
 
@@ -102,9 +112,11 @@ Before start please see our [contributing guide](https://github.com/Permify/perm
 
 You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/projects/1)!
 
-## Stargazers
+## Contributors ♥️
 
-[![Stargazers repo roster for permify/permify](https://reporoster.com/stars/permify/permify)](https://github.com/permify/permify/stargazers)
+<a href="https://github.com/permify/Permify/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=permify/Permify&anon=1" />
+</a>
 
 ## Communication Channels
 

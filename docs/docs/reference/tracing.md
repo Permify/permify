@@ -25,6 +25,7 @@ tracer:
 - ***endpoint***: export url for tracing data.
 - ***disabled***: switch option for tracing.
 - ***insecure***: configures the exporter to connect to the collcetor using HTTP instead of HTTPS. This configuration is relevant only for `signoz` and `otlp`.
+- ***urlpath***: allows one to override the default URL path used for sending traces. If unset, default ("/v1/traces") will be used. This configuration is relevant only for `otlp`.
 
 **Example YAML configuration file**
 

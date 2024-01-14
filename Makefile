@@ -71,8 +71,9 @@ clean: ## Remove temporary and generated files
 	rm -f coverage.out coverage.html
 
 .PHONY: wasm-build
-wasm-build: ## Build wasm
+wasm-build: ## Build wasm & place it in playground
 	cd ./pkg/development/wasm && GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o main.wasm && wasm-opt main.wasm --enable-bulk-memory -Oz -o play.wasm
+	cp ./pkg/development/wasm/play.wasm ./playground/public/play.wasm
 
 .PHONY: release
 release: format test security-scan clean ## Prepare for release

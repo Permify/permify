@@ -116,16 +116,19 @@ According to above authorization model, let's create 3 example relation tuples f
 
 We can use expand API to reason the access actions. If we want to reason access structure for actions of repository entity, we can use expand API with ***POST "/v1/permissions/expand"***. 
 
-**Path:** POST /v1/tenants/{tenant_id}/permissions/expand
+**Path:** 
+```javascript
+POST /v1/tenants/{tenant_id}/permissions/expand
+```
 
 | Required | Argument          | Type   | Default | Description                                                                                                                                                                |
 |----------|-------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [x]      | tenant_id         | string | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                           |
 | [ ]      | schema_version    | string | -       | Version of the schema                                                                                                                                                      |
-| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens)                                                                        |
+| [ ]      | snap_token        | string | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens.md)                                                                        |
 | [x]      | entity            | string | -       | Name and id of the entity. Example: repository:1”.                                                                                                                         |
 | [x]      | permission        | string | -       | The permission the user wants to perform on the resource                                                                                                                   |
-| [ ]      | context | object | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context | object | -       | Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../reference/contextual-tuples.md) |
 
 ### Expand Push Action 
 

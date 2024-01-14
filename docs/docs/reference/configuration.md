@@ -75,7 +75,6 @@ service:
     cache:
       number_of_counters: 10_000
       max_cost: 10MiB
-  relationship:
 
 # The database section specifies the database engine and connection settings,
 # including the URI for the database, whether or not to auto-migrate the database,
@@ -185,12 +184,14 @@ Real time logs of authorization. Permify uses [zerolog] as a logger.
 | Required | Argument | Default | Description                                      |
 |----------|----------|---------|--------------------------------------------------|
 | [x]      | level    | info    | logger levels: `error`, `warn`, `info` , `debug` |
+| [x]      | output   | text    | logger output: `json`, `text`                    |
 
 #### ENV
 
 | Argument                  | ENV                             | Type   |
 |---------------------------|---------------------------------|--------|
 | log-level                 | PERMIFY_LOG_LEVEL               | string |
+| log-output                | PERMIFY_LOG_OUTPUT              | string |
 
 </p>
 </details>
@@ -293,6 +294,8 @@ authorization when using Permify.
 |   ├── exporter
 |   ├── endpoint
 |   ├── enabled
+|   ├── insecure
+|   ├── urlpath
 ```
 
 #### Glossary
@@ -302,6 +305,7 @@ authorization when using Permify.
 | [x]      | exporter | -       | Tracer exporter, the options are `jaeger`, `otlp`, `signoz`, and `zipkin`. |
 | [x]      | endpoint | -       | export uri for tracing data.                                               |
 | [ ]      | enabled  | false   | switch option for tracing.                                                 |
+| [ ]      | urlpath  |         | allows one to override the default URL path for otlp, used for sending traces. If unset, default ("/v1/traces") will be used.                                              |
 | [ ]      | insecure | false   | Whether to use HTTP instead of HTTPs for exporting the traces.             |
 
 #### ENV
@@ -311,6 +315,7 @@ authorization when using Permify.
 | tracer-enabled       | PERMIFY_TRACER_ENABLED        | boolean      |
 | tracer-exporter      | PERMIFY_TRACER_EXPORTER       | string       |
 | tracer-endpoint      | PERMIFY_TRACER_ENDPOINT       | string       |
+| tracer-urlpath       | PERMIFY_TRACER_URL_PATH       | string       |
 | tracer-insecure      | PERMIFY_TRACER_INSECURE       | boolean      |
 
 </p>
@@ -331,6 +336,8 @@ os, arch.
 |   ├── exporter
 |   ├── endpoint
 |   ├── enabled
+|   ├── insecure
+|   ├── urlpath
 ```
 
 #### Glossary
@@ -348,6 +355,8 @@ os, arch.
 | meter-enabled      | PERMIFY_METER_ENABLED   | boolean      |
 | meter-exporter     | PERMIFY_METER_EXPORTER  | string       |
 | meter-endpoint     | PERMIFY_METER_ENDPOINT  | string       |
+| meter-urlpath      | PERMIFY_METER_URL_PATH       | string       |
+| meter-insecure     | PERMIFY_METER_INSECURE  | boolean       |
 
 </p>
 </details>
@@ -409,6 +418,59 @@ audits, decision logs, authorization model)
 | database-garbage-collection-interval          | PERMIFY_DATABASE_GARBAGE_COLLECTION_INTERVAL           | duration |
 | database-garbage-collection-timeout           | PERMIFY_DATABASE_GARBAGE_COLLECTION_TIMEOUT            | duration |
 | database-garbage-collection-window            | PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW             | duration |
+
+</p>
+</details>
+
+<details><summary>service | Service Configurations</summary>
+<p>
+
+#### Definition
+
+Configurations for the permify service and how it should behave. You can configure the circuit breaker pattern, configuration watcher, and service specific options for permission and schema services (rate limiting, concurrency limiting, cache size).
+
+#### Structure
+
+```
+├── service
+|   ├── circuit_breaker
+|   ├── watch:
+|   |   ├── enabled
+|   ├── schema:
+|   |   ├── cache:
+|   |   |   ├── number_of_counters
+|   |   |   ├── max_cost
+|   |   permission:
+|   |   |   ├── bulk_limit
+|   |   |   ├── concurrency_limit
+|   |   |   ├── cache:
+|   |   |   |   ├── number_of_counters
+|   |   |   |   ├── max_cost
+```
+
+#### Glossary
+
+| Required | Argument                            | Default | Description                                       |
+|----------|-------------------------------------|---------|---------------------------------------------------|
+| [ ]      | circuit_breaker                     | false   | switch option to use the circuit breaker pattern. |
+| [ ]      | watch                               | false   | switch option for configuration watcher.          |
+| [ ]      | schema.cache.number_of_counters     | 1_000   | number of counters for schema service.            |
+| [ ]      | schema.cache.max_cost               | 10MiB   | max cost for schema cache.                        |
+| [ ]      | permission.bulk_limit               | 100     | bulk operations limit for permission service.     |
+| [ ]      | permission.concurrency_limit        | 100     | concurrency limit for permission service.         |
+| [ ]      | permission.cache.max_cost           | 10MiB   | max cost for permission service.                  |
+
+#### ENV
+
+| Argument                                      | ENV                                                    | Type     |
+|-----------------------------------------------|--------------------------------------------------------|----------|
+| service-circuit-breaker                       | PERMIFY_SERVICE_CIRCUIT_BREAKER                        | boolean  |
+| service-watch-enabled                         | PERMIFY_SERVICE_WATCH_ENABLED                          | boolean  |
+| service-schema-cache-number-of-counters       | PERMIFY_SERVICE_SCHEMA_CACHE_NUMBER_OF_COUNTERS        | int      |
+| service-schema-cache-max-cost                 | PERMIFY_SERVICE_SCHEMA_CACHE_MAX_COST                  | int      |
+| service-permission-bulk-limit                 | PERMIFY_SERVICE_PERMISSION_BULK_LIMIT                  | int      |
+| service-permission-concurrency-limit          | PERMIFY_SERVICE_PERMISSION_CONCURRENCY_LIMIT           | int      |
+| service-permission-cache-max-cost             | PERMIFY_SERVICE_PERMISSION_CACHE_MAX_COST              | int      |
 
 </p>
 </details>

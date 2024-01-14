@@ -1,47 +1,47 @@
 schema: |-
-    entity user {}
+  entity user {}
 
-    entity organization {
+  entity organization {
 
-        // organizational roles
-        relation admin @user
-        relation member @user
+      // organizational roles
+      relation admin @user
+      relation member @user
 
-    }
+  }
 
-    entity repository {
+  entity repository {
 
-        // represents repositories parent organization
-        relation parent @organization
+      // represents repositories parent organization
+      relation parent @organization
 
-        // represents owner of this repository
-        relation owner  @user
+      // represents owner of this repository
+      relation owner  @user
 
-        // permissions
-        permission edit   = parent.admin or owner
-        permission delete = owner
-    } 
+      // permissions
+      permission edit   = parent.admin or owner
+      permission delete = owner
+  }
 
 relationships:
-   - "organization:tech_corp#admin@user:admin_user"
-   - "repository:core_system#parent@organization:tech_corp"
+  - organization:6574#admin@user:5678
+  - repository:1234#parent@organization:6574
 
 attributes:
-    
+
 scenarios:
   - name: admin_access_test
     checks:
-      - entity: repository:core_system
-        subject: user:admin_user
+      - entity: repository:1234
+        subject: user:5678
         context: null
         assertions:
           edit: true
           delete: false
-      - entity: repository:dev_portal
-        subject: user:dev_member
+      - entity: repository:91011
+        subject: user:1213
         context: null
         assertions:
-          edit: false 
+          edit: false
           delete: false
     entity_filters: []
     subject_filters: []

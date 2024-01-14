@@ -282,6 +282,20 @@ var _ = Describe("validation", func() {
 				},
 			}
 
+			// Create an invalid test tuple with relation not defined in entity definition
+			invalidTuple3 := &base.Tuple{
+				Subject: &base.Subject{
+					Type:     "team",
+					Id:       "x",
+					Relation: "member",
+				},
+				Relation: "member",
+				Entity: &base.Entity{
+					Type: "team",
+					Id:   "x",
+				},
+			}
+
 			// Test the function with a valid tuple
 			err := ValidateTuple(entityDef, validTuple1)
 			Expect(err).Should(BeNil())
@@ -305,6 +319,10 @@ var _ = Describe("validation", func() {
 			// Test the function with an invalid tuple with relation not defined in entity definition
 			err = ValidateTuple(entityDef, invalidTuple2)
 			Expect(err).ShouldNot(BeNil())
+
+			// Test the function with an invalid tuple with relation not defined in entity definition
+			err = ValidateTuple(entityDef, invalidTuple3)
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ENTITY_AND_SUBJECT_CANNOT_BE_EQUAL.String()))
 		})
 
 		It("Case 4", func() {
@@ -323,6 +341,10 @@ var _ = Describe("validation", func() {
 					"ips": {
 						Name: "ips",
 						Type: base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+					},
+					"private": {
+						Name: "private",
+						Type: base.AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED,
 					},
 				},
 			}
@@ -468,6 +490,16 @@ var _ = Describe("validation", func() {
 					Attributes: []string{},
 				})
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_VALIDATION.String()))
+
+			err = ValidateFilters(
+				&base.TupleFilter{}, &base.AttributeFilter{
+					Entity: &base.EntityFilter{
+						Type: "organization",
+						Ids:  []string{"1"},
+					},
+					Attributes: []string{},
+				})
+			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		It("Case 8", func() {
@@ -486,6 +518,15 @@ var _ = Describe("validation", func() {
 					Ids:  []string{},
 				},
 				Attributes: []string{},
+			})
+			Expect(is).Should(BeFalse())
+
+			is = IsAttributeFilterEmpty(&base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "",
+					Ids:  []string{},
+				},
+				Attributes: []string{"public"},
 			})
 			Expect(is).Should(BeFalse())
 
@@ -514,6 +555,132 @@ var _ = Describe("validation", func() {
 					Attributes: []string{},
 				})
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_VALIDATION.String()))
+		})
+
+		It("Case 9", func() {
+			is := IsTupleFilterEmpty(&base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "",
+					Ids:  []string{"1"},
+				},
+				Relation: "admin",
+			})
+			Expect(is).Should(BeFalse())
+
+			is = IsTupleFilterEmpty(&base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "",
+					Ids:  []string{},
+				},
+				Relation: "admin",
+			})
+			Expect(is).Should(BeFalse())
+
+			is = IsTupleFilterEmpty(&base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "",
+					Ids:  []string{},
+				},
+				Relation: "",
+				Subject: &base.SubjectFilter{
+					Type: "user",
+				},
+			})
+			Expect(is).Should(BeFalse())
+
+			is = IsTupleFilterEmpty(&base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "",
+					Ids:  []string{},
+				},
+				Relation: "",
+				Subject: &base.SubjectFilter{
+					Type: "",
+					Ids:  []string{"1", "2"},
+				},
+			})
+			Expect(is).Should(BeFalse())
+
+			is = IsTupleFilterEmpty(&base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "",
+					Ids:  []string{},
+				},
+				Relation: "",
+				Subject: &base.SubjectFilter{
+					Type:     "",
+					Ids:      []string{},
+					Relation: "member",
+				},
+			})
+			Expect(is).Should(BeFalse())
+		})
+
+		It("Case 10", func() {
+			err := ValidateBundleOperation(&base.Operation{
+				RelationshipsWrite: []string{
+					"organization:{{.organizationID}}#member@user:{{.userID}}",
+				},
+				RelationshipsDelete: []string{
+					"organization:{{.organizationID}}#admin@user:{{.userID}}",
+				},
+				AttributesWrite: []string{
+					"organization:{{.organizationID}}$public|boolean:true",
+				},
+				AttributesDelete: []string{
+					"team:{{.teamID}}$public|boolean:false",
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = ValidateBundleOperation(&base.Operation{
+				RelationshipsWrite: []string{
+					"organization:{{.organizationID}}#member@user:{{.userID}}",
+					"organization:{{.organizationID}}#member@user:{{.userID}}",
+				},
+			})
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String()))
+
+			err = ValidateBundleOperation(&base.Operation{
+				RelationshipsDelete: []string{
+					"organization:{{.organizationID}}#admin@user:{{.userID}}",
+					"organization:{{.organizationID}}#admin@user:{{.userID}}",
+				},
+			})
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String()))
+
+			err = ValidateBundleOperation(&base.Operation{
+				AttributesWrite: []string{
+					"organization:{{.organizationID}}$public|boolean:true",
+					"organization:{{.organizationID}}$public|boolean:true",
+				},
+			})
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String()))
+
+			err = ValidateBundleOperation(&base.Operation{
+				AttributesDelete: []string{
+					"team:{{.teamID}}$public|boolean:false",
+					"team:{{.teamID}}$public|boolean:false",
+				},
+			})
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String()))
+		})
+
+		It("Case 11", func() {
+			err := ValidateBundleArguments([]string{
+				"organizationID",
+			}, map[string]string{
+				"organizationID": "758",
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = ValidateBundleArguments([]string{
+				"organizationID",
+				"teamID",
+			}, map[string]string{
+				"organizationID": "758",
+			})
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_MISSING_ARGUMENT.String()))
 		})
 	})
 })

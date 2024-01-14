@@ -279,3 +279,164 @@ func TestAttributeIterator(t *testing.T) {
 		t.Error("Expected false for HasNext(), but got true")
 	}
 }
+
+func TestUniqueAttributeIterator(t *testing.T) {
+	isPublic, err := anypb.New(&base.BooleanValue{Data: true})
+	assert.NoError(t, err)
+
+	// Create some attributes
+	attribute1 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e1",
+		},
+		Attribute: "public",
+		Value:     isPublic,
+	}
+
+	attribute2 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e2",
+		},
+		Attribute: "public",
+		Value:     isPublic,
+	}
+
+	attribute3 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e3",
+		},
+		Attribute: "public",
+		Value:     isPublic,
+	}
+
+	attribute4 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e4",
+		},
+		Attribute: "public",
+		Value:     isPublic,
+	}
+
+	attribute5 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e5",
+		},
+		Attribute: "public",
+		Value:     isPublic,
+	}
+
+	attribute6 := &base.Attribute{
+		Entity: &base.Entity{
+			Type: "entity",
+			Id:   "e6",
+		},
+		Attribute: "public",
+		Value:     isPublic,
+	}
+
+	// Create a tuple iterators
+	attributeIterator1 := NewAttributeIterator(attribute1, attribute2, attribute3, attribute6)
+	attributeIterator2 := NewAttributeIterator(attribute6, attribute1, attribute2, attribute4, attribute5)
+
+	// Create a unique iterator
+	uniqueIterator := NewUniqueAttributeIterator(attributeIterator1, attributeIterator2)
+
+	// Test HasNext() and GetNext() methods
+	if !uniqueIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	i, _ := uniqueIterator.GetNext()
+	if i != attribute1 {
+		t.Error("Expected tuple1 for GetNext(), but got something else")
+	}
+	if !uniqueIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	i, _ = uniqueIterator.GetNext()
+	if i != attribute2 {
+		t.Error("Expected tuple2 for GetNext(), but got something else")
+	}
+	if !uniqueIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	i, _ = uniqueIterator.GetNext()
+	if i != attribute3 {
+		t.Error("Expected tuple3 for GetNext(), but got something else")
+	}
+	if !uniqueIterator.HasNext() {
+		t.Error("Expected false for HasNext(), but got true")
+	}
+	i, _ = uniqueIterator.GetNext()
+	if i != attribute6 {
+		t.Error("Expected tuple6 for GetNext(), but got something else")
+	}
+	if !uniqueIterator.HasNext() {
+		t.Error("Expected false for HasNext(), but got true")
+	}
+	i, _ = uniqueIterator.GetNext()
+	if i != attribute4 {
+		t.Error("Expected tuple4 for GetNext(), but got something else")
+	}
+	if !uniqueIterator.HasNext() {
+		t.Error("Expected false for HasNext(), but got true")
+	}
+	i, _ = uniqueIterator.GetNext()
+	if i != attribute5 {
+		t.Error("Expected tuple5 for GetNext(), but got something else")
+	}
+	if uniqueIterator.HasNext() {
+		t.Error("Expected false for HasNext(), but got true")
+	}
+}
+
+func TestEntityIterator(t *testing.T) {
+	// Create some tuples
+	en1 := &base.Entity{
+		Type: "entity",
+		Id:   "e1",
+	}
+
+	en2 := &base.Entity{
+		Type: "entity",
+		Id:   "e2",
+	}
+
+	en3 := &base.Entity{
+		Type: "entity",
+		Id:   "e3",
+	}
+
+	// Create a entity collection and add the tuples
+	entityCollection := NewEntityCollection(en1, en2, en3)
+
+	// Create an entity iterator
+	entityIterator := entityCollection.CreateEntityIterator()
+
+	// Test HasNext() and GetNext() methods
+	if !entityIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	if entityIterator.GetNext() != en1 {
+		t.Error("Expected tuple1 for GetNext(), but got something else")
+	}
+	if !entityIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	if entityIterator.GetNext() != en2 {
+		t.Error("Expected tuple2 for GetNext(), but got something else")
+	}
+	if !entityIterator.HasNext() {
+		t.Error("Expected true for HasNext(), but got false")
+	}
+	if entityIterator.GetNext() != en3 {
+		t.Error("Expected tuple3 for GetNext(), but got something else")
+	}
+	if entityIterator.HasNext() {
+		t.Error("Expected false for HasNext(), but got true")
+	}
+}

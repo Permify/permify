@@ -13,6 +13,7 @@ import (
 type (
 	// Config is the main configuration structure containing various sections for different aspects of the application.
 	Config struct {
+		AccountID   string                       `mapstructure:"account_id"`
 		Server      `mapstructure:"server"`      // Server configuration for both HTTP and gRPC
 		Log         `mapstructure:"logger"`      // Logging configuration
 		Profiler    `mapstructure:"profiler"`    // Profiler configuration
@@ -80,7 +81,8 @@ type (
 
 	// Log contains configuration for logging.
 	Log struct {
-		Level string `mapstructure:"level"` // Logging level
+		Level  string `mapstructure:"level"`  // Logging level
+		Output string `mapstructure:"output"` // Logging output format, e.g., text, json
 	}
 
 	// Tracer contains configuration for distributed tracing.
@@ -89,6 +91,7 @@ type (
 		Exporter string `mapstructure:"exporter"` // Exporter for tracing data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the tracing exporter
 		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		URLPath  string `mapstructure:"path"`     // Path for the tracing exporter, if not defined /v1/trace will be used
 	}
 
 	// Meter contains configuration for metrics collection and reporting.
@@ -96,6 +99,8 @@ type (
 		Enabled  bool   `mapstructure:"enabled"`  // Whether metrics collection is enabled
 		Exporter string `mapstructure:"exporter"` // Exporter for metrics data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the metrics exporter
+		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		URLPath  string `mapstructure:"path"`     // Path for the metrics exporter, if not defined /v1/metrics will be used
 	}
 
 	// Service contains configuration for various service-level features.
@@ -238,6 +243,7 @@ func NewConfigWithFile(dir string) (*Config, error) {
 // DefaultConfig - Creates default config.
 func DefaultConfig() *Config {
 	return &Config{
+		AccountID: "",
 		Server: Server{
 			HTTP: HTTP{
 				Enabled: true,

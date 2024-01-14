@@ -6,8 +6,9 @@ import TabItem from '@theme/TabItem';
 You can delete a tenant with following API.
 
 ## Request
-
-**DELETE /v1/tenants/{id}** 
+```javascript
+DELETE /v1/tenants/{id}
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Tenancy/tenants.delete)
 

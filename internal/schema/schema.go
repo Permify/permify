@@ -108,7 +108,7 @@ func GetRuleByName(schema *base.SchemaDefinition, name string) (ruleDefinition *
 	}
 
 	// If the rule is not found, return nil for the rule definition and an error indicating that the entity definition was not found.
-	return nil, errors.New(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String())
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_RULE_DEFINITION_NOT_FOUND.String())
 }
 
 // GetTypeOfReferenceByNameInEntityDefinition retrieves the type of reference in an `EntityDefinition` by its name.

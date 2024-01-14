@@ -39,7 +39,7 @@ This will start Permify with the default configuration options:
 
 See [Container With Configurations] section to get more details about the configuration options and learn the full integration to run Permify Service from container.
 
-[Container With Configurations]: ../installation/container
+[Container With Configurations]: ../container
 
 ### Install With Brew
 
@@ -64,7 +64,7 @@ You can override these configurations with running the command with configuratio
 
 Check out the [Brew With Configurations] section to learn full implementation with configurations.
 
-[Brew With Configurations]: ../installation/brew
+[Brew With Configurations]: ../brew
 
 ### Test your connection
 
@@ -76,7 +76,7 @@ localhost:3476/healthz
 
 You can use our Postman Collection to work with the API. Also see the [Using the API] section for details of core functions.
 
-[Using the API]: ../api-overview
+[Using the API]: ../../api-overview
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de?action=collection%2Ffork&collection-url=entityId%3D16122080-54b1e316-8105-4440-b5bf-f27a05a8b4de%26entityType%3Dcollection%26workspaceId%3Dd3a8746c-fa57-49c0-83a5-6fcf25a7fc05)
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://app.swaggerhub.com/apis-docs/permify/permify/latest)
@@ -130,8 +130,8 @@ Lets roll back our example,
 :::info
 For implementation sake we'll not dive more deep about modeling but you can find more information about modeling on [Modeling Authorization with Permify] section. Also can check out [example use cases] to better understand some basic use cases modeled with Permify Schema. 
 
-[Modeling Authorization with Permify]: ../getting-started/modeling
-[example use cases]: ../use-cases/simple-rbac
+[Modeling Authorization with Permify]: ../../getting-started/modeling
+[example use cases]: ../../example-use-cases/simple-rbac
 :::
 
 ### Configuring Permify Schema to API 
@@ -192,7 +192,7 @@ For our guide let's grant one of the team members (Ashley) an admin role.
 :::info
 You can find more detailed explanation from [Move & Synchronize Authorization Data] section.
 
-[Move & Synchronize Authorization Data]: ../getting-started/sync-data
+[Move & Synchronize Authorization Data]: ../../getting-started/sync-data
 :::
 
 ### Performing Access Control Check
@@ -208,7 +208,7 @@ Access decisions generated according to relational tuples, which stored in your 
 
 Finally we're ready to control authorization. Lets perform an example access check via [check] API. 
 
-[check]: ../api-overview/check-api
+[check]: ../../api-overview/check-api
 
 ***Can the user 45 view files on organization 1 ?***
 
@@ -249,7 +249,7 @@ POST /v1/permissions/check
 ### Response
 
 ```json
-{{
+{
   "can": "RESULT_ALLOW",
   "metadata": {
     "check_count": 0
@@ -259,7 +259,7 @@ POST /v1/permissions/check
 
 See [Access Control Check] section for learn how access checks works and access decisions evaluated in Permify
 
-[Access Control Check]: ../getting-started/enforcement.md
+[Access Control Check]: ../../getting-started/enforcement
 
 ## Need any help ?
 
