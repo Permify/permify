@@ -67,7 +67,7 @@ rr, err: = client.Data.Write(context.Background(), & v1.DataWriteRequest {
             },
             Relation: "admin",
             Subject: & v1.Subject {
-                Type: "admin",
+                Type: "user",
                 Id: "3",
             },
         }

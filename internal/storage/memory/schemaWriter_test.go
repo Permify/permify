@@ -1,8 +1,7 @@
-package postgres
+package memory
 
 import (
 	"context"
-	"os"
 
 	"github.com/rs/xid"
 
@@ -10,26 +9,24 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/internal/storage/memory/migrations"
+	"github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 var _ = Describe("SchemaWriter", func() {
-	var db database.Database
+	var db *memory.Memory
+
 	var schemaWriter *SchemaWriter
 	var schemaReader *SchemaReader
 
 	BeforeEach(func() {
-		version := os.Getenv("POSTGRES_VERSION")
+		database, err := memory.New(migrations.Schema)
+		Expect(err).ShouldNot(HaveOccurred())
+		db = database
 
-		if version == "" {
-			version = "14"
-		}
-
-		db = postgresDB(version)
-		schemaWriter = NewSchemaWriter(db.(*PQDatabase.Postgres))
-		schemaReader = NewSchemaReader(db.(*PQDatabase.Postgres))
+		schemaWriter = NewSchemaWriter(db)
+		schemaReader = NewSchemaReader(db)
 	})
 
 	AfterEach(func() {

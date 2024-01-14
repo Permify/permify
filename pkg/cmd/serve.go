@@ -7,13 +7,18 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/sony/gobreaker"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel/sdk/metric"
 
 	"github.com/Permify/permify/internal/engines/balancer"
 	"github.com/Permify/permify/internal/engines/cache"
 	"github.com/Permify/permify/internal/invoke"
+	cacheDecorator "github.com/Permify/permify/internal/storage/decorators/cache"
+	cbDecorator "github.com/Permify/permify/internal/storage/decorators/circuitBreaker"
+	sfDecorator "github.com/Permify/permify/internal/storage/decorators/singleflight"
 	"github.com/Permify/permify/internal/storage/postgres/gc"
 	"github.com/Permify/permify/pkg/cmd/flags"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -29,7 +34,6 @@ import (
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/servers"
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/internal/storage/decorators"
 	pkgcache "github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/telemetry"
@@ -110,6 +114,21 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		slog.SetDefault(logger)
 
 		slog.Info("🚀 starting permify service...")
+
+		internal.Identifier = cfg.AccountID
+		if internal.Identifier == "" {
+			message := "Account ID is not set. Please fill in the Account ID for better support. Get your Account ID from https://permify.co/account"
+			slog.Error(message)
+
+			ticker := time.NewTicker(24 * time.Hour)
+			defer ticker.Stop()
+
+			go func() {
+				for range ticker.C {
+					slog.Error(message)
+				}
+			}()
+		}
 
 		// Set up context and signal handling
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -225,25 +244,34 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		tenantWriter := factories.TenantWriterFactory(db)
 
 		// Add caching to the schema reader using a decorator
-		schemaReader = decorators.NewSchemaReaderWithCache(schemaReader, schemaCache)
+		schemaReader = cacheDecorator.NewSchemaReader(schemaReader, schemaCache)
+
+		dataReader = sfDecorator.NewDataReader(dataReader)
+		schemaReader = sfDecorator.NewSchemaReader(schemaReader)
 
 		// Check if circuit breaker should be enabled for services
 		if cfg.Service.CircuitBreaker {
-			// Add circuit breaker to the relationship reader and writer using decorators
-			dataWriter = decorators.NewDataWriterWithCircuitBreaker(dataWriter, 1000)
-			dataReader = decorators.NewDataReaderWithCircuitBreaker(dataReader, 1000)
+			var cb *gobreaker.CircuitBreaker
+			var st gobreaker.Settings
+			st.Name = "storage"
+			st.ReadyToTrip = func(counts gobreaker.Counts) bool {
+				failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+				return counts.Requests >= 10 && failureRatio >= 0.6
+			}
 
-			// Add circuit breaker to the bundle reader and writer using decorators
-			bundleWriter = decorators.NewBundleWriterWithCircuitBreaker(bundleWriter, 1000)
-			bundleReader = decorators.NewBundleReaderWithCircuitBreaker(bundleReader, 1000)
+			cb = gobreaker.NewCircuitBreaker(st)
 
-			// Add circuit breaker to the schema reader and writer using decorators
-			schemaWriter = decorators.NewSchemaWriterWithCircuitBreaker(schemaWriter, 1000)
-			schemaReader = decorators.NewSchemaReaderWithCircuitBreaker(schemaReader, 1000)
+			// Add circuit breaker to the relationship reader using decorator
+			dataReader = cbDecorator.NewDataReader(dataReader, cb)
 
-			// Add circuit breaker to the tenant reader and writer using decorators
-			tenantWriter = decorators.NewTenantWriterWithCircuitBreaker(tenantWriter, 1000)
-			tenantReader = decorators.NewTenantReaderWithCircuitBreaker(tenantReader, 1000)
+			// Add circuit breaker to the bundle reader using decorators
+			bundleReader = cbDecorator.NewBundleReader(bundleReader, cb)
+
+			// Add circuit breaker to the schema reader using decorator
+			schemaReader = cbDecorator.NewSchemaReader(schemaReader, cb)
+
+			// Add circuit breaker to the tenant reader using decorator
+			tenantReader = cbDecorator.NewTenantReader(tenantReader, cb)
 		}
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader

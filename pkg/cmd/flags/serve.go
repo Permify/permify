@@ -21,6 +21,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.String("account-id", conf.AccountID, "account id")
+	if err = viper.BindPFlag("account_id", flags.Lookup("account-id")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("account_id", "PERMIFY_ACCOUNT_ID"); err != nil {
+		panic(err)
+	}
+
 	// Server
 	flags.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
 	if err = viper.BindPFlag("server.rate_limit", flags.Lookup("server-rate-limit")); err != nil {
@@ -77,6 +85,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	if err = viper.BindEnv("server.http.port", "PERMIFY_HTTP_PORT"); err != nil {
+		panic(err)
+	}
+
+	flags.Bool("http-tls-enabled", conf.Server.HTTP.TLSConfig.Enabled, "switch option for HTTP tls server")
+	if err = viper.BindPFlag("server.http.tls.enabled", flags.Lookup("http-tls-enabled")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.http.tls.enabled", "PERMIFY_HTTP_TLS_ENABLED"); err != nil {
 		panic(err)
 	}
 
@@ -196,7 +212,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("tracer-exporter", conf.Tracer.Exporter, "export uri for tracing data")
+	flags.String("tracer-exporter", conf.Tracer.Exporter, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
 	if err = viper.BindPFlag("tracer.exporter", flags.Lookup("tracer-exporter")); err != nil {
 		panic(err)
 	}
@@ -204,13 +220,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("tracer-endpoint", conf.Tracer.Endpoint, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
+	flags.String("tracer-endpoint", conf.Tracer.Endpoint, "export uri for tracing data")
 	if err = viper.BindPFlag("tracer.endpoint", flags.Lookup("tracer-endpoint")); err != nil {
 		panic(err)
 	}
 	if err = viper.BindEnv("tracer.endpoint", "PERMIFY_TRACER_ENDPOINT"); err != nil {
 		panic(err)
 	}
+
 	flags.Bool("tracer-insecure", conf.Tracer.Insecure, "use https or http for tracer data, only used for otlp exporter or signoz")
 	if err = viper.BindPFlag("tracer.insecure", flags.Lookup("tracer-insecure")); err != nil {
 		panic(err)
@@ -236,7 +253,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("meter-exporter", conf.Meter.Exporter, "export uri for metric data")
+	flags.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
 	if err = viper.BindPFlag("meter.exporter", flags.Lookup("meter-exporter")); err != nil {
 		panic(err)
 	}
@@ -244,7 +261,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("meter-endpoint", conf.Meter.Endpoint, "can be; otlp. (integrated metric tools)")
+	flags.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
 	if err = viper.BindPFlag("meter.endpoint", flags.Lookup("meter-endpoint")); err != nil {
 		panic(err)
 	}
@@ -298,6 +315,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	if err = viper.BindEnv("service.schema.cache.max_cost", "PERMIFY_SERVICE_SCHEMA_CACHE_MAX_COST"); err != nil {
+		panic(err)
+	}
+
+	flags.Int("service-permission-bulk-limit", conf.Service.Permission.BulkLimit, "bulk operations limit")
+	if err = viper.BindPFlag("service.permission.bulk_limit", flags.Lookup("service-permission-bulk-limit")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("service.permission.bulk_limit", "PERMIFY_SERVICE_PERMISSION_BULK_LIMIT"); err != nil {
 		panic(err)
 	}
 
