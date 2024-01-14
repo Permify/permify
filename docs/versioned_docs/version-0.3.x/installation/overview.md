@@ -50,14 +50,14 @@ localhost:3476/healthz
 
 You can use our Postman Collection to work with the API. Also see the [Using the API] section for details of core endpoints.
 
-[Using the API]: ../api-overview
+[Using the API]: ../../api-overview
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/permify-dev/workspace/permify/collection)
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/)
 
 ## Model your Authorization with Permify Schema
 
-After installation completed and Permify server is running, next step is modeling authorization with Permify authorization language - [Permify Schema]-  and configure it to Permify API. 
+After installation completed and Permify server is running, next step is modeling authorization with Permify authorization language - [Permify Schema] -  and configure it to Permify API. 
 
 You can define your entities, relations between them and access control decisions of each actions with using [Permify Schema].
 

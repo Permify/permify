@@ -2,7 +2,101 @@
 
 Explore **Mercury's Authorization Schema** in this example, delving into the intricate interplay among **users**, **organizations**, and **accounts**. Uncover the defined user roles, approval workflows, and limits, providing a snapshot of the dynamic relationships within the Mercury ecosystem.
 
-## Schema | [Open in playground](https://play.permify.co/?s=mercury&tab=schema)
+For those who don’t know, Mercury is a bank offering both checking and savings accounts, complete with debit and credit card features. Given the delicate nature of financial transactions, Mercury has built-in access control features to ensure security.
+
+But today we’re going to focus on approvals. Mercury allows it’s users to set a number amount for multiple user approval for any action.
+
+For instance, an admin can decide that withdrawals above $1000 by members require approval from two designated approvers. This means, if a member wants to withdraw more than $1000, they need a green light from two admin. And if an admin tries to withdraw they need an approval form another admin.
+
+- Admin → Withdraw $1000 → needs an approver
+- Member → Withdraw $1000 → needs 2 approvers.
+
+## Full Schema | [Open in playground](https://play.permify.co/?s=mercury&tab=schema)
+
+So let’s start with building basics. We need Users, Organization, Accounts both Savings and Deposits as entities in the mercury
+
+```perm
+entity user {}
+
+entity organization {}
+
+entity teams {}
+
+entity accounts {}
+```
+
+Then inserting relations into these entities.
+
+```perm
+entity user {}
+
+entity organization {
+	relation admin @user
+	relation member @user
+}
+
+entity accounts {
+	relation checkings @accounts
+	relation savings @accounts
+
+	relation org @organization
+}
+```
+
+Next step is to define actions in our use case.
+
+```perm
+entity user {}
+
+entity organization {
+    relation admin @user
+    relation member @user
+}
+
+entity account {
+
+    relation checkings @account
+    relation savings @account
+
+    relation org @organization
+
+    action withdraw =
+
+}
+```
+
+Now we need to define our attributes which will help us create access rights via Withdraw Limit and Admin Approval of the account.
+
+Every organization has a set withdrawal limit. Additionally, for members and admins of the organization, there are specific approval limits in place when they attempt to withdraw amounts exceeding this limit.
+
+```perm
+entity user {}
+
+entity organization {
+    relation admin @user
+    relation member @user
+}
+
+entity account {
+
+    relation checkings @account
+    relation savings @account
+
+    relation org @organization
+
+    attribute approval integer
+    attribute balance double
+
+    action withdraw =
+
+}
+```
+
+Let’s create our rules that defines our attribute-based access rights.
+
+- Balance of the account must be more than withdraw amount
+- If withdraw amount is less than the withdraw limit we don’t need approval
+- Else; we need approve of two admins if we’re member, and we need approve of single admin if we’re another admin.
 
 ```perm
 entity user {}
@@ -26,9 +120,9 @@ entity account {
     relation savings @account
 
     relation owner @organization
-
+    
     attribute withdraw_limit double
-    attribute balance double
+    attribute balance double 
 
     action withdraw = check_balance(balance, request.amount) and (check_limit(withdraw_limit, request.amount) or owner.approval)
 }
@@ -38,7 +132,7 @@ rule check_balance(balance double, amount double) {
 }
 
 rule check_limit(withdraw_limit double, amount double) {
-    withdraw_limit >= amount
+    withdraw_limit >= amount 
 }
 
 rule check_admin_approval(approval_num integer, admin_approval_limit integer) {
@@ -50,24 +144,13 @@ rule check_member_approval(approval_num integer, member_approval_limit integer) 
 }
 ```
 
-## Brief Examination of the Model
+At last, as you can see we use the Rules to define access rights to withdraw which basically translates into;
 
-Mercury's authorization model consists of three primary entities: **user**, **organization**, and **account**.
-These entities are interconnected through defined relations and governed by specific rules and actions.
-
-### Entities & Relations
-
-**user**: Represents individual users within the system.
-
-**organization**: Represents organizational entities and establishes relations with users (`admin` and `member`). Additionally, this entity holds attributes like `admin_approval_limit`, `member_approval_limit`, and `approval_num`.
-
-**account**: Represents user accounts with relations to different account types (`checkings` and `savings`). It also has a relation to the owning `organization` and attributes such as `withdraw_limit` and `balance`.
-
-### Permissions
-
-The authorization schema defines two crucial permissions:
-
-**approval**: Determines the conditions under which a user (either `member` or `admin`) can approve actions based on approval limits.
+- Check balance if it’s over the withdraw amount. If not don’t allow the action.
+- Check withdraw limit; if it’s less than the limit allow the action…
+- Else;
+   - Check if user is admin, and have approval more than the approval limit for admins.
+   - Check if user is member, and have approval more than the approval limit for members.
 
 ## Need any help ?
 

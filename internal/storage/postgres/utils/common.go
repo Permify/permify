@@ -1,13 +1,18 @@
 package utils
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log/slog"
+
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/pkg/errors"
 
 	"github.com/Masterminds/squirrel"
+
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 const (
@@ -111,9 +116,31 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 	return deleteBuilder.Where(expiredZeroExpr).Where(beforeExpr)
 }
 
-// Rollback - Rollbacks a transaction and logs the error
-func Rollback(tx *sql.Tx) {
-	if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) && err != nil {
-		slog.Error("failed to rollback transaction", err)
+// HandleError records an error in the given span, logs the error, and returns a standardized error.
+// This function is used for consistent error handling across different parts of the application.
+func HandleError(span trace.Span, err error, errorCode base.ErrorCode) error {
+	// Record the error on the span
+	span.RecordError(err)
+
+	// Set the status of the span
+	span.SetStatus(codes.Error, err.Error())
+
+	// Check if the error is context-related
+	if IsContextRelatedError(err) {
+		// Use debug level logging for context-related errors
+		slog.Debug("Context-related error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
+	} else {
+		// Use error level logging for all other errors
+		slog.Error("Error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
 	}
+
+	// Return a new standardized error with the provided error code
+	return errors.New(errorCode.String())
+}
+
+// IsContextRelatedError checks if the error is due to context cancellation, deadline exceedance, or closed connection
+func IsContextRelatedError(err error) bool {
+	return errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) ||
+		err.Error() == "conn closed"
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/memory/constants"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -31,7 +32,7 @@ func (w *TenantWriter) CreateTenant(_ context.Context, id, name string) (result 
 	}
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
-	if err = txn.Insert(TenantsTable, tenant); err != nil {
+	if err = txn.Insert(constants.TenantsTable, tenant); err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	txn.Commit()
@@ -43,11 +44,11 @@ func (w *TenantWriter) DeleteTenant(_ context.Context, tenantID string) (result 
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(TenantsTable, "id", tenantID)
+	raw, err = txn.First(constants.TenantsTable, "id", tenantID)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
-	if _, err = txn.DeleteAll(TenantsTable, "id", tenantID); err != nil {
+	if _, err = txn.DeleteAll(constants.TenantsTable, "id", tenantID); err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	txn.Commit()

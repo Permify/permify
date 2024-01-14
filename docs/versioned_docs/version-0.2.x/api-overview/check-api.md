@@ -15,7 +15,7 @@ In this section we'll investigate proior check request of Permify: **resource ba
 | Required | Argument | Type | Default | Description |
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
 | [ ]   | schema_version | string | 8 | Version of the schema |
-| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../reference/snap-tokens) |
+| [ ]   | snap_token | string | - | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens) |
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | permission | string | - | the action the user wants to perform on the resource |
 | [x]   | subject | object | - | the user or user set who wants to take the action. It containes type and id of the subject.  |
@@ -115,7 +115,7 @@ client.permission.check({
 
 Answering access checks is accomplished within Permify using a basic graph walking mechanism. See how [access decisions evaluated] in Permify. 
 
-[access decisions evaluated]: ../getting-started/enforcement#how-access-decisions-are-evaluated
+[access decisions evaluated]: ../../getting-started/enforcement#how-access-decisions-are-evaluated
 
 ## Need any help ?
 

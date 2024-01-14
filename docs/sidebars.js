@@ -30,12 +30,11 @@ module.exports = {
 				"getting-started/enforcement",
 				"getting-started/testing",
 				{
-					type: 'category',
-					label: 'Real World Examples',
+					type: "category",
+					label: "Real World Examples",
 					link: {
-						type: "generated-index",
-						title: "Real World Examples",
-						slug: "/getting-started/examples",
+						type: "doc",
+						id: "examples",
 					},
 					items: [
 						"getting-started/examples/google-docs",
@@ -106,9 +105,8 @@ module.exports = {
 					type: 'category',
 					label: 'Bundle Service',
 					link: {
-						type: "generated-index",
-						title: "Bundle Service",
-						slug: "/api-overview/bundle",
+						type: "doc",
+						id: "bundle",
 					},
 					items: [
 						"api-overview/bundle/write-bundle",

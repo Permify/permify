@@ -11,7 +11,9 @@ We have a pre-inserted tenant - **t1** - by default for the ones that don't use 
 
 ## Request
 
-**POST /v1/tenants/create**
+```javascript
+POST /v1/tenants/create
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Tenancy/tenants.create)
 
