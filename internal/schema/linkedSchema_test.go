@@ -910,5 +910,16 @@ var _ = Describe("linked schema", func() {
 				},
 			}))
 		})
+
+		It("Case 18", func() {
+			Expect(LinkedEntrance{
+				Kind: RelationLinkedEntrance,
+				TargetEntrance: &base.RelationReference{
+					Type:     "account",
+					Relation: "admin",
+				},
+				TupleSetRelation: "",
+			}.LinkedEntranceKind()).Should(Equal(RelationLinkedEntrance))
+		})
 	})
 })

@@ -17,7 +17,10 @@ So, we provide 1 endpoint for subject filtering request,
 
 In this endpoint you'll get directly the IDs' of the subjects that are authorized in an array.
 
-**POST** /v1/permissions/lookup-subject
+**POST** 
+```javascript
+/v1/permissions/lookup-subject
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Permission/permissions.lookupSubject)
 
@@ -25,11 +28,12 @@ In this endpoint you'll get directly the IDs' of the subjects that are authorize
 |----------|---------------------|----------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [x]      | tenant_id           | string   | -       | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.                                           |
 | [ ]      | schema_version      | string   | -       | Version of the schema                                                                                                                                                      |
-| [ ]      | snap_token          | string   | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens).                                                                       |
+| [x]      | depth             | integer | 8       | Timeout limit when if recursive database queries got in loop                                                                                                                 |
+| [ ]      | snap_token          | string   | -       | the snap token to avoid stale cache, see more details on [Snap Tokens](../../reference/snap-tokens.md).                                                                       |
 | [x]      | entity              | object   | -       | contains entity type and id of the entity. Example: repository:1                                                                                                           |
 | [x]      | permission          | string   | -       | the action the user wants to perform on the resource                                                                                                                       |
 | [x]      | subject_reference   | object   | -       | the subject or subject reference who wants to take the action. It contains type and relation of the subject.                                                               |
-| [ ]      | context   | object   | -       | Contextual tuples are relations that can be dynamically added to permission request operations. See more details on [Contextual Tuples](../../reference/contextual-tuples) |
+| [ ]      | context   | object   | -       | Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../reference/contextual-tuples.md) |
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -40,6 +44,7 @@ cr, err: = client.Permission.LookupSubject(context.Background(), &v1.PermissionL
     Metadata: &v1.PermissionLookupSubjectRequestMetadata{
         SnapToken: "",
         SchemaVersion: "",
+        Depth: 20,
     },
     Entity: &v1.Entity{
         Type: "document",
@@ -62,6 +67,7 @@ client.permission.lookupSubject({
     metadata: {
         snapToken: "",
         schemaVersion: ""
+        depth: 20,
     },
     Entity: {
         Type: "document",
@@ -87,6 +93,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
   "metadata":{
     "snap_token": "",
     "schema_version": ""
+    "depth": 20,
   },
   "entity": {
     type: "document",

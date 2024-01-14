@@ -7,10 +7,10 @@ import (
 	"log/slog"
 
 	"github.com/Masterminds/squirrel"
-	"go.opentelemetry.io/otel/codes"
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -44,12 +44,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 
 	query, args, err = builder.ToSql()
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error in building SQL query: ", slog.Any("error", err))
-
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("Executing SQL query: ", slog.Any("query", query), slog.Any("arguments", args))
@@ -57,12 +52,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 	var rows *sql.Rows
 	rows, err = r.database.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error in executing query: ", slog.Any("error", err))
-
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
@@ -71,34 +61,19 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 		sd := storage.SchemaDefinition{}
 		err = rows.Scan(&sd.Name, &sd.SerializedDefinition, &sd.Version)
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, err.Error())
-
-			slog.Error("Error scanning rows: ", slog.Any("error", err))
-
-			return nil, err
+			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 		definitions = append(definitions, sd.Serialized())
 	}
 	if err = rows.Err(); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error iterating over rows: ", slog.Any("error", err))
-
-		return nil, err
+		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	slog.Info("Successfully retrieved", slog.Any("schema definitions", len(definitions)))
 
 	sch, err = schema.NewSchemaFromStringDefinitions(false, definitions...)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Failed while creating schema from definitions: ", slog.Any("error", err))
-
-		return nil, err
+		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	slog.Info("Successfully created schema.")
@@ -120,12 +95,7 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name,
 
 	query, args, err = builder.ToSql()
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error building SQL query: ", slog.Any("error", err))
-
-		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("Executing SQL query: ", slog.Any("query", query), slog.Any("arguments", args))
@@ -133,35 +103,20 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name,
 	var def storage.SchemaDefinition
 	row := r.database.DB.QueryRowContext(ctx, query, args...)
 	if err = row.Err(); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error executing query: ", slog.Any("error", err))
-
-		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	if err = row.Scan(&def.Name, &def.SerializedDefinition, &def.Version); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+			return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
 		}
-
-		slog.Error("Error scanning rows: ", slog.Any("error", err))
-
-		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
+		return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	var sch *base.SchemaDefinition
 	sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Failed while creating schema from definitions: ", slog.Any("error", err))
-
-		return nil, "", err
+		return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	definition, err = schema.GetEntityByName(sch, name)
@@ -185,12 +140,7 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 
 	query, args, err = builder.ToSql()
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error building SQL query: ", slog.Any("error", err))
-
-		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("Executing SQL query: ", slog.Any("query", query), slog.Any("arguments", args))
@@ -198,30 +148,14 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 	var def storage.SchemaDefinition
 	row := r.database.DB.QueryRowContext(ctx, query, args...)
 	if err = row.Err(); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error executing query: ", slog.Any("error", err))
-
-		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	if err = row.Scan(&def.Name, &def.SerializedDefinition, &def.Version); err != nil {
-
-		slog.Error("Error scanning row: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
-
-			slog.Error("Rule not found in the database")
-
-			return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+			return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
 		}
-
-		slog.Error("Error scanning row values: ", slog.Any("error", err))
-
-		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCAN.String())
+		return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	slog.Info("Successfully retrieved rule definition for: ", slog.Any("name", name))
@@ -229,12 +163,7 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 	var sch *base.SchemaDefinition
 	sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
-		slog.Error("Error creating schema from definition: ", slog.Any("error", err))
-
-		return nil, "", err
+		return nil, "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	definition, err = schema.GetRuleByName(sch, name)
@@ -256,12 +185,7 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 		Select("version").From(SchemaDefinitionTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
-
-		slog.Error("Failed to build SQL query: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return "", errors.New(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String())
+		return "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("Executing SQL query: ", slog.Any("query", query), slog.Any("arguments", args))
@@ -269,21 +193,10 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 	row := r.database.DB.QueryRowContext(ctx, query, args...)
 	err = row.Scan(&version)
 	if err != nil {
-
-		slog.Error("Error while scanning row: ", slog.Any("error", err))
-
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
-
-			slog.Error("Schema not found in the database.")
-
-			return "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+			return "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
 		}
-
-		slog.Error("Error while scanning row values: ", slog.Any("error", err))
-
-		return "", err
+		return "", utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	slog.Info("Successfully found the latest schema version: ", slog.Any("version", version))

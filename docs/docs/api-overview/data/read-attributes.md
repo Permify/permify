@@ -6,8 +6,9 @@ import TabItem from '@theme/TabItem';
 Read API allows for directly querying the stored graph data to display and filter stored attributes.
 
 ## Request
-
-**Path:** POST /v1/tenants/{tenant_id}/data/attributes/read
+```javascript
+POST /v1/tenants/{tenant_id}/data/attributes/read
+```
 
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/#/Data/data.attributes.read)
 

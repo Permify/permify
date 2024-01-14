@@ -3,6 +3,24 @@
 This directory contains a Permify playground. You can check out running version of [Playground](https://play.permify.co).
 Playground works with [webassembly](https://webassembly.org). You can find the source code of playground in [/pkg/development/wasm](/pkg/development/wasm)
 
+## How to run playground locally
+First, you need to install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/). Then, you will need to build the `play.wasm` file. You can do it by running the following command in the root directory:
+
+```bash
+make wasm-build
+```
+
+Then, you can run the playground by running the following command in the playground directory:
+
+```bash
+yarn start
+```
+or the following command in the root directory:
+
+```bash
+make serve-playground
+```
+
 ## Available Scripts
 
 In the playground directory, you can run:

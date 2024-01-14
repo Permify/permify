@@ -13,11 +13,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+      with:
+        egress-policy: audit
+
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
       with:
         node-version: '16'
 
@@ -32,7 +37,7 @@ jobs:
         yarn build
 
     - name: Deploy to S3
-      uses: jakejarvis/s3-sync-action@master
+      uses: jakejarvis/s3-sync-action@7ed8b112447abb09f1da74f3466e4194fc7a6311 # master
       with:
         args: --acl public-read --follow-symlinks --delete
       env:
@@ -44,7 +49,7 @@ jobs:
         DEST_DIR: ''
 
     - name: Invalidate CloudFront Distribution
-      uses: chetan/invalidate-cloudfront-action@master
+      uses: chetan/invalidate-cloudfront-action@fce6f6f546fae2e9fe55f3bd1411063a908f2557 # master
       env:
         DISTRIBUTION: ${{ secrets.DISTRIBUTION }}
         PATHS: '/*'

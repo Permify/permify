@@ -71,6 +71,15 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 
 		s.Schema = loaded
 
+		color.Notice.Println("initiating validation... 🚀")
+		validator := validate()
+		err = validator(cmd, args)
+		if err != nil {
+			color.Danger.Println("failed to validate given file\n")
+			color.Danger.Println("FAILED")
+			return err
+		}
+
 		color.Notice.Println("initiating coverage analysis... 🚀")
 
 		schemaCoverageInfo := cov.Run(*s)

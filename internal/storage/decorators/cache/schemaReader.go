@@ -1,4 +1,4 @@
-package decorators
+package cache
 
 import (
 	"context"
@@ -11,27 +11,27 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// SchemaReaderWithCache - Add cache behaviour to schema reader
-type SchemaReaderWithCache struct {
+// SchemaReader - Add cache behaviour to schema reader
+type SchemaReader struct {
 	delegate storage.SchemaReader
 	cache    cache.Cache
 }
 
-// NewSchemaReaderWithCache new instance of SchemaReaderWithCache
-func NewSchemaReaderWithCache(delegate storage.SchemaReader, cache cache.Cache) *SchemaReaderWithCache {
-	return &SchemaReaderWithCache{
+// NewSchemaReader new instance of SchemaReader
+func NewSchemaReader(delegate storage.SchemaReader, cache cache.Cache) *SchemaReader {
+	return &SchemaReader{
 		delegate: delegate,
 		cache:    cache,
 	}
 }
 
 // ReadSchema  - Read schema from the repository
-func (r *SchemaReaderWithCache) ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error) {
 	return r.delegate.ReadSchema(ctx, tenantID, version)
 }
 
 // ReadEntityDefinition - Read entity definition from the repository
-func (r *SchemaReaderWithCache) ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error) {
 	var s interface{}
 	found := false
 	if version != "" {
@@ -54,7 +54,7 @@ func (r *SchemaReaderWithCache) ReadEntityDefinition(ctx context.Context, tenant
 }
 
 // ReadRuleDefinition - Read rule definition from the repository
-func (r *SchemaReaderWithCache) ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (definition *base.RuleDefinition, v string, err error) {
+func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (definition *base.RuleDefinition, v string, err error) {
 	var s interface{}
 	found := false
 	if version != "" {
@@ -77,6 +77,6 @@ func (r *SchemaReaderWithCache) ReadRuleDefinition(ctx context.Context, tenantID
 }
 
 // HeadVersion - Finds the latest version of the schema.
-func (r *SchemaReaderWithCache) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
+func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
 	return r.delegate.HeadVersion(ctx, tenantID)
 }
