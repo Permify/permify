@@ -32,7 +32,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 	ctx, span := tracer.Start(ctx, "bundle-reader.read-bundle")
 	defer span.End()
 
-	slog.Info("Reading bundle: ", slog.Any("tenant_id", tenantID), slog.Any("name", name))
+	slog.Debug("reading bundle", slog.Any("tenant_id", tenantID), slog.Any("name", name))
 
 	builder := b.database.Builder.Select("payload").From(BundlesTable).Where(squirrel.Eq{"name": name, "tenant_id": tenantID})
 
@@ -44,7 +44,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("Executing SQL query: ", slog.Any("query", query), slog.Any("arguments", args))
+	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
 	var row *sql.Row
 	row = b.database.DB.QueryRowContext(ctx, query, args...)
@@ -65,7 +65,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 
-		slog.Error("Failed to convert the value to bundle: ", slog.Any("error", err))
+		slog.Error("failed to convert the value to bundle", slog.Any("error", err))
 
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
