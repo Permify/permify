@@ -25,9 +25,9 @@ func GetStatus(err error) codes.Code {
 		return codes.Unauthenticated
 	case code > 1999 && code < 2999:
 		return codes.InvalidArgument
-	case code > 2999 && code < 3999:
-		return codes.NotFound
 	case code > 3999 && code < 4999:
+		return codes.NotFound
+	case code > 4999 && code < 5999:
 		return codes.Internal
 	default:
 		return codes.Internal
