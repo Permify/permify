@@ -10,6 +10,8 @@ import (
 	"net/http/pprof"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/ratelimit"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
@@ -100,6 +102,7 @@ func NewContainer(
 func (s *Container) Run(
 	ctx context.Context,
 	srv *config.Server,
+	logger *slog.Logger,
 	dst *config.Distributed,
 	authentication *config.Authn,
 	profiler *config.Profiler,
@@ -109,16 +112,22 @@ func (s *Container) Run(
 
 	limiter := middleware.NewRateLimiter(srv.RateLimit) // for example 1000 req/sec
 
+	lopts := []logging.Option{
+		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+	}
+
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpcValidator.UnaryServerInterceptor(),
 		grpcRecovery.UnaryServerInterceptor(),
 		ratelimit.UnaryServerInterceptor(limiter),
+		logging.UnaryServerInterceptor(InterceptorLogger(logger), lopts...),
 	}
 
 	streamingInterceptors := []grpc.StreamServerInterceptor{
 		grpcValidator.StreamServerInterceptor(),
 		grpcRecovery.StreamServerInterceptor(),
 		ratelimit.StreamServerInterceptor(limiter),
+		logging.StreamServerInterceptor(InterceptorLogger(logger), lopts...),
 	}
 
 	// Configure authentication based on the provided method ("preshared" or "oidc").
@@ -363,4 +372,11 @@ func (s *Container) Run(
 	slog.Info("gracefully shutting down")
 
 	return nil
+}
+
+// InterceptorLogger adapts slog logger to interceptor logger.
+func InterceptorLogger(l *slog.Logger) logging.Logger {
+	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
+		l.Log(ctx, slog.Level(lvl), msg, fields...)
+	})
 }

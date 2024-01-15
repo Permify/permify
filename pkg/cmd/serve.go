@@ -374,6 +374,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			return container.Run(
 				ctx,
 				&cfg.Server,
+				logger,
 				&cfg.Distributed,
 				&cfg.Authn,
 				&cfg.Profiler,
