@@ -33,7 +33,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	ctx, span := tracer.Start(ctx, "tenant-reader.list-tenants")
 	defer span.End()
 
-	slog.Info("Listing tenants with pagination: ", slog.Any("pagination", pagination))
+	slog.Debug("listing tenants with pagination", slog.Any("pagination", pagination))
 
 	builder := r.database.Builder.Select("id, name, created_at").From(TenantsTable)
 	if pagination.Token() != "" {
@@ -55,7 +55,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("Executing SQL query: ", slog.Any("query", query), slog.Any("arguments", args))
+	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
 	var rows *sql.Rows
 	rows, err = r.database.DB.QueryContext(ctx, query, args...)
@@ -79,15 +79,11 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	slog.Info("Successfully listed tenants. ", slog.Any("number_of_tenants", len(tenants)))
+	slog.Debug("successfully listed tenants", slog.Any("number_of_tenants", len(tenants)))
 
 	if len(tenants) > int(pagination.PageSize()) {
-
-		slog.Info("Returning tenants with a continuous token. ", slog.Any("page_size", pagination.PageSize()))
 		return tenants[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil
 	}
-
-	slog.Info("Returning all tenants with no continuous token.")
 
 	return tenants, database.NewNoopContinuousToken().Encode(), nil
 }

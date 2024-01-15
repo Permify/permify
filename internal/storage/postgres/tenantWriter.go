@@ -35,7 +35,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 	ctx, span := tracer.Start(ctx, "tenant-writer.create-tenant")
 	defer span.End()
 
-	slog.Info("Creating new Tenant: ", slog.Any("id", id), slog.Any("name", name))
+	slog.Debug("creating new tenant", slog.Any("id", id), slog.Any("name", name))
 
 	var createdAt time.Time
 
@@ -49,7 +49,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.Info("Successfully created Tenant", slog.Any("id", id), slog.Any("name", name), slog.Any("createdAt", createdAt))
+	slog.Debug("successfully created Tenant", slog.Any("id", id), slog.Any("name", name), slog.Any("createdAt", createdAt))
 
 	return &base.Tenant{
 		Id:        id,
@@ -63,7 +63,7 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 	ctx, span := tracer.Start(ctx, "tenant-writer.delete-tenant")
 	defer span.End()
 
-	slog.Info("Deleting Tenant: ", slog.Any("tenant_id", tenantID))
+	slog.Debug("deleting tenant", slog.Any("tenant_id", tenantID))
 
 	var name string
 	var createdAt time.Time
@@ -74,7 +74,7 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.Info("Successfully deleted Tenant")
+	slog.Debug("successfully deleted tenant")
 
 	return &base.Tenant{
 		Id:        tenantID,

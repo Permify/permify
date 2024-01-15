@@ -128,10 +128,10 @@ func HandleError(span trace.Span, err error, errorCode base.ErrorCode) error {
 	// Check if the error is context-related
 	if IsContextRelatedError(err) {
 		// Use debug level logging for context-related errors
-		slog.Debug("Context-related error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
+		slog.Debug("context-related error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
 	} else {
 		// Use error level logging for all other errors
-		slog.Error("Error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
+		slog.Error("error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
 	}
 
 	// Return a new standardized error with the provided error code
