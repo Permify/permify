@@ -260,7 +260,7 @@ func DefaultConfig() *Config {
 					Enabled: false,
 				},
 			},
-			RateLimit: 100,
+			RateLimit: 10_000,
 		},
 		Profiler: Profiler{
 			Enabled: false,

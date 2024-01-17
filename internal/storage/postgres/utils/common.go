@@ -2,13 +2,17 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"math"
+	"strings"
+	"time"
 
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/exp/rand"
 
-	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/Masterminds/squirrel"
 
@@ -118,20 +122,21 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 
 // HandleError records an error in the given span, logs the error, and returns a standardized error.
 // This function is used for consistent error handling across different parts of the application.
-func HandleError(span trace.Span, err error, errorCode base.ErrorCode) error {
+func HandleError(ctx context.Context, span trace.Span, err error, errorCode base.ErrorCode) error {
 	// Record the error on the span
 	span.RecordError(err)
 
-	// Set the status of the span
-	span.SetStatus(codes.Error, err.Error())
-
 	// Check if the error is context-related
-	if IsContextRelatedError(err) {
-		// Use debug level logging for context-related errors
-		slog.Debug("context-related error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
+	if IsContextRelatedError(ctx, err) || IsSerializationRelatedError(err) {
+		// Set the status of the span
+		span.SetStatus(codes.Unset, err.Error())
+		// Use debug level logging for context or serialization-related errors
+		slog.Debug("an error related to context or serialization was encountered during the operation", slog.String("error", err.Error()))
 	} else {
+		// Set the status of the span
+		span.SetStatus(codes.Error, err.Error())
 		// Use error level logging for all other errors
-		slog.Error("error encountered", slog.Any("error", err), slog.Any("errorCode", errorCode))
+		slog.Error("error encountered", slog.Any("error", err))
 	}
 
 	// Return a new standardized error with the provided error code
@@ -139,8 +144,36 @@ func HandleError(span trace.Span, err error, errorCode base.ErrorCode) error {
 }
 
 // IsContextRelatedError checks if the error is due to context cancellation, deadline exceedance, or closed connection
-func IsContextRelatedError(err error) bool {
-	return errors.Is(err, context.Canceled) ||
+func IsContextRelatedError(ctx context.Context, err error) bool {
+	if errors.Is(ctx.Err(), context.Canceled) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return true
+	}
+	if errors.Is(err, context.Canceled) ||
 		errors.Is(err, context.DeadlineExceeded) ||
-		err.Error() == "conn closed"
+		strings.Contains(err.Error(), "conn closed") {
+		return true
+	}
+	return false
+}
+
+// IsSerializationRelatedError checks if the error is a serialization failure, typically in database transactions.
+func IsSerializationRelatedError(err error) bool {
+	if strings.Contains(err.Error(), "could not serialize") ||
+		strings.Contains(err.Error(), "duplicate key value") {
+		return true
+	}
+	return false
+}
+
+// WaitWithBackoff implements an exponential backoff strategy with jitter for retries.
+// It waits for a calculated duration or until the context is cancelled, whichever comes first.
+func WaitWithBackoff(ctx context.Context, tenantID string, retries int) {
+	backoff := time.Duration(math.Min(float64(20*time.Millisecond)*math.Pow(2, float64(retries)), float64(1*time.Second)))
+	jitter := time.Duration(rand.Float64() * float64(backoff) * 0.5)
+	nextBackoff := backoff + jitter
+	slog.Warn("waiting before retry", slog.String("tenant_id", tenantID), slog.Int64("backoff_duration", nextBackoff.Milliseconds()))
+	select {
+	case <-time.After(nextBackoff):
+	case <-ctx.Done():
+	}
 }

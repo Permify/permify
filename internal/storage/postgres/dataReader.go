@@ -51,14 +51,14 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
 	var tx *sql.Tx
 	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
@@ -75,7 +75,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	var query string
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
@@ -84,7 +84,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	var rows *sql.Rows
 	rows, err = tx.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
@@ -94,18 +94,18 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		rt := storage.RelationTuple{}
 		err = rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation)
 		if err != nil {
-			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 		collection.Add(rt.ToTuple())
 	}
 	if err = rows.Err(); err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	// Commit the transaction.
 	err = tx.Commit()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully retrieved relation tuples from the database")
@@ -126,14 +126,14 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
 	var tx *sql.Tx
 	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
@@ -150,12 +150,12 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 		var v uint64
 		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
 		builder = builder.Where(squirrel.GtOrEq{"id": v})
 	}
@@ -167,7 +167,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	var args []interface{}
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
@@ -176,7 +176,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	var rows *sql.Rows
 	rows, err = tx.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
@@ -188,20 +188,20 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 		rt := storage.RelationTuple{}
 		err = rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 		lastID = rt.ID
 		tuples = append(tuples, rt.ToTuple())
 	}
 	// Check for any errors during iteration.
 	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	// Commit the transaction.
 	err = tx.Commit()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully read relation tuples from database")
@@ -226,14 +226,14 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
 	var tx *sql.Tx
 	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
@@ -250,7 +250,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	var query string
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
@@ -268,7 +268,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		} else {
-			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 	}
 
@@ -277,13 +277,13 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	unmarshaler := &jsonpb.Unmarshaler{}
 	err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Commit the transaction.
 	err = tx.Commit()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully retrieved Single attribute from the database")
@@ -303,14 +303,14 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
 	var tx *sql.Tx
 	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
@@ -327,7 +327,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	var query string
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
@@ -336,7 +336,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	var rows *sql.Rows
 	rows, err = tx.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
@@ -351,7 +351,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 		// Scan the row from the database into the fields of `rt` and `valueStr`.
 		err := rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 		if err != nil {
-			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 
 		// Unmarshal the JSON data from `valueStr` into `rt.Value`.
@@ -359,19 +359,19 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 		unmarshaler := &jsonpb.Unmarshaler{}
 		err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
 		if err != nil {
-			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 
 		collection.Add(rt.ToAttribute())
 	}
 	if err = rows.Err(); err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	// Commit the transaction.
 	err = tx.Commit()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully retrieved attributes tuples from the database")
@@ -392,14 +392,14 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
 	var tx *sql.Tx
 	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
@@ -416,12 +416,12 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 		var v uint64
 		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
 		builder = builder.Where(squirrel.GtOrEq{"id": v})
 	}
@@ -433,7 +433,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	var args []interface{}
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
@@ -442,7 +442,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	var rows *sql.Rows
 	rows, err = tx.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
@@ -459,7 +459,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 		// Scan the row from the database into the fields of `rt` and `valueStr`.
 		err := rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 		lastID = rt.ID
 
@@ -468,20 +468,20 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 		unmarshaler := &jsonpb.Unmarshaler{}
 		err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 
 		attributes = append(attributes, rt.ToAttribute())
 	}
 	// Check for any errors during iteration.
 	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	// Commit the transaction.
 	err = tx.Commit()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully read attributes from the database")
@@ -506,14 +506,14 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
 	var tx *sql.Tx
 	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
@@ -527,12 +527,12 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 		var v uint64
 		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
 
 		query = fmt.Sprintf("%s WHERE id >= %s", query, strconv.FormatUint(v, 10))
@@ -547,7 +547,7 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	var rows *sql.Rows
 	rows, err = tx.QueryContext(ctx, query)
 	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
@@ -559,7 +559,7 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 		var entityId string
 		err = rows.Scan(&lastID, &entityId)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 
 		entityIDs = append(entityIDs, entityId)
@@ -567,13 +567,13 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 
 	// Check for any errors during iteration.
 	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Commit the transaction.
 	err = tx.Commit()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully retrieved unique entities from the database")
@@ -598,14 +598,14 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
 	var tx *sql.Tx
 	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
@@ -626,12 +626,12 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 		var v uint64
 		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
 		builder = builder.Where(squirrel.GtOrEq{"id": v})
 	}
@@ -643,7 +643,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	var args []interface{}
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
@@ -652,7 +652,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	var rows *sql.Rows
 	rows, err = tx.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
@@ -664,19 +664,19 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 		var subjectID string
 		err = rows.Scan(&lastID, &subjectID)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 		subjectIDs = append(subjectIDs, subjectID)
 	}
 	// Check for any errors during iteration.
 	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	// Commit the transaction.
 	err = tx.Commit()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully retrieved unique subject references from the database")
@@ -703,7 +703,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	builder := r.database.Builder.Select("id").From(TransactionsTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("id DESC").Limit(1)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	// Execute the query and retrieve the highest transaction ID.
@@ -713,7 +713,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 		if errors.Is(err, sql.ErrNoRows) {
 			return snapshot.Token{Value: types.XID8{Uint: 0}}, nil
 		}
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	slog.Debug("successfully retrieved latest snapshot token")

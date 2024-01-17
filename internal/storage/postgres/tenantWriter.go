@@ -3,9 +3,12 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log/slog"
 	"strings"
 	"time"
+
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/Masterminds/squirrel"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -44,12 +47,15 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 	err = query.QueryRowContext(ctx).Scan(&createdAt)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value") {
-			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT)
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			slog.Error("error encountered", slog.Any("error", err))
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
 		}
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.Debug("successfully created Tenant", slog.Any("id", id), slog.Any("name", name), slog.Any("createdAt", createdAt))
+	slog.Debug("successfully created Tenant", slog.Any("id", id), slog.Any("name", name), slog.Any("created_at", createdAt))
 
 	return &base.Tenant{
 		Id:        id,
@@ -71,7 +77,7 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 	query := w.database.Builder.Delete(TenantsTable).Where(squirrel.Eq{"id": tenantID}).Suffix("RETURNING name, created_at").RunWith(w.database.DB)
 	err = query.QueryRowContext(ctx).Scan(&name, &createdAt)
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully deleted tenant")
