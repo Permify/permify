@@ -40,7 +40,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 		builder = builder.Where(squirrel.GtOrEq{"id": t.(utils.ContinuousToken).Value})
 	}
@@ -52,7 +52,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
@@ -60,7 +60,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	var rows *sql.Rows
 	rows, err = r.database.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
@@ -70,13 +70,13 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		sd := storage.Tenant{}
 		err = rows.Scan(&sd.ID, &sd.Name, &sd.CreatedAt)
 		if err != nil {
-			return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 		lastID = sd.ID
 		tenants = append(tenants, sd.ToTenant())
 	}
 	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	slog.Debug("successfully listed tenants", slog.Any("number_of_tenants", len(tenants)))

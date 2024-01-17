@@ -44,14 +44,14 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.Schema
 
 	query, args, err = insertBuilder.ToSql()
 	if err != nil {
-		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("executing sql insert query", slog.Any("query", query), slog.Any("arguments", args))
 
 	_, err = w.database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully wrote schemas to the database", slog.Any("number_of_schemas", len(schemas)))

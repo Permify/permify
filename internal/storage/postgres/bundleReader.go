@@ -41,7 +41,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
@@ -55,7 +55,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String())
 		}
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	m := jsonpb.Unmarshaler{}

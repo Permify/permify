@@ -44,7 +44,7 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 		m := jsonpb.Marshaler{}
 		jsonStr, err := m.MarshalToString(bundle.DataBundle)
 		if err != nil {
-			return names, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
+			return names, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
 		}
 
 		insertBuilder = insertBuilder.Values(bundle.Name, jsonStr, bundle.TenantID)
@@ -55,14 +55,14 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 
 	query, args, err = insertBuilder.ToSql()
 	if err != nil {
-		return names, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return names, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.Debug("executing sql insert query", slog.Any("query", query), slog.Any("arguments", args))
 
 	_, err = b.database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-		return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("successfully wrote bundles to the database", slog.Any("number_of_bundles", len(bundles)))
@@ -83,12 +83,12 @@ func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err e
 
 	query, args, err = deleteBuilder.ToSql()
 	if err != nil {
-		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	_, err = b.database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-		return utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.Debug("bundle successfully deleted")
