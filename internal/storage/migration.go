@@ -8,14 +8,16 @@ import (
 	"github.com/pressly/goose/v3"
 
 	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
 const (
-	postgresMigrationDir = "postgres/migrations"
-	postgresDialect      = "postgres"
-	migrationsTable      = "migrations"
+	postgresMigrationDir    = "postgres/migrations"
+	postgresDialect         = "postgres"
+	migrationsTable         = "migrations"
+	earliestPostgresVersion = 130008
 )
 
 //go:embed postgres/migrations/*.sql
@@ -33,6 +35,12 @@ func Migrate(conf config.Database) (err error) {
 		}
 		// Ensure database connection is closed when function returns
 		defer closeDB(db)
+
+		// check postgres version
+		_, err = utils.EnsureDBVersion(db.DB)
+		if err != nil {
+			return err
+		}
 
 		// Set table name for migrations
 		goose.SetTableName(migrationsTable)

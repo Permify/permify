@@ -5,6 +5,7 @@ import (
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/storage/memory/migrations"
+	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	IMDatabase "github.com/Permify/permify/pkg/database/memory"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -37,6 +38,12 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 		if err != nil {
 			return nil, err
 		}
+		// check postgres version
+		_, err = utils.EnsureDBVersion(db.(*PQDatabase.Postgres).DB)
+		if err != nil {
+			return nil, err
+		}
+
 		return
 	case database.MEMORY.String():
 		db, err = IMDatabase.New(migrations.Schema)
