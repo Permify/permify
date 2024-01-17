@@ -5,11 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
-	"strings"
-
-	"github.com/golang/protobuf/jsonpb"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
 	"github.com/Permify/permify/internal/storage/postgres/types"
@@ -67,15 +66,16 @@ func (w *DataWriter) Write(
 		tkn, err := w.write(ctx, tenantID, tupleCollection, attributeCollection)
 		if err != nil {
 			// Check if the error is due to serialization, and if so, retry.
-			if strings.Contains(err.Error(), "could not serialize") {
+			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
 				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+				utils.WaitWithBackoff(ctx, tenantID, i)
 				continue // Retry the operation.
 			}
 			// If the error is not serialization-related, handle it and return.
-			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
 		}
 		// If to write is successful, return the token.
-		return tkn, err
+		return tkn, nil
 	}
 
 	// Log an error if the operation failed after reaching the maximum number of retries.
@@ -106,15 +106,16 @@ func (w *DataWriter) Delete(
 		tkn, err := w.delete(ctx, tenantID, tupleFilter, attributeFilter)
 		if err != nil {
 			// Check if the error is due to serialization, and if so, retry.
-			if strings.Contains(err.Error(), "could not serialize") {
+			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
 				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+				utils.WaitWithBackoff(ctx, tenantID, i)
 				continue // Retry the operation.
 			}
 			// If the error is not serialization-related, handle it and return.
-			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
 		}
 		// If the delete operation is successful, return the token.
-		return tkn, err
+		return tkn, nil
 	}
 
 	// Log an error if the operation failed after reaching the maximum number of retries.
@@ -145,15 +146,16 @@ func (w *DataWriter) RunBundle(
 		tkn, err := w.runBundle(ctx, tenantID, arguments, b)
 		if err != nil {
 			// Check if the error is due to serialization, and if so, retry.
-			if strings.Contains(err.Error(), "could not serialize") {
-				slog.Warn("Serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
+				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+				utils.WaitWithBackoff(ctx, tenantID, i)
 				continue // Retry the operation.
 			}
 			// If the error is not serialization-related, handle it and return.
-			return nil, utils.HandleError(span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
 		}
 		// If the operation is successful, return the token.
-		return tkn, err
+		return tkn, nil
 	}
 
 	// Log an error if the operation failed after reaching the maximum number of retries.
