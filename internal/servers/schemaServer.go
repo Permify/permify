@@ -40,14 +40,14 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		return nil, err
+		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
 	_, _, err = compiler.NewCompiler(true, sch).Compile()
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		return nil, err
+		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
 	version := xid.New().String()
@@ -84,7 +84,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	if version == "" {
 		ver, err := r.sr.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 		version = ver
 	}

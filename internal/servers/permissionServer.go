@@ -32,7 +32,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	response, err := r.invoker.Check(ctx, request)
@@ -53,7 +53,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	response, err := r.invoker.Expand(ctx, request)
@@ -74,7 +74,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	response, err := r.invoker.LookupEntity(ctx, request)
@@ -116,7 +116,7 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	response, err := r.invoker.LookupSubject(ctx, request)
@@ -137,7 +137,7 @@ func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.Pe
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	response, err := r.invoker.SubjectPermission(ctx, request)
