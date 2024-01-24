@@ -14,4 +14,4 @@ import {CardList} from '../../src/components/Card';
 <CardList />
 ```
 
-If options your deployment preference is not listed below please let us know Also if you have any questions join our [Discord community](https://discord.gg/n6KfzYxhPp) or send us an email at support@permify.co.
+If your deployment preference is not listed above, please let us know by joining our [Discord Community](https://discord.gg/n6KfzYxhPp)!

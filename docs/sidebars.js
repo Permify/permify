@@ -61,6 +61,7 @@ module.exports = {
 				"installation/aws",
 				"installation/azure",
 				"installation/google",
+				"installation/helm",
 				"installation/kubernetes",
 			],
 			collapsed: true,

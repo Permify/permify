@@ -42,17 +42,17 @@ export const CardList = () => {
     },
     {
       id:6,
-      title:"Azure CR",
-      description: "Deploy Permify with using Azure Container Registry",
-      imgSrc: "https://user-images.githubusercontent.com/34595361/212458602-994075af-dbfd-408c-a8fb-d583653dce64.png",
-      link: "./azure"
-    },
-    {
-      id:7,
       title:"Google Compute Engine",
       description: "Deploy Permify with using Google Compute Engine",
       imgSrc: "https://user-images.githubusercontent.com/34595361/212458849-354849d8-cbdf-48de-9272-6e6d9ad5856e.svg",
       link: "./google"
+    },
+    {
+      id:7,
+      title:"Helm Charts",
+      description: "Deploying Permify with Helm Charts",
+      imgSrc: "https://user-images.githubusercontent.com/34595361/212458403-4ad18c86-6618-4df4-86f6-167553fcee87.png",
+      link:  "./helm"
     },
   ]
 
