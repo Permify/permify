@@ -3,15 +3,13 @@ package servers
 import (
 	"log/slog"
 
-	"google.golang.org/grpc/status"
-
-	otelCodes "go.opentelemetry.io/otel/codes"
-	"golang.org/x/net/context"
-
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
+	otelCodes "go.opentelemetry.io/otel/codes"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/status"
 )
 
 // DataServer - Structure for Data Server
@@ -46,14 +44,14 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	snap := request.GetMetadata().GetSnapToken()
 	if snap == "" {
 		st, err := r.dr.HeadSnapshot(ctx, request.GetTenantId())
 		if err != nil {
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 		snap = st.Encode().String()
 	}
@@ -88,14 +86,15 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	snap := request.GetMetadata().GetSnapToken()
 	if snap == "" {
 		st, err := r.dr.HeadSnapshot(ctx, request.GetTenantId())
+
 		if err != nil {
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 		snap = st.Encode().String()
 	}
@@ -130,7 +129,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	version := request.GetMetadata().GetSchemaVersion()
@@ -139,7 +138,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 		version = v
 	}
@@ -151,14 +150,14 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 
 		err = validation.ValidateTuple(definition, tup)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 
 		relationships = append(relationships, tup)
@@ -171,14 +170,14 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 
 		err = validation.ValidateAttribute(definition, attribute)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 
 		attributes = append(attributes, attribute)
@@ -204,7 +203,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	version := request.GetMetadata().GetSchemaVersion()
@@ -213,7 +212,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 		version = v
 	}
@@ -225,14 +224,14 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 
 		err = validation.ValidateTuple(definition, tup)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
-			return nil, err
+			return nil, status.Error(GetStatus(err), err.Error())
 		}
 
 		relationships = append(relationships, tup)
@@ -258,12 +257,12 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	err := validation.ValidateFilters(request.GetTupleFilter(), request.GetAttributeFilter())
 	if err != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	snap, err := r.dw.Delete(ctx, request.GetTenantId(), request.GetTupleFilter(), request.GetAttributeFilter())
@@ -286,12 +285,12 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	err := validation.ValidateTupleFilter(request.GetFilter())
 	if err != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	snap, err := r.dw.Delete(ctx, request.GetTenantId(), request.GetFilter(), &v1.AttributeFilter{})
@@ -314,7 +313,7 @@ func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest
 
 	v := request.Validate()
 	if v != nil {
-		return nil, v
+		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
 	bundle, err := r.br.Read(ctx, request.GetTenantId(), request.GetName())
@@ -327,7 +326,7 @@ func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest
 
 	err = validation.ValidateBundleArguments(bundle.GetArguments(), request.GetArguments())
 	if err != nil {
-		return nil, err
+		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
 	snap, err := r.dw.RunBundle(ctx, request.GetTenantId(), request.GetArguments(), bundle)
