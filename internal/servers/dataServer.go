@@ -92,7 +92,6 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 	snap := request.GetMetadata().GetSnapToken()
 	if snap == "" {
 		st, err := r.dr.HeadSnapshot(ctx, request.GetTenantId())
-
 		if err != nil {
 			return nil, status.Error(GetStatus(err), err.Error())
 		}
