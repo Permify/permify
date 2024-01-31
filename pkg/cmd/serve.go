@@ -295,9 +295,19 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			checker = cache.NewCheckEngineWithCache(checker, schemaReader, engineKeyCache)
+			checker = cache.NewCheckEngineWithCache(
+				checker,
+				schemaReader,
+				engineKeyCache,
+				meter,
+			)
 		} else {
-			checker = cache.NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checker = cache.NewCheckEngineWithCache(
+				checkEngine,
+				schemaReader,
+				engineKeyCache,
+				meter,
+			)
 		}
 
 		// Create a localChecker which directly checks without considering distributed setup.
@@ -306,6 +316,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			checkEngine,
 			schemaReader,
 			engineKeyCache,
+			meter,
 		)
 
 		// Initialize the lookupEngine, which is responsible for looking up certain entities or values.

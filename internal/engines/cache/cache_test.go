@@ -43,7 +43,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create a new PermissionCheckRequest and PermissionCheckResponse
 			checkReq := &base.PermissionCheckRequest{
@@ -93,7 +93,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create a new PermissionCheckRequest and PermissionCheckResponse
 			checkReq := &base.PermissionCheckRequest{
@@ -143,7 +143,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create a new PermissionCheckRequest and PermissionCheckResponse
 			checkReq := &base.PermissionCheckRequest{
@@ -287,7 +287,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create a new PermissionCheckRequest
 			checkReq := &base.PermissionCheckRequest{
@@ -322,7 +322,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create some new PermissionCheckRequests and PermissionCheckResponses
 			checkReq1 := &base.PermissionCheckRequest{
@@ -513,7 +513,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -623,7 +623,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -735,7 +735,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -867,7 +867,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -991,7 +991,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1108,7 +1108,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1263,7 +1263,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1389,7 +1389,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1526,7 +1526,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1654,7 +1654,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1772,7 +1772,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -1890,7 +1890,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -2054,7 +2054,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -2206,7 +2206,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -2361,7 +2361,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -2500,7 +2500,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
@@ -2651,7 +2651,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
-			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache)
+			checkEngineWithCache := NewCheckEngineWithCache(checkEngine, schemaReader, engineKeyCache, telemetry.NewNoopMeter())
 
 			invoker := invoke.NewDirectInvoker(
 				schemaReader,
