@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/hex"
 
+	api "go.opentelemetry.io/otel/metric"
+
 	"github.com/cespare/xxhash/v2"
 
 	"github.com/Permify/permify/internal/engines"
@@ -19,15 +21,30 @@ type CheckEngineWithCache struct {
 	schemaReader storage.SchemaReader
 	checker      invoke.Check
 	cache        cache.Cache
+
+	// Metrics
+	cacheCounter api.Int64Counter
 }
 
 // NewCheckEngineWithCache creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
-func NewCheckEngineWithCache(checker invoke.Check, schemaReader storage.SchemaReader, cache cache.Cache) invoke.Check {
+func NewCheckEngineWithCache(
+	checker invoke.Check,
+	schemaReader storage.SchemaReader,
+	cache cache.Cache,
+	meter api.Meter,
+) invoke.Check {
+	// Cache Counter
+	cacheCounter, err := meter.Int64Counter("cache_check_count", api.WithDescription("Number of permission cached checks performed"))
+	if err != nil {
+		panic(err)
+	}
+
 	return &CheckEngineWithCache{
 		schemaReader: schemaReader,
 		checker:      checker,
 		cache:        cache,
+		cacheCounter: cacheCounter,
 	}
 }
 
@@ -52,6 +69,8 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 
 	// If a cached result is found, handle exclusion and return the result.
 	if found {
+		// Increase the check count in the metrics.
+		c.cacheCounter.Add(ctx, 1)
 		// If the request doesn't have the exclusion flag set, return the cached result.
 		return &base.PermissionCheckResponse{
 			Can:      res.GetCan(),
@@ -60,8 +79,7 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 	}
 
 	// Perform the actual permission check using the provided request.
-	res, err = c.checker.Check(ctx, request)
-
+	cres, err := c.checker.Check(ctx, request)
 	// Check if there's an error or the response is nil, and return the result.
 	if err != nil {
 		return &base.PermissionCheckResponse{
@@ -73,12 +91,12 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 	}
 
 	c.setCheckKey(request, &base.PermissionCheckResponse{
-		Can:      res.GetCan(),
+		Can:      cres.GetCan(),
 		Metadata: &base.PermissionCheckResponseMetadata{},
 	}, isRelational)
 
 	// Return the result of the permission check.
-	return res, err
+	return cres, err
 }
 
 // GetCheckKey retrieves the value for the given key from the EngineKeys cache.
