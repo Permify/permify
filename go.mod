@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgio v1.0.0
-	github.com/jackc/pgtype v1.14.0
+	github.com/jackc/pgtype v1.14.1
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/juju/ratelimit v1.0.2
 	github.com/onsi/ginkgo/v2 v2.13.2
