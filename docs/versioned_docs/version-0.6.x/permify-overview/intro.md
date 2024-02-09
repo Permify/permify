@@ -18,7 +18,7 @@ Our goal is to make **Google's Zanzibar** available to everyone and help them to
 
 🛡️ **Production ready** authorization API that serve as **gRPC** and **REST**.
 
-🔮 Domain Specific Authorization Language to **easily model** your authorization. SUpporting RBAC, ReBAC, ABAC and more.
+🔮 Domain Specific Authorization Language to **easily model** your authorization. Supporting RBAC, ReBAC, ABAC and more.
 
 🔐 Database Configuration to store your permissions with **high availability** and **low latency**.
 
@@ -28,7 +28,7 @@ Our goal is to make **Google's Zanzibar** available to everyone and help them to
 
 ⚙️ Create custom permissions for your **tenants**, and manage them in a single place with **Multi Tenancy**.
 
-⚡ Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin].f
+⚡ Analyze **performance and behavior** of your authorization with tracing tools [jaeger], [signoz] or [zipkin].
 
 [jaeger]: https://www.jaegertracing.io/
 [signoz]: https://signoz.io/
