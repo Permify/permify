@@ -1,0 +1,33 @@
+# Config file for [Air](https://github.com/cosmtrek/air) in TOML format
+
+# Working directory
+# . or absolute path, please note that the directories following must be under root
+root = "."
+tmp_dir = "/tmp"
+
+[build]
+# Just plain old shell command. You could use `make` as well.
+cmd = "go build -o ./tmp/app/permify ./cmd/permify"
+# Binary file yields from `cmd`.
+bin = "/tmp/app"
+
+# Customize binary.
+# This is how you start to run your application. Since my application will works like CLI, so to run it, like to make a CLI call.
+full_bin = "./tmp/app/permify serve --database-engine postgres --database-uri postgres://postgres:secret@database:5432/permify --database-max-open-connections 20"
+# This log file places in your tmp_dir.
+log = "air_errors.log"
+# Watch these filename extensions.
+include_ext = ["go", "yaml",".env"]
+# Ignore these filename extensions or directories.
+exclude_dir = ["tmp", "docs"]
+# It's not necessary to trigger build each time file changes if it's too frequent.
+delay = 500 # ms
+
+[log]
+# Show log time
+time = true
+[color]
+
+[misc]
+# Delete tmp directory on exit
+clean_on_exit = true

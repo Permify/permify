@@ -1,31 +1,40 @@
 version: "3.9"
 services:
-  permify:
-    image: "ghcr.io/permify/permify:latest"
-    command: "serve --database-engine postgres --database-uri postgres://postgres:secret@database:5432/permify --database-max-open-connections 20"
-    restart: "always"
-    ports:
-      - "3476:3476"
-      - "3478:3478"
-    depends_on:
-      - "database"
+    permify:
+        build:
+            context: .
+            dockerfile: Dockerfile.local
+        restart: "always"
+        ports:
+            - "3476:3476"
+            - "3478:3478"
+        volumes:
+            - .:/app
+        depends_on:
+            - "database"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:3476/healthz"]
+            interval: 10s
+            retries: 10
+            start_period: 60s
 
-  database:
-    image: "postgres"
-    ports:
-      - "5432:5432"
-    environment:
-      - "POSTGRES_PASSWORD=secret"
-      - "POSTGRES_DB=permify"
+    database:
+        image: "postgres"
+        ports:
+            - "5432:5432"
+        environment:
+            - "POSTGRES_PASSWORD=secret"
+            - "POSTGRES_DB=permify"
 
-  integration:
-    build:
-      context: .
-      dockerfile: integration-test/Dockerfile
-    container_name: integration
-    image: integration
-    depends_on:
-      - permify
+    integration:
+        build:
+            context: .
+            dockerfile: integration-test/Dockerfile
+        container_name: integration
+        image: integration
+        depends_on:
+            permify:
+                condition: service_healthy
 
 volumes:
-  pg-data:
+    pg-data:
