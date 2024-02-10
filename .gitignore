@@ -22,3 +22,4 @@
 vendor/dist/
 /dist
 /config
+/tmp
