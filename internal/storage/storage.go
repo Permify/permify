@@ -147,6 +147,22 @@ func (n *NoopSchemaReader) HeadVersion(_ context.Context, _ string) (string, err
 	return "", nil
 }
 
+// SchemaUpdater - Updates schema defitions to the storage
+type SchemaUpdater interface {
+	// UpdateSchema updates the entity configs in the storage
+	UpdateSchema(ctx context.Context, tenantID, version string, definitions map[string]map[string][]string) (schema []string, err error)
+}
+
+type NoopSchemaUpdater struct{}
+
+func NewNoopSchemaUpdater() SchemaUpdater {
+	return &NoopSchemaUpdater{}
+}
+
+func (n *NoopSchemaUpdater) UpdateSchema(_ context.Context, _, _ string, _ map[string]map[string][]string) (schema []string, err error) {
+	return nil, nil
+}
+
 // SchemaWriter - Writes schema definitions to the storage.
 type SchemaWriter interface {
 	// WriteSchema writes schema to the storage.

@@ -56,6 +56,7 @@ func NewContainer() *Development {
 	bundleReader := factories.BundleReaderFactory(db)
 	bundleWriter := factories.BundleWriterFactory(db)
 	schemaReader := factories.SchemaReaderFactory(db)
+	schemaUpdater := factories.SchemaUpdaterFactory(db)
 	schemaWriter := factories.SchemaWriterFactory(db)
 	tenantReader := factories.TenantReaderFactory(db)
 	tenantWriter := factories.TenantWriterFactory(db)
@@ -87,6 +88,7 @@ func NewContainer() *Development {
 			bundleReader,
 			bundleWriter,
 			schemaReader,
+			schemaUpdater,
 			schemaWriter,
 			tenantReader,
 			tenantWriter,

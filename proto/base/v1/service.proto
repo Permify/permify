@@ -616,9 +616,6 @@ message SchemaPartialWriteResponse {
 
   // schema_version is the string that identifies the version of the written schema.
   string schema_version = 1 [json_name = "schema_version"];
-
-  // schema is the SchemaDefinition that represents the updated schema.
-  SchemaDefinition schema = 2 [json_name = "schema"];
 }
 
 // READ

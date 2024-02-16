@@ -2520,10 +2520,6 @@
         "schema_version": {
           "type": "string",
           "description": "schema_version is the string that identifies the version of the written schema."
-        },
-        "schema": {
-          "$ref": "#/definitions/SchemaDefinition",
-          "description": "schema is the SchemaDefinition that represents the updated schema."
         }
       },
       "description": "SchemaPartialWriteResponse is the response message for the Parital Write method in the Schema service.\nIt returns the requested schema."

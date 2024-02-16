@@ -33,3 +33,17 @@ func GetStatus(err error) codes.Code {
 		return codes.Internal
 	}
 }
+
+// MultiError represents multiple errors.
+type MultiError struct {
+	Errors []error
+}
+
+// Error returns the concatenated error messages.
+func (m *MultiError) Error() string {
+	var errMsg string
+	for _, err := range m.Errors {
+		errMsg += err.Error() + "\n"
+	}
+	return errMsg
+}
