@@ -217,6 +217,11 @@ You will then be able to specify not only individual users but also members of a
 - organization:1#viewer@user:U2
 - organization:1#viewer@organization:O1#member
 
+
+With `organization:1#viewer@organization:O1#member` all members of the organization O1 will have the right to perform the relevant action.
+
+In other words, all members in O1 now end up having the relevant `viewer` relation.
+
 You can think of these definitions as a precaution taken against creating undesired user set relationships.
 :::
 
