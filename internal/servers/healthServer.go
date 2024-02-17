@@ -28,3 +28,8 @@ func (s *HealthServer) Watch(_ *health.HealthCheckRequest, _ health.Health_Watch
 	// Example of how to register both methods but only implement the Check method.
 	return status.Error(codes.Unimplemented, "unimplemented")
 }
+
+// AuthFuncOverride is called instead of authn.
+func (s *HealthServer) AuthFuncOverride(ctx context.Context, fullMethodName string) (context.Context, error) {
+	return ctx, nil
+}

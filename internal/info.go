@@ -16,7 +16,7 @@ var Identifier = ""
 */
 const (
 	// Version is the last release of the Permify (e.g. v0.1.0)
-	Version = "v0.7.3"
+	Version = "v0.7.4"
 
 	// Banner is the view for terminal.
 	Banner = `
