@@ -149,7 +149,7 @@ func (n *NoopSchemaReader) HeadVersion(_ context.Context, _ string) (string, err
 
 // SchemaUpdater - Updates schema defitions to the storage
 type SchemaUpdater interface {
-	// UpdateSchema updates the entity configs in the storage
+	// UpdateSchema updates the entity configs and returns the schema statements
 	UpdateSchema(ctx context.Context, tenantID, version string, definitions map[string]map[string][]string) (schema []string, err error)
 }
 
