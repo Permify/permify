@@ -128,7 +128,7 @@ func updateStatementsInSchema(entity string, statements []string) (string, []err
 			}
 		}
 		if !found {
-			allErrors = append(allErrors, fmt.Errorf("Invalid update statement, relation does not exist"))
+			allErrors = append(allErrors, fmt.Errorf("Invalid update statement: %s", stmt))
 		}
 	}
 	entity = strings.Join(lines, "\n")
