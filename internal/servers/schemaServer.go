@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -99,5 +100,30 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 
 	return &v1.SchemaReadResponse{
 		Schema: response,
+	}, nil
+}
+
+// List - List Schemas
+func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) (*v1.SchemaListResponse, error) {
+	ctx, span := tracer.Start(ctx, "schemas.list")
+	defer span.End()
+
+	schemas, ct, err := r.sr.ListSchemas(ctx, request.GetTenantId(), database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken())))
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		slog.Error(err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	head, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+	if err != nil {
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	return &v1.SchemaListResponse{
+		Head: head,
+		Schemas: schemas,
+		ContinuousToken: ct.String(),
 	}, nil
 }

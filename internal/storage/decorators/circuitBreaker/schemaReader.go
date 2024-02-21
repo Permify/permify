@@ -6,6 +6,7 @@ import (
 	"github.com/sony/gobreaker"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -82,4 +83,25 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 		return "", err
 	}
 	return response.(string), nil
+}
+
+// ListSchemas - List all Schemas
+func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+	type circuitBreakerResponse struct {
+		Schemas []*base.SchemaList
+		Ct      database.EncodedContinuousToken
+	}
+
+	response, err := r.cb.Execute(func() (interface{}, error) {
+		var err error
+		var resp circuitBreakerResponse
+		resp.Schemas, resp.Ct, err = r.delegate.ListSchemas(ctx, tenantID, pagination)
+		return resp, err
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resp := response.(circuitBreakerResponse)
+	return resp.Schemas, resp.Ct, nil
 }

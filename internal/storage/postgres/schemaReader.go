@@ -7,10 +7,12 @@ import (
 	"log/slog"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/rs/xid"
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
+	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -203,4 +205,68 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 	slog.Debug("successfully found the latest schema version", slog.Any("version", version))
 
 	return version, nil
+}
+
+// ListSchemas - List all Schemas
+func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+	ctx, span := tracer.Start(ctx, "tenant-reader.list-tenants")
+	defer span.End()
+	
+	slog.Debug("listing schemas with pagination", slog.Any("pagination", pagination))
+
+	builder := r.database.Builder.Select("DISTINCT version").From(SchemaDefinitionTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	if pagination.Token() != "" {
+		var t database.ContinuousToken
+		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
+		if err != nil {
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		}
+		builder = builder.Where(squirrel.GtOrEq{"version": t.(utils.ContinuousToken).Value})
+	}
+
+	builder = builder.OrderBy("version").Limit(uint64(pagination.PageSize() + 1))
+
+	var query string
+	var args []interface{}
+
+	query, args, err = builder.ToSql()
+	if err != nil {
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+	}
+
+	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
+
+	var rows *sql.Rows
+	rows, err = r.database.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	}
+	defer rows.Close()
+
+	var lastVersion string
+	schemas = make([]*base.SchemaList, 0, pagination.PageSize()+1)
+	for rows.Next() {
+		schema := &base.SchemaList{}
+		err = rows.Scan(&schema.Version)
+		if err != nil {
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		}
+		id, err := xid.FromString(schema.Version)
+		if err != nil {
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		}
+		schema.CreatedAt = id.Time().String()
+		lastVersion = schema.Version
+		schemas = append(schemas, schema)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+	}
+
+	slog.Debug("successfully listed schemas", slog.Any("number_of_schemas", len(schemas)))
+
+	if len(schemas) > int(pagination.PageSize()) {
+		return schemas[:pagination.PageSize()], utils.NewContinuousToken(lastVersion).Encode(), nil
+	}
+	return schemas, database.NewNoopContinuousToken().Encode(), nil
 }
