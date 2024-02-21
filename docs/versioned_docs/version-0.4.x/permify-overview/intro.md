@@ -79,7 +79,7 @@ This document explains how Permify handles these aspects to provide a robust and
             <div className="thumb-txt">Set up Permify Service in your environment</div>
         </div>
     </a>
-    <a href="https://www.permify.co/post/google-zanzibar-in-a-nutshell">
+    <a href="https://permify.co/post/google-zanzibar-in-a-nutshell/">
         <div className="btn-thumb">
             <div className="thumbnail">
                 <img src="https://uploads-ssl.webflow.com/61bb34defcff34f786b458ce/634520d7859cd419ec89f9ef_Google%20Zanzibar%20in%20a%20Nutshell-1.png"/>
