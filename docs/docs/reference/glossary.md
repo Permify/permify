@@ -14,9 +14,9 @@ Google published Zanzibar back in 2019, and in a short time it gained attention 
 
 For more about Zanzibar check our blog post, [Google Zanzibar In A Nutshell]
 
-[Google Zanzibar In A Nutshell]: https://www.permify.co/post/google-zanzibar-in-a-nutshell
+[Google Zanzibar In A Nutshell]: https://permify.co/post/google-zanzibar-in-a-nutshell/
 [Google Zanzibar]: https://research.google/pubs/pub48190/
-[Permify]: https://www.permify.co/
+[Permify]: https://permify.co/
 
 ## Permify Schema
 
@@ -38,7 +38,7 @@ Permify stores your relational tuples (authorization data) in a database you pre
 
 ReBAC is an access control model that defines permissions based on the relationships between entities and subjects of your system. Although ReBAC is best known for social networks because its core concept is about the network of relations, it can be applied beyond that. 
 
-Check out [Relational Based Access Control Models](https://www.permify.co/post/relational-based-access-control-models) post learn more about ReBAC and its common usage.
+Check out [Relationship Based Access Control Models](https://permify.co/post/relationship-based-access-control-rebac/) post learn more about ReBAC and its common usage.
 
 ## Domain Specific Language (DSL)
 

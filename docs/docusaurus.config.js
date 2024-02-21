@@ -128,7 +128,7 @@ const config = {
               items: [
                 {
                   label: 'Blog',
-                  to: 'https://www.permify.co/post',
+                  to: 'https://permify.co/post/',
                 },
                 {
                   label: 'GitHub',

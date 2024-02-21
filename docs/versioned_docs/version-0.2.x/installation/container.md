@@ -105,7 +105,7 @@ database:
 [jaeger]: https://www.jaegertracing.io/
 [zipkin]: https://zipkin.io/
 [signoz]: https://signoz.io/
-[change log]: https://www.permify.co/changelog/
+[change log]: https://permify.co/changelog/
 
 ### Configure With Using Flags
 

@@ -1,7 +1,7 @@
 
 # Relationship Based Access Control
 
-Permify has designed and structured as a true [Relational Based Access Control(ReBAC)](https://www.permify.co/post/relational-based-access-control-models/) solution, so besides roles and attributes Permify also supports indirect permission granting through relationships.
+Permify has designed and structured as a true [Relationship Based Access Control(ReBAC)](https://permify.co/post/relationship-based-access-control-rebac/) solution, so besides roles and attributes Permify also supports indirect permission granting through relationships.
 
 Here are some common use cases where you can benefit from using ReBAC models in your Permify Schema.
 

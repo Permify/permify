@@ -8,11 +8,11 @@ sidebar_position: 1
 
 With Permify, you can easily structure your authorization model, store authorization data in your preferred database, and interact with the Permify API to handle all authorization queries from your applications or services.
 
-Permify is inspired by Google’s consistent, global authorization system, [Google Zanzibar](https://www.permify.co/post/google-zanzibar-in-a-nutshell/).
+Permify is inspired by Google’s consistent, global authorization system, [Google Zanzibar](https://permify.co/post/google-zanzibar-in-a-nutshell/).
 
 ### Motivation
 
-Our goal is to make **Google's Zanzibar** available to everyone and help them to build robust, flexible, and easily auditable authorization system that establishes a [natural linkage between permissions](https://www.permify.co/post/power-of-relational-based-access-control/) across the business units, functions, and entities of an organization.
+Our goal is to make **Google's Zanzibar** available to everyone and help them to build robust, flexible, and easily auditable authorization system that establishes a [natural linkage between permissions](https://permify.co/post/relationship-based-access-control-rebac/) across the business units, functions, and entities of an organization.
 
 ## Key Features
 
@@ -65,7 +65,7 @@ This document explains how Permify handles these aspects to provide a robust and
             <div className="thumb-txt">Set up Permify Service in your environment</div>
         </div>
     </a>
-    <a href="https://www.permify.co/post/google-zanzibar-in-a-nutshell">
+    <a href="https://permify.co/post/google-zanzibar-in-a-nutshell/">
         <div className="btn-thumb">
             <div className="thumbnail">
                 <img src="https://uploads-ssl.webflow.com/61bb34defcff34f786b458ce/634520d7859cd419ec89f9ef_Google%20Zanzibar%20in%20a%20Nutshell-1.png"/>
