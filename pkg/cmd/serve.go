@@ -146,6 +146,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		db, err := factories.DatabaseFactory(cfg.Database)
 		if err != nil {
 			slog.Error("failed to initialize database: %w", err)
+			return err
 		}
 		defer func() {
 			if err = db.Close(); err != nil {
@@ -219,6 +220,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		schemaCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Service.Schema.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Service.Schema.Cache.MaxCost))
 		if err != nil {
 			slog.Error(err.Error())
+			return err
 		}
 
 		// engines cache cache
@@ -226,6 +228,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		engineKeyCache, err = ristretto.New(ristretto.NumberOfCounters(cfg.Service.Permission.Cache.NumberOfCounters), ristretto.MaxCost(cfg.Service.Permission.Cache.MaxCost))
 		if err != nil {
 			slog.Error(err.Error())
+			return err
 		}
 
 		watcher := storage.NewNoopWatcher()
