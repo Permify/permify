@@ -54,6 +54,21 @@ func SchemaReaderFactory(db database.Database) (repo storage.SchemaReader) {
 	}
 }
 
+// SchemaUpdaterFactory creates and returns a SchemaUpdater based on the database engine type.
+func SchemaUpdaterFactory(db database.Database) (repo storage.SchemaUpdater) {
+	switch db.GetEngineType() {
+	case "postgres":
+		// If the database engine is Postgres, create a new SchemaUpdater using the Postgres implementation
+		return PQRepository.NewSchemaUpdater(db.(*PQDatabase.Postgres))
+	case "memory":
+		// If the database engine is in-memory, create a new SchemaUpdater using the in-memory implementation
+		return MMRepository.NewSchemaUpdater(db.(*MMDatabase.Memory))
+	default:
+		// For any other type, use the in-memory implementation as default
+		return MMRepository.NewSchemaUpdater(db.(*MMDatabase.Memory))
+	}
+}
+
 // WatcherFactory creates and returns a Watcher based on the database engine type.
 func WatcherFactory(db database.Database) (repo storage.Watcher) {
 	switch db.GetEngineType() {

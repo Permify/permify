@@ -57,6 +57,8 @@ type Container struct {
 	BW storage.BundleWriter
 	// SchemaReader for reading schemas from storage
 	SR storage.SchemaReader
+	// SchemaUpdater for updating schemas in storage
+	SU storage.SchemaUpdater
 	// SchemaWriter for writing schemas to storage
 	SW storage.SchemaWriter
 	// TenantReader for reading tenant information from storage
@@ -77,6 +79,7 @@ func NewContainer(
 	br storage.BundleReader,
 	bw storage.BundleWriter,
 	sr storage.SchemaReader,
+	su storage.SchemaUpdater,
 	sw storage.SchemaWriter,
 	tr storage.TenantReader,
 	tw storage.TenantWriter,
@@ -89,6 +92,7 @@ func NewContainer(
 		BR:      br,
 		BW:      bw,
 		SR:      sr,
+		SU: 	 su,
 		SW:      sw,
 		TR:      tr,
 		TW:      tw,
@@ -174,7 +178,7 @@ func (s *Container) Run(
 
 	// Register various gRPC services to the server.
 	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.Invoker))
-	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR))
+	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR, s.SU))
 	grpcV1.RegisterDataServer(grpcServer, NewDataServer(s.DR, s.DW, s.BR, s.SR))
 	grpcV1.RegisterBundleServer(grpcServer, NewBundleServer(s.BR, s.BW))
 	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW))

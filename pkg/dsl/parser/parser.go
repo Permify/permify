@@ -63,14 +63,26 @@ func NewParser(str string) (p *Parser) {
 	}
 
 	// register prefix parsing functions for token types IDENT and NOT
-	p.prefixParseFns = make(map[token.Type]prefixParseFn)  // initialize an empty map for prefix parsing functions
-	p.registerPrefix(token.IDENT, p.parseIdentifierOrCall) // associate the parseIdentifier function with the IDENT token type
+	p.prefixParseFns = make(map[token.Type]prefixParseFn) // initialize an empty map for prefix parsing functions
+	p.registerPrefix(
+		token.IDENT,
+		p.parseIdentifierOrCall,
+	) // associate the parseIdentifier function with the IDENT token type
 
 	// register infix parsing functions for token types AND, OR, NOT
 	p.infixParseFunc = make(map[token.Type]infixParseFn) // initialize an empty map for infix parsing functions
-	p.registerInfix(token.AND, p.parseInfixExpression)   // associate the parseInfixExpression function with the AND token type
-	p.registerInfix(token.OR, p.parseInfixExpression)    // associate the parseInfixExpression function with the OR token type
-	p.registerInfix(token.NOT, p.parseInfixExpression)   // associate the parseInfixExpression function with the OR token type
+	p.registerInfix(
+		token.AND,
+		p.parseInfixExpression,
+	) // associate the parseInfixExpression function with the AND token type
+	p.registerInfix(
+		token.OR,
+		p.parseInfixExpression,
+	) // associate the parseInfixExpression function with the OR token type
+	p.registerInfix(
+		token.NOT,
+		p.parseInfixExpression,
+	) // associate the parseInfixExpression function with the OR token type
 
 	return p // return the newly created Parser object and no error
 }
@@ -180,6 +192,15 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	case token.RULE:
 		// if the currentToken is RULE, parse a RuleStatement
 		return p.parseRuleStatement()
+	case token.RELATION:
+		// if currentToken is RELATION, parse a RelationStatement (only for partial update scenario)
+		return p.parseRelationStatement("")
+	case token.ATTRIBUTE:
+		// if currentToken is ATTRIBUTE, parse an AttributeStatement (only for partial update scenario)
+		return p.parseAttributeStatement("")
+	case token.PERMISSION:
+		// if currentToken is PERMISSION, parse a PermissionStatement (only for partial update scenario)
+		return p.parsePermissionStatement("")
 	default:
 		return nil, nil
 	}
@@ -826,7 +847,13 @@ func (p *Parser) noPrefixParseFnError(t token.Type) {
 // It takes one or more token types as arguments that indicate the expected types.
 func (p *Parser) peekError(t ...token.Type) {
 	expected := strings.Join(tokenTypesToStrings(t), ", ")
-	msg := fmt.Sprintf("%v:%v:expected next token to be %s, got %s instead", p.l.GetLinePosition(), p.l.GetColumnPosition(), expected, p.peekToken.Type)
+	msg := fmt.Sprintf(
+		"%v:%v:expected next token to be %s, got %s instead",
+		p.l.GetLinePosition(),
+		p.l.GetColumnPosition(),
+		expected,
+		p.peekToken.Type,
+	)
 	p.errors = append(p.errors, msg)
 }
 

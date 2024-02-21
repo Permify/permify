@@ -242,6 +242,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		bundleReader := factories.BundleReaderFactory(db)
 		bundleWriter := factories.BundleWriterFactory(db)
 		schemaReader := factories.SchemaReaderFactory(db)
+		schemaUpdater := factories.SchemaUpdaterFactory(db)
 		schemaWriter := factories.SchemaWriterFactory(db)
 		tenantReader := factories.TenantReaderFactory(db)
 		tenantWriter := factories.TenantWriterFactory(db)
@@ -373,6 +374,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			bundleReader,
 			bundleWriter,
 			schemaReader,
+			schemaUpdater,
 			schemaWriter,
 			tenantReader,
 			tenantWriter,
