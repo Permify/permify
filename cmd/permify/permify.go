@@ -34,6 +34,9 @@ func main() {
 	version := cmd.NewVersionCommand()
 	root.AddCommand(version)
 
+	env := cmd.NewEnvCommand()
+	root.AddCommand(env)
+
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}
