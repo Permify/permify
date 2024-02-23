@@ -229,6 +229,16 @@ var _ = Describe("authn-oidc", func() {
 			}
 		})
 	})
+
+	Context("Missing Config", func() {
+		It("Case 1", func() {
+			_, err := NewOidcAuthn(context.Background(), config.Oidc{
+				Audience: "",
+				Issuer:   "https://wrong-url"},
+			)
+			Expect(err.Error()).Should(Equal("error fetching OIDC configuration: failed to execute HTTP request for OIDC configuration: Get \"https://wrong-url/.well-known/openid-configuration\": GET https://wrong-url/.well-known/openid-configuration giving up after 5 attempt(s): Get \"https://wrong-url/.well-known/openid-configuration\": dial tcp: lookup wrong-url: no such host"))
+		})
+	})
 })
 
 func claimOverride(current, overrider *jwt.RegisteredClaims) {
