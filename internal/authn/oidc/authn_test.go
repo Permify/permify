@@ -234,7 +234,8 @@ var _ = Describe("authn-oidc", func() {
 		It("Case 1", func() {
 			_, err := NewOidcAuthn(context.Background(), config.Oidc{
 				Audience: "",
-				Issuer:   "https://wrong-url"},
+				Issuer:   "https://wrong-url",
+			},
 			)
 			Expect(err).ShouldNot(Equal(BeNil()))
 		})
