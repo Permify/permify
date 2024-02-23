@@ -229,6 +229,16 @@ var _ = Describe("authn-oidc", func() {
 			}
 		})
 	})
+
+	Context("Missing Config", func() {
+		It("Case 1", func() {
+			_, err := NewOidcAuthn(context.Background(), config.Oidc{
+				Audience: "",
+				Issuer:   "https://wrong-url"},
+			)
+			Expect(err).ShouldNot(Equal(BeNil()))
+		})
+	})
 })
 
 func claimOverride(current, overrider *jwt.RegisteredClaims) {

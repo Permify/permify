@@ -102,19 +102,14 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 	// Extract the claims from the token.
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		// Return an error if the claims in the token are in an invalid format.
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_CLAIMS.String())
 	}
 
-	// Verify the issuer of the token matches the expected issuer.
 	if ok := claims.VerifyIssuer(oidc.IssuerURL, true); !ok {
-		// Return an error if the token's issuer is invalid.
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_ISSUER.String())
 	}
 
-	// Verify the audience of the token matches the expected audience.
 	if ok := claims.VerifyAudience(oidc.Audience, true); !ok {
-		// Return an error if the token's audience is invalid.
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_AUDIENCE.String())
 	}
 
@@ -150,8 +145,6 @@ func (oidc *Authn) GetKeys() (*keyfunc.JWKS, error) {
 		RefreshInterval: 48 * time.Hour,  // Set the interval to refresh the keys every 48 hours.
 	})
 	if err != nil {
-		// Return a formatted error message if there's an issue fetching the JWKS.
-		// This includes the JWKS URI for clearer debugging information.
 		return nil, fmt.Errorf("failed to fetch keys from '%s': %s", oidc.JwksURI, err)
 	}
 
@@ -193,14 +186,12 @@ func (oidc *Authn) doHTTPRequest(url string) ([]byte, error) {
 	// Create a new HTTP GET request.
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		// Return an error if there's an issue creating the HTTP request.
 		return nil, fmt.Errorf("failed to create HTTP request for OIDC configuration: %s", err)
 	}
 
 	// Send the request using the configured HTTP client.
 	res, err := oidc.httpClient.Do(req)
 	if err != nil {
-		// Return an error if the request fails to execute.
 		return nil, fmt.Errorf("failed to execute HTTP request for OIDC configuration: %s", err)
 	}
 	// Ensure the response body is closed after reading.
@@ -208,7 +199,6 @@ func (oidc *Authn) doHTTPRequest(url string) ([]byte, error) {
 
 	// Check if the HTTP status code indicates success.
 	if res.StatusCode != http.StatusOK {
-		// Return an error if the status code is not 200 OK.
 		return nil, fmt.Errorf("received unexpected status code (%d) while fetching OIDC configuration", res.StatusCode)
 	}
 
@@ -228,29 +218,20 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	var oidcConfig Config
 	// Attempt to unmarshal the JSON body into the oidcConfig struct.
 	if err := json.Unmarshal(body, &oidcConfig); err != nil {
-		// Provide a specific error message indicating failure in JSON parsing.
 		return nil, fmt.Errorf("failed to decode OIDC configuration: %s", err)
 	}
 
-	// Validate that the Issuer field is not empty.
 	if oidcConfig.Issuer == "" {
-		// Return an error highlighting the absence of the issuer in the configuration.
 		return nil, errors.New("issuer value is required but missing in OIDC configuration")
 	}
 
-	// Validate that the JWKsURI field is not empty.
 	if oidcConfig.JWKsURI == "" {
-		// Return an error highlighting the absence of the jwks_uri in the configuration.
-		return nil, errors.New("jwks_uri value is required but missing in OIDC configuration")
 	}
 
 	// Return the successfully parsed configuration.
 	return &oidcConfig, nil
 }
 
-// Close gracefully shuts down the Authn instance by terminating background processes.
 func (oidc *Authn) Close() {
-	// EndBackground stops the background refresh process for the JWKS keys,
-	// ensuring no more go routines are left running for key refresh.
 	oidc.JWKs.EndBackground()
 }
