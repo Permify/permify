@@ -42,7 +42,7 @@ authn:
   enabled: true
   method: preshared
   preshared:
-    keys: []
+    keys: [ ]
 
 # The tracer section enables or disables distributed tracing and sets the
 # exporter and endpoint for the tracing data.
@@ -188,10 +188,10 @@ Real time logs of authorization. Permify uses [zerolog] as a logger.
 
 #### ENV
 
-| Argument                  | ENV                             | Type   |
-|---------------------------|---------------------------------|--------|
-| log-level                 | PERMIFY_LOG_LEVEL               | string |
-| log-output                | PERMIFY_LOG_OUTPUT              | string |
+| Argument   | ENV                | Type   |
+|------------|--------------------|--------|
+| log-level  | PERMIFY_LOG_LEVEL  | string |
+| log-output | PERMIFY_LOG_OUTPUT | string |
 
 </p>
 </details>
@@ -218,7 +218,8 @@ On this method, you must provide a pre shared keys in order to identify yourself
 ├── authn
 |   ├── method
 |   ├── enabled
-|   ├── keys
+|   ├── preshared
+|       ├── keys
 ```
 
 #### Glossary
@@ -231,12 +232,11 @@ On this method, you must provide a pre shared keys in order to identify yourself
 
 #### ENV
 
-| Argument              | ENV                           | Type         |
-|-----------------------|-------------------------------|--------------|
-| authn-enabled         | PERMIFY_AUTHN_ENABLED         | boolean      |
-| authn-method          | PERMIFY_AUTHN_METHOD          | string       |
-| authn-preshared-keys  | PERMIFY_AUTHN_PRESHARED_KEYS  | string array |
-
+| Argument             | ENV                          | Type         |
+|----------------------|------------------------------|--------------|
+| authn-enabled        | PERMIFY_AUTHN_ENABLED        | boolean      |
+| authn-method         | PERMIFY_AUTHN_METHOD         | string       |
+| authn-preshared-keys | PERMIFY_AUTHN_PRESHARED_KEYS | string array |
 
 #### OpenID Connect
 
@@ -253,27 +253,28 @@ authentication.
 ├── authn
 |   ├── method
 |   ├── enabled
-|   ├── client-id
-|   ├── issuer
+|   ├── oidc
+|       ├── issuer
+|       ├── audience
 ```
 
 #### Glossary
 
-| Required | Argument  | Default | Description                                                                                                                                                                                                                       |
-|----------|-----------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [x]      | method    | -       | Authentication method can be either `oidc` or `preshared`.                                                                                                                                                                        |
-| [ ]      | enabled   | false   | switch option authentication config                                                                                                                                                                                               |
-| [x]      | client_id | -       | This is the client ID of the application you're developing. It is a unique identifier that is assigned to your application by the OpenID Connect provider, and it should be included in the JWTs that are issued by the provider. |
-| [x]      | issuer    | -       | This is the URL of the provider that is responsible for authenticating users. You will use this URL to discover information about the provider in step 1 of the authentication process.                                           |
+| Required | Argument | Default | Description                                                                                                                                                                             |
+|----------|----------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [x]      | method   | -       | Authentication method can be either `oidc` or `preshared`.                                                                                                                              |
+| [ ]      | enabled  | false   | switch option authentication config                                                                                                                                                     |
+| [x]      | audience | -       | The audience identifies the intended recipients of the token, typically the API or resource server. It ensures tokens are used only by the authorized party.                            |
+| [x]      | issuer   | -       | This is the URL of the provider that is responsible for authenticating users. You will use this URL to discover information about the provider in step 1 of the authentication process. |
 
 #### ENV
 
-| Argument              | ENV                           | Type         |
-|-----------------------|-------------------------------|--------------|
-| authn-enabled         | PERMIFY_AUTHN_ENABLED         | boolean      |
-| authn-method          | PERMIFY_AUTHN_METHOD          | string       |
-| authn-oidc-issuer     | PERMIFY_AUTHN_OIDC_ISSUER     | string       |
-| authn-oidc-client-id  | PERMIFY_AUTHN_OIDC_CLIENT_ID  | string       |
+| Argument            | ENV                         | Type    |
+|---------------------|-----------------------------|---------|
+| authn-enabled       | PERMIFY_AUTHN_ENABLED       | boolean |
+| authn-method        | PERMIFY_AUTHN_METHOD        | string  |
+| authn-oidc-issuer   | PERMIFY_AUTHN_OIDC_ISSUER   | string  |
+| authn-oidc-audience | PERMIFY_AUTHN_OIDC_AUDIENCE | string  |
 
 </p>
 </details>
@@ -284,7 +285,8 @@ authentication.
 
 #### Definition
 
-Permify integrated with [jaeger], [otlp], [signoz], and [zipkin] tacing tools to analyze performance and behavior of your
+Permify integrated with [jaeger], [otlp], [signoz], and [zipkin] tacing tools to analyze performance and behavior of
+your
 authorization when using Permify.
 
 #### Structure
@@ -300,23 +302,23 @@ authorization when using Permify.
 
 #### Glossary
 
-| Required | Argument | Default | Description                                                                |
-|----------|----------|---------|----------------------------------------------------------------------------|
-| [x]      | exporter | -       | Tracer exporter, the options are `jaeger`, `otlp`, `signoz`, and `zipkin`. |
-| [x]      | endpoint | -       | export uri for tracing data.                                               |
-| [ ]      | enabled  | false   | switch option for tracing.                                                 |
-| [ ]      | urlpath  |         | allows one to override the default URL path for otlp, used for sending traces. If unset, default ("/v1/traces") will be used.                                              |
-| [ ]      | insecure | false   | Whether to use HTTP instead of HTTPs for exporting the traces.             |
+| Required | Argument | Default | Description                                                                                                                   |
+|----------|----------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+| [x]      | exporter | -       | Tracer exporter, the options are `jaeger`, `otlp`, `signoz`, and `zipkin`.                                                    |
+| [x]      | endpoint | -       | export uri for tracing data.                                                                                                  |
+| [ ]      | enabled  | false   | switch option for tracing.                                                                                                    |
+| [ ]      | urlpath  |         | allows one to override the default URL path for otlp, used for sending traces. If unset, default ("/v1/traces") will be used. |
+| [ ]      | insecure | false   | Whether to use HTTP instead of HTTPs for exporting the traces.                                                                |
 
 #### ENV
 
-| Argument             | ENV                           | Type         |
-|----------------------|-------------------------------|--------------|
-| tracer-enabled       | PERMIFY_TRACER_ENABLED        | boolean      |
-| tracer-exporter      | PERMIFY_TRACER_EXPORTER       | string       |
-| tracer-endpoint      | PERMIFY_TRACER_ENDPOINT       | string       |
-| tracer-urlpath       | PERMIFY_TRACER_URL_PATH       | string       |
-| tracer-insecure      | PERMIFY_TRACER_INSECURE       | boolean      |
+| Argument        | ENV                     | Type    |
+|-----------------|-------------------------|---------|
+| tracer-enabled  | PERMIFY_TRACER_ENABLED  | boolean |
+| tracer-exporter | PERMIFY_TRACER_EXPORTER | string  |
+| tracer-endpoint | PERMIFY_TRACER_ENDPOINT | string  |
+| tracer-urlpath  | PERMIFY_TRACER_URL_PATH | string  |
+| tracer-insecure | PERMIFY_TRACER_INSECURE | boolean |
 
 </p>
 </details>
@@ -350,13 +352,13 @@ os, arch.
 
 #### ENV
 
-| Argument           | ENV                     | Type         |
-|--------------------|-------------------------|--------------|
-| meter-enabled      | PERMIFY_METER_ENABLED   | boolean      |
-| meter-exporter     | PERMIFY_METER_EXPORTER  | string       |
-| meter-endpoint     | PERMIFY_METER_ENDPOINT  | string       |
-| meter-urlpath      | PERMIFY_METER_URL_PATH       | string       |
-| meter-insecure     | PERMIFY_METER_INSECURE  | boolean       |
+| Argument       | ENV                    | Type    |
+|----------------|------------------------|---------|
+| meter-enabled  | PERMIFY_METER_ENABLED  | boolean |
+| meter-exporter | PERMIFY_METER_EXPORTER | string  |
+| meter-endpoint | PERMIFY_METER_ENDPOINT | string  |
+| meter-urlpath  | PERMIFY_METER_URL_PATH | string  |
+| meter-insecure | PERMIFY_METER_INSECURE | boolean |
 
 </p>
 </details>
@@ -405,19 +407,19 @@ audits, decision logs, authorization model)
 
 #### ENV
 
-| Argument                                      | ENV                                                    | Type     |
-|-----------------------------------------------|--------------------------------------------------------|----------|
-| database-engine                               | PERMIFY_DATABASE_ENGINE                                | string   |
-| database-uri                                  | PERMIFY_DATABASE_URI                                   | string   |
-| database-auto-migrate                         | PERMIFY_DATABASE_AUTO_MIGRATE                          | boolean  |
-| database-max-open-connections                 | PERMIFY_DATABASE_MAX_OPEN_CONNECTIONS                  | int      |
-| database-max-idle-connections                 | PERMIFY_DATABASE_MAX_IDLE_CONNECTIONS                  | int      |
-| database-max-connection-lifetime              | PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME               | duration |
-| database-max-connection-idle-time             | PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME              | duration |
-| database-garbage-collection-enabled           | PERMIFY_DATABASE_GARBAGE_ENABLED                       | boolean  |
-| database-garbage-collection-interval          | PERMIFY_DATABASE_GARBAGE_COLLECTION_INTERVAL           | duration |
-| database-garbage-collection-timeout           | PERMIFY_DATABASE_GARBAGE_COLLECTION_TIMEOUT            | duration |
-| database-garbage-collection-window            | PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW             | duration |
+| Argument                             | ENV                                          | Type     |
+|--------------------------------------|----------------------------------------------|----------|
+| database-engine                      | PERMIFY_DATABASE_ENGINE                      | string   |
+| database-uri                         | PERMIFY_DATABASE_URI                         | string   |
+| database-auto-migrate                | PERMIFY_DATABASE_AUTO_MIGRATE                | boolean  |
+| database-max-open-connections        | PERMIFY_DATABASE_MAX_OPEN_CONNECTIONS        | int      |
+| database-max-idle-connections        | PERMIFY_DATABASE_MAX_IDLE_CONNECTIONS        | int      |
+| database-max-connection-lifetime     | PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME     | duration |
+| database-max-connection-idle-time    | PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME    | duration |
+| database-garbage-collection-enabled  | PERMIFY_DATABASE_GARBAGE_ENABLED             | boolean  |
+| database-garbage-collection-interval | PERMIFY_DATABASE_GARBAGE_COLLECTION_INTERVAL | duration |
+| database-garbage-collection-timeout  | PERMIFY_DATABASE_GARBAGE_COLLECTION_TIMEOUT  | duration |
+| database-garbage-collection-window   | PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW   | duration |
 
 </p>
 </details>
@@ -427,7 +429,9 @@ audits, decision logs, authorization model)
 
 #### Definition
 
-Configurations for the permify service and how it should behave. You can configure the circuit breaker pattern, configuration watcher, and service specific options for permission and schema services (rate limiting, concurrency limiting, cache size).
+Configurations for the permify service and how it should behave. You can configure the circuit breaker pattern,
+configuration watcher, and service specific options for permission and schema services (rate limiting, concurrency
+limiting, cache size).
 
 #### Structure
 
@@ -450,27 +454,27 @@ Configurations for the permify service and how it should behave. You can configu
 
 #### Glossary
 
-| Required | Argument                            | Default | Description                                       |
-|----------|-------------------------------------|---------|---------------------------------------------------|
-| [ ]      | circuit_breaker                     | false   | switch option to use the circuit breaker pattern. |
-| [ ]      | watch                               | false   | switch option for configuration watcher.          |
-| [ ]      | schema.cache.number_of_counters     | 1_000   | number of counters for schema service.            |
-| [ ]      | schema.cache.max_cost               | 10MiB   | max cost for schema cache.                        |
-| [ ]      | permission.bulk_limit               | 100     | bulk operations limit for permission service.     |
-| [ ]      | permission.concurrency_limit        | 100     | concurrency limit for permission service.         |
-| [ ]      | permission.cache.max_cost           | 10MiB   | max cost for permission service.                  |
+| Required | Argument                        | Default | Description                                       |
+|----------|---------------------------------|---------|---------------------------------------------------|
+| [ ]      | circuit_breaker                 | false   | switch option to use the circuit breaker pattern. |
+| [ ]      | watch                           | false   | switch option for configuration watcher.          |
+| [ ]      | schema.cache.number_of_counters | 1_000   | number of counters for schema service.            |
+| [ ]      | schema.cache.max_cost           | 10MiB   | max cost for schema cache.                        |
+| [ ]      | permission.bulk_limit           | 100     | bulk operations limit for permission service.     |
+| [ ]      | permission.concurrency_limit    | 100     | concurrency limit for permission service.         |
+| [ ]      | permission.cache.max_cost       | 10MiB   | max cost for permission service.                  |
 
 #### ENV
 
-| Argument                                      | ENV                                                    | Type     |
-|-----------------------------------------------|--------------------------------------------------------|----------|
-| service-circuit-breaker                       | PERMIFY_SERVICE_CIRCUIT_BREAKER                        | boolean  |
-| service-watch-enabled                         | PERMIFY_SERVICE_WATCH_ENABLED                          | boolean  |
-| service-schema-cache-number-of-counters       | PERMIFY_SERVICE_SCHEMA_CACHE_NUMBER_OF_COUNTERS        | int      |
-| service-schema-cache-max-cost                 | PERMIFY_SERVICE_SCHEMA_CACHE_MAX_COST                  | int      |
-| service-permission-bulk-limit                 | PERMIFY_SERVICE_PERMISSION_BULK_LIMIT                  | int      |
-| service-permission-concurrency-limit          | PERMIFY_SERVICE_PERMISSION_CONCURRENCY_LIMIT           | int      |
-| service-permission-cache-max-cost             | PERMIFY_SERVICE_PERMISSION_CACHE_MAX_COST              | int      |
+| Argument                                | ENV                                             | Type    |
+|-----------------------------------------|-------------------------------------------------|---------|
+| service-circuit-breaker                 | PERMIFY_SERVICE_CIRCUIT_BREAKER                 | boolean |
+| service-watch-enabled                   | PERMIFY_SERVICE_WATCH_ENABLED                   | boolean |
+| service-schema-cache-number-of-counters | PERMIFY_SERVICE_SCHEMA_CACHE_NUMBER_OF_COUNTERS | int     |
+| service-schema-cache-max-cost           | PERMIFY_SERVICE_SCHEMA_CACHE_MAX_COST           | int     |
+| service-permission-bulk-limit           | PERMIFY_SERVICE_PERMISSION_BULK_LIMIT           | int     |
+| service-permission-concurrency-limit    | PERMIFY_SERVICE_PERMISSION_CONCURRENCY_LIMIT    | int     |
+| service-permission-cache-max-cost       | PERMIFY_SERVICE_PERMISSION_CACHE_MAX_COST       | int     |
 
 </p>
 </details>
@@ -500,10 +504,10 @@ characteristics of their code by generating detailed profiles of program executi
 
 #### ENV
 
-| Argument         | ENV                        | Type         |
-|------------------|----------------------------|--------------|
-| profiler-enabled | PERMIFY_PROFILER_ENABLED   | boolean      |
-| profiler-port    | PERMIFY_PROFILER_PORT      | string       |
+| Argument         | ENV                      | Type    |
+|------------------|--------------------------|---------|
+| profiler-enabled | PERMIFY_PROFILER_ENABLED | boolean |
+| profiler-port    | PERMIFY_PROFILER_PORT    | string  |
 
 </p>
 </details>
@@ -513,7 +517,8 @@ characteristics of their code by generating detailed profiles of program executi
 
 #### Definition
 
-A consistent hashing ring ensures data distribution that minimizes reorganization when nodes are added or removed, improving scalability and performance in distributed systems."
+A consistent hashing ring ensures data distribution that minimizes reorganization when nodes are added or removed,
+improving scalability and performance in distributed systems."
 
 #### Structure
 
@@ -526,20 +531,19 @@ A consistent hashing ring ensures data distribution that minimizes reorganizatio
 
 #### Glossary
 
-| Required | Argument    | Default | Description                          |
-|----------|-------------|---------|--------------------------------------|
-| [x]      | enabled     | false   | switch option for distributed.       |
-| []       | address     | -       | address of the distributed service   |
-| []       | port        | 5000    | port on which the service is exposed |
-
+| Required | Argument | Default | Description                          |
+|----------|----------|---------|--------------------------------------|
+| [x]      | enabled  | false   | switch option for distributed.       |
+| []       | address  | -       | address of the distributed service   |
+| []       | port     | 5000    | port on which the service is exposed |
 
 #### ENV
 
-| Argument             | ENV                         | Type    |
-|----------------------|-----------------------------|---------|
-| distributed-enabled  | PERMIFY_DISTRIBUTED_ENABLED | boolean |
-| distributed-address  | PERMIFY_DISTRIBUTED_ADDRESS | string  |
-| distributed-port     | PERMIFY_DISTRIBUTED_PORT    | string  |
+| Argument            | ENV                         | Type    |
+|---------------------|-----------------------------|---------|
+| distributed-enabled | PERMIFY_DISTRIBUTED_ENABLED | boolean |
+| distributed-address | PERMIFY_DISTRIBUTED_ADDRESS | string  |
+| distributed-port    | PERMIFY_DISTRIBUTED_PORT    | string  |
 
 </p>
 </details>
