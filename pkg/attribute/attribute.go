@@ -149,6 +149,18 @@ func ToString(attribute *base.Attribute) string {
 	return result
 }
 
+// EntityAndAttributeToString converts an entity and attribute to a single string.
+func EntityAndAttributeToString(entity *base.Entity, attr string) string {
+	// Convert the entity to string format
+	strEntity := EntityToString(entity)
+
+	// Combine the entity string with the attribute using a dollar sign as the separator
+	result := fmt.Sprintf("%s$%s", strEntity, attr)
+
+	// Return the combined string
+	return result
+}
+
 // EntityToString function takes an Entity object and converts it into a string.
 func EntityToString(entity *base.Entity) string {
 	return fmt.Sprintf(ENTITY, entity.GetType(), entity.GetId())
