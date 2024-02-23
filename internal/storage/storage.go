@@ -123,6 +123,8 @@ type SchemaReader interface {
 	ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (definition *base.RuleDefinition, v string, err error)
 	// HeadVersion reads the latest version of the schema from the storage.
 	HeadVersion(ctx context.Context, tenantID string) (version string, err error)
+	// ListSchemas lists all schemas from the storage
+	ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error)
 }
 
 type NoopSchemaReader struct{}
@@ -145,6 +147,10 @@ func (n *NoopSchemaReader) ReadRuleDefinition(_ context.Context, _, _, _ string)
 
 func (n *NoopSchemaReader) HeadVersion(_ context.Context, _ string) (string, error) {
 	return "", nil
+}
+
+func (n *NoopSchemaReader) ListSchemas(_ context.Context, _ string, _ database.Pagination) (tenants []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+	return nil, nil, nil
 }
 
 // SchemaWriter - Writes schema definitions to the storage.

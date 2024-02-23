@@ -5,10 +5,13 @@ import (
 	"errors"
 
 	"github.com/hashicorp/go-memdb"
+	"github.com/rs/xid"
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/memory/constants"
+	"github.com/Permify/permify/internal/storage/memory/utils"
+	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -113,4 +116,63 @@ func (r *SchemaReader) HeadVersion(_ context.Context, tenantID string) (string, 
 	}
 
 	return version, nil
+}
+
+// ListSchemas - List all Schemas
+func (r *SchemaReader) ListSchemas(_ context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+	txn := r.database.DB.Txn(false)
+	defer txn.Abort()
+
+	var result memdb.ResultIterator
+	result, err = txn.Get(constants.SchemaDefinitionsTable, "version")
+	if err != nil {
+		return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+	distinctVersions := make(map[string]bool)
+	var filterFunc = func(schemaRaw interface{}) bool {
+		schema, ok := schemaRaw.(storage.SchemaDefinition)
+		_, ok = distinctVersions[schema.Version]
+		if !ok {
+			distinctVersions[schema.Version] = true
+			return false
+		}
+		return true
+	}
+	filtered := memdb.NewFilterIterator(result, filterFunc)
+
+	startPage := false
+	var lowerBound string
+	schemas = make([]*base.SchemaList, 0, pagination.PageSize() + 1)
+
+	if pagination.Token() != "" {
+		var t database.ContinuousToken
+		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
+		if err != nil {
+			return nil, nil, err
+		}
+		lowerBound = t.(utils.ContinuousToken).Value
+	}
+
+	for obj := filtered.Next(); obj != nil; obj = filtered.Next() {
+		s, ok := obj.(storage.SchemaDefinition)
+		if !ok {
+			return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+		}
+		if s.Version == lowerBound {
+			startPage = true
+		}
+		if pagination.Token() == "" || startPage {
+			id, err := xid.FromString(s.Version)
+			if err != nil {
+				return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_INTERNAL.String())
+			}
+			createdAt := id.Time().String()
+			schemas = append(schemas, &base.SchemaList{Version: s.Version, CreatedAt: createdAt})
+		}
+		if len(schemas) > int(pagination.PageSize()) {
+			return schemas[:pagination.PageSize()], utils.NewContinuousToken(s.Version).Encode(), nil
+		}
+	}
+
+	return schemas, database.NewNoopContinuousToken().Encode(), err
 }

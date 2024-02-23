@@ -6,6 +6,7 @@ import (
 	"resenje.org/singleflight"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -41,4 +42,9 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 		return r.delegate.HeadVersion(ctx, tenantID)
 	})
 	return rev, err
+}
+
+// ListSchemas - List all Schemas
+func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+	return r.delegate.ListSchemas(ctx, tenantID, pagination)
 }

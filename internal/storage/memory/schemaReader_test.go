@@ -11,6 +11,7 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/memory/migrations"
+	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -159,6 +160,56 @@ var _ = Describe("SchemaReader", func() {
 				"ip_address": base.AttributeType_ATTRIBUTE_TYPE_STRING,
 				"ip_range":   base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
 			}))
+		})
+	})
+
+	Context("List Schema Versions", func() {
+		It("should write a few schemas for a tenant and then list all schema versions available", func() {
+			ctx := context.Background()
+
+			version := xid.New().String()
+			schema := []storage.SchemaDefinition{
+				{TenantID: "t1", Name: "test1", SerializedDefinition: []byte("entity user {}"), Version: version},
+			}
+			err := schemaWriter.WriteSchema(ctx, schema)
+			Expect(err).ShouldNot(HaveOccurred())	
+
+			version = xid.New().String()
+			schema = []storage.SchemaDefinition{
+				{TenantID: "t1", Name: "test2", SerializedDefinition: []byte("entity user {}"), Version: version},
+			}
+			err = schemaWriter.WriteSchema(ctx, schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			version = xid.New().String()
+			schema = []storage.SchemaDefinition{
+				{TenantID: "t1", Name: "test3", SerializedDefinition: []byte("entity user {}"), Version: version},
+			}
+			err = schemaWriter.WriteSchema(ctx, schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			version = xid.New().String()
+			schema = []storage.SchemaDefinition{
+				{TenantID: "t1", Name: "test4", SerializedDefinition: []byte("entity user {}"), Version: version},
+			}
+			err = schemaWriter.WriteSchema(ctx, schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			version = xid.New().String()
+			schema = []storage.SchemaDefinition{
+				{TenantID: "t1", Name: "test5", SerializedDefinition: []byte("entity user {}"), Version: version},
+			}
+			err = schemaWriter.WriteSchema(ctx, schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			col1, ct1, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(3), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(len(col1)).Should(Equal(3))
+
+			col2, ct2, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(3), database.Token(ct1.String())))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(len(col2)).Should(Equal(2))
+			Expect(ct2.String()).Should(Equal(""))
 		})
 	})
 })

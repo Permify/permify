@@ -528,6 +528,24 @@ service Schema {
       operation_id: "schemas.read" // Unique string used to identify the operation.
     };
   }
+
+  // List is an RPC that allows you to list all authorization models.
+  rpc List(SchemaListRequest) returns (SchemaListResponse) {
+
+    // It maps to HTTP POST requests and the entire request message
+    // wil be treated as the HTTP request body.
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/schemas/list" // HTTP mapping: POST request to the /v1/tenants/{tenant_id}/schemas/list endpoint.
+      body: "*"
+    };
+
+    // OpenAPI specific annotation.
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "list all authorization models" // Short summary of what the operation does.
+      tags: ["Schema"] // Adds an additional categorization for the operation.
+      operation_id: "schemas.list" // Unique string used to identify the operation.
+    };
+  }
 }
 
 // WRITE
@@ -588,6 +606,50 @@ message SchemaReadResponse {
 
   // schema is the SchemaDefinition that represents the read schema.
   SchemaDefinition schema = 1 [json_name = "schema"];
+}
+
+// LIST 
+
+// SchemaListRequest is the request message for the List method in the Schema service.
+// It contains tenant_id for which the schemas are to be listed.
+message SchemaListRequest {
+
+  // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
+  // be a maximum of 64 bytes, and must not be empty.
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
+    ignore_empty: false,
+  }];
+
+  // page_size is the number of tenants to be returned in the response.
+  // The value should be between 1 and 100.
+  uint32 page_size = 2 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
+  ];
+
+  // continuous_token is an optional parameter used for pagination.
+  // It should be the value received in the previous response.
+  string continuous_token = 3 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
+}
+
+// SchemaListResponse is the response message for the List method in the Schema service.
+// It returns a paginated list of schemas
+message SchemaListResponse {
+
+  // head of the schemas is the latest version available for the tenant
+  string head = 1 [json_name = "head"];
+  // list of schema versions with creation timestamps
+  repeated SchemaList schemas = 2 [json_name = "schemas"];
+  // continuous_token is a string that can be used to paginate and retrieve the next set of results.
+  string continuous_token = 3 [json_name = "continuous_token"];
+}
+
+// SchemaList provides a list of schema versions with their corresponding creation timestamps
+message SchemaList {
+  string version = 1 [json_name = "version"];
+  string created_at = 2 [json_name = "created_at"];
 }
 
 // ** DATA SERVICE **

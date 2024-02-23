@@ -8,6 +8,7 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/cache"
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -79,4 +80,13 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, ruleNam
 // HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
 	return r.delegate.HeadVersion(ctx, tenantID)
+}
+
+// ListSchemas - List all Schemas
+func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+	schemas, ct, err = r.delegate.ListSchemas(ctx, tenantID, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+	return schemas, ct, nil
 }
