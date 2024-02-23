@@ -5,7 +5,7 @@ sidebar_label: Using the API
 slug: /api-overview
 ---
 
-# Overview
+# Using the Permify API
 
 Permify API provides various functionalities around authorization such as performing access checks, reading and writing relation tuples, expanding your permissions (schema actions), and more.
 
