@@ -195,11 +195,11 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("authn-oidc-client-id", conf.Authn.Oidc.ClientID, "client ID which requested the token from OIDC issuer")
-	if err = viper.BindPFlag("authn.oidc.client_id", flags.Lookup("authn-oidc-client-id")); err != nil {
+	flags.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "")
+	if err = viper.BindPFlag("authn.oidc.audience", flags.Lookup("authn-oidc-audience")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("authn.oidc.client_id", "PERMIFY_AUTHN_OIDC_CLIENT_ID"); err != nil {
+	if err = viper.BindEnv("authn.oidc.audience", "PERMIFY_AUTHN_OIDC_AUDIENCE"); err != nil {
 		panic(err)
 	}
 

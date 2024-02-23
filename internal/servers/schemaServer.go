@@ -122,8 +122,8 @@ func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) 
 	}
 
 	return &v1.SchemaListResponse{
-		Head: head,
-		Schemas: schemas,
+		Head:            head,
+		Schemas:         schemas,
 		ContinuousToken: ct.String(),
 	}, nil
 }

@@ -3,7 +3,6 @@ package oidc
 import (
 	"context"
 	"errors"
-	"testing"
 
 	"google.golang.org/grpc/metadata"
 
@@ -11,11 +10,6 @@ import (
 	. "github.com/onsi/gomega"
 	"google.golang.org/grpc"
 )
-
-func TestAuthInterceptors(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "authentication interceptors suite")
-}
 
 var _ = Describe("Auth Interceptors", func() {
 	fakeError := errors.New("fake authentication error")

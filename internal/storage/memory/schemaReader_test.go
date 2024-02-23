@@ -172,7 +172,7 @@ var _ = Describe("SchemaReader", func() {
 				{TenantID: "t1", Name: "test1", SerializedDefinition: []byte("entity user {}"), Version: version},
 			}
 			err := schemaWriter.WriteSchema(ctx, schema)
-			Expect(err).ShouldNot(HaveOccurred())	
+			Expect(err).ShouldNot(HaveOccurred())
 
 			version = xid.New().String()
 			schema = []storage.SchemaDefinition{

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -286,6 +287,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// Create the checker either with load balancing or caching capabilities.
 		if cfg.Distributed.Enabled {
+
+			if cfg.Authn.Enabled && cfg.Authn.Method == "oidc" {
+				return errors.New("OIDC authentication method cannot be used in distributed mode. Please check your configuration")
+			}
+
 			checker, err = balancer.NewCheckEngineWithBalancer(
 				context.Background(),
 				checkEngine,
