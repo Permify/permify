@@ -591,5 +591,35 @@ var _ = Describe("attribute", func() {
 				}
 			}
 		})
+
+		It("EntityAndAttributeToString", func() {
+			tests := []struct {
+				entity    *base.Entity
+				attribute string
+				result    string
+			}{
+				{
+					entity: &base.Entity{
+						Type: "repository",
+						Id:   "1",
+					},
+					attribute: "is_public",
+					result:    "repository:1$is_public",
+				},
+				{
+					entity: &base.Entity{
+						Type: "organization",
+						Id:   "organization-879",
+					},
+					attribute: "credit",
+					result:    "organization:organization-879$credit",
+				},
+			}
+
+			for _, tt := range tests {
+				result := EntityAndAttributeToString(tt.entity, tt.attribute)
+				Expect(result).Should(Equal(tt.result))
+			}
+		})
 	})
 })

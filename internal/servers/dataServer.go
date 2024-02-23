@@ -3,13 +3,16 @@ package servers
 import (
 	"log/slog"
 
-	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/internal/validation"
-	"github.com/Permify/permify/pkg/database"
-	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/status"
+
+	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/validation"
+	"github.com/Permify/permify/pkg/attribute"
+	"github.com/Permify/permify/pkg/database"
+	v1 "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // DataServer - Structure for Data Server
@@ -144,7 +147,18 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 
 	relationships := make([]*v1.Tuple, 0, len(request.GetTuples()))
 
+	relationshipsMap := map[string]struct{}{}
+
 	for _, tup := range request.GetTuples() {
+
+		key := tuple.ToString(tup)
+
+		if _, ok := relationshipsMap[key]; ok {
+			continue
+		}
+
+		relationshipsMap[key] = struct{}{}
+
 		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), tup.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)
@@ -162,27 +176,38 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 		relationships = append(relationships, tup)
 	}
 
-	attributes := make([]*v1.Attribute, 0, len(request.GetAttributes()))
+	attrs := make([]*v1.Attribute, 0, len(request.GetAttributes()))
 
-	for _, attribute := range request.GetAttributes() {
-		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), attribute.GetEntity().GetType(), version)
+	attributesMap := map[string]struct{}{}
+
+	for _, attr := range request.GetAttributes() {
+
+		key := attribute.EntityAndAttributeToString(attr.GetEntity(), attr.GetAttribute())
+
+		if _, ok := attributesMap[key]; ok {
+			continue
+		}
+
+		attributesMap[key] = struct{}{}
+
+		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), attr.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, status.Error(GetStatus(err), err.Error())
 		}
 
-		err = validation.ValidateAttribute(definition, attribute)
+		err = validation.ValidateAttribute(definition, attr)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, status.Error(GetStatus(err), err.Error())
 		}
 
-		attributes = append(attributes, attribute)
+		attrs = append(attrs, attr)
 	}
 
-	snap, err := r.dw.Write(ctx, request.GetTenantId(), database.NewTupleCollection(relationships...), database.NewAttributeCollection(attributes...))
+	snap, err := r.dw.Write(ctx, request.GetTenantId(), database.NewTupleCollection(relationships...), database.NewAttributeCollection(attrs...))
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -218,7 +243,18 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 
 	relationships := make([]*v1.Tuple, 0, len(request.GetTuples()))
 
+	relationshipsMap := map[string]struct{}{}
+
 	for _, tup := range request.GetTuples() {
+
+		key := tuple.ToString(tup)
+
+		if _, ok := relationshipsMap[key]; ok {
+			continue
+		}
+
+		relationshipsMap[key] = struct{}{}
+
 		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), tup.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)
