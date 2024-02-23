@@ -24,7 +24,6 @@ import (
 	"github.com/Permify/permify/pkg/cmd/flags"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
@@ -91,8 +90,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Print banner and initialize logger
-		red := color.New(color.FgGreen)
-		_, _ = red.Printf(internal.Banner, internal.Version)
+		internal.PrintBanner()
 
 		var handler slog.Handler
 		switch cfg.Log.Output {
