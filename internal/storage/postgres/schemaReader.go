@@ -211,7 +211,7 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
 	ctx, span := tracer.Start(ctx, "tenant-reader.list-tenants")
 	defer span.End()
-	
+
 	slog.Debug("listing schemas with pagination", slog.Any("pagination", pagination))
 
 	builder := r.database.Builder.Select("DISTINCT version").From(SchemaDefinitionTable).Where(squirrel.Eq{"tenant_id": tenantID})

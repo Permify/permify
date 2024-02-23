@@ -129,7 +129,7 @@ func (r *SchemaReader) ListSchemas(_ context.Context, tenantID string, paginatio
 		return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	distinctVersions := make(map[string]bool)
-	var filterFunc = func(schemaRaw interface{}) bool {
+	filterFunc := func(schemaRaw interface{}) bool {
 		schema, ok := schemaRaw.(storage.SchemaDefinition)
 		_, ok = distinctVersions[schema.Version]
 		if !ok {
@@ -142,7 +142,7 @@ func (r *SchemaReader) ListSchemas(_ context.Context, tenantID string, paginatio
 
 	startPage := false
 	var lowerBound string
-	schemas = make([]*base.SchemaList, 0, pagination.PageSize() + 1)
+	schemas = make([]*base.SchemaList, 0, pagination.PageSize()+1)
 
 	if pagination.Token() != "" {
 		var t database.ContinuousToken
