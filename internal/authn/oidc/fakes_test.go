@@ -31,7 +31,7 @@ type fakeOidcProvider struct {
 	hmacKey            []byte
 }
 
-func newfakeOidcProvider(issuerURL string) (*fakeOidcProvider, error) {
+func newFakeOidcProvider(issuerURL string) (*fakeOidcProvider, error) {
 	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, err
@@ -48,33 +48,12 @@ func newfakeOidcProvider(issuerURL string) (*fakeOidcProvider, error) {
 
 	keyIds := map[jwt.SigningMethod]string{
 		jwt.SigningMethodRS256: "rs256keyid",
-		jwt.SigningMethodES256: "es256keyid",
-		jwt.SigningMethodHS256: "hs256keyid",
-		jwt.SigningMethodPS256: "ps256keyid",
 	}
 	jwks := []jose.JSONWebKey{
 		{
 			Key:       rsaPrivateKey.Public(),
 			KeyID:     keyIds[jwt.SigningMethodRS256],
 			Algorithm: "RS256",
-			Use:       "sig",
-		},
-		{
-			Key:       ecdsaPrivateKey.Public(),
-			KeyID:     keyIds[jwt.SigningMethodES256],
-			Algorithm: "ES256",
-			Use:       "sig",
-		},
-		{
-			Key:       hmacKey,
-			KeyID:     keyIds[jwt.SigningMethodHS256],
-			Algorithm: "HS256",
-			Use:       "sig",
-		},
-		{
-			Key:       rsaPrivateKeyForPS.Public(),
-			KeyID:     keyIds[jwt.SigningMethodPS256],
-			Algorithm: "PS256",
 			Use:       "sig",
 		},
 	}
@@ -153,15 +132,8 @@ func (s *fakeOidcProvider) SignIDToken(unsignedToken *jwt.Token) (string, error)
 	var err error
 
 	switch unsignedToken.Method {
-	case jwt.SigningMethodHS256:
-		signedToken, err = unsignedToken.SignedString(s.hmacKey)
 	case jwt.SigningMethodRS256:
 		signedToken, err = unsignedToken.SignedString(s.rsaPrivateKey)
-	case jwt.SigningMethodES256:
-		signedToken, err = unsignedToken.SignedString(s.ecdsaPrivateKey)
-	case jwt.SigningMethodPS256:
-		signedToken, err = unsignedToken.SignedString(s.rsaPrivateKeyForPS)
-
 	default:
 		return "", fmt.Errorf("incorrect signing method type, supported algorithms: HS256, RS256, ES256, PS256")
 	}
