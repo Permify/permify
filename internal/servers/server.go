@@ -282,7 +282,7 @@ func (s *Container) Run(
 		}
 		defer func() {
 			if err = conn.Close(); err != nil {
-				slog.Error("Failed to close gRPC connection: %v", err)
+				slog.Error("Failed to close gRPC connection", "err", err)
 			}
 		}()
 
