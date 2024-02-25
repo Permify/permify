@@ -137,19 +137,19 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		if cfg.Database.AutoMigrate {
 			err = storage.Migrate(cfg.Database)
 			if err != nil {
-				slog.Error("failed to migrate database: %w", err)
+				slog.Error("failed to migrate database", slog.Any("error", err))
 			}
 		}
 
 		// Initialize database
 		db, err := factories.DatabaseFactory(cfg.Database)
 		if err != nil {
-			slog.Error("failed to initialize database: %w", err)
+			slog.Error("failed to initialize database", slog.Any("error", err))
 			return err
 		}
 		defer func() {
 			if err = db.Close(); err != nil {
-				slog.Error("failed to close database: %v", err)
+				slog.Error("failed to close database", slog.Any("error", err))
 			}
 		}()
 

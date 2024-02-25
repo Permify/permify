@@ -53,7 +53,7 @@ func (gc *GC) Start(ctx context.Context) error {
 		select {
 		case <-ticker.C: // Periodically trigger garbage collection.
 			if err := gc.Run(); err != nil {
-				slog.Error("Garbage collection failed:", err)
+				slog.Error("Garbage collection failed:", slog.Any("error", err))
 				continue
 			} else {
 				slog.Info("Garbage collection completed successfully")
@@ -73,7 +73,7 @@ func (gc *GC) Run() error {
 	var dbNow time.Time
 	err := gc.database.DB.QueryRowContext(ctx, "SELECT NOW() AT TIME ZONE 'UTC'").Scan(&dbNow)
 	if err != nil {
-		slog.Error("Failed to get current time from the database:", err)
+		slog.Error("Failed to get current time from the database:", slog.Any("error", err))
 		return err
 	}
 
@@ -83,7 +83,7 @@ func (gc *GC) Run() error {
 	// Retrieve the last transaction ID that occurred before the cutoff time.
 	lastTransactionID, err := gc.getLastTransactionID(ctx, cutoffTime)
 	if err != nil {
-		slog.Error("Failed to retrieve last transaction ID:", err)
+		slog.Error("Failed to retrieve last transaction ID:", slog.Any("error", err))
 		return err
 	}
 
@@ -93,15 +93,15 @@ func (gc *GC) Run() error {
 
 	// Delete records in relation_tuples, attributes, and transactions tables based on the lastTransactionID.
 	if err := gc.deleteRecords(ctx, postgres.RelationTuplesTable, lastTransactionID); err != nil {
-		slog.Error("Failed to delete records in relation_tuples:", err)
+		slog.Error("Failed to delete records in relation_tuples:", slog.Any("error", err))
 		return err
 	}
 	if err := gc.deleteRecords(ctx, postgres.AttributesTable, lastTransactionID); err != nil {
-		slog.Error("Failed to delete records in attributes:", err)
+		slog.Error("Failed to delete records in attributes:", slog.Any("error", err))
 		return err
 	}
 	if err := gc.deleteTransactions(ctx, lastTransactionID); err != nil {
-		slog.Error("Failed to delete transactions:", err)
+		slog.Error("Failed to delete transactions:", slog.Any("error", err))
 		return err
 	}
 

@@ -220,7 +220,7 @@ func (s *Container) Run(
 			if err := pprofserver.ListenAndServe(); err != nil {
 				// Check if the error was due to the server being closed, and log it.
 				if errors.Is(err, http.ErrServerClosed) {
-					slog.Error("failed to start profiler", err)
+					slog.Error("failed to start profiler", slog.Any("error", err))
 				}
 			}
 		}()
@@ -241,13 +241,13 @@ func (s *Container) Run(
 	// Start the gRPC server.
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
-			slog.Error("failed to start grpc server", err)
+			slog.Error("failed to start grpc server", slog.Any("error", err))
 		}
 	}()
 
 	go func() {
 		if err := invokeServer.Serve(invokeLis); err != nil {
-			slog.Error("failed to start invoke grpc server", err)
+			slog.Error("failed to start invoke grpc server", slog.Any("error", err))
 		}
 	}()
 
@@ -282,7 +282,7 @@ func (s *Container) Run(
 		}
 		defer func() {
 			if err = conn.Close(); err != nil {
-				slog.Error("Failed to close gRPC connection: %v", err)
+				slog.Error("Failed to close gRPC connection", slog.Any("error", err))
 			}
 		}()
 
