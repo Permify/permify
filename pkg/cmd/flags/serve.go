@@ -439,7 +439,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	// Distributed
+	// DISTRIBUTED
 	flags.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed")
 	if err = viper.BindPFlag("distributed.enabled", flags.Lookup("distributed-enabled")); err != nil {
 		panic(err)
