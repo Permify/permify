@@ -45,7 +45,7 @@ type Authn struct {
 // NewOidcAuthn creates a new instance of Authn configured for OIDC authentication.
 // It initializes the HTTP client with retry capabilities, sets up the OIDC issuer and audience,
 // and attempts to fetch the JWKS keys from the issuer's JWKsURI.
-func NewOidcAuthn(_ context.Context, audience config.Oidc) (*Authn, error) {
+func NewOidcAuthn(_ context.Context, conf config.Oidc) (*Authn, error) {
 	// Initialize a new retryable HTTP client to handle transient network errors
 	// by retrying failed HTTP requests. The logger is disabled for cleaner output.
 	client := retryablehttp.NewClient()
@@ -54,8 +54,8 @@ func NewOidcAuthn(_ context.Context, audience config.Oidc) (*Authn, error) {
 	// Create a new instance of Authn with the provided issuer URL and audience.
 	// The httpClient is set to the standard net/http client wrapped with retry logic.
 	oidc := &Authn{
-		IssuerURL:  audience.Issuer,
-		Audience:   audience.Audience,
+		IssuerURL:  conf.Issuer,
+		Audience:   conf.Audience,
 		httpClient: client.StandardClient(), // Wrap retryable client as a standard http.Client
 	}
 
@@ -226,6 +226,7 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	}
 
 	if oidcConfig.JWKsURI == "" {
+		return nil, errors.New("JWKsURI value is required but missing in OIDC configuration")
 	}
 
 	// Return the successfully parsed configuration.
