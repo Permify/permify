@@ -92,7 +92,7 @@ database:
   * **enabled:** switch option for tracing. *(default: false)*
 
 * **meter** (optional)
-  * **exporter:** [otpl](https://opentelemetry.io/docs/collector/) is default.
+  * **exporter:** [otlp](https://opentelemetry.io/docs/collector/) is default.
   * **endpoint:** export uri to observe metrics; check count, cache check count and session information; Permify version, hostname, os, arch. 
   * **enabled:** switch option for meter tracing. *(default: true)*
 
