@@ -83,7 +83,9 @@ module.exports = {
 						slug: "/api-overview/schema",
 					},
 					items: [
-						"api-overview/schema/write-schema"
+						"api-overview/schema/write-schema",
+						"api-overview/schema/read-schema",
+						"api-overview/schema/list-schema"
 					],
 				},
 				{
