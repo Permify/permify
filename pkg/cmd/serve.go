@@ -203,6 +203,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Meter.Endpoint,
 				cfg.Meter.Insecure,
 				cfg.Meter.URLPath,
+				cfg.Meter.Grpc,
 			)
 			if err != nil {
 				slog.Error(err.Error())

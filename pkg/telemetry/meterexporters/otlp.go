@@ -31,7 +31,7 @@ func NewOTLPHttp(endpoint string, insecure bool, urlpath string) (metric.Exporte
 
 	return exporter, nil
 }
-
+// NewOTLPHttp - Creates new OTLP GRPC exporter
 func NewOTLPGrpc(endpoint string, insecure bool) (metric.Exporter, error) {
 	options := []otlpmetricgrpc.Option{
 		otlpmetricgrpc.WithCompressor(GRPC_COMPRESSION_STRING),

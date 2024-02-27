@@ -7,12 +7,13 @@ import (
 )
 
 // ExporterFactory - Create meter exporter according to given params
-func ExporterFactory(name, endpoint string, insecure bool, urlpath string) (metric.Exporter, error) {
+func ExporterFactory(name, endpoint string, insecure bool, urlpath string, grpc bool) (metric.Exporter, error) {
 	switch name {
 	case "otlp":
+		if grpc {
+			return NewOTLPGrpc(endpoint, insecure)
+		}
 		return NewOTLPHttp(endpoint, insecure, urlpath)
-	case "otlp-grpc":
-		return NewOTLPGrpc(endpoint, insecure)
 	default:
 		return nil, fmt.Errorf("%s meter exporter is unsupported", name)
 	}
