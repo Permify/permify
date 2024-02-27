@@ -92,6 +92,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"meter.endpoint", HideSecret(cfg.Meter.Exporter), getKeyOrigin(cmd, "meter-endpoint", "PERMIFY_METER_ENDPOINT")},
 			[]string{"meter.insecure", fmt.Sprintf("%v", cfg.Meter.Insecure), getKeyOrigin(cmd, "meter-insecure", "PERMIFY_METER_INSECURE")},
 			[]string{"meter.urlpath", cfg.Meter.URLPath, getKeyOrigin(cmd, "meter-urlpath", "PERMIFY_METER_URL_PATH")},
+			[]string{"meter.grpc", fmt.Sprintf("%v", false), getKeyOrigin(cmd, "meter-grpc", "PERMIFY_METER_GRPC_ENABLED")},
 			// SERVICE
 			[]string{"service.circuit_breaker", fmt.Sprintf("%v", cfg.Service.CircuitBreaker), getKeyOrigin(cmd, "service-circuit-breaker", "PERMIFY_SERVICE_CIRCUIT_BREAKER")},
 			[]string{"service.schema.cache.number_of_counters", fmt.Sprintf("%v", cfg.Service.Schema.Cache.NumberOfCounters), getKeyOrigin(cmd, "service-schema-cache-number-of-counters", "PERMIFY_SERVICE_WATCH_ENABLED")},

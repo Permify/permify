@@ -285,6 +285,14 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.Bool("meter-grpc", conf.Meter.Grpc, "use grpc for metric data")
+	if err = viper.BindPFlag("meter.grpc", flags.Lookup("meter-grpc")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("meter.grpc", "PERMIFY_METER_GRPC_ENABLED"); err != nil {
+		panic(err)
+	}
+
 	// SERVICE
 	flags.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	if err = viper.BindPFlag("service.circuit_breaker", flags.Lookup("service-circuit-breaker")); err != nil {
