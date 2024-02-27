@@ -548,6 +548,13 @@ improving scalability and performance in distributed systems."
 </p>
 </details>
 
+
+## Testing Config
+
+You can use the `permify config` command to view the latest state of your configuration. The `Value` part represents the configuration that will be executed, and the `Source` part indicates where this value comes from. There are three options for the "Source" part: (`ENV`, `FILE`, `FLAG`)
+
+![testing-configuration](https://github.com/Permify/permify/assets/39353278/1b376e81-1fb1-4ccb-b379-a66226d272a2)
+
 [jaeger]: https://www.jaegertracing.io/
 
 [otlp]: https://opentelemetry.io/
