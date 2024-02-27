@@ -1,7 +1,6 @@
-
 # Snap Tokens & Zookies
 
-A Snap Token is a token that consists of an encoded timestamp, which is used to ensure fresh results in access control checks. 
+A Snap Token is a token that consists of an encoded timestamp, which is used to ensure fresh results in access control checks.
 
 ## Why you should use Snap Tokens ?
 
@@ -11,19 +10,19 @@ Performance standards can be achievable with caching. In Permify, the cache mech
 
 Still, all caches suffer from the risk of becoming stale. If some schema update happens, or relations change then all of the caches should be updated according to it to prevent false positive or false negative results.
 
-Permify avoids this problem with an approach of snapshot reads. Simply, it ensures that access control is evaluated at a consistent point in time to prevent inconsistency. 
+Permify avoids this problem with an approach of snapshot reads. Simply, it ensures that access control is evaluated at a consistent point in time to prevent inconsistency.
 
 To achieve this, we developed tokens called Snap Tokens that consist of a timestamp that is compared in access checks to ensure that the snapshot of the access control is at least as fresh as the resource timestamp - basically its stored snap token.
 
 ## How to use Snap Tokens
 
-Snap Tokens used in endpoints to represent the snapshot and get fresh results of the API's. It mainly used in [Write API] and [Check API]. 
+Snap Tokens used in endpoints to represent the snapshot and get fresh results of the API's. It mainly used in [Write API] and [Check API].
 
-The general workflow for using snap token is getting the snap token from the reponse of Write API request - basically when writing a relational tuple - then mapped it with the resource. One way of doing that is storing snap token in the additional column in your relational database.
+The general workflow for using snap token is getting the snap token from the response of Write API request - basically when writing a relational tuple - then mapped it with the resource. One way of doing that is storing snap token in the additional column in your relational database.
 
 Then this snap token can be used in endpoints. For example it can be used in access control check with sending via `snap_token` field to ensure getting check result as fresh as previous request.
 
-```json 
+```json
 {
   "schema_version": "ce8siqtmmud16etrelag",
   "snap_token": "gp/twGSvLBc=",
@@ -34,8 +33,8 @@ Then this snap token can be used in endpoints. For example it can be used in acc
   "permission": "edit",
   "subject": {
     "type": "user",
-    "id": "1",
-  },
+    "id": "1"
+  }
 }
 ```
 
@@ -54,6 +53,6 @@ check_{TRANSACTION_ID}_{schema_version}_{context}_organization:1#admin@user:1 ->
 
 When the second request arrives, since a transaction ID was not provided, the latest transaction ID will again be requested from the database. However, since the first request has already written the example above to the cache, and the second request will generate the same hash, this result will be retrieved from the cache.
 
-## More on Cache Mechanism 
+## More on Cache Mechanism
 
-Permify implements several cache mecnanisims in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisims](./cache.md) 
+Permify implements several cache mecnanisims in order to achieve low latency in scaled distributed systems. See more in the section [Cache Mechanisms](./cache.md)

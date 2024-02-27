@@ -3,7 +3,7 @@ import TabItem from '@theme/TabItem';
 
 # Context (Dynamic Permissions)
 
-## What is it ? 
+## What is it ?
 
 Contextual tuples are relations that can be dynamically added to permission request operations. When you send these relations along with your requests, they get processed alongside existing relations in the database and will return a result.
 
@@ -11,9 +11,9 @@ You can utilize Contextual Tuples in authorization checks that depend on certain
 
 ## Use Case
 
-Let's give an example to better understand the usage of Contextual Tuples aka dynamic permissions in access checks. 
+Let's give an example to better understand the usage of Contextual Tuples aka dynamic permissions in access checks.
 
-Consider you're modeling an permission system for an internal application that belongs to an multi regional organization. 
+Consider you're modeling an permission system for an internal application that belongs to an multi regional organization.
 
 ### Authorization Model
 
@@ -64,7 +64,7 @@ entity ip_address_range {
 
 A quick breakdown we define **type** for contextual variable `ip_address_range` and related them with user. Afterwards call that dynamic entities inside our organization entity and form the `view_employee` permission as follows:
 
-```perm 
+```perm
 action view_employee = hr_manager and ip_address_range.user
 ```
 
@@ -74,8 +74,8 @@ Since we cannot create relation statically for `ip_address_range` we need to sen
 
 So let's say user Ashley trying to view employee X. And lets assume that,
 
-* She has a **manager** relation in HR department with the tuple `organization:1#hr_manager@user:1`
-* She connected to VPN which connected to network 192.158.1.38 - which is Branch's internal network.
+- She has a **manager** relation in HR department with the tuple `organization:1#hr_manager@user:1`
+- She connected to VPN which connected to network 192.158.1.38 - which is Branch's internal network.
 
 <Tabs>
 <TabItem value="go" label="Go">
@@ -136,55 +136,57 @@ cr, err: = client.Permission.Check(context.Background(), &v1.PermissionCheckRequ
 <TabItem value="node" label="Node">
 
 ```javascript
-client.permission.check({
-    tenantId: "t1", 
+client.permission
+  .check({
+    tenantId: "t1",
     metadata: {
-        snapToken: "",
-        schemaVersion: "",
-        depth: 20
+      snapToken: "",
+      schemaVersion: "",
+      depth: 20,
     },
     entity: {
-        type: "organization",
-        id: "1"
+      type: "organization",
+      id: "1",
     },
     permission: "view_employee",
     subject: {
-        type: "user",
-        id: "1"
+      type: "user",
+      id: "1",
     },
     context: {
-        tuples: [
-            {
-                entity: {
-                    type: "organization",
-                    id: "1"
-                },
-                relation: "ip_address_range",
-                subject: {
-                    type: "ip_address_range",
-                    id: "192.158.1.38",
-                }
-            },
-            {
-                entity: {
-                    type: "ip_address_range",
-                    id: "192.158.1.38"
-                },
-                relation: "user",
-                subject: {
-                    type: "user",
-                    id: "1",
-                }
-            }
-        ]
-    }
-}).then((response) => {
+      tuples: [
+        {
+          entity: {
+            type: "organization",
+            id: "1",
+          },
+          relation: "ip_address_range",
+          subject: {
+            type: "ip_address_range",
+            id: "192.158.1.38",
+          },
+        },
+        {
+          entity: {
+            type: "ip_address_range",
+            id: "192.158.1.38",
+          },
+          relation: "user",
+          subject: {
+            type: "user",
+            id: "1",
+          },
+        },
+      ],
+    },
+  })
+  .then((response) => {
     if (response.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {
-        console.log("RESULT_ALLOWED")
+      console.log("RESULT_ALLOWED");
     } else {
-        console.log("RESULT_DENIED")
+      console.log("RESULT_DENIED");
     }
-})
+  });
 ```
 
 </TabItem>
@@ -241,11 +243,11 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 </TabItem>
 </Tabs>
 
-A quick note, 
+A quick note,
 
-When you use contextual tuples, the cache system will not be operational. This is because the cache system is written along with snapshots and if contextual tuples are written, using the cache would lead to incorrect results. 
+When you use contextual tuples, the cache system will not be operational. This is because the cache system is written along with snapshots and if contextual tuples are written, using the cache would lead to incorrect results.
 
-Hence, to prevent this, the use of the cache is blocked at the time of the request. See more on the section [Permify Cache Mechanisims](./cache.md) 
+Hence, to prevent this, the use of the cache is blocked at the time of the request. See more in the section [Permify Cache Mechanisms](./cache.md)
 
 ## Need any help ?
 

@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Guide
 
-Permify is an open-source authorization service that you can run in your environment and works as an API. This guide shows how to set up Permify in your servers and use it accross your applications. Set up and implementation consists of 4 steps,
+Permify is an open-source authorization service that you can run in your environment and works as an API. This guide shows how to set up Permify in your servers and use it across your applications. Set up and implementation consists of 4 steps,
 
 1. [Set Up & Run Permify Service](#run-permify-api)
 2. [Model your Authorization with Permify's DSL, Permify Schema](#model-your-authorization-with-permify-schema)

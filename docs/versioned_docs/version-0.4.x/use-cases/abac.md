@@ -433,7 +433,7 @@ docker pull **ghcr.io/permify/permify-beta:latest**
 
 ```yaml
 schema: >-
-    {string schem}
+    {string scheme}
 
 relationships:
     - entity_name:entity_id#relation@subject_type:subject_id

@@ -26,7 +26,7 @@ Permify exposes its APIs via both [gRPC](https://buf.build/permify/permify/docs/
 [![View in Swagger](http://jessemillar.github.io/view-in-swagger-button/button.svg)](https://permify.github.io/permify-swagger/)
 
 :::info Integration with a Service Mesh
-Our software does not include built-in support for service meshes (eg. Istio). 
+Our software does not include built-in support for service meshes (eg. Istio).
 
 However, since it communicates using standard protocols like gRPC and HTTP, it is compatible with Istio and similar service meshes. Users will need to configure their service mesh setup manually to manage traffic for our software within their deployment environment.
 :::
@@ -72,18 +72,19 @@ These credits are your sole remedy for any availability failures under our SLA.
 ## Performance & Latency
 
 Permify designed to answer these authorization questions efficiently and with minimal complexity while providing low latency with:
-- Using its parallel graph engine. 
+
+- Using its parallel graph engine.
 - Storing the relationships between resources beforehand in Permify data store: [writeDB], rather than providing these relationships at “check” time.
 - Implementing permission caching to not recompute repeated permission checks, and in memory cache to store authorization schema.
 - Using [Snap Tokens](../../reference/snap-tokens) to achieve consistency and high performance in cache.
 
-Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisms](../reference/cache.md) 
+Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more in the section [Cache Mechanisms](../reference/cache.md)
 
 [writeDB]: ../getting-started/sync-data.md
 
 ## Request Rate Limits
 
-Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our documentation. 
+Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our documentation.
 
 - doc: https://docs.permify.co/docs/reference/configuration
 - algorithm: https://en.wikipedia.org/wiki/Token_bucket
