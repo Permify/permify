@@ -234,7 +234,7 @@ Configuration for observing metrics; check count, cache check count and session 
 
 | Required | Argument | Default | Description |
 |----------|----------|---------|---------|
-| [x]   | exporter | - | [otpl](https://opentelemetry.io/docs/collector/) is default.
+| [x]   | exporter | - | [otlp](https://opentelemetry.io/docs/collector/) is default.
 | [x]   | endpoint | - | export uri for metric observation  |
 | [ ]   | enabled | true |  switch option for meter tracing.
 
