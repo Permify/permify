@@ -77,7 +77,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			// AUTHN
 			[]string{"authn.enabled", fmt.Sprintf("%v", cfg.Authn.Enabled), getKeyOrigin(cmd, "authn-enabled", "PERMIFY_AUTHN_ENABLED")},
 			[]string{"authn.method", cfg.Authn.Method, getKeyOrigin(cmd, "authn-method", "PERMIFY_AUTHN_METHOD")},
-			[]string{"authn.preshared.keys", fmt.Sprintf("%v", cfg.Authn.Preshared.Keys), getKeyOrigin(cmd, "authn-preshared-keys", "PERMIFY_AUTHN_PRESHARED_KEYS")},
+			[]string{"authn.preshared.keys", fmt.Sprintf("%v", HideSecrets(cfg.Authn.Preshared.Keys...)), getKeyOrigin(cmd, "authn-preshared-keys", "PERMIFY_AUTHN_PRESHARED_KEYS")},
 			[]string{"authn.oidc.issuer", HideSecret(cfg.Authn.Oidc.Issuer), getKeyOrigin(cmd, "authn-oidc-issuer", "PERMIFY_AUTHN_OIDC_ISSUER")},
 			[]string{"authn.oidc.audience", HideSecret(cfg.Authn.Oidc.Audience), getKeyOrigin(cmd, "authn-oidc-audience", "PERMIFY_AUTHN_OIDC_AUDIENCE")},
 			// TRACER
@@ -176,4 +176,13 @@ func HideSecret(secret string) string {
 	}
 	// Keep first and last character visible; replace the rest with asterisks
 	return string(secret[0]) + strings.Repeat("*", len(secret)-2) + string(secret[len(secret)-1])
+}
+
+// HideSecrets obscures each string in a given list.
+func HideSecrets(secrets ...string) (rv []string) {
+	// Convert each secret to its hidden version and collect them.
+	for _, secret := range secrets {
+		rv = append(rv, HideSecret(secret)) // Hide each secret.
+	}
+	return
 }
