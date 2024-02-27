@@ -123,17 +123,12 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 // HandleError records an error in the given span, logs the error, and returns a standardized error.
 // This function is used for consistent error handling across different parts of the application.
 func HandleError(ctx context.Context, span trace.Span, err error, errorCode base.ErrorCode) error {
-	// Record the error on the span
-	span.RecordError(err)
-
 	// Check if the error is context-related
 	if IsContextRelatedError(ctx, err) || IsSerializationRelatedError(err) {
-		// Set the status of the span
-		span.SetStatus(codes.Unset, err.Error())
 		// Use debug level logging for context or serialization-related errors
 		slog.Debug("an error related to context or serialization was encountered during the operation", slog.String("error", err.Error()))
 	} else {
-		// Set the status of the span
+		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		// Use error level logging for all other errors
 		slog.Error("error encountered", slog.Any("error", err))
