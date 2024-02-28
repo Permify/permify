@@ -148,8 +148,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		db, err := factories.DatabaseFactory(cfg.Database)
 		if err != nil {
 			slog.Error("failed to initialize database", slog.Any("error", err))
-			// Add the new log message here
-			slog.Info("Giving up from reconnecting and exiting.")
 			return err
 		}
 		defer func() {
