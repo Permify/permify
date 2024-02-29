@@ -52,6 +52,9 @@ func NewServeCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 	}
 
+	// SilenceUsage is set to true to suppress usage when an error occurs
+	command.SilenceUsage = true
+
 	// register flags for serve
 	flags.RegisterServeFlags(command)
 
