@@ -99,8 +99,9 @@ type (
 		Enabled  bool   `mapstructure:"enabled"`  // Whether metrics collection is enabled
 		Exporter string `mapstructure:"exporter"` // Exporter for metrics data
 		Endpoint string `mapstructure:"endpoint"` // Endpoint for the metrics exporter
-		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
-		URLPath  string `mapstructure:"path"`     // Path for the metrics exporter, if not defined /v1/metrics will be used
+		Insecure bool   `mapstructure:"insecure"` // Connect to the collector using the HTTP, GRPC scheme, instead of HTTPS, GRPC secure.
+		URLPath  string `mapstructure:"path"`     // Path for the metrics exporter, if not defined /v1/metrics will be used, will be ignored in case of GRPC
+		Grpc     bool   `mapstructure:"grpc"`     // Connect to GRPC exporter
 	}
 
 	// Service contains configuration for various service-level features.
@@ -275,6 +276,7 @@ func DefaultConfig() *Config {
 			Enabled:  true,
 			Exporter: "otlp",
 			Endpoint: "telemetry.permify.co",
+			Grpc:     false,
 		},
 		Service: Service{
 			CircuitBreaker: false,
