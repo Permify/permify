@@ -1,0 +1,21 @@
+name: Sync to Permify Pro
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source repository
+      uses: actions/checkout@v2
+
+    - name: Push changes to the destination repository
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GH_TOKEN }}
+        repository: Permify/permify-pro
+        branch: sync
+        force: true
