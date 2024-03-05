@@ -281,6 +281,100 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	// Each item in the Scenarios slice is processed individually
 	for i, scenario := range s.Scenarios {
 
+		// Each item in the Scenario Relationships slice is processed individually
+		for _, t := range scenario.Relationships {
+			tup, err := tuple.Tuple(t)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "relationships",
+					Key:     t,
+					Message: err.Error(),
+				})
+				continue
+			}
+	
+			// Read the schema definition for this scenario relationship
+			definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "relationships",
+					Key:     t,
+					Message: err.Error(),
+				})
+				continue
+			}
+	
+			// Validate the scenario relationship tuple against the schema definition
+			err = validation.ValidateTuple(definition, tup)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "relationships",
+					Key:     t,
+					Message: err.Error(),
+				})
+				continue
+			}
+	
+			// Write the scenario relationship to the database
+			_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
+			// Continue to the next relationship if an error occurred
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "relationships",
+					Key:     t,
+					Message: err.Error(),
+				})
+				continue
+			}
+		}
+	
+		// Each item in the Scenario Attributes slice is processed individually
+		for _, a := range scenario.Attributes {
+			attr, err := attribute.Attribute(a)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "attributes",
+					Key:     a,
+					Message: err.Error(),
+				})
+				continue
+			}
+	
+			// Read the schema definition for this scenario attribute
+			definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "attributes",
+					Key:     a,
+					Message: err.Error(),
+				})
+				continue
+			}
+	
+			// Validate the attribute against the schema definition
+			err = validation.ValidateAttribute(definition, attr)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "attributes",
+					Key:     a,
+					Message: err.Error(),
+				})
+				continue
+			}
+	
+			// Write the scenario attribute to the database
+			_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
+			// Continue to the next attribute if an error occurred
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "attributes",
+					Key:     a,
+					Message: err.Error(),
+				})
+				continue
+			}
+		}
+
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
 			entity, err := tuple.E(check.Entity)
