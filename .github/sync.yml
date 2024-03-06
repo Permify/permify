@@ -1,0 +1,5 @@
+Permify/permify-pro@sync:
+  - source: go.mod
+    dest: go.mod
+  - source: go.sum
+    dest: go.sum
