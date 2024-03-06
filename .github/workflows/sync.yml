@@ -29,7 +29,7 @@ jobs:
         upstream_sync_branch: sync
         upstream_sync_repo: Permify/permify-pro
         upstream_repo_access_token: ${{ secrets.GH_TOKEN }}
-        test_mode: true
+        test_mode: false
       
     # Step 3: Display a sample message based on the sync output var 'has_new_commits'
     - name: New commits found
