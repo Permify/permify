@@ -5,16 +5,12 @@ Permify/permify-pro:
     dest: go.sum
   - source: cmd/
     dest: cmd/
-  - source: docs/
-    dest: docs/
   - source: integration-test/
     dest: integration-test/
   - source: internal/
     dest: internal/
   - source: pkg/
     dest: pkg/
-  - source: playground/
-    dest: playground/
   - source: proto/
     dest: proto/
   - source: tools/
