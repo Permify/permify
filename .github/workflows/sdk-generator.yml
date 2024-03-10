@@ -31,7 +31,7 @@ jobs:
                   git config --global user.email '<>'
                   git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git
                   git checkout -b main
-                  rm -rf !python-sdk
-                  git add python-sdk
+                  rm -rf !python-client
+                  git add python-client
                   git commit -m "Update Python SDK from OpenAPI changes"
                   git push origin main --force
