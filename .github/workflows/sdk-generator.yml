@@ -1,0 +1,37 @@
+name: Generate Client SDKs from OpenAPI
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Generate Python Client
+              uses: openapi-generators/openapitools-generator-action@v1
+              with:
+                  generator: python
+                  openapi-file: docs/apidocs.swagger.json
+
+            - name: Push Python SDK to GitHub
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+                  TARGET_REPO: "permify/permify-python"
+              run: |
+                  git config --global user.name 'GitHub Actions Bot'
+                  git config --global user.email '<>'
+                  git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git
+                  git checkout -b main
+                  rm -rf !python-sdk
+                  git add python-sdk
+                  git commit -m "Update Python SDK from OpenAPI changes"
+                  git push origin main --force
