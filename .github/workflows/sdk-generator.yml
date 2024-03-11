@@ -25,7 +25,7 @@ jobs:
 
             - name: Push Python SDK to GitHub
               env:
-                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.SDK_GH_TOKEN }}
                   TARGET_REPO: "permify/permify-python"
               run: |
                   git config --global user.name 'GitHub Actions Bot'
