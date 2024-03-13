@@ -30,9 +30,9 @@ jobs:
               run: |
                   git config --global user.name 'GitHub Actions Bot'
                   git config --global user.email '<>'
-                  git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git
-                  git checkout -b main
-                  rm -rf !python-client
-                  git add python-client
+                  git clone https://${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git temp
+                  cp -r python-client/* temp/
+                  cd temp
+                  git add .
                   git commit -m "Update Python SDK from OpenAPI changes"
-                  git push origin main --force
+                  git push https://${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git main --force
