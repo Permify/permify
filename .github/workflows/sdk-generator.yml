@@ -12,6 +12,14 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
+        env:
+            GITHUB_TOKEN: ${{ secrets.SDK_GH_TOKEN }}
+            ORG_NAME: permify
+            SWAGGER_PATH: docs/apidocs.swagger.json
+
+        strategy:
+            matrix:
+                language: [python, javascript]
 
         steps:
             - name: Checkout repository
@@ -20,19 +28,18 @@ jobs:
             - name: Generate Python Client
               uses: openapi-generators/openapitools-generator-action@v1
               with:
-                  generator: python
-                  openapi-file: docs/apidocs.swagger.json
+                  generator: ${{ matrix.language }}
+                  openapi-file: ${SWAGGER_PATH}
+                  command-args: -o permify-client --git-user-id ${ORG_NAME} --git-repo-id permify-${{ matrix.language }} --api-package permify --package-name permify
 
-            - name: Push Python SDK to GitHub
-              env:
-                  GITHUB_TOKEN: ${{ secrets.SDK_GH_TOKEN }}
-                  TARGET_REPO: "permify/permify-python"
+            - name: Push SDK to GitHub
               run: |
                   git config --global user.name 'GitHub Actions Bot'
                   git config --global user.email '<>'
-                  git clone https://${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git temp
-                  cp -r python-client/* temp/
+                  git clone https://${GITHUB_TOKEN}@github.com/${ORG_NAME}/permify-${{ matrix.language }}.git temp
+                  cp -r permify-client/* temp/
                   cd temp
                   git add .
-                  git commit -m "Update Python SDK from OpenAPI changes"
-                  git push https://${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git main --force
+                  git commit -m "Update ${{ matrix.language }} SDK from OpenAPI changes"
+                  git push https://${GITHUB_TOKEN}@github.com/${ORG_NAME}/permify-${{ matrix.language }}.git main --force
+                  rm -rf permify-client
