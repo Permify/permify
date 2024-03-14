@@ -117,7 +117,7 @@ This guide outlines the process of deploying Permify, on Google Compute Engine. 
        status: {}
        ```
 
-2. Apply service manfiest
+2. Apply service manifest
 
     ```bash
     kubectl apply -f service.yaml

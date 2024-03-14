@@ -19,7 +19,7 @@ To achieve this, we developed tokens called Snap Tokens that consist of a timest
 
 Snap Tokens used in endpoints to represent the snapshot and get fresh results of the API's. It mainly used in [Write API] and [Check API]. 
 
-The general workflow for using snap token is getting the snap token from the reponse of Write API request - basically when writing a relational tuple - then mapped it with the resource. One way of doing that is storing snap token in the additional column in your relational database.
+The general workflow for using snap token is getting the snap token from the response of Write API request - basically when writing a relational tuple - then mapped it with the resource. One way of doing that is storing snap token in the additional column in your relational database.
 
 Then this snap token can be used in endpoints. For example it can be used in access control check with sending via `snap_token` field to ensure getting check result as fresh as previous request.
 

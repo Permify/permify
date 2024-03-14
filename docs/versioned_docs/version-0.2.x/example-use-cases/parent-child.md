@@ -94,7 +94,7 @@ We want only,
 - Students that take that class 
 - Teachers, whom is teacher of the student that takes that specific class (class member). 
 
-can access to calendar of that spesific class.
+can access to calendar of that specific class.
 
 ```perm
 entity class {
@@ -104,7 +104,7 @@ entity class {
 }
 ```
 
-Since ``member` represents the relation with student entitiy. It can reach its relations with comma. So, 
+Since ``member` represents the relation with student entity. It can reach its relations with comma. So, 
 
 - ``member.self``
 indicates student itself, whom takes that class.

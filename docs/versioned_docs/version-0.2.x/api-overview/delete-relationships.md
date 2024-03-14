@@ -11,7 +11,7 @@ You can delete any stored relation tuples with following path
 |----------|----------|---------|---------|-------------------------------------------------------------------------------------------|
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | relation | string | - | relation of the given entity |
-| [ ]   | subject | object | - | the user or user set. It containes type and id of the subject.  ||
+| [ ]   | subject | object | - | the user or user set. It contains type and id of the subject.  ||
 
 #### Request
 

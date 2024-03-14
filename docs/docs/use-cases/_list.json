@@ -2,7 +2,7 @@
     {
         "id": 1,
         "title": "Role Based Access Control (RBAC)",
-        "description": "Want to implement role to your application ? Define an entity and manage your roles throught your applications.",
+        "description": "Want to implement role to your application ? Define an entity and manage your roles throughout your applications.",
         "link": "./simple-rbac"
     },
     {

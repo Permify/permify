@@ -139,7 +139,7 @@ Rather than **or**, if we had an **and** relation then Permify Engine waits the 
 
 For this access check you can ask questions in form of “Which resources can user:X do action Y?” And you’ll get a entity results in a format of string array or as a streaming response depending on the endpoint you're using.
 
-So we have a 2 seperate endpoints for data filtering check request,
+So we have a 2 separate endpoints for data filtering check request,
 
 - [/v1/permissions/lookup-entity](#lookup-entity)
 - [/v1/permissions/lookup-entity-stream](#lookup-entity-streaming)

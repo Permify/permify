@@ -187,7 +187,7 @@ Rather than **or**, if we had an **and** relation then Permify Engine waits the 
 
 With the right architecture we expect **7-12 ms** latency. Depending on your load, cache usage and architecture you can get up to **30ms**.
 
-Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisims](../../reference/cache.md) 
+Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more in the section [Cache Mechanisms](../../reference/cache.md) 
 
 ## Need any help ?
 

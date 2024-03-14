@@ -10,7 +10,7 @@ This section explains the basic concepts that commonly mentioned in Permify, as 
 
 [Google Zanzibar] is the global authorization system used at Google for handling authorization for hundreds of its services and products including; YouTube, Drive, Calendar, Cloud and Maps.
 
-Google published Zanzibar back in 2019, and in a short time it gained attention quickly. In fact some big tech companies started to shift their legacy authorization structure to Zanzibar style systems. Additionaly, Zanzibar based solutions increased over the time. All disclosure; [Permify] is an authorization system based on Zanzibar. 
+Google published Zanzibar back in 2019, and in a short time it gained attention quickly. In fact some big tech companies started to shift their legacy authorization structure to Zanzibar style systems. Additionally, Zanzibar based solutions increased over the time. All disclosure; [Permify] is an authorization system based on Zanzibar. 
 
 For more about Zanzibar check our blog post, [Google Zanzibar In A Nutshell]
 

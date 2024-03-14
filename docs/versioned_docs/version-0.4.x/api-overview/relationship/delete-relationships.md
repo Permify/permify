@@ -14,7 +14,7 @@ You can delete any stored relation tuples with following API
 | [x]   | tenant_id | string | - | identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant `t1` for this field.
 | [x]   | entity | object | - | contains entity type and id of the entity. Example: repository:1”.
 | [x]   | relation | string | - | relation of the given entity |
-| [ ]   | subject | object | - | the user or user set. It containes type and id of the subject.  ||
+| [ ]   | subject | object | - | the user or user set. It contains type and id of the subject.  ||
 
 <Tabs>
 <TabItem value="go" label="Go">

@@ -108,7 +108,7 @@ entity team {
 
 #### project entity
 
-Project entity has  ``team`` and ``org`` relations. Both these relations represents parent relationship with other entites, parent team and parent organization.
+Project entity has  ``team`` and ``org`` relations. Both these relations represents parent relationship with other entities, parent team and parent organization.
 
 ```perm
 entity project {
@@ -127,7 +127,7 @@ Permify Schema supports ***and***, ***or***, ***and not*** and ***or not*** oper
 
 #### team actions
 
-- Only organization ***admin (admin role)*** and ***team owner*** can perform editing and deleting team spesific resources. 
+- Only organization ***admin (admin role)*** and ***team owner*** can perform editing and deleting team specific resources. 
 
 - Moreover, for inviting a colleague to a team you must have ***admin role*** and either be a ***owner*** or ***member*** on that team. 
 

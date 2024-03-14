@@ -4,7 +4,7 @@ title: "Brew (With Conf)"
 
 # Brew With Configurations
 
-This section shows how to intall and run Permify Service with using brew. 
+This section shows how to install and run Permify Service with using brew. 
 
 ### Install Permify
 
