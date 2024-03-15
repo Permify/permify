@@ -29,6 +29,46 @@ service Permission {
         "Permission"
       ]
       operation_id: "permissions.check"
+      description: "In Permify, you can perform two different types access checks,\n\n resource based authorization checks, in form of Can user U perform action Y in resource Z?\nsubject based authorization checks,\n\n in form of Which resources can user U edit?\nIn this section we'll look at the resource based check request of Permify.\nYou can find subject based access checks in Entity (Data) Filtering section.",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err := client.Permission.Check(context.Background(), &v1.PermissionCheckRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionCheckRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Entity: &v1.Entity {\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Permission: \"edit\",\n    Subject: &v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n\n    if (cr.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {\n        // RESULT_ALLOWED\n    } else {\n        // RESULT_DENIED\n    }\n})" },
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.check({\n    tenantId: \"t1\", \n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\",\n        depth: 20\n    },\n    entity: {\n        type: \"repository\",\n        id: \"1\"\n    },\n    permission: \"edit\",\n    subject: {\n        type: \"user\",\n        id: \"1\"\n    }\n}).then((response) => {\n    if (response.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {\n        console.log(\"RESULT_ALLOWED\")\n    } else {\n        console.log(\"RESULT_DENIED\")\n    }\n})" },
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -47,6 +87,46 @@ service Permission {
         "Permission"
       ]
       operation_id: "permissions.expand"
+      description: "Retrieve all subjects (users and user sets) that have a relationship or attribute with given entity and permission.\nExpand API response is represented by a user set tree, whose leaf nodes are user IDs or user sets pointing to other ⟨object#relation⟩ pairs.\n <Tip>WHEN TO USE ?\nExpand is designed for reasoning the complete set of users that have access to their objects, which allows our users to build efficient search indices for access-controlled content.\n It is not designed to use as a check access. Expand request has a high latency which can cause a performance issues when its used as access check.</Tip>",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: 	"cr, err: = client.Permission.Expand(context.Background(), &v1.PermissionExpandRequest{\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionExpandRequestMetadata{\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n    },\n    Entity: &v1.Entity{\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Permission: \"push\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.expand({\n  tenantId: \"t1\",\n  metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\"\n    },\n    entity: {\n        type: \"repository\",\n        id: \"1\"\n    },\n    permission: \"push\",\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -65,6 +145,46 @@ service Permission {
         "Permission"
       ]
       operation_id: "permissions.lookupEntity"
+      description: "Lookup Entity endpoint lets you ask questions in form of “Which resources can user:X do action Y?”. As a response of this you’ll get a entity results in a format of string array."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err: = client.Permission.LookupEntity(context.Background(), & v1.PermissionLookupEntityRequest {\n    TenantId: \"t1\",\n    Metadata: & v1.PermissionLookupEntityRequestMetadata {\n        SnapToken: \"\"\n        SchemaVersion: \"\"\n        Depth: 20,\n    },\n    EntityType: \"document\",\n    Permission: \"edit\",\n    Subject: & v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    }\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.lookupEntity({\n    tenantId: \"t1\",\n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\",\n        depth: 20\n    },\n    entity_type: \"document\",\n    permission: \"edit\",\n    subject: {\n        type: \"user\",\n        id: \"1\"\n    }\n}).then((response) => {\n    console.log(response.entity_ids)\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -83,6 +203,46 @@ service Permission {
         "Permission"
       ]
       operation_id: "permissions.lookupEntityStream"
+      description: "Lookup Entity endpoint lets you ask questions in form of “Which resources can user:X do action Y?”. As a response of this you’ll get a entity results in a format of as a streaming response."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "str, err: = client.Permission.LookupEntityStream(context.Background(), &v1.PermissionLookupEntityRequest {\n    Metadata: &v1.PermissionLookupEntityRequestMetadata {\n        SnapToken: \"\", \n        SchemaVersion: \"\" \n        Depth: 50,\n    },\n    EntityType: \"document\",\n    Permission: \"view\",\n    Subject: &v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n})\n\n// handle stream response\nfor {\n    res, err: = str.Recv()\n\n    if err == io.EOF {\n        break\n    }\n\n    // res.EntityId\n}"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "const permify = require(\"@permify/permify-node\");\nconst {PermissionLookupEntityStreamResponse} = require(\"@permify/permify-node/dist/src/grpc/generated/base/v1/service\");\n\nfunction main() {\n    const client = new permify.grpc.newClient({\n        endpoint: \"localhost:3478\",\n    })\n\n    let res = client.permission.lookupEntityStream({\n        metadata: {\n            snapToken: \"\",\n            schemaVersion: \"\",\n            depth: 20\n        },\n        entityType: \"document\",\n        permission: \"view\",\n        subject: {\n            type: \"user\",\n            id: \"1\"\n        }\n    })\n\n    handle(res)\n}\n\nasync function handle(res: AsyncIterable<PermissionLookupEntityStreamResponse>) {\n    for await (const response of res) {\n        // response.entityId\n    }\n}"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -101,6 +261,46 @@ service Permission {
         "Permission"
       ]
       operation_id: "permissions.lookupSubject"
+      description: "Lookup Subject endpoint lets you ask questions in form of “Which subjects can do action Y on entity:X?”. As a response of this you’ll get a subject results in a format of string array."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err: = client.Permission.LookupSubject(context.Background(), &v1.PermissionLookupSubjectRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionLookupSubjectRequestMetadata{\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Entity: &v1.Entity{\n        Type: \"document\",\n        Id: \"1\",\n    },\n    Permission: \"edit\",\n    SubjectReference: &v1.RelationReference{\n        Type: \"user\",\n        Relation: \"\",\n    }\n})"	},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.lookupSubject({\n    tenantId: \"t1\",\n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\"\n        depth: 20,\n    },\n    Entity: {\n        Type: \"document\",\n        Id: \"1\",\n    },\n    permission: \"edit\",\n    subject_reference: {\n        type: \"user\",\n        relation: \"\"\n    }\n}).then((response) => {\n    console.log(response.subject_ids)\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -119,6 +319,46 @@ service Permission {
         "Permission"
       ]
       operation_id: "permissions.subjectPermission"
+      description: "The Subject Permission List endpoint allows you to inquire in the form of “Which permissions user:x can perform on entity:y?”. In response, you'll receive a list of permissions specific to the user for the given entity, returned in the format of a map. \n\n In this endpoint, you'll receive a map of permissions and their statuses directly. The structure is map[string]CheckResult, such as \"sample-permission\" -> \"ALLOWED\". This represents the permissions and their associated states in a key-value pair format."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err: = client.Permission.SubjectPermission(context.Background(), &v1.PermissionSubjectPermissionRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionSubjectPermissionRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        OnlyPermission: false,\n        Depth: 20,\n    },\n    Entity: &v1.Entity {\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Subject: &v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.subjectPermission({\n    tenantId: \"t1\", \n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\",\n        onlyPermission: true,\n        depth: 20\n    },\n    entity: {\n        type: \"repository\",\n        id: \"1\"\n    },\n    subject: {\n        type: \"user\",\n        id: \"1\"\n    }\n}).then((response) => {\n    console.log(response);\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -458,6 +698,46 @@ service Watch {
         "Watch" // Adds an additional categorization for the operation.
       ]
       operation_id: "watch.watch" // Unique string used to identify the operation.
+      description: "The Permify Watch API acts as a real-time broadcaster that shows changes in the relation tuples."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err := client.Watch.Watch(context.Background(), &v1.WatchRequest{\n    TenantId:  \"t1\",\n    SnapToken: \"\",\n})\n// handle stream response\nfor {\n    res, err := cr.Recv()\n\n    if err == io.EOF {\n        break\n    }\n\n    // res.Changes\n}\n"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "const permify = require(\"@permify/permify-node\");\nconst {WatchResponse} = require(\"@permify/permify-node/dist/src/grpc/generated/base/v1/service\");\n\nfunction main() {\n    const client = new permify.grpc.newClient({\n        endpoint: \"localhost:3478\",\n    })\n\n    let res = client.watch.watch({\n          tenantId: \"t1\",\n        snapToken: \"\"\n    })\n\n    handle(res)\n}\n\nasync function handle(res: AsyncIterable<WatchResponse>) {\n    for await (const response of res) {\n        // response.changes\n    }\n}\n"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -508,6 +788,46 @@ service Schema {
       summary: "write your authorization model" // Short summary of what the operation does.
       tags: ["Schema"] // Adds an additional categorization for the operation.
       operation_id: "schemas.write" // Unique string used to identify the operation.
+      description: "Permify provide it's own authorization language to model common patterns of easily. We called the authorization model Permify Schema and it can be created on our playground as well as in any IDE or text editor."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "sr, err: = client.Schema.Write(context.Background(), &v1.SchemaWriteRequest {\n    TenantId: \"t1\",\n    Schema: `\n    \"entity user {}\\n\\n    entity organization {\\n\\n        relation admin @user\\n        relation member @user\\n\\n        action create_repository = (admin or member)\\n        action delete = admin\\n    }\\n\\n    entity repository {\\n\\n        relation owner @user\\n        relation parent @organization\\n\\n        action push = owner\\n        action read = (owner and (parent.admin and parent.member))\\n        action delete = (parent.member and (parent.admin or owner))\\n    }\"\n    `,\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.schema.write({\n    tenantId: \"t1\",\n    schema: `\n    \"entity user {}\\n\\n    entity organization {\\n\\n        relation admin @user\\n        relation member @user\\n\\n        action create_repository = (admin or member)\\n        action delete = admin\\n    }\\n\\n    entity repository {\\n\\n        relation owner @user\\n        relation parent @organization\\n\\n        action push = owner\\n        action read = (owner and (parent.admin and parent.member))\\n        action delete = (parent.member and (parent.admin or owner))\\n    }\"\n    `\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -526,6 +846,46 @@ service Schema {
       summary: "read your authorization model" // Short summary of what the operation does.
       tags: ["Schema"] // Adds an additional categorization for the operation.
       operation_id: "schemas.read" // Unique string used to identify the operation.
+      description: "When a model is written to Permify using the write schema API a schema version will be returned by the API. That schema version can be used to inspect the schema."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "sr, err: = client.Schema.Read(context.Background(), &v1.SchemaReadRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.SchemaReadRequestMetadata{\n        SchemaVersion: \"cnbe6se5fmal18gpc66g\",\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "let res = client.schema.read({\n                    tenantId: \"t1\",\n                    metadata: {\n                        schemaVersion: swResponse.schemaVersion,\n                    },\n                })"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -544,6 +904,46 @@ service Schema {
       summary: "list all authorization models" // Short summary of what the operation does.
       tags: ["Schema"] // Adds an additional categorization for the operation.
       operation_id: "schemas.list" // Unique string used to identify the operation.
+      description: "Models written to Permify using the write schema API can be listed using this API with the timestamps at which the models were created."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "sr, err: = client.Schema.List(context.Background(), &v1.SchemaListRequest {\n    TenantId: \"t1\",\n    PageSize: \"10\",\n    ContinuousToken: \"\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "let res = client.schema.list({\n    tenantId: \"t1\",\n    continuousToken: \"\"\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -608,7 +1008,7 @@ message SchemaReadResponse {
   SchemaDefinition schema = 1 [json_name = "schema"];
 }
 
-// LIST 
+// LIST
 
 // SchemaListRequest is the request message for the List method in the Schema service.
 // It contains tenant_id for which the schemas are to be listed.
@@ -670,6 +1070,46 @@ service Data {
         "Data"
       ]
       operation_id: "data.write"
+      description: "In Permify, attributes and relations between your entities, objects and users represents your authorization data. These data stored as tuples in a preferred database."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "// Convert the wrapped attribute value into Any proto message\nvalue, err := anypb.New(&v1.BooleanValue{\n    Data: true,\n})\nif err != nil {\n    // Handle error\n}\n\ncr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{\n    TenantId: \"t1\",,\n    Metadata: &v1.DataWriteRequestMetadata{\n        SchemaVersion: \"\",\n    },\n    Tuples: []*v1.Attribute{\n        {\n            Entity: &v1.Entity{\n                Type: \"document\",\n                Id:   \"1\",\n            },\n            Relation: \"editor\",\n            Subject:  &v1.Subject{\n                Type: \"user\",\n                Id:   \"1\",\n                Relation: \"\",\n            },\n        },\n    },\n    Attributes: []*v1.Attribute{\n        {\n            Entity: &v1.Entity{\n                Type: \"document\",\n                Id:   \"1\",\n            },\n            Attribute: \"is_private\",\n            Value:     value,\n        },\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "const booleanValue = BooleanValue.fromJSON({ data: true });\n\nconst value = Any.fromJSON({\n    typeUrl: 'type.googleapis.com/base.v1.BooleanValue',\n    value: BooleanValue.encode(booleanValue).finish()\n});\n\nclient.data.write({\n    tenantId: \"t1\",\n    metadata: {\n        schemaVersion: \"\"\n    },\n    tuples: [{\n        entity: {\n            type: \"document\",\n            id: \"1\"\n        },\n        relation: \"editor\",\n        subject: {\n            type: \"user\",\n            id: \"1\"\n        }\n    }],\n    attributes: [{\n        entity: {\n            type: \"document\",\n            id: \"1\"\n        },\n        attribute: \"is_private\",\n        value: value,\n    }]\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -702,6 +1142,46 @@ service Data {
         "Data"
       ]
       operation_id: "data.relationships.read"
+      description: "Read API allows for directly querying the stored graph data to display and filter stored relational tuples."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Data.ReadRelationships(context.Background(), & v1.Data.RelationshipReadRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.Data.RelationshipReadRequestMetadata {\n        SnapToken: \"\"\n    },\n    Filter: &v1.TupleFilter {\n        Entity: &v1.EntityFilter {\n        Type: \"organization\",\n        Ids: []string {\"1\"} ,\n    },\n    Relation: \"member\",\n    Subject: &v1.SubjectFilter {\n        Type: \"\",\n        Id: []string {\"\"},\n        Relation: \"\"\n    }}\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.data.readRelationships({\n  tenantId: \"t1\",\n  metadata: {\n     snap_token: \"\",\n  },\n  filter: {\n    entity: {\n      type: \"organization\",\n      ids: [\n        \"1\"\n      ]\n    },\n    relation: \"member\",\n    subject: {\n      type: \"\",\n      ids: [],\n      relation: \"\"\n    }\n  }\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -718,6 +1198,46 @@ service Data {
         "Data"
       ]
       operation_id: "data.attributes.read"
+      description: "Read API allows for directly querying the stored graph data to display and filter stored attributes."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Data.ReadAttributes(context.Background(), & v1.Data.AttributeReadRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.Data.AttributeReadRequestMetadata {\n        SnapToken: \"\"\n    },\n    Filter: &v1.AttributeFilter {\n        Entity: &v1.EntityFilter {\n        Type: \"organization\",\n        Ids: []string {\"1\"} ,\n    },\n    Attributes: []string {\"private\"},\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.data.readAttributes({\n  tenantId: \"t1\",\n  metadata: {\n     snap_token: \"\",\n  },\n  filter: {\n    entity: {\n      type: \"organization\",\n      ids: [\n        \"1\"\n      ]\n    },\n    attributes: [\n        \"private\"\n    ],\n  }\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -734,6 +1254,46 @@ service Data {
         "Data"
       ]
       operation_id: "data.delete"
+      description: "You can delete any stored relation tuples or attributes with following API."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Data.Delete(context.Background(), & v1.DataDeleteRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.DataDeleteRequestMetadata {\n        SnapToken: \"\"\n    },\n    TupleFilter: &v1.TupleFilter {\n        Entity: &v1.EntityFilter {\n        Type: \"organization\",\n        Ids: []string {\"1\"} ,\n    },\n    Relation: \"admin\",\n    Subject: &v1.SubjectFilter {\n        Type: \"user\",\n        Id: []string {\"1\"},\n        Relation: \"\"\n    }}\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.data.delete({\n  tenantId: \"t1\",\n  metadata: {\n     snap_token: \"\",\n  },\n  tupleFilter: {\n    entity: {\n      type: \"organization\",\n      ids: [\n        \"1\"\n      ]\n    },\n    relation: \"admin\",\n    subject: {\n      type: \"user\",\n      ids: [\n        \"1\"\n      ],\n      relation: \"\"\n    }\n  }\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -766,6 +1326,46 @@ service Data {
         "Data"
       ]
       operation_id: "bundle.run"
+      description: "The \"Run Bundle\" API provides a straightforward way to execute predefined bundles within your application's tenant environment. By sending a POST request to this endpoint, you can activate specific functionalities or processes encapsulated in a bundle."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Data.RunBundle(context.Background(), &v1.BundleRunRequest{\n    TenantId: \"t1\",\n    Name:     \"organization_created\",\n    Arguments: map[string]string{\n        \"creatorID\":      \"564\",\n        \"organizationID\": \"789\",\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.data.runBundle({\n    tenantId: \"t1\",\n    name: \"organization_created\",\n    arguments: {\n        creatorID: \"564\",\n        organizationID: \"789\",\n    }\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -1022,6 +1622,46 @@ service Bundle {
         "Bundle"
       ]
       operation_id: "bundle.write"
+      description: "The \"Write Bundle\" API is designed for handling data in a multi-tenant application environment. Its primary function is to write and delete data according to predefined structures. This API allows users to define or update data bundles, each distinguished by a unique name."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err := client.Bundle.Write(context.Background(), &v1.BundleWriteRequest{\n    TenantId: \"t1\",\n    Bundles: []*v1.DataBundle{\n        {\n            Name: \"organization_created\",\n            Arguments: []string{\n                \"creatorID\",\n                \"organizationID\",\n            },\n            Operations: []*v1.Operation{\n                {\n                    RelationshipsWrite: []string{\n                        \"organization:{{.organizationID}}#admin@user:{{.creatorID}}\",\n                        \"organization:{{.organizationID}}#manager@user:{{.creatorID}}\",\n                    },\n                    AttributesWrite: []string{\n                        \"organization:{{.organizationID}}$public|boolean:false\",\n                    },\n                },\n            },\n        },\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.bundle.write({\n    tenantId: \"t1\",\n    bundles: [\n        {\n            name: \"organization_created\",\n            arguments: [\n                \"creatorID\",\n                \"organizationID\",\n            ],\n            operations: [\n                {\n                    relationships_write: [\n                        \"organization:{{.organizationID}}#admin@user:{{.creatorID}}\",\n                        \"organization:{{.organizationID}}#manager@user:{{.creatorID}}\",\n                    ],\n                    attributes_write: [\n                        \"organization:{{.organizationID}}$public|boolean:false\",\n                    ]\n                }\n            ]\n        }\n    ]\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -1038,6 +1678,46 @@ service Bundle {
         "Bundle"
       ]
       operation_id: "bundle.read"
+      description: "The \"Read Bundle\" API is a crucial tool for retrieving details of specific data bundles in a multi-tenant application setup. It is designed to access information about a bundle, uniquely identified by its name, within the specified tenant's environment."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Bundle.Read(context.Background(), &v1.BundleReadRequest{\n    TenantId: \"t1\",\n    Name:     \"organization_created\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.bundle.read({\n    tenantId: \"t1\",\n    name: \"organization_created\",\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -1054,6 +1734,46 @@ service Bundle {
         "Bundle"
       ]
       operation_id: "bundle.delete"
+      description: "The \"Delete Bundle\" API is designed for removing specific data bundles within a multi-tenant application environment. This API facilitates the deletion of a bundle, identified by its unique name, from a designated tenant's environment."
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Bundle.Delete(context.Background(), &v1.BundleDeleteRequest{\n    TenantId: \"t1\",\n    Name:     \"organization_created\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.bundle.delete({\n    tenantId: \"t1\",\n    name: \"organization_created\",\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -1124,6 +1844,46 @@ service Tenancy {
         "Tenancy"
       ]
       operation_id: "tenants.create"
+      description: "Permify Multi Tenancy support you can create custom schemas for tenants and manage them in a single place. You can create a tenant with following API.\n <Warning>We have a pre-inserted tenant - t1 - by default for the ones that don't use multi-tenancy.</Warning>",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Tenancy.Create(context.Background(), &v1.TenantCreateRequest {\n    Id: \"\"\n    Name: \"\"\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.tenancy.create({\n   id: \"\",\n   name: \"\"\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -1140,6 +1900,46 @@ service Tenancy {
         "Tenancy"
       ]
       operation_id: "tenants.delete"
+      description: "You can delete a tenant with following API.",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Tenancy.Delete(context.Background(), &v1.TenantDeleteRequest {\n    Id: \"\"\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.tenancy.delete({\n   id: \"\",\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -1157,6 +1957,46 @@ service Tenancy {
         "Tenancy"
       ]
       operation_id: "tenants.list"
+      description: "You can list tenants with following API.",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err := client.Tenancy.List(context.Background(), &v1.TenantListRequest{\n    PageSize: 20,\n    ContinuousToken: \"\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "let res = client.tenancy.list({\n    pageSize: 20,\n    continuousToken: \"\",\n})"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
