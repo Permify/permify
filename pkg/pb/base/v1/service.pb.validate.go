@@ -746,10 +746,10 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetTenantId()) > 64 {
+	if len(m.GetTenantId()) > 128 {
 		err := PermissionExpandRequestValidationError{
 			field:  "TenantId",
-			reason: "value length must be at most 64 bytes",
+			reason: "value length must be at most 128 bytes",
 		}
 		if !all {
 			return err
@@ -760,7 +760,7 @@ func (m *PermissionExpandRequest) validate(all bool) error {
 	if !_PermissionExpandRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := PermissionExpandRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+			reason: "value does not match regex pattern \"^([a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}|\\\\*)$\"",
 		}
 		if !all {
 			return err
@@ -1017,7 +1017,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionExpandRequestValidationError{}
 
-var _PermissionExpandRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
+var _PermissionExpandRequest_TenantId_Pattern = regexp.MustCompile("^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$")
 
 var _PermissionExpandRequest_Permission_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
 
@@ -3290,10 +3290,10 @@ func (m *WatchRequest) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetTenantId()) > 64 {
+	if len(m.GetTenantId()) > 128 {
 		err := WatchRequestValidationError{
 			field:  "TenantId",
-			reason: "value length must be at most 64 bytes",
+			reason: "value length must be at most 128 bytes",
 		}
 		if !all {
 			return err
@@ -3304,7 +3304,7 @@ func (m *WatchRequest) validate(all bool) error {
 	if !_WatchRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
 		err := WatchRequestValidationError{
 			field:  "TenantId",
-			reason: "value does not match regex pattern \"[a-zA-Z0-9-,]+\"",
+			reason: "value does not match regex pattern \"^([a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}|\\\\*)$\"",
 		}
 		if !all {
 			return err
@@ -3391,7 +3391,7 @@ var _ interface {
 	ErrorName() string
 } = WatchRequestValidationError{}
 
-var _WatchRequest_TenantId_Pattern = regexp.MustCompile("[a-zA-Z0-9-,]+")
+var _WatchRequest_TenantId_Pattern = regexp.MustCompile("^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$")
 
 // Validate checks the field values on WatchResponse with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
