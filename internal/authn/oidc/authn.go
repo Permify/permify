@@ -103,7 +103,7 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 	token, err := jwtParser.Parse(authHeader, func(token *jwt.Token) (any, error) {
 		// If a presented token's KID is not found in the existing headers, initiate a JWKs fetch and validate the token.
 		if _, ok := token.Header["kid"].(string); !ok {
-			// Whem KID is absent in the header and it has been less than defaultKeyRefreshInterval since the last JWKs retrieval attempt, reject the token.
+			// Whem KID is absent in the header and it has been less than the interval since the last JWKs retrieval attempt, reject the token.
 			if !oidc.refreshUnknownKID && time.Since(oidc.lastKeyFetch) < oidc.keyRefreshInterval {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
 			}
