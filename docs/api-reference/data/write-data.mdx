@@ -90,6 +90,28 @@ client.data
 ```
 
 </Tab>
+<Tab title="Python">
+```python
+with permify.ApiClient(configuration) as api_client:
+    api_instance = permify.DataApi(api_client)
+
+    body = permify.DataWriteRequest(
+        tenant_id='t1',  
+        metadata={"schemaVersion": ""},
+        tuples=[{
+            "entity": {
+                "type": "organization",
+                "id": "1",
+            },
+            "relation": "admin",
+            "subject": {
+                "type": "user",
+                "id": "3",
+            },
+        }]
+    )
+```
+</Tab>
 <Tab title="cURL">
 
 ```curl
@@ -190,6 +212,33 @@ client.data.write({
 })
 ```
 
+</Tab>
+<Tab title="Python">
+```
+boolean_value = BooleanValue.from_json({"data": True})
+
+value = Any.from_json({
+    "typeUrl": 'type.googleapis.com/base.v1.BooleanValue',
+    "value": BooleanValue.encode(boolean_value).finish()
+})
+
+with permify.ApiClient(configuration) as api_client:
+    api_instance = permify.DataApi(api_client)
+    tenant_id = 't1'
+
+    body = permify.DataWriteRequest(
+        tenant_id=tenant_id,
+        metadata={"schemaVersion": ""},
+        attributes=[{
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "attribute": "is_private",
+            "value": value,
+        }]
+    )
+```
 </Tab>
 <Tab title="cURL">
 
@@ -328,6 +377,45 @@ client.data.write({
     // handle response
 })
 ```
+
+</Tab>
+
+<Tab title="Python">
+```
+boolean_value = BooleanValue.from_json({"data": True})
+
+value = Any.from_json({
+    "typeUrl": 'type.googleapis.com/base.v1.BooleanValue',
+    "value": BooleanValue.encode(boolean_value).finish()
+})
+
+with permify.ApiClient(configuration) as api_client:
+    api_instance = permify.DataApi(api_client)
+    tenant_id = 't1'
+
+    body = permify.DataWriteRequest(
+        tenant_id=tenant_id,
+        metadata={"schemaVersion": ""},
+        tuples=[{
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "relation": "editor",
+            "subject": {
+                "type": "user",
+                "id": "1"
+            },
+        }],
+        attributes=[{
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "attribute": "is_private",
+            "value": value,
+        }]
+    )
 
 </Tab>
 <Tab title="cURL">

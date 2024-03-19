@@ -124,9 +124,9 @@
     {
       "group": "Schema Service",
       "pages": [
+        "api-reference/schema/write-schema",
         "api-reference/schema/list-schema",
-        "api-reference/schema/read-schema",
-        "api-reference/schema/write-schema"
+        "api-reference/schema/read-schema"
       ]
     },
     {
