@@ -1,0 +1,13 @@
+---
+title: Read Schema
+openapi: post /v1/tenants/{tenant_id}/schemas/read
+---
+
+When a model is written to Permify using the [write schema API](./write-schema) a schema version will be returned by the API. That schema version can be used to inspect the schema.
+
+Permify Schema needed to be send to API endpoint **/v1/schemas/read** for configuration of your authorization model on Permify API.
+
+### Example Request on Postman
+**POST** `/v1/tenants/{tenant_id}/schemas/read"`
+
+![permify-schema](https://github.com/Permify/permify/assets/30985448/a6944e3d-6a58-4489-b16f-da2fdf5f60f2)
