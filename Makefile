@@ -87,7 +87,3 @@ serve: build
 .PHONY: serve-playground
 serve-playground:
 	cd ./playground && yarn start
-
-.PHONY: serve-docs
-serve-docs:
-	cd ./docs && yarn start
