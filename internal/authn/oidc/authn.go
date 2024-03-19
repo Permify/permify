@@ -40,6 +40,21 @@ type Authn struct {
 
 	// httpClient is used to make HTTP requests, e.g., to fetch the JWKS.
 	httpClient *http.Client
+
+	// Last time the JWKS was fetched
+	lastKeyFetch time.Time
+
+	// Last time the OIDC configuration was fetched
+	lastOIDCConfigFetch time.Time
+
+	// KeyRefreshInterval is the interval to refresh the keys
+	keyRefreshInterval time.Duration
+
+	// ConfigRefreshInterval is the interval to refresh the OIDC configuration
+	configRefreshInterval time.Duration
+
+	// autoFetchKeysOnTokenNotFound is a flag to enable/disable auto fetching of keys when token is not found in the header
+	autoFetchKeysOnTokenNotFound bool
 }
 
 // NewOidcAuthn creates a new instance of Authn configured for OIDC authentication.
@@ -54,13 +69,14 @@ func NewOidcAuthn(_ context.Context, conf config.Oidc) (*Authn, error) {
 	// Create a new instance of Authn with the provided issuer URL and audience.
 	// The httpClient is set to the standard net/http client wrapped with retry logic.
 	oidc := &Authn{
-		IssuerURL:  conf.Issuer,
-		Audience:   conf.Audience,
-		httpClient: client.StandardClient(), // Wrap retryable client as a standard http.Client
+		IssuerURL:                    conf.Issuer,
+		Audience:                     conf.Audience,
+		httpClient:                   client.StandardClient(), // Wrap retryable client as a standard http.Client
+		keyRefreshInterval:           conf.KeyRefreshInterval,
+		configRefreshInterval:        conf.ConfigRefreshInterval,
+		autoFetchKeysOnTokenNotFound: conf.AutoFetchKeysOnTokenNotFound,
 	}
 
-	// Attempt to fetch the JWKS keys from the OIDC provider.
-	// This is crucial for setting up OIDC authentication as it enables token validation.
 	err := oidc.fetchKeys()
 	if err != nil {
 		// If fetching keys fails, return an error to prevent initialization of a non-functional Authn instance.
@@ -85,6 +101,20 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 
 	// Parse and validate the JWT from the authentication header.
 	token, err := jwtParser.Parse(authHeader, func(token *jwt.Token) (any, error) {
+		// If a presented token's KID is not found in the existing headers, initiate a JWKs fetch and validate the token.
+		if _, ok := token.Header["kid"].(string); !ok {
+			// Whem KID is absent in the header and it has been less than defaultKeyRefreshInterval since the last JWKs retrieval attempt, reject the token.
+			if !oidc.autoFetchKeysOnTokenNotFound && time.Since(oidc.lastKeyFetch) < oidc.keyRefreshInterval {
+				return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
+			}
+
+			// Fetch the JWKS keys from the OIDC provider.
+			err := oidc.fetchKeys()
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		// Use the JWKS from oidc to validate the JWT's signature.
 		return oidc.JWKs.Keyfunc(token)
 	})
@@ -118,12 +148,15 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 }
 
 func (oidc *Authn) fetchKeys() error {
-	oidcConfig, err := oidc.fetchOIDCConfiguration()
-	if err != nil {
-		return fmt.Errorf("error fetching OIDC configuration: %w", err)
-	}
+	if oidc.JwksURI == "" || time.Since(oidc.lastOIDCConfigFetch) > oidc.configRefreshInterval {
+		oidcConfig, err := oidc.fetchOIDCConfiguration()
+		if err != nil {
+			return fmt.Errorf("error fetching OIDC configuration: %w", err)
+		}
 
-	oidc.JwksURI = oidcConfig.JWKsURI
+		oidc.JwksURI = oidcConfig.JWKsURI
+		oidc.lastOIDCConfigFetch = time.Now()
+	}
 
 	jwks, err := oidc.GetKeys()
 	if err != nil {
@@ -131,6 +164,7 @@ func (oidc *Authn) fetchKeys() error {
 	}
 
 	oidc.JWKs = jwks
+	oidc.lastKeyFetch = time.Now()
 
 	return nil
 }
@@ -141,8 +175,8 @@ func (oidc *Authn) GetKeys() (*keyfunc.JWKS, error) {
 	// The keyfunc.Options struct is used to configure the HTTP client used for the request
 	// and set a refresh interval for the keys.
 	jwks, err := keyfunc.Get(oidc.JwksURI, keyfunc.Options{
-		Client:          oidc.httpClient, // Use the HTTP client configured in the Authn struct.
-		RefreshInterval: 48 * time.Hour,  // Set the interval to refresh the keys every 48 hours.
+		Client:          oidc.httpClient,         // Use the HTTP client configured in the Authn struct.
+		RefreshInterval: oidc.keyRefreshInterval, // Set the interval to refresh the keys every 48 hours.
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch keys from '%s': %s", oidc.JwksURI, err)
