@@ -53,8 +53,8 @@ type Authn struct {
 	// ConfigRefreshInterval is the interval to refresh the OIDC configuration
 	configRefreshInterval time.Duration
 
-	// autoFetchKeysOnTokenNotFound is a flag to enable/disable auto fetching of keys when token is not found in the header
-	autoFetchKeysOnTokenNotFound bool
+	// refreshUnknownKID is a flag to refresh the JWKS when the KID is unknown
+	refreshUnknownKID bool
 }
 
 // NewOidcAuthn creates a new instance of Authn configured for OIDC authentication.
@@ -69,12 +69,12 @@ func NewOidcAuthn(_ context.Context, conf config.Oidc) (*Authn, error) {
 	// Create a new instance of Authn with the provided issuer URL and audience.
 	// The httpClient is set to the standard net/http client wrapped with retry logic.
 	oidc := &Authn{
-		IssuerURL:                    conf.Issuer,
-		Audience:                     conf.Audience,
-		httpClient:                   client.StandardClient(), // Wrap retryable client as a standard http.Client
-		keyRefreshInterval:           conf.KeyRefreshInterval,
-		configRefreshInterval:        conf.ConfigRefreshInterval,
-		autoFetchKeysOnTokenNotFound: conf.AutoFetchKeysOnTokenNotFound,
+		IssuerURL:             conf.Issuer,
+		Audience:              conf.Audience,
+		httpClient:            client.StandardClient(), // Wrap retryable client as a standard http.Client
+		keyRefreshInterval:    conf.KeyRefreshInterval,
+		configRefreshInterval: conf.ConfigRefreshInterval,
+		refreshUnknownKID:     conf.RefreshUnknownKID,
 	}
 
 	err := oidc.fetchKeys()
@@ -104,14 +104,8 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 		// If a presented token's KID is not found in the existing headers, initiate a JWKs fetch and validate the token.
 		if _, ok := token.Header["kid"].(string); !ok {
 			// Whem KID is absent in the header and it has been less than defaultKeyRefreshInterval since the last JWKs retrieval attempt, reject the token.
-			if !oidc.autoFetchKeysOnTokenNotFound && time.Since(oidc.lastKeyFetch) < oidc.keyRefreshInterval {
+			if !oidc.refreshUnknownKID && time.Since(oidc.lastKeyFetch) < oidc.keyRefreshInterval {
 				return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
-			}
-
-			// Fetch the JWKS keys from the OIDC provider.
-			err := oidc.fetchKeys()
-			if err != nil {
-				return nil, err
 			}
 		}
 
@@ -175,8 +169,9 @@ func (oidc *Authn) GetKeys() (*keyfunc.JWKS, error) {
 	// The keyfunc.Options struct is used to configure the HTTP client used for the request
 	// and set a refresh interval for the keys.
 	jwks, err := keyfunc.Get(oidc.JwksURI, keyfunc.Options{
-		Client:          oidc.httpClient,         // Use the HTTP client configured in the Authn struct.
-		RefreshInterval: oidc.keyRefreshInterval, // Set the interval to refresh the keys every 48 hours.
+		Client:            oidc.httpClient,         // Use the HTTP client configured in the Authn struct.
+		RefreshInterval:   oidc.keyRefreshInterval, // Set the interval to refresh the keys.
+		RefreshUnknownKID: oidc.refreshUnknownKID,  // Set the flag to refresh the JWKS when the KID is unknown.
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch keys from '%s': %s", oidc.JwksURI, err)
