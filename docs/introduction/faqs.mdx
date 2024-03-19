@@ -1,0 +1,129 @@
+---
+title: Permify FAQs
+---
+
+### Does Permify Supports Authentication? 
+
+Authentication involves verifying that the person actually is who they purport to be, while authorization refers to what a person or service is allowed to do once inside the system.
+
+To clear out, Permify doesn't handle authentication or user management. Permify behave as you have a different place to handle authentication and store relevant data. 
+
+Authentication or user management solutions (AWS Cognito, Auth0, etc) only can feed Permify with user information (attributes, identities, etc) to provide more consistent authorization across your stack. 
+
+### How Access Decisions Evaluated?
+
+Access decisions are evaluated by stored authorization data and your authorization model, Permify Schema. 
+
+In high level, access of an subject related with the relationships or attributes created between the subject and the resource. You can define this data in Permify Schema then create and store them as relational tuples and attributes, which is basically forms your authorization data. 
+
+Permify Engine to compute access decision in 2 steps, 
+1. Looking up authorization model for finding the given action's ( **edit**, **push**, **delete** etc.) relations.
+2. Walk over a graph of each relation to find whether given subject ( user or user set ) is related with the action. 
+
+Let's turn back to above authorization question ( ***"Can the user 3 edit document 12 ?"*** ) to better understand how decision evaluation works. 
+
+[relational tuples]: ../../getting-started/sync-data.md
+[Permify Schema]:  ../../getting-started/modeling.md
+
+When Permify Engine receives this question it directly looks up to authorization model to find document `‍edit` action. Let's say we have a model as follows
+
+```perm
+entity user {}
+        
+entity organization {
+
+    // organizational roles
+    relation admin @user
+    relation member @user
+}
+
+entity document {
+
+    // represents documents parent organization
+    relation parent @organization
+    
+    // represents owner of this document
+    relation owner  @user
+    
+    // permissions
+    action edit   = parent.admin or owner
+    action delete = owner
+} 
+```
+
+Which has a directed graph as follows:
+
+![relational-tuples](https://github.com/Permify/permify/assets/39353278/cec9936c-f907-42c0-a419-032ebb45454e)
+
+As we can see above: only users with an admin role in an organization, which `document:12` belongs, and owners of the `document:12` can edit. Permify runs two concurrent queries for **parent.admin** and **owner**:
+
+**Q1:** Get the owners of the `document:12`.
+
+**Q2:** Get admins of the organization where `document:12` belongs to.
+
+Since edit action consist **or** between owner and parent.admin, if Permify Engine found user:3 in results of one of these queries then it terminates the other ongoing queries and returns authorized true to the client.
+
+Rather than **or**, if we had an **and** relation then Permify Engine waits the results of these queries to returning a decision. 
+
+### How To Manage Schema Changes ?
+
+It's expected that your initial schema will eventually change as your product or system evolves
+
+As an example when a new feature arise and related permissions created you need to change the schema (rewrite it with adding new permission) then configure it using this Write Schema API. Afterwards, you can use the preferred version of the schema in your API requests with **schema_version**. If you do not prefer to use **schema_version** params in API calls Permify automatically gets the latest schema on API calls.
+
+A potential caveat of changing or creating schemas too often is the creation of many idle relation tuples. In Permify, created relation tuples are not removed from the stored database unless you delete them with the [delete API](../data/delete-data.md). For this case, we have a [garbage collector](https://github.com/Permify/permify/pull/381) which you can use to clear expired or idle relation tuples.
+
+We recommend applying the following pattern to safely handle schema changes:
+
+-  Set up a central git repository that includes the schema.
+-  Teams or individuals who need to update the schema should add new permissions or relations to this repository.
+-  Centrally check and approve every change before deploying it via CI pipeline that utilizes the **Write Schema API**. We recommend adding our [schema validator](https://github.com/Permify/permify-validate-action) to the pipeline to ensure that any changes are automatically validated.
+- After successful deployment, you can use the newly created schema on further API calls by either specifying its schema ID or by not providing any schema ID, which will automatically retrieve the latest schema on API calls.
+
+
+### What is Preferred Deployment Pattern For Permify?
+
+Permify can be deployed as a sole service that abstracts authorization logic from core applications and behaves as a single source of truth for authorization. 
+
+Gathering authorization logic in a central place offers important advantages over maintaining separate access control mechanisms for individual applications. 
+
+See the [What is Authorization Service] Section for a detailed explanation of those advantages.
+
+[What is Authorization Service]: ../authorization-service
+
+![load-balancer](https://user-images.githubusercontent.com/34595361/201173835-6f6b67cd-d65b-4239-b695-04ecf1bad5bc.png)
+
+Since multiple applications could interact with the Permify Service on that pattern, preventing bottleneck for Permify endpoints and providing high availability is important. 
+
+As shown from above schema, you can horizontally scale Permify Service with positioning Permify instances behind of a load balancer. 
+
+
+### Why should I use Permify instead of IAM solutions such as Cognito, Firebase Auth or Keycloak to handle authorization?
+
+There are some major differences between authorization-specific solutions and identity providers, or I might say IAMs
+
+While IAMs often offer some level of authorization capabilities, they are not as flexible or fine-grained as dedicated authorization systems like Permify. Therefore, customizing complex permission logic (such as hierarchical relationships, user groups, dynamic attributes, etc.) can be challenging in IAMs. 
+
+Another point is that authorization as a service solutions are focused entirely on authorization. This means they provide not only fine-grained permissions but also tooling and functionality to ease testing and observability of the authorization system. 
+
+Also Permify leveraging Google’s Zanzibar scalable data model and unified ACL (Access Control List) approach, enables the creation of a centralized authorization service capable of handling high volumes of data and access checks across your microservices stack.
+
+Still its worth mention that if you have a basic authorization system or need, it totally makes sense to use the solutions you mentioned for handling the authorization part as well.
+
+### How Permify Works With Identity Providers (IAMs)?
+
+Identity providers help you store and control your users’ and employees’ identities in a single place. 
+
+Let’s say you build a project management application. And a client wants to connect this application via SSO. You need to connect your app to Okta. And your client can control who can access the application, and which group of authorization types they can have.
+
+But as a maker of this project management app. You need to build the permissions and then map to Okta. 
+
+What we do is, help you build these permissions and eventually map anywhere you want.
+
+### Is Permify a true ReBAC solution?
+
+Permify was designed and structured as a true ReBAC solution, so besides roles and attributes Permify also supports indirect permission granting through relationships. 
+
+With Permify, you can define that a user has certain permissions because of their relation to other entities. An example of this would be granting a manager the same permissions as their subordinates, or giving a user access to a resource because they belong to a certain group. 
+
+This is facilitated by our relationship-based access control, which allows the definition of complex permission structures based on the relationships between users, roles, and resources.

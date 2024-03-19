@@ -1,0 +1,25 @@
+---
+title: Write Schema
+openapi: post /v1/tenants/{tenant_id}/schemas/write
+---
+
+Permify provide it's own authorization language to model common patterns of easily. We called the authorization model Permify Schema and it can be created on our [playground](https://play.permify.co/) as well as in any IDE or text editor. 
+
+We also have a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=Permify.perm) to ease modeling Permify Schema with code snippets and syntax highlights. Note that on VS code the file with extension is ***".perm"***.
+
+<Warning>
+If you're planning to test Permify manually, maybe with an API Design platform such as [Postman](https://www.postman.com/), [Insomnia](https://insomnia.rest/), etc; we're suggesting using our playground to create model. Because Permify Schema needs to be configured (send to API) in Permify API in a **string** format. Therefore, created model should be converted to **string**. 
+
+Although, it could easily be done programmatically, it could be little challenging to do it manually. To help on that, we have a button on the playground to copy created model to the clipboard as a string, so you get your model in string format easily.
+
+![copy-btn](https://user-images.githubusercontent.com/34595361/198015792-a7f0d727-a1a5-4039-b0be-d097321b8d53.png)
+</Warning>
+
+Permify Schema needed to be send to API endpoint **/v1/schemas/write"** for configuration of your authorization model on Permify API.
+
+### Example Request on Postman
+**POST** `/v1/tenants/{tenant_id}/schemas/write`
+
+![permify-schema](https://user-images.githubusercontent.com/34595361/197405641-d8197728-2080-4bc3-95cb-123e274c58ce.png)
+
+See the following FAQ page to refer to the suggested workflow for: [Managing Schema Changes](../../introduction/faqs#how-to-manage-schema-changes). 
