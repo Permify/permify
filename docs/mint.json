@@ -48,9 +48,9 @@
     {
       "group": "Introduction",
       "pages": [
-        "introduction/intro",
-        "introduction/authorization-service",
-        "introduction/faqs"
+        "permify-overview/intro",
+        "permify-overview/authorization-service",
+        "permify-overview/faqs"
       ]
     },
     {
@@ -101,7 +101,7 @@
         "operations/bundle",
         "operations/cache",
         "operations/contextual-tuples",
-        "operations/observability",
+        "operations/tracing",
         "operations/snap-tokens"
       ]
     },
@@ -124,9 +124,9 @@
     {
       "group": "Schema Service",
       "pages": [
+        "api-reference/schema/write-schema",
         "api-reference/schema/list-schema",
-        "api-reference/schema/read-schema",
-        "api-reference/schema/write-schema"
+        "api-reference/schema/read-schema"
       ]
     },
     {

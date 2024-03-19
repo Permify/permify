@@ -148,6 +148,55 @@ client.permission
 ```
 
 </Tab>
+<Tab title="Python">
+
+```python
+import permify
+from permify.models.permission_check_request import PermissionCheckRequest
+from permify.models.permission_check_response import PermissionCheckResponse
+from permify.rest import ApiException
+from pprint import pprint
+
+configuration = permify.Configuration(host="http://localhost")
+
+with permify.ApiClient(configuration) as api_client:
+    api_instance = permify.PermissionApi(api_client)
+    tenant_id = 't1'
+
+    body = PermissionCheckRequest(
+        tenant_id=tenant_id,
+        metadata={
+            "snapToken": "",
+            "schemaVersion": "",
+            "depth": 20
+        },
+        entity={
+            "type": "organization",
+            "id": "1",
+        },
+        permission="hr_manager",
+        subject={
+            "type": "user",
+            "id": "1",
+        },
+        context={
+            "data": {
+                "ip_address": "192.158.1.38",
+            },
+        },
+    )
+
+    try:
+        api_response = api_instance.permissions_check(tenant_id, body)
+        if api_response.can == PermissionCheckResponse.Result.RESULT_ALLOWED:
+            print("RESULT_ALLOWED")
+        else:
+            print("RESULT_DENIED")
+    except ApiException as e:
+        print(f"Exception when calling PermissionApi->permissions_check: {e}")
+```
+
+</Tab>
 <Tab title="cURL">
 
 ```curl
