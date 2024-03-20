@@ -11,7 +11,7 @@
     "@craco/craco": "^7.1.0",
     "@devbookhq/ui": "^1.0.24",
     "@dnd-kit/core": "^6.0.8",
-    "@dnd-kit/modifiers": "^6.0.1",
+    "@dnd-kit/modifiers": "^7.0.0",
     "@dnd-kit/sortable": "^7.0.2",
     "@fontsource/red-hat-display": "^5.0.5",
     "@fortawesome/react-fontawesome": "^0.2.0",
