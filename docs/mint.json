@@ -22,6 +22,11 @@
       "url": "https://discord.com/invite/n6KfzYxhPp"
     }
   ],
+  "analytics": {
+    "plausible": {
+        "domain": "docs.permify.co"
+    }
+  },
   "topbarCtaButton": {
     "name": "Playground",
     "url": "https://play.permify.co/?s=organizations-hierarchies"
