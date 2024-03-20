@@ -8,12 +8,11 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/MicahParks/keyfunc"
 	"github.com/golang-jwt/jwt/v4"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/Permify/permify/internal/config"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -24,161 +23,124 @@ type Authenticator interface {
 	Authenticate(ctx context.Context) error
 }
 
-// Authn holds configuration for OIDC authentication, including issuer, audience, and key details.
 type Authn struct {
-	// IssuerURL is the URL of the OIDC issuer.
+	// URL of the issuer. This is typically the base URL of the identity provider.
 	IssuerURL string
-
-	// Audience is the intended audience of the tokens, typically the client ID.
+	// Audience for which the token is intended. It must match the audience in the JWT.
 	Audience string
-
-	// JwksURI is the URL to fetch the JSON Web Key Set (JWKS) from.
+	// URL of the JSON Web Key Set (JWKS). This URL hosts public keys used to verify JWT signatures.
 	JwksURI string
-
-	// JWKs holds the JWKS fetched from JwksURI for validating tokens.
-	JWKs *keyfunc.JWKS
-
-	// httpClient is used to make HTTP requests, e.g., to fetch the JWKS.
-	httpClient *http.Client
-
-	// Last time the JWKS was fetched
-	lastKeyFetch time.Time
-
-	// Last time the OIDC configuration was fetched
-	lastOIDCConfigFetch time.Time
-
-	// KeyRefreshInterval is the interval to refresh the keys
-	keyRefreshInterval time.Duration
-
-	// ConfigRefreshInterval is the interval to refresh the OIDC configuration
-	configRefreshInterval time.Duration
-
-	// refreshUnknownKID is a flag to refresh the JWKS when the KID is unknown
-	refreshUnknownKID bool
+	// Pointer to an AutoRefresh object from the JWKS library. It helps in automatically refreshing the JWKS at predefined intervals.
+	jwksSet *jwk.AutoRefresh
+	// List of valid signing methods. Specifies which signing algorithms are considered valid for the JWTs.
+	validMethods []string
+	// Pointer to a JWT parser object. This is used to parse and validate the JWT tokens.
+	jwtParser *jwt.Parser
 }
 
-// NewOidcAuthn creates a new instance of Authn configured for OIDC authentication.
-// It initializes the HTTP client with retry capabilities, sets up the OIDC issuer and audience,
-// and attempts to fetch the JWKS keys from the issuer's JWKsURI.
-func NewOidcAuthn(_ context.Context, conf config.Oidc) (*Authn, error) {
-	// Initialize a new retryable HTTP client to handle transient network errors
-	// by retrying failed HTTP requests. The logger is disabled for cleaner output.
+// NewOidcAuthn initializes a new instance of the Authn struct with OpenID Connect (OIDC) configuration.
+// It takes in a context for managing cancellation and a configuration object. It returns a pointer to an Authn instance or an error.
+func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
+	// Create a new HTTP client with retry capabilities. This client is used for making HTTP requests, particularly for fetching OIDC configuration.
 	client := retryablehttp.NewClient()
-	client.Logger = nil // Disabling logging for the HTTP client
+	client.Logger = nil // Disable logging for the HTTP client to avoid noisy logs.
 
-	// Create a new instance of Authn with the provided issuer URL and audience.
-	// The httpClient is set to the standard net/http client wrapped with retry logic.
-	oidc := &Authn{
-		IssuerURL:             conf.Issuer,
-		Audience:              conf.Audience,
-		httpClient:            client.StandardClient(), // Wrap retryable client as a standard http.Client
-		keyRefreshInterval:    conf.KeyRefreshInterval,
-		configRefreshInterval: conf.ConfigRefreshInterval,
-		refreshUnknownKID:     conf.RefreshUnknownKID,
-	}
-
-	err := oidc.fetchKeys()
+	// Fetch the OIDC configuration from the issuer's well-known configuration endpoint.
+	oidcConf, err := fetchOIDCConfiguration(client.StandardClient(), strings.TrimSuffix(conf.Issuer, "/")+"/.well-known/openid-configuration")
 	if err != nil {
-		// If fetching keys fails, return an error to prevent initialization of a non-functional Authn instance.
-		return nil, err
+		// If there is an error fetching the OIDC configuration, return nil and the error.
+		return nil, fmt.Errorf("failed to fetch OIDC configuration: %w", err)
 	}
 
-	// Return the initialized Authn instance, ready for use in OIDC authentication.
+	// Set up automatic refresh of the JSON Web Key Set (JWKS) to ensure the public keys are always up-to-date.
+	ar := jwk.NewAutoRefresh(ctx)                                                                                              // Create a new AutoRefresh instance for the JWKS.
+	ar.Configure(oidcConf.JWKsURI, jwk.WithHTTPClient(client.StandardClient()), jwk.WithRefreshInterval(conf.RefreshInterval)) // Configure the auto-refresh parameters.
+
+	// Initialize the Authn struct with the OIDC configuration details and other relevant settings.
+	oidc := &Authn{
+		IssuerURL:    conf.Issuer,                                            // URL of the token issuer.
+		Audience:     conf.Audience,                                          // Intended audience of the token.
+		JwksURI:      oidcConf.JWKsURI,                                       // URL of the JWKS endpoint.
+		validMethods: conf.ValidMethods,                                      // List of acceptable signing methods for the tokens.
+		jwtParser:    jwt.NewParser(jwt.WithValidMethods(conf.ValidMethods)), // JWT parser configured with the valid signing methods.
+		jwksSet:      ar,                                                     // Set the JWKS auto-refresh instance.
+	}
+
+	// Attempt to fetch the JWKS immediately to ensure it's available and valid.
+	_, err = oidc.jwksSet.Fetch(ctx, oidc.JwksURI)
+	if err != nil {
+		// If there is an error fetching the JWKS, return nil and the error.
+		return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
+	}
+
+	// Return the initialized OIDC authentication object and no error.
 	return oidc, nil
 }
 
-// Authenticate validates the authentication token from the request context.
+// Authenticate validates the JWT token found in the authorization header of the incoming request.
+// It uses the OIDC configuration to validate the token against the issuer's public keys.
 func (oidc *Authn) Authenticate(requestContext context.Context) error {
-	// Extract the authentication header from the metadata in the request context.
+	// Extract the authorization header from the metadata of the incoming gRPC request.
 	authHeader, err := grpcauth.AuthFromMD(requestContext, "Bearer")
 	if err != nil {
-		// Return an error if the bearer token is missing from the authentication header.
+		// If the authorization header is missing or does not start with "Bearer", return an error.
 		return errors.New(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String())
 	}
 
-	// Initialize a new JWT parser with the RS256 signing method.
-	jwtParser := jwt.NewParser(jwt.WithValidMethods([]string{"RS256"}))
-
-	// Parse and validate the JWT from the authentication header.
-	token, err := jwtParser.Parse(authHeader, func(token *jwt.Token) (any, error) {
-		// If a presented token's KID is not found in the existing headers, initiate a JWKs fetch and validate the token.
-		if _, ok := token.Header["kid"].(string); !ok {
-			// Whem KID is absent in the header and it has been less than the interval since the last JWKs retrieval attempt, reject the token.
-			if !oidc.refreshUnknownKID && time.Since(oidc.lastKeyFetch) < oidc.keyRefreshInterval {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
-			}
+	// Parse and validate the JWT token extracted from the authorization header.
+	parsedToken, err := oidc.jwtParser.Parse(authHeader, func(token *jwt.Token) (interface{}, error) {
+		// Fetch the public keys from the JWKS endpoint configured for the OIDC.
+		jwks, err := oidc.jwksSet.Fetch(requestContext, oidc.JwksURI)
+		if err != nil {
+			// If fetching the JWKS fails, return an error.
+			return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
 		}
 
-		// Use the JWKS from oidc to validate the JWT's signature.
-		return oidc.JWKs.Keyfunc(token)
+		// Retrieve the key ID from the JWT header and find the corresponding key in the JWKS.
+		if keyID, ok := token.Header["kid"].(string); ok {
+			if key, found := jwks.LookupKeyID(keyID); found {
+				// If the key is found, convert it to a usable format.
+				var k interface{}
+				if err := key.Raw(&k); err != nil {
+					return nil, fmt.Errorf("failed to get raw public key: %w", err)
+				}
+				return k, nil // Return the public key for JWT signature verification.
+			}
+			// If the specified key ID is not found in the JWKS, return an error.
+			return nil, fmt.Errorf("kid %s not found", keyID)
+		}
+		// If the JWT does not contain a key ID, return an error.
+		return nil, errors.New("kid must be specified in the token header")
 	})
 	if err != nil {
-		// Return an error if the token is invalid (e.g., expired, wrong signature).
+		// If token parsing or validation fails, return an error indicating the token is invalid.
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
 	}
 
-	// Check if the parsed token is valid.
-	if !token.Valid {
-		// Return an error if the token is not valid.
+	// Ensure the token is valid.
+	if !parsedToken.Valid {
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
 	}
 
 	// Extract the claims from the token.
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
+		// If the claims are in an incorrect format, return an error.
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_CLAIMS.String())
 	}
 
+	// Verify the issuer of the token matches the expected issuer.
 	if ok := claims.VerifyIssuer(oidc.IssuerURL, true); !ok {
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_ISSUER.String())
 	}
 
+	// Verify the audience of the token matches the expected audience.
 	if ok := claims.VerifyAudience(oidc.Audience, true); !ok {
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_AUDIENCE.String())
 	}
 
-	// If all checks pass, the token is considered valid, and the function returns nil.
+	// If all validations pass, return nil indicating the token is valid.
 	return nil
-}
-
-func (oidc *Authn) fetchKeys() error {
-	if oidc.JwksURI == "" || time.Since(oidc.lastOIDCConfigFetch) > oidc.configRefreshInterval {
-		oidcConfig, err := oidc.fetchOIDCConfiguration()
-		if err != nil {
-			return fmt.Errorf("error fetching OIDC configuration: %w", err)
-		}
-
-		oidc.JwksURI = oidcConfig.JWKsURI
-		oidc.lastOIDCConfigFetch = time.Now()
-	}
-
-	jwks, err := oidc.GetKeys()
-	if err != nil {
-		return fmt.Errorf("error fetching OIDC keys: %w", err)
-	}
-
-	oidc.JWKs = jwks
-	oidc.lastKeyFetch = time.Now()
-
-	return nil
-}
-
-// GetKeys fetches the JSON Web Key Set (JWKS) from the configured JWKS URI.
-func (oidc *Authn) GetKeys() (*keyfunc.JWKS, error) {
-	// Use the keyfunc package to fetch the JWKS from the JWKS URI.
-	// The keyfunc.Options struct is used to configure the HTTP client used for the request
-	// and set a refresh interval for the keys.
-	jwks, err := keyfunc.Get(oidc.JwksURI, keyfunc.Options{
-		Client:            oidc.httpClient,         // Use the HTTP client configured in the Authn struct.
-		RefreshInterval:   oidc.keyRefreshInterval, // Set the interval to refresh the keys.
-		RefreshUnknownKID: oidc.refreshUnknownKID,  // Set the flag to refresh the JWKS when the KID is unknown.
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch keys from '%s': %s", oidc.JwksURI, err)
-	}
-
-	// Return the fetched JWKS and nil for the error if successful.
-	return jwks, nil
 }
 
 // Config holds OpenID Connect (OIDC) configuration details.
@@ -189,29 +151,31 @@ type Config struct {
 	JWKsURI string `json:"jwks_uri"`
 }
 
-// Fetches OIDC configuration using the well-known endpoint.
-func (oidc *Authn) fetchOIDCConfiguration() (*Config, error) {
-	wellKnownURL := oidc.getWellKnownURL()
-	body, err := oidc.doHTTPRequest(wellKnownURL)
+// fetchOIDCConfiguration sends an HTTP request to the given URL to fetch the OpenID Connect (OIDC) configuration.
+// It requires an HTTP client and the URL from which to fetch the configuration.
+func fetchOIDCConfiguration(client *http.Client, url string) (*Config, error) {
+	// Send an HTTP GET request to the provided URL to fetch the OIDC configuration.
+	// This typically points to the well-known configuration endpoint of the OIDC provider.
+	body, err := doHTTPRequest(client, url)
 	if err != nil {
+		// If there is an error in fetching the configuration (network error, bad response, etc.), return nil and the error.
 		return nil, err
 	}
 
+	// Parse the JSON response body into an OIDC Config struct.
+	// This involves unmarshalling the JSON into a struct that matches the expected fields of the OIDC configuration.
 	oidcConfig, err := parseOIDCConfiguration(body)
 	if err != nil {
+		// If there is an error in parsing the JSON response (missing fields, incorrect format, etc.), return nil and the error.
 		return nil, err
 	}
 
+	// Return the parsed OIDC configuration and nil as the error (indicating success).
 	return oidcConfig, nil
 }
 
-// Constructs the well-known URL for fetching OIDC configuration.
-func (oidc *Authn) getWellKnownURL() string {
-	return strings.TrimSuffix(oidc.IssuerURL, "/") + "/.well-known/openid-configuration"
-}
-
 // doHTTPRequest makes an HTTP GET request to the specified URL and returns the response body.
-func (oidc *Authn) doHTTPRequest(url string) ([]byte, error) {
+func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	// Create a new HTTP GET request.
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -219,7 +183,7 @@ func (oidc *Authn) doHTTPRequest(url string) ([]byte, error) {
 	}
 
 	// Send the request using the configured HTTP client.
-	res, err := oidc.httpClient.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute HTTP request for OIDC configuration: %s", err)
 	}
@@ -260,8 +224,4 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 
 	// Return the successfully parsed configuration.
 	return &oidcConfig, nil
-}
-
-func (oidc *Authn) Close() {
-	oidc.JWKs.EndBackground()
 }
