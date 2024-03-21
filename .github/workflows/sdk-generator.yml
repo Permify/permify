@@ -22,11 +22,16 @@ jobs:
                 language: [python, javascript]
 
         steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+              with:
+                egress-policy: audit
+
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
             - name: Generate Python Client
-              uses: openapi-generators/openapitools-generator-action@v1
+              uses: openapi-generators/openapitools-generator-action@d27bd4385276f24d23ea92157dfdf4c47be4bbca # v1
               with:
                   generator: ${{ matrix.language }}
                   openapi-file: ${SWAGGER_PATH}
