@@ -36,15 +36,15 @@ Our goal is to make Google's Zanzibar available to everyone and help them build 
 
 ### With Permify, you can:
 
-🔮 Create permissions and policies using [Permify's flexible authorization language](https://docs.permify.co/docs/getting-started/modeling) that is compatible with traditional roles and permissions (RBAC), arbitrary relations between users and objects (ReBAC), and attributes (ABAC).
+🔮 Create permissions and policies using [Permify's flexible authorization language](https://docs.permify.co/getting-started/modeling) that is compatible with traditional roles and permissions (RBAC), arbitrary relations between users and objects (ReBAC), and attributes (ABAC).
 
-🔐 [Manage and store authorization data](https://docs.permify.co/docs/getting-started/sync-data) in your preferred database with high availability and consistency.
+🔐 [Manage and store authorization data](https://docs.permify.co/getting-started/sync-data) in your preferred database with high availability and consistency.
 
-✅ [Interact with the Permify API](https://docs.permify.co/docs/getting-started/enforcement) to perform access checks, filter your resources with specific permissions, perform bulk permission checks for various resources, and more.
+✅ [Interact with the Permify API](https://docs.permify.co/getting-started/enforcement) to perform access checks, filter your resources with specific permissions, perform bulk permission checks for various resources, and more.
 
-🧪 Test your authorization logic with [Permify's schema testing](https://docs.permify.co/docs/getting-started/testing). You can conduct scenario-based testing, policy coverage analysis, and IDL parser integration to achieve end-to-end validations for your desired authorization schema.
+🧪 Test your authorization logic with [Permify's schema testing](https://docs.permify.co/getting-started/testing). You can conduct scenario-based testing, policy coverage analysis, and IDL parser integration to achieve end-to-end validations for your desired authorization schema.
 
-⚙️ Create custom and isolated authorization models for different applications using Permify [Multi-Tenancy](https://docs.permify.co/docs/use-cases/multi-tenancy) support, all managed within a single place, Permify instance.
+⚙️ Create custom and isolated authorization models for different applications using Permify [Multi-Tenancy](https://docs.permify.co/use-cases/multi-tenancy) support, all managed within a single place, Permify instance.
 
 ## Getting Started 
 
@@ -53,9 +53,9 @@ Our goal is to make Google's Zanzibar available to everyone and help them build 
 - Explore overview of [Permify API] and learn how to interact with it.
 - See [our article] to examine [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf) in a nutshell.
 
-[Permify's Authorization Language]: https://docs.permify.co/docs/getting-started/modeling
+[Permify's Authorization Language]: https://docs.permify.co/getting-started/modeling
 [playground]: https://play.permify.co/
-[Permify API]: https://docs.permify.co/docs/api-overview
+[Permify API]: https://docs.permify.co/api-reference
 [our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
 
 ### QuickStart
@@ -73,7 +73,7 @@ This will start Permify with the default configuration options:
 
 See [all of the options] that you can use to set up and deploy Permify in your servers.
 
-[all of the options]: https://docs.permify.co/docs/installation
+[all of the options]: https://docs.permify.co/setting-up
 
 #### Test your connection
 

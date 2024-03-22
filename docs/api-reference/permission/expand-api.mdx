@@ -1,0 +1,14 @@
+---
+title: Expand API
+openapi: post /v1/tenants/{tenant_id}/permissions/expand
+---
+
+Retrieve all subjects (users and user sets) that have a relationship or attribute with given entity and permission
+
+Expand API response is represented by a user set tree, whose leaf nodes are user IDs or user sets pointing to other ⟨object#relation⟩ pairs. 
+
+<Warning>
+Expand is designed for reasoning the complete set of users that have access to their objects, which allows our users to build efficient search indices for access-controlled content. 
+
+It is not designed to use as a check access. Expand request has a high latency which can cause a performance issues when its used as access check.
+</Warning>

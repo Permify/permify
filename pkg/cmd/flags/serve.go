@@ -195,11 +195,27 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "")
+	flags.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "intended audience of the OpenID Connect token")
 	if err = viper.BindPFlag("authn.oidc.audience", flags.Lookup("authn-oidc-audience")); err != nil {
 		panic(err)
 	}
 	if err = viper.BindEnv("authn.oidc.audience", "PERMIFY_AUTHN_OIDC_AUDIENCE"); err != nil {
+		panic(err)
+	}
+
+	flags.Duration("authn-oidc-refresh-interval", conf.Authn.Oidc.RefreshInterval, "refresh interval for the OpenID Connect configuration")
+	if err = viper.BindPFlag("authn.oidc.refresh_interval", flags.Lookup("authn-oidc-refresh-interval")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("authn.oidc.refresh_interval", "PERMIFY_AUTHN_OIDC_REFRESH_INTERVAL"); err != nil {
+		panic(err)
+	}
+
+	flags.StringSlice("authn-oidc-valid-methods", conf.Authn.Oidc.ValidMethods, "list of valid JWT signing methods for OpenID Connect")
+	if err = viper.BindPFlag("authn.oidc.valid_methods", flags.Lookup("authn-oidc-valid-methods")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("authn.oidc.valid_methods", "PERMIFY_AUTHN_OIDC_VALID_METHODS"); err != nil {
 		panic(err)
 	}
 
@@ -439,7 +455,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	// Distributed
+	// DISTRIBUTED
 	flags.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed")
 	if err = viper.BindPFlag("distributed.enabled", flags.Lookup("distributed-enabled")); err != nil {
 		panic(err)

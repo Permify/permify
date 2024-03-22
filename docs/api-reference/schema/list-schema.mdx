@@ -1,0 +1,13 @@
+---
+title: List Schema
+openapi: post /v1/tenants/{tenant_id}/schemas/list
+---
+
+Models written to Permify using the [write schema API](./write-schema) can be listed using this API with the timestamps at which the models were created. 
+
+Request needs to be made to the API endpoint **/v1/schemas/list** to list all the models.
+
+### Example Request on Postman
+**POST** `/v1/tenants/{tenant_id}/schemas/list`
+
+![permify-schema](https://github.com/Permify/permify/assets/30985448/aa73c993-e808-496e-bebc-f91ced3a3399)

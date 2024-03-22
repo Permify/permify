@@ -1,0 +1,8 @@
+---
+title: Subject Permission List
+openapi: post /v1/tenants/{tenant_id}/permissions/subject-permission
+---
+
+The Subject Permission List endpoint allows you to inquire in the form of **“Which permissions user:x can perform on entity:y?”**. In response, you'll receive a list of permissions specific to the user for the given entity, returned in the format of a map.
+
+In this endpoint, you'll receive a map of permissions and their statuses directly. The structure is map[string]CheckResult, such as "sample-permission" -> "ALLOWED". This represents the permissions and their associated states in a key-value pair format.

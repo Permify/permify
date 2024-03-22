@@ -1,0 +1,50 @@
+name: Generate Client SDKs from OpenAPI
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        env:
+            GITHUB_TOKEN: ${{ secrets.SDK_GH_TOKEN }}
+            ORG_NAME: permify
+            SWAGGER_PATH: docs/api-reference/apidocs.swagger.json
+
+        strategy:
+            matrix:
+                language: [python, javascript]
+
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+              with:
+                egress-policy: audit
+
+            - name: Checkout repository
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+            - name: Generate Python Client
+              uses: openapi-generators/openapitools-generator-action@d27bd4385276f24d23ea92157dfdf4c47be4bbca # v1
+              with:
+                  generator: ${{ matrix.language }}
+                  openapi-file: ${SWAGGER_PATH}
+                  command-args: -o permify-client --git-user-id ${ORG_NAME} --git-repo-id permify-${{ matrix.language }} --api-package permify --package-name permify
+
+            - name: Push SDK to GitHub
+              run: |
+                  git config --global user.name 'GitHub Actions Bot'
+                  git config --global user.email '<>'
+                  git clone https://${GITHUB_TOKEN}@github.com/${ORG_NAME}/permify-${{ matrix.language }}.git temp
+                  cp -r permify-client/* temp/
+                  cd temp
+                  git add .
+                  git diff-index --quiet HEAD || git commit -m "Update ${{ matrix.language }} SDK from OpenAPI changes"
+                  git push https://${GITHUB_TOKEN}@github.com/${ORG_NAME}/permify-${{ matrix.language }}.git main --force
+                  rm -rf permify-client

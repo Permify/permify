@@ -1,0 +1,19 @@
+Permify/permify-pro:
+  - source: go.mod
+    dest: go.mod
+  - source: go.sum
+    dest: go.sum
+  - source: cmd/
+    dest: cmd/
+  - source: integration-test/
+    dest: integration-test/
+  - source: internal/
+    dest: internal/
+    exclude: |
+      info.go
+  - source: pkg/
+    dest: pkg/
+  - source: proto/
+    dest: proto/
+  - source: tools/
+    dest: tools/

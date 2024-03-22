@@ -3,13 +3,13 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"sort"
-	"testing"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"sort"
+	"testing"
+	`time`
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/storage"
@@ -36,32 +36,30 @@ func postgresDB(postgresVersion string) database.Database {
 		},
 		Started: true,
 	})
-	if err != nil {
-		Expect(err).ShouldNot(HaveOccurred())
-	}
+	Expect(err).ShouldNot(HaveOccurred())
 
 	// Execute the command in the container
 	_, _, execErr := postgres.Exec(ctx, []string{"psql", "-U", "postgres", "-c", "ALTER SYSTEM SET track_commit_timestamp = on;"})
-	if execErr != nil {
-		Expect(execErr).ShouldNot(HaveOccurred())
-	}
+	Expect(execErr).ShouldNot(HaveOccurred())
+
+	stopTimeout := 2 * time.Second
+	err = postgres.Stop(context.Background(), &stopTimeout)
+	Expect(err).ShouldNot(HaveOccurred())
+
+	err = postgres.Start(context.Background())
+	Expect(err).ShouldNot(HaveOccurred())
 
 	cmd := []string{"sh", "-c", "export PGPASSWORD=postgres" + "; psql -U postgres -d permify -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'"}
 
 	_, _, err = postgres.Exec(ctx, cmd)
-	if err != nil {
-		Expect(err).ShouldNot(HaveOccurred())
-	}
+	Expect(err).ShouldNot(HaveOccurred())
 
 	host, err := postgres.Host(ctx)
-	if err != nil {
-		Expect(err).ShouldNot(HaveOccurred())
-	}
+	Expect(err).ShouldNot(HaveOccurred())
 
 	port, err := postgres.MappedPort(ctx, "5432")
-	if err != nil {
-		Expect(err).ShouldNot(HaveOccurred())
-	}
+	Expect(err).ShouldNot(HaveOccurred())
+
 	dbAddr := fmt.Sprintf("%s:%s", host, port.Port())
 	postgresDSN := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", "postgres", "postgres", dbAddr, "permify")
 

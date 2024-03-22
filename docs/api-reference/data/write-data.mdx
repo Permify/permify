@@ -1,0 +1,535 @@
+---
+title: Write Authorization Data
+openapi: post /v1/tenants/{tenant_id}/data/write
+---
+
+In Permify, attributes and relations between your entities, objects and users represents your authorization data. These data stored as tuples in a preferred database. 
+
+Since these attributes and relations are live instances, meaning they can be affected by specific user actions within the application, they can be created/deleted with a simple Permify API call at runtime.
+
+More specifically, the application client should update preferred database about the changes happening in entities or resources that are related to the authorization structure. 
+
+If we consider a document system; when some user joins a group that has edit access on some documents, the application side needs to write tuples to keep preferred database up-to-date. Besides, each attribute or relationship should be created according to its authorization model, Permify Schema.
+
+Another example: when one a company executive grant admin role to user (lets say with id = 3) on their organization, application side needs to tell that update to Permify in order to reform that as tuples and store in preferred database.
+
+<Info>
+You can use the `/v1/tenants/{tenant_id}/data/write` endpoint for both creating **relation tuples** and for creating **attribute data**.
+</Info>
+
+**Path:**
+```javascript
+ POST /v1/tenants/{tenant_id}/data/write
+```
+
+## Content 
+
+- [Example Relationship Creation](#example-relationship-creation)
+- [Example Attributes Creation](#example-attribute-creation)
+- [Creating Attributes and Relationship In Single Request](#creating-attributes-relationships-in-singe-request)
+- [Suggested Workflow](#suggested-workflow)
+- [Parameters & Properties](#parameters-and-properties)
+
+### Example Relationship Creation
+
+Let's create an example relation tuple. If user:3 has been granted an admin role in organization:1, relational tuple `organization:1#admin@user:3` should be created as follows:
+
+<Tabs>
+<Tab title="Go">
+
+```go
+rr, err: = client.Data.Write(context.Background(), & v1.DataWriteRequest {
+    TenantId: "t1",
+    Metadata: &v1.DataWriteRequestMetadata {
+        SchemaVersion: ""
+    },
+    Tuples: [] * v1.Tuple {
+        {
+            Entity: & v1.Entity {
+                Type: "organization",
+                Id: "1",
+            },
+            Relation: "admin",
+            Subject: & v1.Subject {
+                Type: "user",
+                Id: "3",
+            },
+        }
+    },
+})
+```
+
+</Tab>
+
+<Tab title="Node">
+
+```javascript
+client.data
+  .write({
+    tenantId: "t1",
+    metadata: {
+      schemaVersion: "",
+    },
+    tuples: [
+      {
+        entity: {
+          type: "organization",
+          id: "1",
+        },
+        relation: "admin",
+        subject: {
+          type: "user",
+          id: "3",
+        },
+      },
+    ],
+  })
+  .then((response) => {
+    // handle response
+  });
+```
+
+</Tab>
+<Tab title="Python">
+```python
+with permify.ApiClient(configuration) as api_client:
+    api_instance = permify.DataApi(api_client)
+
+    body = permify.DataWriteRequest(
+        tenant_id='t1',  
+        metadata={"schemaVersion": ""},
+        tuples=[{
+            "entity": {
+                "type": "organization",
+                "id": "1",
+            },
+            "relation": "admin",
+            "subject": {
+                "type": "user",
+                "id": "3",
+            },
+        }]
+    )
+```
+</Tab>
+<Tab title="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "metadata": {
+        "schema_version": ""
+    },
+    "tuples": [
+        {
+        "entity": {
+            "type": "organization",
+            "id": "1"
+        },
+        "relation": "admin",
+        "subject":{
+            "type": "user",
+            "id": "3",
+            "relation": ""
+        }
+    }
+    ]
+}'
+```
+
+</Tab>
+</Tabs>
+
+### Example Attribute Creation
+
+You can use `attributes` argument to create attribute/attributes with a single API call, similarly creating a `relational tuple`. 
+
+Let's say **document:1** is a **private (boolean)** document, that only specific users have view access - `document:1$is_private|boolean:true`.
+
+<Info> 
+As you noticed, the attribute tuple syntax differs from the relationship syntax, structured similarly as: 
+`entity $ attribute | value`
+</Info>
+
+<Tabs>
+<Tab title="Go">
+
+```go
+// Convert the wrapped attribute value into Any proto message
+value, err := anypb.New(&v1.BooleanValue{
+    Data: true,
+})
+if err != nil {
+	// Handle error
+}
+
+cr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{
+    TenantId: "t1",,
+    Metadata: &v1.DataWriteRequestMetadata{
+        SchemaVersion: "",
+    },
+    Attributes: []*v1.Attribute{
+        {
+            Entity: &v1.Entity{
+                Type: "document",
+                Id:   "1",
+            },
+            Attribute: "is_private",
+            Value:     value,
+        },
+    },
+})
+```
+
+</Tab>
+
+<Tab title="Node">
+
+```javascript
+const booleanValue = BooleanValue.fromJSON({ data: true });
+
+const value = Any.fromJSON({
+    typeUrl: 'type.googleapis.com/base.v1.BooleanValue',
+    value: BooleanValue.encode(booleanValue).finish()
+});
+
+client.data.write({
+    tenantId: "t1",
+    metadata: {
+        schemaVersion: ""
+    },
+    attributes: [{
+        entity: {
+            type: "document",
+            id: "1"
+        },
+        attribute: "is_private",
+        value: value,
+    }]
+}).then((response) => {
+    // handle response
+})
+```
+
+</Tab>
+<Tab title="Python">
+```
+boolean_value = BooleanValue.from_json({"data": True})
+
+value = Any.from_json({
+    "typeUrl": 'type.googleapis.com/base.v1.BooleanValue',
+    "value": BooleanValue.encode(boolean_value).finish()
+})
+
+with permify.ApiClient(configuration) as api_client:
+    api_instance = permify.DataApi(api_client)
+    tenant_id = 't1'
+
+    body = permify.DataWriteRequest(
+        tenant_id=tenant_id,
+        metadata={"schemaVersion": ""},
+        attributes=[{
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "attribute": "is_private",
+            "value": value,
+        }]
+    )
+```
+</Tab>
+<Tab title="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+{
+    "metadata": {
+        "schema_version": ""
+    },
+    "attributes": [
+        {
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "attribute": "is_private",
+            "value": {
+                "@type": "type.googleapis.com/base.v1.BooleanValue",
+                "data": true
+            }
+        }
+    ]
+}
+}'
+```
+
+</Tab>
+</Tabs>
+
+<Warning>
+**value** field is mandatory on attribute data creation!
+
+Here are the available attribute value types:
+
+- **type.googleapis.com/base.v1.StringValue**
+- **type.googleapis.com/base.v1.BooleanValue**
+- **type.googleapis.com/base.v1.IntegerValue**
+- **type.googleapis.com/base.v1.DoubleValue**
+- **type.googleapis.com/base.v1.StringArrayValue**
+- **type.googleapis.com/base.v1.BooleanArrayValue**
+- **type.googleapis.com/base.v1.IntegerArrayValue**
+- **type.googleapis.com/base.v1.DoubleArrayValue**
+</Warning>
+
+### Creating Attributes and Relationship In Single Request
+
+Assume we want to both create relational tuple and attribute within in single request. Specifically we want to create following tuples,
+
+-  `document:1#editor@user:1`
+-  `document:1$is_private|boolean:true`
+
+
+<Tabs>
+<Tab title="Go">
+
+```go
+// Convert the wrapped attribute value into Any proto message
+value, err := anypb.New(&v1.BooleanValue{
+    Data: true,
+})
+if err != nil {
+	// Handle error
+}
+
+cr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{
+    TenantId: "t1",,
+    Metadata: &v1.DataWriteRequestMetadata{
+        SchemaVersion: "",
+    },
+	Tuples: []*v1.Attribute{
+        {
+            Entity: &v1.Entity{
+                Type: "document",
+                Id:   "1",
+            },
+            Relation: "editor",
+            Subject:  &v1.Subject{
+		        Type: "user",
+		        Id:   "1",
+				Relation: "",
+			},
+        },
+    },
+    Attributes: []*v1.Attribute{
+        {
+            Entity: &v1.Entity{
+                Type: "document",
+                Id:   "1",
+            },
+            Attribute: "is_private",
+            Value:     value,
+        },
+    },
+})
+```
+
+</Tab>
+
+<Tab title="Node">
+
+```javascript
+const booleanValue = BooleanValue.fromJSON({ data: true });
+
+const value = Any.fromJSON({
+    typeUrl: 'type.googleapis.com/base.v1.BooleanValue',
+    value: BooleanValue.encode(booleanValue).finish()
+});
+
+client.data.write({
+    tenantId: "t1",
+    metadata: {
+        schemaVersion: ""
+    },
+    tuples: [{
+        entity: {
+            type: "document",
+            id: "1"
+        },
+        relation: "editor",
+        subject: {
+            type: "user",
+            id: "1"
+        }
+    }],
+    attributes: [{
+        entity: {
+            type: "document",
+            id: "1"
+        },
+        attribute: "is_private",
+        value: value,
+    }]
+}).then((response) => {
+    // handle response
+})
+```
+
+</Tab>
+
+<Tab title="Python">
+```
+boolean_value = BooleanValue.from_json({"data": True})
+
+value = Any.from_json({
+    "typeUrl": 'type.googleapis.com/base.v1.BooleanValue',
+    "value": BooleanValue.encode(boolean_value).finish()
+})
+
+with permify.ApiClient(configuration) as api_client:
+    api_instance = permify.DataApi(api_client)
+    tenant_id = 't1'
+
+    body = permify.DataWriteRequest(
+        tenant_id=tenant_id,
+        metadata={"schemaVersion": ""},
+        tuples=[{
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "relation": "editor",
+            "subject": {
+                "type": "user",
+                "id": "1"
+            },
+        }],
+        attributes=[{
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "attribute": "is_private",
+            "value": value,
+        }]
+    )
+
+</Tab>
+<Tab title="cURL">
+
+```curl
+curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+{
+    "metadata": {
+        "schema_version": ""
+    },
+    "tuples": [
+      {
+        "entity": {
+          "type": "document",
+          "id": "1"
+        },
+        "relation": "editor",
+        "subject": {
+          "type": "user",
+          "id": "1"
+        }
+    }
+    ],
+    "attributes": [
+        {
+            "entity": {
+                "type": "document",
+                "id": "1"
+            },
+            "attribute": "is_private",
+            "value": {
+                "@type": "type.googleapis.com/base.v1.BooleanValue",
+                "data": true
+            }
+        }
+    ]
+}
+}'
+```
+
+</Tab>
+</Tabs>
+
+### Suggested Workflow
+
+The most of the data that should written in Permify also needs to be write or engage with applications database as well. So where and how to write relationships into both applications database and Permify ?
+
+#### Two Phase Commit Approach
+
+In a standard relational based databases, the suggested place to write relationships to Permify is sending the write request in database transaction of the client action: such as storing the owner of the document when an user creates a document.
+
+To give more concurrent example of this action, let's take a look at below createDocument function
+
+```go
+func CreateDocuments(db *gorm.DB) error {
+
+  tx := db.Begin()
+  defer func() {
+    if r := recover(); r != nil {
+      tx.Rollback()
+      // if transaction fails, then delete malformed relation tuple
+      permify.DeleteData(...)
+    }
+  }()
+
+  if err := tx.Error; err != nil {
+    return err
+  }
+
+  if err := tx.Create(docs).Error; err != nil {
+     tx.Rollback()
+     // if transaction fails, then delete malformed relation tuple
+     permify.DeleteData(...)
+     return err
+  }
+
+  // if transaction successful, write relation tuple to Permify
+  permify.WriteData(...)
+
+  return tx.Commit().Error
+}
+```
+
+The key point to take way from above approach is if the transaction fails for any reason, the relation will also be deleted from Permify to provide maximum consistency.
+
+#### Data That Not Stored In Application Database
+
+Although ownership generally stored in application databases, there are some data that not needed to be stored in your actual database. Such as defining organizational roles, group members, project editors etc.
+
+For example, you can model a simple project management authorization in Permify as follows,
+
+```perm
+entity user {}
+
+entity team {
+
+    relation owner @user
+    relation member @user
+}
+
+entity project {
+
+    relation team @team
+    relation owner @user
+
+    action view = team.member or team.owner or project.owner
+    action edit = project.owner or team.owner
+    action delete = project.owner or team.owner
+
+}
+```
+
+This **team member** relation won't need to be stored in the application database. Storing it only in Permify - preferred database - is enough. In that situation, `WriteData` can be performed in any logical place in your stack.
+
+### Parameters & Properties

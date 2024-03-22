@@ -69,8 +69,10 @@ type (
 
 	// Oidc contains configuration for OIDC authentication.
 	Oidc struct {
-		Issuer   string `mapstructure:"issuer"`   // OIDC issuer URL
-		Audience string `mapstructure:"audience"` // OIDC client ID
+		Issuer          string        `mapstructure:"issuer"`   // OIDC issuer URL
+		Audience        string        `mapstructure:"audience"` // OIDC client ID
+		RefreshInterval time.Duration `mapstructure:"refresh_interval"`
+		ValidMethods    []string      `mapstructure:"valid_methods"`
 	}
 
 	// Profiler contains configuration for the profiler.
@@ -300,7 +302,10 @@ func DefaultConfig() *Config {
 		Authn: Authn{
 			Enabled:   false,
 			Preshared: Preshared{},
-			Oidc:      Oidc{},
+			Oidc: Oidc{
+				RefreshInterval: time.Minute * 15,
+				ValidMethods:    []string{"RS256", "HS256"},
+			},
 		},
 		Database: Database{
 			Engine:      "memory",

@@ -24,11 +24,67 @@ service Permission {
     };
     // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "This method returns a decision about whether user can perform an permission on a certain resource."
+      summary: "check api"
       tags: [
         "Permission"
       ]
       operation_id: "permissions.check"
+      description: "",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err := client.Permission.Check(context.Background(), &v1.PermissionCheckRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionCheckRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Entity: &v1.Entity {\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Permission: \"edit\",\n    Subject: &v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n\n    if (cr.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {\n        // RESULT_ALLOWED\n    } else {\n        // RESULT_DENIED\n    }\n})" },
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.check({\n    tenantId: \"t1\", \n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\",\n        depth: 20\n    },\n    entity: {\n        type: \"repository\",\n        id: \"1\"\n    },\n    permission: \"edit\",\n    subject: {\n        type: \"user\",\n        id: \"1\"\n    }\n}).then((response) => {\n    if (response.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {\n        console.log(\"RESULT_ALLOWED\")\n    } else {\n        console.log(\"RESULT_DENIED\")\n    }\n})" },
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/check' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\":{\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"depth\": 20\n  },\n  \"entity\": {\n    \"type\": \"repository\",\n    \"id\": \"1\"\n  },\n  \"permission\": \"edit\",\n  \"subject\": {\n    \"type\": \"user\",\n    \"id\": \"1\",\n    \"relation\": \"\"\n  },\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -42,11 +98,67 @@ service Permission {
     };
     // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "expand relationships according to schema"
+      summary: "expand api"
       tags: [
         "Permission"
       ]
       operation_id: "permissions.expand"
+      description: "",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: 	"cr, err: = client.Permission.Expand(context.Background(), &v1.PermissionExpandRequest{\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionExpandRequestMetadata{\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n    },\n    Entity: &v1.Entity{\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Permission: \"push\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.expand({\n  tenantId: \"t1\",\n  metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\"\n    },\n    entity: {\n        type: \"repository\",\n        id: \"1\"\n    },\n    permission: \"push\",\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/expand' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\": {\n    \"schema_version\": \"\",\n    \"snap_token\": \"\"\n  },\n  \"entity\": {\n    \"type\": \"repository\",\n    \"id\": \"1\"\n  },\n  \"permission\": \"push\"\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -60,11 +172,67 @@ service Permission {
     };
     // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Retrieve an entity by its identifier."
+      summary: "lookup entity"
       tags: [
         "Permission"
       ]
       operation_id: "permissions.lookupEntity"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err: = client.Permission.LookupEntity(context.Background(), & v1.PermissionLookupEntityRequest {\n    TenantId: \"t1\",\n    Metadata: & v1.PermissionLookupEntityRequestMetadata {\n        SnapToken: \"\"\n        SchemaVersion: \"\"\n        Depth: 20,\n    },\n    EntityType: \"document\",\n    Permission: \"edit\",\n    Subject: & v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    }\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.lookupEntity({\n    tenantId: \"t1\",\n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\",\n        depth: 20\n    },\n    entity_type: \"document\",\n    permission: \"edit\",\n    subject: {\n        type: \"user\",\n        id: \"1\"\n    }\n}).then((response) => {\n    console.log(response.entity_ids)\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/lookup-entity' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\":{\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"depth\": 20\n  },\n  \"entity_type\": \"document\",\n  \"permission\": \"edit\",\n  \"subject\": {\n    \"type\":\"user\",\n    \"id\":\"1\"\n  }\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -78,11 +246,51 @@ service Permission {
     };
     // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Stream entities by their identifiers."
+      summary: "lookup entity stream"
       tags: [
         "Permission"
       ]
       operation_id: "permissions.lookupEntityStream"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "str, err: = client.Permission.LookupEntityStream(context.Background(), &v1.PermissionLookupEntityRequest {\n    Metadata: &v1.PermissionLookupEntityRequestMetadata {\n        SnapToken: \"\", \n        SchemaVersion: \"\" \n        Depth: 50,\n    },\n    EntityType: \"document\",\n    Permission: \"view\",\n    Subject: &v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n})\n\n// handle stream response\nfor {\n    res, err: = str.Recv()\n\n    if err == io.EOF {\n        break\n    }\n\n    // res.EntityId\n}"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "const permify = require(\"@permify/permify-node\");\nconst {PermissionLookupEntityStreamResponse} = require(\"@permify/permify-node/dist/src/grpc/generated/base/v1/service\");\n\nfunction main() {\n    const client = new permify.grpc.newClient({\n        endpoint: \"localhost:3478\",\n    })\n\n    let res = client.permission.lookupEntityStream({\n        metadata: {\n            snapToken: \"\",\n            schemaVersion: \"\",\n            depth: 20\n        },\n        entityType: \"document\",\n        permission: \"view\",\n        subject: {\n            type: \"user\",\n            id: \"1\"\n        }\n    })\n\n    handle(res)\n}\n\nasync function handle(res: AsyncIterable<PermissionLookupEntityStreamResponse>) {\n    for await (const response of res) {\n        // response.entityId\n    }\n}"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -96,11 +304,67 @@ service Permission {
     };
     // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Retrieve a subject by its identifier."
+      summary: "lookup-subject"
       tags: [
         "Permission"
       ]
       operation_id: "permissions.lookupSubject"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err: = client.Permission.LookupSubject(context.Background(), &v1.PermissionLookupSubjectRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionLookupSubjectRequestMetadata{\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Entity: &v1.Entity{\n        Type: \"document\",\n        Id: \"1\",\n    },\n    Permission: \"edit\",\n    SubjectReference: &v1.RelationReference{\n        Type: \"user\",\n        Relation: \"\",\n    }\n})"	},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.lookupSubject({\n    tenantId: \"t1\",\n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\"\n        depth: 20,\n    },\n    Entity: {\n        Type: \"document\",\n        Id: \"1\",\n    },\n    permission: \"edit\",\n    subject_reference: {\n        type: \"user\",\n        relation: \"\"\n    }\n}).then((response) => {\n    console.log(response.subject_ids)\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/lookup-subject' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\":{\n    \"snap_token\": \"\",\n    \"schema_version\": \"\"\n    \"depth\": 20,\n  },\n  \"entity\": {\n    type: \"document\",\n    id: \"1'\n  },\n  \"permission\": \"edit\",\n  \"subject_reference\": {\n    \"type\": \"user\",\n    \"relation\": \"\"\n  }\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -114,11 +378,67 @@ service Permission {
     };
     // OpenAPI annotations for this method
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Retrieve permissions related to a specific subject."
+      summary: "subject permission"
       tags: [
         "Permission"
       ]
       operation_id: "permissions.subjectPermission"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err: = client.Permission.SubjectPermission(context.Background(), &v1.PermissionSubjectPermissionRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionSubjectPermissionRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        OnlyPermission: false,\n        Depth: 20,\n    },\n    Entity: &v1.Entity {\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Subject: &v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.permission.subjectPermission({\n    tenantId: \"t1\", \n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\",\n        onlyPermission: true,\n        depth: 20\n    },\n    entity: {\n        type: \"repository\",\n        id: \"1\"\n    },\n    subject: {\n        type: \"user\",\n        id: \"1\"\n    }\n}).then((response) => {\n    console.log(response);\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/subject-permission' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\":{\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"only_permission\": true,\n    \"depth\": 20\n  },\n  \"entity\": {\n    \"type\": \"repository\",\n    \"id\": \"1\"\n  },\n  \"subject\": {\n    \"type\": \"user\",\n    \"id\": \"1\",\n    \"relation\": \"\"\n  },\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -129,46 +449,63 @@ service Permission {
 message PermissionCheckRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes : 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Metadata associated with this request, required.
   PermissionCheckRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
 
   // Entity on which the permission needs to be checked, required.
-  Entity entity = 3 [json_name = "entity", (validate.rules).message.required = true];
+  Entity entity = 3 [
+    json_name = "entity",
+    (validate.rules).message.required = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"repository:1\""}
+  ];
 
   // Name of the permission or relation, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
-  string permission = 4 [json_name = "permission", (validate.rules).string = {
-    pattern : "^[a-zA-Z_]{1,64}$",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
+  string permission = 4 [
+    json_name = "permission",
+    (validate.rules).string = {pattern : "^[a-zA-Z_]{1,64}$", max_bytes : 64, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The action the user wants to perform on the resource"}
+  ];
 
   // Subject for which the permission needs to be checked, required.
-  Subject subject = 5 [json_name = "subject", (validate.rules).message.required = true];
+  Subject subject = 5 [
+    json_name = "subject",
+    (validate.rules).message.required = true
+  ];
 
   // Context associated with this request.
-  Context context = 6 [json_name = "context"];
+  Context context = 6 [
+    json_name = "context",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"}
+  ];
 
   // Additional arguments associated with this request.
   repeated Argument arguments = 7 [json_name = "arguments"];
 }
 
-// PermissionCheckRequestMetadata is the metadata associated with a PermissionCheckRequest.
+// PermissionCheckRequestMetadata metadata for the PermissionCheckRequest.
 message PermissionCheckRequestMetadata {
 
   // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
 
   // Token associated with the snap.
-  string snap_token = 2 [json_name = "snap_token"];
+  string snap_token = 2 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"}
+  ];
 
   // Depth of the check, must be greater than or equal to 3.
-  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 3 [
+    json_name = "depth",
+    (validate.rules).int32.gte = 3,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop"}
+  ];
 }
 
 // PermissionCheckResponse is the response message for the Check method in the Permission service.
@@ -181,7 +518,7 @@ message PermissionCheckResponse {
   PermissionCheckResponseMetadata metadata = 2 [json_name = "metadata"];
 }
 
-// PermissionCheckResponseMetadata is the metadata associated with a PermissionCheckResponse.
+// PermissionCheckResponseMetadata metadata for the PermissionCheckResponse.
 message PermissionCheckResponseMetadata {
 
   // The count of the checks performed.
@@ -194,11 +531,11 @@ message PermissionCheckResponseMetadata {
 message PermissionExpandRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Metadata associated with this request, required.
   PermissionExpandRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -220,14 +557,17 @@ message PermissionExpandRequest {
   repeated Argument arguments = 6 [json_name = "arguments"];
 }
 
-// PermissionExpandRequestMetadata is the metadata associated with a PermissionExpandRequest.
+// PermissionExpandRequestMetadata metadata for the PermissionExpandRequest.
 message PermissionExpandRequestMetadata {
 
   // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
 
   // Token associated with the snap.
-  string snap_token = 2 [json_name = "snap_token"];
+  string snap_token = 2 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."}
+  ];
 }
 
 // PermissionExpandResponse is the response message for the Expand method in the Permission service.
@@ -243,11 +583,11 @@ message PermissionExpandResponse {
 message PermissionLookupEntityRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes : 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Metadata associated with this request, required.
   PermissionLookupEntityRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -273,17 +613,24 @@ message PermissionLookupEntityRequest {
   Context context = 6 [json_name = "context"];
 }
 
-// PermissionLookupEntityRequestMetadata is the metadata associated with a PermissionLookupEntityRequest.
+// PermissionLookupEntityRequestMetadata metadata for the PermissionLookupEntityRequest.
 message PermissionLookupEntityRequestMetadata {
 
   // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
 
   // Token associated with the snap.
-  string snap_token = 2 [json_name = "snap_token"];
+  string snap_token = 2 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."}
+  ];
 
   // Depth of lookup, required, must be greater or equal to 3.
-  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 3 [
+    json_name = "depth",
+    (validate.rules).int32.gte = 3,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
+  ];
 }
 
 // PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service.
@@ -306,11 +653,11 @@ message PermissionLookupEntityStreamResponse {
 message PermissionEntityFilterRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes : 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Metadata associated with this request, required.
   PermissionEntityFilterRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -325,17 +672,24 @@ message PermissionEntityFilterRequest {
   Context context = 5 [json_name = "context"];
 }
 
-// PermissionEntityFilterRequestMetadata is the metadata associated with a PermissionEntityFilterRequest.
+// PermissionEntityFilterRequestMetadata metadata for the PermissionEntityFilterRequest.
 message PermissionEntityFilterRequestMetadata {
 
   // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
 
   // Token associated with the snap.
-  string snap_token = 2 [json_name = "snap_token"];
+  string snap_token = 2 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."}
+  ];
 
   // Depth of lookup, required, must be greater or equal to 3.
-  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 3 [
+    json_name = "depth",
+    (validate.rules).int32.gte = 3,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
+  ];
 }
 
 // LOOKUP SUBJECT
@@ -344,11 +698,11 @@ message PermissionEntityFilterRequestMetadata {
 message PermissionLookupSubjectRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Metadata associated with this request, required.
   PermissionLookupSubjectRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -370,17 +724,24 @@ message PermissionLookupSubjectRequest {
   Context context = 6 [json_name = "context"];
 }
 
-// PermissionLookupSubjectRequestMetadata is the metadata associated with a PermissionLookupSubjectRequest.
+// PermissionLookupSubjectRequestMetadata metadata for the PermissionLookupSubjectRequest.
 message PermissionLookupSubjectRequestMetadata {
 
   // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
 
   // Token associated with the snap.
-  string snap_token = 2 [json_name = "snap_token"];
+  string snap_token = 2 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."}
+  ];
 
   // Depth of the check, must be greater than or equal to 3.
-  int32 depth = 3 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 3 [
+    json_name = "depth",
+    (validate.rules).int32.gte = 3,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
+  ];
 }
 
 // PermissionLookupSubjectResponse is the response message for the LookupSubject method in the Permission service.
@@ -396,11 +757,11 @@ message PermissionLookupSubjectResponse {
 message PermissionSubjectPermissionRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Metadata associated with this request, required.
   PermissionSubjectPermissionRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -415,20 +776,27 @@ message PermissionSubjectPermissionRequest {
   Context context = 5 [json_name = "context"];
 }
 
-// PermissionSubjectPermissionRequestMetadata is the metadata associated with a PermissionSubjectPermissionRequest.
+// PermissionSubjectPermissionRequestMetadata metadata for the PermissionSubjectPermissionRequest.
 message PermissionSubjectPermissionRequestMetadata {
 
   // Version of the schema.
   string schema_version = 1 [json_name = "schema_version"];
 
   // Token associated with the snap.
-  string snap_token = 2 [json_name = "snap_token"];
+  string snap_token = 2 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."}
+  ];
 
   // Whether to only check permissions.
   bool only_permission = 3 [json_name = "only_permission"];
 
   // Depth of the check, must be greater than or equal to 3.
-  int32 depth = 4 [json_name = "depth", (validate.rules).int32.gte = 3];
+  int32 depth = 4 [
+    json_name = "depth",
+    (validate.rules).int32.gte = 3,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
+  ];
 }
 
 // PermissionSubjectPermissionResponse is the response message for the SubjectPermission method in the Permission service.
@@ -453,11 +821,51 @@ service Watch {
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "" // Short summary of what the operation does.
+      summary: "watch changes" // Short summary of what the operation does.
       tags: [
         "Watch" // Adds an additional categorization for the operation.
       ]
       operation_id: "watch.watch" // Unique string used to identify the operation.
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err := client.Watch.Watch(context.Background(), &v1.WatchRequest{\n    TenantId:  \"t1\",\n    SnapToken: \"\",\n})\n// handle stream response\nfor {\n    res, err := cr.Recv()\n\n    if err == io.EOF {\n        break\n    }\n\n    // res.Changes\n}\n"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "const permify = require(\"@permify/permify-node\");\nconst {WatchResponse} = require(\"@permify/permify-node/dist/src/grpc/generated/base/v1/service\");\n\nfunction main() {\n    const client = new permify.grpc.newClient({\n        endpoint: \"localhost:3478\",\n    })\n\n    let res = client.watch.watch({\n          tenantId: \"t1\",\n        snapToken: \"\"\n    })\n\n    handle(res)\n}\n\nasync function handle(res: AsyncIterable<WatchResponse>) {\n    for await (const response of res) {\n        // response.changes\n    }\n}\n"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -467,14 +875,17 @@ service Watch {
 message WatchRequest {
 
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern : "[a-zA-Z0-9-,]+",
-    max_bytes : 64,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Snap token to be used for watching.
-  string snap_token = 2 [json_name = "snap_token"];
+  string snap_token = 2 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."}
+  ];
 }
 
 // WatchResponse is the response message for the Watch RPC. It contains the
@@ -505,9 +916,65 @@ service Schema {
 
     // OpenAPI specific annotation
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "write your authorization model" // Short summary of what the operation does.
+      summary: "write schema" // Short summary of what the operation does.
       tags: ["Schema"] // Adds an additional categorization for the operation.
       operation_id: "schemas.write" // Unique string used to identify the operation.
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "sr, err: = client.Schema.Write(context.Background(), &v1.SchemaWriteRequest {\n    TenantId: \"t1\",\n    Schema: `\n    \"entity user {}\\n\\n    entity organization {\\n\\n        relation admin @user\\n        relation member @user\\n\\n        action create_repository = (admin or member)\\n        action delete = admin\\n    }\\n\\n    entity repository {\\n\\n        relation owner @user\\n        relation parent @organization\\n\\n        action push = owner\\n        action read = (owner and (parent.admin and parent.member))\\n        action delete = (parent.member and (parent.admin or owner))\\n    }\"\n    `,\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.schema.write({\n    tenantId: \"t1\",\n    schema: `\n    \"entity user {}\\n\\n    entity organization {\\n\\n        relation admin @user\\n        relation member @user\\n\\n        action create_repository = (admin or member)\\n        action delete = admin\\n    }\\n\\n    entity repository {\\n\\n        relation owner @user\\n        relation parent @organization\\n\\n        action push = owner\\n        action read = (owner and (parent.admin and parent.member))\\n        action delete = (parent.member and (parent.admin or owner))\\n    }\"\n    `\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/write' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"schema\": \"entity user {}\\n\\n    entity organization {\\n\\n        relation admin @user\\n        relation member @user\\n\\n        action create_repository = (admin or member)\\n        action delete = admin\\n    }\\n\\n    entity repository {\\n\\n        relation owner @user\\n        relation parent @organization\\n\\n        action push = owner\\n        action read = (owner and (parent.admin and parent.member))\\n        action delete = (parent.member and (parent.admin or owner))\\n }\"\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -523,9 +990,65 @@ service Schema {
 
     // OpenAPI specific annotation
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "read your authorization model" // Short summary of what the operation does.
+      summary: "read schema" // Short summary of what the operation does.
       tags: ["Schema"] // Adds an additional categorization for the operation.
       operation_id: "schemas.read" // Unique string used to identify the operation.
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "sr, err: = client.Schema.Read(context.Background(), &v1.SchemaReadRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.SchemaReadRequestMetadata{\n        SchemaVersion: \"cnbe6se5fmal18gpc66g\",\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "let res = client.schema.read({\n    tenantId: \"t1\",\n    metadata: {\n    schemaVersion: swResponse.schemaVersion,\n    },\n    })"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/read' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"metadata\": {\n        \"schema_version\": \"cnbe6se5fmal18gpc66g\"\n    }\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -541,9 +1064,65 @@ service Schema {
 
     // OpenAPI specific annotation.
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "list all authorization models" // Short summary of what the operation does.
+      summary: "list schema" // Short summary of what the operation does.
       tags: ["Schema"] // Adds an additional categorization for the operation.
       operation_id: "schemas.list" // Unique string used to identify the operation.
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "sr, err: = client.Schema.List(context.Background(), &v1.SchemaListRequest {\n    TenantId: \"t1\",\n    PageSize: \"10\",\n    ContinuousToken: \"\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "let res = client.schema.list({\n    tenantId: \"t1\",\n    continuousToken: \"\"\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/read' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"page_size\": \"10\",\n    \"continuous_token\": \"\"\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -556,11 +1135,11 @@ message SchemaWriteRequest {
 
   // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
   // be a maximum of 64 bytes, and must not be empty.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // schema is the string representation of the schema to be written.
   string schema = 2 [json_name = "schema"];
@@ -582,11 +1161,11 @@ message SchemaReadRequest {
 
   // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
   // be a maximum of 64 bytes, and must not be empty.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // metadata is the additional information needed for the Read request.
   SchemaReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -608,7 +1187,7 @@ message SchemaReadResponse {
   SchemaDefinition schema = 1 [json_name = "schema"];
 }
 
-// LIST 
+// LIST
 
 // SchemaListRequest is the request message for the List method in the Schema service.
 // It contains tenant_id for which the schemas are to be listed.
@@ -616,11 +1195,11 @@ message SchemaListRequest {
 
   // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
   // be a maximum of 64 bytes, and must not be empty.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // page_size is the number of tenants to be returned in the response.
   // The value should be between 1 and 100.
@@ -665,11 +1244,67 @@ service Data {
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "create data"
+      summary: "write data"
       tags: [
         "Data"
       ]
       operation_id: "data.write"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "// Convert the wrapped attribute value into Any proto message\nvalue, err := anypb.New(&v1.BooleanValue{\n    Data: true,\n})\nif err != nil {\n    // Handle error\n}\n\ncr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{\n    TenantId: \"t1\",,\n    Metadata: &v1.DataWriteRequestMetadata{\n        SchemaVersion: \"\",\n    },\n    Tuples: []*v1.Attribute{\n        {\n            Entity: &v1.Entity{\n                Type: \"document\",\n                Id:   \"1\",\n            },\n            Relation: \"editor\",\n            Subject:  &v1.Subject{\n                Type: \"user\",\n                Id:   \"1\",\n                Relation: \"\",\n            },\n        },\n    },\n    Attributes: []*v1.Attribute{\n        {\n            Entity: &v1.Entity{\n                Type: \"document\",\n                Id:   \"1\",\n            },\n            Attribute: \"is_private\",\n            Value:     value,\n        },\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "const booleanValue = BooleanValue.fromJSON({ data: true });\n\nconst value = Any.fromJSON({\n    typeUrl: 'type.googleapis.com/base.v1.BooleanValue',\n    value: BooleanValue.encode(booleanValue).finish()\n});\n\nclient.data.write({\n    tenantId: \"t1\",\n    metadata: {\n        schemaVersion: \"\"\n    },\n    tuples: [{\n        entity: {\n            type: \"document\",\n            id: \"1\"\n        },\n        relation: \"editor\",\n        subject: {\n            type: \"user\",\n            id: \"1\"\n        }\n    }],\n    attributes: [{\n        entity: {\n            type: \"document\",\n            id: \"1\"\n        },\n        attribute: \"is_private\",\n        value: value,\n    }]\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n{\n    \"metadata\": {\n        \"schema_version\": \"\"\n    },\n    \"tuples\": [\n      {\n        \"entity\": {\n          \"type\": \"document\",\n          \"id\": \"1\"\n        },\n        \"relation\": \"editor\",\n        \"subject\": {\n          \"type\": \"user\",\n          \"id\": \"1\"\n        }\n    }\n    ],\n    \"attributes\": [\n        {\n            \"entity\": {\n                \"type\": \"document\",\n                \"id\": \"1\"\n            },\n            \"attribute\": \"is_private\",\n            \"value\": {\n                \"@type\": \"type.googleapis.com/base.v1.BooleanValue\",\n                \"data\": true\n            }\n        }\n    ]\n}\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -681,7 +1316,7 @@ service Data {
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "create new relationships"
+      summary: "write relationships"
       tags: [
         "Data"
       ]
@@ -697,11 +1332,67 @@ service Data {
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "read relation tuple(s)"
+      summary: "read relationships"
       tags: [
         "Data"
       ]
       operation_id: "data.relationships.read"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Data.ReadRelationships(context.Background(), & v1.Data.RelationshipReadRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.Data.RelationshipReadRequestMetadata {\n        SnapToken: \"\"\n    },\n    Filter: &v1.TupleFilter {\n        Entity: &v1.EntityFilter {\n        Type: \"organization\",\n        Ids: []string {\"1\"} ,\n    },\n    Relation: \"member\",\n    Subject: &v1.SubjectFilter {\n        Type: \"\",\n        Id: []string {\"\"},\n        Relation: \"\"\n    }}\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.data.readRelationships({\n  tenantId: \"t1\",\n  metadata: {\n     snap_token: \"\",\n  },\n  filter: {\n    entity: {\n      type: \"organization\",\n      ids: [\n        \"1\"\n      ]\n    },\n    relation: \"member\",\n    subject: {\n      type: \"\",\n      ids: [],\n      relation: \"\"\n    }\n  }\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/relationships/read' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  metadata: {\n     snap_token: \"\",\n  },\n  filter: {\n    entity: {\n      type: \"organization\",\n      ids: [\n        \"1\"\n      ]\n    },\n    relation: \"member\",\n    subject: {\n      type: \"\",\n      ids: [],\n      relation: \"\"\n    }\n  }\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -713,11 +1404,67 @@ service Data {
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "read attribute(s)"
+      summary: "read attributes"
       tags: [
         "Data"
       ]
       operation_id: "data.attributes.read"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Data.ReadAttributes(context.Background(), & v1.Data.AttributeReadRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.Data.AttributeReadRequestMetadata {\n        SnapToken: \"\"\n    },\n    Filter: &v1.AttributeFilter {\n        Entity: &v1.EntityFilter {\n        Type: \"organization\",\n        Ids: []string {\"1\"} ,\n    },\n    Attributes: []string {\"private\"},\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.data.readAttributes({\n  tenantId: \"t1\",\n  metadata: {\n     snap_token: \"\",\n  },\n  filter: {\n    entity: {\n      type: \"organization\",\n      ids: [\n        \"1\"\n      ]\n    },\n    attributes: [\n        \"private\"\n    ],\n  }\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/attributes/read' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  metadata: {\n     snap_token: \"\",\n  },\n  filter: {\n    entity: {\n      type: \"organization\",\n      ids: [\n        \"1\"\n      ]\n    },\n    attributes: [\n        \"private\"\n      ],\n  }\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -734,6 +1481,62 @@ service Data {
         "Data"
       ]
       operation_id: "data.delete"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Data.Delete(context.Background(), & v1.DataDeleteRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.DataDeleteRequestMetadata {\n        SnapToken: \"\"\n    },\n    TupleFilter: &v1.TupleFilter {\n        Entity: &v1.EntityFilter {\n        Type: \"organization\",\n        Ids: []string {\"1\"} ,\n    },\n    Relation: \"admin\",\n    Subject: &v1.SubjectFilter {\n        Type: \"user\",\n        Id: []string {\"1\"},\n        Relation: \"\"\n    }}\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.data.delete({\n  tenantId: \"t1\",\n  metadata: {\n     snap_token: \"\",\n  },\n  tupleFilter: {\n    entity: {\n      type: \"organization\",\n      ids: [\n        \"1\"\n      ]\n    },\n    relation: \"admin\",\n    subject: {\n      type: \"user\",\n      ids: [\n        \"1\"\n      ],\n      relation: \"\"\n    }\n  }\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"tupleFilter\": {\n    \"entity\": {\n      \"type\": \"organization\",\n      \"ids\": [\n        \"1\"\n      ]\n    },\n    \"relation\": \"admin\",\n    \"subject\": {\n      \"type\": \"user\",\n      \"ids\": [\n        \"1\"\n      ],\n      \"relation\": \"\"\n    }\n  },\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -766,6 +1569,62 @@ service Data {
         "Data"
       ]
       operation_id: "bundle.run"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Data.RunBundle(context.Background(), &v1.BundleRunRequest{\n    TenantId: \"t1\",\n    Name:     \"organization_created\",\n    Arguments: map[string]string{\n        \"creatorID\":      \"564\",\n        \"organizationID\": \"789\",\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.data.runBundle({\n    tenantId: \"t1\",\n    name: \"organization_created\",\n    arguments: {\n        creatorID: \"564\",\n        organizationID: \"789\",\n    }\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/run-bundle' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"name\": \"organization_created\",\n    \"arguments\": {\n        \"creatorID\": \"564\",\n        \"organizationID\": \"789\",\n    }\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -775,11 +1634,11 @@ service Data {
 // tuples and attributes for the write operation.
 message DataWriteRequest {
   // tenant_id represents the unique identifier of the tenant for which data is written.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // metadata holds additional data related to the request.
   DataWriteRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -818,18 +1677,21 @@ message DataWriteRequestMetadata {
 // It contains the snap_token generated after the write operation.
 message DataWriteResponse {
   // snap_token is the token generated after the data write operation, representing a snapshot of the data.
-  string snap_token = 1 [json_name = "snap_token"];
+  string snap_token = 1 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."}
+  ];
 }
 
 // Represents a request to write relationship data.
 message RelationshipWriteRequest {
 
   // Unique identifier for the tenant with specific constraints.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Metadata for the request. It's required.
   RelationshipWriteRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -853,18 +1715,21 @@ message RelationshipWriteRequestMetadata {
 
 // RelationshipWriteResponse
 message RelationshipWriteResponse {
-  string snap_token = 1 [json_name = "snap_token"];
+  string snap_token = 1 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"}
+  ];
 }
 
 // RelationshipReadRequest defines the structure of a request for reading relationships.
 // It contains the necessary information such as tenant_id, metadata, and filter for the read operation.
 message RelationshipReadRequest {
   // tenant_id represents the unique identifier of the tenant for which relationships are read.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // metadata holds additional data related to the request.
   RelationshipReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -887,7 +1752,10 @@ message RelationshipReadRequest {
 // It includes the snap_token associated with a particular state of the database.
 message RelationshipReadRequestMetadata {
   // snap_token represents a specific state or "snapshot" of the database.
-  string snap_token = 1 [json_name = "snap_token"];
+  string snap_token = 1 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"}
+  ];
 }
 
 // RelationshipReadResponse defines the structure of the response after reading relationships.
@@ -904,11 +1772,11 @@ message RelationshipReadResponse {
 // It includes the tenant_id, metadata, attribute filter, page size for pagination, and a continuous token for multi-page results.
 message AttributeReadRequest {
   // tenant_id represents the unique identifier of the tenant from which the attributes are being read.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // metadata holds additional information related to the request.
   AttributeReadRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
@@ -931,7 +1799,10 @@ message AttributeReadRequest {
 // It includes the snap_token associated with a particular state of the database.
 message AttributeReadRequestMetadata {
   // snap_token represents a specific state or "snapshot" of the database.
-  string snap_token = 1 [json_name = "snap_token"];
+  string snap_token = 1 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"}
+  ];
 }
 
 // AttributeReadResponse defines the structure of the response to an attribute read request.
@@ -948,11 +1819,11 @@ message AttributeReadResponse {
 // It includes the tenant_id and filters for selecting tuples and attributes to be deleted.
 message DataDeleteRequest {
   // tenant_id represents the unique identifier of the tenant from which the data will be deleted.
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // tuple_filter specifies the criteria used to select the tuples that should be deleted.
   TupleFilter tuple_filter = 2 [json_name = "tuple_filter", (validate.rules).message.required = true];
@@ -965,33 +1836,39 @@ message DataDeleteRequest {
 // It includes a snap_token representing the state of the database after the deletion.
 message DataDeleteResponse {
   // snap_token represents the state of the database after the requested deletions.
-  string snap_token = 1 [json_name = "snap_token"];
+  string snap_token = 1 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"}
+  ];
 }
 
 // RelationshipDeleteRequest
 message RelationshipDeleteRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   TupleFilter filter = 2 [json_name = "filter"];
 }
 
 // RelationshipDeleteResponse
 message RelationshipDeleteResponse {
-  string snap_token = 1 [json_name = "snap_token"];
+  string snap_token = 1 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"}
+  ];
 }
 
 // BundleRunRequest is used to request the execution of a bundle.
 // It includes tenant_id, the name of the bundle, and additional arguments for execution.
 message BundleRunRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   // Name of the bundle to be executed.
   string name = 2 [json_name = "name"];
@@ -1003,7 +1880,10 @@ message BundleRunRequest {
 // BundleRunResponse is the response for a BundleRunRequest.
 // It includes a snap_token, which may be used for tracking the execution or its results.
 message BundleRunResponse {
-  string snap_token = 1 [json_name = "snap_token"]; // Token related to the bundle execution.
+  string snap_token = 1 [
+    json_name = "snap_token",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"}
+  ];
 }
 
 // ** BUNDLE SERVICE **
@@ -1022,6 +1902,62 @@ service Bundle {
         "Bundle"
       ]
       operation_id: "bundle.write"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err := client.Bundle.Write(context.Background(), &v1.BundleWriteRequest{\n    TenantId: \"t1\",\n    Bundles: []*v1.DataBundle{\n        {\n            Name: \"organization_created\",\n            Arguments: []string{\n                \"creatorID\",\n                \"organizationID\",\n            },\n            Operations: []*v1.Operation{\n                {\n                    RelationshipsWrite: []string{\n                        \"organization:{{.organizationID}}#admin@user:{{.creatorID}}\",\n                        \"organization:{{.organizationID}}#manager@user:{{.creatorID}}\",\n                    },\n                    AttributesWrite: []string{\n                        \"organization:{{.organizationID}}$public|boolean:false\",\n                    },\n                },\n            },\n        },\n    },\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.bundle.write({\n    tenantId: \"t1\",\n    bundles: [\n        {\n            name: \"organization_created\",\n            arguments: [\n                \"creatorID\",\n                \"organizationID\",\n            ],\n            operations: [\n                {\n                    relationships_write: [\n                        \"organization:{{.organizationID}}#admin@user:{{.creatorID}}\",\n                        \"organization:{{.organizationID}}#manager@user:{{.creatorID}}\",\n                    ],\n                    attributes_write: [\n                        \"organization:{{.organizationID}}$public|boolean:false\",\n                    ]\n                }\n            ]\n        }\n    ]\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/bundle/write' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"bundles\": [\n        {\n            \"name\": \"organization_created\"\n            \"arguments\": [\n                \"creatorID\",\n                \"organizationID\"\n            ],\n            \"operations\": [\n                {\n                    \"relationships_write\": [\n                        \"organization:{{.organizationID}}#admin@user:{{.creatorID}}\",\n                        \"organization:{{.organizationID}}#manager@user:{{.creatorID}}\",\n                    ],\n                    \"attributes_write\": [\n                        \"organization:{{.organizationID}}$public|boolean:false\",\n                    ],\n                },\n            ],\n        },\n    ],\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -1038,6 +1974,62 @@ service Bundle {
         "Bundle"
       ]
       operation_id: "bundle.read"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Bundle.Read(context.Background(), &v1.BundleReadRequest{\n    TenantId: \"t1\",\n    Name:     \"organization_created\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.bundle.read({\n    tenantId: \"t1\",\n    name: \"organization_created\",\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/bundle/read' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"name\": \"organization_created\",\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -1054,6 +2046,62 @@ service Bundle {
         "Bundle"
       ]
       operation_id: "bundle.delete"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Bundle.Delete(context.Background(), &v1.BundleDeleteRequest{\n    TenantId: \"t1\",\n    Name:     \"organization_created\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.bundle.delete({\n    tenantId: \"t1\",\n    name: \"organization_created\",\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/bundle/delete' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"name\": \"organization_created\",\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }
@@ -1061,11 +2109,11 @@ service Bundle {
 // BundleWriteRequest is used to request the writing of a bundle.
 // It contains the tenant_id to identify the tenant and the Bundles object.
 message BundleWriteRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   repeated DataBundle bundles = 2; // Contains the bundle data to be written.
 }
@@ -1077,11 +2125,11 @@ message BundleWriteResponse {
 }
 
 message BundleReadRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   string name = 2 [json_name = "name"];
 }
@@ -1093,11 +2141,11 @@ message BundleReadResponse {
 // BundleDeleteRequest is used to request the deletion of a bundle.
 // It contains the tenant_id to specify the tenant and the name of the bundle to be deleted.
 message BundleDeleteRequest {
-  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
-    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
-    max_bytes: 128,
-    ignore_empty: false,
-  }];
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$", max_bytes: 128, ignore_empty: false},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
 
   string name = 2 [json_name = "name"]; // Name of the bundle to be deleted.
 }
@@ -1119,11 +2167,67 @@ service Tenancy {
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "create new tenant"
+      summary: "create tenant"
       tags: [
         "Tenancy"
       ]
       operation_id: "tenants.create"
+      description: "",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Tenancy.Create(context.Background(), &v1.TenantCreateRequest {\n    Id: \"\"\n    Name: \"\"\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.tenancy.create({\n   id: \"\",\n   name: \"\"\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'http://localhost:3476/v1/tenants/create' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"id\": \"\",\n    \"name\": \"\"\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -1140,6 +2244,62 @@ service Tenancy {
         "Tenancy"
       ]
       operation_id: "tenants.delete"
+      description: "",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "rr, err: = client.Tenancy.Delete(context.Background(), &v1.TenantDeleteRequest {\n    Id: \"\"\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "client.tenancy.delete({\n   id: \"\",\n}).then((response) => {\n    // handle response\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request DELETE 'http://localhost:3476/v1/tenants/t1'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 
@@ -1157,6 +2317,62 @@ service Tenancy {
         "Tenancy"
       ]
       operation_id: "tenants.list"
+      description: "",
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "go" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "cr, err := client.Tenancy.List(context.Background(), &v1.TenantListRequest{\n    PageSize: 20,\n    ContinuousToken: \"\",\n})"},
+                }
+              },
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "javascript" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "node" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "let res = client.tenancy.list({\n    pageSize: 20,\n    continuousToken: \"\",\n})"},
+                }
+              }
+            },
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value : { string_value: "curl" },
+                }
+                fields: {
+                  key: "label"
+                  value : { string_value: "cURL" },
+                }
+                fields: {
+                  key: "source"
+                  value : { string_value: "curl --location --request POST 'localhost:3476/v1/tenants/list' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"page_size\": \"10\",\n    \"continuous_token\": \"\"\n}'"},
+                }
+              }
+            }
+          }
+        }
+      }
     };
   }
 }

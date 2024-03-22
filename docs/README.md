@@ -1,10 +1,32 @@
-# Permify Documentation
+# Mintlify Starter Kit
 
-Documentation for [Permify], open source authorization service.
+Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
 
-[Permify]: https://github.com/Permify/permify
+- Guide pages
+- Navigation
+- Customizations
+- API Reference pages
+- Use of popular components
 
-<p align="center">
-    <a href="https://github.com/Permify/permify" target="_blank"><img src="https://img.shields.io/github/license/Permify/permify?style=for-the-badge" alt="Permify Licence" /></a>&nbsp;
-    <a href="https://discord.gg/n6KfzYxhPp" target="_blank"><img src="https://img.shields.io/discord/950799928047833088?style=for-the-badge&logo=discord&label=DISCORD" alt="Permify Discord Channel" /></a>&nbsp;
-</p>
+### Development
+
+Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally. To install, use the following command
+
+```
+npm i -g mintlify
+```
+
+Run the following command at the root of your documentation (where mint.json is)
+
+```
+mintlify dev
+```
+
+### Publishing Changes
+
+Install our Github App to autopropagate changes from youre repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard. 
+
+#### Troubleshooting
+
+- Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.
+- Page loads as a 404 - Make sure you are running in a folder with `mint.json`

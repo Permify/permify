@@ -1,0 +1,189 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Permify Docs",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#8246FF",
+    "light": "#8246FF",
+    "dark": "#6318FF",
+    "anchors": {
+      "from": "#8246FF",
+      "to": "#8246FF"
+    }
+  },
+  "openapi": ["./api-reference/openapi.json"],
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "https://discord.com/invite/n6KfzYxhPp"
+    }
+  ],
+  "modeToggle": {
+    "default": "dark"
+  },
+  "analytics": {
+    "plausible": {
+        "domain": "docs.permify.co"
+    }
+  },
+  "topbarCtaButton": {
+    "name": "Playground",
+    "url": "https://play.permify.co/?s=organizations-hierarchies"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Community",
+      "icon": "discord",
+      "url": "https://discord.com/invite/n6KfzYxhPp"
+    },
+    {
+      "name": "Open Source",
+      "icon": "github",
+      "url": "https://github.com/Permify/permify"
+    }  
+  ],
+  "navigation": [
+    {
+      "group": "Introduction",
+      "pages": [
+        "permify-overview/intro",
+        "permify-overview/authorization-service",
+        "permify-overview/faqs"
+      ]
+    },
+    {
+      "group": "Getting Started",
+      "pages": [
+        "getting-started/quickstart",
+        "getting-started/modeling",
+        "getting-started/sync-data",
+        "getting-started/enforcement",
+        "getting-started/testing",
+        {
+          "group": "Real World Examples",
+          "icon": "globe",
+          "pages": [
+            "getting-started/examples/intro",
+            "getting-started/examples/facebook-groups",
+            "getting-started/examples/google-docs",
+            "getting-started/examples/instagram",
+            "getting-started/examples/mercury",
+            "getting-started/examples/notion"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Setting Up",
+      "icon": "cloud-arrow-up",
+      "pages": [
+        "setting-up/configuration",
+        {
+          "group": "Deployment",
+          "icon": "cloud-arrow-up",
+          "pages": [
+            "setting-up/installation/intro",
+            "setting-up/installation/aws",
+            "setting-up/installation/brew",
+            "setting-up/installation/container",
+            "setting-up/installation/google",
+            "setting-up/installation/helm",
+            "setting-up/installation/kubernetes"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Operations",
+      "pages": [
+        "operations/bundle",
+        "operations/cache",
+        "operations/contextual-tuples",
+        "operations/tracing",
+        "operations/snap-tokens"
+      ]
+    },
+    {
+      "group": "Use Cases",
+      "pages": [
+        "use-cases/rbac",
+        "use-cases/rebac",
+        "use-cases/abac",
+        "use-cases/custom-roles",
+        "use-cases/multi-tenancy"
+      ]
+    },
+    {
+      "group": "API Documentation",
+      "pages": [
+        "api-reference/introduction"
+      ]
+    },
+    {
+      "group": "Schema Service",
+      "pages": [
+        "api-reference/schema/write-schema",
+        "api-reference/schema/list-schema",
+        "api-reference/schema/read-schema"
+      ]
+    },
+    {
+      "group": "Data Service",
+      "pages": [
+        "api-reference/data/write-data",
+        "api-reference/data/read-relationships",
+        "api-reference/data/read-attributes",
+        "api-reference/data/run-bundle",
+        "api-reference/data/delete-data"
+      ]
+    },
+    {
+      "group": "Permission Service",
+      "pages": [
+        "api-reference/permission/check-api",
+        "api-reference/permission/expand-api",
+        "api-reference/permission/lookup-subject",
+        "api-reference/permission/lookup-entity",
+        "api-reference/permission/lookup-entity-stream",
+        "api-reference/permission/subject-permission"
+        ]
+    },
+    {
+      "group": "Tenancy Service",
+      "pages": [
+        "api-reference/tenancy/list-tenants",
+        "api-reference/tenancy/create-tenant",
+        "api-reference/tenancy/delete-tenant"
+      ]
+    },
+    {
+      "group": "Bundle Service",
+      "pages": [
+        "api-reference/bundle/write-bundle",
+        "api-reference/bundle/read-bundle",
+        "api-reference/bundle/delete-bundle"
+      ]
+    },
+    {
+      "group": "Watch Service",
+      "pages": [
+        "api-reference/watch/watch-changes"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/getPermify",
+    "github": "https://github.com/Permify/permify",
+    "linkedin": "https://www.linkedin.com/company/permifyco"
+  }
+}
