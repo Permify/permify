@@ -3,13 +3,14 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"sort"
+	"testing"
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"sort"
-	"testing"
-	`time`
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/storage"
