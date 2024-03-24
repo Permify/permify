@@ -771,5 +771,6 @@ var _ = Describe("parser", func() {
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("6:18:expected next token to be IDENT, got ASSIGN instead"))
 		})
+			// err = schema.AddStatement("organization", stmt)
 	})
 })
