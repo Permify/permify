@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // Schema represents the parsed schema, which contains all the statements
@@ -56,14 +58,14 @@ func (sch *Schema) AddStatement(entityName string, stmt Statement) error {
 				entityStmt = es // Successfully found and cast the EntityStatement.
 				break
 			} else {
-				return errors.New("cannot convert to entity statement") // Casting failed.
+				return errors.New(base.ErrorCode_ERROR_CODE_CANNOT_CONVERT_TO_ENTITY_STATEMENT.String()) // Casting failed.
 			}
 		}
 	}
 
 	// If no matching entity was found, return an error.
 	if entityStmt == nil {
-		return errors.New("entity statement not found")
+		return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_STATEMENT_NOT_FOUND.String())
 	}
 
 	// Construct a unique key for the new statement.
@@ -71,7 +73,7 @@ func (sch *Schema) AddStatement(entityName string, stmt Statement) error {
 
 	// Check if a reference for this statement already exists in the schema.
 	if sch.GetReferences().IsReferenceExist(refKey) {
-		return errors.New("reference already exist") // Avoid duplicating references.
+		return errors.New(base.ErrorCode_ERROR_CODE_ALREADY_EXIST.String()) // Avoid duplicating references.
 	}
 
 	// Add the new statement to the appropriate list in the EntityStatement, based on its type.
@@ -89,7 +91,7 @@ func (sch *Schema) AddStatement(entityName string, stmt Statement) error {
 		if rs, ok := stmt.(*RelationStatement); ok {
 			return sch.GetReferences().AddRelationReferences(refKey, rs.RelationTypes)
 		} else {
-			return errors.New("cannot convert to relation statement") // Casting failed.
+			return errors.New(base.ErrorCode_ERROR_CODE_CANNOT_CONVERT_TO_RELATION_STATEMENT.String())
 		}
 
 	case ATTRIBUTE_STATEMENT:
@@ -99,12 +101,12 @@ func (sch *Schema) AddStatement(entityName string, stmt Statement) error {
 		if as, ok := stmt.(*AttributeStatement); ok {
 			return sch.GetReferences().AddAttributeReferences(refKey, as.AttributeType)
 		} else {
-			return errors.New("cannot convert to attribute statement") // Casting failed.
+			return errors.New(base.ErrorCode_ERROR_CODE_CANNOT_CONVERT_TO_ATTRIBUTE_STATEMENT.String())
 		}
 
 	default:
 		// The statement type is unknown, return an error.
-		return errors.New("unknown statement type")
+		return errors.New(base.ErrorCode_ERROR_CODE_UNKNOWN_STATEMENT_TYPE.String())
 	}
 }
 
@@ -117,7 +119,7 @@ func (sch *Schema) UpdateStatement(entityName string, newStmt Statement) error {
 			// Convert the generic statement interface to a specific EntityStatement type.
 			entityStmt, ok := statement.(*EntityStatement)
 			if !ok {
-				return errors.New("cannot convert to entity statement")
+				return errors.New(base.ErrorCode_ERROR_CODE_CANNOT_CONVERT_TO_ENTITY_STATEMENT.String())
 			}
 
 			// Construct a unique reference key for the new statement.
@@ -125,7 +127,7 @@ func (sch *Schema) UpdateStatement(entityName string, newStmt Statement) error {
 
 			// Check if a reference for the statement already exists within the schema.
 			if !sch.GetReferences().IsReferenceExist(referenceKey) {
-				return errors.New("reference does not exist")
+				return errors.New(base.ErrorCode_ERROR_CODE_REFERENCE_NOT_FOUND.String())
 			}
 
 			// Based on the statement type, update the corresponding list in the EntityStatement.
@@ -168,15 +170,15 @@ func (sch *Schema) UpdateStatement(entityName string, newStmt Statement) error {
 					if rs, ok := newStmt.(*RelationStatement); ok {
 						return sch.GetReferences().UpdateRelationReferences(referenceKey, rs.RelationTypes)
 					}
-					return errors.New("cannot convert to relation statement")
+					return errors.New(base.ErrorCode_ERROR_CODE_CANNOT_CONVERT_TO_RELATION_STATEMENT.String())
 				case ATTRIBUTE_STATEMENT:
 					if as, ok := newStmt.(*AttributeStatement); ok {
 						return sch.GetReferences().UpdateAttributeReferences(referenceKey, as.AttributeType)
 					}
-					return errors.New("cannot convert to attribute statement")
+					return errors.New(base.ErrorCode_ERROR_CODE_CANNOT_CONVERT_TO_ATTRIBUTE_STATEMENT.String())
 				}
 			default:
-				return errors.New("unknown statement type")
+				return errors.New(base.ErrorCode_ERROR_CODE_UNKNOWN_STATEMENT_TYPE.String())
 			}
 			// Return nil to indicate successful update.
 			return nil
@@ -184,7 +186,7 @@ func (sch *Schema) UpdateStatement(entityName string, newStmt Statement) error {
 	}
 
 	// If no matching entity statement is found, return an error.
-	return errors.New("entity statement not found")
+	return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_STATEMENT_NOT_FOUND.String())
 }
 
 // DeleteStatement removes a specific statement from an entity within the schema.
@@ -198,7 +200,7 @@ func (sch *Schema) DeleteStatement(entityName, name string) error {
 			entityStmt, ok := statement.(*EntityStatement)
 			if !ok {
 				// If conversion fails, return an error indicating wrong type.
-				return errors.New("cannot convert to entity statement")
+				return errors.New(base.ErrorCode_ERROR_CODE_CANNOT_CONVERT_TO_ENTITY_STATEMENT.String())
 			}
 
 			// Construct the reference key from the entity and statement names.
@@ -207,7 +209,7 @@ func (sch *Schema) DeleteStatement(entityName, name string) error {
 			refType, ok := sch.GetReferences().GetReferenceType(referenceKey)
 			if !ok {
 				// If no reference is found, return an error.
-				return errors.New("reference does not exist")
+				return errors.New(base.ErrorCode_ERROR_CODE_REFERENCE_NOT_FOUND.String())
 			}
 
 			// Declare a variable to hold the target list of statements for modification.
@@ -222,7 +224,7 @@ func (sch *Schema) DeleteStatement(entityName, name string) error {
 				targetStatements = &entityStmt.AttributeStatements
 			default:
 				// If the reference type is unknown, return an error.
-				return errors.New("unknown reference type")
+				return errors.New(base.ErrorCode_ERROR_CODE_UNKNOWN_REFERENCE_TYPE.String())
 			}
 
 			// Create a new slice to hold all statements except the one to be deleted.
@@ -252,5 +254,5 @@ func (sch *Schema) DeleteStatement(entityName, name string) error {
 	}
 
 	// If no matching entity is found in the schema, return an error.
-	return errors.New("entity statement not found")
+	return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_STATEMENT_NOT_FOUND.String())
 }
