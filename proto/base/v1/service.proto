@@ -978,6 +978,24 @@ service Schema {
     };
   }
 
+  // PartialWrite is an RPC that allows you to partially update an existing authorization model.
+  rpc PartialWrite(SchemaPartialWriteRequest) returns (SchemaPartialWriteResponse) {
+
+    // It maps to HTTP PATCH requests and the entire request message
+    // will be treated as the HTTP request body.
+    option (google.api.http) = {
+      patch: "/v1/tenants/{tenant_id}/schemas/partial-write" // HTTP mapping: PATCH request to the /v1/tenants/{tenant_id}/schemas/partial-write endpoint.
+      body: "*" // The entire request message will be the HTTP request body
+    };
+
+    // OpenAPI specific annotation
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "partially update your authorization model" // Short summary of what the operation does.
+      tags: ["Schema"] // Adds an additional categorization for the operation.
+      operation_id: "schemas.partial-write" // Unique string used to identify the operation.
+    };
+  }
+
   // Read is an RPC that allows you to read your authorization model.
   rpc Read(SchemaReadRequest) returns (SchemaReadResponse) {
 
@@ -1148,6 +1166,43 @@ message SchemaWriteRequest {
 // SchemaWriteResponse is the response message for the Write method in the Schema service.
 // It returns the version of the written schema.
 message SchemaWriteResponse {
+
+  // schema_version is the string that identifies the version of the written schema.
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
+// PARTIAL WRITE
+
+// It contains the tenant_id to identify the tenant and metadata of the schema to be edited,
+// with the corresponding edits to various entities
+message SchemaPartialWriteRequest {
+
+  // tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
+  // be a maximum of 64 bytes, and must not be empty.
+  string tenant_id = 1 [json_name = "tenant_id", (validate.rules).string = {
+    pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$",
+    max_bytes: 128,
+    ignore_empty: false,
+  }];
+
+  // metadata is the additional information needed for the Partial Write request.
+  SchemaPartialWriteRequestMetadata metadata = 2 [json_name = "metadata", (validate.rules).message.required = true];
+
+  // Map of entity name with the values needed to be updated
+  map<string, Partials> partials = 3 [json_name = "partials"];
+}
+
+// SchemaPartialWriteRequestMetadata provides additional information for the Schema Partial Write request.
+// It contains schema_version to specify which version of the schema should be read.
+message SchemaPartialWriteRequestMetadata {
+
+  // schema_version is the string that identifies the version of the schema to be read.
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
+// SchemaPartialWriteResponse is the response message for the Parietal Write method in the Schema service.
+// It returns the requested schema.
+message SchemaPartialWriteResponse {
 
   // schema_version is the string that identifies the version of the written schema.
   string schema_version = 1 [json_name = "schema_version"];

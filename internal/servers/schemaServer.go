@@ -2,6 +2,7 @@ package servers
 
 import (
 	"log/slog"
+	"strings"
 
 	"github.com/rs/xid"
 	"google.golang.org/grpc/status"
@@ -73,6 +74,117 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 
 	return &v1.SchemaWriteResponse{
 		SchemaVersion: version,
+	}, nil
+}
+
+// PartialWrite applies incremental updates to the schema of a specific tenant based on the provided request.
+func (r *SchemaServer) PartialWrite(ctx context.Context, request *v1.SchemaPartialWriteRequest) (*v1.SchemaPartialWriteResponse, error) {
+	// Start a new tracing span for monitoring and observability.
+	ctx, span := tracer.Start(ctx, "schemas.partial-write")
+	defer span.End() // Ensure the span is closed at the end of the function.
+
+	// Retrieve or default the schema version from the request.
+	version := request.GetMetadata().GetSchemaVersion()
+	if version == "" { // If not provided, fetch the latest version.
+		ver, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+		if err != nil {
+			return nil, status.Error(GetStatus(err), err.Error()) // Return gRPC status error on failure.
+		}
+		version = ver
+	}
+
+	// Fetch the current schema definition as a string.
+	definitions, err := r.sr.ReadSchemaString(ctx, request.GetTenantId(), version)
+	if err != nil {
+		span.RecordError(err) // Log and record the error.
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	// Parse the schema definitions into a structured format.
+	p := parser.NewParser(strings.Join(definitions, "\n"))
+	schema, err := p.Parse()
+	if err != nil {
+		span.RecordError(err) // Log and record the error.
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	// Iterate through each partial update in the request and apply changes.
+	for entityName, partials := range request.GetPartials() {
+		for _, write := range partials.GetWrite() { // Handle new schema statements.
+			pr := parser.NewParser(write)
+			stmt, err := pr.ParsePartial(entityName)
+			if err != nil {
+				span.RecordError(err)
+				return nil, status.Error(GetStatus(err), err.Error())
+			}
+			err = schema.AddStatement(entityName, stmt)
+			if err != nil {
+				span.RecordError(err)
+				return nil, status.Error(GetStatus(err), err.Error())
+			}
+		}
+
+		for _, update := range partials.GetUpdate() { // Handle schema updates.
+			pr := parser.NewParser(update)
+			stmt, err := pr.ParsePartial(entityName)
+			if err != nil {
+				span.RecordError(err)
+				return nil, status.Error(GetStatus(err), err.Error())
+			}
+			err = schema.UpdateStatement(entityName, stmt)
+			if err != nil {
+				span.RecordError(err)
+				return nil, status.Error(GetStatus(err), err.Error())
+			}
+		}
+
+		for _, del := range partials.GetDelete() { // Handle schema deletions.
+			err = schema.DeleteStatement(entityName, del)
+			if err != nil {
+				span.RecordError(err)
+				return nil, status.Error(GetStatus(err), err.Error())
+			}
+		}
+	}
+
+	// Re-parse the updated schema to ensure consistency.
+	sch, err := parser.NewParser(schema.String()).Parse()
+	if err != nil {
+		span.RecordError(err)
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	// Compile the new schema to validate its correctness.
+	_, _, err = compiler.NewCompiler(true, sch).Compile()
+	if err != nil {
+		span.RecordError(err)
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	// Generate a new version ID for the updated schema.
+	newVersion := xid.New().String()
+
+	// Prepare the new schema definition for storage.
+	cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
+	for _, st := range sch.Statements {
+		cnf = append(cnf, storage.SchemaDefinition{
+			TenantID:             request.GetTenantId(),
+			Version:              newVersion,
+			Name:                 st.GetName(),
+			SerializedDefinition: []byte(st.String()),
+		})
+	}
+
+	// Write the updated schema to storage.
+	err = r.sw.WriteSchema(ctx, cnf)
+	if err != nil {
+		span.RecordError(err)
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	// Return the response with the new schema version.
+	return &v1.SchemaPartialWriteResponse{
+		SchemaVersion: newVersion,
 	}, nil
 }
 

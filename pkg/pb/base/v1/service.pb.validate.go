@@ -3754,6 +3754,429 @@ var _ interface {
 	ErrorName() string
 } = SchemaWriteResponseValidationError{}
 
+// Validate checks the field values on SchemaPartialWriteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SchemaPartialWriteRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SchemaPartialWriteRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SchemaPartialWriteRequestMultiError, or nil if none found.
+func (m *SchemaPartialWriteRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SchemaPartialWriteRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetTenantId()) > 128 {
+		err := SchemaPartialWriteRequestValidationError{
+			field:  "TenantId",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_SchemaPartialWriteRequest_TenantId_Pattern.MatchString(m.GetTenantId()) {
+		err := SchemaPartialWriteRequestValidationError{
+			field:  "TenantId",
+			reason: "value does not match regex pattern \"^([a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}|\\\\*)$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetMetadata() == nil {
+		err := SchemaPartialWriteRequestValidationError{
+			field:  "Metadata",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SchemaPartialWriteRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SchemaPartialWriteRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SchemaPartialWriteRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	{
+		sorted_keys := make([]string, len(m.GetPartials()))
+		i := 0
+		for key := range m.GetPartials() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetPartials()[key]
+			_ = val
+
+			// no validation rules for Partials[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, SchemaPartialWriteRequestValidationError{
+							field:  fmt.Sprintf("Partials[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, SchemaPartialWriteRequestValidationError{
+							field:  fmt.Sprintf("Partials[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return SchemaPartialWriteRequestValidationError{
+						field:  fmt.Sprintf("Partials[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	if len(errors) > 0 {
+		return SchemaPartialWriteRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SchemaPartialWriteRequestMultiError is an error wrapping multiple validation
+// errors returned by SchemaPartialWriteRequest.ValidateAll() if the
+// designated constraints aren't met.
+type SchemaPartialWriteRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SchemaPartialWriteRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SchemaPartialWriteRequestMultiError) AllErrors() []error { return m }
+
+// SchemaPartialWriteRequestValidationError is the validation error returned by
+// SchemaPartialWriteRequest.Validate if the designated constraints aren't met.
+type SchemaPartialWriteRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SchemaPartialWriteRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SchemaPartialWriteRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SchemaPartialWriteRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SchemaPartialWriteRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SchemaPartialWriteRequestValidationError) ErrorName() string {
+	return "SchemaPartialWriteRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SchemaPartialWriteRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSchemaPartialWriteRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SchemaPartialWriteRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SchemaPartialWriteRequestValidationError{}
+
+var _SchemaPartialWriteRequest_TenantId_Pattern = regexp.MustCompile("^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$")
+
+// Validate checks the field values on SchemaPartialWriteRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *SchemaPartialWriteRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SchemaPartialWriteRequestMetadata
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// SchemaPartialWriteRequestMetadataMultiError, or nil if none found.
+func (m *SchemaPartialWriteRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SchemaPartialWriteRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(errors) > 0 {
+		return SchemaPartialWriteRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// SchemaPartialWriteRequestMetadataMultiError is an error wrapping multiple
+// validation errors returned by
+// SchemaPartialWriteRequestMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type SchemaPartialWriteRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SchemaPartialWriteRequestMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SchemaPartialWriteRequestMetadataMultiError) AllErrors() []error { return m }
+
+// SchemaPartialWriteRequestMetadataValidationError is the validation error
+// returned by SchemaPartialWriteRequestMetadata.Validate if the designated
+// constraints aren't met.
+type SchemaPartialWriteRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SchemaPartialWriteRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SchemaPartialWriteRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SchemaPartialWriteRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SchemaPartialWriteRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SchemaPartialWriteRequestMetadataValidationError) ErrorName() string {
+	return "SchemaPartialWriteRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SchemaPartialWriteRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSchemaPartialWriteRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SchemaPartialWriteRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SchemaPartialWriteRequestMetadataValidationError{}
+
+// Validate checks the field values on SchemaPartialWriteResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SchemaPartialWriteResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SchemaPartialWriteResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SchemaPartialWriteResponseMultiError, or nil if none found.
+func (m *SchemaPartialWriteResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SchemaPartialWriteResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(errors) > 0 {
+		return SchemaPartialWriteResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SchemaPartialWriteResponseMultiError is an error wrapping multiple
+// validation errors returned by SchemaPartialWriteResponse.ValidateAll() if
+// the designated constraints aren't met.
+type SchemaPartialWriteResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SchemaPartialWriteResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SchemaPartialWriteResponseMultiError) AllErrors() []error { return m }
+
+// SchemaPartialWriteResponseValidationError is the validation error returned
+// by SchemaPartialWriteResponse.Validate if the designated constraints aren't met.
+type SchemaPartialWriteResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SchemaPartialWriteResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SchemaPartialWriteResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SchemaPartialWriteResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SchemaPartialWriteResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SchemaPartialWriteResponseValidationError) ErrorName() string {
+	return "SchemaPartialWriteResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SchemaPartialWriteResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSchemaPartialWriteResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SchemaPartialWriteResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SchemaPartialWriteResponseValidationError{}
+
 // Validate checks the field values on SchemaReadRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

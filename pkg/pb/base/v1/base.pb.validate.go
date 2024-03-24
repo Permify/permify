@@ -7175,3 +7175,102 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = OperationValidationError{}
+
+// Validate checks the field values on Partials with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Partials) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Partials with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PartialsMultiError, or nil
+// if none found.
+func (m *Partials) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Partials) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return PartialsMultiError(errors)
+	}
+
+	return nil
+}
+
+// PartialsMultiError is an error wrapping multiple validation errors returned
+// by Partials.ValidateAll() if the designated constraints aren't met.
+type PartialsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PartialsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PartialsMultiError) AllErrors() []error { return m }
+
+// PartialsValidationError is the validation error returned by
+// Partials.Validate if the designated constraints aren't met.
+type PartialsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PartialsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PartialsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PartialsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PartialsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PartialsValidationError) ErrorName() string { return "PartialsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PartialsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPartials.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PartialsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PartialsValidationError{}

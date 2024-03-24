@@ -6,11 +6,27 @@ import (
 	"github.com/Permify/permify/pkg/dsl/token"
 )
 
+type (
+	StatementType string
+)
+
+const (
+	PERMISSION_STATEMENT     StatementType = "permission"
+	RELATION_STATEMENT       StatementType = "relation"
+	ATTRIBUTE_STATEMENT      StatementType = "attribute"
+	ENTITY_STATEMENT         StatementType = "entity"
+	RULE_STATEMENT           StatementType = "rule"
+	EXPRESSION_STATEMENT     StatementType = "expression"
+	RELATION_TYPE_STATEMENT  StatementType = "relation_type"
+	ATTRIBUTE_TYPE_STATEMENT StatementType = "attribute_type"
+)
+
 // Statement defines an interface for a statement node.
 type Statement interface {
 	Node
 	statementNode()
 	GetName() string
+	StatementType() StatementType
 }
 
 // EntityStatement represents a statement that refers to an entity.
@@ -68,6 +84,10 @@ func (ls *EntityStatement) GetName() string {
 	return ls.Name.Literal
 }
 
+func (ls *EntityStatement) StatementType() StatementType {
+	return ENTITY_STATEMENT
+}
+
 // AttributeStatement represents a statement that defines an attribute of an entity.
 type AttributeStatement struct {
 	Attribute     token.Token // token.ATTRIBUTE
@@ -94,6 +114,10 @@ func (as *AttributeStatement) String() string {
 
 func (as *AttributeStatement) GetName() string {
 	return as.Name.Literal
+}
+
+func (as *AttributeStatement) StatementType() StatementType {
+	return ATTRIBUTE_STATEMENT
 }
 
 // RelationStatement represents a statement that defines a relationship between two entities.
@@ -129,6 +153,10 @@ func (ls *RelationStatement) GetName() string {
 	return ls.Name.Literal
 }
 
+func (ls *RelationStatement) StatementType() StatementType {
+	return RELATION_STATEMENT
+}
+
 // AttributeTypeStatement represents a statement that defines the type of a relationship.
 type AttributeTypeStatement struct {
 	Type    token.Token // token.IDENT
@@ -148,6 +176,12 @@ func (as *AttributeTypeStatement) String() string {
 func (as *AttributeTypeStatement) GetName() string {
 	return ""
 }
+
+func (as *AttributeTypeStatement) StatementType() StatementType {
+	return ATTRIBUTE_TYPE_STATEMENT
+}
+
+func (as *AttributeTypeStatement) statementNode() {}
 
 // RelationTypeStatement represents a statement that defines the type of relationship.
 type RelationTypeStatement struct {
@@ -171,6 +205,12 @@ func (ls *RelationTypeStatement) String() string {
 func (ls *RelationTypeStatement) GetName() string {
 	return ""
 }
+
+func (ls *RelationTypeStatement) StatementType() StatementType {
+	return RELATION_TYPE_STATEMENT
+}
+
+func (ls *RelationTypeStatement) statementNode() {}
 
 // IsDirectEntityReference returns true if the RelationTypeStatement is a direct entity reference.
 func IsDirectEntityReference(s RelationTypeStatement) bool {
@@ -203,7 +243,11 @@ func (ls *PermissionStatement) String() string {
 }
 
 func (ls *PermissionStatement) GetName() string {
-	return ""
+	return ls.Name.Literal
+}
+
+func (ls *PermissionStatement) StatementType() StatementType {
+	return PERMISSION_STATEMENT
 }
 
 // ExpressionStatement struct represents an expression statement
@@ -225,6 +269,10 @@ func (es *ExpressionStatement) String() string {
 
 func (es *ExpressionStatement) GetName() string {
 	return ""
+}
+
+func (es *ExpressionStatement) StatementType() StatementType {
+	return EXPRESSION_STATEMENT
 }
 
 // RuleStatement represents a rule statement, which consists of a rule name, a list of parameters and a body.
@@ -275,4 +323,8 @@ func (rs *RuleStatement) String() string {
 
 func (rs *RuleStatement) GetName() string {
 	return rs.Name.Literal
+}
+
+func (rs *RuleStatement) StatementType() StatementType {
+	return RULE_STATEMENT
 }

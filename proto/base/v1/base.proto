@@ -608,3 +608,10 @@ message Operation {
   // that are to be deleted or removed.
   repeated string attributes_delete = 4 [json_name = "attributes_delete"];
 }
+
+// Partials contains the write, update and delete definitions
+message Partials {
+  repeated string write = 1 [json_name = "write"];
+  repeated string delete = 2 [json_name = "delete"];
+  repeated string update = 3 [json_name = "update"];
+}

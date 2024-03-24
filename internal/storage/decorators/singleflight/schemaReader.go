@@ -21,9 +21,14 @@ func NewSchemaReader(delegate storage.SchemaReader) *SchemaReader {
 	return &SchemaReader{delegate: delegate}
 }
 
-// ReadSchema - Read schema from repository
+// ReadSchema returns the schema definition for a specific tenant and version as a structured object.
 func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (*base.SchemaDefinition, error) {
 	return r.delegate.ReadSchema(ctx, tenantID, version)
+}
+
+// ReadSchemaString returns the schema definition for a specific tenant and version as a string.
+func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error) {
+	return r.delegate.ReadSchemaString(ctx, tenantID, version)
 }
 
 // ReadEntityDefinition - Read entity definition from repository

@@ -115,8 +115,10 @@ func (n *NoopDataWriter) RunBundle(_ context.Context, _ string, _ map[string]str
 
 // SchemaReader - Reads schema definitions from the storage.
 type SchemaReader interface {
-	// ReadSchema reads entity config from the storage.
+	// ReadSchema returns the schema definition for a specific tenant and version as a structured object.
 	ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error)
+	// ReadSchemaString returns the schema definition for a specific tenant and version as a string.
+	ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error)
 	// ReadEntityDefinition reads entity config from the storage.
 	ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error)
 	// ReadRuleDefinition reads rule config from the storage.
@@ -135,6 +137,10 @@ func NewNoopSchemaReader() SchemaReader {
 
 func (n *NoopSchemaReader) ReadSchema(_ context.Context, _, _ string) (*base.SchemaDefinition, error) {
 	return &base.SchemaDefinition{}, nil
+}
+
+func (n *NoopSchemaReader) ReadSchemaString(_ context.Context, _, _ string) ([]string, error) {
+	return []string{}, nil
 }
 
 func (n *NoopSchemaReader) ReadEntityDefinition(_ context.Context, _, _, _ string) (*base.EntityDefinition, string, error) {
