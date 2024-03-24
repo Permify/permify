@@ -51,6 +51,23 @@ func (r *SchemaReader) ReadSchema(_ context.Context, tenantID, version string) (
 	return sch, nil
 }
 
+// ReadSchemaString returns the schema definition for a specific tenant and version as a string.
+func (r *SchemaReader) ReadSchemaString(_ context.Context, tenantID, version string) (definitions []string, err error) {
+	txn := r.database.DB.Txn(false)
+	defer txn.Abort()
+	var it memdb.ResultIterator
+	it, err = txn.Get(constants.SchemaDefinitionsTable, "version", tenantID, version)
+	if err != nil {
+		return []string{}, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	for obj := it.Next(); obj != nil; obj = it.Next() {
+		definitions = append(definitions, obj.(storage.SchemaDefinition).Serialized())
+	}
+
+	return definitions, nil
+}
+
 // ReadEntityDefinition - Reads a Entity Definition from repository
 func (r *SchemaReader) ReadEntityDefinition(_ context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)

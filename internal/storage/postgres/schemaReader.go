@@ -32,7 +32,7 @@ func NewSchemaReader(database *db.Postgres) *SchemaReader {
 	}
 }
 
-// ReadSchema - Reads entity config from the repository.
+// ReadSchema returns the schema definition for a specific tenant and version as a structured object.
 func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
 	ctx, span := tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
@@ -78,9 +78,50 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	slog.Debug("successfully created schema")
-
 	return sch, err
+}
+
+// ReadSchemaString returns the schema definition for a specific tenant and version as a string.
+func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error) {
+	ctx, span := tracer.Start(ctx, "schema-reader.read-schema-string")
+	defer span.End()
+
+	slog.Debug("reading schema", slog.Any("tenant_id", tenantID), slog.Any("version", version))
+
+	builder := r.database.Builder.Select("name, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
+
+	var query string
+	var args []interface{}
+
+	query, args, err = builder.ToSql()
+	if err != nil {
+		return []string{}, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+	}
+
+	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
+
+	var rows *sql.Rows
+	rows, err = r.database.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		return []string{}, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		sd := storage.SchemaDefinition{}
+		err = rows.Scan(&sd.Name, &sd.SerializedDefinition, &sd.Version)
+		if err != nil {
+			return []string{}, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		}
+		definitions = append(definitions, sd.Serialized())
+	}
+	if err = rows.Err(); err != nil {
+		return []string{}, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+	}
+
+	slog.Debug("successfully retrieved", slog.Any("schema definitions", len(definitions)))
+
+	return definitions, err
 }
 
 // ReadEntityDefinition - Reads entity config from the repository.

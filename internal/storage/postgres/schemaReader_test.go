@@ -108,6 +108,27 @@ var _ = Describe("SchemaReader", func() {
 		})
 	})
 
+	Context("Read Schema String", func() {
+		It("should write and then read the schema for a tenant", func() {
+			ctx := context.Background()
+
+			version := xid.New().String()
+
+			schema := []storage.SchemaDefinition{
+				{TenantID: "t1", Name: "user", SerializedDefinition: []byte("entity user {}"), Version: version},
+				{TenantID: "t1", Name: "organization", SerializedDefinition: []byte("entity organization { relation admin @user}"), Version: version},
+			}
+
+			err := schemaWriter.WriteSchema(ctx, schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			defs, err := schemaReader.ReadSchemaString(ctx, "t1", version)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(isSameArray(defs, []string{"entity user {}", "entity organization { relation admin @user}"})).Should(BeTrue())
+		})
+	})
+
 	Context("Read Entity Definition", func() {
 		It("should write and then read the entity definition for a tenant", func() {
 			ctx := context.Background()

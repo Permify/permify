@@ -465,9 +465,10 @@ var Watch_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Schema_Write_FullMethodName = "/base.v1.Schema/Write"
-	Schema_Read_FullMethodName  = "/base.v1.Schema/Read"
-	Schema_List_FullMethodName  = "/base.v1.Schema/List"
+	Schema_Write_FullMethodName        = "/base.v1.Schema/Write"
+	Schema_PartialWrite_FullMethodName = "/base.v1.Schema/PartialWrite"
+	Schema_Read_FullMethodName         = "/base.v1.Schema/Read"
+	Schema_List_FullMethodName         = "/base.v1.Schema/List"
 )
 
 // SchemaClient is the client API for Schema service.
@@ -476,6 +477,8 @@ const (
 type SchemaClient interface {
 	// Write is an RPC that allows you to write your authorization model.
 	Write(ctx context.Context, in *SchemaWriteRequest, opts ...grpc.CallOption) (*SchemaWriteResponse, error)
+	// PartialWrite is an RPC that allows you to partially update an existing authorization model.
+	PartialWrite(ctx context.Context, in *SchemaPartialWriteRequest, opts ...grpc.CallOption) (*SchemaPartialWriteResponse, error)
 	// Read is an RPC that allows you to read your authorization model.
 	Read(ctx context.Context, in *SchemaReadRequest, opts ...grpc.CallOption) (*SchemaReadResponse, error)
 	// List is an RPC that allows you to list all authorization models.
@@ -493,6 +496,15 @@ func NewSchemaClient(cc grpc.ClientConnInterface) SchemaClient {
 func (c *schemaClient) Write(ctx context.Context, in *SchemaWriteRequest, opts ...grpc.CallOption) (*SchemaWriteResponse, error) {
 	out := new(SchemaWriteResponse)
 	err := c.cc.Invoke(ctx, Schema_Write_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schemaClient) PartialWrite(ctx context.Context, in *SchemaPartialWriteRequest, opts ...grpc.CallOption) (*SchemaPartialWriteResponse, error) {
+	out := new(SchemaPartialWriteResponse)
+	err := c.cc.Invoke(ctx, Schema_PartialWrite_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -523,6 +535,8 @@ func (c *schemaClient) List(ctx context.Context, in *SchemaListRequest, opts ...
 type SchemaServer interface {
 	// Write is an RPC that allows you to write your authorization model.
 	Write(context.Context, *SchemaWriteRequest) (*SchemaWriteResponse, error)
+	// PartialWrite is an RPC that allows you to partially update an existing authorization model.
+	PartialWrite(context.Context, *SchemaPartialWriteRequest) (*SchemaPartialWriteResponse, error)
 	// Read is an RPC that allows you to read your authorization model.
 	Read(context.Context, *SchemaReadRequest) (*SchemaReadResponse, error)
 	// List is an RPC that allows you to list all authorization models.
@@ -536,6 +550,9 @@ type UnimplementedSchemaServer struct {
 
 func (UnimplementedSchemaServer) Write(context.Context, *SchemaWriteRequest) (*SchemaWriteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
+}
+func (UnimplementedSchemaServer) PartialWrite(context.Context, *SchemaPartialWriteRequest) (*SchemaPartialWriteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PartialWrite not implemented")
 }
 func (UnimplementedSchemaServer) Read(context.Context, *SchemaReadRequest) (*SchemaReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
@@ -570,6 +587,24 @@ func _Schema_Write_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServer).Write(ctx, req.(*SchemaWriteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Schema_PartialWrite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SchemaPartialWriteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchemaServer).PartialWrite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Schema_PartialWrite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchemaServer).PartialWrite(ctx, req.(*SchemaPartialWriteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -620,6 +655,10 @@ var Schema_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Write",
 			Handler:    _Schema_Write_Handler,
+		},
+		{
+			MethodName: "PartialWrite",
+			Handler:    _Schema_PartialWrite_Handler,
 		},
 		{
 			MethodName: "Read",

@@ -52,8 +52,8 @@ func NewReferences() *References {
 	}
 }
 
-// SetEntityReference sets a reference for an entity.
-func (refs *References) SetEntityReference(name string) error {
+// AddEntityReference sets a reference for an entity.
+func (refs *References) AddEntityReference(name string) error {
 	if len(name) == 0 {
 		return fmt.Errorf("name cannot be empty")
 	}
@@ -65,8 +65,8 @@ func (refs *References) SetEntityReference(name string) error {
 	return nil
 }
 
-// SetRuleReference sets a reference for a rule.
-func (refs *References) SetRuleReference(name string, types map[string]string) error {
+// AddRuleReference sets a reference for a rule.
+func (refs *References) AddRuleReference(name string, types map[string]string) error {
 	if len(name) == 0 {
 		return fmt.Errorf("name cannot be empty")
 	}
@@ -78,8 +78,8 @@ func (refs *References) SetRuleReference(name string, types map[string]string) e
 	return nil
 }
 
-// SetRelationReferences sets references for a relation with its types.
-func (refs *References) SetRelationReferences(key string, types []RelationTypeStatement) error {
+// AddRelationReferences sets references for a relation with its types.
+func (refs *References) AddRelationReferences(key string, types []RelationTypeStatement) error {
 	if len(key) == 0 {
 		return fmt.Errorf("key cannot be empty")
 	}
@@ -91,8 +91,8 @@ func (refs *References) SetRelationReferences(key string, types []RelationTypeSt
 	return nil
 }
 
-// SetPermissionReference sets a reference for a permission.
-func (refs *References) SetPermissionReference(key string) error {
+// AddPermissionReference sets a reference for a permission.
+func (refs *References) AddPermissionReference(key string) error {
 	if len(key) == 0 {
 		return fmt.Errorf("key cannot be empty")
 	}
@@ -104,8 +104,8 @@ func (refs *References) SetPermissionReference(key string) error {
 	return nil
 }
 
-// SetAttributeReferences sets references for an attribute with its type.
-func (refs *References) SetAttributeReferences(key string, typ AttributeTypeStatement) error {
+// AddAttributeReferences sets references for an attribute with its type.
+func (refs *References) AddAttributeReferences(key string, typ AttributeTypeStatement) error {
 	if len(key) == 0 {
 		return fmt.Errorf("key cannot be empty")
 	}
@@ -114,6 +114,75 @@ func (refs *References) SetAttributeReferences(key string, typ AttributeTypeStat
 	}
 	refs.attributeReferences[key] = typ
 	refs.references[key] = ATTRIBUTE
+	return nil
+}
+
+// UpdateRelationReferences updates the relationship references for a given key.
+// It replaces the existing relation types with the new ones provided.
+// If the key is empty, it returns an error.
+func (refs *References) UpdateRelationReferences(key string, types []RelationTypeStatement) error {
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+	refs.relationReferences[key] = types // Update or set the relationship types for the key.
+	refs.references[key] = RELATION      // Mark this key as a relation reference.
+	return nil
+}
+
+// UpdatePermissionReference updates the permission references for a given key.
+// This typically means marking a particular entity or action as permitted.
+// If the key is empty, it returns an error.
+func (refs *References) UpdatePermissionReference(key string) error {
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+	refs.permissionReferences[key] = struct{}{} // Set the permission flag for the key.
+	refs.references[key] = PERMISSION           // Mark this key as a permission reference.
+	return nil
+}
+
+// UpdateAttributeReferences updates the attribute references for a given key.
+// It associates a specific attribute type with the key.
+// If the key is empty, it returns an error.
+func (refs *References) UpdateAttributeReferences(key string, typ AttributeTypeStatement) error {
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+	refs.attributeReferences[key] = typ // Set the attribute type for the key.
+	refs.references[key] = ATTRIBUTE    // Mark this key as an attribute reference.
+	return nil
+}
+
+// RemoveRelationReferences removes the relationship references associated with a given key.
+// If the key is empty, it returns an error.
+func (refs *References) RemoveRelationReferences(key string) error {
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+	delete(refs.relationReferences, key) // Remove the relationship reference for the key.
+	delete(refs.references, key)         // Remove the general reference.
+	return nil
+}
+
+// RemovePermissionReference removes the permission references associated with a given key.
+// If the key is empty, it returns an error.
+func (refs *References) RemovePermissionReference(key string) error {
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+	delete(refs.permissionReferences, key) // Remove the permission reference for the key.
+	delete(refs.references, key)           // Remove the general reference.
+	return nil
+}
+
+// RemoveAttributeReferences removes the attribute references associated with a given key.
+// If the key is empty, it returns an error.
+func (refs *References) RemoveAttributeReferences(key string) error {
+	if len(key) == 0 {
+		return fmt.Errorf("key cannot be empty")
+	}
+	delete(refs.attributeReferences, key) // Remove the attribute reference for the key.
+	delete(refs.references, key)          // Remove the general reference.
 	return nil
 }
 

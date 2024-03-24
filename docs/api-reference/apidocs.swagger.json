@@ -1425,6 +1425,60 @@
         ]
       }
     },
+    "/v1/tenants/{tenant_id}/schemas/partial-write": {
+      "patch": {
+        "summary": "partially update your authorization model",
+        "operationId": "schemas.partial-write",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SchemaPartialWriteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "tenant_id is a string that identifies the tenant. It must match the pattern \"[a-zA-Z0-9-,]+\",\nbe a maximum of 64 bytes, and must not be empty.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "$ref": "#/definitions/SchemaPartialWriteRequestMetadata",
+                  "description": "metadata is the additional information needed for the Partial Write request."
+                },
+                "partials": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/Partials"
+                  },
+                  "title": "Map of entity name with the values needed to be updated"
+                }
+              },
+              "title": "It contains the tenant_id to identify the tenant and metadata of the schema to be edited,\nwith the corresponding edits to various entities"
+            }
+          }
+        ],
+        "tags": [
+          "Schema"
+        ]
+      }
+    },
     "/v1/tenants/{tenant_id}/schemas/read": {
       "post": {
         "summary": "read schema",
@@ -2452,6 +2506,30 @@
       "default": "NULL_VALUE",
       "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
     },
+    "Partials": {
+      "type": "object",
+      "properties": {
+        "write": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "delete": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "update": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Partials contains the write, update and delete definitions"
+    },
     "PermissionCheckRequestMetadata": {
       "type": "object",
       "properties": {
@@ -2867,6 +2945,26 @@
         }
       },
       "title": "SchemaListResponse is the response message for the List method in the Schema service.\nIt returns a paginated list of schemas"
+    },
+    "SchemaPartialWriteRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "schema_version is the string that identifies the version of the schema to be read."
+        }
+      },
+      "description": "SchemaPartialWriteRequestMetadata provides additional information for the Schema Partial Write request.\nIt contains schema_version to specify which version of the schema should be read."
+    },
+    "SchemaPartialWriteResponse": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "schema_version is the string that identifies the version of the written schema."
+        }
+      },
+      "description": "SchemaPartialWriteResponse is the response message for the Parietal Write method in the Schema service.\nIt returns the requested schema."
     },
     "SchemaReadRequestMetadata": {
       "type": "object",

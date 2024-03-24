@@ -21,7 +21,7 @@ func NewSchemaReader(delegate storage.SchemaReader, cb *gobreaker.CircuitBreaker
 	return &SchemaReader{delegate: delegate, cb: cb}
 }
 
-// ReadSchema - Read schema from repository
+// ReadSchema returns the schema definition for a specific tenant and version as a structured object.
 func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (*base.SchemaDefinition, error) {
 	response, err := r.cb.Execute(func() (interface{}, error) {
 		return r.delegate.ReadSchema(ctx, tenantID, version)
@@ -30,6 +30,17 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 		return nil, err
 	}
 	return response.(*base.SchemaDefinition), nil
+}
+
+// ReadSchemaString returns the schema definition for a specific tenant and version as a string.
+func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error) {
+	response, err := r.cb.Execute(func() (interface{}, error) {
+		return r.delegate.ReadSchemaString(ctx, tenantID, version)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response.([]string), nil
 }
 
 // ReadEntityDefinition - Read entity definition from repository

@@ -170,6 +170,34 @@ func (p *Parser) Parse() (*ast.Schema, error) {
 	return schema, nil
 }
 
+func (p *Parser) ParsePartial(entityName string) (ast.Statement, error) {
+	for !p.currentTokenIs(token.EOF) {
+		// parse the next statement in the input string
+		stmt, err := p.parsePartialStatement(entityName)
+		if err != nil {
+			return nil, p.Error()
+		}
+		if stmt != nil {
+			return stmt, nil
+		}
+		p.next()
+	}
+	return nil, errors.New("no valid statement found")
+}
+
+func (p *Parser) parsePartialStatement(entityName string) (ast.Statement, error) {
+	switch p.currentToken.Type {
+	case token.ATTRIBUTE:
+		return p.parseAttributeStatement(entityName)
+	case token.RELATION:
+		return p.parseRelationStatement(entityName)
+	case token.PERMISSION:
+		return p.parsePermissionStatement(entityName)
+	default:
+		return nil, nil
+	}
+}
+
 // parseStatement method parses the current statement based on its defined token types
 func (p *Parser) parseStatement() (ast.Statement, error) {
 	// switch on the currentToken's type to determine which type of statement to parse
@@ -196,7 +224,7 @@ func (p *Parser) parseEntityStatement() (*ast.EntityStatement, error) {
 	stmt.Name = p.currentToken
 
 	// add the entity reference to the Parser's entityReferences map
-	err := p.references.SetEntityReference(stmt.Name.Literal)
+	err := p.references.AddEntityReference(stmt.Name.Literal)
 	if err != nil {
 		p.duplicationError(stmt.Name.Literal) // Generate an error message indicating a duplication error
 		return nil, p.Error()
@@ -359,7 +387,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 	}
 
 	// Register the parsed rule in the parser's references.
-	err := p.references.SetRuleReference(stmt.Name.Literal, args)
+	err := p.references.AddRuleReference(stmt.Name.Literal, args)
 	if err != nil {
 		// If there's an error (e.g., a duplicate rule), return an error.
 		p.duplicationError(stmt.Name.Literal)
@@ -400,7 +428,7 @@ func (p *Parser) parseAttributeStatement(entityName string) (*ast.AttributeState
 
 	key := utils.Key(entityName, stmt.Name.Literal)
 	// add the relation reference to the Parser's relationReferences and relationalReferences maps
-	err := p.references.SetAttributeReferences(key, atstmt)
+	err := p.references.AddAttributeReferences(key, atstmt)
 	if err != nil {
 		p.duplicationError(key) // Generate an error message indicating a duplication error
 		return nil, p.Error()
@@ -440,7 +468,7 @@ func (p *Parser) parseRelationStatement(entityName string) (*ast.RelationStateme
 	key := utils.Key(entityName, relationName)
 
 	// add the relation reference to the Parser's relationReferences and relationalReferences maps
-	err := p.references.SetRelationReferences(key, stmt.RelationTypes)
+	err := p.references.AddRelationReferences(key, stmt.RelationTypes)
 	if err != nil {
 		p.duplicationError(key) // Generate an error message indicating a duplication error
 		return nil, p.Error()
@@ -491,7 +519,7 @@ func (p *Parser) parsePermissionStatement(entityName string) (ast.Statement, err
 
 	key := utils.Key(entityName, stmt.Name.Literal)
 	// add the action reference to the Parser's actionReferences and relationalReferences maps
-	err := p.references.SetPermissionReference(key)
+	err := p.references.AddPermissionReference(key)
 	if err != nil {
 		p.duplicationError(key) // Generate an error message indicating a duplication error
 		return nil, p.Error()
