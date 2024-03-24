@@ -771,6 +771,83 @@ var _ = Describe("parser", func() {
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("6:18:expected next token to be IDENT, got ASSIGN instead"))
 		})
-			// err = schema.AddStatement("organization", stmt)
+
+		It("Case 23", func() {
+			p := NewParser(`
+				entity repository {
+					
+					relation admin @user
+				    relation member @user
+
+					action read = admin or member
+				}
+			`)
+
+			schema, err := p.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			p1 := NewParser(`
+				relation parent @organization
+			`)
+
+			stmt1, err := p1.ParsePartial("repository")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = schema.AddStatement("repository", stmt1)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			p2 := NewParser(`
+				relation owner  @user
+			`)
+
+			stmt2, err := p2.ParsePartial("repository")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = schema.AddStatement("repository", stmt2)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = schema.DeleteStatement("repository", "admin")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = schema.DeleteStatement("repository", "member")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			p3 := NewParser(`
+				action read = owner and (parent.admin not parent.member)
+			`)
+
+			stmt3, err := p3.ParsePartial("repository")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = schema.UpdateStatement("repository", stmt3)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			st := schema.Statements[0].(*ast.EntityStatement)
+
+			Expect(st.Name.Literal).Should(Equal("repository"))
+
+			r1 := st.RelationStatements[0].(*ast.RelationStatement)
+			Expect(r1.Name.Literal).Should(Equal("parent"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.Type.Literal).Should(Equal("organization"))
+			}
+
+			r2 := st.RelationStatements[1].(*ast.RelationStatement)
+			Expect(r2.Name.Literal).Should(Equal("owner"))
+
+			for _, a := range r2.RelationTypes {
+				Expect(a.Type.Literal).Should(Equal("user"))
+			}
+
+			a1 := st.PermissionStatements[0].(*ast.PermissionStatement)
+			Expect(a1.Name.Literal).Should(Equal("read"))
+
+			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
+
+			Expect(es.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
+			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
+			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
+		})
 	})
 })
