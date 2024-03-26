@@ -22,7 +22,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/jackc/pgio v1.0.0
-	github.com/jackc/pgtype v1.14.2
+	github.com/jackc/pgtype v1.14.3
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/juju/ratelimit v1.0.2
 	github.com/lestrrat-go/jwx v1.2.29
