@@ -17,6 +17,9 @@ type Postgres struct {
 	DB      *sql.DB
 	Builder squirrel.StatementBuilderType
 	// options
+	maxDataPerWrite       int
+	maxRetries            int
+	watchBufferSize       int
 	maxConnectionLifeTime time.Duration
 	maxConnectionIdleTime time.Duration
 	maxOpenConnections    int
@@ -28,6 +31,9 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
 		maxOpenConnections: _defaultMaxOpenConnections,
 		maxIdleConnections: _defaultMaxIdleConnections,
+		maxDataPerWrite:    _defaultMaxDataPerWrite,
+		maxRetries:         _defaultMaxRetries,
+		watchBufferSize:    _defaultWatchBufferSize,
 	}
 
 	// Custom options
@@ -73,6 +79,18 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 
 	pg.DB = db
 	return pg, nil
+}
+
+func (p *Postgres) GetMaxDataPerWrite() int {
+	return p.maxDataPerWrite
+}
+
+func (p *Postgres) GetMaxRetries() int {
+	return p.maxRetries
+}
+
+func (p *Postgres) GetWatchBufferSize() int {
+	return p.watchBufferSize
 }
 
 // GetEngineType - Get the engine type which is postgresql in string

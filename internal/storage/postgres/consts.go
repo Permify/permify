@@ -8,9 +8,3 @@ const (
 	TenantsTable          = "tenants"
 	BundlesTable          = "bundles"
 )
-
-const (
-	_defaultMaxDataPerWrite = 100
-	_defaultMaxRetries      = 10
-	_defaultWatchBufferSize = 100
-)

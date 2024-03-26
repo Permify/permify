@@ -26,17 +26,13 @@ import (
 type DataWriter struct {
 	database *db.Postgres
 	// options
-	txOptions       sql.TxOptions
-	maxDataPerWrite int
-	maxRetries      int
+	txOptions sql.TxOptions
 }
 
 func NewDataWriter(database *db.Postgres) *DataWriter {
 	return &DataWriter{
-		database:        database,
-		txOptions:       sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false},
-		maxDataPerWrite: _defaultMaxDataPerWrite,
-		maxRetries:      _defaultMaxRetries,
+		database:  database,
+		txOptions: sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false},
 	}
 }
 
@@ -53,15 +49,15 @@ func (w *DataWriter) Write(
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of a data write operation.
-	slog.Debug("writing data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.maxRetries))
+	slog.Debug("writing data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
 
 	// Check if the total number of tuples and attributes exceeds the maximum allowed per write.
-	if len(tupleCollection.GetTuples())+len(attributeCollection.GetAttributes()) > w.maxDataPerWrite {
-		return nil, errors.New("max data per write exceeded")
+	if len(tupleCollection.GetTuples())+len(attributeCollection.GetAttributes()) > w.database.GetMaxDataPerWrite() {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_MAX_DATA_PER_WRITE_EXCEEDED.String())
 	}
 
 	// Retry loop for handling transient errors like serialization issues.
-	for i := 0; i <= w.maxRetries; i++ {
+	for i := 0; i <= w.database.GetMaxRetries(); i++ {
 		// Attempt to write the data to the database.
 		tkn, err := w.write(ctx, tenantID, tupleCollection, attributeCollection)
 		if err != nil {
@@ -98,10 +94,10 @@ func (w *DataWriter) Delete(
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of a data deletion operation.
-	slog.Debug("deleting data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.maxRetries))
+	slog.Debug("deleting data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
 
 	// Retry loop for handling transient errors like serialization issues.
-	for i := 0; i <= w.maxRetries; i++ {
+	for i := 0; i <= w.database.GetMaxRetries(); i++ {
 		// Attempt to delete the data from the database.
 		tkn, err := w.delete(ctx, tenantID, tupleFilter, attributeFilter)
 		if err != nil {
@@ -138,10 +134,10 @@ func (w *DataWriter) RunBundle(
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of running a bundle operation.
-	slog.Debug("running bundle for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.maxRetries))
+	slog.Debug("running bundle for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
 
 	// Retry loop for handling transient errors like serialization issues.
-	for i := 0; i <= w.maxRetries; i++ {
+	for i := 0; i <= w.database.GetMaxRetries(); i++ {
 		// Attempt to run the bundle operation.
 		tkn, err := w.runBundle(ctx, tenantID, arguments, b)
 		if err != nil {

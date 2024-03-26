@@ -32,24 +32,20 @@ type Watch struct {
 	// isolation level and read-only mode, to be applied when performing
 	// operations on the relationship data.
 	txOptions sql.TxOptions
-
-	// options
-	bufferSize int
 }
 
 // NewWatcher returns a new instance of the Watch.
 func NewWatcher(database *db.Postgres) *Watch {
 	return &Watch{
-		database:   database,
-		txOptions:  sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true},
-		bufferSize: _defaultWatchBufferSize,
+		database:  database,
+		txOptions: sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true},
 	}
 }
 
 // Watch returns a channel that emits a stream of changes to the relationship tuples in the database.
 func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.DataChanges, <-chan error) {
 	// Create channels for changes and errors.
-	changes := make(chan *base.DataChanges, w.bufferSize)
+	changes := make(chan *base.DataChanges, w.database.GetWatchBufferSize())
 	errs := make(chan error, 1)
 
 	slog.Debug("watching for changes in the database", slog.Any("tenant_id", tenantID), slog.Any("snapshot", snap))

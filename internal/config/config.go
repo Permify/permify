@@ -149,6 +149,9 @@ type (
 		MaxIdleConnections    int               `mapstructure:"max_idle_connections"`    // Maximum number of idle connections to the database
 		MaxConnectionLifetime time.Duration     `mapstructure:"max_connection_lifetime"` // Maximum duration a connection can be reused
 		MaxConnectionIdleTime time.Duration     `mapstructure:"max_connection_idle_time"`
+		MaxDataPerWrite       int               `mapstructure:"max_data_per_write"`
+		MaxRetries            int               `mapstructure:"max_retries"`
+		WatchBufferSize       int               `mapstructure:"watch_buffer_size"`
 		GarbageCollection     GarbageCollection `mapstructure:"garbage_collection"`
 	}
 
@@ -308,8 +311,11 @@ func DefaultConfig() *Config {
 			},
 		},
 		Database: Database{
-			Engine:      "memory",
-			AutoMigrate: true,
+			Engine:          "memory",
+			AutoMigrate:     true,
+			MaxDataPerWrite: 1000,
+			MaxRetries:      10,
+			WatchBufferSize: 100,
 			GarbageCollection: GarbageCollection{
 				Enabled: false,
 			},

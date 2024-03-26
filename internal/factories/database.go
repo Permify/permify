@@ -23,6 +23,9 @@ import (
 //	- MaxIdleConnections: the maximum number of idle connections in the connection pool
 //	- MaxConnectionIdleTime: the maximum amount of time a connection can be idle before being closed
 //	- MaxConnectionLifetime: the maximum amount of time a connection can be reused before being closed
+//	- WatchBufferSize: specifies the buffer size for database watch operations, impacting how many changes can be queued
+//	- MaxDataPerWrite: sets the maximum amount of data per write operation to the database
+//	- MaxRetries: defines the maximum number of retries for database operations in case of failure
 //
 // Returns a database.Database instance if the database connection is successfully created, or an error if the
 // creation fails or the specified database engine is unsupported.
@@ -34,6 +37,9 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 			PQDatabase.MaxIdleConnections(conf.MaxIdleConnections),
 			PQDatabase.MaxConnectionIdleTime(conf.MaxConnectionIdleTime),
 			PQDatabase.MaxConnectionLifeTime(conf.MaxConnectionLifetime),
+			PQDatabase.WatchBufferSize(conf.WatchBufferSize),
+			PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
+			PQDatabase.MaxRetries(conf.MaxRetries),
 		)
 		if err != nil {
 			return nil, err

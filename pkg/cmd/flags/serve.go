@@ -407,6 +407,30 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.Int("database-max-data-per-write", conf.Database.MaxDataPerWrite, "sets the maximum amount of data per write operation to the database")
+	if err = viper.BindPFlag("database.max_data_per_write", flags.Lookup("database-max-data-per-write")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.max_data_per_write", "PERMIFY_DATABASE_MAX_DATA_PER_WRITE"); err != nil {
+		panic(err)
+	}
+
+	flags.Int("database-max-retries", conf.Database.MaxRetries, "defines the maximum number of retries for database operations in case of failure")
+	if err = viper.BindPFlag("database.max_retries", flags.Lookup("database-max-retries")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.max_retries", "PERMIFY_DATABASE_MAX_RETRIES"); err != nil {
+		panic(err)
+	}
+
+	flags.Int("database-watch-buffer-size", conf.Database.WatchBufferSize, "specifies the buffer size for database watch operations, impacting how many changes can be queued")
+	if err = viper.BindPFlag("database.watch_buffer_size", flags.Lookup("database-watch-buffer-size")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.watch_buffer_size", "PERMIFY_DATABASE_WATCH_BUFFER_SIZE"); err != nil {
+		panic(err)
+	}
+
 	flags.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
 	if err = viper.BindPFlag("database.max_connection_lifetime", flags.Lookup("database-max-connection-lifetime")); err != nil {
 		panic(err)
