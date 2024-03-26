@@ -34,3 +34,21 @@ func MaxConnectionLifeTime(d time.Duration) Option {
 		p.maxConnectionLifeTime = d
 	}
 }
+
+func MaxDataPerWrite(max int) Option {
+	return func(c *Postgres) {
+		c.maxDataPerWrite = max
+	}
+}
+
+func WatchBufferSize(max int) Option {
+	return func(c *Postgres) {
+		c.watchBufferSize = max
+	}
+}
+
+func MaxRetries(max int) Option {
+	return func(c *Postgres) {
+		c.maxRetries = max
+	}
+}
