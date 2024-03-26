@@ -41,7 +41,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.29.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0
 	go.opentelemetry.io/contrib/instrumentation/host v0.49.0
-	go.opentelemetry.io/contrib/instrumentation/runtime v0.46.0
+	go.opentelemetry.io/contrib/instrumentation/runtime v0.49.0
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.44.0
