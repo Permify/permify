@@ -44,7 +44,7 @@ type Authn struct {
 func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	// Create a new HTTP client with retry capabilities. This client is used for making HTTP requests, particularly for fetching OIDC configuration.
 	client := retryablehttp.NewClient()
-	client.Logger = nil // Disable logging for the HTTP client to avoid noisy logs.
+	client.Logger = SlogAdapter{Logger: slog.Default()}
 
 	// Fetch the OIDC configuration from the issuer's well-known configuration endpoint.
 	oidcConf, err := fetchOIDCConfiguration(client.StandardClient(), strings.TrimSuffix(conf.Issuer, "/")+"/.well-known/openid-configuration")
@@ -106,7 +106,7 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 			return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
 		}
 
-		slog.Debug("successfully fetched JWKS", "jwks", jwks)
+		slog.Info("successfully fetched JWKS")
 
 		// Retrieve the key ID from the JWT header and find the corresponding key in the JWKS.
 		if keyID, ok := token.Header["kid"].(string); ok {
@@ -171,6 +171,9 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 		// Return an error
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_AUDIENCE.String())
 	}
+
+	// Log that the token's issuer and audience were successfully validated
+	slog.Info("token validation succeeded")
 
 	// If all validations pass, return nil indicating the token is valid.
 	return nil
@@ -291,4 +294,29 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 
 	// Return the successfully parsed configuration.
 	return &oidcConfig, nil
+}
+
+// SlogAdapter adapts the slog.Logger to be compatible with retryablehttp.LeveledLogger.
+type SlogAdapter struct {
+	Logger *slog.Logger
+}
+
+// Error logs messages at error level.
+func (a SlogAdapter) Error(msg string, keysAndValues ...interface{}) {
+	a.Logger.Error(msg, keysAndValues...)
+}
+
+// Info logs messages at info level.
+func (a SlogAdapter) Info(msg string, keysAndValues ...interface{}) {
+	a.Logger.Info(msg, keysAndValues...)
+}
+
+// Debug logs messages at debug level.
+func (a SlogAdapter) Debug(msg string, keysAndValues ...interface{}) {
+	a.Logger.Debug(msg, keysAndValues...)
+}
+
+// Warn logs messages at warn level.
+func (a SlogAdapter) Warn(msg string, keysAndValues ...interface{}) {
+	a.Logger.Warn(msg, keysAndValues...)
 }
