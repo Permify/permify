@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -83,59 +84,91 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 	// Extract the authorization header from the metadata of the incoming gRPC request.
 	authHeader, err := grpcauth.AuthFromMD(requestContext, "Bearer")
 	if err != nil {
-		// If the authorization header is missing or does not start with "Bearer", return an error.
+		// Log the error if the authorization header is missing or does not start with "Bearer"
+		slog.Error("failed to extract authorization header from gRPC request", "error", err)
+		// Return an error indicating the missing or incorrect bearer token
 		return errors.New(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String())
 	}
 
+	// Log the successful extraction of the authorization header for debugging purposes.
+	// Remember, do not log the actual content of authHeader as it might contain sensitive information.
+	slog.Debug("Successfully extracted authorization header from gRPC request")
+
 	// Parse and validate the JWT token extracted from the authorization header.
 	parsedToken, err := oidc.jwtParser.Parse(authHeader, func(token *jwt.Token) (interface{}, error) {
+		slog.Info("starting JWT parsing and validation.")
+
 		// Fetch the public keys from the JWKS endpoint configured for the OIDC.
 		jwks, err := oidc.jwksSet.Fetch(requestContext, oidc.JwksURI)
 		if err != nil {
+			slog.Error("failed to fetch JWKS", "uri", oidc.JwksURI, "error", err)
 			// If fetching the JWKS fails, return an error.
 			return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
 		}
 
+		slog.Debug("successfully fetched JWKS", "jwks", jwks)
+
 		// Retrieve the key ID from the JWT header and find the corresponding key in the JWKS.
 		if keyID, ok := token.Header["kid"].(string); ok {
+			slog.Debug("attempting to find key in JWKS", "kid", keyID)
+
 			if key, found := jwks.LookupKeyID(keyID); found {
 				// If the key is found, convert it to a usable format.
 				var k interface{}
 				if err := key.Raw(&k); err != nil {
+					slog.Error("failed to get raw public key", "kid", keyID, "error", err)
 					return nil, fmt.Errorf("failed to get raw public key: %w", err)
 				}
+				slog.Debug("successfully obtained raw public key", "key", k)
 				return k, nil // Return the public key for JWT signature verification.
 			}
+			slog.Error("key ID not found in JWKS", "kid", keyID)
 			// If the specified key ID is not found in the JWKS, return an error.
 			return nil, fmt.Errorf("kid %s not found", keyID)
 		}
+		slog.Error("jwt does not contain a key ID")
 		// If the JWT does not contain a key ID, return an error.
 		return nil, errors.New("kid must be specified in the token header")
 	})
 	if err != nil {
+		// Log that the token parsing or validation failed
+		slog.Error("token parsing or validation failed", "error", err)
 		// If token parsing or validation fails, return an error indicating the token is invalid.
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
 	}
 
 	// Ensure the token is valid.
 	if !parsedToken.Valid {
+		// Log that the parsed token was not valid
+		slog.Warn("parsed token is invalid")
+		// Return an error indicating the invalid token
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
 	}
 
 	// Extract the claims from the token.
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
-		// If the claims are in an incorrect format, return an error.
+		// Log that the claims were in an incorrect format
+		slog.Warn("token claims are in an incorrect format")
+		// Return an error
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_CLAIMS.String())
 	}
 
+	slog.Debug("extracted token claims", "claims", claims)
+
 	// Verify the issuer of the token matches the expected issuer.
 	if ok := claims.VerifyIssuer(oidc.IssuerURL, true); !ok {
+		// Log that the issuer did not match the expected issuer
+		slog.Warn("token issuer is invalid", "expected", oidc.IssuerURL, "actual", claims["iss"])
+		// Return an error
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_ISSUER.String())
 	}
 
 	// Verify the audience of the token matches the expected audience.
 	if ok := claims.VerifyAudience(oidc.Audience, true); !ok {
+		// Log that the audience did not match the expected audience
+		slog.Warn("token audience is invalid", "expected", oidc.Audience, "actual", claims["aud"])
+		// Return an error
 		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_AUDIENCE.String())
 	}
 
@@ -176,31 +209,54 @@ func fetchOIDCConfiguration(client *http.Client, url string) (*Config, error) {
 
 // doHTTPRequest makes an HTTP GET request to the specified URL and returns the response body.
 func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
+	// Log the attempt to create a new HTTP GET request
+	slog.Debug("creating new HTTP GET request", "url", url)
+
 	// Create a new HTTP GET request.
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		// Log the error if creating the HTTP request fails
+		slog.Error("failed to create HTTP request", "url", url, "error", err)
 		return nil, fmt.Errorf("failed to create HTTP request for OIDC configuration: %s", err)
 	}
+
+	// Log the execution of the HTTP request
+	slog.Debug("executing HTTP request", "url", url)
 
 	// Send the request using the configured HTTP client.
 	res, err := client.Do(req)
 	if err != nil {
+		// Log the error if executing the HTTP request fails
+		slog.Error("failed to execute HTTP request", "url", url, "error", err)
 		return nil, fmt.Errorf("failed to execute HTTP request for OIDC configuration: %s", err)
 	}
+
+	// Log the HTTP status code of the response
+	slog.Debug("received HTTP response", "status_code", res.StatusCode, "url", url)
+
 	// Ensure the response body is closed after reading.
 	defer res.Body.Close()
 
 	// Check if the HTTP status code indicates success.
 	if res.StatusCode != http.StatusOK {
+		// Log the unexpected status code
+		slog.Warn("received unexpected status code", "status_code", res.StatusCode, "url", url)
 		return nil, fmt.Errorf("received unexpected status code (%d) while fetching OIDC configuration", res.StatusCode)
 	}
+
+	// Log the attempt to read the response body
+	slog.Debug("reading response body", "url", url)
 
 	// Read the response body.
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		// Return an error if reading the response body fails.
+		// Log the error if reading the response body fails
+		slog.Error("failed to read response body", "url", url, "error", err)
 		return nil, fmt.Errorf("failed to read response body from OIDC configuration request: %s", err)
 	}
+
+	// Log the successful retrieval of the response body
+	slog.Debug("successfully read response body", "url", url, "response_length", len(body))
 
 	// Return the response body.
 	return body, nil
@@ -211,16 +267,27 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	var oidcConfig Config
 	// Attempt to unmarshal the JSON body into the oidcConfig struct.
 	if err := json.Unmarshal(body, &oidcConfig); err != nil {
+		// Log the error if unmarshalling
+		slog.Error("failed to unmarshal OIDC configuration", "error", err)
 		return nil, fmt.Errorf("failed to decode OIDC configuration: %s", err)
 	}
+	// Log the successful decoding of OIDC configuration
+	slog.Debug("successfully decoded OIDC configuration")
 
 	if oidcConfig.Issuer == "" {
+		// Log missing issuer value
+		slog.Warn("missing issuer value in OIDC configuration")
 		return nil, errors.New("issuer value is required but missing in OIDC configuration")
 	}
 
 	if oidcConfig.JWKsURI == "" {
+		// Log missing JWKsURI value
+		slog.Warn("missing JWKsURI value in OIDC configuration")
 		return nil, errors.New("JWKsURI value is required but missing in OIDC configuration")
 	}
+
+	// Log the successful parsing of the OIDC configuration
+	slog.Info("successfully parsed OIDC configuration", "issuer", oidcConfig.Issuer, "jwks_uri", oidcConfig.JWKsURI)
 
 	// Return the successfully parsed configuration.
 	return &oidcConfig, nil
