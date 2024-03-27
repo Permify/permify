@@ -407,6 +407,22 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
+	flags.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
+	if err = viper.BindPFlag("database.max_connection_lifetime", flags.Lookup("database-max-connection-lifetime")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.max_connection_lifetime", "PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME"); err != nil {
+		panic(err)
+	}
+
+	flags.Duration("database-max-connection-idle-time", conf.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
+	if err = viper.BindPFlag("database.max_connection_idle_time", flags.Lookup("database-max-connection-idle-time")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.max_connection_idle_time", "PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME"); err != nil {
+		panic(err)
+	}
+
 	flags.Int("database-max-data-per-write", conf.Database.MaxDataPerWrite, "sets the maximum amount of data per write operation to the database")
 	if err = viper.BindPFlag("database.max_data_per_write", flags.Lookup("database-max-data-per-write")); err != nil {
 		panic(err)
@@ -428,22 +444,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	if err = viper.BindEnv("database.watch_buffer_size", "PERMIFY_DATABASE_WATCH_BUFFER_SIZE"); err != nil {
-		panic(err)
-	}
-
-	flags.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
-	if err = viper.BindPFlag("database.max_connection_lifetime", flags.Lookup("database-max-connection-lifetime")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("database.max_connection_lifetime", "PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME"); err != nil {
-		panic(err)
-	}
-
-	flags.Duration("database-max-connection-idle-time", conf.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
-	if err = viper.BindPFlag("database.max_connection_idle_time", flags.Lookup("database-max-connection-idle-time")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("database.max_connection_idle_time", "PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME"); err != nil {
 		panic(err)
 	}
 

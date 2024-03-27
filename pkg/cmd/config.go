@@ -80,6 +80,8 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"authn.preshared.keys", fmt.Sprintf("%v", HideSecrets(cfg.Authn.Preshared.Keys...)), getKeyOrigin(cmd, "authn-preshared-keys", "PERMIFY_AUTHN_PRESHARED_KEYS")},
 			[]string{"authn.oidc.issuer", HideSecret(cfg.Authn.Oidc.Issuer), getKeyOrigin(cmd, "authn-oidc-issuer", "PERMIFY_AUTHN_OIDC_ISSUER")},
 			[]string{"authn.oidc.audience", HideSecret(cfg.Authn.Oidc.Audience), getKeyOrigin(cmd, "authn-oidc-audience", "PERMIFY_AUTHN_OIDC_AUDIENCE")},
+			[]string{"authn.oidc.valid_methods", fmt.Sprintf("%v", cfg.Authn.Oidc.ValidMethods), getKeyOrigin(cmd, "authn-oidc-valid-methods", "PERMIFY_AUTHN_OIDC_VALID_METHODS")},
+			[]string{"authn.oidc.refresh_interval", fmt.Sprintf("%v", cfg.Authn.Oidc.RefreshInterval), getKeyOrigin(cmd, "authn-oidc-refresh-interval", "PERMIFY_AUTHN_OIDC_REFRESH_INTERVAL")},
 			// TRACER
 			[]string{"tracer.enabled", fmt.Sprintf("%v", cfg.Tracer.Enabled), getKeyOrigin(cmd, "tracer-enabled", "PERMIFY_TRACER_ENABLED")},
 			[]string{"tracer.exporter", cfg.Tracer.Exporter, getKeyOrigin(cmd, "tracer-exporter", "PERMIFY_TRACER_EXPORTER")},
@@ -108,6 +110,9 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"database.max_idle_connections", fmt.Sprintf("%v", cfg.Database.MaxIdleConnections), getKeyOrigin(cmd, "database-max-idle-connections", "PERMIFY_DATABASE_MAX_IDLE_CONNECTIONS")},
 			[]string{"database.max_connection_lifetime", fmt.Sprintf("%v", cfg.Database.MaxConnectionLifetime), getKeyOrigin(cmd, "database-max-connection-lifetime", "PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME")},
 			[]string{"database.max_connection_idle_time", fmt.Sprintf("%v", cfg.Database.MaxConnectionIdleTime), getKeyOrigin(cmd, "database-max-connection-idle-time", "PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME")},
+			[]string{"database.max_data_per_write", fmt.Sprintf("%v", cfg.Database.MaxDataPerWrite), getKeyOrigin(cmd, "database-max-data-per-write", "PERMIFY_DATABASE_MAX_DATA_PER_WRITE")},
+			[]string{"database.max_retries", fmt.Sprintf("%v", cfg.Database.MaxRetries), getKeyOrigin(cmd, "database-max-retries", "PERMIFY_DATABASE_MAX_RETRIES")},
+			[]string{"database.watch_buffer_size", fmt.Sprintf("%v", cfg.Database.WatchBufferSize), getKeyOrigin(cmd, "database-watch-buffer-size", "PERMIFY_DATABASE_WATCH_BUFFER_SIZE")},
 			[]string{"database.garbage_collection.enabled", fmt.Sprintf("%v", cfg.Database.GarbageCollection.Enabled), getKeyOrigin(cmd, "database-garbage-collection-enabled", "PERMIFY_DATABASE_GARBAGE_COLLECTION_ENABLED")},
 			[]string{"database.garbage_collection.interval", fmt.Sprintf("%v", cfg.Database.GarbageCollection.Interval), getKeyOrigin(cmd, "database-garbage-collection-interval", "PERMIFY_DATABASE_GARBAGE_COLLECTION_INTERVAL")},
 			[]string{"database.garbage_collection.timeout", fmt.Sprintf("%v", cfg.Database.GarbageCollection.Timeout), getKeyOrigin(cmd, "database-garbage-collection-timeout", "PERMIFY_DATABASE_GARBAGE_COLLECTION_TIMEOUT")},
