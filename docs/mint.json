@@ -46,6 +46,10 @@
       "destination": "/:slug*"
     },
     {
+      "source": "/docs/getting-started/modeling",
+      "destination": "/getting-started/modeling"
+    },
+    {
       "source": "/installation",
       "destination": "/setting-up/installation"
     },
