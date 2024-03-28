@@ -42,32 +42,28 @@
   ],
   "redirects": [
     {
-      "source": "/docs/installation/",
-      "destination": "/setting-up/installation/"
+      "source": "/docs/:slug*",
+      "destination": "/:slug*"
     },
     {
-      "source": "docs/installation/overview/",
-      "destination": "/getting-started/quickstart"
+      "source": "/installation",
+      "destination": "/setting-up/installation"
     },
     {
-      "source": "/use-cases/simple-rbac/",
-      "destination": "/use-cases/rbac/"
+      "source": "/use-cases/simple-rbac",
+      "destination": "/use-cases/rbac"
     },
     {
-      "source": "/reference/",
-      "destination": "/operations/"
+      "source": "/reference",
+      "destination": "/operations"
     },
     {
-      "source": "/docs/reference/configuration/",
+      "source": "/operations/configuration",
       "destination": "/setting-up/configuration"
     },
     {
-      "source": "/docs/api-overview/",
-      "destination": "/docs/api-reference/"
-    },
-    {
-      "source": "/docs/",
-      "destination": "/"
+      "source": "/api-overview",
+      "destination": "/api-reference"
     }
   ],
   "anchors": [
