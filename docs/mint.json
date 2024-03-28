@@ -40,6 +40,32 @@
       "url": "api-reference"
     }
   ],
+  "redirects": [
+    {
+      "source": "/docs/getting-started/modeling",
+      "destination": "/getting-started/modeling"
+    },
+    {
+      "source": "/installation",
+      "destination": "/setting-up/installation"
+    },
+    {
+      "source": "/use-cases/simple-rbac",
+      "destination": "/use-cases/rbac"
+    },
+    {
+      "source": "/reference",
+      "destination": "/operations"
+    },
+    {
+      "source": "/operations/configuration",
+      "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/api-overview",
+      "destination": "/api-reference"
+    }
+  ],
   "anchors": [
     {
       "name": "Community",
