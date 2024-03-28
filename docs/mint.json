@@ -42,11 +42,7 @@
   ],
   "redirects": [
     {
-      "source": "/docs/:slug*",
-      "destination": "/:slug*"
-    },
-    {
-      "source": "/docs/getting-started/modeling",
+      "source": "/docs/getting-started/modeling/",
       "destination": "/getting-started/modeling"
     },
     {
