@@ -46,28 +46,44 @@
       "destination": "/:slug*"
     },
     {
-      "source": "/0.3.x/installation/helm",
-      "destination": "/setting-up/installation"
+      "source": "/0.3.x/:slug*",
+      "destination": "/:slug*"
     },
     {
-      "source": "/installation",
-      "destination": "/setting-up/installation"
+      "source": "/0.4.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.5.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.6.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.7.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/api-overview/:slug*",
+      "destination": "/api-reference/:slug*"
+    },
+    {
+      "source": "/installation/:slug*",
+      "destination": "/setting-up/installation/:slug*"
     },
     {
       "source": "/use-cases/simple-rbac",
       "destination": "/use-cases/rbac"
     },
     {
-      "source": "/reference",
-      "destination": "/operations"
+      "source": "/reference/:slug",
+      "destination": "/operations/:slug"
     },
     {
       "source": "/operations/configuration",
       "destination": "/setting-up/configuration"
-    },
-    {
-      "source": "/api-overview",
-      "destination": "/api-reference"
     }
   ],
   "anchors": [
