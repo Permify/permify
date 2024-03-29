@@ -46,6 +46,10 @@
       "destination": "/:slug*"
     },
     {
+      "source": "/0.3.x/installation/helm",
+      "destination": "/setting-up/installation"
+    },
+    {
       "source": "/installation",
       "destination": "/setting-up/installation"
     },
