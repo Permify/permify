@@ -46,6 +46,10 @@
       "destination": "/:slug*"
     },
     {
+      "source": "/0.2.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
       "source": "/0.3.x/:slug*",
       "destination": "/:slug*"
     },
@@ -74,16 +78,144 @@
       "destination": "/setting-up/installation/:slug*"
     },
     {
+      "source": "/reference/:slug*",
+      "destination": "/operations/:slug*"
+    },
+    {
+      "source": "/permify-overview/getting-started/modeling",
+      "destination": "/getting-started/modeling"
+    },
+    {
       "source": "/use-cases/simple-rbac",
       "destination": "/use-cases/rbac"
     },
     {
-      "source": "/reference/:slug",
-      "destination": "/operations/:slug"
+      "source": "/use-cases/getting-started/modeling",
+      "destination": "/getting-started/modeling"
     },
     {
       "source": "/operations/configuration",
       "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/api-reference/reference/configuration",
+      "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/api-reference/reference/snap-tokens",
+      "destination": "/operations/snap-tokens"
+    },
+    {
+      "source": "/getting-started/use-cases/abac",
+      "destination": "/use-cases/abac"
+    },
+    {
+      "source": "/api-overview/reference/snap-tokens",
+      "destination": "/operations/snap-tokens"
+    },
+    {
+      "source": "/use-cases/getting-started/modeling",
+      "destination": "/getting-started/modeling"
+    },
+    {
+      "source": "/api-reference/api-overview/:slug*",
+      "destination": "/api-reference/:slug*"
+    },
+    {
+      "source": "/permify-overview/getting-started/:slug*",
+      "destination": "/getting-started/:slug*"
+    },
+    {
+      "source": "/setting-up/installation/installation/:slug*",
+      "destination": "/setting-up/installation/:slug*"
+    },
+    {
+      "source": "/installation/getting-started/:slug*",
+      "destination": "/getting-started/:slug*"
+    },
+    {
+      "source": "/api-reference/reference/:slug*",
+      "destination": "/operations/:slug*"
+    },
+    {
+      "source": "/permify-overview/intro/installation/overview",
+      "destination": "/setting-up/installation/intro"
+    },
+    {
+      "source": "/reference/api-overview/permission/check-api",
+      "destination": "/api-reference/permission/check-api"
+    },
+    {
+      "source": "/reference/installation/brew",
+      "destination": "/setting-up/installation/brew"
+    },
+    {
+      "source": "/installation/api-overview",
+      "destination": "/api-reference"
+    },
+    {
+      "source": "/use-cases/use-cases/simple-rbac",
+      "destination": "/use-cases/use-cases/rbac"
+    },
+    {
+      "source": "/use-cases/use-cases/:slug*",
+      "destination": "/use-cases/:slug*"
+    },
+    {
+      "source": "/getting-started/use-cases",
+      "destination": "/use-cases"
+    },
+    {
+      "source": "/setting-up/installation/getting-started/:slug*",
+      "destination": "/getting-started/:slug*"
+    },
+    {
+      "source": "/getting-started/modeling/examples",
+      "destination": "/getting-started/examples"
+    },
+    {
+      "source": "/permify-overview/installation/overview",
+      "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/migrating/api-overview/:slug*",
+      "destination": "/api-reference/:slug*"
+    },
+    {
+      "source": "/setting-up/installation/overview",
+      "destination": "/getting-started/quickstart"
+    },
+    {
+      "source": "/reference/api-overview/:slug*",
+      "destination": "/api-reference/permission/:slug*"
+    },
+    {
+      "source": "/getting-started/api-overview.md",
+      "destination": "/api-reference"
+    },
+    {
+      "source": "/getting-started/api-overview/:slug*",
+      "destination": "/api-reference/:slug*"
+    },
+    {
+      "source": "/setting-up/installation/api-overview",
+      "destination": "/setting-up/installation"
+    },
+    {
+      "source": "/example-use-cases/getting-started/modeling",
+      "destination": "/getting-started/modeling"
+    },
+    {
+      "source": "/getting-started/reference/configuration",
+      "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/guides/example-apps",
+      "destination": "/getting-started/examples"
+    },
+    {
+      "source": "/installation/use-cases/simple-rbac",
+      "destination": "/use-cases/rbac"
     }
   ],
   "anchors": [
