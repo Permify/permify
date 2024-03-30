@@ -5,26 +5,91 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Permify/permify/internal/config"
-	"github.com/Permify/permify/pkg/cmd/flags"
-
 	"github.com/gookit/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/pkg/cmd/flags"
 )
 
 func NewConfigCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	command := &cobra.Command{
 		Use:   "config",
-		Short: "Inspect permify configuration and environment variables",
+		Short: "inspect permify configuration and environment variables",
 		RunE:  conf(),
 		Args:  cobra.NoArgs,
 	}
 
-	flags.RegisterServeFlags(cmd)
+	conf := config.DefaultConfig()
+	f := command.Flags()
+	f.StringP("config", "c", "", "config file (default is $HOME/.permify.yaml)")
+	f.Bool("http-enabled", conf.Server.HTTP.Enabled, "switch option for HTTP server")
+	f.String("account-id", conf.AccountID, "account id")
+	f.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
+	f.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
+	f.Bool("grpc-tls-enabled", conf.Server.GRPC.TLSConfig.Enabled, "switch option for GRPC tls server")
+	f.String("grpc-tls-key-path", conf.Server.GRPC.TLSConfig.KeyPath, "GRPC tls key path")
+	f.String("grpc-tls-cert-path", conf.Server.GRPC.TLSConfig.CertPath, "GRPC tls certificate path")
+	f.String("http-port", conf.Server.HTTP.Port, "HTTP port address")
+	f.Bool("http-tls-enabled", conf.Server.HTTP.TLSConfig.Enabled, "switch option for HTTP tls server")
+	f.String("http-tls-key-path", conf.Server.HTTP.TLSConfig.KeyPath, "HTTP tls key path")
+	f.String("http-tls-cert-path", conf.Server.HTTP.TLSConfig.CertPath, "HTTP tls certificate path")
+	f.StringSlice("http-cors-allowed-origins", conf.Server.HTTP.CORSAllowedOrigins, "CORS allowed origins for http gateway")
+	f.StringSlice("http-cors-allowed-headers", conf.Server.HTTP.CORSAllowedHeaders, "CORS allowed headers for http gateway")
+	f.Bool("profiler-enabled", conf.Profiler.Enabled, "switch option for profiler")
+	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
+	f.String("log-level", conf.Log.Level, "real time logs of authorization. Permify uses zerolog as a logger")
+	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
+	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
+	f.String("authn-method", conf.Authn.Method, "server authentication method")
+	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
+	f.String("authn-oidc-issuer", conf.Authn.Oidc.Issuer, "issuer identifier of the OpenID Connect Provider")
+	f.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "intended audience of the OpenID Connect token")
+	f.Duration("authn-oidc-refresh-interval", conf.Authn.Oidc.RefreshInterval, "refresh interval for the OpenID Connect configuration")
+	f.StringSlice("authn-oidc-valid-methods", conf.Authn.Oidc.ValidMethods, "list of valid JWT signing methods for OpenID Connect")
+	f.Bool("tracer-enabled", conf.Tracer.Enabled, "switch option for tracing")
+	f.String("tracer-exporter", conf.Tracer.Exporter, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
+	f.String("tracer-endpoint", conf.Tracer.Endpoint, "export uri for tracing data")
+	f.Bool("tracer-insecure", conf.Tracer.Insecure, "use https or http for tracer data, only used for otlp exporter or signoz")
+	f.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
+	f.Bool("meter-enabled", conf.Meter.Enabled, "switch option for metric")
+	f.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
+	f.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
+	f.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
+	f.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
+	f.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
+	f.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
+	f.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
+	f.String("service-schema-cache-max-cost", conf.Service.Schema.Cache.MaxCost, "schema service cache max cost")
+	f.Int("service-permission-bulk-limit", conf.Service.Permission.BulkLimit, "bulk operations limit")
+	f.Int("service-permission-concurrency-limit", conf.Service.Permission.ConcurrencyLimit, "concurrency limit")
+	f.Int64("service-permission-cache-number-of-counters", conf.Service.Permission.Cache.NumberOfCounters, "permission service cache number of counters")
+	f.String("service-permission-cache-max-cost", conf.Service.Permission.Cache.MaxCost, "permission service cache max cost")
+	f.String("database-engine", conf.Database.Engine, "data source. e.g. postgres, memory")
+	f.String("database-uri", conf.Database.URI, "uri of your data source to store relation tuples and schema")
+	f.Bool("database-auto-migrate", conf.Database.AutoMigrate, "auto migrate database tables")
+	f.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
+	f.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "maximum number of idle connections that can be made to the database at any time")
+	f.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
+	f.Duration("database-max-connection-idle-time", conf.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
+	f.Int("database-max-data-per-write", conf.Database.MaxDataPerWrite, "sets the maximum amount of data per write operation to the database")
+	f.Int("database-max-retries", conf.Database.MaxRetries, "defines the maximum number of retries for database operations in case of failure")
+	f.Int("database-watch-buffer-size", conf.Database.WatchBufferSize, "specifies the buffer size for database watch operations, impacting how many changes can be queued")
+	f.Bool("database-garbage-collection-enabled", conf.Database.GarbageCollection.Enabled, "use database garbage collection for expired relationships and attributes")
+	f.Duration("database-garbage-collection-interval", conf.Database.GarbageCollection.Interval, "interval for database garbage collection")
+	f.Duration("database-garbage-collection-timeout", conf.Database.GarbageCollection.Timeout, "timeout for database garbage collection")
+	f.Duration("database-garbage-collection-window", conf.Database.GarbageCollection.Window, "window for database garbage collection")
+	f.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed")
+	f.String("distributed-address", conf.Distributed.Address, "distributed address")
+	f.String("distributed-port", conf.Distributed.Port, "distributed port")
 
-	return cmd
+	command.PreRun = func(cmd *cobra.Command, args []string) {
+		flags.RegisterServeFlags(f)
+	}
+
+	return command
 }
 
 func conf() func(cmd *cobra.Command, args []string) error {

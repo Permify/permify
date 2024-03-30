@@ -26,7 +26,12 @@ func NewGenerateASTCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 	}
 
-	flags.RegisterAstFlags(command)
+	f := command.Flags()
+	f.Bool("pretty", false, "If set to true, produces a human-readable output of the AST.")
+
+	command.PreRun = func(cmd *cobra.Command, args []string) {
+		flags.RegisterAstFlags(f)
+	}
 
 	return command
 }

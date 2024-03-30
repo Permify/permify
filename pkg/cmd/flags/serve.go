@@ -1,27 +1,19 @@
 package flags
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-
-	"github.com/Permify/permify/internal/config"
 )
 
 // RegisterServeFlags - Define and registers permify CLI flags
-func RegisterServeFlags(cmd *cobra.Command) {
-	conf := config.DefaultConfig()
-
+func RegisterServeFlags(flags *pflag.FlagSet) {
 	var err error
 
-	flags := cmd.Flags()
-
 	// Config File
-	flags.StringP("config", "c", "", "config file (default is $HOME/.permify.yaml)")
 	if err = viper.BindPFlag("config.file", flags.Lookup("config")); err != nil {
 		panic(err)
 	}
 
-	flags.String("account-id", conf.AccountID, "account id")
 	if err = viper.BindPFlag("account_id", flags.Lookup("account-id")); err != nil {
 		panic(err)
 	}
@@ -30,7 +22,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// Server
-	flags.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
 	if err = viper.BindPFlag("server.rate_limit", flags.Lookup("server-rate-limit")); err != nil {
 		panic(err)
 	}
@@ -39,7 +30,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// GRPC Server
-	flags.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
 	if err = viper.BindPFlag("server.grpc.port", flags.Lookup("grpc-port")); err != nil {
 		panic(err)
 	}
@@ -47,7 +37,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("grpc-tls-enabled", conf.Server.GRPC.TLSConfig.Enabled, "switch option for GRPC tls server")
 	if err = viper.BindPFlag("server.grpc.tls.enabled", flags.Lookup("grpc-tls-enabled")); err != nil {
 		panic(err)
 	}
@@ -55,7 +44,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("grpc-tls-key-path", conf.Server.GRPC.TLSConfig.KeyPath, "GRPC tls key path")
 	if err = viper.BindPFlag("server.grpc.tls.key", flags.Lookup("grpc-tls-key-path")); err != nil {
 		panic(err)
 	}
@@ -63,7 +51,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("grpc-tls-cert-path", conf.Server.GRPC.TLSConfig.CertPath, "GRPC tls certificate path")
 	if err = viper.BindPFlag("server.grpc.tls.cert", flags.Lookup("grpc-tls-cert-path")); err != nil {
 		panic(err)
 	}
@@ -72,7 +59,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// HTTP Server
-	flags.Bool("http-enabled", conf.Server.HTTP.Enabled, "switch option for HTTP server")
 	if err = viper.BindPFlag("server.http.enabled", flags.Lookup("http-enabled")); err != nil {
 		panic(err)
 	}
@@ -80,7 +66,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("http-port", conf.Server.HTTP.Port, "HTTP port address")
 	if err = viper.BindPFlag("server.http.port", flags.Lookup("http-port")); err != nil {
 		panic(err)
 	}
@@ -88,7 +73,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("http-tls-enabled", conf.Server.HTTP.TLSConfig.Enabled, "switch option for HTTP tls server")
 	if err = viper.BindPFlag("server.http.tls.enabled", flags.Lookup("http-tls-enabled")); err != nil {
 		panic(err)
 	}
@@ -96,7 +80,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("http-tls-key-path", conf.Server.HTTP.TLSConfig.KeyPath, "HTTP tls key path")
 	if err = viper.BindPFlag("server.http.tls.key", flags.Lookup("http-tls-key-path")); err != nil {
 		panic(err)
 	}
@@ -104,7 +87,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("http-tls-cert-path", conf.Server.HTTP.TLSConfig.CertPath, "HTTP tls certificate path")
 	if err = viper.BindPFlag("server.http.tls.cert", flags.Lookup("http-tls-cert-path")); err != nil {
 		panic(err)
 	}
@@ -112,7 +94,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSlice("http-cors-allowed-origins", conf.Server.HTTP.CORSAllowedOrigins, "CORS allowed origins for http gateway")
 	if err = viper.BindPFlag("server.http.cors_allowed_origins", flags.Lookup("http-cors-allowed-origins")); err != nil {
 		panic(err)
 	}
@@ -120,7 +101,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSlice("http-cors-allowed-headers", conf.Server.HTTP.CORSAllowedHeaders, "CORS allowed headers for http gateway")
 	if err = viper.BindPFlag("server.http.cors_allowed_headers", flags.Lookup("http-cors-allowed-headers")); err != nil {
 		panic(err)
 	}
@@ -129,7 +109,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// PROFILER
-	flags.Bool("profiler-enabled", conf.Profiler.Enabled, "switch option for profiler")
 	if err = viper.BindPFlag("profiler.enabled", flags.Lookup("profiler-enabled")); err != nil {
 		panic(err)
 	}
@@ -137,7 +116,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("profiler-port", conf.Profiler.Port, "profiler port address")
 	if err = viper.BindPFlag("profiler.port", flags.Lookup("profiler-port")); err != nil {
 		panic(err)
 	}
@@ -146,7 +124,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// LOG
-	flags.String("log-level", conf.Log.Level, "real time logs of authorization. Permify uses zerolog as a logger")
 	if err = viper.BindPFlag("logger.level", flags.Lookup("log-level")); err != nil {
 		panic(err)
 	}
@@ -154,7 +131,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("log-output", conf.Log.Output, "logger output valid values json, text")
 	if err = viper.BindPFlag("logger.output", flags.Lookup("log-output")); err != nil {
 		panic(err)
 	}
@@ -163,7 +139,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// AUTHN
-	flags.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	if err = viper.BindPFlag("authn.enabled", flags.Lookup("authn-enabled")); err != nil {
 		panic(err)
 	}
@@ -171,7 +146,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("authn-method", conf.Authn.Method, "server authentication method")
 	if err = viper.BindPFlag("authn.method", flags.Lookup("authn-method")); err != nil {
 		panic(err)
 	}
@@ -179,7 +153,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
 	if err = viper.BindPFlag("authn.preshared.keys", flags.Lookup("authn-preshared-keys")); err != nil {
 		panic(err)
 	}
@@ -187,7 +160,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("authn-oidc-issuer", conf.Authn.Oidc.Issuer, "issuer identifier of the OpenID Connect Provider")
 	if err = viper.BindPFlag("authn.oidc.issuer", flags.Lookup("authn-oidc-issuer")); err != nil {
 		panic(err)
 	}
@@ -195,7 +167,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "intended audience of the OpenID Connect token")
 	if err = viper.BindPFlag("authn.oidc.audience", flags.Lookup("authn-oidc-audience")); err != nil {
 		panic(err)
 	}
@@ -203,7 +174,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Duration("authn-oidc-refresh-interval", conf.Authn.Oidc.RefreshInterval, "refresh interval for the OpenID Connect configuration")
 	if err = viper.BindPFlag("authn.oidc.refresh_interval", flags.Lookup("authn-oidc-refresh-interval")); err != nil {
 		panic(err)
 	}
@@ -211,7 +181,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSlice("authn-oidc-valid-methods", conf.Authn.Oidc.ValidMethods, "list of valid JWT signing methods for OpenID Connect")
 	if err = viper.BindPFlag("authn.oidc.valid_methods", flags.Lookup("authn-oidc-valid-methods")); err != nil {
 		panic(err)
 	}
@@ -220,7 +189,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// TRACER
-	flags.Bool("tracer-enabled", conf.Tracer.Enabled, "switch option for tracing")
 	if err = viper.BindPFlag("tracer.enabled", flags.Lookup("tracer-enabled")); err != nil {
 		panic(err)
 	}
@@ -228,7 +196,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("tracer-exporter", conf.Tracer.Exporter, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
 	if err = viper.BindPFlag("tracer.exporter", flags.Lookup("tracer-exporter")); err != nil {
 		panic(err)
 	}
@@ -236,7 +203,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("tracer-endpoint", conf.Tracer.Endpoint, "export uri for tracing data")
 	if err = viper.BindPFlag("tracer.endpoint", flags.Lookup("tracer-endpoint")); err != nil {
 		panic(err)
 	}
@@ -244,7 +210,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("tracer-insecure", conf.Tracer.Insecure, "use https or http for tracer data, only used for otlp exporter or signoz")
 	if err = viper.BindPFlag("tracer.insecure", flags.Lookup("tracer-insecure")); err != nil {
 		panic(err)
 	}
@@ -252,7 +217,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
 	if err = viper.BindPFlag("tracer.urlpath", flags.Lookup("tracer-urlpath")); err != nil {
 		panic(err)
 	}
@@ -261,7 +225,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// METER
-	flags.Bool("meter-enabled", conf.Meter.Enabled, "switch option for metric")
 	if err = viper.BindPFlag("meter.enabled", flags.Lookup("meter-enabled")); err != nil {
 		panic(err)
 	}
@@ -269,7 +232,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
 	if err = viper.BindPFlag("meter.exporter", flags.Lookup("meter-exporter")); err != nil {
 		panic(err)
 	}
@@ -277,7 +239,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
 	if err = viper.BindPFlag("meter.endpoint", flags.Lookup("meter-endpoint")); err != nil {
 		panic(err)
 	}
@@ -285,7 +246,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
 	if err = viper.BindPFlag("meter.insecure", flags.Lookup("meter-insecure")); err != nil {
 		panic(err)
 	}
@@ -293,7 +253,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
 	if err = viper.BindPFlag("meter.urlpath", flags.Lookup("meter-urlpath")); err != nil {
 		panic(err)
 	}
@@ -302,7 +261,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// SERVICE
-	flags.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	if err = viper.BindPFlag("service.circuit_breaker", flags.Lookup("service-circuit-breaker")); err != nil {
 		panic(err)
 	}
@@ -310,7 +268,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
 	if err = viper.BindPFlag("service.watch.enabled", flags.Lookup("service-watch-enabled")); err != nil {
 		panic(err)
 	}
@@ -318,7 +275,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
 	if err = viper.BindPFlag("service.schema.cache.number_of_counters", flags.Lookup("service-schema-cache-number-of-counters")); err != nil {
 		panic(err)
 	}
@@ -326,7 +282,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("service-schema-cache-max-cost", conf.Service.Schema.Cache.MaxCost, "schema service cache max cost")
 	if err = viper.BindPFlag("service.schema.cache.max_cost", flags.Lookup("service-schema-cache-max-cost")); err != nil {
 		panic(err)
 	}
@@ -334,7 +289,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int("service-permission-bulk-limit", conf.Service.Permission.BulkLimit, "bulk operations limit")
 	if err = viper.BindPFlag("service.permission.bulk_limit", flags.Lookup("service-permission-bulk-limit")); err != nil {
 		panic(err)
 	}
@@ -342,7 +296,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int("service-permission-concurrency-limit", conf.Service.Permission.ConcurrencyLimit, "concurrency limit")
 	if err = viper.BindPFlag("service.permission.concurrency_limit", flags.Lookup("service-permission-concurrency-limit")); err != nil {
 		panic(err)
 	}
@@ -350,7 +303,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int64("service-permission-cache-number-of-counters", conf.Service.Permission.Cache.NumberOfCounters, "permission service cache number of counters")
 	if err = viper.BindPFlag("service.permission.cache.number_of_counters", flags.Lookup("service-permission-cache-number-of-counters")); err != nil {
 		panic(err)
 	}
@@ -358,7 +310,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("service-permission-cache-max-cost", conf.Service.Permission.Cache.MaxCost, "permission service cache max cost")
 	if err = viper.BindPFlag("service.permission.cache.max_cost", flags.Lookup("service-permission-cache-max-cost")); err != nil {
 		panic(err)
 	}
@@ -367,7 +318,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// DATABASE
-	flags.String("database-engine", conf.Database.Engine, "data source. e.g. postgres, memory")
 	if err = viper.BindPFlag("database.engine", flags.Lookup("database-engine")); err != nil {
 		panic(err)
 	}
@@ -375,7 +325,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("database-uri", conf.Database.URI, "uri of your data source to store relation tuples and schema")
 	if err = viper.BindPFlag("database.uri", flags.Lookup("database-uri")); err != nil {
 		panic(err)
 	}
@@ -383,7 +332,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("database-auto-migrate", conf.Database.AutoMigrate, "auto migrate database tables")
 	if err = viper.BindPFlag("database.auto_migrate", flags.Lookup("database-auto-migrate")); err != nil {
 		panic(err)
 	}
@@ -391,7 +339,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
 	if err = viper.BindPFlag("database.max_open_connections", flags.Lookup("database-max-open-connections")); err != nil {
 		panic(err)
 	}
@@ -399,7 +346,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "maximum number of idle connections that can be made to the database at any time")
 	if err = viper.BindPFlag("database.max_idle_connections", flags.Lookup("database-max-idle-connections")); err != nil {
 		panic(err)
 	}
@@ -407,7 +353,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
 	if err = viper.BindPFlag("database.max_connection_lifetime", flags.Lookup("database-max-connection-lifetime")); err != nil {
 		panic(err)
 	}
@@ -415,7 +360,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Duration("database-max-connection-idle-time", conf.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
 	if err = viper.BindPFlag("database.max_connection_idle_time", flags.Lookup("database-max-connection-idle-time")); err != nil {
 		panic(err)
 	}
@@ -423,7 +367,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int("database-max-data-per-write", conf.Database.MaxDataPerWrite, "sets the maximum amount of data per write operation to the database")
 	if err = viper.BindPFlag("database.max_data_per_write", flags.Lookup("database-max-data-per-write")); err != nil {
 		panic(err)
 	}
@@ -431,7 +374,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int("database-max-retries", conf.Database.MaxRetries, "defines the maximum number of retries for database operations in case of failure")
 	if err = viper.BindPFlag("database.max_retries", flags.Lookup("database-max-retries")); err != nil {
 		panic(err)
 	}
@@ -439,7 +381,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Int("database-watch-buffer-size", conf.Database.WatchBufferSize, "specifies the buffer size for database watch operations, impacting how many changes can be queued")
 	if err = viper.BindPFlag("database.watch_buffer_size", flags.Lookup("database-watch-buffer-size")); err != nil {
 		panic(err)
 	}
@@ -447,7 +388,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Bool("database-garbage-collection-enabled", conf.Database.GarbageCollection.Enabled, "use database garbage collection for expired relationships and attributes")
 	if err = viper.BindPFlag("database.garbage_collection.enabled", flags.Lookup("database-garbage-collection-enabled")); err != nil {
 		panic(err)
 	}
@@ -455,7 +395,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Duration("database-garbage-collection-interval", conf.Database.GarbageCollection.Interval, "interval for database garbage collection")
 	if err = viper.BindPFlag("database.garbage_collection.interval", flags.Lookup("database-garbage-collection-interval")); err != nil {
 		panic(err)
 	}
@@ -463,7 +402,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Duration("database-garbage-collection-timeout", conf.Database.GarbageCollection.Timeout, "timeout for database garbage collection")
 	if err = viper.BindPFlag("database.garbage_collection.timeout", flags.Lookup("database-garbage-collection-timeout")); err != nil {
 		panic(err)
 	}
@@ -471,7 +409,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.Duration("database-garbage-collection-window", conf.Database.GarbageCollection.Window, "window for database garbage collection")
 	if err = viper.BindPFlag("database.garbage_collection.window", flags.Lookup("database-garbage-collection-window")); err != nil {
 		panic(err)
 	}
@@ -480,7 +417,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	}
 
 	// DISTRIBUTED
-	flags.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed")
 	if err = viper.BindPFlag("distributed.enabled", flags.Lookup("distributed-enabled")); err != nil {
 		panic(err)
 	}
@@ -488,7 +424,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("distributed-address", conf.Distributed.Address, "distributed address")
 	if err = viper.BindPFlag("distributed.address", flags.Lookup("distributed-address")); err != nil {
 		panic(err)
 	}
@@ -496,7 +431,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 
-	flags.String("distributed-port", conf.Distributed.Port, "distributed port")
 	if err = viper.BindPFlag("distributed.port", flags.Lookup("distributed-port")); err != nil {
 		panic(err)
 	}
