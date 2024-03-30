@@ -24,8 +24,15 @@ func NewCoverageCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 	}
 
+	f := command.Flags()
+	f.Int("coverage-relationships", 0, "the min coverage for relationships")
+	f.Int("coverage-attributes", 0, "the min coverage for attributes")
+	f.Int("coverage-assertions", 0, "the min coverage for assertions")
+
 	// register flags for coverage
-	flags.RegisterCoverageFlags(command)
+	command.PreRun = func(cmd *cobra.Command, args []string) {
+		flags.RegisterCoverageFlags(f)
+	}
 
 	return command
 }
