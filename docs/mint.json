@@ -82,12 +82,20 @@
       "destination": "/getting-started/modeling"
     },
     {
-      "source": "/installation/installation/:slug*",
-      "destination": "/installation/:slug*"
+      "source": "/installation/installation/azure",
+      "destination": "/setting-up/installation/azure"
     },
     {
-      "source": "/installation/:slug*",
-      "destination": "/setting-up/installation/:slug*"
+      "source": "/installation/installation/google",
+      "destination": "/setting-up/installation/google"
+    },
+    {
+      "source": "/installation/installation/brew",
+      "destination": "/setting-up/installation/brew"
+    },
+    {
+      "source": "/installation/installation/container",
+      "destination": "/setting-up/installation/container"
     },
     {
       "source": "/operations/configuration",
@@ -100,10 +108,6 @@
     {
       "source": "/api-reference/reference/snap-tokens",
       "destination": "/operations/snap-tokens"
-    },
-    {
-      "source": "/getting-started/use-cases/abac",
-      "destination": "/use-cases/abac"
     },
     {
       "source": "/api-overview/reference/snap-tokens",
@@ -154,8 +158,8 @@
       "destination": "/use-cases/:slug*"
     },
     {
-      "source": "/getting-started/use-cases",
-      "destination": "/use-cases"
+      "source": "/getting-started/use-cases/:slug*",
+      "destination": "/use-cases/:slug*"
     },
     {
       "source": "/setting-up/installation/getting-started/:slug*",
