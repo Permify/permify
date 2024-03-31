@@ -82,8 +82,12 @@
       "destination": "/getting-started/modeling"
     },
     {
-      "source": "/use-cases/simple-rbac",
-      "destination": "/use-cases/rbac"
+      "source": "/installation/installation/:slug*",
+      "destination": "/installation/:slug*"
+    },
+    {
+      "source": "/installation/:slug*",
+      "destination": "/setting-up/installation/:slug*"
     },
     {
       "source": "/operations/configuration",
