@@ -42,10 +42,6 @@
   ],
   "redirects": [
     {
-      "source": "/docs/api-overview/reference/snap-tokens",
-      "destination": "/operations/snap-tokens"
-    },
-    {
       "source": "/docs/:slug*",
       "destination": "/:slug*"
     },
@@ -78,8 +74,8 @@
       "destination": "/api-reference/:slug*"
     },
     {
-      "source": "/installation/:slug*",
-      "destination": "/setting-up/installation/:slug*"
+      "source": "/installation/installation/",
+      "destination": "/installation/"
     },
     {
       "source": "/reference/:slug*",
@@ -124,14 +120,6 @@
     {
       "source": "/permify-overview/getting-started/:slug*",
       "destination": "/getting-started/:slug*"
-    },
-    {
-      "source": "/installation/installation/:slug*",
-      "destination": "/setting-up/installation/:slug*"
-    },
-    {
-      "source": "/setting-up/installation/installation/:slug*",
-      "destination": "/setting-up/installation/:slug*"
     },
     {
       "source": "/installation/getting-started/:slug*",
