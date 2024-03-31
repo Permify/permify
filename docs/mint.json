@@ -42,6 +42,10 @@
   ],
   "redirects": [
     {
+      "source": "/docs/api-overview/reference/snap-tokens",
+      "destination": "/operations/snap-tokens"
+    },
+    {
       "source": "/docs/:slug*",
       "destination": "/:slug*"
     },
