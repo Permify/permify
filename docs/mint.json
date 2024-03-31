@@ -74,8 +74,8 @@
       "destination": "/api-reference/:slug*"
     },
     {
-      "source": "/installation/installation/",
-      "destination": "/installation/"
+      "source": "/installation/installation/:slug*",
+      "destination": "/installation/:slug*"
     },
     {
       "source": "/reference/:slug*",
