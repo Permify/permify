@@ -130,6 +130,10 @@
       "destination": "/getting-started/:slug*"
     },
     {
+      "source": "/installation/installation/:slug*",
+      "destination": "/setting-up/installation/:slug*"
+    },
+    {
       "source": "/setting-up/installation/installation/:slug*",
       "destination": "/setting-up/installation/:slug*"
     },
