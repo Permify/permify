@@ -94,10 +94,6 @@
       "destination": "/use-cases/rbac"
     },
     {
-      "source": "/use-cases/getting-started/modeling",
-      "destination": "/getting-started/modeling"
-    },
-    {
       "source": "/operations/configuration",
       "destination": "/setting-up/configuration"
     },
