@@ -284,7 +284,8 @@
         "operations/cache",
         "operations/contextual-tuples",
         "operations/tracing",
-        "operations/snap-tokens"
+        "operations/snap-tokens",
+        "operations/partial-schema-update"
       ]
     },
     {
