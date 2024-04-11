@@ -1,0 +1,124 @@
+---
+icon: pen
+title: Partial Schema Update [Beta]
+---
+
+As development teams regularly roll out new features or API endpoints, features each addition often necessitates corresponding updates to the Permify schema. 
+
+To streamline this process, we have published an endpoint allows authorized users to make partial updates to the schema by adding or modifying actions within individual entities.
+
+## **Endpoint Definition**
+
+**`/v1/{tenant_id}/schemas/partial-write`**
+
+This endpoint allows authorized users to make partial updates to the schema by adding or modifying actions within individual entities.
+
+**Request Payload Structure**
+
+```bash
+PATCH /v1/{tenant_id}/schemas/partial-write
+Content-Type: application/json
+```
+body:
+```json
+{
+  "metadata": {
+    "schema_version": ""
+  },
+  "entities": {
+		"<entity-name>": {
+			"write": [],
+			"delete": [],
+			"update": []
+		}
+  }
+}
+```
+
+### **Behavior Description**
+
+When the **`schema_version`** in the request metadata is left empty, the system will default to using the latest(head) schema version as the base for updates.
+
+- **`name`** (string): The name of the entity to be changed.
+- **`write`** (string array): Conditions to be added. If a relation or permission/action already exists, it should return an error.
+- **`delete`** (string array): Names (permissions/actions) to be deleted. If the relation/permission/action name does not exist, it should return an error. Note: specifying the name is enough as relation/permission/action names should be unique.
+- **`update`** (string array): Conditions to be updated.
+
+If **`schema_version`** is specified, the endpoint will perform the same update process on the given version and generate a new version thereafter.
+
+**Partial Schema Endpoint Example Usage**
+
+**Existing Schema**
+
+```bash
+entity user {}
+
+entity organization {
+    relation admin @user
+    relation member @user
+}
+
+entity team {
+    relation owner @user
+    relation org @organization
+
+    permission edit = org.admin or owner
+    permission delete = org.admin or owner
+}
+```
+
+The code block above outlines the existing schema definitions for the **`user`**, **`organization`**, and **`team`** entities. This includes their respective relationships and permissions within the schema.
+
+### Partial Schema Update Request
+
+To update the **`team`** entity by introducing new permissions, the following PATCH request with the accompanying payload is sent:
+
+```json
+{
+  "metadata": {
+    "schema_version": ""
+  },
+  "entities": {
+		"team": {
+		  "write": [
+		    "relation member @user",
+		    "permission invite = org.admin and (owner or member)",
+		    "permission remove_user = owner"
+		  ],
+		  "delete": [
+		    "edit"
+		  ],
+		  "update": [
+		    "permission delete = member"
+		  ]
+		}
+	}
+}
+```
+
+By leaving the **`schema_version`** empty string, it signals the system to take the latest(head) schema version as a base for applying updates.
+
+### **Resulting Schema After Update**
+
+After the request is processed, the system outputs a new schema version where the **`team`** entity is revised to include the new permissions as illustrated below:
+
+```json
+entity user {}
+
+entity organization {
+    relation admin @user
+    relation member @user
+}
+
+entity team {
+    relation owner @user
+    relation member @user
+    relation org @organization
+
+    permission delete = member
+    permission invite = org.admin and (owner or member)
+    permission remove_user = owner
+}
+```
+
+**`invite`** and **`remove_user`** permissions have been added, a **`member`** relation has been included, the **`edit`** permission has been deleted, and the **`delete`** permission has been updated.
