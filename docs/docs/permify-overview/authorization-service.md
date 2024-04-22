@@ -76,5 +76,5 @@ Permify can help you with things like fraud detection, real-time transaction mon
 
 ## Need any help on Authorization ?
 
-Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify or how it might fit into your authorization workflow, [schedule a call with one of our Permify engineers](https://calendly.com/d/5hk-8db-vh2/call-with-an-expert).
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify or how it might fit into your authorization workflow, [schedule a call with one of our Permify engineers](https://calendly.com/d/cj79-kyf-b4z).
 
