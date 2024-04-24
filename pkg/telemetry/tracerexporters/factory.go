@@ -13,8 +13,10 @@ func ExporterFactory(name, url string, insecure bool, urlpath string) (trace.Spa
 		return NewZipkin(url)
 	case "jaeger":
 		return NewJaegar(url)
-	case "otlp":
+	case "otlp", "otlp-http":
 		return NewOTLP(url, insecure, urlpath)
+	case "otlp-grpc":
+		return NewOTLPGrpc(url, insecure)
 	case "signoz":
 		return NewSigNoz(url, insecure)
 	default:

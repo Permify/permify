@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
-// NewOTLP - Creates new OTLP exporter
+// NewOTLP - Creates new OTLP exporter using HTTP protocol.
 func NewOTLP(endpoint string, insecure bool, urlpath string) (trace.SpanExporter, error) {
 	var exporter trace.SpanExporter
 	var err error

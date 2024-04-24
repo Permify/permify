@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 )
 
-// NewOTLP - Creates new OTLP exporter
+// NewOTLP - Creates new OTLP exporter using HTTP protocol.
 func NewOTLP(endpoint string, insecure bool, urlpath string) (metric.Exporter, error) {
 	options := []otlpmetrichttp.Option{
 		otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression),
