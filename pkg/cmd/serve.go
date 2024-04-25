@@ -10,8 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -158,8 +156,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		spew.Dump(cfg)
-
 		// Print banner and initialize logger
 		internal.PrintBanner()
 
@@ -232,6 +228,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Tracer.Endpoint,
 				cfg.Tracer.Insecure,
 				cfg.Tracer.URLPath,
+				cfg.Tracer.Headers,
 			)
 			if err != nil {
 				slog.Error(err.Error())
@@ -274,6 +271,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Meter.Endpoint,
 				cfg.Meter.Insecure,
 				cfg.Meter.URLPath,
+				cfg.Meter.Headers,
 			)
 			if err != nil {
 				slog.Error(err.Error())

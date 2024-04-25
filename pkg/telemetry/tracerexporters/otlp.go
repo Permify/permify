@@ -8,12 +8,16 @@ import (
 )
 
 // NewOTLP - Creates new OTLP exporter using HTTP protocol.
-func NewOTLP(endpoint string, insecure bool, urlpath string) (trace.SpanExporter, error) {
+func NewOTLP(endpoint string, insecure bool, urlpath string, headers map[string]string) (trace.SpanExporter, error) {
 	var exporter trace.SpanExporter
 	var err error
 
 	opts := []otlptracehttp.Option{
 		otlptracehttp.WithEndpoint(endpoint),
+	}
+
+	if len(headers) > 0 {
+		opts = append(opts, otlptracehttp.WithHeaders(headers))
 	}
 
 	if urlpath != "" {
