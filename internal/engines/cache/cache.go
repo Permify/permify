@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 
+	"go.opentelemetry.io/otel"
 	api "go.opentelemetry.io/otel/metric"
 
 	"github.com/cespare/xxhash/v2"
@@ -14,6 +15,8 @@ import (
 	"github.com/Permify/permify/pkg/cache"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
+
+var tracer = otel.Tracer("check-cache")
 
 // CheckEngineWithCache is a struct that holds an instance of a cache.Cache for managing engine cache.
 type CheckEngineWithCache struct {
@@ -69,6 +72,9 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 
 	// If a cached result is found, handle exclusion and return the result.
 	if found {
+		ctx, span := tracer.Start(ctx, "hit")
+		defer span.End()
+
 		// Increase the check count in the metrics.
 		c.cacheCounter.Add(ctx, 1)
 		// If the request doesn't have the exclusion flag set, return the cached result.

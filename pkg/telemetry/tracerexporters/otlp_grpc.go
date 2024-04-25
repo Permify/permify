@@ -9,12 +9,16 @@ import (
 )
 
 // NewOTLPGrpc - Creates new OTLP exporter using GRPC protocol.
-func NewOTLPGrpc(endpoint string, insecure bool) (trace.SpanExporter, error) {
+func NewOTLPGrpc(endpoint string, insecure bool, headers map[string]string) (trace.SpanExporter, error) {
 	var exporter trace.SpanExporter
 	var err error
 
 	opts := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(endpoint),
+	}
+
+	if len(headers) > 0 {
+		opts = append(opts, otlptracegrpc.WithHeaders(headers))
 	}
 
 	if insecure {
