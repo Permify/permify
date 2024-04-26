@@ -267,10 +267,10 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
-	if err = viper.BindPFlag("tracer.headers", flags.Lookup("tracer-headers")); err != nil {
+	if err = viper.BindPFlag("meter.headers", flags.Lookup("meter-headers")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("tracer.headers", "PERMIFY_TRACER_HEADERS"); err != nil {
+	if err = viper.BindEnv("meter.headers", "PERMIFY_METER_HEADERS"); err != nil {
 		panic(err)
 	}
 
