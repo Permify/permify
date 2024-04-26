@@ -54,11 +54,13 @@ func NewConfigCommand() *cobra.Command {
 	f.String("tracer-endpoint", conf.Tracer.Endpoint, "export uri for tracing data")
 	f.Bool("tracer-insecure", conf.Tracer.Insecure, "use https or http for tracer data, only used for otlp exporter or signoz")
 	f.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
+	f.StringSlice("tracer-headers", conf.Tracer.Headers, "allows setting custom headers for the tracer exporter in key-value pairs")
 	f.Bool("meter-enabled", conf.Meter.Enabled, "switch option for metric")
 	f.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
 	f.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
 	f.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
+	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
 	f.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	f.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
 	f.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
@@ -153,12 +155,14 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"tracer.endpoint", HideSecret(cfg.Tracer.Exporter), getKeyOrigin(cmd, "tracer-endpoint", "PERMIFY_TRACER_ENDPOINT")},
 			[]string{"tracer.insecure", fmt.Sprintf("%v", cfg.Tracer.Insecure), getKeyOrigin(cmd, "tracer-insecure", "PERMIFY_TRACER_INSECURE")},
 			[]string{"tracer.urlpath", cfg.Tracer.URLPath, getKeyOrigin(cmd, "tracer-urlpath", "PERMIFY_TRACER_URL_PATH")},
+			[]string{"tracer.headers", fmt.Sprintf("%v", cfg.Tracer.Headers), getKeyOrigin(cmd, "tracer-headers", "PERMIFY_TRACER_HEADERS")},
 			// METER
 			[]string{"meter.enabled", fmt.Sprintf("%v", cfg.Meter.Enabled), getKeyOrigin(cmd, "meter-enabled", "PERMIFY_METER_ENABLED")},
 			[]string{"meter.exporter", cfg.Meter.Exporter, getKeyOrigin(cmd, "meter-exporter", "PERMIFY_METER_EXPORTER")},
 			[]string{"meter.endpoint", HideSecret(cfg.Meter.Exporter), getKeyOrigin(cmd, "meter-endpoint", "PERMIFY_METER_ENDPOINT")},
 			[]string{"meter.insecure", fmt.Sprintf("%v", cfg.Meter.Insecure), getKeyOrigin(cmd, "meter-insecure", "PERMIFY_METER_INSECURE")},
 			[]string{"meter.urlpath", cfg.Meter.URLPath, getKeyOrigin(cmd, "meter-urlpath", "PERMIFY_METER_URL_PATH")},
+			[]string{"meter.headers", fmt.Sprintf("%v", cfg.Meter.Headers), getKeyOrigin(cmd, "meter-headers", "PERMIFY_METER_HEADERS")},
 			// SERVICE
 			[]string{"service.circuit_breaker", fmt.Sprintf("%v", cfg.Service.CircuitBreaker), getKeyOrigin(cmd, "service-circuit-breaker", "PERMIFY_SERVICE_CIRCUIT_BREAKER")},
 			[]string{"service.schema.cache.number_of_counters", fmt.Sprintf("%v", cfg.Service.Schema.Cache.NumberOfCounters), getKeyOrigin(cmd, "service-schema-cache-number-of-counters", "PERMIFY_SERVICE_WATCH_ENABLED")},

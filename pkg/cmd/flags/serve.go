@@ -224,6 +224,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("tracer.headers", flags.Lookup("tracer-headers")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("tracer.headers", "PERMIFY_TRACER_HEADERS"); err != nil {
+		panic(err)
+	}
+
 	// METER
 	if err = viper.BindPFlag("meter.enabled", flags.Lookup("meter-enabled")); err != nil {
 		panic(err)
@@ -257,6 +264,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 	if err = viper.BindEnv("meter.urlpath", "PERMIFY_METER_URL_PATH"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("tracer.headers", flags.Lookup("tracer-headers")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("tracer.headers", "PERMIFY_TRACER_HEADERS"); err != nil {
 		panic(err)
 	}
 
