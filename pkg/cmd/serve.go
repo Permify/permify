@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -84,11 +85,13 @@ func NewServeCommand() *cobra.Command {
 	f.String("tracer-endpoint", conf.Tracer.Endpoint, "export uri for tracing data")
 	f.Bool("tracer-insecure", conf.Tracer.Insecure, "use https or http for tracer data, only used for otlp exporter or signoz")
 	f.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
+	f.StringSlice("tracer-headers", conf.Tracer.Headers, "allows setting custom headers for the tracer exporter in key-value pairs")
 	f.Bool("meter-enabled", conf.Meter.Enabled, "switch option for metric")
 	f.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
 	f.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
 	f.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
+	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
 	f.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	f.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
 	f.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
@@ -222,13 +225,22 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		// Tracing
 		if cfg.Tracer.Enabled {
+			headers := map[string]string{}
+			for _, header := range cfg.Tracer.Headers {
+				h := strings.Split(header, ":")
+				if len(h) != 2 {
+					return errors.New("invalid header format; expected 'key:value'")
+				}
+				headers[h[0]] = h[1]
+			}
+
 			var exporter trace.SpanExporter
 			exporter, err = tracerexporters.ExporterFactory(
 				cfg.Tracer.Exporter,
 				cfg.Tracer.Endpoint,
 				cfg.Tracer.Insecure,
 				cfg.Tracer.URLPath,
-				cfg.Tracer.Headers,
+				headers,
 			)
 			if err != nil {
 				slog.Error(err.Error())
@@ -265,13 +277,22 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Meter
 		meter := telemetry.NewNoopMeter()
 		if cfg.Meter.Enabled {
+			headers := map[string]string{}
+			for _, header := range cfg.Meter.Headers {
+				h := strings.Split(header, ":")
+				if len(h) != 2 {
+					return errors.New("invalid header format; expected 'key:value'")
+				}
+				headers[h[0]] = h[1]
+			}
+
 			var exporter metric.Exporter
 			exporter, err = meterexporters.ExporterFactory(
 				cfg.Meter.Exporter,
 				cfg.Meter.Endpoint,
 				cfg.Meter.Insecure,
 				cfg.Meter.URLPath,
-				cfg.Meter.Headers,
+				headers,
 			)
 			if err != nil {
 				slog.Error(err.Error())
