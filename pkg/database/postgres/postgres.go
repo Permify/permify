@@ -2,19 +2,19 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/Masterminds/squirrel"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 // Postgres - Structure for Postresql instance
 type Postgres struct {
-	DB      *sql.DB
+	ReadPool  *pgxpool.Pool
+	WritePool *pgxpool.Pool
+
 	Builder squirrel.StatementBuilderType
 	// options
 	maxDataPerWrite       int
@@ -24,6 +24,7 @@ type Postgres struct {
 	maxConnectionIdleTime time.Duration
 	maxOpenConnections    int
 	maxIdleConnections    int
+	simpleMode            bool
 }
 
 // New - Creates new postgresql db instance
@@ -34,6 +35,7 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 		maxDataPerWrite:    _defaultMaxDataPerWrite,
 		maxRetries:         _defaultMaxRetries,
 		watchBufferSize:    _defaultWatchBufferSize,
+		simpleMode:         _defaultSimpleMode,
 	}
 
 	// Custom options
@@ -43,41 +45,45 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 
 	pg.Builder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
-	db, err := sql.Open("pgx", uri)
+	writeConfig, err := pgxpool.ParseConfig(uri)
 	if err != nil {
 		return nil, err
 	}
 
-	if pg.maxOpenConnections != 0 {
-		db.SetMaxOpenConns(pg.maxOpenConnections)
-	}
-
-	if pg.maxIdleConnections != 0 {
-		db.SetMaxIdleConns(pg.maxIdleConnections)
-	}
-
-	if pg.maxConnectionLifeTime != 0 {
-		db.SetConnMaxLifetime(pg.maxConnectionLifeTime)
-	}
-
-	if pg.maxConnectionIdleTime != 0 {
-		db.SetConnMaxIdleTime(pg.maxConnectionIdleTime)
-	}
-
-	policy := backoff.NewExponentialBackOff()
-	policy.MaxElapsedTime = 1 * time.Minute
-	err = backoff.Retry(func() error {
-		err = db.PingContext(context.Background())
-		if err != nil {
-			return err
-		}
-		return nil
-	}, policy)
+	readConfig, err := pgxpool.ParseConfig(uri)
 	if err != nil {
 		return nil, err
 	}
 
-	pg.DB = db
+	if pg.simpleMode {
+		writeConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+		readConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	}
+
+	writeConfig.MinConns = int32(pg.maxIdleConnections)
+	readConfig.MinConns = int32(pg.maxIdleConnections)
+
+	writeConfig.MaxConns = int32(pg.maxOpenConnections)
+	readConfig.MaxConns = int32(pg.maxOpenConnections)
+
+	writeConfig.MaxConnIdleTime = pg.maxConnectionIdleTime
+	readConfig.MaxConnIdleTime = pg.maxConnectionIdleTime
+
+	writeConfig.MaxConnLifetime = pg.maxConnectionLifeTime
+	readConfig.MaxConnLifetime = pg.maxConnectionLifeTime
+
+	initContext, cancelInit := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelInit()
+
+	pg.WritePool, err = pgxpool.NewWithConfig(initContext, writeConfig)
+	if err != nil {
+		return nil, err
+	}
+	pg.ReadPool, err = pgxpool.NewWithConfig(initContext, readConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	return pg, nil
 }
 
@@ -100,9 +106,8 @@ func (p *Postgres) GetEngineType() string {
 
 // Close - Close postgresql instance
 func (p *Postgres) Close() error {
-	if p.DB != nil {
-		return p.DB.Close()
-	}
+	p.ReadPool.Close()
+	p.WritePool.Close()
 	return nil
 }
 
@@ -110,7 +115,7 @@ func (p *Postgres) Close() error {
 func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	if err := p.DB.PingContext(ctx); err != nil {
+	if err := p.ReadPool.Ping(ctx); err != nil {
 		return false, err
 	}
 	return true, nil

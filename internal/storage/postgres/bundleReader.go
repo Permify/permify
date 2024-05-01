@@ -2,10 +2,11 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log/slog"
 	"strings"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/jsonpb"
@@ -18,13 +19,13 @@ import (
 
 type BundleReader struct {
 	database  *db.Postgres
-	txOptions sql.TxOptions
+	txOptions pgx.TxOptions
 }
 
 func NewBundleReader(database *db.Postgres) *BundleReader {
 	return &BundleReader{
 		database:  database,
-		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: false},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadWrite},
 	}
 }
 
@@ -46,13 +47,13 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
-	var row *sql.Row
-	row = b.database.DB.QueryRowContext(ctx, query, args...)
+	var row pgx.Row
+	row = b.database.WritePool.QueryRow(ctx, query, args...)
 
 	var jsonData string
 	err = row.Scan(&jsonData)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String())
 		}
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)

@@ -40,12 +40,14 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 			PQDatabase.WatchBufferSize(conf.WatchBufferSize),
 			PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
 			PQDatabase.MaxRetries(conf.MaxRetries),
+			PQDatabase.SimpleMode(conf.SimpleMode),
 		)
 		if err != nil {
 			return nil, err
 		}
+
 		// check postgres version
-		_, err = utils.EnsureDBVersion(db.(*PQDatabase.Postgres).DB)
+		_, err = utils.EnsureDBVersion(db.(*PQDatabase.Postgres).ReadPool)
 		if err != nil {
 			return nil, err
 		}

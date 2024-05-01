@@ -35,20 +35,26 @@ func MaxConnectionLifeTime(d time.Duration) Option {
 	}
 }
 
-func MaxDataPerWrite(max int) Option {
+func MaxDataPerWrite(v int) Option {
 	return func(c *Postgres) {
-		c.maxDataPerWrite = max
+		c.maxDataPerWrite = v
 	}
 }
 
-func WatchBufferSize(max int) Option {
+func WatchBufferSize(v int) Option {
 	return func(c *Postgres) {
-		c.watchBufferSize = max
+		c.watchBufferSize = v
 	}
 }
 
-func MaxRetries(max int) Option {
+func MaxRetries(v int) Option {
 	return func(c *Postgres) {
-		c.maxRetries = max
+		c.maxRetries = v
+	}
+}
+
+func SimpleMode(v bool) Option {
+	return func(c *Postgres) {
+		c.simpleMode = v
 	}
 }

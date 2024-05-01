@@ -2,12 +2,13 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/golang/protobuf/jsonpb"
 
@@ -31,14 +32,14 @@ type Watch struct {
 	// txOptions holds the configuration for database transactions, such as
 	// isolation level and read-only mode, to be applied when performing
 	// operations on the relationship data.
-	txOptions sql.TxOptions
+	txOptions pgx.TxOptions
 }
 
 // NewWatcher returns a new instance of the Watch.
 func NewWatcher(database *db.Postgres) *Watch {
 	return &Watch{
 		database:  database,
-		txOptions: sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly},
 	}
 }
 
@@ -171,7 +172,7 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 	slog.Debug("executing SQL query to get recent transaction", slog.Any("query", query), slog.Any("arguments", args))
 
 	// Execute the SQL query.
-	rows, err := w.database.DB.QueryContext(ctx, query, args...)
+	rows, err := w.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
 
 		slog.Error("failed to execute sql query", slog.Any("error", err))
@@ -239,8 +240,8 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 	slog.Debug("executing sql query for relation tuples", slog.Any("query", tquery), slog.Any("arguments", targs))
 
 	// Execute the SQL query and retrieve the result rows.
-	var trows *sql.Rows
-	trows, err = w.database.DB.QueryContext(ctx, tquery, targs...)
+	var trows pgx.Rows
+	trows, err = w.database.ReadPool.Query(ctx, tquery, targs...)
 	if err != nil {
 		slog.Error("failed to execute sql query for relation tuples", slog.Any("error", err))
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
@@ -263,8 +264,8 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 
 	slog.Debug("executing sql query for attributes", slog.Any("query", aquery), slog.Any("arguments", aargs))
 
-	var arows *sql.Rows
-	arows, err = w.database.DB.QueryContext(ctx, aquery, aargs...)
+	var arows pgx.Rows
+	arows, err = w.database.ReadPool.Query(ctx, aquery, aargs...)
 	if err != nil {
 		slog.Error("error while executing SQL query for attributes", slog.Any("error", err))
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())

@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"log/slog"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
 
@@ -17,14 +18,14 @@ import (
 type TenantReader struct {
 	database *db.Postgres
 	// options
-	txOptions sql.TxOptions
+	txOptions pgx.TxOptions
 }
 
 // NewTenantReader - Creates a new TenantReader
 func NewTenantReader(database *db.Postgres) *TenantReader {
 	return &TenantReader{
 		database:  database,
-		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: true},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadOnly},
 	}
 }
 
@@ -57,8 +58,8 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
-	var rows *sql.Rows
-	rows, err = r.database.DB.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}

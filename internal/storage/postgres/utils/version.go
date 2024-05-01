@@ -1,8 +1,11 @@
 package utils
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
+	"strconv"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -12,13 +15,14 @@ const (
 
 // EnsureDBVersion checks the version of the given database connection and returns an error if the version is not
 // supported.
-func EnsureDBVersion(db *sql.DB) (version int, err error) {
-	err = db.QueryRow("SHOW server_version_num;").Scan(&version)
+func EnsureDBVersion(db *pgxpool.Pool) (version string, err error) {
+	err = db.QueryRow(context.Background(), "SHOW server_version_num;").Scan(&version)
 	if err != nil {
 		return
 	}
-	if version < earliestPostgresVersion {
-		err = fmt.Errorf("unsupported postgres version: %d, expected >= %d", version, earliestPostgresVersion)
+	v, err := strconv.Atoi(version)
+	if v < earliestPostgresVersion {
+		err = fmt.Errorf("unsupported postgres version: %s, expected >= %d", version, earliestPostgresVersion)
 	}
 	return
 }

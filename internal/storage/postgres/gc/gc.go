@@ -71,7 +71,7 @@ func (gc *GC) Run() error {
 
 	// Get the current time from the database timezone.
 	var dbNow time.Time
-	err := gc.database.DB.QueryRowContext(ctx, "SELECT NOW() AT TIME ZONE 'UTC'").Scan(&dbNow)
+	err := gc.database.WritePool.QueryRow(ctx, "SELECT NOW() AT TIME ZONE 'UTC'").Scan(&dbNow)
 	if err != nil {
 		slog.Error("Failed to get current time from the database:", slog.Any("error", err))
 		return err
@@ -123,7 +123,7 @@ func (gc *GC) getLastTransactionID(ctx context.Context, before time.Time) (uint6
 	}
 
 	var lastTransactionID uint64
-	row := gc.database.DB.QueryRowContext(ctx, tquery, targs...)
+	row := gc.database.WritePool.QueryRow(ctx, tquery, targs...)
 	err := row.Scan(&lastTransactionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -143,7 +143,7 @@ func (gc *GC) deleteRecords(ctx context.Context, table string, lastTransactionID
 		return err
 	}
 
-	_, err = gc.database.DB.ExecContext(ctx, query, args...)
+	_, err = gc.database.WritePool.Exec(ctx, query, args...)
 	return err
 }
 
@@ -170,6 +170,6 @@ func (gc *GC) deleteTransactions(ctx context.Context, lastTransactionID uint64) 
 	}
 
 	// Execute the DELETE query with the provided context.
-	_, err = gc.database.DB.ExecContext(ctx, query, args...)
+	_, err = gc.database.WritePool.Exec(ctx, query, args...)
 	return err
 }

@@ -35,6 +35,10 @@ const (
     )
     SELECT id, entity_id
     FROM filtered_entities`
+
+	TransactionTemplate  = `INSERT INTO transactions (tenant_id) VALUES ($1) RETURNING id`
+	InsertTenantTemplate = `INSERT INTO tenants (id, name) VALUES ($1, $2) RETURNING created_at`
+	DeleteTenantTemplate = `DELETE FROM tenants WHERE id = $1 RETURNING name, created_at`
 )
 
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
