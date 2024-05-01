@@ -72,6 +72,7 @@ func NewConfigCommand() *cobra.Command {
 	f.String("database-engine", conf.Database.Engine, "data source. e.g. postgres, memory")
 	f.String("database-uri", conf.Database.URI, "uri of your data source to store relation tuples and schema")
 	f.Bool("database-auto-migrate", conf.Database.AutoMigrate, "auto migrate database tables")
+	f.Bool("database-simple-mode", conf.Database.SimpleMode, "database connection to operate using pgx.QueryExecModeSimpleProtocol")
 	f.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
 	f.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "maximum number of idle connections that can be made to the database at any time")
 	f.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
@@ -140,7 +141,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"profiler.port", cfg.Profiler.Port, getKeyOrigin(cmd, "profiler-port", "PERMIFY_PROFILER_PORT")},
 			// LOG
 			[]string{"logger.level", cfg.Log.Level, getKeyOrigin(cmd, "log-level", "PERMIFY_LOG_LEVEL")},
-			[]string{"logger.output", cfg.Log.Level, getKeyOrigin(cmd, "log-output", "PERMIFY_LOG_OUTPUT")},
+			[]string{"logger.output", cfg.Log.Output, getKeyOrigin(cmd, "log-output", "PERMIFY_LOG_OUTPUT")},
 			// AUTHN
 			[]string{"authn.enabled", fmt.Sprintf("%v", cfg.Authn.Enabled), getKeyOrigin(cmd, "authn-enabled", "PERMIFY_AUTHN_ENABLED")},
 			[]string{"authn.method", cfg.Authn.Method, getKeyOrigin(cmd, "authn-method", "PERMIFY_AUTHN_METHOD")},

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/pressly/goose/v3"
 
 	"github.com/Permify/permify/internal/config"
@@ -29,7 +31,7 @@ func Migrate(conf config.Database) (err error) {
 	case database.POSTGRES.String():
 		// Create a new Postgres database connection
 		var db *PQDatabase.Postgres
-		db, err = PQDatabase.New(conf.URI)
+		db, err = PQDatabase.New(conf.URI, PQDatabase.SimpleMode(conf.SimpleMode))
 		if err != nil {
 			return err
 		}
@@ -37,7 +39,7 @@ func Migrate(conf config.Database) (err error) {
 		defer closeDB(db)
 
 		// check postgres version
-		_, err = utils.EnsureDBVersion(db.DB)
+		_, err = utils.EnsureDBVersion(db.ReadPool)
 		if err != nil {
 			return err
 		}
@@ -53,8 +55,10 @@ func Migrate(conf config.Database) (err error) {
 		// Set file system for migration scripts
 		goose.SetBaseFS(postgresMigrations)
 
+		pool := stdlib.OpenDBFromPool(db.WritePool)
+
 		// Perform migration
-		if err = goose.Up(db.DB, postgresMigrationDir); err != nil {
+		if err = goose.Up(pool, postgresMigrationDir); err != nil {
 			return err
 		}
 
@@ -86,8 +90,9 @@ func MigrateUp(engine, uri string) (err error) {
 		}
 
 		goose.SetBaseFS(postgresMigrations)
+		pool := stdlib.OpenDBFromPool(db.WritePool)
 
-		if err = goose.Up(db.DB, postgresMigrationDir); err != nil {
+		if err = goose.Up(pool, postgresMigrationDir); err != nil {
 			return err
 		}
 
@@ -117,8 +122,9 @@ func MigrateUpTo(engine, uri string, p int64) (err error) {
 		}
 
 		goose.SetBaseFS(postgresMigrations)
+		pool := stdlib.OpenDBFromPool(db.WritePool)
 
-		if err = goose.UpTo(db.DB, postgresMigrationDir, p); err != nil {
+		if err = goose.UpTo(pool, postgresMigrationDir, p); err != nil {
 			return err
 		}
 
@@ -148,8 +154,9 @@ func MigrateDown(engine, uri string) (err error) {
 		}
 
 		goose.SetBaseFS(postgresMigrations)
+		pool := stdlib.OpenDBFromPool(db.WritePool)
 
-		if err = goose.Down(db.DB, postgresMigrationDir); err != nil {
+		if err = goose.Down(pool, postgresMigrationDir); err != nil {
 			return err
 		}
 
@@ -179,8 +186,9 @@ func MigrateDownTo(engine, uri string, p int64) (err error) {
 		}
 
 		goose.SetBaseFS(postgresMigrations)
+		pool := stdlib.OpenDBFromPool(db.WritePool)
 
-		if err = goose.DownTo(db.DB, postgresMigrationDir, p); err != nil {
+		if err = goose.DownTo(pool, postgresMigrationDir, p); err != nil {
 			return err
 		}
 
@@ -210,8 +218,9 @@ func MigrateReset(engine, uri string) (err error) {
 		}
 
 		goose.SetBaseFS(postgresMigrations)
+		pool := stdlib.OpenDBFromPool(db.WritePool)
 
-		if err = goose.Reset(db.DB, postgresMigrationDir); err != nil {
+		if err = goose.Reset(pool, postgresMigrationDir); err != nil {
 			return err
 		}
 
@@ -241,8 +250,9 @@ func MigrateStatus(engine, uri string) (err error) {
 		}
 
 		goose.SetBaseFS(postgresMigrations)
+		pool := stdlib.OpenDBFromPool(db.WritePool)
 
-		if err = goose.Status(db.DB, postgresMigrationDir); err != nil {
+		if err = goose.Status(pool, postgresMigrationDir); err != nil {
 			return err
 		}
 

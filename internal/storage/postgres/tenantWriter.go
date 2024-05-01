@@ -2,15 +2,15 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log/slog"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+
 	"go.opentelemetry.io/otel/codes"
 
-	"github.com/Masterminds/squirrel"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/Permify/permify/internal/storage/postgres/utils"
@@ -22,14 +22,14 @@ import (
 type TenantWriter struct {
 	database *db.Postgres
 	// options
-	txOptions sql.TxOptions
+	txOptions pgx.TxOptions
 }
 
 // NewTenantWriter - Creates a new TenantWriter
 func NewTenantWriter(database *db.Postgres) *TenantWriter {
 	return &TenantWriter{
 		database:  database,
-		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: false},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadWrite},
 	}
 }
 
@@ -41,10 +41,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 	slog.Debug("creating new tenant", slog.Any("id", id), slog.Any("name", name))
 
 	var createdAt time.Time
-
-	query := w.database.Builder.Insert(TenantsTable).Columns("id, name").Values(id, name).Suffix("RETURNING created_at").RunWith(w.database.DB)
-
-	err = query.QueryRowContext(ctx).Scan(&createdAt)
+	err = w.database.WritePool.QueryRow(ctx, utils.InsertTenantTemplate, id, name).Scan(&createdAt)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value") {
 			span.RecordError(err)
@@ -74,8 +71,7 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 	var name string
 	var createdAt time.Time
 
-	query := w.database.Builder.Delete(TenantsTable).Where(squirrel.Eq{"id": tenantID}).Suffix("RETURNING name, created_at").RunWith(w.database.DB)
-	err = query.QueryRowContext(ctx).Scan(&name, &createdAt)
+	err = w.database.WritePool.QueryRow(ctx, utils.DeleteTenantTemplate, tenantID).Scan(&name, &createdAt)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}

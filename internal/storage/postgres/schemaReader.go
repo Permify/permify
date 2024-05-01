@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log/slog"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/rs/xid"
@@ -21,14 +22,14 @@ import (
 type SchemaReader struct {
 	database *db.Postgres
 	// options
-	txOptions sql.TxOptions
+	txOptions pgx.TxOptions
 }
 
 // NewSchemaReader - Creates a new SchemaReader
 func NewSchemaReader(database *db.Postgres) *SchemaReader {
 	return &SchemaReader{
 		database:  database,
-		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: true},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadOnly},
 	}
 }
 
@@ -51,8 +52,8 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
-	var rows *sql.Rows
-	rows, err = r.database.DB.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -100,8 +101,8 @@ func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version s
 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
-	var rows *sql.Rows
-	rows, err = r.database.DB.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
 		return []string{}, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -144,13 +145,9 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name,
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
 	var def storage.SchemaDefinition
-	row := r.database.DB.QueryRowContext(ctx, query, args...)
-	if err = row.Err(); err != nil {
-		return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-
+	row := r.database.ReadPool.QueryRow(ctx, query, args...)
 	if err = row.Scan(&def.Name, &def.SerializedDefinition, &def.Version); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
 		}
 		return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
@@ -189,13 +186,9 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
 	var def storage.SchemaDefinition
-	row := r.database.DB.QueryRowContext(ctx, query, args...)
-	if err = row.Err(); err != nil {
-		return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-
+	row := r.database.ReadPool.QueryRow(ctx, query, args...)
 	if err = row.Scan(&def.Name, &def.SerializedDefinition, &def.Version); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
 		}
 		return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
@@ -234,10 +227,10 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
-	row := r.database.DB.QueryRowContext(ctx, query, args...)
+	row := r.database.ReadPool.QueryRow(ctx, query, args...)
 	err = row.Scan(&version)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
 		}
 		return "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
@@ -277,8 +270,8 @@ func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, paginat
 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
-	var rows *sql.Rows
-	rows, err = r.database.DB.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -287,18 +280,18 @@ func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, paginat
 	var lastVersion string
 	schemas = make([]*base.SchemaList, 0, pagination.PageSize()+1)
 	for rows.Next() {
-		schema := &base.SchemaList{}
-		err = rows.Scan(&schema.Version)
+		sch := &base.SchemaList{}
+		err = rows.Scan(&sch.Version)
 		if err != nil {
 			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
-		id, err := xid.FromString(schema.Version)
+		id, err := xid.FromString(sch.Version)
 		if err != nil {
 			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
-		schema.CreatedAt = id.Time().String()
-		lastVersion = schema.Version
-		schemas = append(schemas, schema)
+		sch.CreatedAt = id.Time().String()
+		lastVersion = sch.Version
+		schemas = append(schemas, sch)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)

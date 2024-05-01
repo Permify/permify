@@ -2,9 +2,11 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
+	"fmt"
 	"log/slog"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/jsonpb"
@@ -26,13 +28,13 @@ import (
 type DataWriter struct {
 	database *db.Postgres
 	// options
-	txOptions sql.TxOptions
+	txOptions pgx.TxOptions
 }
 
 func NewDataWriter(database *db.Postgres) *DataWriter {
 	return &DataWriter{
 		database:  database,
-		txOptions: sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadWrite},
 	}
 }
 
@@ -169,31 +171,24 @@ func (w *DataWriter) write(
 	tupleCollection *database.TupleCollection,
 	attributeCollection *database.AttributeCollection,
 ) (token token.EncodedSnapToken, err error) {
-	var tx *sql.Tx
-	tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
+	var tx pgx.Tx
+	tx, err = w.database.ReadPool.BeginTx(ctx, w.txOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
-	transaction := w.database.Builder.Insert("transactions").
-		Columns("tenant_id").
-		Values(tenantID).
-		Suffix("RETURNING id").RunWith(tx)
-	if err != nil {
-		return nil, err
-	}
-
 	var xid types.XID8
-	err = transaction.QueryRowContext(ctx).Scan(&xid)
+	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
+		fmt.Println("Transactions Insert =-=-=-=-=")
 		return nil, err
 	}
 
-	slog.Debug("retrieved transaction", slog.Any("transaction", transaction), "for tenant", slog.Any("tenant_id", tenantID))
+	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
 
 	slog.Debug("processing tuples and executing insert query")
 
@@ -237,11 +232,13 @@ func (w *DataWriter) write(
 
 		tdquery, tdargs, err = tDeleteBuilder.ToSql()
 		if err != nil {
+			fmt.Println("tDeleteBuilder ToSql =-=-=-=-=")
 			return nil, err
 		}
 
-		_, err = tx.ExecContext(ctx, tdquery, tdargs...)
+		_, err = tx.Exec(ctx, tdquery, tdargs...)
 		if err != nil {
+			fmt.Println("tDeleteBuilder ExecContext =-=-=-=-=")
 			return nil, err
 		}
 
@@ -250,11 +247,13 @@ func (w *DataWriter) write(
 
 		tiquery, tiargs, err = tuplesInsertBuilder.ToSql()
 		if err != nil {
+			fmt.Println("tuplesInsertBuilder ToSql =-=-=-=-=")
 			return nil, err
 		}
 
-		_, err = tx.ExecContext(ctx, tiquery, tiargs...)
+		_, err = tx.Exec(ctx, tiquery, tiargs...)
 		if err != nil {
+			fmt.Println("tuplesInsertBuilder ExecContext =-=-=-=-=")
 			return nil, err
 		}
 	}
@@ -301,7 +300,7 @@ func (w *DataWriter) write(
 			return nil, err
 		}
 
-		_, err = tx.ExecContext(ctx, adquery, adargs...)
+		_, err = tx.Exec(ctx, adquery, adargs...)
 		if err != nil {
 			return nil, err
 		}
@@ -314,13 +313,14 @@ func (w *DataWriter) write(
 			return nil, err
 		}
 
-		_, err = tx.ExecContext(ctx, aquery, aargs...)
+		_, err = tx.Exec(ctx, aquery, aargs...)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if err = tx.Commit(); err != nil {
+	if err = tx.Commit(ctx); err != nil {
+		fmt.Println("Commit =-=-=-=-=")
 		return nil, err
 	}
 
@@ -337,31 +337,24 @@ func (w *DataWriter) delete(
 	tupleFilter *base.TupleFilter,
 	attributeFilter *base.AttributeFilter,
 ) (token token.EncodedSnapToken, err error) {
-	var tx *sql.Tx
-	tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
+	var tx pgx.Tx
+	tx, err = w.database.WritePool.BeginTx(ctx, w.txOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
-	transaction := w.database.Builder.Insert("transactions").
-		Columns("tenant_id").
-		Values(tenantID).
-		Suffix("RETURNING id").RunWith(tx)
-	if err != nil {
-		return nil, err
-	}
-
 	var xid types.XID8
-	err = transaction.QueryRowContext(ctx).Scan(&xid)
+	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
+		fmt.Println("Transactions Insert =-=-=-=-=")
 		return nil, err
 	}
 
-	slog.Debug("retrieved transaction", slog.Any("transaction", transaction), "for tenant", slog.Any("tenant_id", tenantID))
+	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
 
 	slog.Debug("processing tuple and executing update query")
 
@@ -377,7 +370,7 @@ func (w *DataWriter) delete(
 			return nil, err
 		}
 
-		_, err = tx.ExecContext(ctx, tquery, targs...)
+		_, err = tx.Exec(ctx, tquery, targs...)
 		if err != nil {
 			return nil, err
 		}
@@ -397,13 +390,13 @@ func (w *DataWriter) delete(
 			return nil, err
 		}
 
-		_, err = tx.ExecContext(ctx, aquery, aargs...)
+		_, err = tx.Exec(ctx, aquery, aargs...)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if err = tx.Commit(); err != nil {
+	if err = tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -420,31 +413,23 @@ func (w *DataWriter) runBundle(
 	arguments map[string]string,
 	b *base.DataBundle,
 ) (token token.EncodedSnapToken, err error) {
-	var tx *sql.Tx
-	tx, err = w.database.DB.BeginTx(ctx, &w.txOptions)
+	var tx pgx.Tx
+	tx, err = w.database.WritePool.BeginTx(ctx, w.txOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
-	transaction := w.database.Builder.Insert("transactions").
-		Columns("tenant_id").
-		Values(tenantID).
-		Suffix("RETURNING id").RunWith(tx)
-	if err != nil {
-		return nil, err
-	}
-
 	var xid types.XID8
-	err = transaction.QueryRowContext(ctx).Scan(&xid)
+	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
 		return nil, err
 	}
 
-	slog.Debug("retrieved transaction", slog.Any("transaction", transaction), "for tenant", slog.Any("tenant_id", tenantID))
+	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
 
 	for _, op := range b.GetOperations() {
 		tb, ab, err := bundle.Operation(arguments, op)
@@ -458,7 +443,7 @@ func (w *DataWriter) runBundle(
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -468,7 +453,7 @@ func (w *DataWriter) runBundle(
 // runOperation processes and executes database operations defined in TupleBundle and AttributeBundle within a given transaction.
 func (w *DataWriter) runOperation(
 	ctx context.Context,
-	tx *sql.Tx,
+	tx pgx.Tx,
 	xid types.XID8,
 	tenantID string,
 	tb database.TupleBundle,
@@ -519,7 +504,7 @@ func (w *DataWriter) runOperation(
 			return err
 		}
 
-		_, err = tx.ExecContext(ctx, tdquery, tdargs...)
+		_, err = tx.Exec(ctx, tdquery, tdargs...)
 		if err != nil {
 			return err
 		}
@@ -532,7 +517,7 @@ func (w *DataWriter) runOperation(
 			return err
 		}
 
-		_, err = tx.ExecContext(ctx, tiquery, tiargs...)
+		_, err = tx.Exec(ctx, tiquery, tiargs...)
 		if err != nil {
 			return err
 		}
@@ -580,7 +565,7 @@ func (w *DataWriter) runOperation(
 			return err
 		}
 
-		_, err = tx.ExecContext(ctx, adquery, adargs...)
+		_, err = tx.Exec(ctx, adquery, adargs...)
 		if err != nil {
 			return err
 		}
@@ -593,7 +578,7 @@ func (w *DataWriter) runOperation(
 			return err
 		}
 
-		_, err = tx.ExecContext(ctx, aquery, aargs...)
+		_, err = tx.Exec(ctx, aquery, aargs...)
 		if err != nil {
 			return err
 		}
@@ -638,7 +623,7 @@ func (w *DataWriter) runOperation(
 			return err
 		}
 
-		_, err = tx.ExecContext(ctx, tquery, targs...)
+		_, err = tx.Exec(ctx, tquery, targs...)
 		if err != nil {
 			return err
 		}
@@ -677,7 +662,7 @@ func (w *DataWriter) runOperation(
 			return err
 		}
 
-		_, err = tx.ExecContext(ctx, tquery, targs...)
+		_, err = tx.Exec(ctx, tquery, targs...)
 		if err != nil {
 			return err
 		}

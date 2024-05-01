@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"log/slog"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
@@ -15,14 +16,14 @@ import (
 type SchemaWriter struct {
 	database *db.Postgres
 	// options
-	txOptions sql.TxOptions
+	txOptions pgx.TxOptions
 }
 
 // NewSchemaWriter creates a new SchemaWriter
 func NewSchemaWriter(database *db.Postgres) *SchemaWriter {
 	return &SchemaWriter{
 		database:  database,
-		txOptions: sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: false},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadWrite},
 	}
 }
 
@@ -49,7 +50,7 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.Schema
 
 	slog.Debug("executing sql insert query", slog.Any("query", query), slog.Any("arguments", args))
 
-	_, err = w.database.DB.ExecContext(ctx, query, args...)
+	_, err = w.database.WritePool.Exec(ctx, query, args...)
 	if err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}

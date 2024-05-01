@@ -2,12 +2,13 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
 	"strings"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/jsonpb"
@@ -27,15 +28,15 @@ import (
 // It is responsible for reading data from the database.
 type DataReader struct {
 	database  *db.Postgres  // database is an instance of the PostgreSQL database
-	txOptions sql.TxOptions // txOptions specifies the isolation level for database transaction and sets it as read only
+	txOptions pgx.TxOptions // txOptions specifies the isolation level for database transaction and sets it as read only
 }
 
 // NewDataReader is a constructor function for DataReader.
 // It initializes a new DataReader with a given database, a logger, and sets transaction options to be read-only with Repeatable Read isolation level.
 func NewDataReader(database *db.Postgres) *DataReader {
 	return &DataReader{
-		database:  database,                                                          // Set the database to the passed in PostgreSQL instance
-		txOptions: sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true}, // Set the transaction options
+		database:  database,                                                              // Set the database to the passed in PostgreSQL instance
+		txOptions: pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly}, // Set the transaction options
 	}
 }
 
@@ -55,14 +56,14 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
-	var tx *sql.Tx
-	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
+	var tx pgx.Tx
+	tx, err = r.database.ReadPool.BeginTx(ctx, r.txOptions)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
 	// Build the relationships query based on the provided filter and snapshot value.
@@ -81,8 +82,8 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the SQL query and retrieve the result rows.
-	var rows *sql.Rows
-	rows, err = tx.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = tx.Query(ctx, query, args...)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -103,7 +104,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	}
 
 	// Commit the transaction.
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -130,14 +131,14 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
-	var tx *sql.Tx
-	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
+	var tx pgx.Tx
+	tx, err = r.database.ReadPool.BeginTx(ctx, r.txOptions)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
@@ -173,8 +174,8 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the query and retrieve the rows.
-	var rows *sql.Rows
-	rows, err = tx.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = tx.Query(ctx, query, args...)
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -199,7 +200,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	}
 
 	// Commit the transaction.
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -230,14 +231,14 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
-	var tx *sql.Tx
-	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
+	var tx pgx.Tx
+	tx, err = r.database.ReadPool.BeginTx(ctx, r.txOptions)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
 	// Build the relationships query based on the provided filter and snapshot value.
@@ -255,7 +256,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
-	row := tx.QueryRowContext(ctx, query, args...)
+	row := tx.QueryRow(ctx, query, args...)
 
 	rt := storage.Attribute{}
 
@@ -265,7 +266,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	// Scan the row from the database into the fields of `rt` and `valueStr`.
 	err = row.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		} else {
 			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
@@ -281,7 +282,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	}
 
 	// Commit the transaction.
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -307,14 +308,14 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
-	var tx *sql.Tx
-	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
+	var tx pgx.Tx
+	tx, err = r.database.ReadPool.BeginTx(ctx, r.txOptions)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
 	// Build the relationships query based on the provided filter and snapshot value.
@@ -333,8 +334,8 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the SQL query and retrieve the result rows.
-	var rows *sql.Rows
-	rows, err = tx.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = tx.Query(ctx, query, args...)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -369,7 +370,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	}
 
 	// Commit the transaction.
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -396,14 +397,14 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
-	var tx *sql.Tx
-	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
+	var tx pgx.Tx
+	tx, err = r.database.ReadPool.BeginTx(ctx, r.txOptions)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
@@ -439,8 +440,8 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the query and retrieve the rows.
-	var rows *sql.Rows
-	rows, err = tx.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = tx.Query(ctx, query, args...)
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -479,7 +480,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	}
 
 	// Commit the transaction.
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -510,14 +511,14 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
-	var tx *sql.Tx
-	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
+	var tx pgx.Tx
+	tx, err = r.database.ReadPool.BeginTx(ctx, r.txOptions)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
 	query := utils.BulkEntityFilterQuery(tenantID, name, st.(snapshot.Token).Value.Uint)
@@ -544,8 +545,8 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	slog.Debug("generated sql query", slog.String("query", query))
 
 	// Execute the query and retrieve the rows.
-	var rows *sql.Rows
-	rows, err = tx.QueryContext(ctx, query)
+	var rows pgx.Rows
+	rows, err = tx.Query(ctx, query)
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -571,7 +572,7 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	}
 
 	// Commit the transaction.
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -602,14 +603,14 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	}
 
 	// Begin a new read-only transaction with the specified isolation level.
-	var tx *sql.Tx
-	tx, err = r.database.DB.BeginTx(ctx, &r.txOptions)
+	var tx pgx.Tx
+	tx, err = r.database.ReadPool.BeginTx(ctx, r.txOptions)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	}()
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
@@ -649,8 +650,8 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the query and retrieve the rows.
-	var rows *sql.Rows
-	rows, err = tx.QueryContext(ctx, query, args...)
+	var rows pgx.Rows
+	rows, err = tx.Query(ctx, query, args...)
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -674,7 +675,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	}
 
 	// Commit the transaction.
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -707,10 +708,10 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	}
 
 	// Execute the query and retrieve the highest transaction ID.
-	err = r.database.DB.QueryRowContext(ctx, query, args...).Scan(&xid)
+	err = r.database.ReadPool.QueryRow(ctx, query, args...).Scan(&xid)
 	if err != nil {
 		// If no rows are found, return a snapshot token with a value of 0.
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return snapshot.Token{Value: types.XID8{Uint: 0}}, nil
 		}
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
