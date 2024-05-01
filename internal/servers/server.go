@@ -158,6 +158,7 @@ func (s *Container) Run(
 	opts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamingInterceptors...),
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	}
 
 	if srv.GRPC.TLSConfig.Enabled {
