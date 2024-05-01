@@ -10,20 +10,21 @@ import (
 )
 
 // NewSigNoz = Creates new sigNoz tracer
-func NewSigNoz(url string, insecure bool) (trace.SpanExporter, error) {
-	secureOption := otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
-	if !insecure {
-		secureOption = otlptracegrpc.WithInsecure()
+func NewSigNoz(url string, insecure bool, headers map[string]string) (trace.SpanExporter, error) {
+	var opts []otlptracegrpc.Option
+	if insecure {
+		opts = append(opts, otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")))
+	} else {
+		opts = append(opts, otlptracegrpc.WithInsecure())
 	}
-	exporter, err := otlptrace.New(
+	if len(headers) > 0 {
+		opts = append(opts, otlptracegrpc.WithHeaders(headers))
+	}
+	opts = append(opts, otlptracegrpc.WithEndpoint(url))
+	return otlptrace.New(
 		context.Background(),
 		otlptracegrpc.NewClient(
-			secureOption,
-			otlptracegrpc.WithEndpoint(url),
+			opts...,
 		),
 	)
-	if err != nil {
-		return nil, err
-	}
-	return exporter, nil
 }
