@@ -39,7 +39,7 @@ type Watch struct {
 func NewWatcher(database *db.Postgres) *Watch {
 	return &Watch{
 		database:  database,
-		txOptions: pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadOnly},
 	}
 }
 

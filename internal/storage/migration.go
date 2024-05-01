@@ -16,10 +16,9 @@ import (
 )
 
 const (
-	postgresMigrationDir    = "postgres/migrations"
-	postgresDialect         = "postgres"
-	migrationsTable         = "migrations"
-	earliestPostgresVersion = 130008
+	postgresMigrationDir = "postgres/migrations"
+	postgresDialect      = "postgres"
+	migrationsTable      = "migrations"
 )
 
 //go:embed postgres/migrations/*.sql

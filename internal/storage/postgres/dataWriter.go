@@ -172,7 +172,7 @@ func (w *DataWriter) write(
 	attributeCollection *database.AttributeCollection,
 ) (token token.EncodedSnapToken, err error) {
 	var tx pgx.Tx
-	tx, err = w.database.ReadPool.BeginTx(ctx, w.txOptions)
+	tx, err = w.database.WritePool.BeginTx(ctx, w.txOptions)
 	if err != nil {
 		return nil, err
 	}
