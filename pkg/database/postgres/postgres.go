@@ -72,14 +72,17 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 	writeConfig.MaxConnLifetime = pg.maxConnectionLifeTime
 	readConfig.MaxConnLifetime = pg.maxConnectionLifeTime
 
-	initContext, cancelInit := context.WithTimeout(context.Background(), 5*time.Second)
+	writeConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
+	readConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
+
+	initialContext, cancelInit := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelInit()
 
-	pg.WritePool, err = pgxpool.NewWithConfig(initContext, writeConfig)
+	pg.WritePool, err = pgxpool.NewWithConfig(initialContext, writeConfig)
 	if err != nil {
 		return nil, err
 	}
-	pg.ReadPool, err = pgxpool.NewWithConfig(initContext, readConfig)
+	pg.ReadPool, err = pgxpool.NewWithConfig(initialContext, readConfig)
 	if err != nil {
 		return nil, err
 	}
