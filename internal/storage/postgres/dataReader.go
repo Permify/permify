@@ -84,14 +84,11 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		rt := storage.RelationTuple{}
 		err = rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation)
 		if err != nil {
-			fmt.Println("=-=-=-=-=-=-= QueryRelationships SCAN 1 =-=-=-=-=-=-=")
 			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
 		collection.Add(rt.ToTuple())
 	}
 	if err = rows.Err(); err != nil {
-		fmt.Println("=-=-=-=-=-=-= QueryRelationships SCAN 2 =-=-=-=-=-=-=")
-		fmt.Println(err)
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
@@ -598,7 +595,6 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 		if errors.Is(err, pgx.ErrNoRows) {
 			return snapshot.Token{Value: types.XID8{Uint: 0}}, nil
 		}
-		fmt.Println("=-=-=-=-=-=-= HeadSnapshot SCAN 1 =-=-=-=-=-=-=")
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
