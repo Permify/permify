@@ -2,9 +2,11 @@ package postgres
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/Masterminds/squirrel"
@@ -24,7 +26,6 @@ type Postgres struct {
 	maxConnectionIdleTime time.Duration
 	maxOpenConnections    int
 	maxIdleConnections    int
-	simpleMode            bool
 }
 
 // New - Creates new postgresql db instance
@@ -35,7 +36,6 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 		maxDataPerWrite:    _defaultMaxDataPerWrite,
 		maxRetries:         _defaultMaxRetries,
 		watchBufferSize:    _defaultWatchBufferSize,
-		simpleMode:         _defaultSimpleMode,
 	}
 
 	// Custom options
@@ -55,10 +55,8 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 		return nil, err
 	}
 
-	if pg.simpleMode {
-		writeConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
-		readConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
-	}
+	setDefaultQueryExecMode(writeConfig.ConnConfig)
+	setDefaultQueryExecMode(readConfig.ConnConfig)
 
 	writeConfig.MinConns = int32(pg.maxIdleConnections)
 	readConfig.MinConns = int32(pg.maxIdleConnections)
@@ -74,14 +72,6 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 
 	writeConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
 	readConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
-
-	if _, ok := readConfig.ConnConfig.Config.RuntimeParams["plan_cache_mode"]; !ok {
-		readConfig.ConnConfig.Config.RuntimeParams["plan_cache_mode"] = "force_custom_plan"
-	}
-
-	if _, ok := writeConfig.ConnConfig.Config.RuntimeParams["plan_cache_mode"]; !ok {
-		writeConfig.ConnConfig.Config.RuntimeParams["plan_cache_mode"] = "force_custom_plan"
-	}
 
 	initialContext, cancelInit := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelInit()
@@ -130,4 +120,28 @@ func (p *Postgres) IsReady(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+var queryExecModes = map[string]pgx.QueryExecMode{
+	"cache_statement": pgx.QueryExecModeCacheStatement,
+	"cache_describe":  pgx.QueryExecModeCacheDescribe,
+	"describe_exec":   pgx.QueryExecModeDescribeExec,
+	"mode_exec":       pgx.QueryExecModeExec,
+	"simple_protocol": pgx.QueryExecModeSimpleProtocol,
+}
+
+func setDefaultQueryExecMode(config *pgx.ConnConfig) {
+	// Default mode if no specific mode is found in the connection string
+	defaultMode := "cache_statement"
+
+	// Iterate through the map keys to check if any are mentioned in the connection string
+	for key := range queryExecModes {
+		if strings.Contains(config.ConnString(), "default_query_exec_mode="+key) {
+			config.DefaultQueryExecMode = queryExecModes[key]
+			return
+		}
+	}
+
+	// Set to default mode if no matching mode is found
+	config.DefaultQueryExecMode = queryExecModes[defaultMode]
 }

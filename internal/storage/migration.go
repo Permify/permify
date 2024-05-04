@@ -30,7 +30,7 @@ func Migrate(conf config.Database) (err error) {
 	case database.POSTGRES.String():
 		// Create a new Postgres database connection
 		var db *PQDatabase.Postgres
-		db, err = PQDatabase.New(conf.URI, PQDatabase.SimpleMode(conf.SimpleMode))
+		db, err = PQDatabase.New(conf.URI)
 		if err != nil {
 			return err
 		}

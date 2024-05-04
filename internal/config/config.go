@@ -144,10 +144,9 @@ type (
 
 	// Database contains configuration for the database.
 	Database struct {
-		Engine                string            `mapstructure:"engine"`       // Database engine type (e.g., "postgres" or "memory")
-		URI                   string            `mapstructure:"uri"`          // Database connection URI
-		AutoMigrate           bool              `mapstructure:"auto_migrate"` // Whether to enable automatic migration
-		SimpleMode            bool              `mapstructure:"simple_mode"`
+		Engine                string            `mapstructure:"engine"`                  // Database engine type (e.g., "postgres" or "memory")
+		URI                   string            `mapstructure:"uri"`                     // Database connection URI
+		AutoMigrate           bool              `mapstructure:"auto_migrate"`            // Whether to enable automatic migration
 		MaxOpenConnections    int               `mapstructure:"max_open_connections"`    // Maximum number of open connections to the database
 		MaxIdleConnections    int               `mapstructure:"max_idle_connections"`    // Maximum number of idle connections to the database
 		MaxConnectionLifetime time.Duration     `mapstructure:"max_connection_lifetime"` // Maximum duration a connection can be reused
@@ -318,7 +317,6 @@ func DefaultConfig() *Config {
 		Database: Database{
 			Engine:          "memory",
 			AutoMigrate:     true,
-			SimpleMode:      false,
 			MaxDataPerWrite: 1000,
 			MaxRetries:      10,
 			WatchBufferSize: 100,

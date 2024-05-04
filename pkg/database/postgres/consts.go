@@ -6,5 +6,4 @@ const (
 	_defaultMaxDataPerWrite    = 1000
 	_defaultMaxRetries         = 10
 	_defaultWatchBufferSize    = 100
-	_defaultSimpleMode         = false
 )

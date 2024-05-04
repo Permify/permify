@@ -353,13 +353,6 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
-	if err = viper.BindPFlag("database.simple_mode", flags.Lookup("database-simple-mode")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("database.simple_mode", "PERMIFY_DATABASE_SIMPLE_MODE"); err != nil {
-		panic(err)
-	}
-
 	if err = viper.BindPFlag("database.max_open_connections", flags.Lookup("database-max-open-connections")); err != nil {
 		panic(err)
 	}

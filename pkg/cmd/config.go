@@ -72,7 +72,6 @@ func NewConfigCommand() *cobra.Command {
 	f.String("database-engine", conf.Database.Engine, "data source. e.g. postgres, memory")
 	f.String("database-uri", conf.Database.URI, "uri of your data source to store relation tuples and schema")
 	f.Bool("database-auto-migrate", conf.Database.AutoMigrate, "auto migrate database tables")
-	f.Bool("database-simple-mode", conf.Database.SimpleMode, "database connection to operate using pgx.QueryExecModeSimpleProtocol")
 	f.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
 	f.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "maximum number of idle connections that can be made to the database at any time")
 	f.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
