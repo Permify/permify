@@ -52,9 +52,3 @@ func MaxRetries(v int) Option {
 		c.maxRetries = v
 	}
 }
-
-func SimpleMode(v bool) Option {
-	return func(c *Postgres) {
-		c.simpleMode = v
-	}
-}

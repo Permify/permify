@@ -40,7 +40,6 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 			PQDatabase.WatchBufferSize(conf.WatchBufferSize),
 			PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
 			PQDatabase.MaxRetries(conf.MaxRetries),
-			PQDatabase.SimpleMode(conf.SimpleMode),
 		)
 		if err != nil {
 			return nil, err
