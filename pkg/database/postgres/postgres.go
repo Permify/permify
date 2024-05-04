@@ -75,6 +75,14 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 	writeConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
 	readConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
 
+	if _, ok := readConfig.ConnConfig.Config.RuntimeParams["plan_cache_mode"]; !ok {
+		readConfig.ConnConfig.Config.RuntimeParams["plan_cache_mode"] = "force_custom_plan"
+	}
+
+	if _, ok := writeConfig.ConnConfig.Config.RuntimeParams["plan_cache_mode"]; !ok {
+		writeConfig.ConnConfig.Config.RuntimeParams["plan_cache_mode"] = "force_custom_plan"
+	}
+
 	initialContext, cancelInit := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelInit()
 
