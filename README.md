@@ -16,10 +16,6 @@
     <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>
 </p>
 
-<p align="center">
-    <a href="https://app.fossa.com/projects/git%2Bgithub.com%2FPermify%2Fpermify?ref=badge_large&issueType=license" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FPermify%2Fpermify.svg?type=large&issueType=license"/></a>
-</p>
-
 ![Permify - Open source authorization as a service](https://github.com/Permify/permify/assets/39353278/06262e07-84ba-4a1c-b859-870344396600)
 
 ## Join Our Team
