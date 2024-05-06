@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/exp/slog"
+
 	"github.com/jackc/pgx/v5"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -57,6 +59,8 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 
 	setDefaultQueryExecMode(writeConfig.ConnConfig)
 	setDefaultQueryExecMode(readConfig.ConnConfig)
+	setPlanCacheMode(writeConfig.ConnConfig)
+	setPlanCacheMode(readConfig.ConnConfig)
 
 	writeConfig.MinConns = int32(pg.maxIdleConnections)
 	readConfig.MinConns = int32(pg.maxIdleConnections)
@@ -138,10 +142,35 @@ func setDefaultQueryExecMode(config *pgx.ConnConfig) {
 	for key := range queryExecModes {
 		if strings.Contains(config.ConnString(), "default_query_exec_mode="+key) {
 			config.DefaultQueryExecMode = queryExecModes[key]
+			slog.Info("setDefaultQueryExecMode", slog.String("mode", key))
 			return
 		}
 	}
 
 	// Set to default mode if no matching mode is found
 	config.DefaultQueryExecMode = queryExecModes[defaultMode]
+	slog.Warn("setDefaultQueryExecMode", slog.String("mode", defaultMode))
+}
+
+var planCacheModes = map[string]string{
+	"auto":              "auto",
+	"force_custom_plan": "force_custom_plan",
+}
+
+func setPlanCacheMode(config *pgx.ConnConfig) {
+	// Default mode if no specific mode is found in the connection string
+	defaultMode := "auto"
+
+	// Check if a plan cache mode is mentioned in the connection string and set it
+	for key := range planCacheModes {
+		if strings.Contains(config.ConnString(), "plan_cache_mode="+key) {
+			config.Config.RuntimeParams["plan_cache_mode"] = planCacheModes[key]
+			slog.Info("setPlanCacheMode", slog.String("mode", key))
+			return
+		}
+	}
+
+	// Set to default mode if no matching mode is found
+	config.Config.RuntimeParams["plan_cache_mode"] = planCacheModes[defaultMode]
+	slog.Warn("setPlanCacheMode", slog.String("mode", defaultMode))
 }
