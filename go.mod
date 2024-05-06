@@ -34,7 +34,7 @@ require (
 	github.com/rs/xid v1.5.0
 	github.com/sercand/kuberesolver/v5 v5.1.1
 	github.com/serialx/hashring v0.0.0-20200727003509-22c0c7ab6b1b
-	github.com/sony/gobreaker v0.5.0
+	github.com/sony/gobreaker v1.0.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
