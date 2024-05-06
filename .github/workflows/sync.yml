@@ -16,6 +16,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # master
       - name: Run GitHub File Sync
-        uses: BetaHuhn/repo-file-sync-action@3023dac7ce66c18b119e2012348437eadeaea116 # v1.21.0
+        uses: BetaHuhn/repo-file-sync-action@8b92be3375cf1d1b0cd579af488a9255572e4619 # v1.21.1
         with:
           GH_PAT: ${{ secrets.GH_TOKEN }}
