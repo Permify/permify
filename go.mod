@@ -30,7 +30,7 @@ require (
 	github.com/onsi/gomega v1.33.1
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.20.0
-	github.com/rs/cors v1.10.1
+	github.com/rs/cors v1.11.0
 	github.com/rs/xid v1.5.0
 	github.com/sercand/kuberesolver/v5 v5.1.1
 	github.com/serialx/hashring v0.0.0-20200727003509-22c0c7ab6b1b
