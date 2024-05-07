@@ -2,8 +2,11 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
+
+	"github.com/cenkalti/backoff/v4"
 
 	"golang.org/x/exp/slog"
 
@@ -57,34 +60,41 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 		return nil, err
 	}
 
+	// Set the default execution mode for queries using the write and read configurations.
 	setDefaultQueryExecMode(writeConfig.ConnConfig)
 	setDefaultQueryExecMode(readConfig.ConnConfig)
+
+	// Set the plan cache mode for both write and read configurations to optimize query planning.
 	setPlanCacheMode(writeConfig.ConnConfig)
 	setPlanCacheMode(readConfig.ConnConfig)
 
+	// Set the minimum number of idle connections in the pool for both write and read configurations.
 	writeConfig.MinConns = int32(pg.maxIdleConnections)
 	readConfig.MinConns = int32(pg.maxIdleConnections)
 
+	// Set the maximum number of active connections in the pool for both write and read configurations.
 	writeConfig.MaxConns = int32(pg.maxOpenConnections)
 	readConfig.MaxConns = int32(pg.maxOpenConnections)
 
+	// Set the maximum amount of time a connection may be idle before being closed for both configurations.
 	writeConfig.MaxConnIdleTime = pg.maxConnectionIdleTime
 	readConfig.MaxConnIdleTime = pg.maxConnectionIdleTime
 
+	// Set the maximum lifetime of a connection in the pool for both configurations.
 	writeConfig.MaxConnLifetime = pg.maxConnectionLifeTime
 	readConfig.MaxConnLifetime = pg.maxConnectionLifeTime
 
+	// Set a jitter to the maximum connection lifetime to prevent all connections from expiring at the same time.
 	writeConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
 	readConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
 
-	initialContext, cancelInit := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelInit()
-
-	pg.WritePool, err = pgxpool.NewWithConfig(initialContext, writeConfig)
-	if err != nil {
-		return nil, err
-	}
-	pg.ReadPool, err = pgxpool.NewWithConfig(initialContext, readConfig)
+	// Create connection pools for both writing and reading operations using the configured settings.
+	pg.WritePool, pg.ReadPool, err = createPools(
+		context.Background(), // Context used to control the lifecycle of the pools.
+		writeConfig,          // Configuration settings for the write pool.
+		readConfig,           // Configuration settings for the read pool.
+	)
+	// Handle errors during the creation of the connection pools.
 	if err != nil {
 		return nil, err
 	}
@@ -173,4 +183,51 @@ func setPlanCacheMode(config *pgx.ConnConfig) {
 	// Set to default mode if no matching mode is found
 	config.Config.RuntimeParams["plan_cache_mode"] = planCacheModes[defaultMode]
 	slog.Warn("setPlanCacheMode", slog.String("mode", defaultMode))
+}
+
+// createPools initializes read and write connection pools with appropriate configurations and error handling.
+func createPools(ctx context.Context, wConfig, rConfig *pgxpool.Config) (*pgxpool.Pool, *pgxpool.Pool, error) {
+	// Context with timeout for creating the pools
+	initCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	// Create write pool
+	writePool, err := pgxpool.NewWithConfig(initCtx, wConfig)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create write pool: %w", err)
+	}
+
+	// Create read pool using the same configuration
+	readPool, err := pgxpool.NewWithConfig(initCtx, rConfig)
+	if err != nil {
+		writePool.Close() // Ensure write pool is closed on failure
+		return nil, nil, fmt.Errorf("failed to create read pool: %w", err)
+	}
+
+	// Set up retry policy for pinging pools
+	retryPolicy := backoff.NewExponentialBackOff()
+	retryPolicy.MaxElapsedTime = 1 * time.Minute
+
+	// Attempt to ping both pools to confirm connectivity
+	err = backoff.Retry(func() error {
+		pingCtx, pingCancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer pingCancel()
+
+		if err := writePool.Ping(pingCtx); err != nil {
+			return fmt.Errorf("write pool ping failed: %w", err)
+		}
+		if err := readPool.Ping(pingCtx); err != nil {
+			return fmt.Errorf("read pool ping failed: %w", err)
+		}
+		return nil
+	}, retryPolicy)
+
+	// Handle errors from pinging
+	if err != nil {
+		writePool.Close()
+		readPool.Close()
+		return nil, nil, fmt.Errorf("pinging pools failed: %w", err)
+	}
+
+	return writePool, readPool, nil
 }
