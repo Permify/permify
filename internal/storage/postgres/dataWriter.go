@@ -350,7 +350,6 @@ func (w *DataWriter) delete(
 	var xid types.XID8
 	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
-		fmt.Println("Transactions Insert =-=-=-=-=")
 		return nil, err
 	}
 
