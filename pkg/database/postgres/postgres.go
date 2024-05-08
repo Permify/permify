@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/exaring/otelpgx"
+
 	"github.com/cenkalti/backoff/v4"
 
 	"golang.org/x/exp/slog"
@@ -87,6 +89,9 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 	// Set a jitter to the maximum connection lifetime to prevent all connections from expiring at the same time.
 	writeConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
 	readConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))
+
+	writeConfig.ConnConfig.Tracer = otelpgx.NewTracer()
+	readConfig.ConnConfig.Tracer = otelpgx.NewTracer()
 
 	// Create connection pools for both writing and reading operations using the configured settings.
 	pg.WritePool, pg.ReadPool, err = createPools(

@@ -128,17 +128,26 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 // This function is used for consistent error handling across different parts of the application.
 func HandleError(ctx context.Context, span trace.Span, err error, errorCode base.ErrorCode) error {
 	// Check if the error is context-related
-	if IsContextRelatedError(ctx, err) || IsSerializationRelatedError(err) {
-		// Use debug level logging for context or serialization-related errors
-		slog.Debug("an error related to context or serialization was encountered during the operation", slog.String("error", err.Error()))
-	} else {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		// Use error level logging for all other errors
-		slog.Error("error encountered", slog.Any("error", err))
+	if IsContextRelatedError(ctx, err) {
+		slog.Debug("A context-related error occurred",
+			slog.String("error", err.Error()))
+		return errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 	}
 
-	// Return a new standardized error with the provided error code
+	// Check if the error is serialization-related
+	if IsSerializationRelatedError(err) {
+		slog.Debug("A serialization-related error occurred",
+			slog.String("error", err.Error()))
+		return errors.New(base.ErrorCode_ERROR_CODE_SERIALIZATION.String())
+	}
+
+	// For all other types of errors, log them at the error level and record them in the span
+	slog.Error("An operational error occurred",
+		slog.Any("error", err))
+	span.RecordError(err)
+	span.SetStatus(codes.Error, err.Error())
+
+	// Return a new error with the standard error code provided
 	return errors.New(errorCode.String())
 }
 
