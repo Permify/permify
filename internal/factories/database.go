@@ -32,17 +32,33 @@ import (
 func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 	switch conf.Engine {
 	case database.POSTGRES.String():
-		db, err = PQDatabase.New(conf.URI,
-			PQDatabase.MaxOpenConnections(conf.MaxOpenConnections),
-			PQDatabase.MaxIdleConnections(conf.MaxIdleConnections),
-			PQDatabase.MaxConnectionIdleTime(conf.MaxConnectionIdleTime),
-			PQDatabase.MaxConnectionLifeTime(conf.MaxConnectionLifetime),
-			PQDatabase.WatchBufferSize(conf.WatchBufferSize),
-			PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
-			PQDatabase.MaxRetries(conf.MaxRetries),
-		)
-		if err != nil {
-			return nil, err
+
+		if conf.URI == "" {
+			db, err = PQDatabase.NewWithSeparateURIs(conf.Writer.URI, conf.Reader.URI,
+				PQDatabase.MaxOpenConnections(conf.MaxOpenConnections),
+				PQDatabase.MaxIdleConnections(conf.MaxIdleConnections),
+				PQDatabase.MaxConnectionIdleTime(conf.MaxConnectionIdleTime),
+				PQDatabase.MaxConnectionLifeTime(conf.MaxConnectionLifetime),
+				PQDatabase.WatchBufferSize(conf.WatchBufferSize),
+				PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
+				PQDatabase.MaxRetries(conf.MaxRetries),
+			)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			db, err = PQDatabase.New(conf.URI,
+				PQDatabase.MaxOpenConnections(conf.MaxOpenConnections),
+				PQDatabase.MaxIdleConnections(conf.MaxIdleConnections),
+				PQDatabase.MaxConnectionIdleTime(conf.MaxConnectionIdleTime),
+				PQDatabase.MaxConnectionLifeTime(conf.MaxConnectionLifetime),
+				PQDatabase.WatchBufferSize(conf.WatchBufferSize),
+				PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
+				PQDatabase.MaxRetries(conf.MaxRetries),
+			)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		// check postgres version

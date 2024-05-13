@@ -144,8 +144,14 @@ type (
 
 	// Database contains configuration for the database.
 	Database struct {
-		Engine                string            `mapstructure:"engine"`                  // Database engine type (e.g., "postgres" or "memory")
-		URI                   string            `mapstructure:"uri"`                     // Database connection URI
+		Engine string `mapstructure:"engine"` // Database engine type (e.g., "postgres" or "memory")
+		URI    string `mapstructure:"uri"`    // Database connection URI
+		Writer struct {
+			URI string `mapstructure:"uri"`
+		} `mapstructure:"writer"`
+		Reader struct {
+			URI string `mapstructure:"uri"`
+		} `mapstructure:"reader"`
 		AutoMigrate           bool              `mapstructure:"auto_migrate"`            // Whether to enable automatic migration
 		MaxOpenConnections    int               `mapstructure:"max_open_connections"`    // Maximum number of open connections to the database
 		MaxIdleConnections    int               `mapstructure:"max_idle_connections"`    // Maximum number of idle connections to the database

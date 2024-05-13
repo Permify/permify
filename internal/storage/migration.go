@@ -30,10 +30,19 @@ func Migrate(conf config.Database) (err error) {
 	case database.POSTGRES.String():
 		// Create a new Postgres database connection
 		var db *PQDatabase.Postgres
-		db, err = PQDatabase.New(conf.URI)
-		if err != nil {
-			return err
+
+		if conf.URI == "" {
+			db, err = PQDatabase.NewWithSeparateURIs(conf.Writer.URI, conf.Reader.URI)
+			if err != nil {
+				return err
+			}
+		} else {
+			db, err = PQDatabase.New(conf.URI)
+			if err != nil {
+				return err
+			}
 		}
+
 		// Ensure database connection is closed when function returns
 		defer closeDB(db)
 

@@ -48,7 +48,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
 	var row pgx.Row
-	row = b.database.WritePool.QueryRow(ctx, query, args...)
+	row = b.database.ReadPool.QueryRow(ctx, query, args...)
 
 	var jsonData string
 	err = row.Scan(&jsonData)
