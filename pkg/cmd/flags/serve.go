@@ -346,6 +346,20 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("database.writer.uri", flags.Lookup("database-writer-uri")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.writer.uri", "PERMIFY_DATABASE_WRITER_URI"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("database.reader.uri", flags.Lookup("database-reader-uri")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("database.reader.uri", "PERMIFY_DATABASE_READER_URI"); err != nil {
+		panic(err)
+	}
+
 	if err = viper.BindPFlag("database.auto_migrate", flags.Lookup("database-auto-migrate")); err != nil {
 		panic(err)
 	}

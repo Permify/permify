@@ -35,8 +35,18 @@ type Postgres struct {
 	maxIdleConnections    int
 }
 
-// New - Creates new postgresql db instance
+// New -
 func New(uri string, opts ...Option) (*Postgres, error) {
+	return newDB(uri, uri, opts...)
+}
+
+// NewWithSeparateURIs -
+func NewWithSeparateURIs(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
+	return newDB(writerUri, readerUri, opts...)
+}
+
+// new - Creates new postgresql db instance
+func newDB(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
 		maxOpenConnections: _defaultMaxOpenConnections,
 		maxIdleConnections: _defaultMaxIdleConnections,
@@ -52,12 +62,12 @@ func New(uri string, opts ...Option) (*Postgres, error) {
 
 	pg.Builder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
-	writeConfig, err := pgxpool.ParseConfig(uri)
+	writeConfig, err := pgxpool.ParseConfig(writerUri)
 	if err != nil {
 		return nil, err
 	}
 
-	readConfig, err := pgxpool.ParseConfig(uri)
+	readConfig, err := pgxpool.ParseConfig(readerUri)
 	if err != nil {
 		return nil, err
 	}

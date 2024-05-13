@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
@@ -184,7 +183,6 @@ func (w *DataWriter) write(
 	var xid types.XID8
 	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
-		fmt.Println("Transactions Insert =-=-=-=-=")
 		return nil, err
 	}
 
@@ -232,13 +230,11 @@ func (w *DataWriter) write(
 
 		tdquery, tdargs, err = tDeleteBuilder.ToSql()
 		if err != nil {
-			fmt.Println("tDeleteBuilder ToSql =-=-=-=-=")
 			return nil, err
 		}
 
 		_, err = tx.Exec(ctx, tdquery, tdargs...)
 		if err != nil {
-			fmt.Println("tDeleteBuilder ExecContext =-=-=-=-=")
 			return nil, err
 		}
 
@@ -247,13 +243,11 @@ func (w *DataWriter) write(
 
 		tiquery, tiargs, err = tuplesInsertBuilder.ToSql()
 		if err != nil {
-			fmt.Println("tuplesInsertBuilder ToSql =-=-=-=-=")
 			return nil, err
 		}
 
 		_, err = tx.Exec(ctx, tiquery, tiargs...)
 		if err != nil {
-			fmt.Println("tuplesInsertBuilder ExecContext =-=-=-=-=")
 			return nil, err
 		}
 	}
@@ -320,7 +314,6 @@ func (w *DataWriter) write(
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		fmt.Println("Commit =-=-=-=-=")
 		return nil, err
 	}
 

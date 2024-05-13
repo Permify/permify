@@ -71,6 +71,8 @@ func NewConfigCommand() *cobra.Command {
 	f.String("service-permission-cache-max-cost", conf.Service.Permission.Cache.MaxCost, "permission service cache max cost")
 	f.String("database-engine", conf.Database.Engine, "data source. e.g. postgres, memory")
 	f.String("database-uri", conf.Database.URI, "uri of your data source to store relation tuples and schema")
+	f.String("database-writer-uri", conf.Database.Writer.URI, "writer uri of your data source to store relation tuples and schema")
+	f.String("database-reader-uri", conf.Database.Reader.URI, "reader uri of your data source to store relation tuples and schema")
 	f.Bool("database-auto-migrate", conf.Database.AutoMigrate, "auto migrate database tables")
 	f.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "maximum number of parallel connections that can be made to the database at any time")
 	f.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "maximum number of idle connections that can be made to the database at any time")
@@ -174,6 +176,8 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			// DATABASE
 			[]string{"database.engine", cfg.Database.Engine, getKeyOrigin(cmd, "database-engine", "PERMIFY_DATABASE_ENGINE")},
 			[]string{"database.uri", HideSecret(cfg.Database.URI), getKeyOrigin(cmd, "database-uri", "PERMIFY_DATABASE_URI")},
+			[]string{"database.writer.uri", HideSecret(cfg.Database.Writer.URI), getKeyOrigin(cmd, "database-writer-uri", "PERMIFY_DATABASE_WRITER_URI")},
+			[]string{"database.reader.uri", HideSecret(cfg.Database.Reader.URI), getKeyOrigin(cmd, "database-reader-uri", "PERMIFY_DATABASE_READER_URI")},
 			[]string{"database.auto_migrate", fmt.Sprintf("%v", cfg.Database.AutoMigrate), getKeyOrigin(cmd, "database-auto-migrate", "PERMIFY_DATABASE_AUTO_MIGRATE")},
 			[]string{"database.max_open_connections", fmt.Sprintf("%v", cfg.Database.MaxOpenConnections), getKeyOrigin(cmd, "database-max-open-connections", "PERMIFY_DATABASE_MAX_OPEN_CONNECTIONS")},
 			[]string{"database.max_idle_connections", fmt.Sprintf("%v", cfg.Database.MaxIdleConnections), getKeyOrigin(cmd, "database-max-idle-connections", "PERMIFY_DATABASE_MAX_IDLE_CONNECTIONS")},
