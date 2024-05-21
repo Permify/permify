@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/exaring/otelpgx"
-
 	"github.com/cenkalti/backoff/v4"
+
+	"github.com/exaring/otelpgx"
 
 	"golang.org/x/exp/slog"
 
