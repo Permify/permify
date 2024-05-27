@@ -3,603 +3,339 @@ package postgres
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
-	"strconv"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/jsonpb"
-	"google.golang.org/protobuf/types/known/anypb"
+	"github.com/jackc/pgx/v5/pgconn"
 
-	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
 	"github.com/Permify/permify/internal/storage/postgres/types"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
+	"github.com/Permify/permify/internal/validation"
+	"github.com/Permify/permify/pkg/bundle"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
-// DataReader is a struct which holds a reference to the database, transaction options and a logger.
-// It is responsible for reading data from the database.
-type DataReader struct {
-	database  *db.Postgres  // database is an instance of the PostgreSQL database
-	txOptions pgx.TxOptions // txOptions specifies the isolation level for database transaction and sets it as read only
+// DataWriter - Structure for Data Writer
+type DataWriter struct {
+	database *db.Postgres
+	// options
+	txOptions pgx.TxOptions
 }
 
-// NewDataReader is a constructor function for DataReader.
-// It initializes a new DataReader with a given database, a logger, and sets transaction options to be read-only with Repeatable Read isolation level.
-func NewDataReader(database *db.Postgres) *DataReader {
-	return &DataReader{
-		database:  database,                                                             // Set the database to the passed in PostgreSQL instance
-		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadOnly}, // Set the transaction options
+func NewDataWriter(database *db.Postgres) *DataWriter {
+	return &DataWriter{
+		database:  database,
+		txOptions: pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadWrite},
 	}
 }
 
-// QueryRelationships reads relation tuples from the storage based on the given filter.
-func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string) (it *database.TupleIterator, err error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-relationships")
-	defer span.End()
+// Write method writes a collection of tuples and attributes to the database for a specific tenant.
+// It returns an EncodedSnapToken upon successful write or an error if the write fails.
+func (w *DataWriter) Write(
+	ctx context.Context,
+	tenantID string,
+	tupleCollection *database.TupleCollection,
+	attributeCollection *database.AttributeCollection,
+) (token token.EncodedSnapToken, err error) {
+	// Start a new tracing span for this operation.
+	ctx, span := tracer.Start(ctx, "data-writer.write")
+	defer span.End() // Ensure that the span is ended when the function returns.
 
-	slog.Debug("querying relationships for tenant_id", slog.String("tenant_id", tenantID))
+	// Log the start of a data write operation.
+	slog.Debug("writing data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
 
-	// Decode the snapshot value.
-	var st token.SnapToken
-	st, err = snapshot.EncodedToken{Value: snap}.Decode()
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+	// Check if the total number of tuples and attributes exceeds the maximum allowed per write.
+	if len(tupleCollection.GetTuples())+len(attributeCollection.GetAttributes()) > w.database.GetMaxDataPerWrite() {
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_MAX_DATA_PER_WRITE_EXCEEDED.String())
 	}
 
-	// Build the relationships query based on the provided filter and snapshot value.
-	var args []interface{}
-	builder := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
-	builder = utils.TuplesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
-
-	// Generate the SQL query and arguments.
-	var query string
-	query, args, err = builder.ToSql()
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
-	}
-
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
-	// Execute the SQL query and retrieve the result rows.
-	var rows pgx.Rows
-	rows, err = r.database.ReadPool.Query(ctx, query, args...)
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-	defer rows.Close()
-
-	// Process the result rows and store the relationships in a TupleCollection.
-	collection := database.NewTupleCollection()
-	for rows.Next() {
-		rt := storage.RelationTuple{}
-		err = rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation)
+	// Retry loop for handling transient errors like serialization issues.
+	for i := 0; i <= w.database.GetMaxRetries(); i++ {
+		// Attempt to write the data to the database.
+		tkn, err := w.write(ctx, tenantID, tupleCollection, attributeCollection)
 		if err != nil {
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			// Check if the error is due to serialization, and if so, retry.
+			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
+				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+				utils.WaitWithBackoff(ctx, tenantID, i)
+				continue // Retry the operation.
+			}
+			// If the error is not serialization-related, handle it and return.
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
 		}
-		collection.Add(rt.ToTuple())
-	}
-	if err = rows.Err(); err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		// If to write is successful, return the token.
+		return tkn, nil
 	}
 
-	slog.Debug("successfully retrieved relation tuples from the database")
+	// Log an error if the operation failed after reaching the maximum number of retries.
+	slog.Error("max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
 
-	// Return a TupleIterator created from the TupleCollection.
-	return collection.CreateTupleIterator(), nil
+	// Return an error indicating that the maximum number of retries has been reached.
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
 }
 
-// ReadRelationships reads relation tuples from the storage based on the given filter and pagination.
-func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.read-relationships")
-	defer span.End()
-
-	slog.Debug("reading relationships for tenant_id", slog.String("tenant_id", tenantID))
-
-	// Decode the snapshot value.
-	var st token.SnapToken
-	st, err = snapshot.EncodedToken{Value: snap}.Decode()
+// write handles the database writing of tuple and attribute collections for a given tenant.
+// It returns an EncodedSnapToken upon successful write or an error if the write fails.
+func (w *DataWriter) write(
+	ctx context.Context,
+	tenantID string,
+	tupleCollection *database.TupleCollection,
+	attributeCollection *database.AttributeCollection,
+) (token token.EncodedSnapToken, err error) {
+	tx, err := w.database.WritePool.BeginTx(ctx, w.txOptions)
 	if err != nil {
-		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, err
 	}
 
-	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
-	builder := r.database.Builder.Select("id, entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
-	builder = utils.TuplesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
-
-	// Apply the pagination token and limit to the query.
-	if pagination.Token() != "" {
-		var t database.ContinuousToken
-		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-		}
-		var v uint64
-		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
-		}
-		builder = builder.Where(squirrel.GtOrEq{"id": v})
-	}
-
-	builder = builder.OrderBy("id").Limit(uint64(pagination.PageSize() + 1))
-
-	// Generate the SQL query and arguments.
-	var query string
-	var args []interface{}
-	query, args, err = builder.ToSql()
-	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
-	}
-
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
-	// Execute the query and retrieve the rows.
-	var rows pgx.Rows
-	rows, err = r.database.ReadPool.Query(ctx, query, args...)
-	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-	defer rows.Close()
-
-	var lastID uint64
-
-	// Iterate through the rows and scan the result into a RelationTuple struct.
-	tuples := make([]*base.Tuple, 0, pagination.PageSize()+1)
-	for rows.Next() {
-		rt := storage.RelationTuple{}
-		err = rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-		}
-		lastID = rt.ID
-		tuples = append(tuples, rt.ToTuple())
-	}
-	// Check for any errors during iteration.
-	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-	}
-
-	slog.Debug("successfully read relation tuples from database")
-
-	// Return the results and encoded continuous token for pagination.
-	if len(tuples) > int(pagination.PageSize()) {
-		return database.NewTupleCollection(tuples[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
-	}
-
-	return database.NewTupleCollection(tuples...), database.NewNoopContinuousToken().Encode(), nil
-}
-
-// QuerySingleAttribute retrieves a single attribute from the storage based on the given filter.
-func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string) (attribute *base.Attribute, err error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-single-attribute")
-	defer span.End()
-
-	slog.Debug("querying single attribute for tenant_id", slog.String("tenant_id", tenantID))
-
-	// Decode the snapshot value.
-	var st token.SnapToken
-	st, err = snapshot.EncodedToken{Value: snap}.Decode()
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-	}
-
-	// Build the relationships query based on the provided filter and snapshot value.
-	var args []interface{}
-	builder := r.database.Builder.Select("entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
-	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
-
-	// Generate the SQL query and arguments.
-	var query string
-	query, args, err = builder.ToSql()
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
-	}
-
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
-	row := r.database.ReadPool.QueryRow(ctx, query, args...)
-
-	rt := storage.Attribute{}
-
-	// Suppose you have a struct `rt` with a field `Value` of type `*anypb.Any`.
-	var valueStr string
-
-	// Scan the row from the database into the fields of `rt` and `valueStr`.
-	err = row.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
-		} else {
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-		}
-	}
-
-	// Unmarshal the JSON data from `valueStr` into `rt.Value`.
-	rt.Value = &anypb.Any{}
-	unmarshaler := &jsonpb.Unmarshaler{}
-	err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-	}
-
-	slog.Debug("successfully retrieved Single attribute from the database")
-
-	return rt.ToAttribute(), nil
-}
-
-// QueryAttributes reads multiple attributes from the storage based on the given filter.
-func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string) (it *database.AttributeIterator, err error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-attributes")
-	defer span.End()
-
-	slog.Debug("querying Attributes for tenant_id", slog.String("tenant_id", tenantID))
-
-	// Decode the snapshot value.
-	var st token.SnapToken
-	st, err = snapshot.EncodedToken{Value: snap}.Decode()
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-	}
-
-	// Build the relationships query based on the provided filter and snapshot value.
-	var args []interface{}
-	builder := r.database.Builder.Select("entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
-	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
-
-	// Generate the SQL query and arguments.
-	var query string
-	query, args, err = builder.ToSql()
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
-	}
-
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
-	// Execute the SQL query and retrieve the result rows.
-	var rows pgx.Rows
-	rows, err = r.database.ReadPool.Query(ctx, query, args...)
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-	defer rows.Close()
-
-	// Process the result rows and store the relationships in a TupleCollection.
-	collection := database.NewAttributeCollection()
-	for rows.Next() {
-		rt := storage.Attribute{}
-
-		// Suppose you have a struct `rt` with a field `Value` of type `*anypb.Any`.
-		var valueStr string
-
-		// Scan the row from the database into the fields of `rt` and `valueStr`.
-		err := rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
-		if err != nil {
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-		}
-
-		// Unmarshal the JSON data from `valueStr` into `rt.Value`.
-		rt.Value = &anypb.Any{}
-		unmarshaler := &jsonpb.Unmarshaler{}
-		err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
-		if err != nil {
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-		}
-
-		collection.Add(rt.ToAttribute())
-	}
-	if err = rows.Err(); err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-	}
-
-	slog.Debug("successfully retrieved attributes tuples from the database")
-
-	// Return a TupleIterator created from the TupleCollection.
-	return collection.CreateAttributeIterator(), nil
-}
-
-// ReadAttributes reads multiple attributes from the storage based on the given filter and pagination.
-func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string, pagination database.Pagination) (collection *database.AttributeCollection, ct database.EncodedContinuousToken, err error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.read-attributes")
-	defer span.End()
-
-	slog.Debug("reading attributes for tenant_id", slog.String("tenant_id", tenantID))
-
-	// Decode the snapshot value.
-	var st token.SnapToken
-	st, err = snapshot.EncodedToken{Value: snap}.Decode()
-	if err != nil {
-		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-	}
-
-	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
-	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
-	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
-
-	// Apply the pagination token and limit to the query.
-	if pagination.Token() != "" {
-		var t database.ContinuousToken
-		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-		}
-		var v uint64
-		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
-		}
-		builder = builder.Where(squirrel.GtOrEq{"id": v})
-	}
-
-	builder = builder.OrderBy("id").Limit(uint64(pagination.PageSize() + 1))
-
-	// Generate the SQL query and arguments.
-	var query string
-	var args []interface{}
-	query, args, err = builder.ToSql()
-	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
-	}
-
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
-	// Execute the query and retrieve the rows.
-	var rows pgx.Rows
-	rows, err = r.database.ReadPool.Query(ctx, query, args...)
-	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-	defer rows.Close()
-
-	var lastID uint64
-
-	// Iterate through the rows and scan the result into a RelationTuple struct.
-	attributes := make([]*base.Attribute, 0, pagination.PageSize()+1)
-	for rows.Next() {
-		rt := storage.Attribute{}
-
-		// Suppose you have a struct `rt` with a field `Value` of type `*anypb.Any`.
-		var valueStr string
-
-		// Scan the row from the database into the fields of `rt` and `valueStr`.
-		err := rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Attribute, &valueStr)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-		}
-		lastID = rt.ID
-
-		// Unmarshal the JSON data from `valueStr` into `rt.Value`.
-		rt.Value = &anypb.Any{}
-		unmarshaler := &jsonpb.Unmarshaler{}
-		err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-		}
-
-		attributes = append(attributes, rt.ToAttribute())
-	}
-	// Check for any errors during iteration.
-	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-	}
-
-	slog.Debug("successfully read attributes from the database")
-
-	// Return the results and encoded continuous token for pagination.
-	if len(attributes) > int(pagination.PageSize()) {
-		return database.NewAttributeCollection(attributes[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
-	}
-
-	return database.NewAttributeCollection(attributes...), database.NewNoopContinuousToken().Encode(), nil
-}
-
-// QueryUniqueEntities reads unique entities from the storage based on the given filter and pagination.
-func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-unique-entities")
-	defer span.End()
-
-	slog.Debug("querying unique entities for tenant_id", slog.String("tenant_id", tenantID))
-
-	// Decode the snapshot value.
-	var st token.SnapToken
-	st, err = snapshot.EncodedToken{Value: snap}.Decode()
-	if err != nil {
-		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-	}
-
-	query := utils.BulkEntityFilterQuery(tenantID, name, st.(snapshot.Token).Value.Uint)
-
-	// Apply the pagination token and limit to the subQuery.
-	if pagination.Token() != "" {
-		var t database.ContinuousToken
-		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-		}
-		var v uint64
-		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
-		}
-
-		query = fmt.Sprintf("%s WHERE id >= %s", query, strconv.FormatUint(v, 10))
-	}
-
-	// Append ORDER BY and LIMIT clauses.
-	query = fmt.Sprintf("%s ORDER BY id LIMIT %d", query, pagination.PageSize()+1)
-
-	slog.Debug("generated sql query", slog.String("query", query))
-
-	// Execute the query and retrieve the rows.
-	var rows pgx.Rows
-	rows, err = r.database.ReadPool.Query(ctx, query)
-	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-	defer rows.Close()
-
-	var lastID uint64
-
-	// Iterate through the rows and scan the result into a RelationTuple struct.
-	entityIDs := make([]string, 0, pagination.PageSize()+1)
-	for rows.Next() {
-		var entityId string
-		err = rows.Scan(&lastID, &entityId)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-		}
-
-		entityIDs = append(entityIDs, entityId)
-	}
-
-	// Check for any errors during iteration.
-	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-	}
-
-	slog.Debug("successfully retrieved unique entities from the database")
-
-	// Return the results and encoded continuous token for pagination.
-	if len(entityIDs) > int(pagination.PageSize()) {
-		return entityIDs[:pagination.PageSize()], utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
-	}
-
-	return entityIDs, database.NewNoopContinuousToken().Encode(), nil
-}
-
-// QueryUniqueSubjectReferences reads unique subject references from the storage based on the given filter and pagination.
-func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-unique-subject-reference")
-	defer span.End()
-
-	slog.Debug("querying unique subject references for tenant_id", slog.String("tenant_id", tenantID))
-
-	// Decode the snapshot value.
-	var st token.SnapToken
-	st, err = snapshot.EncodedToken{Value: snap}.Decode()
-	if err != nil {
-		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-	}
-
-	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
-	builder := r.database.Builder.
-		Select("MIN(id) as id, subject_id"). // This will pick the smallest `id` for each unique `subject_id`.
-		From(RelationTuplesTable).
-		Where(squirrel.Eq{"tenant_id": tenantID}).
-		GroupBy("subject_id")
-	builder = utils.TuplesFilterQueryForSelectBuilder(builder, &base.TupleFilter{Subject: &base.SubjectFilter{Type: subjectReference.GetType(), Relation: subjectReference.GetRelation()}})
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
-
-	// Apply the pagination token and limit to the query.
-	if pagination.Token() != "" {
-		var t database.ContinuousToken
-		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
-		}
-		var v uint64
-		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
-		}
-		builder = builder.Where(squirrel.GtOrEq{"id": v})
-	}
-
-	builder = builder.OrderBy("id").Limit(uint64(pagination.PageSize() + 1))
-
-	// Generate the SQL query and arguments.
-	var query string
-	var args []interface{}
-	query, args, err = builder.ToSql()
-	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
-	}
-
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
-	// Execute the query and retrieve the rows.
-	var rows pgx.Rows
-	rows, err = r.database.ReadPool.Query(ctx, query, args...)
-	if err != nil {
-		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-	defer rows.Close()
-
-	var lastID uint64
-
-	// Iterate through the rows and scan the result into a RelationTuple struct.
-	subjectIDs := make([]string, 0, pagination.PageSize()+1)
-	for rows.Next() {
-		var subjectID string
-		err = rows.Scan(&lastID, &subjectID)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-		}
-		subjectIDs = append(subjectIDs, subjectID)
-	}
-	// Check for any errors during iteration.
-	if err = rows.Err(); err != nil {
-		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
-	}
-
-	slog.Debug("successfully retrieved unique subject references from the database")
-
-	// Return the results and encoded continuous token for pagination.
-	if len(subjectIDs) > int(pagination.PageSize()) {
-		return subjectIDs[:pagination.PageSize()], utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
-	}
-
-	return subjectIDs, database.NewNoopContinuousToken().Encode(), nil
-}
-
-// HeadSnapshot retrieves the latest snapshot token associated with the tenant.
-func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.head-snapshot")
-	defer span.End()
-
-	slog.Debug("getting head snapshot for tenant_id", slog.String("tenant_id", tenantID))
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
 
 	var xid types.XID8
-
-	// Build the query to find the highest transaction ID associated with the tenant.
-	builder := r.database.Builder.Select("id").From(TransactionsTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("id DESC").Limit(1)
-	query, args, err := builder.ToSql()
+	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, err
 	}
 
-	// Execute the query and retrieve the highest transaction ID.
-	err = r.database.ReadPool.QueryRow(ctx, query, args...).Scan(&xid)
-	if err != nil {
-		// If no rows are found, return a snapshot token with a value of 0.
-		if errors.Is(err, pgx.ErrNoRows) {
-			return snapshot.Token{Value: types.XID8{Uint: 0}}, nil
+	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
+
+	batch := &pgx.Batch{}
+
+	// Batch insert tuples
+	if len(tupleCollection.GetTuples()) > 0 {
+		tuplesInsertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id")
+		deleteClauses := squirrel.Or{}
+
+		titer := tupleCollection.CreateTupleIterator()
+		for titer.HasNext() {
+			t := titer.GetNext()
+			srelation := t.GetSubject().GetRelation()
+			if srelation == tuple.ELLIPSIS {
+				srelation = ""
+			}
+
+			// Build the condition for this tuple.
+			condition := squirrel.Eq{
+				"entity_type":      t.GetEntity().GetType(),
+				"entity_id":        t.GetEntity().GetId(),
+				"relation":         t.GetRelation(),
+				"subject_type":     t.GetSubject().GetType(),
+				"subject_id":       t.GetSubject().GetId(),
+				"subject_relation": srelation,
+			}
+
+			// Add the condition to the OR slice.
+			deleteClauses = append(deleteClauses, condition)
+
+			tuplesInsertBuilder = tuplesInsertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID)
 		}
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+
+		tDeleteBuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
+			"expired_tx_id": "0",
+			"tenant_id":     tenantID,
+		}).Where(deleteClauses)
+
+		tdquery, tdargs, err := tDeleteBuilder.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		batch.Queue(tdquery, tdargs...)
+
+		tiquery, tiargs, err := tuplesInsertBuilder.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		batch.Queue(tiquery, tiargs...)
 	}
 
-	slog.Debug("successfully retrieved latest snapshot token")
+	// Batch insert attributes
+	if len(attributeCollection.GetAttributes()) > 0 {
+		attributesInsertBuilder := w.database.Builder.Insert(AttributesTable).Columns("entity_type, entity_id, attribute, value, created_tx_id, tenant_id")
+		deleteClauses := squirrel.Or{}
 
-	// Return the latest snapshot token associated with the tenant.
-	return snapshot.Token{Value: xid}, nil
+		aiter := attributeCollection.CreateAttributeIterator()
+		for aiter.HasNext() {
+			a := aiter.GetNext()
+
+			m := jsonpb.Marshaler{}
+			jsonStr, err := m.MarshalToString(a.GetValue())
+			if err != nil {
+				return nil, err
+			}
+
+			// Build the condition for this attribute.
+			condition := squirrel.Eq{
+				"entity_type": a.GetEntity().GetType(),
+				"entity_id":   a.GetEntity().GetId(),
+				"attribute":   a.GetAttribute(),
+			}
+
+			// Add the condition to the OR slice.
+			deleteClauses = append(deleteClauses, condition)
+
+			attributesInsertBuilder = attributesInsertBuilder.Values(a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, xid, tenantID)
+		}
+
+		aDeleteBuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
+			"expired_tx_id": "0",
+			"tenant_id":     tenantID,
+		}).Where(deleteClauses)
+
+		adquery, adargs, err := aDeleteBuilder.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		batch.Queue(adquery, adargs...)
+
+		aiquery, aiargs, err := attributesInsertBuilder.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		batch.Queue(aiquery, aiargs...)
+	}
+
+	br := tx.SendBatch(ctx, batch)
+	defer br.Close()
+
+	for i := 0; i < batch.Len(); i++ {
+		_, err := br.Exec()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return snapshot.NewEncodedSnapToken(xid.String()), nil
+}
+
+// RunOperation performs a set of database operations on tuples and attributes for a specific tenant.
+// It returns an EncodedSnapToken upon successful operation or an error if the operation fails.
+func (w *DataWriter) RunOperation(
+	ctx context.Context,
+	tenantID string,
+	operations *base.TupleCollection,
+) (token token.EncodedSnapToken, err error) {
+	ctx, span := tracer.Start(ctx, "data-writer.runOperation")
+	defer span.End()
+
+	for i := 0; i <= w.database.GetMaxRetries(); i++ {
+		tkn, err := w.runOperation(ctx, tenantID, operations)
+		if err != nil {
+			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
+				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+				utils.WaitWithBackoff(ctx, tenantID, i)
+				continue
+			}
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
+		}
+		return tkn, nil
+	}
+
+	slog.Error("max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
+	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
+}
+
+// runOperation handles the database operations for tuples and attributes for a given tenant.
+// It returns an EncodedSnapToken upon successful operation or an error if the operation fails.
+func (w *DataWriter) runOperation(
+	ctx context.Context,
+	tenantID string,
+	operations *base.TupleCollection,
+) (token token.EncodedSnapToken, err error) {
+	tx, err := w.database.WritePool.BeginTx(ctx, w.txOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	var xid types.XID8
+	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
+	if err != nil {
+		return nil, err
+	}
+
+	batch := &pgx.Batch{}
+
+	titer := operations.CreateTupleIterator()
+	for titer.HasNext() {
+		t := titer.GetNext()
+
+		switch t.GetOperation() {
+		case base.Operation_OPERATION_DELETE:
+			delQuery, delArgs, err := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
+				"entity_type":      t.GetEntity().GetType(),
+				"entity_id":        t.GetEntity().GetId(),
+				"relation":         t.GetRelation(),
+				"subject_type":     t.GetSubject().GetType(),
+				"subject_id":       t.GetSubject().GetId(),
+				"subject_relation": t.GetSubject().GetRelation(),
+				"expired_tx_id":    0,
+				"tenant_id":        tenantID,
+			}).ToSql()
+			if err != nil {
+				return nil, err
+			}
+			batch.Queue(delQuery, delArgs...)
+		case base.Operation_OPERATION_TOUCH:
+			touchQuery, touchArgs, err := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
+				"entity_type":      t.GetEntity().GetType(),
+				"entity_id":        t.GetEntity().GetId(),
+				"relation":         t.GetRelation(),
+				"subject_type":     t.GetSubject().GetType(),
+				"subject_id":       t.GetSubject().GetId(),
+				"subject_relation": t.GetSubject().GetRelation(),
+				"expired_tx_id":    0,
+				"tenant_id":        tenantID,
+			}).ToSql()
+			if err != nil {
+				return nil, err
+			}
+			batch.Queue(touchQuery, touchArgs...)
+
+			insertQuery, insertArgs, err := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id").Values(
+				t.GetEntity().GetType(),
+				t.GetEntity().GetId(),
+				t.GetRelation(),
+				t.GetSubject().GetType(),
+				t.GetSubject().GetId(),
+				t.GetSubject().GetRelation(),
+				xid,
+				tenantID,
+			).ToSql()
+			if err != nil {
+				return nil, err
+			}
+			batch.Queue(insertQuery, insertArgs...)
+		}
+	}
+
+	br := tx.SendBatch(ctx, batch)
+	defer br.Close()
+
+	for i := 0; i < batch.Len(); i++ {
+		_, err := br.Exec()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return snapshot.NewEncodedSnapToken(xid.String()), nil
 }
