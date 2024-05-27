@@ -107,11 +107,9 @@ func (w *DataWriter) write(
 
 	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
 
-	batch := &pgx.Batch{}
-
 	// Batch insert tuples
 	if len(tupleCollection.GetTuples()) > 0 {
-		tuplesInsertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id")
+		batch := &pgx.Batch{}
 		deleteClauses := squirrel.Or{}
 
 		titer := tupleCollection.CreateTupleIterator()
@@ -135,9 +133,22 @@ func (w *DataWriter) write(
 			// Add the condition to the OR slice.
 			deleteClauses = append(deleteClauses, condition)
 
-			tuplesInsertBuilder = tuplesInsertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID)
+			// Queue the insert statement in the batch.
+			batch.Queue(
+				"INSERT INTO relation_tuples (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+				t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID,
+			)
 		}
 
+		// Execute the batch insert.
+		br := tx.SendBatch(ctx, batch)
+		defer br.Close()
+		_, err = br.Exec()
+		if err != nil {
+			return nil, err
+		}
+
+		// Handle tuple deletions.
 		tDeleteBuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
 			"expired_tx_id": "0",
 			"tenant_id":     tenantID,
@@ -147,195 +158,13 @@ func (w *DataWriter) write(
 		if err != nil {
 			return nil, err
 		}
-		batch.Queue(tdquery, tdargs...)
-
-		tiquery, tiargs, err := tuplesInsertBuilder.ToSql()
+		_, err = tx.Exec(ctx, tdquery, tdargs...)
 		if err != nil {
 			return nil, err
 		}
-		batch.Queue(tiquery, tiargs...)
 	}
 
 	// Batch insert attributes
 	if len(attributeCollection.GetAttributes()) > 0 {
-		attributesInsertBuilder := w.database.Builder.Insert(AttributesTable).Columns("entity_type, entity_id, attribute, value, created_tx_id, tenant_id")
+		batch := &pgx.Batch{}
 		deleteClauses := squirrel.Or{}
-
-		aiter := attributeCollection.CreateAttributeIterator()
-		for aiter.HasNext() {
-			a := aiter.GetNext()
-
-			m := jsonpb.Marshaler{}
-			jsonStr, err := m.MarshalToString(a.GetValue())
-			if err != nil {
-				return nil, err
-			}
-
-			// Build the condition for this attribute.
-			condition := squirrel.Eq{
-				"entity_type": a.GetEntity().GetType(),
-				"entity_id":   a.GetEntity().GetId(),
-				"attribute":   a.GetAttribute(),
-			}
-
-			// Add the condition to the OR slice.
-			deleteClauses = append(deleteClauses, condition)
-
-			attributesInsertBuilder = attributesInsertBuilder.Values(a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, xid, tenantID)
-		}
-
-		aDeleteBuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-			"expired_tx_id": "0",
-			"tenant_id":     tenantID,
-		}).Where(deleteClauses)
-
-		adquery, adargs, err := aDeleteBuilder.ToSql()
-		if err != nil {
-			return nil, err
-		}
-		batch.Queue(adquery, adargs...)
-
-		aiquery, aiargs, err := attributesInsertBuilder.ToSql()
-		if err != nil {
-			return nil, err
-		}
-		batch.Queue(aiquery, aiargs...)
-	}
-
-	br := tx.SendBatch(ctx, batch)
-	defer br.Close()
-
-	for i := 0; i < batch.Len(); i++ {
-		_, err := br.Exec()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
-	return snapshot.NewEncodedSnapToken(xid.String()), nil
-}
-
-// RunOperation performs a set of database operations on tuples and attributes for a specific tenant.
-// It returns an EncodedSnapToken upon successful operation or an error if the operation fails.
-func (w *DataWriter) RunOperation(
-	ctx context.Context,
-	tenantID string,
-	operations *base.TupleCollection,
-) (token token.EncodedSnapToken, err error) {
-	ctx, span := tracer.Start(ctx, "data-writer.runOperation")
-	defer span.End()
-
-	for i := 0; i <= w.database.GetMaxRetries(); i++ {
-		tkn, err := w.runOperation(ctx, tenantID, operations)
-		if err != nil {
-			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
-				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
-				utils.WaitWithBackoff(ctx, tenantID, i)
-				continue
-			}
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_DATASTORE)
-		}
-		return tkn, nil
-	}
-
-	slog.Error("max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
-	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
-}
-
-// runOperation handles the database operations for tuples and attributes for a given tenant.
-// It returns an EncodedSnapToken upon successful operation or an error if the operation fails.
-func (w *DataWriter) runOperation(
-	ctx context.Context,
-	tenantID string,
-	operations *base.TupleCollection,
-) (token token.EncodedSnapToken, err error) {
-	tx, err := w.database.WritePool.BeginTx(ctx, w.txOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		_ = tx.Rollback(ctx)
-	}()
-
-	var xid types.XID8
-	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
-	if err != nil {
-		return nil, err
-	}
-
-	batch := &pgx.Batch{}
-
-	titer := operations.CreateTupleIterator()
-	for titer.HasNext() {
-		t := titer.GetNext()
-
-		switch t.GetOperation() {
-		case base.Operation_OPERATION_DELETE:
-			delQuery, delArgs, err := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-				"entity_type":      t.GetEntity().GetType(),
-				"entity_id":        t.GetEntity().GetId(),
-				"relation":         t.GetRelation(),
-				"subject_type":     t.GetSubject().GetType(),
-				"subject_id":       t.GetSubject().GetId(),
-				"subject_relation": t.GetSubject().GetRelation(),
-				"expired_tx_id":    0,
-				"tenant_id":        tenantID,
-			}).ToSql()
-			if err != nil {
-				return nil, err
-			}
-			batch.Queue(delQuery, delArgs...)
-		case base.Operation_OPERATION_TOUCH:
-			touchQuery, touchArgs, err := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-				"entity_type":      t.GetEntity().GetType(),
-				"entity_id":        t.GetEntity().GetId(),
-				"relation":         t.GetRelation(),
-				"subject_type":     t.GetSubject().GetType(),
-				"subject_id":       t.GetSubject().GetId(),
-				"subject_relation": t.GetSubject().GetRelation(),
-				"expired_tx_id":    0,
-				"tenant_id":        tenantID,
-			}).ToSql()
-			if err != nil {
-				return nil, err
-			}
-			batch.Queue(touchQuery, touchArgs...)
-
-			insertQuery, insertArgs, err := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id").Values(
-				t.GetEntity().GetType(),
-				t.GetEntity().GetId(),
-				t.GetRelation(),
-				t.GetSubject().GetType(),
-				t.GetSubject().GetId(),
-				t.GetSubject().GetRelation(),
-				xid,
-				tenantID,
-			).ToSql()
-			if err != nil {
-				return nil, err
-			}
-			batch.Queue(insertQuery, insertArgs...)
-		}
-	}
-
-	br := tx.SendBatch(ctx, batch)
-	defer br.Close()
-
-	for i := 0; i < batch.Len(); i++ {
-		_, err := br.Exec()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
-	return snapshot.NewEncodedSnapToken(xid.String()), nil
-}
