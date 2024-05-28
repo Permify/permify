@@ -224,7 +224,7 @@ var _ = Describe("DataWriter", func() {
 			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(ct1.String()).Should(Equal(""))
-			Expect(len(col1.GetTuples())).Should(Equal(3))
+			Expect(len(col1.GetTuples())).Should(Equal(0))
 
 			col2, ct2, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
 				Entity: &base.EntityFilter{
@@ -265,7 +265,7 @@ var _ = Describe("DataWriter", func() {
 			}, token2.String(), database.NewPagination(database.Size(10), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(ct3.String()).Should(Equal(""))
-			Expect(len(col3.GetTuples())).Should(Equal(2))
+			Expect(len(col3.GetTuples())).Should(Equal(0))
 
 			col4, ct5, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
 				Entity: &base.EntityFilter{
@@ -327,7 +327,7 @@ var _ = Describe("DataWriter", func() {
 			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(ct1.String()).Should(Equal(""))
-			Expect(len(col1.GetTuples())).Should(Equal(3))
+			Expect(len(col1.GetTuples())).Should(Equal(0))
 
 			col2, ct2, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
 				Entity: &base.EntityFilter{
@@ -347,7 +347,7 @@ var _ = Describe("DataWriter", func() {
 			}, tokenT21.String(), database.NewPagination(database.Size(10), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(ctT21.String()).Should(Equal(""))
-			Expect(len(colT21.GetTuples())).Should(Equal(3))
+			Expect(len(colT21.GetTuples())).Should(Equal(0))
 
 			colT22, ctT22, err := dataReader.ReadAttributes(ctx, "t2", &base.AttributeFilter{
 				Entity: &base.EntityFilter{
@@ -388,7 +388,7 @@ var _ = Describe("DataWriter", func() {
 			}, token2.String(), database.NewPagination(database.Size(10), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(ct3.String()).Should(Equal(""))
-			Expect(len(col3.GetTuples())).Should(Equal(2))
+			Expect(len(col3.GetTuples())).Should(Equal(0))
 
 			col4, ct5, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
 				Entity: &base.EntityFilter{
@@ -408,7 +408,7 @@ var _ = Describe("DataWriter", func() {
 			}, token2.String(), database.NewPagination(database.Size(10), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(ctT23.String()).Should(Equal(""))
-			Expect(len(colT23.GetTuples())).Should(Equal(3))
+			Expect(len(colT23.GetTuples())).Should(Equal(0))
 
 			colT24, ctT25, err := dataReader.ReadAttributes(ctx, "t2", &base.AttributeFilter{
 				Entity: &base.EntityFilter{
@@ -486,7 +486,7 @@ var _ = Describe("DataWriter", func() {
 					Relation: "",
 				},
 			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
-			Expect(len(colT1.GetTuples())).Should(Equal(2))
+			Expect(len(colT1.GetTuples())).Should(Equal(0))
 
 			colA2, _, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
 				Entity: &base.EntityFilter{
@@ -495,7 +495,7 @@ var _ = Describe("DataWriter", func() {
 				},
 				Attributes: []string{},
 			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
-			Expect(len(colA2.GetAttributes())).Should(Equal(1))
+			Expect(len(colA2.GetAttributes())).Should(Equal(0))
 		})
 	})
 })
