@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/config"
+	base `github.com/Permify/permify/pkg/pb/base/v1`
 )
 
 var _ = Describe("authn-oidc", func() {
@@ -238,6 +239,55 @@ var _ = Describe("authn-oidc", func() {
 			},
 			)
 			Expect(err).ShouldNot(Equal(BeNil()))
+		})
+	})
+
+	Context("Authenticate Id Token", func() {
+		It("Case 1", func() {
+			// create authenticator
+			ctx := context.Background()
+			auth, err := NewOidcAuthn(ctx, config.Oidc{
+				Audience: audience,
+				Issuer:   issuerURL,
+			})
+			Expect(err).To(BeNil())
+
+			// authenticate
+			niceMd := make(metautils.NiceMD)
+			niceMd.Set("authorization", "Bearer ")
+			err = auth.Authenticate(niceMd.ToIncoming(ctx))
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+		})
+
+		It("Case 2", func() {
+			// create authenticator
+			ctx := context.Background()
+			auth, err := NewOidcAuthn(ctx, config.Oidc{
+				Audience: audience,
+				Issuer:   issuerURL,
+			})
+			Expect(err).To(BeNil())
+
+			// authenticate
+			niceMd := make(metautils.NiceMD)
+			err = auth.Authenticate(niceMd.ToIncoming(ctx))
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String()))
+		})
+
+		It("Case 3", func() {
+			// create authenticator
+			ctx := context.Background()
+			auth, err := NewOidcAuthn(ctx, config.Oidc{
+				Audience: audience,
+				Issuer:   issuerURL,
+			})
+			Expect(err).To(BeNil())
+
+			// authenticate
+			niceMd := make(metautils.NiceMD)
+			niceMd.Set("authorization", "Bearer asd")
+			err = auth.Authenticate(niceMd.ToIncoming(ctx))
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
 		})
 	})
 })
