@@ -14,6 +14,7 @@ import (
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
@@ -84,6 +85,9 @@ func postgresDB(postgresVersion string) database.Database {
 		PQDatabase.MaxConnectionIdleTime(cfg.MaxConnectionIdleTime),
 		PQDatabase.MaxConnectionLifeTime(cfg.MaxConnectionLifetime),
 	)
+
+	_, err = utils.EnsureDBVersion(db.(*PQDatabase.Postgres).WritePool)
+	Expect(err).ShouldNot(HaveOccurred())
 
 	return db
 }
