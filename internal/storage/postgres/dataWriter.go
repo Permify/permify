@@ -190,127 +190,45 @@ func (w *DataWriter) write(
 
 	slog.Debug("processing tuples and executing insert query")
 
+	batch := &pgx.Batch{}
+
 	if len(tupleCollection.GetTuples()) > 0 {
-
-		tuplesInsertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id")
-
-		deleteClauses := squirrel.Or{}
-
-		titer := tupleCollection.CreateTupleIterator()
-		for titer.HasNext() {
-			t := titer.GetNext()
-			srelation := t.GetSubject().GetRelation()
-			if srelation == tuple.ELLIPSIS {
-				srelation = ""
-			}
-
-			// Build the condition for this tuple.
-			condition := squirrel.Eq{
-				"entity_type":      t.GetEntity().GetType(),
-				"entity_id":        t.GetEntity().GetId(),
-				"relation":         t.GetRelation(),
-				"subject_type":     t.GetSubject().GetType(),
-				"subject_id":       t.GetSubject().GetId(),
-				"subject_relation": srelation,
-			}
-
-			// Add the condition to the OR slice.
-			deleteClauses = append(deleteClauses, condition)
-
-			tuplesInsertBuilder = tuplesInsertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID)
-		}
-
-		tDeleteBuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-			"expired_tx_id": "0",
-			"tenant_id":     tenantID,
-		}).Where(deleteClauses)
-
-		var tdquery string
-		var tdargs []interface{}
-
-		tdquery, tdargs, err = tDeleteBuilder.ToSql()
+		err = w.batchUpdateRelationships(batch, xid, tenantID, buildDeleteClausesForRelationships(tupleCollection))
 		if err != nil {
 			return nil, err
 		}
-
-		_, err = tx.Exec(ctx, tdquery, tdargs...)
-		if err != nil {
-			return nil, err
-		}
-
-		var tiquery string
-		var tiargs []interface{}
-
-		tiquery, tiargs, err = tuplesInsertBuilder.ToSql()
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = tx.Exec(ctx, tiquery, tiargs...)
+		err = w.batchInsertRelationships(batch, xid, tenantID, tupleCollection)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if len(attributeCollection.GetAttributes()) > 0 {
+		err = w.batchUpdateAttributes(batch, xid, tenantID, buildDeleteClausesForAttributes(attributeCollection))
+		if err != nil {
+			return nil, err
+		}
+		err = w.batchInsertAttributes(batch, xid, tenantID, attributeCollection)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-		attributesInsertBuilder := w.database.Builder.Insert(AttributesTable).Columns("entity_type, entity_id, attribute, value, created_tx_id, tenant_id")
-
-		deleteClauses := squirrel.Or{}
-
-		aiter := attributeCollection.CreateAttributeIterator()
-		for aiter.HasNext() {
-			a := aiter.GetNext()
-
-			m := jsonpb.Marshaler{}
-			jsonStr, err := m.MarshalToString(a.GetValue())
+	batchResult := tx.SendBatch(ctx, batch)
+	for i := 0; i < batch.Len(); i++ {
+		_, err = batchResult.Exec()
+		if err != nil {
+			err = batchResult.Close()
 			if err != nil {
 				return nil, err
 			}
-
-			// Build the condition for this attribute.
-			condition := squirrel.Eq{
-				"entity_type": a.GetEntity().GetType(),
-				"entity_id":   a.GetEntity().GetId(),
-				"attribute":   a.GetAttribute(),
-			}
-
-			// Add the condition to the OR slice.
-			deleteClauses = append(deleteClauses, condition)
-
-			attributesInsertBuilder = attributesInsertBuilder.Values(a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, xid, tenantID)
-		}
-
-		aDeleteBuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-			"expired_tx_id": "0",
-			"tenant_id":     tenantID,
-		}).Where(deleteClauses)
-
-		var adquery string
-		var adargs []interface{}
-
-		adquery, adargs, err = aDeleteBuilder.ToSql()
-		if err != nil {
 			return nil, err
 		}
+	}
 
-		_, err = tx.Exec(ctx, adquery, adargs...)
-		if err != nil {
-			return nil, err
-		}
-
-		var aquery string
-		var aargs []interface{}
-
-		aquery, aargs, err = attributesInsertBuilder.ToSql()
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = tx.Exec(ctx, aquery, aargs...)
-		if err != nil {
-			return nil, err
-		}
+	err = batchResult.Close()
+	if err != nil {
+		return nil, err
 	}
 
 	if err = tx.Commit(ctx); err != nil {
@@ -423,19 +341,38 @@ func (w *DataWriter) runBundle(
 
 	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
 
+	batch := &pgx.Batch{}
+
 	for _, op := range b.GetOperations() {
 		tb, ab, err := bundle.Operation(arguments, op)
 		if err != nil {
 			return nil, err
 		}
 
-		err = w.runOperation(ctx, tx, xid, tenantID, tb, ab)
+		err = w.runOperation(batch, xid, tenantID, tb, ab)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if err := tx.Commit(ctx); err != nil {
+	batchResult := tx.SendBatch(ctx, batch)
+	for i := 0; i < batch.Len(); i++ {
+		_, err = batchResult.Exec()
+		if err != nil {
+			err = batchResult.Close()
+			if err != nil {
+				return nil, err
+			}
+			return nil, err
+		}
+	}
+
+	err = batchResult.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -444,221 +381,170 @@ func (w *DataWriter) runBundle(
 
 // runOperation processes and executes database operations defined in TupleBundle and AttributeBundle within a given transaction.
 func (w *DataWriter) runOperation(
-	ctx context.Context,
-	tx pgx.Tx,
+	batch *pgx.Batch,
 	xid types.XID8,
 	tenantID string,
 	tb database.TupleBundle,
 	ab database.AttributeBundle,
 ) (err error) {
 	slog.Debug("processing bundles queries")
-
 	if len(tb.Write.GetTuples()) > 0 {
-
-		tuplesInsertBuilder := w.database.Builder.Insert(RelationTuplesTable).Columns("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id")
-
-		deleteClauses := squirrel.Or{}
-
-		titer := tb.Write.CreateTupleIterator()
-		for titer.HasNext() {
-			t := titer.GetNext()
-			srelation := t.GetSubject().GetRelation()
-			if srelation == tuple.ELLIPSIS {
-				srelation = ""
-			}
-
-			// Build the condition for this tuple.
-			condition := squirrel.Eq{
-				"entity_type":      t.GetEntity().GetType(),
-				"entity_id":        t.GetEntity().GetId(),
-				"relation":         t.GetRelation(),
-				"subject_type":     t.GetSubject().GetType(),
-				"subject_id":       t.GetSubject().GetId(),
-				"subject_relation": srelation,
-			}
-
-			// Add the condition to the OR slice.
-			deleteClauses = append(deleteClauses, condition)
-
-			tuplesInsertBuilder = tuplesInsertBuilder.Values(t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID)
-		}
-
-		tDeleteBuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-			"expired_tx_id": "0",
-			"tenant_id":     tenantID,
-		}).Where(deleteClauses)
-
-		var tdquery string
-		var tdargs []interface{}
-
-		tdquery, tdargs, err = tDeleteBuilder.ToSql()
+		deleteClauses := buildDeleteClausesForRelationships(&tb.Write)
+		err = w.batchUpdateRelationships(batch, xid, tenantID, deleteClauses)
 		if err != nil {
 			return err
 		}
-
-		_, err = tx.Exec(ctx, tdquery, tdargs...)
-		if err != nil {
-			return err
-		}
-
-		var tiquery string
-		var tiargs []interface{}
-
-		tiquery, tiargs, err = tuplesInsertBuilder.ToSql()
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.Exec(ctx, tiquery, tiargs...)
+		err = w.batchInsertRelationships(batch, xid, tenantID, &tb.Write)
 		if err != nil {
 			return err
 		}
 	}
 
 	if len(ab.Write.GetAttributes()) > 0 {
-
-		attributesInsertBuilder := w.database.Builder.Insert(AttributesTable).Columns("entity_type, entity_id, attribute, value, created_tx_id, tenant_id")
-
-		deleteClauses := squirrel.Or{}
-
-		aiter := ab.Write.CreateAttributeIterator()
-		for aiter.HasNext() {
-			a := aiter.GetNext()
-
-			m := jsonpb.Marshaler{}
-			jsonStr, err := m.MarshalToString(a.GetValue())
-			if err != nil {
-				return err
-			}
-
-			// Build the condition for this tuple.
-			condition := squirrel.Eq{
-				"entity_type": a.GetEntity().GetType(),
-				"entity_id":   a.GetEntity().GetId(),
-				"attribute":   a.GetAttribute(),
-			}
-
-			// Add the condition to the OR slice.
-			deleteClauses = append(deleteClauses, condition)
-
-			attributesInsertBuilder = attributesInsertBuilder.Values(a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, xid, tenantID)
-		}
-
-		tDeleteBuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-			"expired_tx_id": "0",
-			"tenant_id":     tenantID,
-		}).Where(deleteClauses)
-
-		var adquery string
-		var adargs []interface{}
-
-		adquery, adargs, err = tDeleteBuilder.ToSql()
+		deleteClauses := buildDeleteClausesForAttributes(&ab.Write)
+		err = w.batchUpdateAttributes(batch, xid, tenantID, deleteClauses)
 		if err != nil {
 			return err
 		}
 
-		_, err = tx.Exec(ctx, adquery, adargs...)
-		if err != nil {
-			return err
-		}
-
-		var aquery string
-		var aargs []interface{}
-
-		aquery, aargs, err = attributesInsertBuilder.ToSql()
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.Exec(ctx, aquery, aargs...)
+		err = w.batchInsertAttributes(batch, xid, tenantID, &ab.Write)
 		if err != nil {
 			return err
 		}
 	}
 
 	if len(tb.Delete.GetTuples()) > 0 {
-
-		deleteClauses := squirrel.Or{}
-
-		titer := tb.Delete.CreateTupleIterator()
-		for titer.HasNext() {
-			t := titer.GetNext()
-			srelation := t.GetSubject().GetRelation()
-			if srelation == tuple.ELLIPSIS {
-				srelation = ""
-			}
-
-			// Build the condition for this tuple.
-			condition := squirrel.Eq{
-				"entity_type":      t.GetEntity().GetType(),
-				"entity_id":        t.GetEntity().GetId(),
-				"relation":         t.GetRelation(),
-				"subject_type":     t.GetSubject().GetType(),
-				"subject_id":       t.GetSubject().GetId(),
-				"subject_relation": srelation,
-			}
-
-			// Add the condition to the OR slice.
-			deleteClauses = append(deleteClauses, condition)
-		}
-
-		tDeleteBuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-			"expired_tx_id": "0",
-			"tenant_id":     tenantID,
-		}).Where(deleteClauses)
-
-		var tquery string
-		var targs []interface{}
-
-		tquery, targs, err = tDeleteBuilder.ToSql()
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.Exec(ctx, tquery, targs...)
+		deleteClauses := buildDeleteClausesForRelationships(&tb.Delete)
+		err = w.batchUpdateRelationships(batch, xid, tenantID, deleteClauses)
 		if err != nil {
 			return err
 		}
 	}
 
 	if len(ab.Delete.GetAttributes()) > 0 {
-
-		deleteClauses := squirrel.Or{}
-
-		aiter := ab.Delete.CreateAttributeIterator()
-		for aiter.HasNext() {
-			a := aiter.GetNext()
-
-			// Build the condition for this tuple.
-			condition := squirrel.Eq{
-				"entity_type": a.GetEntity().GetType(),
-				"entity_id":   a.GetEntity().GetId(),
-				"attribute":   a.GetAttribute(),
-			}
-
-			// Add the condition to the OR slice.
-			deleteClauses = append(deleteClauses, condition)
-
-		}
-
-		aDeleteBuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{
-			"expired_tx_id": "0",
-			"tenant_id":     tenantID,
-		}).Where(deleteClauses)
-
-		var tquery string
-		var targs []interface{}
-
-		tquery, targs, err = aDeleteBuilder.ToSql()
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.Exec(ctx, tquery, targs...)
+		deleteClauses := buildDeleteClausesForAttributes(&ab.Delete)
+		err = w.batchUpdateAttributes(batch, xid, tenantID, deleteClauses)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// batchInsertTuples function for batch inserting tuples
+func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid types.XID8, tenantID string, tupleCollection *database.TupleCollection) error {
+	titer := tupleCollection.CreateTupleIterator()
+	for titer.HasNext() {
+		t := titer.GetNext()
+		srelation := t.GetSubject().GetRelation()
+		if srelation == tuple.ELLIPSIS {
+			srelation = ""
+		}
+		batch.Queue(
+			"INSERT INTO relation_tuples (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+			t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID,
+		)
+	}
+	return nil
+}
+
+// batchUpdateTuples function for batch updating tuples
+func (w *DataWriter) batchUpdateRelationships(batch *pgx.Batch, xid types.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
+	for _, condition := range deleteClauses {
+		query, args, err := w.database.Builder.Update(RelationTuplesTable).
+			Set("expired_tx_id", xid).
+			Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID}).
+			Where(condition).
+			ToSql()
+		if err != nil {
+			return err
+		}
+		batch.Queue(query, args...)
+	}
+	return nil
+}
+
+// buildDeleteClauses function to build delete clauses for tuples
+func buildDeleteClausesForRelationships(tupleCollection *database.TupleCollection) []squirrel.Eq {
+	deleteClauses := make([]squirrel.Eq, 0)
+
+	titer := tupleCollection.CreateTupleIterator()
+	for titer.HasNext() {
+		t := titer.GetNext()
+		srelation := t.GetSubject().GetRelation()
+		if srelation == tuple.ELLIPSIS {
+			srelation = ""
+		}
+
+		condition := squirrel.Eq{
+			"entity_type":      t.GetEntity().GetType(),
+			"entity_id":        t.GetEntity().GetId(),
+			"relation":         t.GetRelation(),
+			"subject_type":     t.GetSubject().GetType(),
+			"subject_id":       t.GetSubject().GetId(),
+			"subject_relation": srelation,
+		}
+
+		deleteClauses = append(deleteClauses, condition)
+	}
+
+	return deleteClauses
+}
+
+// batchInsertAttributes function for batch inserting attributes
+func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid types.XID8, tenantID string, attributeCollection *database.AttributeCollection) error {
+	m := jsonpb.Marshaler{}
+	aiter := attributeCollection.CreateAttributeIterator()
+	for aiter.HasNext() {
+		a := aiter.GetNext()
+
+		jsonStr, err := m.MarshalToString(a.GetValue())
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(
+			"INSERT INTO attributes (entity_type, entity_id, attribute, value, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6)",
+			a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, xid, tenantID,
+		)
+	}
+	return nil
+}
+
+// batchUpdateAttributes function for batch updating attributes
+func (w *DataWriter) batchUpdateAttributes(batch *pgx.Batch, xid types.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
+	for _, condition := range deleteClauses {
+		query, args, err := w.database.Builder.Update(AttributesTable).
+			Set("expired_tx_id", xid).
+			Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID}).
+			Where(condition).
+			ToSql()
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(query, args...)
+	}
+	return nil
+}
+
+// buildDeleteClausesForAttributes function to build delete clauses for attributes
+func buildDeleteClausesForAttributes(attributeCollection *database.AttributeCollection) []squirrel.Eq {
+	deleteClauses := make([]squirrel.Eq, 0)
+
+	aiter := attributeCollection.CreateAttributeIterator()
+	for aiter.HasNext() {
+		a := aiter.GetNext()
+
+		condition := squirrel.Eq{
+			"entity_type": a.GetEntity().GetType(),
+			"entity_id":   a.GetEntity().GetId(),
+			"attribute":   a.GetAttribute(),
+		}
+
+		deleteClauses = append(deleteClauses, condition)
+	}
+
+	return deleteClauses
 }
