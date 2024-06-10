@@ -48,6 +48,8 @@ func NewConfigCommand() *cobra.Command {
 	f.String("authn-oidc-issuer", conf.Authn.Oidc.Issuer, "issuer identifier of the OpenID Connect Provider")
 	f.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "intended audience of the OpenID Connect token")
 	f.Duration("authn-oidc-refresh-interval", conf.Authn.Oidc.RefreshInterval, "refresh interval for the OpenID Connect configuration")
+	f.Duration("authn-oidc-backoff-interval", conf.Authn.Oidc.BackoffInterval, "backoff interval for the OpenID Connect configuration")
+	f.Int("authn-oidc-backoff-max-retries", conf.Authn.Oidc.BackoffMaxRetries, "defines the maximum number of retries for the OpenID Connect configuration")
 	f.StringSlice("authn-oidc-valid-methods", conf.Authn.Oidc.ValidMethods, "list of valid JWT signing methods for OpenID Connect")
 	f.Bool("tracer-enabled", conf.Tracer.Enabled, "switch option for tracing")
 	f.String("tracer-exporter", conf.Tracer.Exporter, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
@@ -149,8 +151,10 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"authn.preshared.keys", fmt.Sprintf("%v", HideSecrets(cfg.Authn.Preshared.Keys...)), getKeyOrigin(cmd, "authn-preshared-keys", "PERMIFY_AUTHN_PRESHARED_KEYS")},
 			[]string{"authn.oidc.issuer", HideSecret(cfg.Authn.Oidc.Issuer), getKeyOrigin(cmd, "authn-oidc-issuer", "PERMIFY_AUTHN_OIDC_ISSUER")},
 			[]string{"authn.oidc.audience", HideSecret(cfg.Authn.Oidc.Audience), getKeyOrigin(cmd, "authn-oidc-audience", "PERMIFY_AUTHN_OIDC_AUDIENCE")},
-			[]string{"authn.oidc.valid_methods", fmt.Sprintf("%v", cfg.Authn.Oidc.ValidMethods), getKeyOrigin(cmd, "authn-oidc-valid-methods", "PERMIFY_AUTHN_OIDC_VALID_METHODS")},
 			[]string{"authn.oidc.refresh_interval", fmt.Sprintf("%v", cfg.Authn.Oidc.RefreshInterval), getKeyOrigin(cmd, "authn-oidc-refresh-interval", "PERMIFY_AUTHN_OIDC_REFRESH_INTERVAL")},
+			[]string{"authn.oidc.backoff_interval", fmt.Sprintf("%v", cfg.Authn.Oidc.BackoffInterval), getKeyOrigin(cmd, "authn-oidc-backoff-interval", "PERMIFY_AUTHN_OIDC_BACKOFF_INTERVAL")},
+			[]string{"authn.oidc.backoff_max_retries", fmt.Sprintf("%v", cfg.Authn.Oidc.BackoffMaxRetries), getKeyOrigin(cmd, "authn-oidc-backoff-max-retries", "PERMIFY_AUTHN_OIDC_BACKOFF_RETRIES")},
+			[]string{"authn.oidc.valid_methods", fmt.Sprintf("%v", cfg.Authn.Oidc.ValidMethods), getKeyOrigin(cmd, "authn-oidc-valid-methods", "PERMIFY_AUTHN_OIDC_VALID_METHODS")},
 			// TRACER
 			[]string{"tracer.enabled", fmt.Sprintf("%v", cfg.Tracer.Enabled), getKeyOrigin(cmd, "tracer-enabled", "PERMIFY_TRACER_ENABLED")},
 			[]string{"tracer.exporter", cfg.Tracer.Exporter, getKeyOrigin(cmd, "tracer-exporter", "PERMIFY_TRACER_EXPORTER")},

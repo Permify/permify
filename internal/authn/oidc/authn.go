@@ -9,6 +9,9 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/lestrrat-go/backoff/v2"
 
 	"github.com/golang-jwt/jwt/v4"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
@@ -37,6 +40,10 @@ type Authn struct {
 	validMethods []string
 	// Pointer to a JWT parser object. This is used to parse and validate the JWT tokens.
 	jwtParser *jwt.Parser
+	// Duration of the interval between retries for the backoff policy.
+	backoffInterval time.Duration
+	// Maximum number of retries for the backoff policy.
+	backoffMaxRetries int
 }
 
 // NewOidcAuthn initializes a new instance of the Authn struct with OpenID Connect (OIDC) configuration.
@@ -44,7 +51,7 @@ type Authn struct {
 func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	// Create a new HTTP client with retry capabilities. This client is used for making HTTP requests, particularly for fetching OIDC configuration.
 	client := retryablehttp.NewClient()
-	client.Logger = OIDCSlogAdapter{Logger: slog.Default()}
+	client.Logger = SlogAdapter{Logger: slog.Default()}
 
 	// Fetch the OIDC configuration from the issuer's well-known configuration endpoint.
 	oidcConf, err := fetchOIDCConfiguration(client.StandardClient(), strings.TrimSuffix(conf.Issuer, "/")+"/.well-known/openid-configuration")
@@ -59,12 +66,14 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 
 	// Initialize the Authn struct with the OIDC configuration details and other relevant settings.
 	oidc := &Authn{
-		IssuerURL:    conf.Issuer,                                            // URL of the token issuer.
-		Audience:     conf.Audience,                                          // Intended audience of the token.
-		JwksURI:      oidcConf.JWKsURI,                                       // URL of the JWKS endpoint.
-		validMethods: conf.ValidMethods,                                      // List of acceptable signing methods for the tokens.
-		jwtParser:    jwt.NewParser(jwt.WithValidMethods(conf.ValidMethods)), // JWT parser configured with the valid signing methods.
-		jwksSet:      ar,                                                     // Set the JWKS auto-refresh instance.
+		IssuerURL:         conf.Issuer,                                            // URL of the token issuer.
+		Audience:          conf.Audience,                                          // Intended audience of the token.
+		JwksURI:           oidcConf.JWKsURI,                                       // URL of the JWKS endpoint.
+		validMethods:      conf.ValidMethods,                                      // List of acceptable signing methods for the tokens.
+		jwtParser:         jwt.NewParser(jwt.WithValidMethods(conf.ValidMethods)), // JWT parser configured with the valid signing methods.
+		jwksSet:           ar,                                                     // Set the JWKS auto-refresh instance.
+		backoffInterval:   conf.BackoffInterval,
+		backoffMaxRetries: conf.BackoffMaxRetries,
 	}
 
 	// Attempt to fetch the JWKS immediately to ensure it's available and valid.
@@ -98,33 +107,9 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 	parsedToken, err := oidc.jwtParser.Parse(authHeader, func(token *jwt.Token) (interface{}, error) {
 		slog.Info("starting JWT parsing and validation.")
 
-		// Fetch the public keys from the JWKS endpoint configured for the OIDC.
-		jwks, err := oidc.jwksSet.Fetch(requestContext, oidc.JwksURI)
-		if err != nil {
-			slog.Error("failed to fetch JWKS", "uri", oidc.JwksURI, "error", err)
-			// If fetching the JWKS fails, return an error.
-			return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
-		}
-
-		slog.Info("successfully fetched JWKS")
-
 		// Retrieve the key ID from the JWT header and find the corresponding key in the JWKS.
 		if keyID, ok := token.Header["kid"].(string); ok {
-			slog.Debug("attempting to find key in JWKS", "kid", keyID)
-
-			if key, found := jwks.LookupKeyID(keyID); found {
-				// If the key is found, convert it to a usable format.
-				var k interface{}
-				if err := key.Raw(&k); err != nil {
-					slog.Error("failed to get raw public key", "kid", keyID, "error", err)
-					return nil, fmt.Errorf("failed to get raw public key: %w", err)
-				}
-				slog.Debug("successfully obtained raw public key", "key", k)
-				return k, nil // Return the public key for JWT signature verification.
-			}
-			slog.Error("key ID not found in JWKS", "kid", keyID)
-			// If the specified key ID is not found in the JWKS, return an error.
-			return nil, fmt.Errorf("kid %s not found", keyID)
+			return oidc.getKeyWithRetry(keyID, requestContext)
 		}
 		slog.Error("jwt does not contain a key ID")
 		// If the JWT does not contain a key ID, return an error.
@@ -177,6 +162,78 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 
 	// If all validations pass, return nil indicating the token is valid.
 	return nil
+}
+
+// getKeyWithRetry attempts to retrieve the key for the given keyID with retries using a constant backoff strategy.
+func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface{}, error) {
+	// Attempt to fetch the key.
+	rawKey, err := oidc.fetchKey(keyID, ctx)
+	if err == nil {
+		// If the key is fetched successfully, return it.
+		return rawKey, nil
+	}
+
+	// Configure the backoff policy with a constant strategy.
+	backoffPolicy := backoff.Constant(
+		backoff.WithInterval(oidc.backoffInterval),
+		backoff.WithJitterFactor(0.5), // Jitter factor to randomize intervals
+		backoff.WithMaxRetries(oidc.backoffMaxRetries),
+	)
+
+	// Start the backoff policy.
+	b := backoffPolicy.Start(ctx)
+	for backoff.Continue(b) {
+		// Log a warning and refresh JWKS if there was an error.
+		slog.Warn("retrying to fetch JWKS due to error: ", err)
+		// Refresh the JWKS before the next retry.
+		if _, refreshErr := oidc.jwksSet.Refresh(ctx, oidc.JwksURI); refreshErr != nil {
+			slog.Error("failed to refresh JWKS", "error", refreshErr)
+			return nil, refreshErr
+		}
+		// Attempt to fetch the key.
+		rawKey, err := oidc.fetchKey(keyID, ctx)
+		if err == nil {
+			// If the key is fetched successfully, return it.
+			return rawKey, nil
+		}
+	}
+
+	// If all retries are exhausted, return an error.
+	return nil, errors.New("key ID not found in JWKS after retries")
+}
+
+// fetchKey attempts to fetch the JWKS and retrieve the key for the given keyID.
+func (oidc *Authn) fetchKey(keyID string, ctx context.Context) (interface{}, error) {
+	// Log the attempt to find the key.
+	slog.Debug("attempting to find key in JWKS", "kid", keyID)
+
+	// Fetch the JWKS from the configured URI.
+	jwks, err := oidc.jwksSet.Fetch(ctx, oidc.JwksURI)
+	if err != nil {
+		// Log an error and return if fetching fails.
+		slog.Error("failed to fetch JWKS", "uri", oidc.JwksURI, "error", err)
+		return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
+	}
+
+	// Log a successful fetch of the JWKS.
+	slog.Info("successfully fetched JWKS")
+
+	// Attempt to find the key in the fetched JWKS using the key ID.
+	if key, found := jwks.LookupKeyID(keyID); found {
+		var k interface{}
+		// Convert the key to a usable format.
+		if err := key.Raw(&k); err != nil {
+			// Log an error and return if conversion fails.
+			slog.Error("failed to get raw public key", "kid", keyID, "error", err)
+			return nil, fmt.Errorf("failed to get raw public key: %w", err)
+		}
+		// Log a successful retrieval of the raw public key.
+		slog.Debug("successfully obtained raw public key", "key", k)
+		return k, nil // Return the public key for JWT signature verification.
+	}
+	// Log an error if the key ID is not found in the JWKS.
+	slog.Error("key ID not found in JWKS", "kid", keyID)
+	return nil, fmt.Errorf("kid %s not found", keyID)
 }
 
 // Config holds OpenID Connect (OIDC) configuration details.
@@ -294,29 +351,4 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 
 	// Return the successfully parsed configuration.
 	return &oidcConfig, nil
-}
-
-// OIDCSlogAdapter adapts the slog.Logger to be compatible with retryablehttp.LeveledLogger.
-type OIDCSlogAdapter struct {
-	Logger *slog.Logger
-}
-
-// Error logs messages at error level.
-func (a OIDCSlogAdapter) Error(msg string, keysAndValues ...interface{}) {
-	a.Logger.Error(msg, keysAndValues...)
-}
-
-// Info logs messages at info level.
-func (a OIDCSlogAdapter) Info(msg string, keysAndValues ...interface{}) {
-	a.Logger.Info(msg, keysAndValues...)
-}
-
-// Debug logs messages at debug level.
-func (a OIDCSlogAdapter) Debug(msg string, keysAndValues ...interface{}) {
-	a.Logger.Info(msg, keysAndValues...)
-}
-
-// Warn logs messages at warn level.
-func (a OIDCSlogAdapter) Warn(msg string, keysAndValues ...interface{}) {
-	a.Logger.Warn(msg, keysAndValues...)
 }
