@@ -66,8 +66,10 @@ var _ = Describe("authn-oidc", func() {
 				// create oidc authenticator
 				ctx := context.Background()
 				auth, err := NewOidcAuthn(ctx, config.Oidc{
-					Audience: audience,
-					Issuer:   issuerURL,
+					Audience:          audience,
+					Issuer:            issuerURL,
+					BackoffInterval:   12 * time.Second,
+					BackoffMaxRetries: 5,
 				})
 				Expect(err).To(BeNil())
 
@@ -153,8 +155,10 @@ var _ = Describe("authn-oidc", func() {
 				// create oidc authenticator
 				ctx := context.Background()
 				auth, err := NewOidcAuthn(ctx, config.Oidc{
-					Audience: audience,
-					Issuer:   issuerURL,
+					Audience:          audience,
+					Issuer:            issuerURL,
+					BackoffInterval:   12 * time.Second,
+					BackoffMaxRetries: 5,
 				})
 				Expect(err).To(BeNil())
 
@@ -217,8 +221,10 @@ var _ = Describe("authn-oidc", func() {
 				// create authenticator
 				ctx := context.Background()
 				auth, err := NewOidcAuthn(ctx, config.Oidc{
-					Audience: audience,
-					Issuer:   issuerURL,
+					Audience:          audience,
+					Issuer:            issuerURL,
+					BackoffInterval:   12 * time.Second,
+					BackoffMaxRetries: 5,
 				})
 				Expect(err).To(BeNil())
 
@@ -234,8 +240,10 @@ var _ = Describe("authn-oidc", func() {
 	Context("Missing Config", func() {
 		It("Case 1", func() {
 			_, err := NewOidcAuthn(context.Background(), config.Oidc{
-				Audience: "",
-				Issuer:   "https://wrong-url",
+				Audience:          "",
+				Issuer:            "https://wrong-url",
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
 			},
 			)
 			Expect(err).ShouldNot(Equal(BeNil()))
@@ -247,8 +255,10 @@ var _ = Describe("authn-oidc", func() {
 			// create authenticator
 			ctx := context.Background()
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
-				Audience: audience,
-				Issuer:   issuerURL,
+				Audience:          audience,
+				Issuer:            issuerURL,
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
 			})
 			Expect(err).To(BeNil())
 
@@ -263,8 +273,10 @@ var _ = Describe("authn-oidc", func() {
 			// create authenticator
 			ctx := context.Background()
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
-				Audience: audience,
-				Issuer:   issuerURL,
+				Audience:          audience,
+				Issuer:            issuerURL,
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
 			})
 			Expect(err).To(BeNil())
 
@@ -278,8 +290,10 @@ var _ = Describe("authn-oidc", func() {
 			// create authenticator
 			ctx := context.Background()
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
-				Audience: audience,
-				Issuer:   issuerURL,
+				Audience:          audience,
+				Issuer:            issuerURL,
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
 			})
 			Expect(err).To(BeNil())
 

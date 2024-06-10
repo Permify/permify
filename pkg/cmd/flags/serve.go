@@ -181,6 +181,20 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("authn.oidc.backoff_interval", flags.Lookup("authn-oidc-backoff-interval")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("authn.oidc.backoff_interval", "PERMIFY_AUTHN_OIDC_BACKOFF_INTERVAL"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("authn.oidc.backoff_max_retries", flags.Lookup("authn-oidc-backoff-max-retries")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("authn.oidc.backoff_max_retries", "PERMIFY_AUTHN_OIDC_BACKOFF_RETRIES"); err != nil {
+		panic(err)
+	}
+
 	if err = viper.BindPFlag("authn.oidc.valid_methods", flags.Lookup("authn-oidc-valid-methods")); err != nil {
 		panic(err)
 	}
