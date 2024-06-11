@@ -19,7 +19,14 @@ var _ = Describe("authn-oidc", func() {
 	audience := "aud"
 	listenAddress := "localhost:9999"
 	issuerURL := "http://" + listenAddress
-	fakeOidcProvider, _ := newFakeOidcProvider(issuerURL)
+	fakeOidcProvider, _ := newFakeOidcProvider(ProviderConfig{
+		IssuerURL:    issuerURL,
+		AuthPath:     "/auth",
+		TokenPath:    "/token",
+		UserInfoPath: "/userInfo",
+		JWKSPath:     "/jwks",
+		Algorithms:   []string{"RS256", "HS256", "ES256", "PS256"},
+	})
 
 	var server *httptest.Server
 
@@ -233,6 +240,61 @@ var _ = Describe("authn-oidc", func() {
 				niceMd.Set("authorization", "Bearer "+idToken)
 				err = auth.Authenticate(niceMd.ToIncoming(ctx))
 				Expect(err != nil).To(Equal(tt.wantErr), fmt.Sprintf("Wanted error: %t, got %v", tt.wantErr, err))
+			}
+		})
+
+		It("Case 2", func() {
+			// create authenticator
+			ctx := context.Background()
+			auth, err := NewOidcAuthn(ctx, config.Oidc{
+				Audience:          audience,
+				Issuer:            issuerURL,
+				RefreshInterval:   5 * time.Minute,
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
+			})
+			Expect(err).To(BeNil())
+
+			tests := []struct {
+				name     string
+				method   jwt.SigningMethod
+				newKeyId string
+			}{
+				{
+					"Old KID not found, retry with new KID",
+					jwt.SigningMethodRS256,
+					"newkey",
+				},
+				{
+					"Old KID not found, retry with new KID",
+					jwt.SigningMethodRS256,
+					"keykey",
+				},
+			}
+
+			for _, tt := range tests {
+				fakeOidcProvider.UpdateKeyID(tt.method, tt.newKeyId)
+
+				now := time.Now()
+				claims := jwt.RegisteredClaims{
+					Issuer:    issuerURL,
+					Subject:   "user",
+					Audience:  []string{audience},
+					ExpiresAt: &jwt.NumericDate{Time: now.AddDate(1, 0, 0)},
+					IssuedAt:  &jwt.NumericDate{Time: now},
+				}
+
+				// create signed token from oidc provider possibly with kid in header
+				unsignedToken := createUnsignedToken(claims, tt.method)
+				unsignedToken.Header["kid"] = tt.newKeyId
+				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
+				Expect(err).To(BeNil())
+
+				// authenticate
+				niceMd := make(metautils.NiceMD)
+				niceMd.Set("authorization", "Bearer "+idToken)
+				err = auth.Authenticate(niceMd.ToIncoming(ctx))
+				Expect(err).Should(BeNil())
 			}
 		})
 	})
