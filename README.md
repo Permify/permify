@@ -1,10 +1,10 @@
 
 <h1 align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
-    Permify - Open Source Authorization Service
+    Permify - Open Source Fine-Grained Authorization
 </h1>
 <p align="center">
-    Seamlessly build and manage fine-grained and scalable access controls, saving engineers months of time.
+    Seamlessly implement fine-grained, scalable and extensible authorization within minutes to days instead of months.
 </p>
 
 <p align="center">
