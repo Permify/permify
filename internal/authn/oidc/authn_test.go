@@ -412,16 +412,19 @@ var _ = Describe("authn-oidc", func() {
 			createTokenWithKid := func(kid string) (string, error) {
 				now := time.Now()
 				claims := jwt.RegisteredClaims{
-					Issuer:    issuerURL,
+					Issuer:    auth.IssuerURL,
 					Subject:   "user",
-					Audience:  []string{audience},
+					Audience:  []string{auth.Audience},
 					ExpiresAt: &jwt.NumericDate{Time: now.AddDate(1, 0, 0)},
 					IssuedAt:  &jwt.NumericDate{Time: now},
 				}
 
-				token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-				token.Header["kid"] = kid
-				return token.SignedString([]byte("test-secret")) // You may need to use a valid signing method and key here
+				// create signed token from oidc server with overridden claims
+				unsignedToken := createUnsignedToken(claims, jwt.SigningMethodRS256)
+				unsignedToken.Header["kid"] = kid
+				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
+				Expect(err).To(BeNil())
+				return idToken, nil
 			}
 
 			// Step 1: Trigger backoff by hitting max retries with invalid keys concurrently
@@ -431,9 +434,9 @@ var _ = Describe("authn-oidc", func() {
 					defer wg.Done()
 					keyID := invalidKeyIDs[i%len(invalidKeyIDs)]
 					token, _ := createTokenWithKid(keyID)
-					md := metadata.Pairs("authorization", "Bearer "+token)
-					ctx := metadata.NewIncomingContext(ctx, md)
-					err := auth.Authenticate(ctx)
+					niceMd := make(metautils.NiceMD)
+					niceMd.Set("authorization", "Bearer "+token)
+					err := auth.Authenticate(niceMd.ToIncoming(ctx))
 					Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
 				}(i)
 			}
@@ -454,18 +457,21 @@ var _ = Describe("authn-oidc", func() {
 
 			// Step 4: Test with a valid KID after backoff
 			validKeyID := "validkey"
+
+			fakeOidcProvider.UpdateKeyID(jwt.SigningMethodRS256, validKeyID)
+
 			validToken, _ := createTokenWithKid(validKeyID)
-			md := metadata.Pairs("authorization", "Bearer "+validToken)
-			ctx = metadata.NewIncomingContext(ctx, md)
-			err = auth.Authenticate(ctx)
-			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+			niceMd := make(metautils.NiceMD)
+			niceMd.Set("authorization", "Bearer "+validToken)
+			err = auth.Authenticate(niceMd.ToIncoming(ctx))
+			Expect(err).Should(BeNil())
 
 			// Step 5: Ensure that invalid keys are still rejected after backoff period
 			for _, keyID := range invalidKeyIDs {
 				token, _ := createTokenWithKid(keyID)
-				md := metadata.Pairs("authorization", "Bearer "+token)
-				ctx := metadata.NewIncomingContext(ctx, md)
-				err := auth.Authenticate(ctx)
+				niceMd := make(metautils.NiceMD)
+				niceMd.Set("authorization", "Bearer "+token)
+				err = auth.Authenticate(niceMd.ToIncoming(ctx))
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
 			}
 		})
@@ -496,23 +502,44 @@ var _ = Describe("authn-oidc", func() {
 					IssuedAt:  &jwt.NumericDate{Time: now},
 				}
 
-				token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-				token.Header["kid"] = kid
-				return token.SignedString([]byte("test-secret")) // You may need to use a valid signing method and key here
+				// create signed token from oidc server with overridden claims
+				unsignedToken := createUnsignedToken(claims, jwt.SigningMethodRS256)
+				unsignedToken.Header["kid"] = kid
+				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
+				Expect(err).To(BeNil())
+				return idToken, nil
 			}
 
-			// Trigger max retries by hitting invalid key multiple times
+			// Step 1: Trigger max retries by hitting invalid key multiple times
 			for i := 0; i <= auth.backoffMaxRetries; i++ {
 				token, _ := createTokenWithKid(invalidKeyID)
-				md := metadata.Pairs("authorization", "Bearer "+token)
-				ctx := metadata.NewIncomingContext(ctx, md)
-				err := auth.Authenticate(ctx)
+				niceMd := make(metautils.NiceMD)
+				niceMd.Set("authorization", "Bearer "+token)
+				err = auth.Authenticate(niceMd.ToIncoming(ctx))
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
 			}
 
-			// Try to fetch once after max retries reached
+			// Step 2: Try to fetch once after max retries reached
 			token, _ := createTokenWithKid(invalidKeyID)
 			md := metadata.Pairs("authorization", "Bearer "+token)
+			ctx = metadata.NewIncomingContext(ctx, md)
+			err = auth.Authenticate(ctx)
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+
+			validKeyID := "validkey"
+
+			fakeOidcProvider.UpdateKeyID(jwt.SigningMethodRS256, validKeyID)
+
+			// Step 3: Try with a valid key to ensure it resets the state
+			validToken, _ := createTokenWithKid(validKeyID)
+			niceMd := make(metautils.NiceMD)
+			niceMd.Set("authorization", "Bearer "+validToken)
+			err = auth.Authenticate(niceMd.ToIncoming(ctx))
+			Expect(err).Should(BeNil())
+
+			// Step 4: Ensure invalid keys are still rejected after state reset
+			token, _ = createTokenWithKid(invalidKeyID)
+			md = metadata.Pairs("authorization", "Bearer "+token)
 			ctx = metadata.NewIncomingContext(ctx, md)
 			err = auth.Authenticate(ctx)
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))

@@ -73,19 +73,16 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	// Validate and set backoffInterval, backoffMaxRetries, and backoffFrequency
 	backoffInterval := conf.BackoffInterval
 	if backoffInterval <= 0 {
-		slog.Error("Invalid or missing backoffInterval, must be greater than 0")
 		return nil, errors.New("invalid or missing backoffInterval")
 	}
 
 	backoffMaxRetries := conf.BackoffMaxRetries
 	if backoffMaxRetries <= 0 {
-		slog.Error("Invalid or missing backoffMaxRetries, must be greater than 0")
 		return nil, errors.New("invalid or missing backoffMaxRetries")
 	}
 
 	backoffFrequency := conf.BackoffFrequency
 	if backoffFrequency <= 0 {
-		slog.Error("Invalid or missing backoffFrequency, must be greater than 0")
 		return nil, errors.New("invalid or missing backoffFrequency")
 	}
 
@@ -254,8 +251,8 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 			return rawKey, nil
 		}
 
-		retries++
 		slog.Warn("retrying to fetch JWKS due to error", "keyID", keyID, "retries", retries, "error", err)
+		retries++
 
 		oidc.mu.Lock()
 		oidc.globalRetryCount++
@@ -300,7 +297,6 @@ func (oidc *Authn) fetchKey(keyID string, ctx context.Context) (interface{}, err
 		var k interface{}
 		// Convert the key to a usable format.
 		if err := key.Raw(&k); err != nil {
-			// Log an error and return if conversion fails.
 			slog.Error("failed to get raw public key", "kid", keyID, "error", err)
 			return nil, fmt.Errorf("failed to get raw public key: %w", err)
 		}
@@ -336,7 +332,6 @@ func fetchOIDCConfiguration(client *http.Client, url string) (*Config, error) {
 	// This involves unmarshalling the JSON into a struct that matches the expected fields of the OIDC configuration.
 	oidcConfig, err := parseOIDCConfiguration(body)
 	if err != nil {
-		// If there is an error in parsing the JSON response (missing fields, incorrect format, etc.), return nil and the error.
 		return nil, err
 	}
 
@@ -352,7 +347,6 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	// Create a new HTTP GET request.
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		// Log the error if creating the HTTP request fails
 		slog.Error("failed to create HTTP request", "url", url, "error", err)
 		return nil, fmt.Errorf("failed to create HTTP request for OIDC configuration: %s", err)
 	}
@@ -376,7 +370,6 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 
 	// Check if the HTTP status code indicates success.
 	if res.StatusCode != http.StatusOK {
-		// Log the unexpected status code
 		slog.Warn("received unexpected status code", "status_code", res.StatusCode, "url", url)
 		return nil, fmt.Errorf("received unexpected status code (%d) while fetching OIDC configuration", res.StatusCode)
 	}
@@ -387,7 +380,6 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	// Read the response body.
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		// Log the error if reading the response body fails
 		slog.Error("failed to read response body", "url", url, "error", err)
 		return nil, fmt.Errorf("failed to read response body from OIDC configuration request: %s", err)
 	}
@@ -404,7 +396,6 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	var oidcConfig Config
 	// Attempt to unmarshal the JSON body into the oidcConfig struct.
 	if err := json.Unmarshal(body, &oidcConfig); err != nil {
-		// Log the error if unmarshalling
 		slog.Error("failed to unmarshal OIDC configuration", "error", err)
 		return nil, fmt.Errorf("failed to decode OIDC configuration: %s", err)
 	}
@@ -412,13 +403,11 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	slog.Debug("successfully decoded OIDC configuration")
 
 	if oidcConfig.Issuer == "" {
-		// Log missing issuer value
 		slog.Warn("missing issuer value in OIDC configuration")
 		return nil, errors.New("issuer value is required but missing in OIDC configuration")
 	}
 
 	if oidcConfig.JWKsURI == "" {
-		// Log missing JWKsURI value
 		slog.Warn("missing JWKsURI value in OIDC configuration")
 		return nil, errors.New("JWKsURI value is required but missing in OIDC configuration")
 	}
