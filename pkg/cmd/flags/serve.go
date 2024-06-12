@@ -195,6 +195,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("authn.oidc.backoff_frequency", flags.Lookup("authn-oidc-backoff-frequency")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("authn.oidc.backoff_frequency", "PERMIFY_AUTHN_OIDC_BACKOFF_FREQUENCY"); err != nil {
+		panic(err)
+	}
+
 	if err = viper.BindPFlag("authn.oidc.valid_methods", flags.Lookup("authn-oidc-valid-methods")); err != nil {
 		panic(err)
 	}

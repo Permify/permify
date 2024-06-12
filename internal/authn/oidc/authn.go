@@ -9,9 +9,8 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
-
-	"github.com/lestrrat-go/backoff/v2"
 
 	"github.com/golang-jwt/jwt/v4"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
@@ -44,6 +43,13 @@ type Authn struct {
 	backoffInterval time.Duration
 	// Maximum number of retries for the backoff policy.
 	backoffMaxRetries int
+
+	backoffFrequency time.Duration
+
+	// Global backoff state
+	globalRetryCount int
+	globalFirstSeen  time.Time
+	mu               sync.Mutex
 }
 
 // NewOidcAuthn initializes a new instance of the Authn struct with OpenID Connect (OIDC) configuration.
@@ -64,6 +70,22 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	ar := jwk.NewAutoRefresh(ctx)                                                                                              // Create a new AutoRefresh instance for the JWKS.
 	ar.Configure(oidcConf.JWKsURI, jwk.WithHTTPClient(client.StandardClient()), jwk.WithRefreshInterval(conf.RefreshInterval)) // Configure the auto-refresh parameters.
 
+	// Validate and set backoffInterval, backoffMaxRetries, and backoffFrequency
+	backoffInterval := conf.BackoffInterval
+	if backoffInterval <= 0 {
+		return nil, errors.New("invalid or missing backoffInterval")
+	}
+
+	backoffMaxRetries := conf.BackoffMaxRetries
+	if backoffMaxRetries <= 0 {
+		return nil, errors.New("invalid or missing backoffMaxRetries")
+	}
+
+	backoffFrequency := conf.BackoffFrequency
+	if backoffFrequency <= 0 {
+		return nil, errors.New("invalid or missing backoffFrequency")
+	}
+
 	// Initialize the Authn struct with the OIDC configuration details and other relevant settings.
 	oidc := &Authn{
 		IssuerURL:         conf.Issuer,                                            // URL of the token issuer.
@@ -72,8 +94,12 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 		validMethods:      conf.ValidMethods,                                      // List of acceptable signing methods for the tokens.
 		jwtParser:         jwt.NewParser(jwt.WithValidMethods(conf.ValidMethods)), // JWT parser configured with the valid signing methods.
 		jwksSet:           ar,                                                     // Set the JWKS auto-refresh instance.
-		backoffInterval:   conf.BackoffInterval,
-		backoffMaxRetries: conf.BackoffMaxRetries,
+		backoffInterval:   backoffInterval,
+		backoffMaxRetries: backoffMaxRetries,
+		backoffFrequency:  backoffFrequency,
+		globalRetryCount:  0,
+		globalFirstSeen:   time.Time{},
+		mu:                sync.Mutex{},
 	}
 
 	// Attempt to fetch the JWKS immediately to ensure it's available and valid.
@@ -164,41 +190,89 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 	return nil
 }
 
-// getKeyWithRetry attempts to retrieve the key for the given keyID with retries using a constant backoff strategy.
+// getKeyWithRetry attempts to retrieve the key for the given keyID with retries using a custom backoff strategy.
 func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface{}, error) {
-	// Attempt to fetch the key.
-	rawKey, err := oidc.fetchKey(keyID, ctx)
-	if err == nil {
-		// If the key is fetched successfully, return it.
-		return rawKey, nil
+	var rawKey interface{}
+	var err error
+
+	oidc.mu.Lock()
+	now := time.Now()
+
+	// Reset global state if the interval has passed
+	if oidc.globalFirstSeen.IsZero() || time.Since(oidc.globalFirstSeen) >= oidc.backoffInterval {
+		slog.Info("resetting state as interval has passed or first seen is zero", "keyID", keyID)
+		oidc.globalFirstSeen = now
+		oidc.globalRetryCount = 0
+	} else if oidc.globalRetryCount >= oidc.backoffMaxRetries {
+		// If max retries reached within the interval, unlock and check keyID once
+		slog.Warn("max retries reached within interval, will check keyID once", "keyID", keyID)
+		oidc.mu.Unlock()
+
+		// Try to fetch the keyID once
+		rawKey, err = oidc.fetchKey(keyID, ctx)
+		if err == nil {
+			// Reset global backoff state if a valid key is found
+			slog.Info("valid key found during backoff period, resetting state", "keyID", keyID)
+			oidc.mu.Lock()
+			oidc.globalRetryCount = 0
+			oidc.globalFirstSeen = time.Time{}
+			oidc.mu.Unlock()
+			return rawKey, nil
+		}
+
+		// Log the failure and return an error if keyID is not found
+		slog.Error("failed to fetch key during backoff period", "keyID", keyID, "error", err)
+		return nil, errors.New("too many attempts, backoff in effect")
 	}
+	oidc.mu.Unlock()
 
-	// Configure the backoff policy with a constant strategy.
-	backoffPolicy := backoff.Constant(
-		backoff.WithInterval(oidc.backoffInterval),
-		backoff.WithJitterFactor(0.5), // Jitter factor to randomize intervals
-		backoff.WithMaxRetries(oidc.backoffMaxRetries),
-	)
+	// Retry mechanism
+	retries := 0
+	for retries <= oidc.backoffMaxRetries {
+		if retries > 0 {
+			select {
+			case <-time.After(oidc.backoffFrequency):
+				// Log the wait before retrying
+				slog.Info("waiting before retrying", "keyID", keyID, "retries", retries)
+			case <-ctx.Done():
+				slog.Error("context cancelled during retry", "keyID", keyID)
+				return nil, ctx.Err()
+			}
+		}
 
-	// Start the backoff policy.
-	b := backoffPolicy.Start(ctx)
-	for backoff.Continue(b) {
-		// Log a warning and refresh JWKS if there was an error.
-		slog.Warn("retrying to fetch JWKS due to error: ", err)
-		// Refresh the JWKS before the next retry.
+		rawKey, err = oidc.fetchKey(keyID, ctx)
+		if err == nil {
+			// Log the successful key fetch and reset global state
+			slog.Info("successfully fetched key", "keyID", keyID)
+			oidc.mu.Lock()
+			oidc.globalRetryCount = 0
+			oidc.globalFirstSeen = time.Time{}
+			oidc.mu.Unlock()
+			return rawKey, nil
+		}
+
+		slog.Warn("retrying to fetch JWKS due to error", "keyID", keyID, "retries", retries, "error", err)
+		retries++
+
+		oidc.mu.Lock()
+		oidc.globalRetryCount++
+		oidc.mu.Unlock()
+
 		if _, refreshErr := oidc.jwksSet.Refresh(ctx, oidc.JwksURI); refreshErr != nil {
 			slog.Error("failed to refresh JWKS", "error", refreshErr)
 			return nil, refreshErr
 		}
-		// Attempt to fetch the key.
-		rawKey, err := oidc.fetchKey(keyID, ctx)
-		if err == nil {
-			// If the key is fetched successfully, return it.
-			return rawKey, nil
-		}
 	}
 
-	// If all retries are exhausted, return an error.
+	// Mark the global state to prevent further retries for the backoff interval
+	oidc.mu.Lock()
+	if time.Since(oidc.globalFirstSeen) < oidc.backoffInterval {
+		slog.Warn("marking state to prevent further retries", "keyID", keyID)
+		oidc.globalRetryCount = oidc.backoffMaxRetries
+	}
+	oidc.mu.Unlock()
+
+	slog.Error("key ID not found in JWKS after retries", "keyID", keyID)
 	return nil, errors.New("key ID not found in JWKS after retries")
 }
 
@@ -223,7 +297,6 @@ func (oidc *Authn) fetchKey(keyID string, ctx context.Context) (interface{}, err
 		var k interface{}
 		// Convert the key to a usable format.
 		if err := key.Raw(&k); err != nil {
-			// Log an error and return if conversion fails.
 			slog.Error("failed to get raw public key", "kid", keyID, "error", err)
 			return nil, fmt.Errorf("failed to get raw public key: %w", err)
 		}
@@ -259,7 +332,6 @@ func fetchOIDCConfiguration(client *http.Client, url string) (*Config, error) {
 	// This involves unmarshalling the JSON into a struct that matches the expected fields of the OIDC configuration.
 	oidcConfig, err := parseOIDCConfiguration(body)
 	if err != nil {
-		// If there is an error in parsing the JSON response (missing fields, incorrect format, etc.), return nil and the error.
 		return nil, err
 	}
 
@@ -275,7 +347,6 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	// Create a new HTTP GET request.
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		// Log the error if creating the HTTP request fails
 		slog.Error("failed to create HTTP request", "url", url, "error", err)
 		return nil, fmt.Errorf("failed to create HTTP request for OIDC configuration: %s", err)
 	}
@@ -299,7 +370,6 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 
 	// Check if the HTTP status code indicates success.
 	if res.StatusCode != http.StatusOK {
-		// Log the unexpected status code
 		slog.Warn("received unexpected status code", "status_code", res.StatusCode, "url", url)
 		return nil, fmt.Errorf("received unexpected status code (%d) while fetching OIDC configuration", res.StatusCode)
 	}
@@ -310,7 +380,6 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	// Read the response body.
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		// Log the error if reading the response body fails
 		slog.Error("failed to read response body", "url", url, "error", err)
 		return nil, fmt.Errorf("failed to read response body from OIDC configuration request: %s", err)
 	}
@@ -327,7 +396,6 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	var oidcConfig Config
 	// Attempt to unmarshal the JSON body into the oidcConfig struct.
 	if err := json.Unmarshal(body, &oidcConfig); err != nil {
-		// Log the error if unmarshalling
 		slog.Error("failed to unmarshal OIDC configuration", "error", err)
 		return nil, fmt.Errorf("failed to decode OIDC configuration: %s", err)
 	}
@@ -335,13 +403,11 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	slog.Debug("successfully decoded OIDC configuration")
 
 	if oidcConfig.Issuer == "" {
-		// Log missing issuer value
 		slog.Warn("missing issuer value in OIDC configuration")
 		return nil, errors.New("issuer value is required but missing in OIDC configuration")
 	}
 
 	if oidcConfig.JWKsURI == "" {
-		// Log missing JWKsURI value
 		slog.Warn("missing JWKsURI value in OIDC configuration")
 		return nil, errors.New("JWKsURI value is required but missing in OIDC configuration")
 	}

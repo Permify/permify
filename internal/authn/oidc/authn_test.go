@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http/httptest"
+	"sync"
 	"time"
+
+	"google.golang.org/grpc/metadata"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
@@ -75,8 +78,10 @@ var _ = Describe("authn-oidc", func() {
 				auth, err := NewOidcAuthn(ctx, config.Oidc{
 					Audience:          audience,
 					Issuer:            issuerURL,
+					RefreshInterval:   5 * time.Minute,
 					BackoffInterval:   12 * time.Second,
 					BackoffMaxRetries: 5,
+					BackoffFrequency:  5 * time.Second,
 				})
 				Expect(err).To(BeNil())
 
@@ -164,8 +169,10 @@ var _ = Describe("authn-oidc", func() {
 				auth, err := NewOidcAuthn(ctx, config.Oidc{
 					Audience:          audience,
 					Issuer:            issuerURL,
+					RefreshInterval:   5 * time.Minute,
 					BackoffInterval:   12 * time.Second,
 					BackoffMaxRetries: 5,
+					BackoffFrequency:  5 * time.Second,
 				})
 				Expect(err).To(BeNil())
 
@@ -230,8 +237,10 @@ var _ = Describe("authn-oidc", func() {
 				auth, err := NewOidcAuthn(ctx, config.Oidc{
 					Audience:          audience,
 					Issuer:            issuerURL,
+					RefreshInterval:   5 * time.Minute,
 					BackoffInterval:   12 * time.Second,
 					BackoffMaxRetries: 5,
+					BackoffFrequency:  5 * time.Second,
 				})
 				Expect(err).To(BeNil())
 
@@ -250,8 +259,9 @@ var _ = Describe("authn-oidc", func() {
 				Audience:          audience,
 				Issuer:            issuerURL,
 				RefreshInterval:   5 * time.Minute,
-				BackoffInterval:   12 * time.Second,
+				BackoffInterval:   1 * time.Minute,
 				BackoffMaxRetries: 5,
+				BackoffFrequency:  12 * time.Second,
 			})
 			Expect(err).To(BeNil())
 
@@ -297,6 +307,243 @@ var _ = Describe("authn-oidc", func() {
 				Expect(err).Should(BeNil())
 			}
 		})
+
+		It("Case 3: Complex test for maximum retries and backoff interval", func() {
+			// create authenticator
+			ctx := context.Background()
+			auth, err := NewOidcAuthn(ctx, config.Oidc{
+				Audience:          audience,
+				Issuer:            issuerURL,
+				RefreshInterval:   5 * time.Minute,
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
+				BackoffFrequency:  5 * time.Second,
+			})
+			Expect(err).To(BeNil())
+
+			tests := []struct {
+				name     string
+				method   jwt.SigningMethod
+				newKeyId string
+			}{
+				{
+					"Invalid KID, should retry and fail",
+					jwt.SigningMethodRS256,
+					"invalidkey1",
+				},
+				{
+					"Invalid KID, should retry and fail",
+					jwt.SigningMethodRS256,
+					"invalidkey2",
+				},
+			}
+
+			for _, tt := range tests {
+				now := time.Now()
+				claims := jwt.RegisteredClaims{
+					Issuer:    issuerURL,
+					Subject:   "user",
+					Audience:  []string{audience},
+					ExpiresAt: &jwt.NumericDate{Time: now.AddDate(1, 0, 0)},
+					IssuedAt:  &jwt.NumericDate{Time: now},
+				}
+
+				// create signed token from oidc provider with invalid kid in header
+				unsignedToken := createUnsignedToken(claims, tt.method)
+				unsignedToken.Header["kid"] = tt.newKeyId
+				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
+				Expect(err).To(BeNil())
+
+				// authenticate with retries
+				niceMd := make(metautils.NiceMD)
+				niceMd.Set("authorization", "Bearer "+idToken)
+				err = auth.Authenticate(niceMd.ToIncoming(ctx))
+				Expect(err).ShouldNot(BeNil())
+			}
+
+			// Wait for the backoff interval to expire
+			time.Sleep(13 * time.Second)
+
+			// Test with a valid KID after backoff
+			validKeyID := "validkey"
+			fakeOidcProvider.UpdateKeyID(jwt.SigningMethodRS256, validKeyID)
+
+			now := time.Now()
+			claims := jwt.RegisteredClaims{
+				Issuer:    issuerURL,
+				Subject:   "user",
+				Audience:  []string{audience},
+				ExpiresAt: &jwt.NumericDate{Time: now.AddDate(1, 0, 0)},
+				IssuedAt:  &jwt.NumericDate{Time: now},
+			}
+
+			// create signed token from oidc provider with valid kid in header
+			unsignedToken := createUnsignedToken(claims, jwt.SigningMethodRS256)
+			unsignedToken.Header["kid"] = validKeyID
+			idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
+			Expect(err).To(BeNil())
+
+			// authenticate with valid kid
+			niceMd := make(metautils.NiceMD)
+			niceMd.Set("authorization", "Bearer "+idToken)
+			err = auth.Authenticate(niceMd.ToIncoming(ctx))
+			Expect(err).Should(BeNil())
+		})
+
+		It("Case 4: Concurrent requests leading to global backoff lock for 1 minute", func() {
+			// create authenticator
+			ctx := context.Background()
+			auth, err := NewOidcAuthn(ctx, config.Oidc{
+				Audience:          audience,
+				Issuer:            issuerURL,
+				RefreshInterval:   5 * time.Minute,
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
+				BackoffFrequency:  5 * time.Second,
+			})
+			Expect(err).To(BeNil())
+
+			invalidKeyIDs := []string{"invalidkey1", "invalidkey2"}
+
+			var wg sync.WaitGroup
+			numRequests := len(invalidKeyIDs) * 5 // Send each invalid key multiple times to ensure retries are hit
+
+			// Helper function to create a token with the specified key ID
+			createTokenWithKid := func(kid string) (string, error) {
+				now := time.Now()
+				claims := jwt.RegisteredClaims{
+					Issuer:    auth.IssuerURL,
+					Subject:   "user",
+					Audience:  []string{auth.Audience},
+					ExpiresAt: &jwt.NumericDate{Time: now.AddDate(1, 0, 0)},
+					IssuedAt:  &jwt.NumericDate{Time: now},
+				}
+
+				// create signed token from oidc server with overridden claims
+				unsignedToken := createUnsignedToken(claims, jwt.SigningMethodRS256)
+				unsignedToken.Header["kid"] = kid
+				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
+				Expect(err).To(BeNil())
+				return idToken, nil
+			}
+
+			// Step 1: Trigger backoff by hitting max retries with invalid keys concurrently
+			for i := 0; i < numRequests; i++ {
+				wg.Add(1)
+				go func(i int) {
+					defer wg.Done()
+					keyID := invalidKeyIDs[i%len(invalidKeyIDs)]
+					token, _ := createTokenWithKid(keyID)
+					niceMd := make(metautils.NiceMD)
+					niceMd.Set("authorization", "Bearer "+token)
+					err := auth.Authenticate(niceMd.ToIncoming(ctx))
+					Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+				}(i)
+			}
+
+			wg.Wait()
+
+			// Step 2: Verify that retries are immediately rejected during backoff period
+			for _, keyID := range invalidKeyIDs {
+				token, _ := createTokenWithKid(keyID)
+				md := metadata.Pairs("authorization", "Bearer "+token)
+				ctx := metadata.NewIncomingContext(ctx, md)
+				err := auth.Authenticate(ctx)
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+			}
+
+			// Step 3: Wait for the backoff interval to expire
+			time.Sleep(13 * time.Second)
+
+			// Step 4: Test with a valid KID after backoff
+			validKeyID := "validkey"
+
+			fakeOidcProvider.UpdateKeyID(jwt.SigningMethodRS256, validKeyID)
+
+			validToken, _ := createTokenWithKid(validKeyID)
+			niceMd := make(metautils.NiceMD)
+			niceMd.Set("authorization", "Bearer "+validToken)
+			err = auth.Authenticate(niceMd.ToIncoming(ctx))
+			Expect(err).Should(BeNil())
+
+			// Step 5: Ensure that invalid keys are still rejected after backoff period
+			for _, keyID := range invalidKeyIDs {
+				token, _ := createTokenWithKid(keyID)
+				niceMd := make(metautils.NiceMD)
+				niceMd.Set("authorization", "Bearer "+token)
+				err = auth.Authenticate(niceMd.ToIncoming(ctx))
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+			}
+		})
+
+		It("Case 5", func() {
+			// create authenticator
+			ctx := context.Background()
+			auth, err := NewOidcAuthn(ctx, config.Oidc{
+				Audience:          audience,
+				Issuer:            issuerURL,
+				RefreshInterval:   5 * time.Minute,
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
+				BackoffFrequency:  5 * time.Second,
+			})
+			Expect(err).To(BeNil())
+
+			invalidKeyID := "invalidkey"
+
+			// Helper function to create a token with the specified key ID
+			createTokenWithKid := func(kid string) (string, error) {
+				now := time.Now()
+				claims := jwt.RegisteredClaims{
+					Issuer:    auth.IssuerURL,
+					Subject:   "user",
+					Audience:  []string{auth.Audience},
+					ExpiresAt: &jwt.NumericDate{Time: now.AddDate(1, 0, 0)},
+					IssuedAt:  &jwt.NumericDate{Time: now},
+				}
+
+				// create signed token from oidc server with overridden claims
+				unsignedToken := createUnsignedToken(claims, jwt.SigningMethodRS256)
+				unsignedToken.Header["kid"] = kid
+				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
+				Expect(err).To(BeNil())
+				return idToken, nil
+			}
+
+			// Step 1: Trigger max retries by hitting invalid key multiple times
+			for i := 0; i <= auth.backoffMaxRetries; i++ {
+				token, _ := createTokenWithKid(invalidKeyID)
+				niceMd := make(metautils.NiceMD)
+				niceMd.Set("authorization", "Bearer "+token)
+				err = auth.Authenticate(niceMd.ToIncoming(ctx))
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+			}
+
+			// Step 2: Try to fetch once after max retries reached
+			token, _ := createTokenWithKid(invalidKeyID)
+			md := metadata.Pairs("authorization", "Bearer "+token)
+			ctx = metadata.NewIncomingContext(ctx, md)
+			err = auth.Authenticate(ctx)
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+
+			validKeyID := "validkey"
+
+			fakeOidcProvider.UpdateKeyID(jwt.SigningMethodRS256, validKeyID)
+
+			// Step 3: Try with a valid key to ensure it resets the state
+			validToken, _ := createTokenWithKid(validKeyID)
+			niceMd := make(metautils.NiceMD)
+			niceMd.Set("authorization", "Bearer "+validToken)
+			err = auth.Authenticate(niceMd.ToIncoming(ctx))
+			Expect(err).Should(BeNil())
+
+			// Step 4: Ensure invalid keys are still rejected after state reset
+			token, _ = createTokenWithKid(invalidKeyID)
+			md = metadata.Pairs("authorization", "Bearer "+token)
+			ctx = metadata.NewIncomingContext(ctx, md)
+			err = auth.Authenticate(ctx)
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+		})
 	})
 
 	Context("Missing Config", func() {
@@ -304,8 +551,10 @@ var _ = Describe("authn-oidc", func() {
 			_, err := NewOidcAuthn(context.Background(), config.Oidc{
 				Audience:          "",
 				Issuer:            "https://wrong-url",
+				RefreshInterval:   5 * time.Minute,
 				BackoffInterval:   12 * time.Second,
 				BackoffMaxRetries: 5,
+				BackoffFrequency:  5 * time.Second,
 			},
 			)
 			Expect(err).ShouldNot(Equal(BeNil()))
@@ -319,8 +568,10 @@ var _ = Describe("authn-oidc", func() {
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
 				Audience:          audience,
 				Issuer:            issuerURL,
+				RefreshInterval:   5 * time.Minute,
 				BackoffInterval:   12 * time.Second,
 				BackoffMaxRetries: 5,
+				BackoffFrequency:  5 * time.Second,
 			})
 			Expect(err).To(BeNil())
 
@@ -337,8 +588,10 @@ var _ = Describe("authn-oidc", func() {
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
 				Audience:          audience,
 				Issuer:            issuerURL,
+				RefreshInterval:   5 * time.Minute,
 				BackoffInterval:   12 * time.Second,
 				BackoffMaxRetries: 5,
+				BackoffFrequency:  5 * time.Second,
 			})
 			Expect(err).To(BeNil())
 
@@ -354,8 +607,10 @@ var _ = Describe("authn-oidc", func() {
 			auth, err := NewOidcAuthn(ctx, config.Oidc{
 				Audience:          audience,
 				Issuer:            issuerURL,
+				RefreshInterval:   5 * time.Minute,
 				BackoffInterval:   12 * time.Second,
 				BackoffMaxRetries: 5,
+				BackoffFrequency:  5 * time.Second,
 			})
 			Expect(err).To(BeNil())
 
