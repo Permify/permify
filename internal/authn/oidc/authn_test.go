@@ -469,6 +469,54 @@ var _ = Describe("authn-oidc", func() {
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
 			}
 		})
+
+		It("Case 5", func() {
+			// create authenticator
+			ctx := context.Background()
+			auth, err := NewOidcAuthn(ctx, config.Oidc{
+				Audience:          audience,
+				Issuer:            issuerURL,
+				RefreshInterval:   5 * time.Minute,
+				BackoffInterval:   12 * time.Second,
+				BackoffMaxRetries: 5,
+				BackoffFrequency:  5 * time.Second,
+			})
+			Expect(err).To(BeNil())
+
+			invalidKeyID := "invalidkey"
+
+			// Helper function to create a token with the specified key ID
+			createTokenWithKid := func(kid string) (string, error) {
+				now := time.Now()
+				claims := jwt.RegisteredClaims{
+					Issuer:    auth.IssuerURL,
+					Subject:   "user",
+					Audience:  []string{auth.Audience},
+					ExpiresAt: &jwt.NumericDate{Time: now.AddDate(1, 0, 0)},
+					IssuedAt:  &jwt.NumericDate{Time: now},
+				}
+
+				token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+				token.Header["kid"] = kid
+				return token.SignedString([]byte("test-secret")) // You may need to use a valid signing method and key here
+			}
+
+			// Trigger max retries by hitting invalid key multiple times
+			for i := 0; i <= auth.backoffMaxRetries; i++ {
+				token, _ := createTokenWithKid(invalidKeyID)
+				md := metadata.Pairs("authorization", "Bearer "+token)
+				ctx := metadata.NewIncomingContext(ctx, md)
+				err := auth.Authenticate(ctx)
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+			}
+
+			// Try to fetch once after max retries reached
+			token, _ := createTokenWithKid(invalidKeyID)
+			md := metadata.Pairs("authorization", "Bearer "+token)
+			ctx = metadata.NewIncomingContext(ctx, md)
+			err = auth.Authenticate(ctx)
+			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
+		})
 	})
 
 	Context("Missing Config", func() {

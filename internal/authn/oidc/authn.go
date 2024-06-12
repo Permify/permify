@@ -203,19 +203,19 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 
 	// Reset global state if the interval has passed
 	if oidc.globalFirstSeen.IsZero() || time.Since(oidc.globalFirstSeen) >= oidc.backoffInterval {
-		slog.Info("Resetting global state as interval has passed or first seen is zero", "keyID", keyID)
+		slog.Info("resetting state as interval has passed or first seen is zero", "keyID", keyID)
 		oidc.globalFirstSeen = now
 		oidc.globalRetryCount = 0
 	} else if oidc.globalRetryCount >= oidc.backoffMaxRetries {
 		// If max retries reached within the interval, unlock and check keyID once
-		slog.Warn("Max retries reached within interval, will check keyID once", "keyID", keyID)
+		slog.Warn("max retries reached within interval, will check keyID once", "keyID", keyID)
 		oidc.mu.Unlock()
 
 		// Try to fetch the keyID once
 		rawKey, err = oidc.fetchKey(keyID, ctx)
 		if err == nil {
 			// Reset global backoff state if a valid key is found
-			slog.Info("Valid key found during backoff period, resetting global state", "keyID", keyID)
+			slog.Info("valid key found during backoff period, resetting state", "keyID", keyID)
 			oidc.mu.Lock()
 			oidc.globalRetryCount = 0
 			oidc.globalFirstSeen = time.Time{}
@@ -224,7 +224,7 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 		}
 
 		// Log the failure and return an error if keyID is not found
-		slog.Error("Failed to fetch key during backoff period", "keyID", keyID, "error", err)
+		slog.Error("failed to fetch key during backoff period", "keyID", keyID, "error", err)
 		return nil, errors.New("too many attempts, backoff in effect")
 	}
 	oidc.mu.Unlock()
@@ -236,9 +236,9 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 			select {
 			case <-time.After(oidc.backoffFrequency):
 				// Log the wait before retrying
-				slog.Info("Waiting before retrying", "keyID", keyID, "retries", retries)
+				slog.Info("waiting before retrying", "keyID", keyID, "retries", retries)
 			case <-ctx.Done():
-				slog.Error("Context cancelled during retry", "keyID", keyID)
+				slog.Error("context cancelled during retry", "keyID", keyID)
 				return nil, ctx.Err()
 			}
 		}
@@ -246,7 +246,7 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 		rawKey, err = oidc.fetchKey(keyID, ctx)
 		if err == nil {
 			// Log the successful key fetch and reset global state
-			slog.Info("Successfully fetched key", "keyID", keyID)
+			slog.Info("successfully fetched key", "keyID", keyID)
 			oidc.mu.Lock()
 			oidc.globalRetryCount = 0
 			oidc.globalFirstSeen = time.Time{}
@@ -255,14 +255,14 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 		}
 
 		retries++
-		slog.Warn("Retrying to fetch JWKS due to error", "keyID", keyID, "retries", retries, "error", err)
+		slog.Warn("retrying to fetch JWKS due to error", "keyID", keyID, "retries", retries, "error", err)
 
 		oidc.mu.Lock()
 		oidc.globalRetryCount++
 		oidc.mu.Unlock()
 
 		if _, refreshErr := oidc.jwksSet.Refresh(ctx, oidc.JwksURI); refreshErr != nil {
-			slog.Error("Failed to refresh JWKS", "error", refreshErr)
+			slog.Error("failed to refresh JWKS", "error", refreshErr)
 			return nil, refreshErr
 		}
 	}
@@ -270,12 +270,12 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 	// Mark the global state to prevent further retries for the backoff interval
 	oidc.mu.Lock()
 	if time.Since(oidc.globalFirstSeen) < oidc.backoffInterval {
-		slog.Warn("Marking state to prevent further retries", "keyID", keyID)
+		slog.Warn("marking state to prevent further retries", "keyID", keyID)
 		oidc.globalRetryCount = oidc.backoffMaxRetries
 	}
 	oidc.mu.Unlock()
 
-	slog.Error("Key ID not found in JWKS after retries", "keyID", keyID)
+	slog.Error("key ID not found in JWKS after retries", "keyID", keyID)
 	return nil, errors.New("key ID not found in JWKS after retries")
 }
 
