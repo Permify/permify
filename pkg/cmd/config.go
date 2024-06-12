@@ -49,6 +49,7 @@ func NewConfigCommand() *cobra.Command {
 	f.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "intended audience of the OpenID Connect token")
 	f.Duration("authn-oidc-refresh-interval", conf.Authn.Oidc.RefreshInterval, "refresh interval for the OpenID Connect configuration")
 	f.Duration("authn-oidc-backoff-interval", conf.Authn.Oidc.BackoffInterval, "backoff interval for the OpenID Connect configuration")
+	f.Duration("authn-oidc-backoff-frequency", conf.Authn.Oidc.BackoffFrequency, "backoff frequency for the OpenID Connect configuration")
 	f.Int("authn-oidc-backoff-max-retries", conf.Authn.Oidc.BackoffMaxRetries, "defines the maximum number of retries for the OpenID Connect configuration")
 	f.StringSlice("authn-oidc-valid-methods", conf.Authn.Oidc.ValidMethods, "list of valid JWT signing methods for OpenID Connect")
 	f.Bool("tracer-enabled", conf.Tracer.Enabled, "switch option for tracing")
@@ -154,6 +155,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"authn.oidc.refresh_interval", fmt.Sprintf("%v", cfg.Authn.Oidc.RefreshInterval), getKeyOrigin(cmd, "authn-oidc-refresh-interval", "PERMIFY_AUTHN_OIDC_REFRESH_INTERVAL")},
 			[]string{"authn.oidc.backoff_interval", fmt.Sprintf("%v", cfg.Authn.Oidc.BackoffInterval), getKeyOrigin(cmd, "authn-oidc-backoff-interval", "PERMIFY_AUTHN_OIDC_BACKOFF_INTERVAL")},
 			[]string{"authn.oidc.backoff_max_retries", fmt.Sprintf("%v", cfg.Authn.Oidc.BackoffMaxRetries), getKeyOrigin(cmd, "authn-oidc-backoff-max-retries", "PERMIFY_AUTHN_OIDC_BACKOFF_RETRIES")},
+			[]string{"authn.oidc.backoff_frequency", fmt.Sprintf("%v", cfg.Authn.Oidc.BackoffFrequency), getKeyOrigin(cmd, "authn-oidc-backoff-frequency", "PERMIFY_AUTHN_OIDC_BACKOFF_FREQUENCY")},
 			[]string{"authn.oidc.valid_methods", fmt.Sprintf("%v", cfg.Authn.Oidc.ValidMethods), getKeyOrigin(cmd, "authn-oidc-valid-methods", "PERMIFY_AUTHN_OIDC_VALID_METHODS")},
 			// TRACER
 			[]string{"tracer.enabled", fmt.Sprintf("%v", cfg.Tracer.Enabled), getKeyOrigin(cmd, "tracer-enabled", "PERMIFY_TRACER_ENABLED")},

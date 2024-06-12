@@ -73,6 +73,7 @@ type (
 		Audience          string        `mapstructure:"audience"` // OIDC client ID
 		RefreshInterval   time.Duration `mapstructure:"refresh_interval"`
 		BackoffInterval   time.Duration `mapstructure:"backoff_interval"`
+		BackoffFrequency  time.Duration `mapstructure:"backoff_frequency"`
 		BackoffMaxRetries int           `mapstructure:"backoff_max_retries"`
 		ValidMethods      []string      `mapstructure:"valid_methods"`
 	}
