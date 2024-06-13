@@ -19,7 +19,7 @@ jobs:
         egress-policy: audit
 
     - name: Check out repository
-      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
     - name: Sync to S3
       uses: jakejarvis/s3-sync-action@7ed8b112447abb09f1da74f3466e4194fc7a6311 # master

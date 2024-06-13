@@ -14,7 +14,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # master
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # master
       - name: Run GitHub File Sync
         uses: BetaHuhn/repo-file-sync-action@8b92be3375cf1d1b0cd579af488a9255572e4619 # v1.21.1
         with:
