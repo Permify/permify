@@ -1,4 +1,5 @@
 ---
+version: 2
 project_name: permify
 universal_binaries:
   - replace: true
@@ -25,14 +26,14 @@ brews:
         type: build
     description: "Permify is an open-source authorization service & policy engine based on Google Zanzibar."
     download_strategy: CurlDownloadStrategy
-    folder: Formula
+    directory: Formula
     homepage: "https://github.com/Permify/permify"
     license: "Apache-2.0"
     custom_block: |
       head "https://github.com/Permify/permify.git", :branch => "master"
     install: |-
         bin.install "permify"
-    tap:
+    repository:
       name: homebrew-tap
       owner: permify
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
