@@ -212,7 +212,9 @@ func (t *Compiler) compileRule(sc *ast.RuleStatement) (*base.RuleDefinition, err
 	// Compile and type-check the expression.
 	compiledExp, issues := env.Compile(sc.Expression)
 	if issues != nil && issues.Err() != nil {
-		return nil, issues.Err()
+		pi := sc.Name.PositionInfo
+		pi.LinePosition++
+		return nil, compileError(pi, issues.Err().Error())
 	}
 
 	if compiledExp.OutputType() != cel.BoolType {

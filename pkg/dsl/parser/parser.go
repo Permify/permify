@@ -345,6 +345,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 		} else if !p.peekTokenIs(token.RP) {
 			// If the next token is not a comma, it must be a closing parenthesis.
 			// If it's not, return an error.
+			p.peekError(token.RP)
 			return nil, p.Error()
 		}
 	}
@@ -367,6 +368,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 	for !p.peekTokenIs(token.RCB) {
 		// If there's no closing bracket, return an error.
 		if p.peekTokenIs(token.EOF) {
+			p.peekError(token.RCB)
 			return nil, p.Error()
 		}
 
@@ -715,7 +717,8 @@ func (p *Parser) parseIdentifierOrCall() (ast.Expression, error) {
 func (p *Parser) parseIdentifierExpression() (ast.Expression, error) {
 	// Ensure the current token is a valid identifier before proceeding.
 	if !p.currentTokenIs(token.IDENT) {
-		return nil, fmt.Errorf("unexpected token type for identifier expression: %s", p.currentToken.Type)
+		p.currentError(token.IDENT)
+		return nil, p.Error()
 	}
 
 	// Create a new Identifier expression with the first token as the prefix.
@@ -726,11 +729,10 @@ func (p *Parser) parseIdentifierExpression() (ast.Expression, error) {
 		p.next() // Consume the dot token
 
 		// Check if the next token after the dot is a valid identifier
-		if !p.peekTokenIs(token.IDENT) {
-			return nil, fmt.Errorf("expected identifier after dot, got %s", p.peekToken.Type)
+		if !p.expectAndNext(token.IDENT) {
+			return nil, p.Error()
 		}
 
-		p.next() // Consume the identifier token
 		ident.Idents = append(ident.Idents, p.currentToken)
 	}
 
@@ -742,7 +744,8 @@ func (p *Parser) parseIdentifierExpression() (ast.Expression, error) {
 func (p *Parser) parseCallExpression() (ast.Expression, error) {
 	// Ensure the current token is a valid identifier before proceeding.
 	if !p.currentTokenIs(token.IDENT) {
-		return nil, fmt.Errorf("unexpected token type for identifier expression: %s", p.currentToken.Type)
+		p.currentError(token.IDENT)
+		return nil, p.Error()
 	}
 
 	// Create a new Identifier expression with the first token as the prefix.
