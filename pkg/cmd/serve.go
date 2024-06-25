@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	slogotel "github.com/remychantenay/slog-otel"
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -168,19 +169,26 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		internal.PrintBanner()
 
 		var handler slog.Handler
+
 		switch cfg.Log.Output {
 		case "json":
-			handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
+			handler = slogotel.OtelHandler{
+				Next: slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+					Level: getLogLevel(cfg.Log.Level),
+				}),
+			}
 		case "text":
-			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
+			handler = slogotel.OtelHandler{
+				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+					Level: getLogLevel(cfg.Log.Level),
+				}),
+			}
 		default:
-			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
+			handler = slogotel.OtelHandler{
+				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+					Level: getLogLevel(cfg.Log.Level),
+				}),
+			}
 		}
 
 		logger := slog.New(handler)
