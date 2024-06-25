@@ -28,7 +28,7 @@ jobs:
                 egress-policy: audit
 
             - name: Checkout repository
-              uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+              uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
             - name: Generate Python Client
               uses: openapi-generators/openapitools-generator-action@3e8794a448324479d75053329c76a48bf6d188b5 # v1
