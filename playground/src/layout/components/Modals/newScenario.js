@@ -23,6 +23,8 @@ function NewScenario(props) {
                         assertions: {}
                     }
                 ],
+                relationships: [],
+                attributes: [],
                 entity_filters: [],
                 subject_filters: []
             };
