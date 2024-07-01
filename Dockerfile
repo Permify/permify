@@ -4,7 +4,7 @@ RUN apk update && apk add --no-cache git
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -v ./cmd/permify/
 
-FROM cgr.dev/chainguard/static:latest@sha256:288b818c1b3dd89776d176f07f5f671b118fe836c4d80ec2cc3299b596fe71b7
+FROM cgr.dev/chainguard/static:latest@sha256:68b8855b2ce85b1c649c0e6c69f93c214f4db75359e4fd07b1df951a4e2b0140
 COPY --from=ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.25 /ko-app/grpc-health-probe /usr/local/bin/grpc_health_probe
 COPY --from=permify-builder /go/src/app/permify /usr/local/bin/permify
 ENV PATH="$PATH:/usr/local/bin"
