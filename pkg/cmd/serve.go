@@ -176,11 +176,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		ioWriter = os.Stdout
 
 		if cfg.Log.File != "" {
-			if err := os.MkdirAll(cfg.Log.File, 0755); err != nil {
+			if err := os.MkdirAll(cfg.Log.File, 0750); err != nil {
 				panic(err)
 			}
 
-			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 			if err != nil {
 				panic(err)
 			}
