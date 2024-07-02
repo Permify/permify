@@ -2,6 +2,8 @@ package file
 
 // Shape is a struct that represents an authorization configuration.
 type Shape struct {
+	TenantID string `yaml:"tenant_id"`
+
 	// Schema is a string that represents the authorization model schema.
 	Schema string `yaml:"schema"`
 
