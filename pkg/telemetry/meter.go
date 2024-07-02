@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/metric/noop"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	orn "go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -13,7 +14,6 @@ import (
 	omt "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/semconv/v1.10.0"
 
 	"github.com/Permify/permify/internal"
 )
