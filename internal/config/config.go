@@ -88,6 +88,7 @@ type (
 	Log struct {
 		Level  string `mapstructure:"level"`  // Logging level
 		Output string `mapstructure:"output"` // Logging output format, e.g., text, json
+		File   string `mapstructure:"file"`   // Logging whether to file or not
 	}
 
 	// Tracer contains configuration for distributed tracing.

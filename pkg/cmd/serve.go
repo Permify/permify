@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -11,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	slogotel "github.com/remychantenay/slog-otel"
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -170,22 +170,40 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		var handler slog.Handler
 
+		var ioWriter io.Writer
+
+		ioWriter = os.Stdout
+
+		if cfg.Log.File != "" {
+			if err := os.MkdirAll(cfg.Log.File, 0755); err != nil {
+				panic(err)
+			}
+
+			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+			ioWriter = io.MultiWriter(file, os.Stdout)
+
+		}
+
 		switch cfg.Log.Output {
 		case "json":
-			handler = slogotel.OtelHandler{
-				Next: slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			handler = telemetry.OtelHandler{
+				Next: slog.NewJSONHandler(ioWriter, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
 		case "text":
-			handler = slogotel.OtelHandler{
-				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			handler = telemetry.OtelHandler{
+				Next: slog.NewTextHandler(ioWriter, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
 		default:
-			handler = slogotel.OtelHandler{
-				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			handler = telemetry.OtelHandler{
+				Next: slog.NewTextHandler(ioWriter, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
@@ -259,7 +277,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				slog.Error(err.Error())
 			}
 
-			shutdown := telemetry.NewTracer(exporter)
+			shutdown := telemetry.NewTracer(cfg.AccountID, exporter)
 
 			defer func() {
 				if err = shutdown(context.Background()); err != nil {
@@ -311,7 +329,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				slog.Error(err.Error())
 			}
 
-			meter, err = telemetry.NewMeter(exporter)
+			meter, err = telemetry.NewMeter(cfg.AccountID, exporter)
 			if err != nil {
 				slog.Error(err.Error())
 			}
