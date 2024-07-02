@@ -74,7 +74,7 @@ func NewServeCommand() *cobra.Command {
 	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
 	f.String("log-level", conf.Log.Level, "set log verbosity ('info', 'debug', 'error', 'warning')")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
-	f.String("log-file", conf.Log.File, "logger file ddestination")
+	f.String("log-file", conf.Log.File, "logger file destination")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
@@ -176,11 +176,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		ioWriter = os.Stdout
 
 		if cfg.Log.File != "" {
-			if err := os.MkdirAll(cfg.Log.File, 0750); err != nil {
+			if err := os.MkdirAll(cfg.Log.File, 0o750); err != nil {
 				panic(err)
 			}
 
-			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
 			if err != nil {
 				panic(err)
 			}

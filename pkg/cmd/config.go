@@ -40,8 +40,9 @@ func NewConfigCommand() *cobra.Command {
 	f.StringSlice("http-cors-allowed-headers", conf.Server.HTTP.CORSAllowedHeaders, "CORS allowed headers for http gateway")
 	f.Bool("profiler-enabled", conf.Profiler.Enabled, "switch option for profiler")
 	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
-	f.String("log-level", conf.Log.Level, "real time logs of authorization. Permify uses zerolog as a logger")
+	f.String("log-level", conf.Log.Level, "real time logs of authorization. Permify uses slog as a logger")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
+	f.String("log-file", conf.Log.File, "logger file destination")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
@@ -146,6 +147,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			// LOG
 			[]string{"logger.level", cfg.Log.Level, getKeyOrigin(cmd, "log-level", "PERMIFY_LOG_LEVEL")},
 			[]string{"logger.output", cfg.Log.Output, getKeyOrigin(cmd, "log-output", "PERMIFY_LOG_OUTPUT")},
+			[]string{"logger.file", cfg.Log.File, getKeyOrigin(cmd, "log-file", "PERMIFY_LOG_FILE")},
 			// AUTHN
 			[]string{"authn.enabled", fmt.Sprintf("%v", cfg.Authn.Enabled), getKeyOrigin(cmd, "authn-enabled", "PERMIFY_AUTHN_ENABLED")},
 			[]string{"authn.method", cfg.Authn.Method, getKeyOrigin(cmd, "authn-method", "PERMIFY_AUTHN_METHOD")},
