@@ -74,6 +74,7 @@ func NewServeCommand() *cobra.Command {
 	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
 	f.String("log-level", conf.Log.Level, "set log verbosity ('info', 'debug', 'error', 'warning')")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
+	f.String("log-file", conf.Log.File, "logger file ddestination")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
@@ -277,7 +278,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				slog.Error(err.Error())
 			}
 
-			shutdown := telemetry.NewTracer(cfg.AccountID, exporter)
+			shutdown := telemetry.NewTracer(exporter)
 
 			defer func() {
 				if err = shutdown(context.Background()); err != nil {
@@ -329,7 +330,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				slog.Error(err.Error())
 			}
 
-			meter, err = telemetry.NewMeter(cfg.AccountID, exporter)
+			meter, err = telemetry.NewMeter(exporter)
 			if err != nil {
 				slog.Error(err.Error())
 			}

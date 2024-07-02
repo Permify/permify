@@ -12,27 +12,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const (
-	// TraceIDKey is the key used by the Otel handler
-	// to inject the trace ID in the log record.
-	TraceIDKey = "TraceId"
-	// SpanIDKey is the key used by the Otel handler
-	// to inject the span ID in the log record.
-	SpanIDKey = "SpanId"
-	// SpanEventKey is the key used by the Otel handler
-	// to inject the log record in the recording span, as a span event.
-	SpanEventKey = "LogRecord"
-)
-
-// OtelHandler is an implementation of slog's Handler interface.
-// Its role is to ensure correlation between logs and OTel spans
-// by:
-//
-// 1. Adding otel span and trace IDs to the log record.
-// 2. Adding otel context baggage members to the log record.
-// 3. Setting slog record as otel span event.
-// 4. Adding slog record attributes to the otel span event.
-// 5. Setting span status based on slog record level (only if >= slog.LevelError).
 type OtelHandler struct {
 	// Next represents the next handler in the chain.
 	Next slog.Handler
@@ -113,19 +92,19 @@ func (h OtelHandler) Handle(ctx context.Context, record slog.Record) error {
 			return true
 		})
 
-		span.AddEvent(SpanEventKey, trace.WithAttributes(eventAttrs...))
+		span.AddEvent("LogRecord", trace.WithAttributes(eventAttrs...))
 	}
 
 	// Adding span info to log record.
 	spanContext := span.SpanContext()
 	if spanContext.HasTraceID() {
 		traceID := spanContext.TraceID().String()
-		record.AddAttrs(slog.String(TraceIDKey, traceID))
+		record.AddAttrs(slog.String("TraceId", traceID))
 	}
 
 	if spanContext.HasSpanID() {
 		spanID := spanContext.SpanID().String()
-		record.AddAttrs(slog.String(SpanIDKey, spanID))
+		record.AddAttrs(slog.String("SpanId", spanID))
 	}
 
 	// Setting span status if the log is an error.

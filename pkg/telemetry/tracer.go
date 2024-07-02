@@ -15,7 +15,7 @@ import (
 )
 
 // NewTracer - Creates new tracer
-func NewTracer(accountId string, exporter trace.SpanExporter) func(context.Context) error {
+func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
 	hostName, err := os.Hostname()
 	if err != nil {
 		return func(context.Context) error { return nil }

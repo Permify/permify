@@ -19,7 +19,7 @@ import (
 )
 
 // NewMeter - Creates new meter
-func NewMeter(accountId string, exporter metric.Exporter) (omt.Meter, error) {
+func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 	hostName, err := os.Hostname()
 	if err != nil {
 		return nil, err
