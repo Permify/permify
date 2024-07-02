@@ -41,7 +41,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
 		builder = builder.Where(squirrel.GtOrEq{"id": t.(utils.ContinuousToken).Value})
 	}

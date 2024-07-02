@@ -253,12 +253,12 @@ func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, paginat
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
-		builder = builder.Where(squirrel.GtOrEq{"version": t.(utils.ContinuousToken).Value})
+		builder = builder.Where(squirrel.LtOrEq{"version": t.(utils.ContinuousToken).Value})
 	}
 
-	builder = builder.OrderBy("version").Limit(uint64(pagination.PageSize() + 1))
+	builder = builder.OrderBy("version DESC").Limit(uint64(pagination.PageSize() + 1))
 
 	var query string
 	var args []interface{}
