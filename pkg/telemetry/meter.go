@@ -1,10 +1,12 @@
 package telemetry
 
 import (
+	"context"
 	"os"
 	"runtime"
 	"time"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric/noop"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 
@@ -19,10 +21,10 @@ import (
 )
 
 // NewMeter - Creates new meter
-func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
+func NewMeter(exporter metric.Exporter) func(context.Context) error {
 	hostName, err := os.Hostname()
 	if err != nil {
-		return nil, err
+		return func(context.Context) error { return nil }
 	}
 
 	mp := metric.NewMeterProvider(
@@ -42,14 +44,16 @@ func NewMeter(exporter metric.Exporter) (omt.Meter, error) {
 		orn.WithMinimumReadMemStatsInterval(time.Second),
 		orn.WithMeterProvider(mp),
 	); err != nil {
-		return nil, err
+		return func(context.Context) error { return nil }
 	}
 
 	if err = host.Start(host.WithMeterProvider(mp)); err != nil {
-		return nil, err
+		return func(context.Context) error { return nil }
 	}
 
-	return mp.Meter("permify"), nil
+	otel.SetMeterProvider(mp)
+
+	return mp.Shutdown
 }
 
 // NewNoopMeter - Creates new noop meter

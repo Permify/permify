@@ -2,6 +2,7 @@ package invoke
 
 import (
 	"context"
+	"log/slog"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -16,6 +17,7 @@ import (
 )
 
 var tracer = otel.Tracer("invoke")
+var meter = otel.Meter("invoke")
 
 // Invoker is an interface that groups multiple permission-related interfaces.
 // It is used to define a common contract for invoking various permission operations.
@@ -84,7 +86,6 @@ func NewDirectInvoker(
 	ec Expand,
 	lo Lookup,
 	sp SubjectPermission,
-	meter api.Meter,
 ) *DirectInvoker {
 	// Check Counter
 	checkCounter, err := meter.Int64Counter("check_count", api.WithDescription("Number of permission checks performed"))
@@ -206,6 +207,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 
 	// Increase the check count in the metrics.
 	invoker.checkCounter.Add(ctx, 1)
+	slog.Info("check count called")
 
 	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
 	return
