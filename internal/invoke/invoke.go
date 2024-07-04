@@ -16,6 +16,7 @@ import (
 )
 
 var tracer = otel.Tracer("invoke")
+var meter = otel.Meter("invoke")
 
 // Invoker is an interface that groups multiple permission-related interfaces.
 // It is used to define a common contract for invoking various permission operations.
@@ -84,7 +85,6 @@ func NewDirectInvoker(
 	ec Expand,
 	lo Lookup,
 	sp SubjectPermission,
-	meter api.Meter,
 ) *DirectInvoker {
 	// Check Counter
 	checkCounter, err := meter.Int64Counter("check_count", api.WithDescription("Number of permission checks performed"))

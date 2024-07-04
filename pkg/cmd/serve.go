@@ -180,7 +180,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				panic(err)
 			}
 
-			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
+			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
 			if err != nil {
 				panic(err)
 			}
@@ -307,7 +307,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Meter
-		meter := telemetry.NewNoopMeter()
 		if cfg.Meter.Enabled {
 			headers := map[string]string{}
 			for _, header := range cfg.Meter.Headers {
@@ -326,14 +325,18 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Meter.URLPath,
 				headers,
 			)
+
 			if err != nil {
 				slog.Error(err.Error())
 			}
 
-			meter, err = telemetry.NewMeter(exporter)
-			if err != nil {
-				slog.Error(err.Error())
-			}
+			shutdown := telemetry.NewMeter(exporter)
+
+			defer func() {
+				if err = shutdown(context.Background()); err != nil {
+					slog.Error(err.Error())
+				}
+			}()
 		}
 
 		// schema cache
@@ -428,14 +431,12 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				checker,
 				schemaReader,
 				engineKeyCache,
-				meter,
 			)
 		} else {
 			checker = cache.NewCheckEngineWithCache(
 				checkEngine,
 				schemaReader,
 				engineKeyCache,
-				meter,
 			)
 		}
 
@@ -445,7 +446,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			checkEngine,
 			schemaReader,
 			engineKeyCache,
-			meter,
 		)
 
 		// Initialize the lookupEngine, which is responsible for looking up certain entities or values.
@@ -474,7 +474,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			expandEngine,
 			lookupEngine,
 			subjectPermissionEngine,
-			meter,
 		)
 
 		// Associate the invoker with the checkEngine.
@@ -488,7 +487,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			expandEngine,
 			lookupEngine,
 			subjectPermissionEngine,
-			meter,
 		)
 
 		// Initialize the container which brings together multiple components such as the invoker, data readers/writers, and schema handlers.

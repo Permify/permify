@@ -17,6 +17,7 @@ import (
 )
 
 var tracer = otel.Tracer("check-cache")
+var meter = otel.Meter("check-cache")
 
 // CheckEngineWithCache is a struct that holds an instance of a cache.Cache for managing engine cache.
 type CheckEngineWithCache struct {
@@ -35,7 +36,6 @@ func NewCheckEngineWithCache(
 	checker invoke.Check,
 	schemaReader storage.SchemaReader,
 	cache cache.Cache,
-	meter api.Meter,
 ) invoke.Check {
 	// Cache Counter
 	cacheCounter, err := meter.Int64Counter("cache_check_count", api.WithDescription("Number of permission cached checks performed"))
