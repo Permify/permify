@@ -257,7 +257,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 
 	// Increase the check count in the metrics.
 	invoker.checkCounter.Add(ctx, 1)
-	// add recored of duration
+
 	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
 	return
 }

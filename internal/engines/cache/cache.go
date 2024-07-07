@@ -45,8 +45,6 @@ func NewCheckEngineWithCache(
 	}
 
 	// Cache Hit Duration Histogram
-	// update here to store cache hit label
-	// make sure we have its timestamp
 	cacheHitDurationHistogram, err := meter.Int64Histogram(
 		"cache_hit_duration",
 		api.WithUnit("microseconds"),
@@ -111,8 +109,6 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 		}, err
 	}
 
-	// record should have duration and cache hit label
-	// c.cacheHitDurationHistogram.Record(ctx, duration)
 	// Add to histogram the response
 
 	c.setCheckKey(request, &base.PermissionCheckResponse{
