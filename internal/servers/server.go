@@ -265,7 +265,7 @@ func (s *Container) Run(
 			grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 		}
 		if srv.GRPC.TLSConfig.Enabled {
-			c, err := credentials.NewClientTLSFromFile(srv.GRPC.TLSConfig.CertPath, "")
+			c, err := credentials.NewClientTLSFromFile(srv.GRPC.TLSConfig.CertPath, srv.NameOverride)
 			if err != nil {
 				return err
 			}
