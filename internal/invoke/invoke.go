@@ -16,8 +16,10 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-var tracer = otel.Tracer("invoke")
-var meter = otel.Meter("invoke")
+var (
+	tracer = otel.Tracer("invoke")
+	meter  = otel.Meter("invoke")
+)
 
 // Invoker is an interface that groups multiple permission-related interfaces.
 // It is used to define a common contract for invoking various permission operations.
