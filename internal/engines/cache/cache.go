@@ -27,7 +27,8 @@ type CheckEngineWithCache struct {
 	cache        cache.Cache
 
 	// Metrics
-	cacheCounter api.Int64Counter
+	cacheCounter              api.Int64Counter
+	cacheHitDurationHistogram api.Int64Histogram
 }
 
 // NewCheckEngineWithCache creates a new instance of EngineKeyManager by initializing an EngineKeys
@@ -43,11 +44,24 @@ func NewCheckEngineWithCache(
 		panic(err)
 	}
 
+	// Cache Hit Duration Histogram
+	// update here to store cache hit label
+	// make sure we have its timestamp
+	cacheHitDurationHistogram, err := meter.Int64Histogram(
+		"cache_hit_duration",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of cache hits in microseconds"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	return &CheckEngineWithCache{
-		schemaReader: schemaReader,
-		checker:      checker,
-		cache:        cache,
-		cacheCounter: cacheCounter,
+		schemaReader:              schemaReader,
+		checker:                   checker,
+		cache:                     cache,
+		cacheCounter:              cacheCounter,
+		cacheHitDurationHistogram: cacheHitDurationHistogram,
 	}
 }
 
@@ -77,6 +91,7 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 
 		// Increase the check count in the metrics.
 		c.cacheCounter.Add(ctx, 1)
+
 		// If the request doesn't have the exclusion flag set, return the cached result.
 		return &base.PermissionCheckResponse{
 			Can:      res.GetCan(),
@@ -96,11 +111,14 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 		}, err
 	}
 
+	// record should have duration and cache hit label
+	// c.cacheHitDurationHistogram.Record(ctx, duration)
+	// Add to histogram the response
+
 	c.setCheckKey(request, &base.PermissionCheckResponse{
 		Can:      cres.GetCan(),
 		Metadata: &base.PermissionCheckResponseMetadata{},
 	}, isRelational)
-
 	// Return the result of the permission check.
 	return cres, err
 }

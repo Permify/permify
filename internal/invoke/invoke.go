@@ -73,6 +73,11 @@ type DirectInvoker struct {
 	lookupEntityCounter      api.Int64Counter
 	lookupSubjectCounter     api.Int64Counter
 	subjectPermissionCounter api.Int64Counter
+
+	checkDurationHistogram             api.Int64Histogram
+	lookupEntityDurationHistogram      api.Int64Histogram
+	lookupSubjectDurationHistogram     api.Int64Histogram
+	subjectPermissionDurationHistogram api.Int64Histogram
 }
 
 // NewDirectInvoker is a constructor for DirectInvoker.
@@ -110,17 +115,57 @@ func NewDirectInvoker(
 		panic(err)
 	}
 
+	checkDurationHistogram, err := meter.Int64Histogram(
+		"check_duration",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of check duration in microseconds"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	lookupEntityDurationHistogram, err := meter.Int64Histogram(
+		"lookup_entity_duration",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of lookup entity duration in microseconds"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	lookupSubjectDurationHistogram, err := meter.Int64Histogram(
+		"lookup_subject_duration",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of lookup subject duration in microseconds"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	subjectPermissionDurationHistogram, err := meter.Int64Histogram(
+		"subject_permission_duration",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of subject permission duration in microseconds"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	return &DirectInvoker{
-		schemaReader:             schemaReader,
-		dataReader:               dataReader,
-		cc:                       cc,
-		ec:                       ec,
-		lo:                       lo,
-		sp:                       sp,
-		checkCounter:             checkCounter,
-		lookupEntityCounter:      lookupEntityCounter,
-		lookupSubjectCounter:     lookupSubjectCounter,
-		subjectPermissionCounter: subjectPermissionCounter,
+		schemaReader:                       schemaReader,
+		dataReader:                         dataReader,
+		cc:                                 cc,
+		ec:                                 ec,
+		lo:                                 lo,
+		sp:                                 sp,
+		checkCounter:                       checkCounter,
+		lookupEntityCounter:                lookupEntityCounter,
+		lookupSubjectCounter:               lookupSubjectCounter,
+		subjectPermissionCounter:           subjectPermissionCounter,
+		checkDurationHistogram:             checkDurationHistogram,
+		lookupEntityDurationHistogram:      lookupEntityDurationHistogram,
+		lookupSubjectDurationHistogram:     lookupSubjectDurationHistogram,
+		subjectPermissionDurationHistogram: subjectPermissionDurationHistogram,
 	}
 }
 
@@ -206,7 +251,8 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 
 	// Increase the check count in the metrics.
 	invoker.checkCounter.Add(ctx, 1)
-
+	// add recored of duration
+	// invoker.checkDurationHistogram.Record()
 	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
 	return
 }
