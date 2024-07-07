@@ -2,6 +2,7 @@ package invoke
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -181,6 +182,8 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Validate the depth of the request.
 	err = checkDepth(request)
 	if err != nil {
@@ -245,6 +248,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 			},
 		}, err
 	}
+	duration := time.Now().Sub(start)
+
+	invoker.checkDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the check count in the response metadata.
 	response.Metadata = increaseCheckCount(response.Metadata)
@@ -252,7 +258,6 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	// Increase the check count in the metrics.
 	invoker.checkCounter.Add(ctx, 1)
 	// add recored of duration
-	// invoker.checkDurationHistogram.Record()
 	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
 	return
 }
@@ -303,6 +308,8 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
 		var st token.SnapToken
@@ -325,10 +332,15 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 		}
 	}
 
+	resp, err := invoker.lo.LookupEntity(ctx, request)
+
+	duration := time.Now().Sub(start)
+	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
+
 	// Increase the lookup entity count in the metrics.
 	invoker.lookupEntityCounter.Add(ctx, 1)
 
-	return invoker.lo.LookupEntity(ctx, request)
+	return resp, err
 }
 
 // LookupEntityStream is a method that implements the LookupEntityStream interface.
@@ -343,6 +355,8 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
 		var st token.SnapToken
@@ -365,10 +379,15 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 		}
 	}
 
+	resp := invoker.lo.LookupEntityStream(ctx, request, server)
+
+	duration := time.Now().Sub(start)
+	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
+
 	// Increase the lookup entity count in the metrics.
 	invoker.lookupEntityCounter.Add(ctx, 1)
 
-	return invoker.lo.LookupEntityStream(ctx, request, server)
+	return resp
 }
 
 // LookupSubject is a method of the DirectInvoker structure. It handles the task of looking up subjects
@@ -382,6 +401,8 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Check if the request has a SnapToken. If not, a SnapToken is set.
 	if request.GetMetadata().GetSnapToken() == "" {
 		// Create an instance of SnapToken
@@ -410,12 +431,17 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 		}
 	}
 
+	resp, err := invoker.lo.LookupSubject(ctx, request)
+
+	duration := time.Now().Sub(start)
+	invoker.lookupSubjectDurationHistogram.Record(ctx, duration.Microseconds())
+
 	// Increase the lookup subject count in the metrics.
 	invoker.lookupSubjectCounter.Add(ctx, 1)
 
 	// Call the LookupSubject function of the ls field in the invoker, pass the context and request,
 	// and return its response and error
-	return invoker.lo.LookupSubject(ctx, request)
+	return resp, err
 }
 
 // SubjectPermission is a method of the DirectInvoker structure. It handles the task of subject's permissions
@@ -428,6 +454,8 @@ func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *ba
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Check if the request has a SnapToken. If not, a SnapToken is set.
 	if request.GetMetadata().GetSnapToken() == "" {
 		// Create an instance of SnapToken
@@ -455,11 +483,15 @@ func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *ba
 			return response, err
 		}
 	}
+	resp, err := invoker.sp.SubjectPermission(ctx, request)
+
+	duration := time.Now().Sub(start)
+	invoker.subjectPermissionDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the subject permission count in the metrics.
 	invoker.subjectPermissionCounter.Add(ctx, 1)
 
 	// Call the SubjectPermission function of the ls field in the invoker, pass the context and request,
 	// and return its response and error
-	return invoker.sp.SubjectPermission(ctx, request)
+	return resp, err
 }
