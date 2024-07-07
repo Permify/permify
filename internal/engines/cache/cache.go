@@ -16,8 +16,10 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var tracer = otel.Tracer("check-cache")
-var meter = otel.Meter("check-cache")
+var (
+	tracer = otel.Tracer("check-cache")
+	meter  = otel.Meter("check-cache")
+)
 
 // CheckEngineWithCache is a struct that holds an instance of a cache.Cache for managing engine cache.
 type CheckEngineWithCache struct {

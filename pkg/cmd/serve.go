@@ -180,7 +180,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				panic(err)
 			}
 
-			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
+			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
 			if err != nil {
 				panic(err)
 			}
