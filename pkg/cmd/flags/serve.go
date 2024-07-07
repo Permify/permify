@@ -29,6 +29,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("server.name_override", flags.Lookup("server-name-override")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.name_override", "PERMIFY_NAME_OVERRIDE"); err != nil {
+		panic(err)
+	}
+
 	// GRPC Server
 	if err = viper.BindPFlag("server.grpc.port", flags.Lookup("grpc-port")); err != nil {
 		panic(err)

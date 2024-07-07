@@ -27,9 +27,10 @@ type (
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		HTTP      `mapstructure:"http"` // HTTP server configuration
-		GRPC      `mapstructure:"grpc"` // gRPC server configuration
-		RateLimit int64                 `mapstructure:"rate_limit"` // Rate limit configuration
+		HTTP         `mapstructure:"http"` // HTTP server configuration
+		GRPC         `mapstructure:"grpc"` // gRPC server configuration
+		NameOverride string                `mapstructure:"name_override"`
+		RateLimit    int64                 `mapstructure:"rate_limit"` // Rate limit configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.
@@ -262,6 +263,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		AccountID: "",
 		Server: Server{
+			NameOverride: "",
 			HTTP: HTTP{
 				Enabled: true,
 				Port:    "3476",
