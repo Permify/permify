@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -12,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/agoda-com/opentelemetry-go/otelslog"
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,6 +39,7 @@ import (
 	pkgcache "github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/telemetry"
+	"github.com/Permify/permify/pkg/telemetry/logexporters"
 	"github.com/Permify/permify/pkg/telemetry/meterexporters"
 	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
 )
@@ -76,6 +77,7 @@ func NewServeCommand() *cobra.Command {
 	f.String("log-level", conf.Log.Level, "set log verbosity ('info', 'debug', 'error', 'warning')")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
 	f.String("log-file", conf.Log.File, "logger file destination")
+	f.Bool("log-enabled", conf.Log.Enabled, "logger exporter enabled")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
@@ -168,52 +170,60 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Print banner and initialize logger
+
 		internal.PrintBanner()
 
 		var handler slog.Handler
 
-		var ioWriter io.Writer
-
-		ioWriter = os.Stdout
-
-		if cfg.Log.File != "" {
-			if err := os.MkdirAll(cfg.Log.File, 0o750); err != nil {
-				panic(err)
-			}
-
-			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
-			if err != nil {
-				panic(err)
-			}
-			defer file.Close()
-			ioWriter = io.MultiWriter(file, os.Stdout)
-
-		}
-
 		switch cfg.Log.Output {
 		case "json":
 			handler = telemetry.OtelHandler{
-				Next: slog.NewJSONHandler(ioWriter, &slog.HandlerOptions{
+				Next: slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
 		case "text":
 			handler = telemetry.OtelHandler{
-				Next: slog.NewTextHandler(ioWriter, &slog.HandlerOptions{
+				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
 		default:
 			handler = telemetry.OtelHandler{
-				Next: slog.NewTextHandler(ioWriter, &slog.HandlerOptions{
+				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
 		}
-
 		logger := slog.New(handler)
-
 		slog.SetDefault(logger)
+
+		if cfg.Log.Enabled {
+			headers := map[string]string{}
+			for _, header := range cfg.Log.Headers {
+				h := strings.Split(header, ":")
+				if len(h) != 2 {
+					return errors.New("invalid header format; expected 'key:value'")
+				}
+				headers[h[0]] = h[1]
+			}
+
+			exporter, _ := logexporters.ExporterFactory(
+				cfg.Log.Exporter,
+				cfg.Log.Endpoint,
+				cfg.Log.Insecure,
+				cfg.Log.URLPath,
+				headers,
+			)
+			lp := telemetry.NewLog(exporter)
+			defer lp.Shutdown(context.Background())
+
+			logger := slog.New(otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			}))
+
+			slog.SetDefault(logger)
+		}
 
 		slog.Info("🚀 starting permify service...")
 

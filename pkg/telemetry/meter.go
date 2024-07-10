@@ -28,7 +28,7 @@ func NewMeter(exporter metric.Exporter) func(context.Context) error {
 	}
 
 	mp := metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(exporter)),
+		metric.WithReader(metric.NewPeriodicReader(exporter, metric.WithInterval(time.Second*300))),
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),

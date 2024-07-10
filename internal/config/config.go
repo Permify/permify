@@ -87,9 +87,15 @@ type (
 
 	// Log contains configuration for logging.
 	Log struct {
-		Level  string `mapstructure:"level"`  // Logging level
-		Output string `mapstructure:"output"` // Logging output format, e.g., text, json
-		File   string `mapstructure:"file"`   // Logging whether to file or not
+		Level    string   `mapstructure:"level"`    // Logging level
+		Output   string   `mapstructure:"output"`   // Logging output format, e.g., text, json
+		File     string   `mapstructure:"file"`     // Logging whether to file or not
+		Enabled  bool     `mapstructure:"enabled"`  // Whether logging collection is enabled
+		Exporter string   `mapstructure:"exporter"` // Exporter for tracing data
+		Endpoint string   `mapstructure:"endpoint"` // Endpoint for the tracing exporter
+		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		URLPath  string   `mapstructure:"path"`     // Path for the tracing exporter, if not defined /v1/trace will be used
+		Headers  []string `mapstructure:"headers"`
 	}
 
 	// Tracer contains configuration for distributed tracing.
@@ -285,7 +291,10 @@ func DefaultConfig() *Config {
 			Enabled: false,
 		},
 		Log: Log{
-			Level: "info",
+			Level:    "debug",
+			Enabled:  true,
+			Exporter: "otlp",
+			Headers:  []string{},
 		},
 		Tracer: Tracer{
 			Enabled: false,
