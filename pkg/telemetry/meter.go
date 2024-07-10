@@ -21,18 +21,22 @@ import (
 )
 
 // NewMeter - Creates new meter
-func NewMeter(exporter metric.Exporter) func(context.Context) error {
+func NewMeter(exporter metric.Exporter, interval time.Duration) func(context.Context) error {
 	hostName, err := os.Hostname()
 	if err != nil {
 		return func(context.Context) error { return nil }
 	}
 
 	mp := metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(exporter)),
+		metric.WithReader(metric.NewPeriodicReader(
+			exporter,
+			metric.WithInterval(interval),
+		)),
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
 			attribute.String("id", internal.Identifier),
+			attribute.String("project.id", internal.Identifier),
 			attribute.String("version", internal.Version),
 			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),

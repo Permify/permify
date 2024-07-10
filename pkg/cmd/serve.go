@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -12,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/agoda-com/opentelemetry-go/otelslog"
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,6 +39,7 @@ import (
 	pkgcache "github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/telemetry"
+	"github.com/Permify/permify/pkg/telemetry/logexporters"
 	"github.com/Permify/permify/pkg/telemetry/meterexporters"
 	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
 )
@@ -75,7 +76,12 @@ func NewServeCommand() *cobra.Command {
 	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
 	f.String("log-level", conf.Log.Level, "set log verbosity ('info', 'debug', 'error', 'warning')")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
-	f.String("log-file", conf.Log.File, "logger file destination")
+	f.Bool("log-enabled", conf.Log.Enabled, "logger exporter enabled")
+	f.String("log-exporter", conf.Log.Exporter, "can be; otlp. (integrated metric tools)")
+	f.String("log-endpoint", conf.Log.Endpoint, "export uri for logs")
+	f.Bool("log-insecure", conf.Log.Insecure, "use https or http for logs")
+	f.String("log-urlpath", conf.Log.URLPath, "allow to set url path for otlp exporter")
+	f.StringSlice("log-headers", conf.Log.Headers, "allows setting custom headers for the log exporter in key-value pairs")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
@@ -172,50 +178,28 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 		var handler slog.Handler
 
-		var ioWriter io.Writer
-
-		ioWriter = os.Stdout
-
-		if cfg.Log.File != "" {
-			if err := os.MkdirAll(cfg.Log.File, 0o750); err != nil {
-				panic(err)
-			}
-
-			file, err := os.OpenFile(cfg.Log.File+"/app.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
-			if err != nil {
-				panic(err)
-			}
-			defer file.Close()
-			ioWriter = io.MultiWriter(file, os.Stdout)
-
-		}
-
 		switch cfg.Log.Output {
 		case "json":
 			handler = telemetry.OtelHandler{
-				Next: slog.NewJSONHandler(ioWriter, &slog.HandlerOptions{
+				Next: slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
 		case "text":
 			handler = telemetry.OtelHandler{
-				Next: slog.NewTextHandler(ioWriter, &slog.HandlerOptions{
+				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
 		default:
 			handler = telemetry.OtelHandler{
-				Next: slog.NewTextHandler(ioWriter, &slog.HandlerOptions{
+				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
 				}),
 			}
 		}
-
 		logger := slog.New(handler)
-
 		slog.SetDefault(logger)
-
-		slog.Info("🚀 starting permify service...")
 
 		internal.Identifier = cfg.AccountID
 		if internal.Identifier == "" {
@@ -235,6 +219,40 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Set up context and signal handling
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
+
+		if cfg.Log.Enabled {
+			headers := map[string]string{}
+			for _, header := range cfg.Log.Headers {
+				h := strings.Split(header, ":")
+				if len(h) != 2 {
+					return errors.New("invalid header format; expected 'key:value'")
+				}
+				headers[h[0]] = h[1]
+			}
+
+			exporter, _ := logexporters.ExporterFactory(
+				cfg.Log.Exporter,
+				cfg.Log.Endpoint,
+				cfg.Log.Insecure,
+				cfg.Log.URLPath,
+				headers,
+			)
+			lp := telemetry.NewLog(exporter)
+
+			logger := slog.New(otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			}))
+
+			slog.SetDefault(logger)
+
+			defer func() {
+				if err = lp.Shutdown(ctx); err != nil {
+					slog.Error(err.Error())
+				}
+			}()
+		}
+
+		slog.Info("🚀 starting permify service...")
 
 		// Run database migration if enabled
 		if cfg.Database.AutoMigrate {
@@ -282,7 +300,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			shutdown := telemetry.NewTracer(exporter)
 
 			defer func() {
-				if err = shutdown(context.Background()); err != nil {
+				if err = shutdown(ctx); err != nil {
 					slog.Error(err.Error())
 				}
 			}()
@@ -331,10 +349,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				slog.Error(err.Error())
 			}
 
-			shutdown := telemetry.NewMeter(exporter)
+			shutdown := telemetry.NewMeter(exporter, time.Duration(cfg.Meter.Interval)*time.Second)
 
 			defer func() {
-				if err = shutdown(context.Background()); err != nil {
+				if err = shutdown(ctx); err != nil {
 					slog.Error(err.Error())
 				}
 			}()
@@ -417,7 +435,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 
 			checker, err = balancer.NewCheckEngineWithBalancer(
-				context.Background(),
+				ctx,
 				checkEngine,
 				schemaReader,
 				&cfg.Distributed,

@@ -251,7 +251,6 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		}, err
 	}
 	duration := time.Now().Sub(start)
-
 	invoker.checkDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the check count in the response metadata.
