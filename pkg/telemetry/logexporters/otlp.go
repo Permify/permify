@@ -9,7 +9,6 @@ import (
 
 // NewOTLP - Creates new OTLP exporter using HTTP protocol.
 func NewOTLP(endpoint string, insecure bool, urlpath string, headers map[string]string) (*otlplogs.Exporter, error) {
-
 	options := []otlplogshttp.Option{
 		otlplogshttp.WithCompression(otlplogshttp.GzipCompression),
 		otlplogshttp.WithEndpoint(endpoint),

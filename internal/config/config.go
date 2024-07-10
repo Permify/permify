@@ -89,7 +89,6 @@ type (
 	Log struct {
 		Level    string   `mapstructure:"level"`    // Logging level
 		Output   string   `mapstructure:"output"`   // Logging output format, e.g., text, json
-		File     string   `mapstructure:"file"`     // Logging whether to file or not
 		Enabled  bool     `mapstructure:"enabled"`  // Whether logging collection is enabled
 		Exporter string   `mapstructure:"exporter"` // Exporter for log data
 		Endpoint string   `mapstructure:"endpoint"` // Endpoint for the log exporter
@@ -292,7 +291,7 @@ func DefaultConfig() *Config {
 			Enabled: false,
 		},
 		Log: Log{
-			Level:    "debug",
+			Level:    "info",
 			Enabled:  true,
 			Exporter: "otlp",
 			Headers:  []string{},

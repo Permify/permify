@@ -76,8 +76,12 @@ func NewServeCommand() *cobra.Command {
 	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
 	f.String("log-level", conf.Log.Level, "set log verbosity ('info', 'debug', 'error', 'warning')")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
-	f.String("log-file", conf.Log.File, "logger file destination")
 	f.Bool("log-enabled", conf.Log.Enabled, "logger exporter enabled")
+	f.String("log-exporter", conf.Log.Exporter, "can be; otlp. (integrated metric tools)")
+	f.String("log-endpoint", conf.Log.Endpoint, "export uri for logs")
+	f.Bool("log-insecure", conf.Log.Insecure, "use https or http for logs")
+	f.String("log-urlpath", conf.Log.URLPath, "allow to set url path for otlp exporter")
+	f.StringSlice("log-headers", conf.Log.Headers, "allows setting custom headers for the log exporter in key-value pairs")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
@@ -170,7 +174,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Print banner and initialize logger
-
 		internal.PrintBanner()
 
 		var handler slog.Handler
@@ -198,35 +201,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		logger := slog.New(handler)
 		slog.SetDefault(logger)
 
-		if cfg.Log.Enabled {
-			headers := map[string]string{}
-			for _, header := range cfg.Log.Headers {
-				h := strings.Split(header, ":")
-				if len(h) != 2 {
-					return errors.New("invalid header format; expected 'key:value'")
-				}
-				headers[h[0]] = h[1]
-			}
-
-			exporter, _ := logexporters.ExporterFactory(
-				cfg.Log.Exporter,
-				cfg.Log.Endpoint,
-				cfg.Log.Insecure,
-				cfg.Log.URLPath,
-				headers,
-			)
-			lp := telemetry.NewLog(exporter)
-			defer lp.Shutdown(context.Background())
-
-			logger := slog.New(otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			}))
-
-			slog.SetDefault(logger)
-		}
-
-		slog.Info("🚀 starting permify service...")
-
 		internal.Identifier = cfg.AccountID
 		if internal.Identifier == "" {
 			message := "Account ID is not set. Please fill in the Account ID for better support. Get your Account ID from https://permify.co/account"
@@ -245,6 +219,40 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Set up context and signal handling
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
+
+		if cfg.Log.Enabled {
+			headers := map[string]string{}
+			for _, header := range cfg.Log.Headers {
+				h := strings.Split(header, ":")
+				if len(h) != 2 {
+					return errors.New("invalid header format; expected 'key:value'")
+				}
+				headers[h[0]] = h[1]
+			}
+
+			exporter, _ := logexporters.ExporterFactory(
+				cfg.Log.Exporter,
+				cfg.Log.Endpoint,
+				cfg.Log.Insecure,
+				cfg.Log.URLPath,
+				headers,
+			)
+			lp := telemetry.NewLog(exporter)
+
+			logger := slog.New(otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			}))
+
+			slog.SetDefault(logger)
+
+			defer func() {
+				if err = lp.Shutdown(ctx); err != nil {
+					slog.Error(err.Error())
+				}
+			}()
+		}
+
+		slog.Info("🚀 starting permify service...")
 
 		// Run database migration if enabled
 		if cfg.Database.AutoMigrate {
@@ -292,7 +300,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			shutdown := telemetry.NewTracer(exporter)
 
 			defer func() {
-				if err = shutdown(context.Background()); err != nil {
+				if err = shutdown(ctx); err != nil {
 					slog.Error(err.Error())
 				}
 			}()
@@ -344,7 +352,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			shutdown := telemetry.NewMeter(exporter, time.Duration(cfg.Meter.Interval)*time.Second)
 
 			defer func() {
-				if err = shutdown(context.Background()); err != nil {
+				if err = shutdown(ctx); err != nil {
 					slog.Error(err.Error())
 				}
 			}()
@@ -427,7 +435,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 
 			checker, err = balancer.NewCheckEngineWithBalancer(
-				context.Background(),
+				ctx,
 				checkEngine,
 				schemaReader,
 				&cfg.Distributed,
