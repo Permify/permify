@@ -21,14 +21,17 @@ import (
 )
 
 // NewMeter - Creates new meter
-func NewMeter(exporter metric.Exporter) func(context.Context) error {
+func NewMeter(exporter metric.Exporter, interval time.Duration) func(context.Context) error {
 	hostName, err := os.Hostname()
 	if err != nil {
 		return func(context.Context) error { return nil }
 	}
 
 	mp := metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(exporter, metric.WithInterval(time.Second*300))),
+		metric.WithReader(metric.NewPeriodicReader(
+			exporter,
+			metric.WithInterval(interval),
+		)),
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),

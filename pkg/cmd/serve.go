@@ -341,7 +341,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				slog.Error(err.Error())
 			}
 
-			shutdown := telemetry.NewMeter(exporter)
+			shutdown := telemetry.NewMeter(exporter, time.Duration(cfg.Meter.Interval)*time.Second)
 
 			defer func() {
 				if err = shutdown(context.Background()); err != nil {
