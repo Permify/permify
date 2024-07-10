@@ -3,8 +3,10 @@ package servers
 import (
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/rs/xid"
+	api "go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc/status"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
@@ -21,15 +23,52 @@ import (
 type SchemaServer struct {
 	v1.UnimplementedSchemaServer
 
-	sw storage.SchemaWriter
-	sr storage.SchemaReader
+	sw                   storage.SchemaWriter
+	sr                   storage.SchemaReader
+	writeSchemaHistogram api.Int64Histogram
+	readSchemaHistogram  api.Int64Histogram
+	listSchemaHistogram  api.Int64Histogram
 }
 
 // NewSchemaServer - Creates new Schema Server
 func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader) *SchemaServer {
+
+	writeSchemaHistogram, err := meter.Int64Histogram(
+		"write_schema",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of writing schema in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	readSchemaHistogram, err := meter.Int64Histogram(
+		"read_schema",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of reading schema in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	listSchemaHistogram, err := meter.Int64Histogram(
+		"list_schema",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of listing schema in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
 	return &SchemaServer{
-		sw: sw,
-		sr: sr,
+		sw:                   sw,
+		sr:                   sr,
+		writeSchemaHistogram: writeSchemaHistogram,
+		readSchemaHistogram:  readSchemaHistogram,
+		listSchemaHistogram:  listSchemaHistogram,
 	}
 }
 
@@ -37,6 +76,7 @@ func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader) *SchemaSe
 func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest) (*v1.SchemaWriteResponse, error) {
 	ctx, span := tracer.Start(ctx, "schemas.write")
 	defer span.End()
+	start := time.Now()
 
 	sch, err := parser.NewParser(request.GetSchema()).Parse()
 	if err != nil {
@@ -71,6 +111,9 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.writeSchemaHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.SchemaWriteResponse{
 		SchemaVersion: version,
@@ -192,6 +235,7 @@ func (r *SchemaServer) PartialWrite(ctx context.Context, request *v1.SchemaParti
 func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) (*v1.SchemaReadResponse, error) {
 	ctx, span := tracer.Start(ctx, "schemas.read")
 	defer span.End()
+	start := time.Now()
 
 	version := request.GetMetadata().GetSchemaVersion()
 	if version == "" {
@@ -210,6 +254,9 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
+	duration := time.Now().Sub(start)
+	r.readSchemaHistogram.Record(ctx, duration.Microseconds())
+
 	return &v1.SchemaReadResponse{
 		Schema: response,
 	}, nil
@@ -219,6 +266,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) (*v1.SchemaListResponse, error) {
 	ctx, span := tracer.Start(ctx, "schemas.list")
 	defer span.End()
+	start := time.Now()
 
 	schemas, ct, err := r.sr.ListSchemas(ctx, request.GetTenantId(), database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken())))
 	if err != nil {
@@ -232,6 +280,9 @@ func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) 
 	if err != nil {
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.listSchemaHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.SchemaListResponse{
 		Head:            head,

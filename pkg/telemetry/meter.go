@@ -36,7 +36,6 @@ func NewMeter(exporter metric.Exporter, interval time.Duration) func(context.Con
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("permify"),
 			attribute.String("id", internal.Identifier),
-			attribute.String("project.id", internal.Identifier),
 			attribute.String("version", internal.Version),
 			attribute.String("host_name", hostName),
 			attribute.String("os", runtime.GOOS),

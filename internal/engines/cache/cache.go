@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/hex"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	api "go.opentelemetry.io/otel/metric"
@@ -88,9 +89,13 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 	if found {
 		ctx, span := tracer.Start(ctx, "hit")
 		defer span.End()
+		start := time.Now()
 
 		// Increase the check count in the metrics.
 		c.cacheCounter.Add(ctx, 1)
+
+		duration := time.Now().Sub(start)
+		c.cacheHitDurationHistogram.Record(ctx, duration.Microseconds())
 
 		// If the request doesn't have the exclusion flag set, return the cached result.
 		return &base.PermissionCheckResponse{
