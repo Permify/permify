@@ -40,6 +40,7 @@ import (
 )
 
 var tracer = otel.Tracer("servers")
+var meter = otel.Meter("servers")
 
 // Container is a struct that holds the invoker and various storage
 // for permission-related operations. It serves as a central point of access

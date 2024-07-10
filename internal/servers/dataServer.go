@@ -2,8 +2,10 @@ package servers
 
 import (
 	"log/slog"
+	"time"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
+	api "go.opentelemetry.io/otel/metric"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/status"
 
@@ -19,10 +21,17 @@ import (
 type DataServer struct {
 	v1.UnimplementedDataServer
 
-	sr storage.SchemaReader
-	dr storage.DataReader
-	br storage.BundleReader
-	dw storage.DataWriter
+	sr                           storage.SchemaReader
+	dr                           storage.DataReader
+	br                           storage.BundleReader
+	dw                           storage.DataWriter
+	writeDataHistogram           api.Int64Histogram
+	deleteDataHistogram          api.Int64Histogram
+	readAttributesHistogram      api.Int64Histogram
+	readRelationshipsHistogram   api.Int64Histogram
+	writeRelationshipsHistogram  api.Int64Histogram
+	deleteRelationshipsHistogram api.Int64Histogram
+	runBundleHistogram           api.Int64Histogram
 }
 
 // NewDataServer - Creates new Data Server
@@ -32,11 +41,89 @@ func NewDataServer(
 	br storage.BundleReader,
 	sr storage.SchemaReader,
 ) *DataServer {
+
+	writeDataHistogram, err := meter.Int64Histogram(
+		"write_data",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of writing data in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	deleteDataHistogram, err := meter.Int64Histogram(
+		"delete_data",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of deleting data in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	readAttributesHistogram, err := meter.Int64Histogram(
+		"read_attributes",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of reading attributes in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	readRelationshipsHistogram, err := meter.Int64Histogram(
+		"read_relationships",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of reading relationships in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	writeRelationshipsHistogram, err := meter.Int64Histogram(
+		"write_relationships",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of writing relationships in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	deleteRelationshipsHistogram, err := meter.Int64Histogram(
+		"delete_relationships",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of deleting relationships in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	runBundleHistogram, err := meter.Int64Histogram(
+		"run_bundle",
+		api.WithUnit("microseconds"),
+		api.WithDescription("Duration of running bunble in microseconds"),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
 	return &DataServer{
-		dr: dr,
-		dw: dw,
-		br: br,
-		sr: sr,
+		dr:                           dr,
+		dw:                           dw,
+		br:                           br,
+		sr:                           sr,
+		writeDataHistogram:           writeDataHistogram,
+		deleteDataHistogram:          deleteDataHistogram,
+		readAttributesHistogram:      readAttributesHistogram,
+		readRelationshipsHistogram:   readRelationshipsHistogram,
+		writeRelationshipsHistogram:  writeRelationshipsHistogram,
+		deleteRelationshipsHistogram: deleteRelationshipsHistogram,
+		runBundleHistogram:           runBundleHistogram,
 	}
 }
 
@@ -44,6 +131,7 @@ func NewDataServer(
 func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.RelationshipReadRequest) (*v1.RelationshipReadResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.read.relationships")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -76,6 +164,9 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
+	duration := time.Now().Sub(start)
+	r.readRelationshipsHistogram.Record(ctx, duration.Microseconds())
+
 	return &v1.RelationshipReadResponse{
 		Tuples:          collection.GetTuples(),
 		ContinuousToken: ct.String(),
@@ -86,6 +177,7 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeReadRequest) (*v1.AttributeReadResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.read.attributes")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -118,6 +210,9 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
+	duration := time.Now().Sub(start)
+	r.readAttributesHistogram.Record(ctx, duration.Microseconds())
+
 	return &v1.AttributeReadResponse{
 		Attributes:      collection.GetAttributes(),
 		ContinuousToken: ct.String(),
@@ -128,6 +223,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*v1.DataWriteResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.write")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -215,6 +311,9 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
+	duration := time.Now().Sub(start)
+	r.writeDataHistogram.Record(ctx, duration.Microseconds())
+
 	return &v1.DataWriteResponse{
 		SnapToken: snap.String(),
 	}, nil
@@ -224,6 +323,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.RelationshipWriteRequest) (*v1.RelationshipWriteResponse, error) {
 	ctx, span := tracer.Start(ctx, "relationships.write")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -280,6 +380,9 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
+	duration := time.Now().Sub(start)
+	r.writeRelationshipsHistogram.Record(ctx, duration.Microseconds())
+
 	return &v1.RelationshipWriteResponse{
 		SnapToken: snap.String(),
 	}, nil
@@ -289,6 +392,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) (*v1.DataDeleteResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.delete")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -308,6 +412,9 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
+	duration := time.Now().Sub(start)
+	r.deleteDataHistogram.Record(ctx, duration.Microseconds())
+
 	return &v1.DataDeleteResponse{
 		SnapToken: snap.String(),
 	}, nil
@@ -317,6 +424,7 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.RelationshipDeleteRequest) (*v1.RelationshipDeleteResponse, error) {
 	ctx, span := tracer.Start(ctx, "relationships.delete")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -336,6 +444,9 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
+	duration := time.Now().Sub(start)
+	r.deleteRelationshipsHistogram.Record(ctx, duration.Microseconds())
+
 	return &v1.RelationshipDeleteResponse{
 		SnapToken: snap.String(),
 	}, nil
@@ -345,6 +456,7 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest) (*v1.BundleRunResponse, error) {
 	ctx, span := tracer.Start(ctx, "bundle.run")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -371,6 +483,9 @@ func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest
 		slog.Error(err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.runBundleHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.BundleRunResponse{
 		SnapToken: snap.String(),
