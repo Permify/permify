@@ -33,7 +33,6 @@ type SchemaServer struct {
 
 // NewSchemaServer - Creates new Schema Server
 func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader) *SchemaServer {
-
 	return &SchemaServer{
 		sw:                   sw,
 		sr:                   sr,

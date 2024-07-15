@@ -43,7 +43,6 @@ func NewCheckEngineWithCache(
 	schemaReader storage.SchemaReader,
 	cache cache.Cache,
 ) invoke.Check {
-
 	return &CheckEngineWithCache{
 		schemaReader:              schemaReader,
 		checker:                   checker,

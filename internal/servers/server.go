@@ -39,8 +39,10 @@ import (
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var tracer = otel.Tracer("servers")
-var meter = otel.Meter("servers")
+var (
+	tracer = otel.Tracer("servers")
+	meter  = otel.Meter("servers")
+)
 
 // Container is a struct that holds the invoker and various storage
 // for permission-related operations. It serves as a central point of access

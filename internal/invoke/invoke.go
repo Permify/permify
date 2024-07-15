@@ -95,7 +95,6 @@ func NewDirectInvoker(
 	lo Lookup,
 	sp SubjectPermission,
 ) *DirectInvoker {
-
 	return &DirectInvoker{
 		schemaReader:                       schemaReader,
 		dataReader:                         dataReader,
