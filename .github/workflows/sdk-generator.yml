@@ -14,7 +14,7 @@ jobs:
         runs-on: ubuntu-latest
         env:
             GITHUB_TOKEN: ${{ secrets.SDK_GH_TOKEN }}
-            ORG_NAME: permify
+            ORG_NAME: Permify
             SWAGGER_PATH: docs/api-reference/apidocs.swagger.json
 
         strategy:
