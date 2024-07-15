@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -15,6 +16,7 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/cache"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 )
 
 var (
@@ -41,28 +43,13 @@ func NewCheckEngineWithCache(
 	schemaReader storage.SchemaReader,
 	cache cache.Cache,
 ) invoke.Check {
-	// Cache Counter
-	cacheCounter, err := meter.Int64Counter("cache_check_count", api.WithDescription("Number of permission cached checks performed"))
-	if err != nil {
-		panic(err)
-	}
-
-	// Cache Hit Duration Histogram
-	cacheHitDurationHistogram, err := meter.Int64Histogram(
-		"cache_hit_duration",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of cache hits in microseconds"),
-	)
-	if err != nil {
-		panic(err)
-	}
 
 	return &CheckEngineWithCache{
 		schemaReader:              schemaReader,
 		checker:                   checker,
 		cache:                     cache,
-		cacheCounter:              cacheCounter,
-		cacheHitDurationHistogram: cacheHitDurationHistogram,
+		cacheCounter:              telemetry.NewCounter(meter, "cache_check_count", "Number of permission cached checks performed"),
+		cacheHitDurationHistogram: telemetry.NewHistogram(meter, "cache_hit_duration", "microseconds", "Duration of cache hits in microseconds"),
 	}
 }
 
@@ -93,6 +80,7 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 
 		// Increase the check count in the metrics.
 		c.cacheCounter.Add(ctx, 1)
+		fmt.Println(c.cacheCounter)
 
 		duration := time.Now().Sub(start)
 		c.cacheHitDurationHistogram.Record(ctx, duration.Microseconds())

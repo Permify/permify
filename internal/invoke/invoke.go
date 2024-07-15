@@ -12,6 +12,7 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -94,65 +95,6 @@ func NewDirectInvoker(
 	lo Lookup,
 	sp SubjectPermission,
 ) *DirectInvoker {
-	// Check Counter
-	checkCounter, err := meter.Int64Counter("check_count", api.WithDescription("Number of permission checks performed"))
-	if err != nil {
-		panic(err)
-	}
-
-	// Lookup Entity Counter
-	lookupEntityCounter, err := meter.Int64Counter("lookup_entity_count", api.WithDescription("Number of permission lookup entity performed"))
-	if err != nil {
-		panic(err)
-	}
-
-	// Lookup Subject Counter
-	lookupSubjectCounter, err := meter.Int64Counter("lookup_subject_count", api.WithDescription("Number of permission lookup subject performed"))
-	if err != nil {
-		panic(err)
-	}
-
-	// Subject Permission Counter
-	subjectPermissionCounter, err := meter.Int64Counter("subject_permission_count", api.WithDescription("Number of subject permission performed"))
-	if err != nil {
-		panic(err)
-	}
-
-	checkDurationHistogram, err := meter.Int64Histogram(
-		"check_duration",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of check duration in microseconds"),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	lookupEntityDurationHistogram, err := meter.Int64Histogram(
-		"lookup_entity_duration",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of lookup entity duration in microseconds"),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	lookupSubjectDurationHistogram, err := meter.Int64Histogram(
-		"lookup_subject_duration",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of lookup subject duration in microseconds"),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	subjectPermissionDurationHistogram, err := meter.Int64Histogram(
-		"subject_permission_duration",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of subject permission duration in microseconds"),
-	)
-	if err != nil {
-		panic(err)
-	}
 
 	return &DirectInvoker{
 		schemaReader:                       schemaReader,
@@ -161,14 +103,14 @@ func NewDirectInvoker(
 		ec:                                 ec,
 		lo:                                 lo,
 		sp:                                 sp,
-		checkCounter:                       checkCounter,
-		lookupEntityCounter:                lookupEntityCounter,
-		lookupSubjectCounter:               lookupSubjectCounter,
-		subjectPermissionCounter:           subjectPermissionCounter,
-		checkDurationHistogram:             checkDurationHistogram,
-		lookupEntityDurationHistogram:      lookupEntityDurationHistogram,
-		lookupSubjectDurationHistogram:     lookupSubjectDurationHistogram,
-		subjectPermissionDurationHistogram: subjectPermissionDurationHistogram,
+		checkCounter:                       telemetry.NewCounter(meter, "check_count", "Number of permission checks performed"),
+		lookupEntityCounter:                telemetry.NewCounter(meter, "lookup_entity_count", "Number of permission lookup entity performed"),
+		lookupSubjectCounter:               telemetry.NewCounter(meter, "lookup_subject_count", "Number of permission lookup subject performed"),
+		subjectPermissionCounter:           telemetry.NewCounter(meter, "subject_permission_count", "Number of subject permission performed"),
+		checkDurationHistogram:             telemetry.NewHistogram(meter, "check_duration", "microseconds", "Duration of checks in microseconds"),
+		lookupEntityDurationHistogram:      telemetry.NewHistogram(meter, "lookup_entity_duration", "microseconds", "Duration of lookup entity duration in microseconds"),
+		lookupSubjectDurationHistogram:     telemetry.NewHistogram(meter, "lookup_subject_duration", "microseconds", "Duration of lookup subject duration in microseconds"),
+		subjectPermissionDurationHistogram: telemetry.NewHistogram(meter, "subject_permission_duration", "microseconds", "Duration of subject permission duration in microseconds"),
 	}
 }
 
