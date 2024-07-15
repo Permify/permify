@@ -14,6 +14,7 @@ import (
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -42,88 +43,18 @@ func NewDataServer(
 	sr storage.SchemaReader,
 ) *DataServer {
 
-	writeDataHistogram, err := meter.Int64Histogram(
-		"write_data",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of writing data in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	deleteDataHistogram, err := meter.Int64Histogram(
-		"delete_data",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of deleting data in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	readAttributesHistogram, err := meter.Int64Histogram(
-		"read_attributes",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of reading attributes in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	readRelationshipsHistogram, err := meter.Int64Histogram(
-		"read_relationships",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of reading relationships in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	writeRelationshipsHistogram, err := meter.Int64Histogram(
-		"write_relationships",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of writing relationships in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	deleteRelationshipsHistogram, err := meter.Int64Histogram(
-		"delete_relationships",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of deleting relationships in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	runBundleHistogram, err := meter.Int64Histogram(
-		"run_bundle",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of running bunble in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
 	return &DataServer{
 		dr:                           dr,
 		dw:                           dw,
 		br:                           br,
 		sr:                           sr,
-		writeDataHistogram:           writeDataHistogram,
-		deleteDataHistogram:          deleteDataHistogram,
-		readAttributesHistogram:      readAttributesHistogram,
-		readRelationshipsHistogram:   readRelationshipsHistogram,
-		writeRelationshipsHistogram:  writeRelationshipsHistogram,
-		deleteRelationshipsHistogram: deleteRelationshipsHistogram,
-		runBundleHistogram:           runBundleHistogram,
+		writeDataHistogram:           telemetry.NewHistogram(meter, "write_data", "microseconds", "Duration of writing data in microseconds"),
+		deleteDataHistogram:          telemetry.NewHistogram(meter, "delete_data", "microseconds", "Duration of deleting data in microseconds"),
+		readAttributesHistogram:      telemetry.NewHistogram(meter, "read_attributes", "microseconds", "Duration of reading attributes in microseconds"),
+		readRelationshipsHistogram:   telemetry.NewHistogram(meter, "read_relationships", "microseconds", "Duration of reading relationships in microseconds"),
+		writeRelationshipsHistogram:  telemetry.NewHistogram(meter, "write_relationships", "microseconds", "Duration of writing relationships in microseconds"),
+		deleteRelationshipsHistogram: telemetry.NewHistogram(meter, "delete_relationships", "microseconds", "Duration of deleting relationships in microseconds"),
+		runBundleHistogram:           telemetry.NewHistogram(meter, "delete_relationships", "run_bundle", "Duration of running bunble in microseconds"),
 	}
 }
 

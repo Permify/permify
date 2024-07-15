@@ -17,6 +17,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 )
 
 // SchemaServer - Structure for Schema Server
@@ -33,42 +34,12 @@ type SchemaServer struct {
 // NewSchemaServer - Creates new Schema Server
 func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader) *SchemaServer {
 
-	writeSchemaHistogram, err := meter.Int64Histogram(
-		"write_schema",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of writing schema in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	readSchemaHistogram, err := meter.Int64Histogram(
-		"read_schema",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of reading schema in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	listSchemaHistogram, err := meter.Int64Histogram(
-		"list_schema",
-		api.WithUnit("microseconds"),
-		api.WithDescription("Duration of listing schema in microseconds"),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
 	return &SchemaServer{
 		sw:                   sw,
 		sr:                   sr,
-		writeSchemaHistogram: writeSchemaHistogram,
-		readSchemaHistogram:  readSchemaHistogram,
-		listSchemaHistogram:  listSchemaHistogram,
+		writeSchemaHistogram: telemetry.NewHistogram(meter, "write_schema", "microseconds", "Duration of writing schema in microseconds"),
+		readSchemaHistogram:  telemetry.NewHistogram(meter, "read_schema", "microseconds", "Duration of reading schema in microseconds"),
+		listSchemaHistogram:  telemetry.NewHistogram(meter, "list_schema", "microseconds", "Duration of listing schema in microseconds"),
 	}
 }
 

@@ -2,6 +2,7 @@ package telemetry
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -64,4 +65,33 @@ func NewMeter(exporter metric.Exporter, interval time.Duration) func(context.Con
 func NewNoopMeter() omt.Meter {
 	mp := noop.MeterProvider{}
 	return mp.Meter("permify")
+}
+
+func NewCounter(meter omt.Meter, name, description string) omt.Int64Counter {
+	counter, err := meter.Int64Counter(
+		name,
+		omt.WithDescription(description),
+	)
+
+	if err != nil {
+		fmt.Errorf("failed to create counter: %w", err)
+		panic(err)
+	}
+
+	return counter
+}
+
+func NewHistogram(meter omt.Meter, name, unit, description string) omt.Int64Histogram {
+	histogram, err := meter.Int64Histogram(
+		name,
+		omt.WithUnit(unit),
+		omt.WithDescription(description),
+	)
+
+	if err != nil {
+		fmt.Errorf("failed to create histogram: %w", err)
+		panic(err)
+	}
+
+	return histogram
 }
