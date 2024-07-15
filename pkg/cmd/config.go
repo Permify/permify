@@ -71,6 +71,7 @@ func NewConfigCommand() *cobra.Command {
 	f.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
 	f.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
 	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
+	f.Int("meter-interval", conf.Meter.Interval, "allows to set metrics to be pushed in certain time interval")
 	f.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	f.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
 	f.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
