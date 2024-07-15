@@ -42,7 +42,6 @@ func NewDataServer(
 	br storage.BundleReader,
 	sr storage.SchemaReader,
 ) *DataServer {
-
 	return &DataServer{
 		dr:                           dr,
 		dw:                           dw,

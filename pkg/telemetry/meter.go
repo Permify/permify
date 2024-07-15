@@ -2,7 +2,7 @@ package telemetry
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"os"
 	"runtime"
 	"time"
@@ -72,9 +72,8 @@ func NewCounter(meter omt.Meter, name, description string) omt.Int64Counter {
 		name,
 		omt.WithDescription(description),
 	)
-
 	if err != nil {
-		fmt.Errorf("failed to create counter: %w", err)
+		slog.Error("failed to create counter: ", err)
 		panic(err)
 	}
 
@@ -87,9 +86,8 @@ func NewHistogram(meter omt.Meter, name, unit, description string) omt.Int64Hist
 		omt.WithUnit(unit),
 		omt.WithDescription(description),
 	)
-
 	if err != nil {
-		fmt.Errorf("failed to create histogram: %w", err)
+		slog.Error("failed to create histogram: ", err)
 		panic(err)
 	}
 
