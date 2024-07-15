@@ -1805,7 +1805,6 @@
         "ATTRIBUTE_TYPE_DOUBLE",
         "ATTRIBUTE_TYPE_DOUBLE_ARRAY"
       ],
-      "default": "ATTRIBUTE_TYPE_UNSPECIFIED",
       "description": "Enumerates the types of attribute.\n\n - ATTRIBUTE_TYPE_UNSPECIFIED: Not specified attribute type. This is the default value.\n - ATTRIBUTE_TYPE_BOOLEAN: A boolean attribute type.\n - ATTRIBUTE_TYPE_BOOLEAN_ARRAY: A boolean array attribute type.\n - ATTRIBUTE_TYPE_STRING: A string attribute type.\n - ATTRIBUTE_TYPE_STRING_ARRAY: A string array attribute type.\n - ATTRIBUTE_TYPE_INTEGER: An integer attribute type.\n - ATTRIBUTE_TYPE_INTEGER_ARRAY: An integer array attribute type.\n - ATTRIBUTE_TYPE_DOUBLE: A double attribute type.\n - ATTRIBUTE_TYPE_DOUBLE_ARRAY: A double array attribute type."
     },
     "BundleDeleteResponse": {
@@ -1854,7 +1853,6 @@
         "CHECK_RESULT_ALLOWED",
         "CHECK_RESULT_DENIED"
       ],
-      "default": "CHECK_RESULT_UNSPECIFIED",
       "description": "Enumerates results of a check operation.\n\n - CHECK_RESULT_UNSPECIFIED: Not specified check result. This is the default value.\n - CHECK_RESULT_ALLOWED: Represents a successful check (the check allowed the operation).\n - CHECK_RESULT_DENIED: Represents a failed check (the check denied the operation)."
     },
     "CheckedExpr": {
@@ -2130,7 +2128,6 @@
         "OPERATION_CREATE",
         "OPERATION_DELETE"
       ],
-      "default": "OPERATION_UNSPECIFIED",
       "description": " - OPERATION_UNSPECIFIED: Default operation, not specified.\n - OPERATION_CREATE: Creation operation.\n - OPERATION_DELETE: Deletion operation."
     },
     "DataChanges": {
@@ -2239,7 +2236,6 @@
         "REFERENCE_PERMISSION",
         "REFERENCE_ATTRIBUTE"
       ],
-      "default": "REFERENCE_UNSPECIFIED",
       "description": "The Reference enum specifies whether a name pertains to a relation, permission, or attribute.\n\n - REFERENCE_UNSPECIFIED: Default, unspecified reference.\n - REFERENCE_RELATION: Indicates that the name refers to a relation.\n - REFERENCE_PERMISSION: Indicates that the name refers to a permission.\n - REFERENCE_ATTRIBUTE: Indicates that the name refers to an attribute."
     },
     "EntityFilter": {
@@ -2360,7 +2356,6 @@
         "OPERATION_INTERSECTION",
         "OPERATION_EXCLUSION"
       ],
-      "default": "OPERATION_UNSPECIFIED",
       "description": "Operation is an enum representing the type of operation to be applied on the tree node."
     },
     "Expr": {
@@ -2503,7 +2498,6 @@
       "enum": [
         "NULL_VALUE"
       ],
-      "default": "NULL_VALUE",
       "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
     },
     "Partials": {
@@ -2733,7 +2727,6 @@
         "STRING",
         "BYTES"
       ],
-      "default": "PRIMITIVE_TYPE_UNSPECIFIED",
       "description": "CEL primitive types.\n\n - PRIMITIVE_TYPE_UNSPECIFIED: Unspecified type.\n - BOOL: Boolean type.\n - INT64: Int64 type.\n\nProto-based integer values are widened to int64.\n - UINT64: Uint64 type.\n\nProto-based unsigned integer values are widened to uint64.\n - DOUBLE: Double type.\n\nProto-based float values are widened to double values.\n - STRING: String type.\n - BYTES: Bytes type."
     },
     "RelationDefinition": {
@@ -2851,7 +2844,6 @@
         "OPERATION_INTERSECTION",
         "OPERATION_EXCLUSION"
       ],
-      "default": "OPERATION_UNSPECIFIED",
       "description": "Operation enum includes potential rewrite operations.\nOPERATION_UNION: Represents a union operation.\nOPERATION_INTERSECTION: Represents an intersection operation.\nOPERATION_EXCLUSION: Represents an exclusion operation.\n\n - OPERATION_UNSPECIFIED: Default, unspecified operation.\n - OPERATION_UNION: Represents a union operation.\n - OPERATION_INTERSECTION: Represents an intersection operation.\n - OPERATION_EXCLUSION: Represents an exclusion operation."
     },
     "RuleDefinition": {
@@ -2909,7 +2901,6 @@
         "REFERENCE_ENTITY",
         "REFERENCE_RULE"
       ],
-      "default": "REFERENCE_UNSPECIFIED",
       "description": "The Reference enum helps distinguish whether a name corresponds to an entity or a rule.\n\n - REFERENCE_UNSPECIFIED: Default, unspecified reference.\n - REFERENCE_ENTITY: Indicates that the name refers to an entity.\n - REFERENCE_RULE: Indicates that the name refers to a rule."
     },
     "SchemaList": {
@@ -3288,7 +3279,6 @@
         "TIMESTAMP",
         "DURATION"
       ],
-      "default": "WELL_KNOWN_TYPE_UNSPECIFIED",
       "description": "Well-known protobuf types treated with first-class support in CEL.\n\n - WELL_KNOWN_TYPE_UNSPECIFIED: Unspecified type.\n - ANY: Well-known protobuf.Any type.\n\nAny types are a polymorphic message type. During type-checking they are\ntreated like `DYN` types, but at runtime they are resolved to a specific\nmessage type specified at evaluation time.\n - TIMESTAMP: Well-known protobuf.Timestamp type, internally referenced as `timestamp`.\n - DURATION: Well-known protobuf.Duration type, internally referenced as `duration`."
     },
     "v1.Call": {
