@@ -1,4 +1,4 @@
-
+ 
 <h1 align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
     Permify - Open Source Fine-Grained Authorization
