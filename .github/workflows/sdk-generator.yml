@@ -1,9 +1,8 @@
 name: Generate Client SDKs from OpenAPI
 
 on:
-    push:
-        branches:
-            - master
+  release:
+    types: [published]
     workflow_dispatch:
 
 jobs:
