@@ -1,0 +1,270 @@
+---
+title: Explore Permify Cloud
+description: 'Seamlessly get started with permissions systems deployed on secure Permify infrastructure. Start free and small, and scale up as needed.'
+---
+
+<Note>If you're interested in leveraging Permify Cloud for your authorization needs, we invite you to join our [early access program](https://calendly.com/d/ck8q-nc4-3p4/schedule-a-demo?month=2024-07). By contacting us, you can get a personalized setup and dedicated support to get started with Permify Cloud.</Note>
+
+🔮 **Everything in the Open-Source, Managed with Best Practices**: Just focus on your authorization logic while we handle the infrastructure and deployment on your behalf.
+
+🔒 **Start Free, Pay As You Scale**: No cost for up to 500 Monthly Active Users (MAUs). Charged $0.20 per user for up to 10,000 MAUs - volume discounts applied beyond that.
+
+🛡️ **Secure Architecture:** We secure endpoints with API keys and reserve databases on a tenant basis, ensuring top-notch data security and longevity.
+
+📈 **Auto-Scale By Default**: Automatically adjust resource allocation to meet demand, while ensuring optimal performance and cost-efficiency.
+
+🌐 **Disaster Recovery Zones:** Strategically located disaster recovery zones replicate data across regions, ensuring rapid recovery during any incident.
+
+Here is an overview of Permify Cloud,
+
+## Projects 
+
+![projects-page](https://github.com/user-attachments/assets/81247699-a1c6-4dda-9d5e-98c8618492e3)
+
+The Projects page is the central hub for managing your permission systems. Each project represents a separate permission system, allowing you to organize and manage your authorization needs in isolated way. 
+
+Here’s a breakdown of the key components and features of the Projects page:
+
+### System Activation
+
+Each project card includes an **Activate** toggle switch. This feature allows you to activate or deactivate the permission system as required.
+
+### Environments
+Projects are labeled according to their environment type.
+
+Both production and development environments are built on the same Kubernetes infrastructure. However, they are isolated from each other through the use of different namespaces. 
+
+* **development**
+
+The development environment operates on a shared infrastructure, providing a cost-effective solution for testing and development purposes. 
+
+Each development project is assigned its own namespace, ensuring that projects do not interfere with each other while sharing the same underlying resources.
+
+* **production**
+
+Unlike the development environment, the production environment is supported by a separate RDS (Relational Database Service) instance, ensuring high performance, reliability, and security for your live applications.
+
+By segregating production workloads onto dedicated resources, therefore your production systems remain unaffected by the development and testing activities.
+
+### System Overview 
+
+![projects-page](https://github.com/user-attachments/assets/d48d6d23-8efa-455c-b696-698d5a308e88)
+
+The **Overview** tab serves as a crucial dashboard for users to monitor the health, performance, and usage of their permission systems.
+
+What you can find in this tab:
+
+* Endpoint and Credentials
+* Uptime and Downtime Monitoring
+* Total Requests
+* Latency
+* Cache Hits
+* Total Request Errors
+
+## Schema Management 
+
+It’s expected that your initial schema will eventually change as your products evolves.
+
+As new features, API endpoints, user requirements or compliance requirements are regularly rolled out, each addition often necessitates corresponding updates to your authorization model, [Permify Schema](../getting-started/modeling).
+
+We created the **Schema Section** dedicated to managing and observing the schema change/update management process.
+
+![schema-schemas](https://github.com/user-attachments/assets/27ca3c7a-590a-42d2-a521-2870622d111f)
+
+### Schemas List 
+
+The **Schemas** view lists the latest configured schemas with the [WriteSchema API](../api-reference/schema/write-schema)
+
+### Schema Deployments
+
+One of the best practise to manage schema changes is setting up a central git repository that stores the schema YAML file. 
+
+This way, you can centrally check and approve every schema change before deploying it. 
+
+<Note>We recommend adding our schema validator to the pipeline to ensure that any changes are automatically validated.</Note>
+
+Teams or individuals who need to update the schema should add new permissions or relations to this repository.
+
+In Permify Cloud we even streamline this management process for you with connecting your GitHub repository!
+
+![deployment-view](https://github.com/user-attachments/assets/15704283-644c-4b2e-adb0-357d4cbd3a84)
+
+With **Schema Management GitOps Workflow**, you can now automatically deploy authorization models to Permify directly from your GitHub repository.  
+
+Similar deploying your Vercel application with GitHub Actions.  And we show these deployments in the **Deployments** view.
+
+### How Schema Deployment Works ?
+
+To effectively manage your schema changes, you need to store your schema in a Git repository and connect this GitHub repo with Permify Cloud.
+
+This way, you will be able to:
+
+- Approve or deny every change
+- Debug the changes made and see any errors
+- Monitor and filter schema changes according to their status, environments, and tenants.
+
+I will give you a step by step configuration for Permify Cloud schema deployment process.
+
+**Step 1: Create A Central Git Repo for Storing Schema**
+
+For this guide, we will use GitHub. 
+
+<Warning>GitLab integration is a work in progress. Let us know if you're using GitLab, so we can inform you about the process.</Warning>
+
+If you have already stored your schema in GitHub, you can skip to the next step. If not, you can refer to our [example schema repo](https://github.com/Permify/example-schema) to get started. 
+
+It includes an example [Schema YAML Validation File](../getting-started/testing#schema-validation-file) which consists of the test data and access check scenarios needed.
+
+**Step 2: Connect Repo With Permify Cloud**
+
+![projects-page](https://github.com/user-attachments/assets/13fbf1d3-e88e-4bb2-8a9c-a2ada1f45157)
+
+Click **Continue to installation**, it will redirect you to GitHub integration interface. 
+
+After giving the access to Permify it should redirect you to the **Settings** View
+
+![projects-page](https://github.com/user-attachments/assets/72ebef3c-92dc-44f0-af34-70b33c22ecf2)
+
+Click **Connect** to connect your repository.
+
+When the connection is successful, the Production Branch and Root Directory cards will appear.
+
+![connect-github](https://github.com/user-attachments/assets/c94da836-620c-4382-bf90-49bad7068178)
+
+The Production Branch should be filled by default, if not, please refresh the page once.
+
+For the Root Directory, enter the folder that contains your schema YAML file. In our [example schema repository](https://github.com/Permify/example-schema) we put our schema.yaml under the schemas folder, so I enter schemas as the Root Directory.
+
+Now that our connection is fully completed, let's make some changes to our schema to see deployments in action!
+
+![completed-connection](https://github.com/user-attachments/assets/e451320c-9bd0-47d0-9a37-a7618d1f0f9b)
+
+**Step 3: Update Your Schema**
+
+After doing some change or update in your schema and merge a pull request to the master branch of your GitHub repo, Permify GitHub App kicks in.
+
+In our example, I've added a manager role and included it in the create repository action as follows:
+
+![commit-change](https://github.com/user-attachments/assets/e2cf673f-8452-40a6-a9d5-04247102de72)
+
+When pushed this commit to master branch, redefined tests are automatically run to validate the authorization models.
+
+If all tests pass, the model is seamlessly deployed to Permify, and you can monitor this in the Deployment View instantly.
+
+![first-deployment](https://github.com/user-attachments/assets/b5c7483e-7a8c-452c-b4f6-0e2f36d0c11d)
+
+### Schema Staging
+
+In above example we directly pushed our change to master branch. And this deployment records labeled as **production** by default.
+
+If you have at least a couple of engineers who can make schema changes, you will want to have a review process for these changes.
+
+In GitHub it's straightforward. You can create a branch and assign your peer to review your change.
+
+![commit-review](https://github.com/user-attachments/assets/3c4ce1a7-7444-47aa-b320-1cc35c7eb344)
+
+PRs that are in review status or not yet merged are shown as in the preview environment by default in Permify Cloud.
+
+![review-deployment](https://github.com/user-attachments/assets/e9384caa-abce-4687-af9a-8f0c08dee7e8)
+
+## Data Browser (Permissions View)
+
+Permify stores permissions in tuple format. These tuples can either be relationships or attributes, and they serve as the single source of truth for all authorization queries and requests via the Permify API.
+
+In **Data Browser** view you can monitor your stored permissions and filter them accordingly.
+
+![data-browser](https://github.com/user-attachments/assets/a5ffb1bf-923b-419d-a8b6-5a22a1877d84)
+
+To learn more how Permify stores and utilize these authorization data, check out the [Storing Data & Schema](../getting-started/sync-data) section.
+
+## Debug (Traces & Logs)
+
+The ease of debugging and understanding your authorization are among the main reasons to adopt the authorization-as-a-service model we provide.
+
+In the Debug view, you can see traces and logs to analyze the performance and behavior of your authorization system.
+
+![debug](https://github.com/user-attachments/assets/0141f512-c6f8-4348-9e18-cd6c2d656c74)
+
+If you need more advanced view of how your authorization system perform, we have integrations with popular application monitoring tools (such as Datadog, Prometheus). 
+
+<Note>[Contact Us]() to add your favorite application monitoring tool to our integrations.</Note>
+
+## Settings 
+
+General configurations and settings for your authorization infrastructure. 
+
+### Version
+
+You can select or change the versions of Permify and Helm that you want to use for your application.
+
+<Info>We only list compatible versions here, so that if you change the version while running in production, it won't affect the current system.</Info>
+
+![version](https://github.com/user-attachments/assets/cc834e74-8e0b-46fa-82ca-73364c906014)
+
+You can also enable **Automatic Updates** for automatic version migration.
+
+### Logger 
+
+With this configuration you can set log verbosity from detailed debugging to concise overviews.
+
+![logger-configuration](https://github.com/user-attachments/assets/a8f9295f-8f69-4d20-a36f-6e72f7081dcb)
+
+**Log Levels**
+
+* **info:** Default log level, consists of logs at a higher level compared to debug. We suggest using this in production.
+* **debug:** Debug is the most detailed level of log. It can be overkill unless you want to debug some specific part of the system.
+* **error:** Logs only errors.
+* **warning:** Logs only warnings.
+
+### GitOps Connection
+
+By connecting Permify to your GitHub repository, you can automatically deploy authorization models directly from your central schema.
+![git-connection](https://github.com/user-attachments/assets/76685fad-1f98-4eea-a4e3-017c5bbc6b99)
+
+To learn more how it works and how to configure it, see the [Schema Management](#schema-management) section.
+
+### Garbage Collector
+
+The **Garbage Collector** is a mechanism designed to clean up expired or idle relation tuples. 
+
+This is particularly important when schemas are changed or created frequently, as it can lead to the creation of many unused tuples within time.
+
+![garbage-collector](https://github.com/user-attachments/assets/0b5537a3-d6e3-4ae3-b016-19fbff5c1b7f)
+
+When activated it runs periodically based on the configured interval. It cleans up expired or idle relation tuples that fall within the specified time window. 
+
+By default, it clears every 200 hours and deletes data older than 200 hours.
+
+### Autoscaling
+
+Autoscaling is by default activated in Permify Cloud.
+
+![auto-scaling](https://github.com/user-attachments/assets/2805dc21-eb3f-457e-8ad4-225f5aaa1653)
+
+It automatically adjust resource allocation to meet demand, ensuring optimal performance and cost-efficiency.
+
+### Consistent Hashing
+
+Consistent hashing is a distributed hashing scheme that operates independently of the number of objects in a distributed hash table. 
+
+This method hashes according to the nodes' peers, estimating which node a key would be on and thereby ensuring the most suitable request goes to the most suitable node.
+
+![consistent-hashing](https://github.com/user-attachments/assets/29ca5bbd-889e-437d-b9b0-5d93e3656628)
+
+Permify uses consistent hashing across its distributed instances for more efficient use of their individual caches. 
+
+This approach allows for:
+
+* High availability and resilience in the face of individual nodes or even entire availability zone failure.
+* Improved performance due to data locality benefits.
+
+Read More: [How Consistent Hashing Operates In Permify?](https://docs.permify.co/operations/cache#how-consistent-hashing-operates-in-permify)
+
+### Private Link
+
+![private-link](https://github.com/user-attachments/assets/65fc1ab8-b6ee-4663-a9a1-c55d6f96a649)
+
+By request, we can set up a Permify instance with Private Link. 
+
+It is completely private, not exposed to the public internet and ensures that your data traffic remains within the preferred network.
+
