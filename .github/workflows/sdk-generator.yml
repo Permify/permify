@@ -41,7 +41,7 @@ jobs:
               run: |
                   git config --global user.name 'GitHub Actions Bot'
                   git config --global user.email '<>'
-                  git clone https://github.com/${ORG_NAME}/permify-${{ matrix.language }}.git temp
+                  git clone https://${GITHUB_TOKEN}@github.com/${ORG_NAME}/permify-${{ matrix.language }}.git temp
                   find temp -mindepth 1 ! -regex '^temp/.git\(/.*\)?' -delete
                   cp -r permify-client/* temp/
                   cd temp
