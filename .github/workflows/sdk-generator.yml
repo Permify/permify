@@ -35,7 +35,7 @@ jobs:
               with:
                   generator: ${{ matrix.language }}
                   openapi-file: ${SWAGGER_PATH}
-                  command-args: -o permify-client --git-user-id ${ORG_NAME} --git-repo-id permify-${{ matrix.language }} --package-name permify
+                  command-args: -o permify-client --git-user-id ${ORG_NAME} --git-repo-id permify-${{ matrix.language }} --package-name permify --global-property apis,models
 
             - name: Push SDK to GitHub
               run: |
