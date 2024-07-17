@@ -39,7 +39,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -60,7 +60,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -81,7 +81,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -102,7 +102,7 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return status.Error(GetStatus(err), err.Error())
 	}
 
@@ -123,7 +123,7 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -144,7 +144,7 @@ func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.Pe
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 

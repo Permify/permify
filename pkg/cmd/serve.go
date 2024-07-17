@@ -176,30 +176,66 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Print banner and initialize logger
 		internal.PrintBanner()
 
-		var handler slog.Handler
+		// Set up context and signal handling
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+		defer stop()
 
-		switch cfg.Log.Output {
-		case "json":
-			handler = telemetry.OtelHandler{
-				Next: slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-					Level: getLogLevel(cfg.Log.Level),
-				}),
+		var logger *slog.Logger
+
+		if cfg.Log.Enabled {
+			headers := map[string]string{}
+			for _, header := range cfg.Log.Headers {
+				h := strings.Split(header, ":")
+				if len(h) != 2 {
+					return errors.New("invalid header format; expected 'key:value'")
+				}
+				headers[h[0]] = h[1]
 			}
-		case "text":
-			handler = telemetry.OtelHandler{
-				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-					Level: getLogLevel(cfg.Log.Level),
-				}),
+
+			exporter, err := logexporters.ExporterFactory(
+				cfg.Log.Exporter,
+				cfg.Log.Endpoint,
+				cfg.Log.Insecure,
+				cfg.Log.URLPath,
+				headers,
+			)
+			if err != nil {
+				return errors.New("invalid logger exporter")
 			}
-		default:
-			handler = telemetry.OtelHandler{
-				Next: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			lp := telemetry.NewLog(exporter)
+
+			logger = slog.New(otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			}))
+
+			slog.SetDefault(logger)
+
+			defer func() {
+				if err = lp.Shutdown(ctx); err != nil {
+					slog.Error(err.Error())
+				}
+			}()
+		} else {
+			var handler slog.Handler
+
+			switch cfg.Log.Output {
+			case "json":
+				handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 					Level: getLogLevel(cfg.Log.Level),
-				}),
+				})
+			case "text":
+				handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+					Level: getLogLevel(cfg.Log.Level),
+				})
+			default:
+				handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+					Level: getLogLevel(cfg.Log.Level),
+				})
 			}
+
+			logger = slog.New(handler)
+			slog.SetDefault(logger)
 		}
-		logger := slog.New(handler)
-		slog.SetDefault(logger)
 
 		internal.Identifier = cfg.AccountID
 		if internal.Identifier == "" {
@@ -212,42 +248,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			go func() {
 				for range ticker.C {
 					slog.Error(message)
-				}
-			}()
-		}
-
-		// Set up context and signal handling
-		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-		defer stop()
-
-		if cfg.Log.Enabled {
-			headers := map[string]string{}
-			for _, header := range cfg.Log.Headers {
-				h := strings.Split(header, ":")
-				if len(h) != 2 {
-					return errors.New("invalid header format; expected 'key:value'")
-				}
-				headers[h[0]] = h[1]
-			}
-
-			exporter, _ := logexporters.ExporterFactory(
-				cfg.Log.Exporter,
-				cfg.Log.Endpoint,
-				cfg.Log.Insecure,
-				cfg.Log.URLPath,
-				headers,
-			)
-			lp := telemetry.NewLog(exporter)
-
-			logger := slog.New(otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			}))
-
-			slog.SetDefault(logger)
-
-			defer func() {
-				if err = lp.Shutdown(ctx); err != nil {
-					slog.Error(err.Error())
 				}
 			}()
 		}

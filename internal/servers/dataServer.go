@@ -90,7 +90,7 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -136,7 +136,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -237,7 +237,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -306,7 +306,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -338,7 +338,7 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -370,7 +370,7 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -397,7 +397,7 @@ func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -410,7 +410,7 @@ func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
