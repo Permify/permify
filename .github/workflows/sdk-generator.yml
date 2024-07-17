@@ -41,6 +41,6 @@ jobs:
                   cp -r permify-client/* temp/
                   cd temp
                   git add .
-                  git diff-index --quiet HEAD || git commit -m "Update ${{ matrix.language }} SDK from OpenAPI changes"
+                  git diff-index --quiet HEAD || git commit -m "Update ${{ matrix.language }} SDK from OpenAPI changes: #new-release -> <new-release:${GITHUB_REF##*/}>"
                   git push https://${GITHUB_TOKEN}@github.com/${ORG_NAME}/permify-${{ matrix.language }}.git main --force
                   rm -rf permify-client
