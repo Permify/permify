@@ -50,7 +50,7 @@ func (w *DataWriter) Write(
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of a data write operation.
-	slog.Debug("writing data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
+	slog.DebugContext(ctx, "writing data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
 
 	// Check if the total number of tuples and attributes exceeds the maximum allowed per write.
 	if len(tupleCollection.GetTuples())+len(attributeCollection.GetAttributes()) > w.database.GetMaxDataPerWrite() {
@@ -64,7 +64,7 @@ func (w *DataWriter) Write(
 		if err != nil {
 			// Check if the error is due to serialization, and if so, retry.
 			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
-				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+				slog.WarnContext(ctx, "serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
 				utils.WaitWithBackoff(ctx, tenantID, i)
 				continue // Retry the operation.
 			}
@@ -76,7 +76,7 @@ func (w *DataWriter) Write(
 	}
 
 	// Log an error if the operation failed after reaching the maximum number of retries.
-	slog.Error("max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
+	slog.ErrorContext(ctx, "max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
 
 	// Return an error indicating that the maximum number of retries has been reached.
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
@@ -95,7 +95,7 @@ func (w *DataWriter) Delete(
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of a data deletion operation.
-	slog.Debug("deleting data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
+	slog.DebugContext(ctx, "deleting data for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
 
 	// Retry loop for handling transient errors like serialization issues.
 	for i := 0; i <= w.database.GetMaxRetries(); i++ {
@@ -104,7 +104,7 @@ func (w *DataWriter) Delete(
 		if err != nil {
 			// Check if the error is due to serialization, and if so, retry.
 			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
-				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+				slog.WarnContext(ctx, "serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
 				utils.WaitWithBackoff(ctx, tenantID, i)
 				continue // Retry the operation.
 			}
@@ -116,7 +116,7 @@ func (w *DataWriter) Delete(
 	}
 
 	// Log an error if the operation failed after reaching the maximum number of retries.
-	slog.Debug("max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
+	slog.DebugContext(ctx, "max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
 
 	// Return an error indicating that the maximum number of retries has been reached.
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
@@ -135,7 +135,7 @@ func (w *DataWriter) RunBundle(
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of running a bundle operation.
-	slog.Debug("running bundle for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
+	slog.DebugContext(ctx, "running bundle for tenant_id", slog.String("tenant_id", tenantID), "max retries", slog.Any("max_retries", w.database.GetMaxRetries()))
 
 	// Retry loop for handling transient errors like serialization issues.
 	for i := 0; i <= w.database.GetMaxRetries(); i++ {
@@ -144,7 +144,7 @@ func (w *DataWriter) RunBundle(
 		if err != nil {
 			// Check if the error is due to serialization, and if so, retry.
 			if utils.IsSerializationRelatedError(err) || pgconn.SafeToRetry(err) {
-				slog.Warn("serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
+				slog.WarnContext(ctx, "serialization error occurred", slog.String("tenant_id", tenantID), slog.Int("retry", i))
 				utils.WaitWithBackoff(ctx, tenantID, i)
 				continue // Retry the operation.
 			}
@@ -156,7 +156,7 @@ func (w *DataWriter) RunBundle(
 	}
 
 	// Log an error if the operation failed after reaching the maximum number of retries.
-	slog.Error("max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
+	slog.ErrorContext(ctx, "max retries reached", slog.Any("error", errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())))
 
 	// Return an error indicating that the maximum number of retries has been reached.
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_ERROR_MAX_RETRIES.String())
@@ -186,9 +186,9 @@ func (w *DataWriter) write(
 		return nil, err
 	}
 
-	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
+	slog.DebugContext(ctx, "retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
 
-	slog.Debug("processing tuples and executing insert query")
+	slog.DebugContext(ctx, "processing tuples and executing insert query")
 
 	batch := &pgx.Batch{}
 
@@ -235,7 +235,7 @@ func (w *DataWriter) write(
 		return nil, err
 	}
 
-	slog.Debug("data successfully written to the database")
+	slog.DebugContext(ctx, "data successfully written to the database")
 
 	return snapshot.NewToken(xid).Encode(), nil
 }
@@ -264,9 +264,9 @@ func (w *DataWriter) delete(
 		return nil, err
 	}
 
-	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
+	slog.DebugContext(ctx, "retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
 
-	slog.Debug("processing tuple and executing update query")
+	slog.DebugContext(ctx, "processing tuple and executing update query")
 
 	if !validation.IsTupleFilterEmpty(tupleFilter) {
 		tbuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID})
@@ -286,7 +286,7 @@ func (w *DataWriter) delete(
 		}
 	}
 
-	slog.Debug("processing attribute and executing update query")
+	slog.DebugContext(ctx, "processing attribute and executing update query")
 
 	if !validation.IsAttributeFilterEmpty(attributeFilter) {
 		abuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID})
@@ -310,7 +310,7 @@ func (w *DataWriter) delete(
 		return nil, err
 	}
 
-	slog.Debug("data successfully deleted from the database")
+	slog.DebugContext(ctx, "data successfully deleted from the database")
 
 	return snapshot.NewToken(xid).Encode(), nil
 }
@@ -339,7 +339,7 @@ func (w *DataWriter) runBundle(
 		return nil, err
 	}
 
-	slog.Debug("retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
+	slog.DebugContext(ctx, "retrieved transaction", slog.Any("xid", xid), "for tenant", slog.Any("tenant_id", tenantID))
 
 	batch := &pgx.Batch{}
 

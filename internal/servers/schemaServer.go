@@ -78,7 +78,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -220,7 +220,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -242,7 +242,7 @@ func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 

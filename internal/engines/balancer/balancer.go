@@ -100,7 +100,7 @@ func (c *Balancer) Check(ctx context.Context, request *base.PermissionCheckReque
 	// Fetch the EntityDefinition for the given tenant, entity type, and schema version.
 	en, _, err := c.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		// If an error occurs while reading the entity definition, deny permission and return the error.
 		return &base.PermissionCheckResponse{
 			Can: base.CheckResult_CHECK_RESULT_DENIED,
@@ -119,7 +119,7 @@ func (c *Balancer) Check(ctx context.Context, request *base.PermissionCheckReque
 	// This key helps in distributing the request.
 	_, err = h.Write([]byte(engines.GenerateKey(request, isRelational)))
 	if err != nil {
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return &base.PermissionCheckResponse{
 			Can: base.CheckResult_CHECK_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{
@@ -134,13 +134,13 @@ func (c *Balancer) Check(ctx context.Context, request *base.PermissionCheckReque
 	defer cancel()
 
 	// Logging the intention to forward the request to the underlying client.
-	slog.Debug("Forwarding request with key to the underlying client", slog.String("key", k))
+	slog.DebugContext(ctx, "Forwarding request with key to the underlying client", slog.String("key", k))
 
 	// Perform the actual permission check by making a call to the underlying client.
 	response, err := c.client.Check(withTimeout, request)
 	if err != nil {
 		// Log the error and return it.
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return &base.PermissionCheckResponse{
 			Can: base.CheckResult_CHECK_RESULT_DENIED,
 			Metadata: &base.PermissionCheckResponseMetadata{

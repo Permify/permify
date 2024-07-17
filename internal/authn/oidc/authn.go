@@ -305,7 +305,7 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 // fetchKey attempts to fetch the JWKS and retrieve the key for the given keyID.
 func (oidc *Authn) fetchKey(keyID string, ctx context.Context) (interface{}, error) {
 	// Log the attempt to find the key.
-	slog.Debug("attempting to find key in JWKS", "kid", keyID)
+	slog.DebugContext(ctx, "attempting to find key in JWKS", "kid", keyID)
 
 	// Fetch the JWKS from the configured URI.
 	jwks, err := oidc.jwksSet.Fetch(ctx, oidc.JwksURI)
@@ -316,22 +316,22 @@ func (oidc *Authn) fetchKey(keyID string, ctx context.Context) (interface{}, err
 	}
 
 	// Log a successful fetch of the JWKS.
-	slog.Info("successfully fetched JWKS")
+	slog.InfoContext(ctx, "successfully fetched JWKS")
 
 	// Attempt to find the key in the fetched JWKS using the key ID.
 	if key, found := jwks.LookupKeyID(keyID); found {
 		var k interface{}
 		// Convert the key to a usable format.
 		if err := key.Raw(&k); err != nil {
-			slog.Error("failed to get raw public key", "kid", keyID, "error", err)
+			slog.ErrorContext(ctx, "failed to get raw public key", "kid", keyID, "error", err)
 			return nil, fmt.Errorf("failed to get raw public key: %w", err)
 		}
 		// Log a successful retrieval of the raw public key.
-		slog.Debug("successfully obtained raw public key", "key", k)
+		slog.DebugContext(ctx, "successfully obtained raw public key", "key", k)
 		return k, nil // Return the public key for JWT signature verification.
 	}
 	// Log an error if the key ID is not found in the JWKS.
-	slog.Error("key ID not found in JWKS", "kid", keyID)
+	slog.ErrorContext(ctx, "key ID not found in JWKS", "kid", keyID)
 	return nil, fmt.Errorf("kid %s not found", keyID)
 }
 

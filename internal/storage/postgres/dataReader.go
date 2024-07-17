@@ -46,7 +46,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	ctx, span := tracer.Start(ctx, "data-reader.query-relationships")
 	defer span.End()
 
-	slog.Debug("querying relationships for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "querying relationships for tenant_id", slog.String("tenant_id", tenantID))
 
 	// Decode the snapshot value.
 	var st token.SnapToken
@@ -68,7 +68,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
+	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the SQL query and retrieve the result rows.
 	var rows pgx.Rows
@@ -92,7 +92,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	slog.Debug("successfully retrieved relation tuples from the database")
+	slog.DebugContext(ctx, "successfully retrieved relation tuples from the database")
 
 	// Return a TupleIterator created from the TupleCollection.
 	return collection.CreateTupleIterator(), nil
@@ -104,7 +104,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	ctx, span := tracer.Start(ctx, "data-reader.read-relationships")
 	defer span.End()
 
-	slog.Debug("reading relationships for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "reading relationships for tenant_id", slog.String("tenant_id", tenantID))
 
 	// Decode the snapshot value.
 	var st token.SnapToken
@@ -143,7 +143,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
+	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the query and retrieve the rows.
 	var rows pgx.Rows
@@ -171,7 +171,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	slog.Debug("successfully read relation tuples from database")
+	slog.DebugContext(ctx, "successfully read relation tuples from database")
 
 	// Return the results and encoded continuous token for pagination.
 	if len(tuples) > int(pagination.PageSize()) {
@@ -187,7 +187,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	ctx, span := tracer.Start(ctx, "data-reader.query-single-attribute")
 	defer span.End()
 
-	slog.Debug("querying single attribute for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "querying single attribute for tenant_id", slog.String("tenant_id", tenantID))
 
 	// Decode the snapshot value.
 	var st token.SnapToken
@@ -209,7 +209,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
+	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	row := r.database.ReadPool.QueryRow(ctx, query, args...)
 
@@ -236,7 +236,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	slog.Debug("successfully retrieved Single attribute from the database")
+	slog.DebugContext(ctx, "successfully retrieved Single attribute from the database")
 
 	return rt.ToAttribute(), nil
 }
@@ -247,7 +247,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	ctx, span := tracer.Start(ctx, "data-reader.query-attributes")
 	defer span.End()
 
-	slog.Debug("querying Attributes for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "querying Attributes for tenant_id", slog.String("tenant_id", tenantID))
 
 	// Decode the snapshot value.
 	var st token.SnapToken
@@ -269,7 +269,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
+	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the SQL query and retrieve the result rows.
 	var rows pgx.Rows
@@ -307,7 +307,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	slog.Debug("successfully retrieved attributes tuples from the database")
+	slog.DebugContext(ctx, "successfully retrieved attributes tuples from the database")
 
 	// Return a TupleIterator created from the TupleCollection.
 	return collection.CreateAttributeIterator(), nil
@@ -319,7 +319,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	ctx, span := tracer.Start(ctx, "data-reader.read-attributes")
 	defer span.End()
 
-	slog.Debug("reading attributes for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "reading attributes for tenant_id", slog.String("tenant_id", tenantID))
 
 	// Decode the snapshot value.
 	var st token.SnapToken
@@ -358,7 +358,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
+	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the query and retrieve the rows.
 	var rows pgx.Rows
@@ -400,7 +400,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	slog.Debug("successfully read attributes from the database")
+	slog.DebugContext(ctx, "successfully read attributes from the database")
 
 	// Return the results and encoded continuous token for pagination.
 	if len(attributes) > int(pagination.PageSize()) {
@@ -416,7 +416,7 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	ctx, span := tracer.Start(ctx, "data-reader.query-unique-entities")
 	defer span.End()
 
-	slog.Debug("querying unique entities for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "querying unique entities for tenant_id", slog.String("tenant_id", tenantID))
 
 	// Decode the snapshot value.
 	var st token.SnapToken
@@ -446,7 +446,7 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	// Append ORDER BY and LIMIT clauses.
 	query = fmt.Sprintf("%s ORDER BY id LIMIT %d", query, pagination.PageSize()+1)
 
-	slog.Debug("generated sql query", slog.String("query", query))
+	slog.DebugContext(ctx, "generated sql query", slog.String("query", query))
 
 	// Execute the query and retrieve the rows.
 	var rows pgx.Rows
@@ -475,7 +475,7 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	slog.Debug("successfully retrieved unique entities from the database")
+	slog.DebugContext(ctx, "successfully retrieved unique entities from the database")
 
 	// Return the results and encoded continuous token for pagination.
 	if len(entityIDs) > int(pagination.PageSize()) {
@@ -491,7 +491,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	ctx, span := tracer.Start(ctx, "data-reader.query-unique-subject-reference")
 	defer span.End()
 
-	slog.Debug("querying unique subject references for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "querying unique subject references for tenant_id", slog.String("tenant_id", tenantID))
 
 	// Decode the snapshot value.
 	var st token.SnapToken
@@ -534,7 +534,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
+	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
 
 	// Execute the query and retrieve the rows.
 	var rows pgx.Rows
@@ -561,7 +561,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	slog.Debug("successfully retrieved unique subject references from the database")
+	slog.DebugContext(ctx, "successfully retrieved unique subject references from the database")
 
 	// Return the results and encoded continuous token for pagination.
 	if len(subjectIDs) > int(pagination.PageSize()) {
@@ -577,7 +577,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	ctx, span := tracer.Start(ctx, "data-reader.head-snapshot")
 	defer span.End()
 
-	slog.Debug("getting head snapshot for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "getting head snapshot for tenant_id", slog.String("tenant_id", tenantID))
 
 	var xid types.XID8
 
@@ -598,7 +598,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	slog.Debug("successfully retrieved latest snapshot token")
+	slog.DebugContext(ctx, "successfully retrieved latest snapshot token")
 
 	// Return the latest snapshot token associated with the tenant.
 	return snapshot.Token{Value: xid}, nil
