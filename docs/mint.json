@@ -299,6 +299,12 @@
       ]
     },
     {
+      "group": "Products",
+      "pages": [
+        "products/cloud"
+      ]
+    },
+    {
       "group": "API Documentation",
       "pages": [
         "api-reference/introduction"
