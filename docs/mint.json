@@ -36,11 +36,8 @@
   "tabs": [
     {
       "name": "API Reference",
-      "url": "api-reference"
-    },
-    {
-      "name": "Permify CLoud",
-      "url": "cloud"
+      "url": "api-reference",
+      "openapi": "/api-reference/openapi.json"
     }
   ],
   "redirects": [
@@ -227,7 +224,12 @@
       "name": "Open Source",
       "icon": "github",
       "url": "https://github.com/Permify/permify"
-    }  
+    },
+    {
+      "name": "Permify Cloud",
+      "icon": "globe",
+      "url": "cloud"
+    }
   ],
   "navigation": [
     {
