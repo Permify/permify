@@ -15,7 +15,6 @@
       "to": "#8246FF"
     }
   },
-  "openapi": ["./api-reference/openapi.json"],
   "topbarLinks": [
     {
       "name": "Support",
@@ -37,7 +36,8 @@
   "tabs": [
     {
       "name": "API Reference",
-      "url": "api-reference"
+      "url": "api-reference",
+      "openapi": "./api-reference/openapi.json"
     },
     {
       "name": "Permify CLoud",
