@@ -11,7 +11,7 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.SDK_GH_TOKEN }}
             ORG_NAME: Permify
-            SWAGGER_PATH: docs/api-reference/apidocs.swagger.json
+            SWAGGER_PATH: docs/api-reference/openapiv2/apidocs.swagger.json
 
         strategy:
             matrix:
