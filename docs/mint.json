@@ -40,7 +40,7 @@
       "openapi": "/api-reference/openapi.json"
     }
   ],
-  "openapi": "/api-reference/openapi.json",
+  "openapi": ["../api-reference/openapi.json"],
   "redirects": [
     {
       "source": "/docs/:slug*",
