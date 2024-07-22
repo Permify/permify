@@ -30,6 +30,11 @@ plugins:
   - plugin: buf.build/grpc-ecosystem/openapiv2:v2.20.0
     out: docs/api-reference
     opt:
+      - openapi_naming_strategy=simple
+      - allow_merge=true
+  - plugin: buf.build/grpc-ecosystem/openapiv2:v2.20.0
+    out: docs/api-reference/openapiv2
+    opt:
       - omit_enum_default_value=true
       - openapi_naming_strategy=simple
       - allow_merge=true
