@@ -38,6 +38,10 @@
     {
       "name": "API Reference",
       "url": "api-reference"
+    },
+    {
+      "name": "Permify CLoud",
+      "url": "cloud"
     }
   ],
   "redirects": [
@@ -299,12 +303,6 @@
       ]
     },
     {
-      "group": "Products",
-      "pages": [
-        "products/cloud"
-      ]
-    },
-    {
       "group": "API Documentation",
       "pages": [
         "api-reference/introduction"
@@ -359,6 +357,12 @@
       "group": "Watch Service",
       "pages": [
         "api-reference/watch/watch-changes"
+      ]
+    },
+    {
+      "group": "Introduction",
+      "pages": [
+        "cloud/intro"
       ]
     }
   ],
