@@ -181,19 +181,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		defer stop()
 
 		internal.Identifier = cfg.AccountID
-		if internal.Identifier == "" {
-			message := "Account ID is not set. Please fill in the Account ID for better support. Get your Account ID from https://permify.co/account"
-			slog.Error(message)
-
-			ticker := time.NewTicker(24 * time.Hour)
-			defer ticker.Stop()
-
-			go func() {
-				for range ticker.C {
-					slog.Error(message)
-				}
-			}()
-		}
 
 		var logger *slog.Logger
 
@@ -250,6 +237,20 @@ func serve() func(cmd *cobra.Command, args []string) error {
 
 			logger = slog.New(handler)
 			slog.SetDefault(logger)
+		}
+
+		if internal.Identifier == "" {
+			message := "Account ID is not set. Please fill in the Account ID for better support. Get your Account ID from https://permify.co/account"
+			slog.Error(message)
+
+			ticker := time.NewTicker(24 * time.Hour)
+			defer ticker.Stop()
+
+			go func() {
+				for range ticker.C {
+					slog.Error(message)
+				}
+			}()
 		}
 
 		slog.Info("🚀 starting permify service...")
