@@ -1634,6 +1634,82 @@
         "x-codegen-request-body-name": "body"
       }
     },
+    "/v1/tenants/{tenant_id}/schemas/read": {
+      "post": {
+        "tags": [
+          "Schema"
+        ],
+        "summary": "read schema",
+        "operationId": "schemas.read",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "description": "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "metadata": {
+                    "$ref": "#/components/schemas/SchemaReadRequestMetadata"
+                  }
+                },
+                "description": "SchemaReadRequest is the request message for the Read method in the Schema service.\nIt contains tenant_id and metadata about the schema to be read."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": ""
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "label": "go",
+            "lang": "go",
+            "source": "sr, err: = client.Schema.Read(context.Background(), &v1.SchemaReadRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.SchemaReadRequestMetadata{\n        SchemaVersion: \"cnbe6se5fmal18gpc66g\",\n    },\n})"
+          },
+          {
+            "label": "node",
+            "lang": "javascript",
+            "source": "let res = client.schema.read({\n    tenantId: \"t1\",\n    metadata: {\n    schemaVersion: swResponse.schemaVersion,\n    },\n    })"
+          },
+          {
+            "label": "cURL",
+            "lang": "curl",
+            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/read' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"metadata\": {\n        \"schema_version\": \"cnbe6se5fmal18gpc66g\"\n    }\n}'"
+          }
+        ],
+        "x-codegen-request-body-name": "body"
+      }
+    },
     "/v1/tenants/{tenant_id}/schemas/write": {
       "post": {
         "tags": [
