@@ -1,0 +1,6 @@
+---
+title: Lookup Entity (Streaming)
+openapi: post /v1/tenants/{tenant_id}/permissions/lookup-entity-stream
+---
+
+The difference between this endpoint from direct Lookup Entity is response of this entity gives the IDs' as stream. This could be useful if you have large data set that getting all of the authorized data can take long with direct lookup entity endpoint.

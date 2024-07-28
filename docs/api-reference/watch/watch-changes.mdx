@@ -1,0 +1,70 @@
+---
+title: Watch API
+openapi: post /v1/tenants/{tenant_id}/watch
+---
+
+The Permify Watch API acts as a real-time broadcaster that shows changes in the relation tuples.
+
+The Watch API exclusively supports gRPC and works with PostgreSQL, given the track_commit_timestamp option is enabled. Please note, it doesn't support in-memory databases or HTTP communication.
+
+## Requirements
+
+- PostgreSQL database set up with track_commit_timestamp option enabled
+
+## Enabling track_commit_timestamp on PostgreSQL
+
+To ensure data consistency and synchronization between your application and Permify, enable track_commit_timestamp on
+your PostgreSQL server. This can be done by executing the following options in your PostgreSQL:
+
+### Option 1: SQL Command
+
+1. Open your PostgreSQL command line interface.
+2. Execute the following command:
+
+    ```sql
+    ALTER SYSTEM SET track_commit_timestamp = ON;
+    ```
+
+3. Reload the configuration with the following command:
+
+    ```sql
+    SELECT pg_reload_conf();
+    ```
+
+### Option 2: Editing postgresql.conf
+
+1. Find and open the postgresql.conf file in a text editor. Its location depends on your PostgreSQL installation. Common
+   locations are:
+    - Debian-based systems: /etc/postgresql/[version]/main/postgresql.conf
+    - Red Hat-based systems: /var/lib/pgsql/data/postgresql.conf
+
+2. Add or modify the following line in the postgresql.conf file:
+   ```
+   track_commit_timestamp = on
+   ```
+
+3. Save and close the postgresql.conf file.
+4. Reload the PostgreSQL configuration for the changes to take effect. This can be done via the PostgreSQL console:
+    ```sql
+    SELECT pg_reload_conf();
+    ```    
+
+   Or if you have command line access, use:
+
+    ```bash
+   sudo service postgresql reload
+    ```
+
+Please ensure you have the necessary permissions to execute these commands or modify the postgresql.conf file. Also, remember that changes in the postgresql.conf file will persist across restarts, while the SQL method may need to be reapplied depending on your PostgreSQL version and setup.
+
+<Info>
+Important Configuration Requirement: To use the Watch API, it must be enabled in your configuration file. Add or modify the following lines:
+
+```yaml
+service:
+  watch:
+    enabled: true
+```
+</Info>
+
+

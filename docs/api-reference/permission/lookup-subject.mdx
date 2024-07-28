@@ -1,0 +1,8 @@
+---
+title: Subject Filtering
+openapi: post /v1/tenants/{tenant_id}/permissions/lookup-subject
+---
+
+Lookup Subject endpoint lets you ask questions in form of **“Which subjects can do action Y on entity:X?”**. As a response of this you’ll get a subject results in a format of string array.
+
+In this endpoint you'll get directly the IDs' of the subjects that are authorized in an array.

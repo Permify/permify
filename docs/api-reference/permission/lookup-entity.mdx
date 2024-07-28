@@ -1,0 +1,50 @@
+---
+title: Lookup Entity (Data Filtering) 
+openapi: post /v1/tenants/{tenant_id}/permissions/lookup-entity
+---
+
+Lookup Entity endpoint lets you ask questions in form of **“Which resources can user:X do action Y?”**. As a response of this you’ll get a entity results in a format of string array or as a streaming response depending on the endpoint you're using.
+
+So, we provide 2 separate endpoints for data filtering check request,
+
+- Lookup Entity
+- [Lookup Entity Streaming](./lookup-entity-stream)
+
+In this endpoint you'll get directly the IDs' of the entities that are authorized in an array.
+
+### How Lookup Operations Evaluated
+
+We explicitly designed reverse lookup to be more performant with changing its evaluation pattern. We do not query all the documents in bulk to get response, instead of this Permify first finds the necessary relations with given subject and the permission/action in the API call. Then query these relations with the subject id this way we reduce lots of additional queries.
+
+To give an example, 
+
+```jsx
+entity user {}
+
+entity organization {
+		relation admin @user
+}
+
+entity container {
+		relation parent @organization
+		relation container_admin @user
+		action admin = parent.admin or container_admin
+}
+	
+entity document {
+		relation container @container
+		relation viewer @user
+		relation owner @user
+		action view = viewer or owner or container.admin
+}
+```
+
+Lets say we called (reverse) lookup API to find the documents that user:1 can view. Permify first finds the relations that linked with view action, these are 
+
+- `document#viewer`
+- `document#owner`
+- `organization#admin`
+- `container#``container_admin`
+
+Then queries each of them with `user:1.`
+
