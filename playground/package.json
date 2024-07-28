@@ -89,6 +89,7 @@
     ]
   },
   "devDependencies": {
+    "case-sensitive-paths-webpack-plugin": "^2.4.0",
     "dotenv": "^16.3.1"
   }
 }
