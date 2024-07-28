@@ -91,6 +91,8 @@
   "devDependencies": {
     "case-sensitive-paths-webpack-plugin": "^2.4.0",
     "craco-alias": "^3.0.1",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.29.1"
   }
 }
