@@ -11,7 +11,7 @@ module.exports = {
                     ['@state', './src/state'],
                     ['@services', './src/services'],
                 ],
-                extensions: ['.ts', '.js', '.jsx', '.json'],
+                extensions: ['.ts', '.js', '.jsx', '.tsx', '.json'],
             },
         },
     },
