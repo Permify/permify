@@ -1920,14 +1920,7 @@
       },
       "Child": {
         "type": "object",
-        "properties": {
-          "leaf": {
-            "$ref": "#/components/schemas/Leaf"
-          },
-          "rewrite": {
-            "$ref": "#/components/schemas/Rewrite"
-          }
-        },
+        "properties": {},
         "description": "Child represents a node in the permission tree."
       },
       "Comprehension": {
@@ -2387,34 +2380,7 @@
       },
       "Expr": {
         "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Required. An id assigned to this node by the parser which is unique in a\ngiven expression tree. This is used to associate type information and other\nattributes to a node in the parse tree.",
-            "format": "int64"
-          },
-          "constExpr": {
-            "$ref": "#/components/schemas/Constant"
-          },
-          "identExpr": {
-            "$ref": "#/components/schemas/Ident"
-          },
-          "selectExpr": {
-            "$ref": "#/components/schemas/Select"
-          },
-          "callExpr": {
-            "$ref": "#/components/schemas/Expr.Call"
-          },
-          "listExpr": {
-            "$ref": "#/components/schemas/CreateList"
-          },
-          "structExpr": {
-            "$ref": "#/components/schemas/CreateStruct"
-          },
-          "comprehensionExpr": {
-            "$ref": "#/components/schemas/Comprehension"
-          }
-        },
+        "properties": {},
         "description": "An abstract representation of a common expression.\n\nExpressions are abstractly represented as a collection of identifiers,\nselect statements, function calls, literals, and comprehensions. All\noperators with the exception of the '.' operator are modelled as function\ncalls. This makes it easy to represent new operators into the existing AST.\n\nAll references within expressions must resolve to a [Decl][google.api.expr.v1alpha1.Decl] provided at\ntype-check for an expression to be valid. A reference may either be a bare\nidentifier `name` or a qualified identifier `google.api.name`. References\nmay either refer to a value or a function declaration.\n\nFor example, the expression `google.api.name.startsWith('expr')` references\nthe declaration `google.api.name` within a [Expr.Select][google.api.expr.v1alpha1.Expr.Select] expression, and\nthe function declaration `startsWith`."
       },
       "Expr.Call": {
@@ -3540,28 +3506,7 @@
       },
       "v1.Expand": {
         "type": "object",
-        "properties": {
-          "entity": {
-            "$ref": "#/components/schemas/Entity"
-          },
-          "permission": {
-            "type": "string",
-            "description": "permission is the permission applied to the entity."
-          },
-          "arguments": {
-            "type": "array",
-            "description": "arguments are the additional information or context used to evaluate permissions.",
-            "items": {
-              "$ref": "#/components/schemas/Argument"
-            }
-          },
-          "expand": {
-            "$ref": "#/components/schemas/ExpandTreeNode"
-          },
-          "leaf": {
-            "$ref": "#/components/schemas/ExpandLeaf"
-          }
-        },
+        "properties": {},
         "description": "Expand is used to define a hierarchical structure for permissions.\nIt has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects."
       },
       "v1.Operation": {
@@ -3620,54 +3565,7 @@
       },
       "v1alpha1.Type": {
         "type": "object",
-        "properties": {
-          "dyn": {
-            "type": "object",
-            "properties": {},
-            "description": "Dynamic type."
-          },
-          "null": {
-            "type": "string",
-            "description": "Null value."
-          },
-          "primitive": {
-            "$ref": "#/components/schemas/PrimitiveType"
-          },
-          "wrapper": {
-            "$ref": "#/components/schemas/PrimitiveType"
-          },
-          "wellKnown": {
-            "$ref": "#/components/schemas/WellKnownType"
-          },
-          "listType": {
-            "$ref": "#/components/schemas/ListType"
-          },
-          "mapType": {
-            "$ref": "#/components/schemas/MapType"
-          },
-          "function": {
-            "$ref": "#/components/schemas/FunctionType"
-          },
-          "messageType": {
-            "type": "string",
-            "description": "Protocol buffer message type.\n\nThe `message_type` string specifies the qualified message type name. For\nexample, `google.plus.Profile`."
-          },
-          "typeParam": {
-            "type": "string",
-            "description": "Type param type.\n\nThe `type_param` string specifies the type parameter name, e.g. `list<E>`\nwould be a `list_type` whose element type was a `type_param` type\nnamed `E`."
-          },
-          "type": {
-            "$ref": "#/components/schemas/v1alpha1.Type"
-          },
-          "error": {
-            "type": "object",
-            "properties": {},
-            "description": "Error type.\n\nDuring type-checking if an expression is an error, its type is propagated\nas the `ERROR` type. This permits the type-checker to discover other\nerrors present in the expression."
-          },
-          "abstractType": {
-            "$ref": "#/components/schemas/AbstractType"
-          }
-        },
+        "properties": {},
         "description": "Represents a CEL type."
       }
     },
