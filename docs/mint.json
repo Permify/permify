@@ -207,12 +207,6 @@
       "destination": "/use-cases/rbac"
     }
   ],
-  "tabs": [
-    {
-      "name": "API Reference",
-      "url": "api-reference"
-    }
-  ],
   "anchors": [
     {
       "name": "Community",
@@ -300,63 +294,6 @@
         "use-cases/abac",
         "use-cases/custom-roles",
         "use-cases/multi-tenancy"
-      ]
-    },
-    {
-      "group": "API Documentation",
-      "pages": [
-        "api-reference/introduction"
-      ]
-    },
-    {
-      "group": "Schema Service",
-      "pages": [
-        "api-reference/schema/write-schema",
-        "api-reference/schema/list-schema",
-        "api-reference/schema/read-schema"
-      ]
-    },
-    {
-      "group": "Data Service",
-      "pages": [
-        "api-reference/data/write-data",
-        "api-reference/data/read-relationships",
-        "api-reference/data/read-attributes",
-        "api-reference/data/run-bundle",
-        "api-reference/data/delete-data"
-      ]
-    },
-    {
-      "group": "Permission Service",
-      "pages": [
-        "api-reference/permission/check-api",
-        "api-reference/permission/expand-api",
-        "api-reference/permission/lookup-subject",
-        "api-reference/permission/lookup-entity",
-        "api-reference/permission/lookup-entity-stream",
-        "api-reference/permission/subject-permission"
-        ]
-    },
-    {
-      "group": "Tenancy Service",
-      "pages": [
-        "api-reference/tenancy/list-tenants",
-        "api-reference/tenancy/create-tenant",
-        "api-reference/tenancy/delete-tenant"
-      ]
-    },
-    {
-      "group": "Bundle Service",
-      "pages": [
-        "api-reference/bundle/write-bundle",
-        "api-reference/bundle/read-bundle",
-        "api-reference/bundle/delete-bundle"
-      ]
-    },
-    {
-      "group": "Watch Service",
-      "pages": [
-        "api-reference/watch/watch-changes"
       ]
     },
     {
