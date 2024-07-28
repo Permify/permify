@@ -207,12 +207,6 @@
       "destination": "/use-cases/rbac"
     }
   ],
-  "tabs": [
-    {
-        "name": "API References",
-        "url": "api-reference"
-    }
-  ],
   "anchors": [
     {
       "name": "Community",
@@ -223,11 +217,6 @@
       "name": "Open Source",
       "icon": "github",
       "url": "https://github.com/Permify/permify"
-    },
-    {
-      "name": "Permify Cloud",
-      "icon": "globe",
-      "url": "cloud"
     }
   ],
   "navigation": [
