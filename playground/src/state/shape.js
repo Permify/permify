@@ -178,8 +178,7 @@ export const useShapeStore = create((set, get) => ({
     fetchShape: async (pond) => {
         try {
             get().clear()
-
-            const response = await axios.get(`https://s3.amazonaws.com/permify.playground.storage/shapes/${pond}.yaml`);
+            const response = await axios.get(`https://${process.env.STORAGE_ID}.public.blob.vercel-storage.com/${pond}.yaml`);
             const result = yaml.load(response.data, null);
 
             get().setSchema(result.schema ?? ``);
