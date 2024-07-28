@@ -19,15 +19,12 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@utility": ["./utility"],
+      "@layout": ["./layout"],
+      "@router": ["./router"]
     }
   },
-  "include": [
-    "src/**/*.js",
-    "src/**/*.jsx",
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
   "exclude": ["node_modules"]
 }
