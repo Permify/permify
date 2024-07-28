@@ -6,7 +6,7 @@ import Upload from "@services/s3";
 import {nanoid} from "nanoid";
 import yaml from "js-yaml";
 import {useShapeStore} from "@state/shape";
-import Share from "./components/modals/share";
+import Share from "@layout/components/modals/share";
 
 const {Option, OptGroup} = Select;
 const {Content} = Layout;

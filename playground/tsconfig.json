@@ -26,7 +26,8 @@
       "@router": ["./router"],
       "@views": ["./views"],
       "@state": ["./state"],
-      "@services": ["./services"]
+      "@services": ["./services"],
+      "@pkg": ["./pkg"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],

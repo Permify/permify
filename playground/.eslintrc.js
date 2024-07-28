@@ -10,6 +10,7 @@ module.exports = {
                     ['@views', './src/views'],
                     ['@state', './src/state'],
                     ['@services', './src/services'],
+                    ['@pkg', './src/pkg'],
                 ],
                 extensions: ['.ts', '.js', '.jsx', '.tsx', '.json'],
             },
