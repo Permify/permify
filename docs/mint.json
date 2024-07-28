@@ -211,7 +211,7 @@
     {
         "name": "API References",
         "url": "api-reference",
-        "openapi": "./api-reference/openapi.json"
+        "openapi": "/api-reference/openapi.json"
     }
   ],
   "anchors": [
