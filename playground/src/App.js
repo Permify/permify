@@ -1,19 +1,9 @@
-import React, {useEffect} from "react";
-import AppRouter from "./router/router";
-import {Layout} from "./utility/context/layout"
+import React from "react";
+import AppRouter from "@router/router";
+import {Layout} from "@utility/context/Layout"
 import {ConfigProvider, theme} from 'antd';
 
 function App() {
-
-    const params = new URLSearchParams(window.location.search);
-
-    useEffect(() => {
-        let p = params.get('t')
-        if (p && p === "f") {
-            document.documentElement.style.setProperty('--background-base', "#000000");
-        }
-    }, []);
-
     return (
         <ConfigProvider
             theme={{

@@ -1,8 +1,8 @@
 import React, {useState, useRef} from 'react'
 import {Allotment} from 'allotment'
 import "allotment/dist/style.css";
-import Schema from "./schema";
-import Visualizer from "./visualizer";
+import Schema from "@layout/sides/schema";
+import Visualizer from "@layout/sides/visualizer";
 import {Button, Card, Radio} from "antd";
 import {
     CheckCircleOutlined,
@@ -10,11 +10,11 @@ import {
     ExclamationCircleOutlined,
     ExpandOutlined, FullscreenExitOutlined,
 } from "@ant-design/icons";
-import Relationships from "./particials/data/relationships";
-import Attributes from "./particials/data/attributes";
-import {useShapeStore} from "../../state/shape";
-import Enforcement from "./enforcement";
-import GuidedTour from '../components/guidedTour';
+import Relationships from "@layout/sides/particials/data/relationships";
+import Attributes from "@layout/sides/particials/data/attributes";
+import {useShapeStore} from "@state/shape";
+import Enforcement from "@layout/sides/enforcement";
+import GuidedTour from '@layout/components/guidedTour';
 
 function Output(props) {
     const refSchemaEditor = useRef(null);
