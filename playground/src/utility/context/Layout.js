@@ -1,6 +1,6 @@
 import React from "react"
-import MainLayout from "../../layout/MainLayout"
-import FullPageLayout from "../../layout/FullPageLayout"
+import MainLayout from "./../../layout/MainLayout"
+import FullPageLayout from "./../../layout/FullPageLayout"
 
 const layouts = {
     main: MainLayout,

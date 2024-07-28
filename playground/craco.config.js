@@ -1,5 +1,6 @@
 const CracoLessPlugin = require("craco-less");
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
+const CracoAlias = require('craco-alias');
 const dotenv = require('dotenv');
 const webpack = require('webpack');
 
@@ -17,6 +18,14 @@ module.exports = {
         ]
     },
     plugins: [
-        { plugin: CracoLessPlugin }
+        { plugin: CracoLessPlugin },
+        {
+            plugin: CracoAlias,
+            options: {
+                source: 'tsconfig',
+                baseUrl: './src',
+                tsConfigPath: './tsconfig.json'
+            }
+        }
     ]
 };
