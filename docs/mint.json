@@ -211,10 +211,6 @@
     {
         "name": "API References",
         "url": "api-reference"
-    },
-    {
-      "name": "Permify Cloud",
-      "url": "cloud"
     }
   ],
   "anchors": [
@@ -227,6 +223,11 @@
       "name": "Open Source",
       "icon": "github",
       "url": "https://github.com/Permify/permify"
+    },
+    {
+      "name": "Permify Cloud",
+      "icon": "globe",
+      "url": "cloud"
     }
   ],
   "navigation": [
