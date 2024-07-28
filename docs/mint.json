@@ -33,12 +33,6 @@
     "name": "Playground",
     "url": "https://play.permify.co/?s=organizations-hierarchies"
   },
-  "tabs": [
-    {
-      "name": "API Reference",
-      "url": "api-reference"
-    }
-  ],
   "redirects": [
     {
       "source": "/docs/:slug*",
@@ -211,6 +205,12 @@
     {
       "source": "/installation/use-cases/simple-rbac",
       "destination": "/use-cases/rbac"
+    }
+  ],
+  "tabs": [
+    {
+        "name": "API References",
+        "url": "api-reference"
     }
   ],
   "anchors": [
