@@ -1,11 +1,11 @@
 import React, {useState, useEffect} from "react";
 import {Layout, Row, Button, Select} from 'antd';
-import {toAbsoluteUrl} from "../utility/helpers/asset";
+import {toAbsoluteUrl} from "@utility/helpers/asset";
 import {GithubOutlined, ShareAltOutlined, ExportOutlined} from "@ant-design/icons";
-import Upload from "../services/s3";
+import Upload from "@services/s3";
 import {nanoid} from "nanoid";
 import yaml from "js-yaml";
-import {useShapeStore} from "../state/shape";
+import {useShapeStore} from "@state/shape";
 import Share from "./components/modals/share";
 
 const {Option, OptGroup} = Select;

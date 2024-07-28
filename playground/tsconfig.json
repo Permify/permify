@@ -23,7 +23,10 @@
     "paths": {
       "@utility": ["./utility"],
       "@layout": ["./layout"],
-      "@router": ["./router"]
+      "@router": ["./router"],
+      "@views": ["./views"],
+      "@state": ["./state"],
+      "@services": ["./services"]
     }
   },
   "exclude": ["node_modules"]
