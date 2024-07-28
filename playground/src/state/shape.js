@@ -176,21 +176,20 @@ export const useShapeStore = create((set, get) => ({
     }),
 
     fetchShape: async (pond) => {
-        // try {
-        //
-        // } catch (error) {
-        //     const baseUrl = window.location.href.split('?')[0];
-        //     window.location = `${baseUrl}404`;
-        // }
+        try {
+            get().clear()
+            const response = await axios.get(`https://697comsaveyxrwi8.public.blob.vercel-storage.com/${pond}.yaml`);
+            const result = yaml.load(response.data, null);
 
-        get().clear()
-        const response = await axios.get(`https://${process.env.STORAGE_ID}.public.blob.vercel-storage.com/${pond}.yaml`);
-        const result = yaml.load(response.data, null);
+            get().setSchema(result.schema ?? ``);
+            get().addRelationships(result.relationships ?? []);
+            get().addAttributes(result.attributes ?? []);
+            get().setScenarios(result.scenarios ?? []);
 
-        get().setSchema(result.schema ?? ``);
-        get().addRelationships(result.relationships ?? []);
-        get().addAttributes(result.attributes ?? []);
-        get().setScenarios(result.scenarios ?? []);
+        } catch (error) {
+            const baseUrl = window.location.href.split('?')[0];
+            window.location = `${baseUrl}404`;
+        }
     },
 
     getEntityTypes: () => {
