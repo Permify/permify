@@ -1628,7 +1628,7 @@
             {
               "label": "cURL",
               "lang": "curl",
-              "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/list' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"page_size\": \"10\",\n    \"continuous_token\": \"\"\n}'"
+              "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/read' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"page_size\": \"10\",\n    \"continuous_token\": \"\"\n}'"
             }
           ],
           "x-codegen-request-body-name": "body"
