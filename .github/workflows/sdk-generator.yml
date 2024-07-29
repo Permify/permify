@@ -15,7 +15,7 @@ jobs:
 
         strategy:
             matrix:
-                language: [python, javascript]
+                language: [python]
 
         steps:
             - name: Harden Runner
