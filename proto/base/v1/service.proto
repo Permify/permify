@@ -718,7 +718,7 @@ message PermissionLookupSubjectRequest {
   }];
 
   // Reference to the subject to lookup.
-  RelationReference subject_reference = 5 [json_name = "subject_reference"];
+  RelationReference subject_reference = 5 [json_name = "subject_reference", (validate.rules).message.required = true];
 
   // Context associated with this request.
   Context context = 6 [json_name = "context"];
