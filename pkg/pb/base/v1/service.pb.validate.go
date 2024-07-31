@@ -2393,6 +2393,17 @@ func (m *PermissionLookupSubjectRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if m.GetSubjectReference() == nil {
+		err := PermissionLookupSubjectRequestValidationError{
+			field:  "SubjectReference",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetSubjectReference()).(type) {
 		case interface{ ValidateAll() error }:
