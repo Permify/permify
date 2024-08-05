@@ -1,8 +1,6 @@
 import {create} from 'zustand';
 import axios from 'axios'; // Assuming you're using axios as the "client"
 import yaml from 'js-yaml';
-import {toast} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 export const useShapeStore = create((set, get) => ({
     // main shape items
@@ -146,7 +144,6 @@ export const useShapeStore = create((set, get) => ({
                 });
             }
         }).catch((error) => {
-            toast.error(`System Error: ${error.message}`);
             set({systemError: error})
         });
     },
