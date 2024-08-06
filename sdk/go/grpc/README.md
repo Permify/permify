@@ -23,57 +23,43 @@ cd permify-sdk-samples/go/grpc
 After successfully building the project, you can run the application using the following command:
 
 ```sh
-java -jar target/your-artifact-name-0.0.1.jar
+go run create_tenant.go
 ```
-
-Replace your-artifact-name-0.0.1.jar with the actual name of the jar file generated after the build.
 
 ## For your own Projects
 
 To use the Permify SDK in your project, add the following dependency to your pom.xml file:
 
-```xml
-<dependency>
-    <groupId>build.buf.gen</groupId>
-    <artifactId>permifyco_permify_grpc_java</artifactId>
-    <version>1.65.1.1.20240628085453.215bbf832f82</version>
-</dependency>
-
-<dependency>
-    <groupId>build.buf.gen</groupId>
-    <artifactId>permifyco_permify_protocolbuffers_java</artifactId>
-    <version>27.2.0.1.20240628085453.215bbf832f82</version>
-</dependency>
+```sh
+go get github.com/Permify/permify-go/v1
 ```
 
 Here is a simple permify client:
 
-```java
+```go
+package main
 
-  // Create the channel
-  ManagedChannel channel = ManagedChannelBuilder.forAddress("127.0.0.1", 3478).usePlaintext().build();
+import (
+	"context"
+	"log"
 
-  try {
-      // Create the blocking stub
-      TenancyGrpc.TenancyBlockingStub blockingStub = TenancyGrpc.newBlockingStub(channel);
+	v1 "github.com/Permify/permify-go/generated/base/v1"
+	permify "github.com/Permify/permify-go/v1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
 
-      String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-      TenantCreateRequest req = TenantCreateRequest.newBuilder()
-              .setId("tenant_" + timeStamp)
-              .setName("tenant id name")
-              .build();
+func main() {
+	client, err := permify.NewClient(
+		permify.Config{
+			Endpoint: `localhost:3478`,
+		},
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatalf("failed to create Permify client: %v", err)
+	}
+}
 
-      TenantCreateResponse response = blockingStub.create(req);
-      System.out.println(response);
-
-  } finally {
-      // Gracefully shutdown the channel
-      try {
-          channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-          e.printStackTrace();
-          channel.shutdownNow();
-      }
-  }
   
 ```
