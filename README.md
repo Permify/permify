@@ -43,11 +43,13 @@ Our service makes authorization more secure and adaptable to changing needs, all
 - See our [Playground], build your authorization logic and test it with sample data.
 - Explore overview of [Permify API] and learn how to interact with it.
 - See [our article] to examine [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf) in a nutshell.
+- Explore our [SDK samples] for hands-on examples.
 
 [Permify's Authorization Language]: https://docs.permify.co/getting-started/modeling
 [playground]: https://play.permify.co/
 [Permify API]: https://docs.permify.co/api-reference
 [our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
+[SDK samples]: https://github.com/Permify/permify/tree/master/sdk
 
 ### QuickStart
 
