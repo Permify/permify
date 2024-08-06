@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.springframework</groupId>
+    <artifactId>gs-maven</artifactId>
+    <packaging>jar</packaging>
+    <version>0.1.0</version>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <repositories>
+    <repository>
+        <name>Buf Maven Repository</name>
+        <id>buf</id>
+        <url>https://buf.build/gen/maven</url>
+        <releases>
+        <enabled>true</enabled>
+        </releases>
+        <snapshots>
+        <enabled>false</enabled>
+        </snapshots>
+    </repository>
+    </repositories>
+
+    <dependencies>
+         <dependency>
+             <groupId>joda-time</groupId>
+             <artifactId>joda-time</artifactId>
+             <version>2.9.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>build.buf.gen</groupId>
+            <artifactId>permifyco_permify_grpc_java</artifactId>
+            <version>1.65.1.1.20240628085453.215bbf832f82</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>build.buf.gen</groupId>
+            <artifactId>permifyco_permify_protocolbuffers_java</artifactId>
+            <version>27.2.0.1.20240628085453.215bbf832f82</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty</artifactId>
+            <version>1.54.0</version> <!-- Ensure this matches the version of grpc you are using -->
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
+            <version>1.54.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-api</artifactId>
+            <version>1.54.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+            <version>1.54.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+            <version>1.54.0</version>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>grpc.TenantCreator</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
