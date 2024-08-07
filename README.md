@@ -56,7 +56,7 @@ Our service makes authorization more secure and adaptable to changing needs, all
 You can quickly start Permify on your local with running the docker command below:
 
 ```shell
-docker run -p 3476:3476 -p 3478:3478  ghcr.io/permify/permify serve
+docker run -p 3476:3476 -p 3478:3478  ghcr.io/permify/permify
 ```
 
 This will start Permify with the default configuration options: 

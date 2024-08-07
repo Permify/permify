@@ -7,7 +7,7 @@ This section shows how to run Permify using our docker container. You can run Pe
 ## Run in a terminal
 
 ```shell
-docker run -p 3476:3476 -p 3478:3478 -v {YOUR-CONFIG-PATH}:/config ghcr.io/permify/permify serve
+docker run -p 3476:3476 -p 3478:3478 -v {YOUR-CONFIG-PATH}:/config ghcr.io/permify/permify
 ```
 
 This will start a Permify server with the configuration that is in `{YOUR-CONFIG-PATH}`.
@@ -25,7 +25,7 @@ By default, the container is configured to listen on ports 3476 (HTTP) and 3478 
 Alternatively, you can set configuration options using flags when running the command. See all the configuration flags by running,
 
 ```shell
-docker run -p 3476:3476 -p 3478:3478 ghcr.io/permify/permify serve -help
+docker run -p 3476:3476 -p 3478:3478 ghcr.io/permify/permify --help
 ```
 
 <Info>
