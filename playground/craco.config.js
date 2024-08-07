@@ -1,3 +1,4 @@
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 const CracoLessPlugin = require("craco-less");
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 const CracoAlias = require('craco-alias');
@@ -14,7 +15,20 @@ module.exports = {
     webpack: {
         plugins: [
             new webpack.DefinePlugin(envKeys),
-            new CaseSensitivePathsPlugin() // Add the plugin here
+            new CaseSensitivePathsPlugin(),
+            new MonacoWebpackPlugin({
+                languages: ['yaml'],
+                customLanguages: [
+                    {
+                        label: 'yaml',
+                        entry: 'monaco-yaml',
+                        worker: {
+                            id: 'monaco-yaml/yamlWorker',
+                            entry: 'monaco-yaml/yaml.worker'
+                        }
+                    }
+                ]
+            })
         ]
     },
     plugins: [

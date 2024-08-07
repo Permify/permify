@@ -1,19 +1,30 @@
 import React, {useRef} from 'react';
 import MonacoEditor from "@monaco-editor/react";
-import Theme from "../perm/theme";
+import { configureMonacoYaml } from 'monaco-yaml';
+import 'monaco-editor';
+
+import Theme from "./theme";
 
 function YamlEditor(props) {
     const editorRef = useRef(null);
     const monacoRef = useRef(null);
 
-    function handleEditorDidMount(editor, monaco) {
+    const handleEditorDidMount = (editor, monaco) => {
         editorRef.current = editor;
         monacoRef.current = monaco;
-    }
 
-    function handleEditorWillMount(monaco) {
-        monaco.editor.defineTheme('dark-theme', Theme())
-    }
+        configureMonacoYaml(monaco, {
+            completion: true,
+            validate: true,
+            format: true,
+            hover: true,
+            enableSchemaRequest: true,
+        });
+    };
+
+    const handleEditorWillMount = (monaco) => {
+        monaco.editor.defineTheme('dark-theme', Theme());
+    };
 
     function handleEditorChange(value, event) {
         try {
@@ -27,10 +38,10 @@ function YamlEditor(props) {
         selectOnLineNumbers: true,
         renderIndentGuides: true,
         colorDecorators: true,
-        cursorBlinking: "smooth",
-        autoClosingQuotes: "always",
+        cursorBlinking: 'smooth',
+        autoClosingQuotes: 'always',
         suggestOnTriggerCharacters: true,
-        acceptSuggestionOnEnter: "on",
+        acceptSuggestionOnEnter: 'on',
         folding: true,
         lineNumbersMinChars: 3,
         fontSize: 12,

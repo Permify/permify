@@ -92,60 +92,73 @@ export const useShapeStore = create((set, get) => ({
     },
 
     run: () => {
-        get().clearErrors()
+        // Clear existing errors
+        get().clearErrors();
 
+        // Define the shape object
         const shape = {
             schema: get().schema,
             relationships: get().relationships,
             attributes: get().attributes,
             scenarios: get().scenarios,
-        }
+        };
 
+        // Function to handle errors
+        const handleError = (error) => {
+            switch (error.type) {
+                case 'file_validation':
+                    set((state) => ({ scenariosError: [...state.scenariosError, error] }));
+                    break;
+                case 'schema':
+                    set({ schemaError: handleSchemaError(error.message) });
+                    break;
+                case 'relationships':
+                    set((state) => ({ relationshipErrors: [...state.relationshipErrors, error] }));
+                    break;
+                case 'attributes':
+                    set((state) => ({ attributeErrors: [...state.attributeErrors, error] }));
+                    break;
+                case 'scenarios':
+                    set((state) => ({ scenariosError: [...state.scenariosError, error] }));
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        // Run the shape validation
         Run(JSON.stringify(shape, null, 2))
-            .then((rr) => {
-                for (let i = 0; i < rr.length; i++) {
-                    const error = JSON.parse(rr[i]);
+            .then((response) => {
+                // Process each error in the response
+                response.forEach((errorString) => {
+                    const error = JSON.parse(errorString);
+                    handleError(error);
+                });
 
-                    if (error.type === 'file_validation') {
-                        set((state) => ({scenariosError: [...state.scenariosError, error]}));
-                    }
+                // If no schema or file validation errors, proceed to visualize
+                const hasSchemaError = response.some(error => JSON.parse(error).type === 'schema');
+                const hasFileValidationError = response.some(error => JSON.parse(error).type === 'file_validation');
 
-                    if (error.type === 'schema') {
-                        set({schemaError: handleSchemaError(error.message)});
-                    }
-
-                    if (error.type === 'relationships') {
-                        set((state) => ({relationshipErrors: [...state.relationshipErrors, error]}));
-                    }
-
-                    if (error.type === 'attributes') {
-                        set((state) => ({attributeErrors: [...state.attributeErrors, error]}));
-                    }
-
-                    if (error.type === 'scenarios') {
-                        set((state) => ({scenariosError: [...state.scenariosError, error]}));
-                    }
-                }
-
-                // If there were no schema errors, proceed to visualize
-                if (!rr.some(error => JSON.parse(error).type === 'schema') && !rr.some(error => JSON.parse(error).type === 'file_validation')) {
+                if (!hasSchemaError && !hasFileValidationError) {
                     return Visualize();
                 } else {
-                    // You can add additional error handling or set state as needed
+                    // Set graph to empty if there are schema or file validation errors
+                    set({ graph: { nodes: [], edges: [] } });
+                }
+            })
+            .then((visualizationResponse) => {
+                if (visualizationResponse) {
+                    // Update the graph and definitions state if visualization was successful
                     set({
-                        graph: {nodes: [], edges: []},
+                        graph: JSON.parse(visualizationResponse[0]),
+                        definitions: JSON.parse(visualizationResponse[1]),
                     });
                 }
-            }).then((vr) => {
-            if (vr) {  // Only execute if vr exists (means no errors previously)
-                set({
-                    graph: JSON.parse(vr[0]),
-                    definitions: JSON.parse(vr[1]),
-                });
-            }
-        }).catch((error) => {
-            set({systemError: error})
-        });
+            })
+            .catch((error) => {
+                // Set system error if there is any catch
+                set({ systemError: error });
+            });
     },
 
     // Clear the state
