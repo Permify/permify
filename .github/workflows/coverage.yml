@@ -24,9 +24,14 @@ jobs:
         go mod download
     - name: Run Unit tests
       run: |
-        go test -race -covermode=atomic -coverprofile=covprofile ./cmd/... ./internal/... ./pkg/...
-        awk '($$3 != "0.00%") || NR==1 {print $$0}' coverage.out > filtered_coverage.out
-        go tool cover -func=filtered_coverage.out
+        go test -race -covermode=atomic -coverprofile=coverage.out ./cmd/... ./internal/... ./pkg/...
+        if [ -f coverage.out ]; then
+            awk '$NF != "0" || NR==1' coverage.out > covprofile
+            go tool cover -func=covprofile
+        else
+            echo "No coverage file found"
+            exit 1
+        fi
     - name: Install goveralls
       run: go install github.com/mattn/goveralls@latest
     - name: Send coverage
