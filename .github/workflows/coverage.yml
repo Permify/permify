@@ -25,8 +25,8 @@ jobs:
     - name: Run Unit tests
       run: |
         go test -race -covermode=atomic -coverprofile=covprofile ./cmd/... ./internal/... ./pkg/...
-        awk '($$3 != "0.00%") || NR==1 {print $$0}' covprofile > filtered_covprofile
-        go tool cover -func=filtered_covprofile
+        awk '($$3 != "0.00%") || NR==1 {print $$0}' coverage.out > filtered_coverage.out
+        go tool cover -func=filtered_coverage.out
     - name: Install goveralls
       run: go install github.com/mattn/goveralls@latest
     - name: Send coverage
