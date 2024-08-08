@@ -1,5 +1,7 @@
 export
 
+GO_PACKAGES := $(shell go list -f '{{.Dir}}' ./cmd/... ./pkg/... ./internal/... | xargs -I{} sh -c 'if find "{}" -name "*_test.go" | grep -q .; then echo {}; fi' | tr '\n' ' ')
+
 # HELP =================================================================================================================
 # This will output the help for each task
 # thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -37,7 +39,11 @@ linter-dotenv: ### check by dotenv linter
 
 .PHONY: test
 test: ### run test
-	go test -v -cover -race ./internal/...
+	@go test -race \
+		-coverprofile=covprofile \
+		-covermode=atomic \
+		-timeout=10m \
+		$(GO_PACKAGES)
 
 .PHONY: integration-test
 integration-test: ### run integration-test
