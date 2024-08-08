@@ -4,15 +4,15 @@ import (
 	"context"
 	"log"
 
-	v1 "github.com/Permify/permify-go/generated/base/v1"
-	permify "github.com/Permify/permify-go/v1"
+	"buf.build/gen/go/permifyco/permify/protocolbuffers/go/base/v1"
+	pclient "github.com/Permify/permify-go/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
-	client, err := permify.NewClient(
-		permify.Config{
+	client, err := pclient.NewClient(
+		pclient.Config{
 			Endpoint: `localhost:3478`,
 		},
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -21,7 +21,7 @@ func main() {
 		log.Fatalf("failed to create Permify client: %v", err)
 	}
 
-	ct, err := client.Tenancy.Create(context.Background(), &v1.TenantCreateRequest{
+	ct, err := client.Tenancy.Create(context.Background(), &basev1.TenantCreateRequest{
 		Id:   "t1",
 		Name: "tenant 1",
 	})
