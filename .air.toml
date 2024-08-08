@@ -19,7 +19,7 @@ log = "air_errors.log"
 # Watch these filename extensions.
 include_ext = ["go", "yaml",".env"]
 # Ignore these filename extensions or directories.
-exclude_dir = ["tmp", "docs"]
+exclude_dir = ["tmp", "docs", "playground", "sdk", "assets", "tools"]
 # It's not necessary to trigger build each time file changes if it's too frequent.
 delay = 500 # ms
 

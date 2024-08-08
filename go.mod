@@ -1,6 +1,6 @@
 module github.com/Permify/permify
 
-go 1.22.6
+go 1.22
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
