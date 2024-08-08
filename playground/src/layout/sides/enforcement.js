@@ -7,7 +7,7 @@ import {Alert} from "antd";
 
 function Enforcement() {
 
-    const {scenarios, setScenarios, scenariosError, assertionCount, runLoading} = useShapeStore();
+    const {scenarios, setScenarios, scenariosError, assertionCount, runLoading, yamlValidationErrors} = useShapeStore();
     const [yamlData, setYamlData] = useState("");
 
     const handleYamlChange = (newCode) => {
@@ -30,7 +30,7 @@ function Enforcement() {
                     <Alert type="error" message={error.message} banner closable/>
                 ))
             )}
-            {!runLoading && assertionCount > 0 && scenariosError.length < 1 && (
+            {!runLoading && assertionCount > 0 && scenariosError.length === 0 && yamlValidationErrors.length === 0 &&  (
                 <Alert type="success" message="Success" banner closable/>
             )}
             <YamlEditor
@@ -38,6 +38,7 @@ function Enforcement() {
                 setCode={(newCode) => handleYamlChange(newCode)}
             />
         </>
+
     );
 }
 

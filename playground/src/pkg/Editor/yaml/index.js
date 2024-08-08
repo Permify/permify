@@ -1,11 +1,14 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import MonacoEditor from "@monaco-editor/react";
-import { configureMonacoYaml } from 'monaco-yaml';
+import {configureMonacoYaml} from 'monaco-yaml';
 import 'monaco-editor';
+import {useShapeStore} from "@state/shape";
 
 import Theme from "./theme";
 
 function YamlEditor(props) {
+    const {setError, clearError, yamlValidationErrors} = useShapeStore();
+
     const editorRef = useRef(null);
     const monacoRef = useRef(null);
 
@@ -19,6 +22,18 @@ function YamlEditor(props) {
             format: true,
             hover: true,
             enableSchemaRequest: true,
+        });
+
+        editor.onDidChangeModelDecorations(() => {
+            const model = editor.getModel();
+            if (model) {
+                const markers = monaco.editor.getModelMarkers({resource: model.uri});
+                if (markers.length > 0) {
+                    setError("yamlValidationErrors", markers[0].message)
+                } else {
+                    clearError("yamlValidationErrors")
+                }
+            }
         });
     };
 
