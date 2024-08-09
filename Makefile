@@ -1,5 +1,7 @@
 export
 
+GO_PACKAGES := $(shell find ./cmd ./pkg ./internal -name '*_test.go' | xargs -n1 dirname | sort -u)
+
 # HELP =================================================================================================================
 # This will output the help for each task
 # thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -36,8 +38,18 @@ linter-dotenv: ### check by dotenv linter
 	dotenv-linter
 
 .PHONY: test
-test: ### run test
-	go test -v -cover -race ./internal/...
+test: ### run tests and gather coverage
+	@rm -f covprofile
+	@echo "mode: atomic" > covprofile
+	@for pkg in $(GO_PACKAGES); do \
+		echo "Running tests in $$pkg"; \
+		go test -race -coverprofile=covprofile.tmp -covermode=atomic -timeout=10m $$pkg; \
+		if [ -f covprofile.tmp ]; then \
+			tail -n +2 covprofile.tmp >> covprofile; \
+			rm covprofile.tmp; \
+		fi; \
+	done
+	@echo "Coverage profile merged into covprofile"
 
 .PHONY: integration-test
 integration-test: ### run integration-test

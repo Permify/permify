@@ -1,4 +1,4 @@
-name: Quality
+name: Coverage
 on: [push, pull_request]
 permissions:
   contents: read
@@ -13,22 +13,20 @@ jobs:
       with:
         egress-policy: audit
 
+    - name: Check out code
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
     - name: Set up Go
       uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
       with:
         go-version: '1.22'
-    - name: Check out code
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-    - name: Install dependencies
-      run: |
-        go mod download
-    - name: Run Unit tests
-      run: |
-	    go test -race -covermode=atomic -coverprofile=covprofile ./cmd/... ./internal/... ./pkg/...
-	    awk '($$3 != "0.00%") || NR==1 {print $$0}' covprofile > filtered_covprofile
-	    go tool cover -func=filtered_covprofile
+
+    - name: tests
+      run: make test
+
     - name: Install goveralls
       run: go install github.com/mattn/goveralls@latest
+
     - name: Send coverage
       env:
         COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
