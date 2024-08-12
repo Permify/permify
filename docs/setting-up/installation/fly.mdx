@@ -4,12 +4,61 @@ title: Deploy on Fly.io
 
 This guide outlines the process of deploying Permify, on Fly.io. We will be using Fly's [deploy with a Dockerfile](https://fly.io/docs/languages-and-frameworks/dockerfile/) functionality.
 
-## 1. Install `flyctl`
+## Pre-reqs: Install `flyctl`
 
-First thing we're going to need to do, is install the flyctl command-line utility. Install instructions can be [found here.](https://fly.io/docs/flyctl/install/)
+Before we begin, we need to make sure to have the flyctl command-line utility installed. Install instructions can be [found here.](https://fly.io/docs/flyctl/install/)
 
+## Running with Postgres for persistent storage
 
-## 2. Create a simple project within a directory
+### 1. Create a database on Fly
+
+Let's create a semi-managed instance of Postgresql on Fly to store our data so that everything isn't lost when the machines scale down to 0.
+
+Run the command `fly postgres create`, give the new fly app a name, select its location and machine setup. For this example the development configuration was used, but you can choose to make yours highly available with the other options.
+
+Postgres cluster permify-example-psql created
+  Username:    <username>
+  Password:    <password>
+  Hostname:    permify-example-psql.internal
+  Flycast:     fdaa:9:9110:0:1::2
+  Proxy port:  5432
+  Postgres port:  5433
+  Connection string: postgres://<username>:<password>@permify-example-psql.flycast:5432
+
+Keep username and password in a secure location like a secrets manager. We'll need the connection string as well in order to connect to our database.
+
+### 2. Create a simple Dockerfile or use the base image directly
+
+Due to limitations with the flyctl command of `fly deploy`, we can't alter the entrypoint or run command from `fly deploy` so we need to directly create our fly machines
+
+To create them directly we can use a Dockerfile which we'll simplify to a single line:
+
+```dockerfile
+FROM ghcr.io/permify/permify:latest
+```
+
+Then run the run command for as many machines we want, 1 is the minimum and `fly deploy` usually creates 2. We can even name them as we want using the `-n` or `--name` flags.
+
+```sh
+fly machine run . \
+    --app "permify-fly-deploy-example" \
+    -p 3476:3476/tcp:http:tls \
+    -p 3478:3478/tcp:http:tls \
+    --name permify-m-1
+    --entrypoint "permify serve --database-engine=postgres --database-uri='postgres://<usename>:<password>@<url-for-postgres>'"
+
+# or with the image name directly
+fly machine run ghcr.io/permify/permify:latest
+    \ --app "permify-fly-deploy-example" \
+    -p 3476:3476/tcp:http:tls \
+    -p 3478:3478/tcp:http:tls  \
+    -n permify-m-2 \
+    --entrypoint "permify serve --database-engine=postgres --database-uri='postgres://<usename>:<password>@<url-for-postgres>'"
+```
+
+## Running Permify on Fly without a database
+
+### 1. Create a simple project within a directory
 
 We're going to setup a simple git repository to store our configuration for Fly.io and a simple Dockerfile to deploy.
 
@@ -18,7 +67,7 @@ mkdir permify-fly-deploy
 cd permify-fly-deploy
 ```
 
-## 3. Create a Dockerfile
+### 2. Create a Dockerfile
 
 Let's create a Dockerfile that uses the latest container image from the Github Registry. We'll set it up to just run the command `serve` in order to run the container without any additional configuration.
 
@@ -28,7 +77,7 @@ FROM ghcr.io/permify/permify
 CMD ["serve"]
 ```
 
-## 4. Setup the fly configuration
+### 3. Setup the fly configuration
 
 Next step is to configure our app to run on Fly. Run the command `fly launch` to get an initial configuration setup and generate a basic `fly.toml` file. You can tweak the default configurations to change Region, App Machines, Memory, etc.
 
@@ -47,12 +96,13 @@ fly launch
 
 ```
 
-## 5. Edit the Fly configuration to expose our ports and service
+### 4. Edit the Fly configuration to expose our ports and service
 
 We'll need to tweak the default configuration generated for us by the `flyctl` command `fly launch` to get our app working. We'll remove the generated section `[http_service]` and add two `[[services]]` sections to our configuration.
 This is so we can expose both the REST API and gRPC ports of `3476` and `3478`. If you only want to expose one or the other, then keep only the port service that you wish to expose.
 
 ```toml
+# fly.toml
 app = 'permify-fly-deploy'
 primary_region = 'lax'
 
@@ -90,10 +140,9 @@ primary_region = 'lax'
   cpus = 1
 ```
 
-## 6. Deploy your fly app
+### 5. Deploy your fly app
 
 Now we can deploy our service to Fly by using the command `fly deploy`. Once it's done building and the status is showing as deployed, you can check the url provided by Fly to your app in your web browser if the REST API port was exposed by checking the health endpoint `https://<your-app-url>:3476/healthz` and you should see `{"status":"SERVING"}`.
-
 
 ### Example repository
 Example configurations for this can be found [https://github.com/theoriginalstove/permify-fly-deploy-example](https://github.com/theoriginalstove/permify-fly-deploy-example)
