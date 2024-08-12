@@ -72,15 +72,15 @@ security-scan: ## Scan code for security vulnerabilities using Gosec
 
 .PHONY: coverage
 coverage: ## Generate global code coverage report
-	go test -coverprofile=coverage.out ./cmd/... ./internal/... ./pkg/...
-	go tool cover -html=coverage.out -o coverage.html
+	go test -coverprofile=covprofile ./cmd/... ./internal/... ./pkg/...
+	go tool cover -html=covprofile -o coverage.html
 
 .PHONY: clean
 clean: ## Remove temporary and generated files
 	rm -f ./permify
 	rm -f ./pkg/development/wasm/main.wasm
 	rm -f ./pkg/development/wasm/play.wasm
-	rm -f coverage.out coverage.html
+	rm -f covprofile coverage.html
 
 .PHONY: wasm-build
 wasm-build: ## Build wasm & place it in playground
