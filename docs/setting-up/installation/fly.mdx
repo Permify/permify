@@ -16,14 +16,19 @@ Let's create a semi-managed instance of Postgresql on Fly to store our data so t
 
 Run the command `fly postgres create`, give the new fly app a name, select its location and machine setup. For this example the development configuration was used, but you can choose to make yours highly available with the other options.
 
-Postgres cluster permify-example-psql created
-  Username:    <username>
-  Password:    <password>
-  Hostname:    permify-example-psql.internal
-  Flycast:     fdaa:9:9110:0:1::2
-  Proxy port:  5432
-  Postgres port:  5433
-  Connection string: postgres://<username>:<password>@permify-example-psql.flycast:5432
+```sh
+fly postgres create
+
+# output
+# Postgres cluster permify-example-psql created
+#  Username:    <username>
+#  Password:    <password>
+#  Hostname:    permify-example-psql.internal
+#  Flycast:     fdaa:9:9110:0:1::2
+#  Proxy port:  5432
+#  Postgres port:  5433
+#  Connection string: postgres://<username>:<password>@permify-example-psql.flycast:5432
+```
 
 Keep username and password in a secure location like a secrets manager. We'll need the connection string as well in order to connect to our database.
 
