@@ -1,19 +1,45 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import MonacoEditor from "@monaco-editor/react";
-import Theme from "../perm/theme";
+import {configureMonacoYaml} from 'monaco-yaml';
+import 'monaco-editor';
+import {useShapeStore} from "@state/shape";
+
+import Theme from "./theme";
 
 function YamlEditor(props) {
+    const {setError, clearError, yamlValidationErrors} = useShapeStore();
+
     const editorRef = useRef(null);
     const monacoRef = useRef(null);
 
-    function handleEditorDidMount(editor, monaco) {
+    const handleEditorDidMount = (editor, monaco) => {
         editorRef.current = editor;
         monacoRef.current = monaco;
-    }
 
-    function handleEditorWillMount(monaco) {
-        monaco.editor.defineTheme('dark-theme', Theme())
-    }
+        configureMonacoYaml(monaco, {
+            completion: true,
+            validate: true,
+            format: true,
+            hover: true,
+            enableSchemaRequest: true,
+        });
+
+        editor.onDidChangeModelDecorations(() => {
+            const model = editor.getModel();
+            if (model) {
+                const markers = monaco.editor.getModelMarkers({resource: model.uri});
+                if (markers.length > 0) {
+                    setError("yamlValidationErrors", markers[0].message)
+                } else {
+                    clearError("yamlValidationErrors")
+                }
+            }
+        });
+    };
+
+    const handleEditorWillMount = (monaco) => {
+        monaco.editor.defineTheme('dark-theme', Theme());
+    };
 
     function handleEditorChange(value, event) {
         try {
@@ -27,10 +53,10 @@ function YamlEditor(props) {
         selectOnLineNumbers: true,
         renderIndentGuides: true,
         colorDecorators: true,
-        cursorBlinking: "smooth",
-        autoClosingQuotes: "always",
+        cursorBlinking: 'smooth',
+        autoClosingQuotes: 'always',
         suggestOnTriggerCharacters: true,
-        acceptSuggestionOnEnter: "on",
+        acceptSuggestionOnEnter: 'on',
         folding: true,
         lineNumbersMinChars: 3,
         fontSize: 12,

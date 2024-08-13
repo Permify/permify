@@ -1,9 +1,9 @@
 
-# Authorization As A Service
+# Authorization As A Service | Permify
 
 Getting authorization right is tough, no matter how you've set up your architecture. You're gonna need a solid plan to handle permissions between services, all while keeping it separate from your applications main code. 
 
-In a monolithic app, you can abstract authorization from your app using libraries. This involves building a permission system for each individual application or service that is directly connected with the database.
+In a monolithic app, you can abstract authorization from your app using [authorization libraries](https://permify.co/post/open-source-authorization-libraries/). This involves building a permission system for each individual application or service that is directly connected with the database.
 
 This approach works well until you have several applications with many services. Managing multiple authorization systems for each application is not a scalable approach, as you can imagine.
 

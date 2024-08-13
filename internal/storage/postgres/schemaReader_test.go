@@ -228,6 +228,7 @@ var _ = Describe("SchemaReader", func() {
 			col1, ct1, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(4), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(col1)).Should(Equal(4))
+			Expect(ct1.String()).ShouldNot(BeEmpty())
 
 			col2, ct2, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(4), database.Token(ct1.String())))
 			Expect(err).ShouldNot(HaveOccurred())

@@ -32,7 +32,7 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 	ctx, span := tracer.Start(ctx, "bundle-writer.write-bundle")
 	defer span.End()
 
-	slog.Debug("writing bundles to the database", slog.Any("number_of_bundles", len(bundles)))
+	slog.DebugContext(ctx, "writing bundles to the database", slog.Any("number_of_bundles", len(bundles)))
 
 	insertBuilder := b.database.Builder.Insert(BundlesTable).
 		Columns("name, payload, tenant_id").
@@ -59,14 +59,14 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 		return names, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("executing sql insert query", slog.Any("query", query), slog.Any("arguments", args))
+	slog.DebugContext(ctx, "executing sql insert query", slog.Any("query", query), slog.Any("arguments", args))
 
 	_, err = b.database.WritePool.Exec(ctx, query, args...)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.Debug("successfully wrote bundles to the database", slog.Any("number_of_bundles", len(bundles)))
+	slog.DebugContext(ctx, "successfully wrote bundles to the database", slog.Any("number_of_bundles", len(bundles)))
 
 	return
 }
@@ -75,7 +75,7 @@ func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err e
 	ctx, span := tracer.Start(ctx, "bundle-writer.delete-bundle")
 	defer span.End()
 
-	slog.Debug("deleting bundle", slog.Any("bundle", name))
+	slog.DebugContext(ctx, "deleting bundle", slog.Any("bundle", name))
 
 	deleteBuilder := b.database.Builder.Delete(BundlesTable).Where(squirrel.Eq{"name": name, "tenant_id": tenantID})
 
@@ -92,7 +92,7 @@ func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err e
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.Debug("bundle successfully deleted")
+	slog.DebugContext(ctx, "bundle successfully deleted")
 
 	return nil
 }

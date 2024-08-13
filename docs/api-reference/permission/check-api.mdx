@@ -16,12 +16,16 @@ You can find subject based access checks in [Entity (Data) Filtering] section.
 
 ## Content 
 
-- [Example Check Request](#example-check-request)
+- [Example Check Requests](#example-check-requests)
+    - [Resource Based Access Check (Relationships)](#resource-based-check-relationships)
+    - [Attribute Based Access Check With Context Data](#attribute-based-abac-check-with-context-data)
 - [How Access Decisions Evaluated?](#how-access-decisions-evaluated)
 - [Latency & Performance](#latency-and-performance)
 - [Parameters & Properties](#parameters-and-properties)
 
-## Example Check Request
+## Example Check requests
+
+### Resource Based Check (Relationships)
 
 ```javascript
 POST /v1/permissions/check
@@ -145,6 +149,39 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permission
 ```
 </Tab>
 </Tabs>
+
+### Attribute Based (ABAC) Check With Context Data
+
+```javascript
+client.permission.check({
+    tenantId: "t1",
+    metadata: {
+        snapToken: "",
+        schemaVersion: "",
+        depth: 20,
+    },
+    entity: {
+        type: "organization",
+        id: "1",
+    },
+    permission: "hr_manager",
+    subject: {
+        type: "user",
+        id: "1",
+    },
+    context: {
+        data: {
+            ip_address: "192.158.1.38",
+        },
+    },
+}).then((response) => {
+    if (response.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {
+        console.log("RESULT_ALLOWED");
+    } else {
+        console.log("RESULT_DENIED");
+    }
+});
+```
 
 ## How Access Decisions Evaluated?
 

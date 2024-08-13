@@ -1,8 +1,8 @@
 import React, {useState, useRef} from 'react'
 import {Allotment} from 'allotment'
 import "allotment/dist/style.css";
-import Schema from "./schema";
-import Visualizer from "./visualizer";
+import Schema from "@layout/sides/schema";
+import Visualizer from "@layout/sides/visualizer";
 import {Button, Card, Radio} from "antd";
 import {
     CheckCircleOutlined,
@@ -10,11 +10,11 @@ import {
     ExclamationCircleOutlined,
     ExpandOutlined, FullscreenExitOutlined,
 } from "@ant-design/icons";
-import Relationships from "./particials/data/relationships";
-import Attributes from "./particials/data/attributes";
-import {useShapeStore} from "../../state/shape";
-import Enforcement from "./enforcement";
-import GuidedTour from '../components/guidedTour';
+import Relationships from "@layout/sides/particials/data/relationships";
+import Attributes from "@layout/sides/particials/data/attributes";
+import {useShapeStore} from "@state/shape";
+import Enforcement from "@layout/sides/enforcement";
+import GuidedTour from '@layout/components/guidedTour';
 
 function Output(props) {
     const refSchemaEditor = useRef(null);
@@ -27,7 +27,7 @@ function Output(props) {
 
     const {runAssertions, runLoading, scenariosError, assertionCount} = useShapeStore();
 
-    const {schema} = useShapeStore();
+    const {schema, yamlValidationErrors} = useShapeStore();
 
     const onDataSelectedChange = ({target: {value}}) => {
         setDataSelected(value);
@@ -86,9 +86,11 @@ function Output(props) {
         <div>
             {!props.loading &&
                 <>
-                    <GuidedTour refSchemaEditor={refSchemaEditor} refRelationshipsAndAttributes={refRelationshipsAndAttributes} refEnforcement={refEnforcement}/>
+                    <GuidedTour refSchemaEditor={refSchemaEditor}
+                                refRelationshipsAndAttributes={refRelationshipsAndAttributes}
+                                refEnforcement={refEnforcement}/>
                     <div style={{height: '100vh'}} className="ml-10 mr-10">
-                        <Allotment vertical defaultSizes={[100, 100]} >
+                        <Allotment vertical defaultSizes={[100, 100]}>
                             <Allotment.Pane snap visible={!isOpen}>
                                 <Allotment>
                                     <Allotment.Pane snap ref={refSchemaEditor}>
@@ -109,6 +111,7 @@ function Output(props) {
                                         <Card title="Enforcement" className="ml-10"
                                               extra={<div style={{display: 'flex', alignItems: 'center'}}>
                                                   <Button
+                                                      disabled={yamlValidationErrors.length > 0}
                                                       icon={assertionCount === 0 ? null : scenariosError.length > 0 ?
                                                           <ExclamationCircleOutlined/> :
                                                           <CheckCircleOutlined/>}
