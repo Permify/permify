@@ -62,7 +62,7 @@ require (
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
-	resenje.org/singleflight v0.4.1
+	resenje.org/singleflight v0.4.2
 )
 
 require (
