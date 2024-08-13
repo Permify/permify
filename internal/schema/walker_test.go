@@ -149,5 +149,38 @@ var _ = Describe("walker", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 		})
+
+		It("Case 4", func() {
+			sch, err := parser.NewParser(`
+			  entity user {}
+			
+			  entity organization {
+			
+				  attribute active boolean
+			
+				  relation active_user @user
+				  relation member @user @organization#member
+			
+				  permission active_member = member and active_user and active
+			
+				  action view_one = member and active_user and active
+				  action view_two = active_member
+			
+			  }
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			e, r, err := c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			w := NewWalker(NewSchemaFromEntityAndRuleDefinitions(e, r))
+
+			err = w.Walk("organization", "view_two")
+
+			Expect(err).Should(Equal(ErrUnimplemented))
+		})
 	})
 })
