@@ -102,6 +102,14 @@ func (w *Walker) WalkRewrite(
 	return nil
 }
 
+// WalkComputedUserSet walk the relation within the ComputedUserSet for the given entityType.
+func (w *Walker) WalkComputedUserSet(
+	entityType string,
+	cu *base.ComputedUserSet,
+) error {
+	return w.Walk(entityType, cu.GetRelation())
+}
+
 // WalkLeaf is a method that walks through the leaf part of the schema
 func (w *Walker) WalkLeaf(
 	entityType string,
@@ -112,7 +120,7 @@ func (w *Walker) WalkLeaf(
 	case *base.Leaf_TupleToUserSet:
 		// Handle case where the leaf is a tuple to user set
 		tupleSet := t.TupleToUserSet.GetTupleSet().GetRelation()
-		computedUserSet := t.TupleToUserSet.GetComputed().GetRelation()
+		computedUserSet := t.TupleToUserSet.GetComputed()
 
 		// Look up the entity definition
 		entityDefinitions, exists := w.schema.EntityDefinitions[entityType]
@@ -130,10 +138,7 @@ func (w *Walker) WalkLeaf(
 
 		// Walk each relation reference
 		for _, rel := range relations.GetRelationReferences() {
-			return w.Walk(
-				rel.GetType(),
-				computedUserSet,
-			)
+			return w.WalkComputedUserSet(rel.GetType(), computedUserSet)
 		}
 
 		// If no errors occur, return nil
@@ -141,7 +146,7 @@ func (w *Walker) WalkLeaf(
 	case *base.Leaf_ComputedUserSet:
 		// Handle case where the leaf is a computed user set
 		// Walk the entity type and relation
-		return nil
+		return w.WalkComputedUserSet(entityType, t.ComputedUserSet)
 	case *base.Leaf_ComputedAttribute:
 		// Handle case where the leaf is a computed attribute
 		// This is currently unimplemented, so return an error
