@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open source authorization service for creating fine-grained and scalable authorization systems.",
-    "version": "v0.9.0",
+    "version": "v1.0.0",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
@@ -15,6 +15,9 @@
     }
   },
   "tags": [
+    {
+      "name": "Health"
+    },
     {
       "name": "Permission"
     },
@@ -44,6 +47,46 @@
     "application/json"
   ],
   "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "health api",
+        "operationId": "health.check",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/HealthResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "tags": [
+          "Health"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          },
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          },
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          }
+        ]
+      }
+    },
     "/v1/tenants/create": {
       "post": {
         "summary": "create tenant",
@@ -226,14 +269,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Name of the bundle to be deleted."
-                }
-              },
-              "description": "BundleDeleteRequest is used to request the deletion of a bundle.\nIt contains the tenant_id to specify the tenant and the name of the bundle to be deleted."
+              "$ref": "#/definitions/Bundle.DeleteBody"
             }
           }
         ],
@@ -290,12 +326,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/Bundle.ReadBody"
             }
           }
         ],
@@ -352,18 +383,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "bundles": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/DataBundle"
-                  },
-                  "description": "Contains the bundle data to be written."
-                }
-              },
-              "description": "BundleWriteRequest is used to request the writing of a bundle.\nIt contains the tenant_id to identify the tenant and the Bundles object."
+              "$ref": "#/definitions/Bundle.WriteBody"
             }
           }
         ],
@@ -420,27 +440,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/AttributeReadRequestMetadata",
-                  "description": "metadata holds additional information related to the request."
-                },
-                "filter": {
-                  "$ref": "#/definitions/AttributeFilter",
-                  "description": "filter specifies the criteria used to select the attributes that should be returned."
-                },
-                "page_size": {
-                  "type": "integer",
-                  "format": "int64",
-                  "description": "page_size specifies the number of results to return in a single page.\nIf more results are available, a continuous_token is included in the response."
-                },
-                "continuous_token": {
-                  "type": "string",
-                  "description": "continuous_token is used in case of paginated reads to get the next page of results."
-                }
-              },
-              "description": "AttributeReadRequest defines the structure of a request for reading attributes.\nIt includes the tenant_id, metadata, attribute filter, page size for pagination, and a continuous token for multi-page results."
+              "$ref": "#/definitions/ReadAttributesBody"
             }
           }
         ],
@@ -497,18 +497,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "tuple_filter": {
-                  "$ref": "#/definitions/TupleFilter",
-                  "description": "tuple_filter specifies the criteria used to select the tuples that should be deleted."
-                },
-                "attribute_filter": {
-                  "$ref": "#/definitions/AttributeFilter",
-                  "description": "attribute_filter specifies the criteria used to select the attributes that should be deleted."
-                }
-              },
-              "description": "DataDeleteRequest defines the structure of a request to delete data.\nIt includes the tenant_id and filters for selecting tuples and attributes to be deleted."
+              "$ref": "#/definitions/Data.DeleteBody"
             }
           }
         ],
@@ -529,7 +518,7 @@
           {
             "label": "cURL",
             "lang": "curl",
-            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"tupleFilter\": {\n    \"entity\": {\n      \"type\": \"organization\",\n      \"ids\": [\n        \"1\"\n      ]\n    },\n    \"relation\": \"admin\",\n    \"subject\": {\n      \"type\": \"user\",\n      \"ids\": [\n        \"1\"\n      ],\n      \"relation\": \"\"\n    }\n  },\n}'"
+            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"tuple_filter\": {\n    \"entity\": {\n      \"type\": \"organization\",\n      \"ids\": [\n        \"1\"\n      ]\n    },\n    \"relation\": \"admin\",\n    \"subject\": {\n      \"type\": \"user\",\n      \"ids\": [\n        \"1\"\n      ],\n      \"relation\": \"\"\n    }\n  },\n  \"attribute_filter\": {}\n}'"
           }
         ]
       }
@@ -565,27 +554,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/RelationshipReadRequestMetadata",
-                  "description": "metadata holds additional data related to the request."
-                },
-                "filter": {
-                  "$ref": "#/definitions/TupleFilter",
-                  "description": "filter is used to specify criteria for the data that needs to be read."
-                },
-                "page_size": {
-                  "type": "integer",
-                  "format": "int64",
-                  "description": "page_size specifies the number of results to return in a single page.\nIf more results are available, a continuous_token is included in the response."
-                },
-                "continuous_token": {
-                  "type": "string",
-                  "description": "continuous_token is used in case of paginated reads to get the next page of results."
-                }
-              },
-              "description": "RelationshipReadRequest defines the structure of a request for reading relationships.\nIt contains the necessary information such as tenant_id, metadata, and filter for the read operation."
+              "$ref": "#/definitions/ReadRelationshipsBody"
             }
           }
         ],
@@ -642,21 +611,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Name of the bundle to be executed."
-                },
-                "arguments": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "description": "Additional key-value pairs for execution arguments."
-                }
-              },
-              "description": "BundleRunRequest is used to request the execution of a bundle.\nIt includes tenant_id, the name of the bundle, and additional arguments for execution."
+              "$ref": "#/definitions/RunBundleBody"
             }
           }
         ],
@@ -713,30 +668,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/DataWriteRequestMetadata",
-                  "description": "metadata holds additional data related to the request."
-                },
-                "tuples": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/Tuple"
-                  },
-                  "description": "tuples contains the list of tuples (entity-relation-entity triples) that need to be written."
-                },
-                "attributes": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/Attribute"
-                  },
-                  "description": "attributes contains the list of attributes (entity-attribute-value triples) that need to be written."
-                }
-              },
-              "description": "DataWriteRequest defines the structure of a request for writing data.\nIt contains the necessary information such as tenant_id, metadata,\ntuples and attributes for the write operation."
+              "$ref": "#/definitions/Data.WriteBody"
             }
           }
         ],
@@ -793,39 +725,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionCheckRequestMetadata",
-                  "description": "Metadata associated with this request, required."
-                },
-                "entity": {
-                  "$ref": "#/definitions/Entity",
-                  "example": "repository:1",
-                  "description": "Entity on which the permission needs to be checked, required."
-                },
-                "permission": {
-                  "type": "string",
-                  "description": "The action the user wants to perform on the resource"
-                },
-                "subject": {
-                  "$ref": "#/definitions/Subject",
-                  "description": "Subject for which the permission needs to be checked, required."
-                },
-                "context": {
-                  "$ref": "#/definitions/Context",
-                  "description": "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"
-                },
-                "arguments": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/Argument"
-                  },
-                  "description": "Additional arguments associated with this request."
-                }
-              },
-              "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
+              "$ref": "#/definitions/Permission.CheckBody"
             }
           }
         ],
@@ -882,34 +782,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionExpandRequestMetadata",
-                  "description": "Metadata associated with this request, required."
-                },
-                "entity": {
-                  "$ref": "#/definitions/Entity",
-                  "description": "Entity on which the permission needs to be expanded, required."
-                },
-                "permission": {
-                  "type": "string",
-                  "description": "Name of the permission to be expanded, not required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
-                },
-                "context": {
-                  "$ref": "#/definitions/Context",
-                  "description": "Context associated with this request."
-                },
-                "arguments": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/Argument"
-                  },
-                  "description": "Additional arguments associated with this request."
-                }
-              },
-              "description": "PermissionExpandRequest is the request message for the Expand method in the Permission service."
+              "$ref": "#/definitions/Permission.ExpandBody"
             }
           }
         ],
@@ -966,30 +839,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionLookupEntityRequestMetadata",
-                  "description": "Metadata associated with this request, required."
-                },
-                "entity_type": {
-                  "type": "string",
-                  "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
-                },
-                "permission": {
-                  "type": "string",
-                  "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
-                },
-                "subject": {
-                  "$ref": "#/definitions/Subject",
-                  "description": "Subject for which to check the permission, required."
-                },
-                "context": {
-                  "$ref": "#/definitions/Context",
-                  "description": "Context associated with this request."
-                }
-              },
-              "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
+              "$ref": "#/definitions/LookupEntityBody"
             }
           }
         ],
@@ -1055,30 +905,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionLookupEntityRequestMetadata",
-                  "description": "Metadata associated with this request, required."
-                },
-                "entity_type": {
-                  "type": "string",
-                  "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
-                },
-                "permission": {
-                  "type": "string",
-                  "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
-                },
-                "subject": {
-                  "$ref": "#/definitions/Subject",
-                  "description": "Subject for which to check the permission, required."
-                },
-                "context": {
-                  "$ref": "#/definitions/Context",
-                  "description": "Context associated with this request."
-                }
-              },
-              "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
+              "$ref": "#/definitions/LookupEntityStreamBody"
             }
           }
         ],
@@ -1130,30 +957,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionLookupSubjectRequestMetadata",
-                  "description": "Metadata associated with this request, required."
-                },
-                "entity": {
-                  "$ref": "#/definitions/Entity",
-                  "description": "Entity for which to check the permission, required."
-                },
-                "permission": {
-                  "type": "string",
-                  "description": "Permission to be checked, can be a permission or relation. Required, and must match the pattern \"^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$\", max 64 bytes."
-                },
-                "subject_reference": {
-                  "$ref": "#/definitions/RelationReference",
-                  "description": "Reference to the subject to lookup."
-                },
-                "context": {
-                  "$ref": "#/definitions/Context",
-                  "description": "Context associated with this request."
-                }
-              },
-              "description": "PermissionLookupSubjectRequest is the request message for the LookupSubject method in the Permission service."
+              "$ref": "#/definitions/LookupSubjectBody"
             }
           }
         ],
@@ -1210,26 +1014,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/PermissionSubjectPermissionRequestMetadata",
-                  "description": "Metadata associated with this request, required."
-                },
-                "entity": {
-                  "$ref": "#/definitions/Entity",
-                  "description": "Entity for which to check the permission, required."
-                },
-                "subject": {
-                  "$ref": "#/definitions/Subject",
-                  "description": "Subject for which to check the permission, required."
-                },
-                "context": {
-                  "$ref": "#/definitions/Context",
-                  "description": "Context associated with this request."
-                }
-              },
-              "description": "PermissionSubjectPermissionRequest is the request message for the SubjectPermission method in the Permission service."
+              "$ref": "#/definitions/SubjectPermissionBody"
             }
           }
         ],
@@ -1286,13 +1071,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "filter": {
-                  "$ref": "#/definitions/TupleFilter"
-                }
-              },
-              "title": "RelationshipDeleteRequest"
+              "$ref": "#/definitions/DeleteRelationshipsBody"
             }
           }
         ],
@@ -1332,22 +1111,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/RelationshipWriteRequestMetadata",
-                  "description": "Metadata for the request. It's required."
-                },
-                "tuples": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/Tuple"
-                  },
-                  "description": "List of tuples for the request. Must have between 1 and 100 items."
-                }
-              },
-              "description": "Represents a request to write relationship data."
+              "$ref": "#/definitions/WriteRelationshipsBody"
             }
           }
         ],
@@ -1387,19 +1151,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "page_size": {
-                  "type": "integer",
-                  "format": "int64",
-                  "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
-                },
-                "continuous_token": {
-                  "type": "string",
-                  "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
-                }
-              },
-              "description": "SchemaListRequest is the request message for the List method in the Schema service.\nIt contains tenant_id for which the schemas are to be listed."
+              "$ref": "#/definitions/Schema.ListBody"
             }
           }
         ],
@@ -1456,21 +1208,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/SchemaPartialWriteRequestMetadata",
-                  "description": "metadata is the additional information needed for the Partial Write request."
-                },
-                "partials": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/definitions/Partials"
-                  },
-                  "title": "Map of entity name with the values needed to be updated"
-                }
-              },
-              "title": "It contains the tenant_id to identify the tenant and metadata of the schema to be edited,\nwith the corresponding edits to various entities"
+              "$ref": "#/definitions/PartialWriteBody"
             }
           }
         ],
@@ -1510,14 +1248,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "metadata": {
-                  "$ref": "#/definitions/SchemaReadRequestMetadata",
-                  "description": "metadata is the additional information needed for the Read request."
-                }
-              },
-              "description": "SchemaReadRequest is the request message for the Read method in the Schema service.\nIt contains tenant_id and metadata about the schema to be read."
+              "$ref": "#/definitions/Schema.ReadBody"
             }
           }
         ],
@@ -1574,14 +1305,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "schema": {
-                  "type": "string",
-                  "description": "schema is the string representation of the schema to be written."
-                }
-              },
-              "description": "SchemaWriteRequest is the request message for the Write method in the Schema service.\nIt contains tenant_id and the schema to be written."
+              "$ref": "#/definitions/Schema.WriteBody"
             }
           }
         ],
@@ -1647,14 +1371,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "snap_token": {
-                  "type": "string",
-                  "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."
-                }
-              },
-              "description": "WatchRequest is the request message for the Watch RPC. It contains the\ndetails needed to establish a watch stream."
+              "$ref": "#/definitions/WatchBody"
             }
           }
         ],
@@ -1700,11 +1417,11 @@
       "properties": {
         "@type": {
           "type": "string",
-          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
         }
       },
       "additionalProperties": {},
-      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
     "Argument": {
       "type": "object",
@@ -1807,6 +1524,38 @@
       ],
       "default": "ATTRIBUTE_TYPE_UNSPECIFIED",
       "description": "Enumerates the types of attribute.\n\n - ATTRIBUTE_TYPE_UNSPECIFIED: Not specified attribute type. This is the default value.\n - ATTRIBUTE_TYPE_BOOLEAN: A boolean attribute type.\n - ATTRIBUTE_TYPE_BOOLEAN_ARRAY: A boolean array attribute type.\n - ATTRIBUTE_TYPE_STRING: A string attribute type.\n - ATTRIBUTE_TYPE_STRING_ARRAY: A string array attribute type.\n - ATTRIBUTE_TYPE_INTEGER: An integer attribute type.\n - ATTRIBUTE_TYPE_INTEGER_ARRAY: An integer array attribute type.\n - ATTRIBUTE_TYPE_DOUBLE: A double attribute type.\n - ATTRIBUTE_TYPE_DOUBLE_ARRAY: A double array attribute type."
+    },
+    "Bundle.DeleteBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the bundle to be deleted."
+        }
+      },
+      "description": "BundleDeleteRequest is used to request the deletion of a bundle.\nIt contains the tenant_id to specify the tenant and the name of the bundle to be deleted."
+    },
+    "Bundle.ReadBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "Bundle.WriteBody": {
+      "type": "object",
+      "properties": {
+        "bundles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/DataBundle"
+          },
+          "description": "Contains the bundle data to be written."
+        }
+      },
+      "description": "BundleWriteRequest is used to request the writing of a bundle.\nIt contains the tenant_id to identify the tenant and the Bundles object."
     },
     "BundleDeleteResponse": {
       "type": "object",
@@ -2080,6 +1829,46 @@
       },
       "description": "A map or message creation expression.\n\nMaps are constructed as `{'key_name': 'value'}`. Message construction is\nsimilar, but prefixed with a type name and composed of field ids:\n`types.MyType{field_id: 'value'}`."
     },
+    "Data.DeleteBody": {
+      "type": "object",
+      "properties": {
+        "tuple_filter": {
+          "$ref": "#/definitions/TupleFilter",
+          "description": "tuple_filter specifies the criteria used to select the tuples that should be deleted."
+        },
+        "attribute_filter": {
+          "$ref": "#/definitions/AttributeFilter",
+          "description": "attribute_filter specifies the criteria used to select the attributes that should be deleted."
+        }
+      },
+      "description": "DataDeleteRequest defines the structure of a request to delete data.\nIt includes the tenant_id and filters for selecting tuples and attributes to be deleted."
+    },
+    "Data.WriteBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/DataWriteRequestMetadata",
+          "description": "metadata holds additional data related to the request."
+        },
+        "tuples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Tuple"
+          },
+          "description": "tuples contains the list of tuples (entity-relation-entity triples) that need to be written."
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Attribute"
+          },
+          "description": "attributes contains the list of attributes (entity-attribute-value triples) that need to be written."
+        }
+      },
+      "description": "DataWriteRequest defines the structure of a request for writing data.\nIt contains the necessary information such as tenant_id, metadata,\ntuples and attributes for the write operation."
+    },
     "DataBundle": {
       "type": "object",
       "properties": {
@@ -2180,6 +1969,15 @@
         }
       },
       "description": "DataWriteResponse defines the structure of the response after writing data.\nIt contains the snap_token generated after the write operation."
+    },
+    "DeleteRelationshipsBody": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "$ref": "#/definitions/TupleFilter"
+        }
+      },
+      "title": "RelationshipDeleteRequest"
     },
     "Entity": {
       "type": "object",
@@ -2286,36 +2084,6 @@
       },
       "description": "Represents an entry."
     },
-    "Expand": {
-      "type": "object",
-      "properties": {
-        "entity": {
-          "$ref": "#/definitions/Entity",
-          "description": "entity is the entity for which the hierarchical structure is defined."
-        },
-        "permission": {
-          "type": "string",
-          "description": "permission is the permission applied to the entity."
-        },
-        "arguments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/Argument"
-          },
-          "description": "arguments are the additional information or context used to evaluate permissions."
-        },
-        "expand": {
-          "$ref": "#/definitions/ExpandTreeNode",
-          "description": "expand contains another hierarchical structure."
-        },
-        "leaf": {
-          "$ref": "#/definitions/ExpandLeaf",
-          "description": "leaf contains a set of subjects."
-        }
-      },
-      "description": "Expand is used to define a hierarchical structure for permissions.\nIt has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects."
-    },
     "ExpandLeaf": {
       "type": "object",
       "properties": {
@@ -2345,7 +2113,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/Expand"
+            "$ref": "#/definitions/v1.Expand"
           },
           "title": "The children of this tree node"
         }
@@ -2442,6 +2210,14 @@
       },
       "description": "Function type with result and arg types."
     },
+    "HealthResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      }
+    },
     "Ident": {
       "type": "object",
       "properties": {
@@ -2484,6 +2260,84 @@
       },
       "description": "List type with typed elements, e.g. `list\u003cexample.proto.MyMessage\u003e`."
     },
+    "LookupEntityBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionLookupEntityRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity_type": {
+          "type": "string",
+          "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "permission": {
+          "type": "string",
+          "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which to check the permission, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Context associated with this request."
+        }
+      },
+      "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
+    },
+    "LookupEntityStreamBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionLookupEntityRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity_type": {
+          "type": "string",
+          "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "permission": {
+          "type": "string",
+          "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which to check the permission, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Context associated with this request."
+        }
+      },
+      "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
+    },
+    "LookupSubjectBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionLookupSubjectRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "description": "Entity for which to check the permission, required."
+        },
+        "permission": {
+          "type": "string",
+          "description": "Permission to be checked, can be a permission or relation. Required, and must match the pattern \"^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$\", max 64 bytes."
+        },
+        "subject_reference": {
+          "$ref": "#/definitions/RelationReference",
+          "description": "Reference to the subject to lookup."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Context associated with this request."
+        }
+      },
+      "description": "PermissionLookupSubjectRequest is the request message for the LookupSubject method in the Permission service."
+    },
     "MapType": {
       "type": "object",
       "properties": {
@@ -2504,7 +2358,24 @@
         "NULL_VALUE"
       ],
       "default": "NULL_VALUE",
-      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
+    "PartialWriteBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/SchemaPartialWriteRequestMetadata",
+          "description": "metadata is the additional information needed for the Partial Write request."
+        },
+        "partials": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Partials"
+          },
+          "title": "Map of entity name with the values needed to be updated"
+        }
+      },
+      "title": "It contains the tenant_id to identify the tenant and metadata of the schema to be edited,\nwith the corresponding edits to various entities"
     },
     "Partials": {
       "type": "object",
@@ -2529,6 +2400,71 @@
         }
       },
       "title": "Partials contains the write, update and delete definitions"
+    },
+    "Permission.CheckBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "example": "repository:1",
+          "description": "Entity on which the permission needs to be checked, required."
+        },
+        "permission": {
+          "type": "string",
+          "description": "The action the user wants to perform on the resource"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which the permission needs to be checked, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "description": "Additional arguments associated with this request."
+        }
+      },
+      "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
+    },
+    "Permission.ExpandBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionExpandRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "description": "Entity on which the permission needs to be expanded, required."
+        },
+        "permission": {
+          "type": "string",
+          "description": "Name of the permission to be expanded, not required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Context associated with this request."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "description": "Additional arguments associated with this request."
+        }
+      },
+      "description": "PermissionExpandRequest is the request message for the Expand method in the Permission service."
     },
     "PermissionCheckRequestMetadata": {
       "type": "object",
@@ -2606,7 +2542,7 @@
       "type": "object",
       "properties": {
         "tree": {
-          "$ref": "#/definitions/Expand",
+          "$ref": "#/definitions/v1.Expand",
           "description": "Expansion tree."
         }
       },
@@ -2735,6 +2671,52 @@
       ],
       "default": "PRIMITIVE_TYPE_UNSPECIFIED",
       "description": "CEL primitive types.\n\n - PRIMITIVE_TYPE_UNSPECIFIED: Unspecified type.\n - BOOL: Boolean type.\n - INT64: Int64 type.\n\nProto-based integer values are widened to int64.\n - UINT64: Uint64 type.\n\nProto-based unsigned integer values are widened to uint64.\n - DOUBLE: Double type.\n\nProto-based float values are widened to double values.\n - STRING: String type.\n - BYTES: Bytes type."
+    },
+    "ReadAttributesBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/AttributeReadRequestMetadata",
+          "description": "metadata holds additional information related to the request."
+        },
+        "filter": {
+          "$ref": "#/definitions/AttributeFilter",
+          "description": "filter specifies the criteria used to select the attributes that should be returned."
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size specifies the number of results to return in a single page.\nIf more results are available, a continuous_token is included in the response."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is used in case of paginated reads to get the next page of results."
+        }
+      },
+      "description": "AttributeReadRequest defines the structure of a request for reading attributes.\nIt includes the tenant_id, metadata, attribute filter, page size for pagination, and a continuous token for multi-page results."
+    },
+    "ReadRelationshipsBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/RelationshipReadRequestMetadata",
+          "description": "metadata holds additional data related to the request."
+        },
+        "filter": {
+          "$ref": "#/definitions/TupleFilter",
+          "description": "filter is used to specify criteria for the data that needs to be read."
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size specifies the number of results to return in a single page.\nIf more results are available, a continuous_token is included in the response."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is used in case of paginated reads to get the next page of results."
+        }
+      },
+      "description": "RelationshipReadRequest defines the structure of a request for reading relationships.\nIt contains the necessary information such as tenant_id, metadata, and filter for the read operation."
     },
     "RelationDefinition": {
       "type": "object",
@@ -2874,6 +2856,58 @@
         }
       },
       "description": "The RuleDefinition message provides detailed information about a specific rule."
+    },
+    "RunBundleBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the bundle to be executed."
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Additional key-value pairs for execution arguments."
+        }
+      },
+      "description": "BundleRunRequest is used to request the execution of a bundle.\nIt includes tenant_id, the name of the bundle, and additional arguments for execution."
+    },
+    "Schema.ListBody": {
+      "type": "object",
+      "properties": {
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
+        }
+      },
+      "description": "SchemaListRequest is the request message for the List method in the Schema service.\nIt contains tenant_id for which the schemas are to be listed."
+    },
+    "Schema.ReadBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/SchemaReadRequestMetadata",
+          "description": "metadata is the additional information needed for the Read request."
+        }
+      },
+      "description": "SchemaReadRequest is the request message for the Read method in the Schema service.\nIt contains tenant_id and metadata about the schema to be read."
+    },
+    "Schema.WriteBody": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "string",
+          "description": "schema is the string representation of the schema to be written."
+        }
+      },
+      "description": "SchemaWriteRequest is the request message for the Write method in the Schema service.\nIt contains tenant_id and the schema to be written."
     },
     "SchemaDefinition": {
       "type": "object",
@@ -3105,6 +3139,28 @@
       },
       "description": "SubjectFilter is used to filter subjects based on the type, ids and relation."
     },
+    "SubjectPermissionBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionSubjectPermissionRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "description": "Entity for which to check the permission, required."
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which to check the permission, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Context associated with this request."
+        }
+      },
+      "description": "PermissionSubjectPermissionRequest is the request message for the SubjectPermission method in the Permission service."
+    },
     "Subjects": {
       "type": "object",
       "properties": {
@@ -3270,6 +3326,16 @@
         }
       }
     },
+    "WatchBody": {
+      "type": "object",
+      "properties": {
+        "snap_token": {
+          "type": "string",
+          "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."
+        }
+      },
+      "description": "WatchRequest is the request message for the Watch RPC. It contains the\ndetails needed to establish a watch stream."
+    },
     "WatchResponse": {
       "type": "object",
       "properties": {
@@ -3291,6 +3357,24 @@
       "default": "WELL_KNOWN_TYPE_UNSPECIFIED",
       "description": "Well-known protobuf types treated with first-class support in CEL.\n\n - WELL_KNOWN_TYPE_UNSPECIFIED: Unspecified type.\n - ANY: Well-known protobuf.Any type.\n\nAny types are a polymorphic message type. During type-checking they are\ntreated like `DYN` types, but at runtime they are resolved to a specific\nmessage type specified at evaluation time.\n - TIMESTAMP: Well-known protobuf.Timestamp type, internally referenced as `timestamp`.\n - DURATION: Well-known protobuf.Duration type, internally referenced as `duration`."
     },
+    "WriteRelationshipsBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/RelationshipWriteRequestMetadata",
+          "description": "Metadata for the request. It's required."
+        },
+        "tuples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Tuple"
+          },
+          "description": "List of tuples for the request. Must have between 1 and 100 items."
+        }
+      },
+      "description": "Represents a request to write relationship data."
+    },
     "v1.Call": {
       "type": "object",
       "properties": {
@@ -3308,6 +3392,36 @@
         }
       },
       "description": "Call represents a call to a rule. It includes the name of the rule and the arguments passed to it."
+    },
+    "v1.Expand": {
+      "type": "object",
+      "properties": {
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "description": "entity is the entity for which the hierarchical structure is defined."
+        },
+        "permission": {
+          "type": "string",
+          "description": "permission is the permission applied to the entity."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "description": "arguments are the additional information or context used to evaluate permissions."
+        },
+        "expand": {
+          "$ref": "#/definitions/ExpandTreeNode",
+          "description": "expand contains another hierarchical structure."
+        },
+        "leaf": {
+          "$ref": "#/definitions/ExpandLeaf",
+          "description": "leaf contains a set of subjects."
+        }
+      },
+      "description": "Expand is used to define a hierarchical structure for permissions.\nIt has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects."
     },
     "v1.Operation": {
       "type": "object",

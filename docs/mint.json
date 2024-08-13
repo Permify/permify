@@ -15,7 +15,6 @@
       "to": "#8246FF"
     }
   },
-  "openapi": ["./api-reference/openapi.json"],
   "topbarLinks": [
     {
       "name": "Support",
@@ -34,12 +33,6 @@
     "name": "Playground",
     "url": "https://play.permify.co/?s=organizations-hierarchies"
   },
-  "tabs": [
-    {
-      "name": "API Reference",
-      "url": "api-reference"
-    }
-  ],
   "redirects": [
     {
       "source": "/docs/:slug*",
@@ -214,6 +207,12 @@
       "destination": "/use-cases/rbac"
     }
   ],
+  "tabs": [
+    {
+        "name": "API References",
+        "url": "api-reference"
+    }
+  ],
   "anchors": [
     {
       "name": "Community",
@@ -224,7 +223,12 @@
       "name": "Open Source",
       "icon": "github",
       "url": "https://github.com/Permify/permify"
-    }  
+    },
+    {
+      "name": "Permify Cloud",
+      "icon": "globe",
+      "url": "cloud"
+    }
   ],
   "navigation": [
     {
@@ -353,6 +357,12 @@
       "group": "Watch Service",
       "pages": [
         "api-reference/watch/watch-changes"
+      ]
+    },
+    {
+      "group": "Permify Cloud",
+      "pages": [
+        "cloud/intro"
       ]
     }
   ],

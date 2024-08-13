@@ -2,8 +2,10 @@ package servers
 
 import (
 	"log/slog"
+	"time"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
+	api "go.opentelemetry.io/otel/metric"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/status"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -19,10 +22,17 @@ import (
 type DataServer struct {
 	v1.UnimplementedDataServer
 
-	sr storage.SchemaReader
-	dr storage.DataReader
-	br storage.BundleReader
-	dw storage.DataWriter
+	sr                           storage.SchemaReader
+	dr                           storage.DataReader
+	br                           storage.BundleReader
+	dw                           storage.DataWriter
+	writeDataHistogram           api.Int64Histogram
+	deleteDataHistogram          api.Int64Histogram
+	readAttributesHistogram      api.Int64Histogram
+	readRelationshipsHistogram   api.Int64Histogram
+	writeRelationshipsHistogram  api.Int64Histogram
+	deleteRelationshipsHistogram api.Int64Histogram
+	runBundleHistogram           api.Int64Histogram
 }
 
 // NewDataServer - Creates new Data Server
@@ -33,10 +43,17 @@ func NewDataServer(
 	sr storage.SchemaReader,
 ) *DataServer {
 	return &DataServer{
-		dr: dr,
-		dw: dw,
-		br: br,
-		sr: sr,
+		dr:                           dr,
+		dw:                           dw,
+		br:                           br,
+		sr:                           sr,
+		writeDataHistogram:           telemetry.NewHistogram(meter, "write_data", "microseconds", "Duration of writing data in microseconds"),
+		deleteDataHistogram:          telemetry.NewHistogram(meter, "delete_data", "microseconds", "Duration of deleting data in microseconds"),
+		readAttributesHistogram:      telemetry.NewHistogram(meter, "read_attributes", "microseconds", "Duration of reading attributes in microseconds"),
+		readRelationshipsHistogram:   telemetry.NewHistogram(meter, "read_relationships", "microseconds", "Duration of reading relationships in microseconds"),
+		writeRelationshipsHistogram:  telemetry.NewHistogram(meter, "write_relationships", "microseconds", "Duration of writing relationships in microseconds"),
+		deleteRelationshipsHistogram: telemetry.NewHistogram(meter, "delete_relationships", "microseconds", "Duration of deleting relationships in microseconds"),
+		runBundleHistogram:           telemetry.NewHistogram(meter, "delete_relationships", "run_bundle", "Duration of running bunble in microseconds"),
 	}
 }
 
@@ -44,6 +61,7 @@ func NewDataServer(
 func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.RelationshipReadRequest) (*v1.RelationshipReadResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.read.relationships")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -72,9 +90,12 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.readRelationshipsHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.RelationshipReadResponse{
 		Tuples:          collection.GetTuples(),
@@ -86,6 +107,7 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeReadRequest) (*v1.AttributeReadResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.read.attributes")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -114,9 +136,12 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.readAttributesHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.AttributeReadResponse{
 		Attributes:      collection.GetAttributes(),
@@ -128,6 +153,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*v1.DataWriteResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.write")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -211,9 +237,12 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.writeDataHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.DataWriteResponse{
 		SnapToken: snap.String(),
@@ -224,6 +253,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.RelationshipWriteRequest) (*v1.RelationshipWriteResponse, error) {
 	ctx, span := tracer.Start(ctx, "relationships.write")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -276,9 +306,12 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.writeRelationshipsHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.RelationshipWriteResponse{
 		SnapToken: snap.String(),
@@ -289,6 +322,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) (*v1.DataDeleteResponse, error) {
 	ctx, span := tracer.Start(ctx, "data.delete")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -304,9 +338,12 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.deleteDataHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.DataDeleteResponse{
 		SnapToken: snap.String(),
@@ -317,6 +354,7 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.RelationshipDeleteRequest) (*v1.RelationshipDeleteResponse, error) {
 	ctx, span := tracer.Start(ctx, "relationships.delete")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -332,9 +370,12 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.deleteRelationshipsHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.RelationshipDeleteResponse{
 		SnapToken: snap.String(),
@@ -345,6 +386,7 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest) (*v1.BundleRunResponse, error) {
 	ctx, span := tracer.Start(ctx, "bundle.run")
 	defer span.End()
+	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -355,7 +397,7 @@ func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -368,9 +410,12 @@ func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
+
+	duration := time.Now().Sub(start)
+	r.runBundleHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.BundleRunResponse{
 		SnapToken: snap.String(),

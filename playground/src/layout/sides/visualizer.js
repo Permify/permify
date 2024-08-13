@@ -1,7 +1,7 @@
 import React from 'react'
 import {Alert} from "antd";
-import V from "../../pkg/Visualizer";
-import {useShapeStore} from "../../state/shape";
+import V from "@pkg/Visualizer";
+import {useShapeStore} from "@state/shape";
 
 function Visualizer() {
     const { graph, visualizerError } = useShapeStore();

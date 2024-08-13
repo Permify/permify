@@ -1,5 +1,7 @@
 export
 
+GO_PACKAGES := $(shell find ./cmd ./pkg ./internal -name '*_test.go' | xargs -n1 dirname | sort -u)
+
 # HELP =================================================================================================================
 # This will output the help for each task
 # thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -36,8 +38,18 @@ linter-dotenv: ### check by dotenv linter
 	dotenv-linter
 
 .PHONY: test
-test: ### run test
-	go test -v -cover -race ./internal/...
+test: ### run tests and gather coverage
+	@rm -f covprofile
+	@echo "mode: atomic" > covprofile
+	@for pkg in $(GO_PACKAGES); do \
+		echo "Running tests in $$pkg"; \
+		go test -race -coverprofile=covprofile.tmp -covermode=atomic -timeout=10m $$pkg; \
+		if [ -f covprofile.tmp ]; then \
+			tail -n +2 covprofile.tmp >> covprofile; \
+			rm covprofile.tmp; \
+		fi; \
+	done
+	@echo "Coverage profile merged into covprofile"
 
 .PHONY: integration-test
 integration-test: ### run integration-test
@@ -56,19 +68,19 @@ lint-all: linter-golangci linter-hadolint linter-dotenv ## Run all linters
 
 .PHONY: security-scan
 security-scan: ## Scan code for security vulnerabilities using Gosec
-	gosec ./...
+	gosec -exclude-dir=sdk -exclude-dir=playground -exclude-dir=docs -exclude-dir=assets ./...
 
 .PHONY: coverage
 coverage: ## Generate global code coverage report
-	go test -coverprofile=coverage.out ./cmd/... ./internal/... ./pkg/...
-	go tool cover -html=coverage.out -o coverage.html
+	go test -coverprofile=covprofile ./cmd/... ./internal/... ./pkg/...
+	go tool cover -html=covprofile -o coverage.html
 
 .PHONY: clean
 clean: ## Remove temporary and generated files
 	rm -f ./permify
 	rm -f ./pkg/development/wasm/main.wasm
 	rm -f ./pkg/development/wasm/play.wasm
-	rm -f coverage.out coverage.html
+	rm -f covprofile coverage.html
 
 .PHONY: wasm-build
 wasm-build: ## Build wasm & place it in playground

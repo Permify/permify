@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {Tour} from "antd";
-import {toAbsoluteUrl} from "../../utility/helpers/asset";
+import {toAbsoluteUrl} from "@utility/helpers/asset";
 
 const Link = ({href, text}) => (
     <a href={href} target="_blank" rel="noreferrer noopener" className="text-primary">

@@ -37,7 +37,7 @@ func (t *TenancyServer) Create(ctx context.Context, request *v1.TenantCreateRequ
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -55,7 +55,7 @@ func (t *TenancyServer) Delete(ctx context.Context, request *v1.TenantDeleteRequ
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
@@ -73,7 +73,7 @@ func (t *TenancyServer) List(ctx context.Context, request *v1.TenantListRequest)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
