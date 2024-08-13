@@ -14,7 +14,6 @@ import (
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -110,7 +109,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -214,7 +212,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -320,7 +317,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -446,7 +442,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -550,7 +545,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -654,7 +648,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -789,7 +782,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -902,7 +894,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1019,7 +1010,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1134,7 +1124,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1239,7 +1228,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1344,7 +1332,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1488,7 +1475,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1626,7 +1612,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1757,7 +1742,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1882,7 +1866,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2016,7 +1999,6 @@ var _ = Describe("check-engine", func() {
 				nil,
 				nil,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)

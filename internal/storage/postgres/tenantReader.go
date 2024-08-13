@@ -34,14 +34,14 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	ctx, span := tracer.Start(ctx, "tenant-reader.list-tenants")
 	defer span.End()
 
-	slog.Debug("listing tenants with pagination", slog.Any("pagination", pagination))
+	slog.DebugContext(ctx, "listing tenants with pagination", slog.Any("pagination", pagination))
 
 	builder := r.database.Builder.Select("id, name, created_at").From(TenantsTable)
 	if pagination.Token() != "" {
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
 		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
 		builder = builder.Where(squirrel.GtOrEq{"id": t.(utils.ContinuousToken).Value})
 	}
@@ -56,7 +56,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("executing sql query", slog.Any("query", query), slog.Any("arguments", args))
+	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
@@ -80,7 +80,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	slog.Debug("successfully listed tenants", slog.Any("number_of_tenants", len(tenants)))
+	slog.DebugContext(ctx, "successfully listed tenants", slog.Any("number_of_tenants", len(tenants)))
 
 	if len(tenants) > int(pagination.PageSize()) {
 		return tenants[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil

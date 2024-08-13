@@ -32,7 +32,7 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.Schema
 	ctx, span := tracer.Start(ctx, "schema-writer.write-schema")
 	defer span.End()
 
-	slog.Debug("writing schemas to the database", slog.Any("number_of_schemas", len(schemas)))
+	slog.DebugContext(ctx, "writing schemas to the database", slog.Any("number_of_schemas", len(schemas)))
 
 	insertBuilder := w.database.Builder.Insert(SchemaDefinitionTable).Columns("name, serialized_definition, version, tenant_id")
 
@@ -48,14 +48,14 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.Schema
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.Debug("executing sql insert query", slog.Any("query", query), slog.Any("arguments", args))
+	slog.DebugContext(ctx, "executing sql insert query", slog.Any("query", query), slog.Any("arguments", args))
 
 	_, err = w.database.WritePool.Exec(ctx, query, args...)
 	if err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.Debug("successfully wrote schemas to the database", slog.Any("number_of_schemas", len(schemas)))
+	slog.DebugContext(ctx, "successfully wrote schemas to the database", slog.Any("number_of_schemas", len(schemas)))
 
 	return nil
 }

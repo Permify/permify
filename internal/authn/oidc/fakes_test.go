@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 
 	"github.com/go-jose/go-jose/v3"
 	"github.com/golang-jwt/jwt/v4"
@@ -29,20 +30,31 @@ type fakeOidcProvider struct {
 	rsaPrivateKeyForPS *rsa.PrivateKey
 	ecdsaPrivateKey    *ecdsa.PrivateKey
 	hmacKey            []byte
+
+	mu sync.RWMutex
 }
 
-func newFakeOidcProvider(issuerURL string) (*fakeOidcProvider, error) {
+type ProviderConfig struct {
+	IssuerURL    string
+	AuthPath     string
+	TokenPath    string
+	UserInfoPath string
+	JWKSPath     string
+	Algorithms   []string
+}
+
+func newFakeOidcProvider(config ProviderConfig) (*fakeOidcProvider, error) {
 	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate RSA key: %w", err)
 	}
 	rsaPrivateKeyForPS, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate RSA key for PS: %w", err)
 	}
 	ecdsaPrivateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate ECDSA key: %w", err)
 	}
 	hmacKey := []byte("hmackeysecret")
 
@@ -59,29 +71,35 @@ func newFakeOidcProvider(issuerURL string) (*fakeOidcProvider, error) {
 	}
 
 	return &fakeOidcProvider{
-		issuerURL:          issuerURL,
-		authPath:           "/auth",
-		tokenPath:          "/token",
-		userInfoPath:       "/userInfo",
-		JWKSPath:           "/jwks",
-		algorithms:         []string{"RS256", "HS256", "ES256", "PS256"},
+		issuerURL:          config.IssuerURL,
+		authPath:           config.AuthPath,
+		tokenPath:          config.TokenPath,
+		userInfoPath:       config.UserInfoPath,
+		JWKSPath:           config.JWKSPath,
+		algorithms:         config.Algorithms,
 		rsaPrivateKey:      rsaPrivateKey,
 		rsaPrivateKeyForPS: rsaPrivateKeyForPS,
 		hmacKey:            hmacKey,
 		jwks:               jwks,
 		ecdsaPrivateKey:    ecdsaPrivateKey,
 		keyIds:             keyIds,
+		mu:                 sync.RWMutex{},
 	}, nil
 }
 
 func (s *fakeOidcProvider) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	switch r.URL.Path {
 	case "/.well-known/openid-configuration":
-		s.ResponseWellKnown(w, r)
+		s.responseWellKnown(w)
 	case s.JWKSPath:
-		s.ResponseJWKS(w, r)
+		s.responseJWKS(w)
 	case s.authPath, s.tokenPath, s.userInfoPath:
-		httpError(w, 404)
+		httpError(w, http.StatusNotFound)
+	default:
+		httpError(w, http.StatusNotFound)
 	}
 }
 
@@ -94,7 +112,7 @@ type providerJSON struct {
 	Algorithms  []string `json:"id_token_signing_alg_values_supported"`
 }
 
-func (s *fakeOidcProvider) ResponseWellKnown(w http.ResponseWriter, r *http.Request) {
+func (s *fakeOidcProvider) responseWellKnown(w http.ResponseWriter) {
 	jso := providerJSON{
 		Issuer:      s.issuerURL,
 		AuthURL:     s.issuerURL + s.authPath,
@@ -106,7 +124,7 @@ func (s *fakeOidcProvider) ResponseWellKnown(w http.ResponseWriter, r *http.Requ
 	httpJSON(w, jso)
 }
 
-func (s *fakeOidcProvider) ResponseJWKS(w http.ResponseWriter, r *http.Request) {
+func (s *fakeOidcProvider) responseJWKS(w http.ResponseWriter) {
 	jwks := &jose.JSONWebKeySet{
 		Keys: s.jwks,
 	}
@@ -119,7 +137,6 @@ func httpJSON(w http.ResponseWriter, v interface{}) {
 	e.SetIndent("", "  ")
 	if err := e.Encode(v); err != nil {
 		httpError(w, http.StatusInternalServerError)
-		return
 	}
 }
 
@@ -127,8 +144,20 @@ func httpError(w http.ResponseWriter, code int) {
 	http.Error(w, http.StatusText(code), code)
 }
 
+func (s *fakeOidcProvider) UpdateKeyID(method jwt.SigningMethod, newKeyID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.keyIds[method] = newKeyID
+	for i, key := range s.jwks {
+		if key.Algorithm == method.Alg() {
+			s.jwks[i].KeyID = newKeyID
+		}
+	}
+}
+
 func (s *fakeOidcProvider) SignIDToken(unsignedToken *jwt.Token) (string, error) {
-	signedToken := ""
+	var signedToken string
 	var err error
 
 	switch unsignedToken.Method {
@@ -151,14 +180,13 @@ func createUnsignedToken(regClaims jwt.RegisteredClaims, method jwt.SigningMetho
 	}{
 		RegisteredClaims: regClaims,
 	}
-	token := jwt.NewWithClaims(method, claims)
-	return token
+	return jwt.NewWithClaims(method, claims)
 }
 
 func fakeHttpServer(url string, handler http.HandlerFunc) (*httptest.Server, error) {
 	l, err := net.Listen("tcp", url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start listener: %w", err)
 	}
 	ts := httptest.NewUnstartedServer(handler)
 	_ = ts.Listener.Close()

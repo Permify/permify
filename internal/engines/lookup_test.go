@@ -13,7 +13,6 @@ import (
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -119,7 +118,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -252,7 +250,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -370,7 +367,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -488,7 +484,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -609,7 +604,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -739,7 +733,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -931,7 +924,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1218,7 +1210,6 @@ entity event {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1434,7 +1425,6 @@ entity event {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1630,7 +1620,6 @@ entity organization {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1812,7 +1801,6 @@ entity organization {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -1926,7 +1914,6 @@ entity organization {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2084,7 +2071,6 @@ entity organization {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2234,7 +2220,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2336,7 +2321,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2445,7 +2429,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2544,7 +2527,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2645,7 +2627,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2746,7 +2727,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -2852,7 +2832,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)
@@ -3008,7 +2987,6 @@ entity doc {
 				nil,
 				lookupEngine,
 				nil,
-				telemetry.NewNoopMeter(),
 			)
 
 			checkEngine.SetInvoker(invoker)

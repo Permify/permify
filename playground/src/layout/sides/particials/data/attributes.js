@@ -1,13 +1,13 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Button, Form, Input, Select, Space, Table} from "antd";
 import {DeleteOutlined, MenuOutlined} from "@ant-design/icons";
-import {useShapeStore} from "../../../../state/shape";
+import {useShapeStore} from "@state/shape";
 import {arrayMove, SortableContext, useSortable, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import {
     AttributeEntityToKey,
     AttributeObjectToKey,
     StringAttributesToObjects,
-} from "../../../../utility/helpers/common";
+} from "@utility/helpers/common";
 import {DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import {nanoid} from "nanoid";
 

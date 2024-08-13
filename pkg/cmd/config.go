@@ -28,6 +28,7 @@ func NewConfigCommand() *cobra.Command {
 	f.Bool("http-enabled", conf.Server.HTTP.Enabled, "switch option for HTTP server")
 	f.String("account-id", conf.AccountID, "account id")
 	f.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
+	f.String("server-name-override", conf.Server.NameOverride, "server name override")
 	f.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
 	f.Bool("grpc-tls-enabled", conf.Server.GRPC.TLSConfig.Enabled, "switch option for GRPC tls server")
 	f.String("grpc-tls-key-path", conf.Server.GRPC.TLSConfig.KeyPath, "GRPC tls key path")
@@ -40,14 +41,23 @@ func NewConfigCommand() *cobra.Command {
 	f.StringSlice("http-cors-allowed-headers", conf.Server.HTTP.CORSAllowedHeaders, "CORS allowed headers for http gateway")
 	f.Bool("profiler-enabled", conf.Profiler.Enabled, "switch option for profiler")
 	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
-	f.String("log-level", conf.Log.Level, "real time logs of authorization. Permify uses zerolog as a logger")
+	f.String("log-level", conf.Log.Level, "real time logs of authorization. Permify uses slog as a logger")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
+	f.Bool("log-enabled", conf.Log.Enabled, "logger exporter enabled")
+	f.String("log-exporter", conf.Log.Exporter, "can be; otlp. (integrated metric tools)")
+	f.String("log-endpoint", conf.Log.Endpoint, "export uri for logs")
+	f.Bool("log-insecure", conf.Log.Insecure, "use https or http for logs")
+	f.String("log-urlpath", conf.Log.URLPath, "allow to set url path for otlp exporter")
+	f.StringSlice("log-headers", conf.Log.Headers, "allows setting custom headers for the log exporter in key-value pairs")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
 	f.String("authn-oidc-issuer", conf.Authn.Oidc.Issuer, "issuer identifier of the OpenID Connect Provider")
 	f.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "intended audience of the OpenID Connect token")
 	f.Duration("authn-oidc-refresh-interval", conf.Authn.Oidc.RefreshInterval, "refresh interval for the OpenID Connect configuration")
+	f.Duration("authn-oidc-backoff-interval", conf.Authn.Oidc.BackoffInterval, "backoff interval for the OpenID Connect configuration")
+	f.Duration("authn-oidc-backoff-frequency", conf.Authn.Oidc.BackoffFrequency, "backoff frequency for the OpenID Connect configuration")
+	f.Int("authn-oidc-backoff-max-retries", conf.Authn.Oidc.BackoffMaxRetries, "defines the maximum number of retries for the OpenID Connect configuration")
 	f.StringSlice("authn-oidc-valid-methods", conf.Authn.Oidc.ValidMethods, "list of valid JWT signing methods for OpenID Connect")
 	f.Bool("tracer-enabled", conf.Tracer.Enabled, "switch option for tracing")
 	f.String("tracer-exporter", conf.Tracer.Exporter, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
@@ -61,6 +71,7 @@ func NewConfigCommand() *cobra.Command {
 	f.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
 	f.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
 	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
+	f.Int("meter-interval", conf.Meter.Interval, "allows to set metrics to be pushed in certain time interval")
 	f.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	f.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
 	f.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
@@ -127,6 +138,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 		data = append(data,
 			[]string{"account_id", cfg.AccountID, getKeyOrigin(cmd, "account-id", "PERMIFY_ACCOUNT_ID")},
 			// SERVER
+			[]string{"server.name_override", fmt.Sprintf("%v", cfg.Server.NameOverride), getKeyOrigin(cmd, "server-name-override", "PERMIFY_NAME_OVERRIDE")},
 			[]string{"server.rate_limit", fmt.Sprintf("%v", cfg.Server.RateLimit), getKeyOrigin(cmd, "server-rate-limit", "PERMIFY_RATE_LIMIT")},
 			[]string{"server.grpc.port", cfg.Server.GRPC.Port, getKeyOrigin(cmd, "grpc-port", "PERMIFY_GRPC_PORT")},
 			[]string{"server.grpc.tls.enabled", fmt.Sprintf("%v", cfg.Server.GRPC.TLSConfig.Enabled), getKeyOrigin(cmd, "grpc-tls-enabled", "PERMIFY_GRPC_TLS_ENABLED")},
@@ -143,14 +155,23 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			// LOG
 			[]string{"logger.level", cfg.Log.Level, getKeyOrigin(cmd, "log-level", "PERMIFY_LOG_LEVEL")},
 			[]string{"logger.output", cfg.Log.Output, getKeyOrigin(cmd, "log-output", "PERMIFY_LOG_OUTPUT")},
+			[]string{"logger.enabled", fmt.Sprintf("%v", cfg.Log.Enabled), getKeyOrigin(cmd, "log-enabled", "PERMIFY_LOG_ENABLED")},
+			[]string{"logger.exporter", cfg.Log.Exporter, getKeyOrigin(cmd, "log-exporter", "PERMIFY_LOG_EXPORTER")},
+			[]string{"logger.endpoint", HideSecret(cfg.Log.Exporter), getKeyOrigin(cmd, "log-endpoint", "PERMIFY_LOG_ENDPOINT")},
+			[]string{"logger.insecure", fmt.Sprintf("%v", cfg.Log.Insecure), getKeyOrigin(cmd, "log-insecure", "PERMIFY_LOG_INSECURE")},
+			[]string{"logger.urlpath", cfg.Log.URLPath, getKeyOrigin(cmd, "log-urlpath", "PERMIFY_LOG_URL_PATH")},
+			[]string{"logger.headers", fmt.Sprintf("%v", cfg.Log.Headers), getKeyOrigin(cmd, "log-headers", "PERMIFY_LOG_HEADERS")},
 			// AUTHN
 			[]string{"authn.enabled", fmt.Sprintf("%v", cfg.Authn.Enabled), getKeyOrigin(cmd, "authn-enabled", "PERMIFY_AUTHN_ENABLED")},
 			[]string{"authn.method", cfg.Authn.Method, getKeyOrigin(cmd, "authn-method", "PERMIFY_AUTHN_METHOD")},
 			[]string{"authn.preshared.keys", fmt.Sprintf("%v", HideSecrets(cfg.Authn.Preshared.Keys...)), getKeyOrigin(cmd, "authn-preshared-keys", "PERMIFY_AUTHN_PRESHARED_KEYS")},
 			[]string{"authn.oidc.issuer", HideSecret(cfg.Authn.Oidc.Issuer), getKeyOrigin(cmd, "authn-oidc-issuer", "PERMIFY_AUTHN_OIDC_ISSUER")},
 			[]string{"authn.oidc.audience", HideSecret(cfg.Authn.Oidc.Audience), getKeyOrigin(cmd, "authn-oidc-audience", "PERMIFY_AUTHN_OIDC_AUDIENCE")},
-			[]string{"authn.oidc.valid_methods", fmt.Sprintf("%v", cfg.Authn.Oidc.ValidMethods), getKeyOrigin(cmd, "authn-oidc-valid-methods", "PERMIFY_AUTHN_OIDC_VALID_METHODS")},
 			[]string{"authn.oidc.refresh_interval", fmt.Sprintf("%v", cfg.Authn.Oidc.RefreshInterval), getKeyOrigin(cmd, "authn-oidc-refresh-interval", "PERMIFY_AUTHN_OIDC_REFRESH_INTERVAL")},
+			[]string{"authn.oidc.backoff_interval", fmt.Sprintf("%v", cfg.Authn.Oidc.BackoffInterval), getKeyOrigin(cmd, "authn-oidc-backoff-interval", "PERMIFY_AUTHN_OIDC_BACKOFF_INTERVAL")},
+			[]string{"authn.oidc.backoff_max_retries", fmt.Sprintf("%v", cfg.Authn.Oidc.BackoffMaxRetries), getKeyOrigin(cmd, "authn-oidc-backoff-max-retries", "PERMIFY_AUTHN_OIDC_BACKOFF_RETRIES")},
+			[]string{"authn.oidc.backoff_frequency", fmt.Sprintf("%v", cfg.Authn.Oidc.BackoffFrequency), getKeyOrigin(cmd, "authn-oidc-backoff-frequency", "PERMIFY_AUTHN_OIDC_BACKOFF_FREQUENCY")},
+			[]string{"authn.oidc.valid_methods", fmt.Sprintf("%v", cfg.Authn.Oidc.ValidMethods), getKeyOrigin(cmd, "authn-oidc-valid-methods", "PERMIFY_AUTHN_OIDC_VALID_METHODS")},
 			// TRACER
 			[]string{"tracer.enabled", fmt.Sprintf("%v", cfg.Tracer.Enabled), getKeyOrigin(cmd, "tracer-enabled", "PERMIFY_TRACER_ENABLED")},
 			[]string{"tracer.exporter", cfg.Tracer.Exporter, getKeyOrigin(cmd, "tracer-exporter", "PERMIFY_TRACER_EXPORTER")},

@@ -23,3 +23,6 @@ vendor/dist/
 /dist
 /config
 /tmp
+
+# macOS
+*.DS_Store

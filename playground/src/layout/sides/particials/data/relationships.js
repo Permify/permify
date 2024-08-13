@@ -1,8 +1,8 @@
 import React, {useEffect, useState, useRef} from "react";
 import {Button, Table, Input, Form, Space, Select} from "antd";
 import {DeleteOutlined, MenuOutlined} from "@ant-design/icons";
-import {useShapeStore} from "../../../../state/shape";
-import {RelationshipObjectToKey, StringRelationshipsToObjects} from "../../../../utility/helpers/common";
+import {useShapeStore} from "@state/shape";
+import {RelationshipObjectToKey, StringRelationshipsToObjects} from "@utility/helpers/common";
 import {nanoid} from "nanoid";
 import {
     arrayMove,

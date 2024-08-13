@@ -39,7 +39,10 @@ import (
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-var tracer = otel.Tracer("servers")
+var (
+	tracer = otel.Tracer("servers")
+	meter  = otel.Meter("servers")
+)
 
 // Container is a struct that holds the invoker and various storage
 // for permission-related operations. It serves as a central point of access
@@ -265,7 +268,7 @@ func (s *Container) Run(
 			grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 		}
 		if srv.GRPC.TLSConfig.Enabled {
-			c, err := credentials.NewClientTLSFromFile(srv.GRPC.TLSConfig.CertPath, "")
+			c, err := credentials.NewClientTLSFromFile(srv.GRPC.TLSConfig.CertPath, srv.NameOverride)
 			if err != nil {
 				return err
 			}

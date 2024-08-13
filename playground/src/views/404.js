@@ -1,5 +1,5 @@
 import React from 'react'
-import {toAbsoluteUrl} from "../utility/helpers/asset";
+import {toAbsoluteUrl} from "@utility/helpers/asset";
 
 function P404() {
     return (

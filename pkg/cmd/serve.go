@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/agoda-com/opentelemetry-go/otelslog"
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -38,6 +39,7 @@ import (
 	pkgcache "github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/telemetry"
+	"github.com/Permify/permify/pkg/telemetry/logexporters"
 	"github.com/Permify/permify/pkg/telemetry/meterexporters"
 	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
 )
@@ -59,6 +61,7 @@ func NewServeCommand() *cobra.Command {
 	f.Bool("http-enabled", conf.Server.HTTP.Enabled, "switch option for HTTP server")
 	f.String("account-id", conf.AccountID, "account id")
 	f.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
+	f.String("server-name-override", conf.Server.NameOverride, "server name override")
 	f.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
 	f.Bool("grpc-tls-enabled", conf.Server.GRPC.TLSConfig.Enabled, "switch option for GRPC tls server")
 	f.String("grpc-tls-key-path", conf.Server.GRPC.TLSConfig.KeyPath, "GRPC tls key path")
@@ -73,12 +76,21 @@ func NewServeCommand() *cobra.Command {
 	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
 	f.String("log-level", conf.Log.Level, "set log verbosity ('info', 'debug', 'error', 'warning')")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
+	f.Bool("log-enabled", conf.Log.Enabled, "logger exporter enabled")
+	f.String("log-exporter", conf.Log.Exporter, "can be; otlp. (integrated metric tools)")
+	f.String("log-endpoint", conf.Log.Endpoint, "export uri for logs")
+	f.Bool("log-insecure", conf.Log.Insecure, "use https or http for logs")
+	f.String("log-urlpath", conf.Log.URLPath, "allow to set url path for otlp exporter")
+	f.StringSlice("log-headers", conf.Log.Headers, "allows setting custom headers for the log exporter in key-value pairs")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
 	f.String("authn-oidc-issuer", conf.Authn.Oidc.Issuer, "issuer identifier of the OpenID Connect Provider")
 	f.String("authn-oidc-audience", conf.Authn.Oidc.Audience, "intended audience of the OpenID Connect token")
 	f.Duration("authn-oidc-refresh-interval", conf.Authn.Oidc.RefreshInterval, "refresh interval for the OpenID Connect configuration")
+	f.Duration("authn-oidc-backoff-interval", conf.Authn.Oidc.BackoffInterval, "backoff interval for the OpenID Connect configuration")
+	f.Duration("authn-oidc-backoff-frequency", conf.Authn.Oidc.BackoffFrequency, "backoff frequency for the OpenID Connect configuration")
+	f.Int("authn-oidc-backoff-max-retries", conf.Authn.Oidc.BackoffMaxRetries, "defines the maximum number of retries for the OpenID Connect configuration")
 	f.StringSlice("authn-oidc-valid-methods", conf.Authn.Oidc.ValidMethods, "list of valid JWT signing methods for OpenID Connect")
 	f.Bool("tracer-enabled", conf.Tracer.Enabled, "switch option for tracing")
 	f.String("tracer-exporter", conf.Tracer.Exporter, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
@@ -164,29 +176,69 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Print banner and initialize logger
 		internal.PrintBanner()
 
-		var handler slog.Handler
-		switch cfg.Log.Output {
-		case "json":
-			handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
-		case "text":
-			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
-		default:
-			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
-		}
-
-		logger := slog.New(handler)
-
-		slog.SetDefault(logger)
-
-		slog.Info("🚀 starting permify service...")
+		// Set up context and signal handling
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+		defer stop()
 
 		internal.Identifier = cfg.AccountID
+
+		var logger *slog.Logger
+
+		if cfg.Log.Enabled {
+			headers := map[string]string{}
+			for _, header := range cfg.Log.Headers {
+				h := strings.Split(header, ":")
+				if len(h) != 2 {
+					return errors.New("invalid header format; expected 'key:value'")
+				}
+				headers[h[0]] = h[1]
+			}
+
+			exporter, err := logexporters.ExporterFactory(
+				cfg.Log.Exporter,
+				cfg.Log.Endpoint,
+				cfg.Log.Insecure,
+				cfg.Log.URLPath,
+				headers,
+			)
+			if err != nil {
+				return errors.New("invalid logger exporter")
+			}
+			lp := telemetry.NewLog(exporter)
+
+			logger = slog.New(otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			}))
+
+			slog.SetDefault(logger)
+
+			defer func() {
+				if err = lp.Shutdown(ctx); err != nil {
+					slog.Error(err.Error())
+				}
+			}()
+		} else {
+			var handler slog.Handler
+
+			switch cfg.Log.Output {
+			case "json":
+				handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+					Level: getLogLevel(cfg.Log.Level),
+				})
+			case "text":
+				handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+					Level: getLogLevel(cfg.Log.Level),
+				})
+			default:
+				handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+					Level: getLogLevel(cfg.Log.Level),
+				})
+			}
+
+			logger = slog.New(handler)
+			slog.SetDefault(logger)
+		}
+
 		if internal.Identifier == "" {
 			message := "Account ID is not set. Please fill in the Account ID for better support. Get your Account ID from https://permify.co/account"
 			slog.Error(message)
@@ -201,9 +253,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}()
 		}
 
-		// Set up context and signal handling
-		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-		defer stop()
+		slog.Info("🚀 starting permify service...")
 
 		// Run database migration if enabled
 		if cfg.Database.AutoMigrate {
@@ -251,7 +301,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			shutdown := telemetry.NewTracer(exporter)
 
 			defer func() {
-				if err = shutdown(context.Background()); err != nil {
+				if err = shutdown(ctx); err != nil {
 					slog.Error(err.Error())
 				}
 			}()
@@ -277,7 +327,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Meter
-		meter := telemetry.NewNoopMeter()
 		if cfg.Meter.Enabled {
 			headers := map[string]string{}
 			for _, header := range cfg.Meter.Headers {
@@ -296,14 +345,18 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Meter.URLPath,
 				headers,
 			)
+
 			if err != nil {
 				slog.Error(err.Error())
 			}
 
-			meter, err = telemetry.NewMeter(exporter)
-			if err != nil {
-				slog.Error(err.Error())
-			}
+			shutdown := telemetry.NewMeter(exporter, time.Duration(cfg.Meter.Interval)*time.Second)
+
+			defer func() {
+				if err = shutdown(ctx); err != nil {
+					slog.Error(err.Error())
+				}
+			}()
 		}
 
 		// schema cache
@@ -383,7 +436,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 
 			checker, err = balancer.NewCheckEngineWithBalancer(
-				context.Background(),
+				ctx,
 				checkEngine,
 				schemaReader,
 				&cfg.Distributed,
@@ -398,14 +451,12 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				checker,
 				schemaReader,
 				engineKeyCache,
-				meter,
 			)
 		} else {
 			checker = cache.NewCheckEngineWithCache(
 				checkEngine,
 				schemaReader,
 				engineKeyCache,
-				meter,
 			)
 		}
 
@@ -415,7 +466,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			checkEngine,
 			schemaReader,
 			engineKeyCache,
-			meter,
 		)
 
 		// Initialize the lookupEngine, which is responsible for looking up certain entities or values.
@@ -444,7 +494,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			expandEngine,
 			lookupEngine,
 			subjectPermissionEngine,
-			meter,
 		)
 
 		// Associate the invoker with the checkEngine.
@@ -458,7 +507,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			expandEngine,
 			lookupEngine,
 			subjectPermissionEngine,
-			meter,
 		)
 
 		// Initialize the container which brings together multiple components such as the invoker, data readers/writers, and schema handlers.
