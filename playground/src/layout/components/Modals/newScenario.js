@@ -1,6 +1,6 @@
 import React from "react";
 import {Button, Form, Input, Modal} from "antd";
-import {useShapeStore} from "../../../state/shape";
+import {useShapeStore} from "@state/shape";
 
 function NewScenario(props) {
     const [form] = Form.useForm();

@@ -2,6 +2,7 @@ package invoke
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -11,11 +12,15 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-var tracer = otel.Tracer("invoke")
+var (
+	tracer = otel.Tracer("invoke")
+	meter  = otel.Meter("invoke")
+)
 
 // Invoker is an interface that groups multiple permission-related interfaces.
 // It is used to define a common contract for invoking various permission operations.
@@ -72,6 +77,11 @@ type DirectInvoker struct {
 	lookupEntityCounter      api.Int64Counter
 	lookupSubjectCounter     api.Int64Counter
 	subjectPermissionCounter api.Int64Counter
+
+	checkDurationHistogram             api.Int64Histogram
+	lookupEntityDurationHistogram      api.Int64Histogram
+	lookupSubjectDurationHistogram     api.Int64Histogram
+	subjectPermissionDurationHistogram api.Int64Histogram
 }
 
 // NewDirectInvoker is a constructor for DirectInvoker.
@@ -84,43 +94,22 @@ func NewDirectInvoker(
 	ec Expand,
 	lo Lookup,
 	sp SubjectPermission,
-	meter api.Meter,
 ) *DirectInvoker {
-	// Check Counter
-	checkCounter, err := meter.Int64Counter("check_count", api.WithDescription("Number of permission checks performed"))
-	if err != nil {
-		panic(err)
-	}
-
-	// Lookup Entity Counter
-	lookupEntityCounter, err := meter.Int64Counter("lookup_entity_count", api.WithDescription("Number of permission lookup entity performed"))
-	if err != nil {
-		panic(err)
-	}
-
-	// Lookup Subject Counter
-	lookupSubjectCounter, err := meter.Int64Counter("lookup_subject_count", api.WithDescription("Number of permission lookup subject performed"))
-	if err != nil {
-		panic(err)
-	}
-
-	// Subject Permission Counter
-	subjectPermissionCounter, err := meter.Int64Counter("subject_permission_count", api.WithDescription("Number of subject permission performed"))
-	if err != nil {
-		panic(err)
-	}
-
 	return &DirectInvoker{
-		schemaReader:             schemaReader,
-		dataReader:               dataReader,
-		cc:                       cc,
-		ec:                       ec,
-		lo:                       lo,
-		sp:                       sp,
-		checkCounter:             checkCounter,
-		lookupEntityCounter:      lookupEntityCounter,
-		lookupSubjectCounter:     lookupSubjectCounter,
-		subjectPermissionCounter: subjectPermissionCounter,
+		schemaReader:                       schemaReader,
+		dataReader:                         dataReader,
+		cc:                                 cc,
+		ec:                                 ec,
+		lo:                                 lo,
+		sp:                                 sp,
+		checkCounter:                       telemetry.NewCounter(meter, "check_count", "Number of permission checks performed"),
+		lookupEntityCounter:                telemetry.NewCounter(meter, "lookup_entity_count", "Number of permission lookup entity performed"),
+		lookupSubjectCounter:               telemetry.NewCounter(meter, "lookup_subject_count", "Number of permission lookup subject performed"),
+		subjectPermissionCounter:           telemetry.NewCounter(meter, "subject_permission_count", "Number of subject permission performed"),
+		checkDurationHistogram:             telemetry.NewHistogram(meter, "check_duration", "microseconds", "Duration of checks in microseconds"),
+		lookupEntityDurationHistogram:      telemetry.NewHistogram(meter, "lookup_entity_duration", "microseconds", "Duration of lookup entity duration in microseconds"),
+		lookupSubjectDurationHistogram:     telemetry.NewHistogram(meter, "lookup_subject_duration", "microseconds", "Duration of lookup subject duration in microseconds"),
+		subjectPermissionDurationHistogram: telemetry.NewHistogram(meter, "subject_permission_duration", "microseconds", "Duration of subject permission duration in microseconds"),
 	}
 }
 
@@ -135,6 +124,8 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
+
+	start := time.Now()
 
 	// Validate the depth of the request.
 	err = checkDepth(request)
@@ -200,6 +191,8 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 			},
 		}, err
 	}
+	duration := time.Now().Sub(start)
+	invoker.checkDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the check count in the response metadata.
 	response.Metadata = increaseCheckCount(response.Metadata)
@@ -257,6 +250,8 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
 		var st token.SnapToken
@@ -279,10 +274,15 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 		}
 	}
 
+	resp, err := invoker.lo.LookupEntity(ctx, request)
+
+	duration := time.Now().Sub(start)
+	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
+
 	// Increase the lookup entity count in the metrics.
 	invoker.lookupEntityCounter.Add(ctx, 1)
 
-	return invoker.lo.LookupEntity(ctx, request)
+	return resp, err
 }
 
 // LookupEntityStream is a method that implements the LookupEntityStream interface.
@@ -297,6 +297,8 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
 		var st token.SnapToken
@@ -319,10 +321,15 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 		}
 	}
 
+	resp := invoker.lo.LookupEntityStream(ctx, request, server)
+
+	duration := time.Now().Sub(start)
+	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
+
 	// Increase the lookup entity count in the metrics.
 	invoker.lookupEntityCounter.Add(ctx, 1)
 
-	return invoker.lo.LookupEntityStream(ctx, request, server)
+	return resp
 }
 
 // LookupSubject is a method of the DirectInvoker structure. It handles the task of looking up subjects
@@ -336,6 +343,8 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Check if the request has a SnapToken. If not, a SnapToken is set.
 	if request.GetMetadata().GetSnapToken() == "" {
 		// Create an instance of SnapToken
@@ -364,12 +373,17 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 		}
 	}
 
+	resp, err := invoker.lo.LookupSubject(ctx, request)
+
+	duration := time.Now().Sub(start)
+	invoker.lookupSubjectDurationHistogram.Record(ctx, duration.Microseconds())
+
 	// Increase the lookup subject count in the metrics.
 	invoker.lookupSubjectCounter.Add(ctx, 1)
 
 	// Call the LookupSubject function of the ls field in the invoker, pass the context and request,
 	// and return its response and error
-	return invoker.lo.LookupSubject(ctx, request)
+	return resp, err
 }
 
 // SubjectPermission is a method of the DirectInvoker structure. It handles the task of subject's permissions
@@ -382,6 +396,8 @@ func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *ba
 	))
 	defer span.End()
 
+	start := time.Now()
+
 	// Check if the request has a SnapToken. If not, a SnapToken is set.
 	if request.GetMetadata().GetSnapToken() == "" {
 		// Create an instance of SnapToken
@@ -409,11 +425,15 @@ func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *ba
 			return response, err
 		}
 	}
+	resp, err := invoker.sp.SubjectPermission(ctx, request)
+
+	duration := time.Now().Sub(start)
+	invoker.subjectPermissionDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the subject permission count in the metrics.
 	invoker.subjectPermissionCounter.Add(ctx, 1)
 
 	// Call the SubjectPermission function of the ls field in the invoker, pass the context and request,
 	// and return its response and error
-	return invoker.sp.SubjectPermission(ctx, request)
+	return resp, err
 }

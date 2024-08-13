@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/testcontainers/testcontainers-go/wait"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/storage"
@@ -33,8 +34,11 @@ func postgresDB(postgresVersion string) database.Database {
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        image,
 			ExposedPorts: []string{"5432/tcp"},
-			WaitingFor:   wait.ForLog("database system is ready to accept connections"),
 			Env:          map[string]string{"POSTGRES_USER": "postgres", "POSTGRES_PASSWORD": "postgres", "POSTGRES_DB": "permify"},
+			WaitingFor: wait.ForAll(
+				wait.ForLog("database system is ready to accept connections"),
+				wait.ForListeningPort("5432/tcp"),
+			),
 		},
 		Started: true,
 	})

@@ -1,10 +1,11 @@
 
 <h1 align="center">
     <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
-    Permify - Open Source Authorization Service
+    Permify - Open Source Fine-Grained Authorization
 </h1>
 <p align="center">
-    Seamlessly build and manage fine-grained and scalable access controls, saving engineers months of time.
+    Implement fine-grained, scalable and extensible access controls within minutes to days instead of months. <br>
+    Inspired by Google’s consistent, global authorization system, <a href="https://permify.co/post/google-zanzibar-in-a-nutshell/" target="_blank">Zanzibar</a>
 </p>
 
 <p align="center">
@@ -17,15 +18,9 @@
     <a href="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" alt="GitHub Workflow Status" /></a>&nbsp;
     <a href="https://scrutinizer-ci.com/g/Permify/permify/?branch=master" target="_blank"><img src="https://img.shields.io/scrutinizer/quality/g/Permify/permify/master?style=for-the-badge" alt="Scrutinizer code quality (GitHub/Bitbucket)" /></a>&nbsp;
     <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>
-</p>
+</p>        
 
-![Permify - Open source authorization as a service](https://github.com/Permify/permify/assets/39353278/06262e07-84ba-4a1c-b859-870344396600)
-
-## Join Our Team
-
-Permify is on the lookout for engineers eager to tackle challenges in authorization. Join us!
-
-<a href="http://permify.co/company/career/" target="_blank"><img src="https://img.shields.io/badge/We%20Are%20Hiring!-blue?style=for-the-badge" alt="We are hiring" /></a>&nbsp;
+![permify-centralized](https://github.com/user-attachments/assets/e1c22244-1fa4-4bc3-8b7a-bdfb97610c5f)
 
 ## What is Permify?
 
@@ -33,15 +28,17 @@ Permify is on the lookout for engineers eager to tackle challenges in authorizat
 
 Our service makes authorization more secure and adaptable to changing needs, allowing you to get it up and running in just a few minutes to a couple of days—no need to spend months building out entire piece of infrastructure.
 
+It works in run time and can respond to any type of access control checks (can user X view document Y?, which posts can members of team Y edit?, etc.) from any of your apps and services in tens of milliseconds.
+
 ### With Permify, you can:
 
-🔮 Create permissions and policies using domain specific language that is compatible with traditional roles and permissions (RBAC), arbitrary relations between users and objects (ReBAC), and dynamic attributes (ABAC).
+🧪 **Centralize & Standardize Your Authorization**: Abstract your authorization logic from your codebase and application logic to easily reason, test, and debug your authorization. Behave your authorization as a sole entity and move faster with in your core development.
 
-🔐 Set up isolated authorization logic and custom permissions for your applications/organizations (tenants) and manage them in a single place.
+🔮 **Build Granular Permissions For Any Case You Have:** You can create granular (resource-specific, hierarchical, context aware, etc) permissions and policies using Permify's domain specific language that is compatible with RBAC, ReBAC and ABAC.
 
-✅ Interact with the Permify API to perform access checks, filter your resources with specific permissions, perform bulk permission checks for various resources, and more!
+🔐 **Set Authorization For Your Tenants By Default**: Set up isolated authorization logic and custom permissions for your vendors/organizations (tenants) and manage them in a single place.
 
-🧪 Abstract your authorization logic from app logic to enhance visibility, observability, and testability of your authorization system.
+🚀 **Scale Your Authorization As You Wish:** Achieve lightning-fast response times down to 10ms for access checks with a proven infrastructure inspired by Google Zanzibar.
 
 ## Getting Started 
 
@@ -49,11 +46,13 @@ Our service makes authorization more secure and adaptable to changing needs, all
 - See our [Playground], build your authorization logic and test it with sample data.
 - Explore overview of [Permify API] and learn how to interact with it.
 - See [our article] to examine [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf) in a nutshell.
+- Explore our [SDK samples] for hands-on examples.
 
 [Permify's Authorization Language]: https://docs.permify.co/getting-started/modeling
 [playground]: https://play.permify.co/
 [Permify API]: https://docs.permify.co/api-reference
 [our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
+[SDK samples]: https://github.com/Permify/permify/tree/master/sdk
 
 ### QuickStart
 

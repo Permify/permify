@@ -18,9 +18,18 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": "./src",
+    "paths": {
+      "@utility": ["./utility"],
+      "@layout": ["./layout"],
+      "@router": ["./router"],
+      "@views": ["./views"],
+      "@state": ["./state"],
+      "@services": ["./services"],
+      "@pkg": ["./pkg"]
+    }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+  "exclude": ["node_modules"]
 }

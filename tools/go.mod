@@ -1,3 +1,3 @@
 module github.com/Permify/permify/tools
 
-go 1.21
+go 1.22.6

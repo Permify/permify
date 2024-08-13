@@ -1,12 +1,8 @@
 name: Generate Client SDKs from OpenAPI
 
 on:
-    push:
-        branches:
-            - master
-    pull_request:
-        branches:
-            - master
+  release:
+    types: [published]
     workflow_dispatch:
 
 jobs:
@@ -14,28 +10,28 @@ jobs:
         runs-on: ubuntu-latest
         env:
             GITHUB_TOKEN: ${{ secrets.SDK_GH_TOKEN }}
-            ORG_NAME: permify
-            SWAGGER_PATH: docs/api-reference/apidocs.swagger.json
+            ORG_NAME: Permify
+            SWAGGER_PATH: docs/api-reference/openapiv2/apidocs.swagger.json
 
         strategy:
             matrix:
-                language: [python, javascript]
+                language: [python]
 
         steps:
             - name: Harden Runner
-              uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+              uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
               with:
                 egress-policy: audit
 
             - name: Checkout repository
-              uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+              uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
             - name: Generate Python Client
               uses: openapi-generators/openapitools-generator-action@3e8794a448324479d75053329c76a48bf6d188b5 # v1
               with:
                   generator: ${{ matrix.language }}
                   openapi-file: ${SWAGGER_PATH}
-                  command-args: -o permify-client --git-user-id ${ORG_NAME} --git-repo-id permify-${{ matrix.language }} --api-package permify --package-name permify
+                  command-args: -o permify-client --git-user-id ${ORG_NAME} --git-repo-id permify-${{ matrix.language }} --package-name permify --global-property apis,models
 
             - name: Push SDK to GitHub
               run: |

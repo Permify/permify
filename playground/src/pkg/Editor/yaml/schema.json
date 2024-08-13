@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the test"
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string",
+            "description": "Entity to be checked"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Subject involved in the check"
+          },
+          "context": {
+            "type": "object",
+            "nullable": true,
+            "description": "Context information, if any"
+          },
+          "assertions": {
+            "type": "object"
+          }
+        },
+        "required": ["entity", "subject", "assertions"],
+        "additionalProperties": false
+      }
+    },
+    "entity_filters": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "subject_filters": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": ["name", "checks"],
+  "additionalProperties": false
+}

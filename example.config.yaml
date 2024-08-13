@@ -22,6 +22,7 @@ server:
 # The logger section sets the logging level for the service.
 logger:
   level: info
+  file: ""
 
 # The profiler section enables or disables the pprof profiler and
 # sets the port number for the profiler endpoint.

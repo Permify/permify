@@ -129,20 +129,20 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 func HandleError(ctx context.Context, span trace.Span, err error, errorCode base.ErrorCode) error {
 	// Check if the error is context-related
 	if IsContextRelatedError(ctx, err) {
-		slog.Debug("A context-related error occurred",
+		slog.DebugContext(ctx, "A context-related error occurred",
 			slog.String("error", err.Error()))
 		return errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 	}
 
 	// Check if the error is serialization-related
 	if IsSerializationRelatedError(err) {
-		slog.Debug("A serialization-related error occurred",
+		slog.DebugContext(ctx, "A serialization-related error occurred",
 			slog.String("error", err.Error()))
 		return errors.New(base.ErrorCode_ERROR_CODE_SERIALIZATION.String())
 	}
 
 	// For all other types of errors, log them at the error level and record them in the span
-	slog.Error("An operational error occurred",
+	slog.ErrorContext(ctx, "An operational error occurred",
 		slog.Any("error", err))
 	span.RecordError(err)
 	span.SetStatus(codes.Error, err.Error())
@@ -179,7 +179,7 @@ func WaitWithBackoff(ctx context.Context, tenantID string, retries int) {
 	backoff := time.Duration(math.Min(float64(20*time.Millisecond)*math.Pow(2, float64(retries)), float64(1*time.Second)))
 	jitter := time.Duration(rand.Float64() * float64(backoff) * 0.5)
 	nextBackoff := backoff + jitter
-	slog.Warn("waiting before retry", slog.String("tenant_id", tenantID), slog.Int64("backoff_duration", nextBackoff.Milliseconds()))
+	slog.WarnContext(ctx, "waiting before retry", slog.String("tenant_id", tenantID), slog.Int64("backoff_duration", nextBackoff.Milliseconds()))
 	select {
 	case <-time.After(nextBackoff):
 	case <-ctx.Done():

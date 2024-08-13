@@ -27,7 +27,6 @@ import (
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -73,7 +72,6 @@ func NewContainer() *Development {
 		expandEngine,
 		lookupEngine,
 		subjectPermissionEngine,
-		telemetry.NewNoopMeter(),
 	)
 
 	checkEngine.SetInvoker(invoker)
@@ -137,8 +135,12 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 		return
 	}
 
+	return c.RunWithShape(ctx, s)
+}
+
+func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (errors []Error) {
 	// Parse the schema using the parser library
-	sch, err := parser.NewParser(s.Schema).Parse()
+	sch, err := parser.NewParser(shape.Schema).Parse()
 	if err != nil {
 		errors = append(errors, Error{
 			Type:    "schema",
@@ -185,7 +187,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	}
 
 	// Each item in the Relationships slice is processed individually
-	for _, t := range s.Relationships {
+	for _, t := range shape.Relationships {
 		tup, err := tuple.Tuple(t)
 		if err != nil {
 			errors = append(errors, Error{
@@ -232,7 +234,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	}
 
 	// Each item in the Attributes slice is processed individually
-	for _, a := range s.Attributes {
+	for _, a := range shape.Attributes {
 		attr, err := attribute.Attribute(a)
 		if err != nil {
 			errors = append(errors, Error{
@@ -279,7 +281,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 	}
 
 	// Each item in the Scenarios slice is processed individually
-	for i, scenario := range s.Scenarios {
+	for i, scenario := range shape.Scenarios {
 
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
@@ -341,7 +343,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 				})
 				if err != nil {
 					errors = append(errors, Error{
-						Type:    "checks",
+						Type:    "scenarios",
 						Key:     i,
 						Message: err.Error(),
 					})

@@ -1,12 +1,11 @@
 import React, {useState, useEffect} from "react";
 import {Layout, Row, Button, Select} from 'antd';
-import {toAbsoluteUrl} from "../utility/helpers/asset";
+import {toAbsoluteUrl} from "@utility/helpers/asset";
 import {GithubOutlined, ShareAltOutlined, ExportOutlined} from "@ant-design/icons";
-import Upload from "../services/s3";
-import {nanoid} from "nanoid";
+import {put} from '@vercel/blob';
 import yaml from "js-yaml";
-import {useShapeStore} from "../state/shape";
-import Share from "./components/modals/share";
+import {useShapeStore} from "@state/shape";
+import Share from "@layout/components/Modals/Share";
 
 const {Option, OptGroup} = Select;
 const {Content} = Layout;
@@ -44,18 +43,19 @@ const MainLayout = ({children, ...rest}) => {
     }, []);
 
     const share = () => {
-        let id = nanoid()
-        setId(id)
         const yamlString = yaml.dump({
             schema: schema,
             relationships: relationships,
             attributes: attributes,
             scenarios: scenarios
         })
-        const file = new File([yamlString], `shapes/${id}.yaml`, {type: 'text/x-yaml'});
-        Upload(file).then((res) => {
+        const file = new File([yamlString], `s.yaml`, {type: 'text/x-yaml'});
+        put("s.yaml", file, {access: 'public'}).then((result) => {
+            let fileName = result.url.split('/').pop();
+            setId(fileName.replace('.yaml', ''))
+        }).then(() => {
             toggleShareModalVisibility()
-        })
+        });
     }
 
     const exp = () => {
@@ -66,7 +66,7 @@ const MainLayout = ({children, ...rest}) => {
             scenarios: scenarios
         });
 
-        const blob = new Blob([yamlString], { type: 'text/x-yaml' });
+        const blob = new Blob([yamlString], {type: 'text/x-yaml'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
 
@@ -98,7 +98,8 @@ const MainLayout = ({children, ...rest}) => {
                             onChange={handleSampleChange}>
                         <OptGroup label="Use Cases">
                             <Option key="empty" value="empty">Empty</Option>
-                            <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations & Hierarchies</Option>
+                            <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations &
+                                Hierarchies</Option>
                             <Option key="rbac" value="rbac">RBAC</Option>
                             <Option key="custom-roles" value="custom-roles">Custom Roles</Option>
                             <Option key="user-groups" value="user-groups">User Groups</Option>
@@ -106,7 +107,8 @@ const MainLayout = ({children, ...rest}) => {
                             <Option key="banking-system" value="banking-system">Banking System</Option>
                         </OptGroup>
                         <OptGroup label="Sample Apps">
-                            <Option key="google-docs-simplified" value="google-docs-simplified">Google Docs Simplified</Option>
+                            <Option key="google-docs-simplified" value="google-docs-simplified">Google Docs
+                                Simplified</Option>
                             <Option key="facebook-groups" value="facebook-groups">Facebook Groups</Option>
                             <Option key="notion" value="notion">Notion</Option>
                             <Option key="mercury" value="mercury">Mercury</Option>
@@ -117,7 +119,7 @@ const MainLayout = ({children, ...rest}) => {
                     <Button className="mr-8" onClick={() => {
                         exp()
                     }} icon={<ExportOutlined/>}>Export</Button>
-                    <Button  onClick={() => {
+                    <Button onClick={() => {
                         share()
                     }} icon={<ShareAltOutlined/>}>Share</Button>
                 </div>

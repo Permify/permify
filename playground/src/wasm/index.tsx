@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {toAbsoluteUrl} from "../utility/helpers/asset";
 import './wasm_exec.js';
 import './wasm_types.d.ts';
 async function loadWasm(): Promise<void> {
@@ -21,7 +20,7 @@ export const LoadWasm: React.FC<React.PropsWithChildren<{}>> = (props) => {
         return (
             <div className="wasm-loader-background h-screen">
                 <div className="center-of-screen">
-                    <img alt="rocket loader" src={toAbsoluteUrl("/media/svg/rocket.svg")}/>
+                    <img alt="rocket loader" src={process.env.PUBLIC_URL + "/media/svg/rocket.svg"}/>
                 </div>
             </div>
         );
