@@ -41,7 +41,7 @@ func NewDataReader(database *db.Postgres) *DataReader {
 }
 
 // QueryRelationships reads relation tuples from the storage based on the given filter.
-func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string) (it *database.TupleIterator, err error) {
+func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.Pagination) (it *database.TupleIterator, ct database.EncodedContinuousToken, err error) {
 	// Start a new trace span and end it when the function exits.
 	ctx, span := tracer.Start(ctx, "data-reader.query-relationships")
 	defer span.End()
@@ -52,20 +52,39 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
 	// Build the relationships query based on the provided filter and snapshot value.
 	var args []interface{}
-	builder := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	builder := r.database.Builder.Select("id, entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.TuplesFilterQueryForSelectBuilder(builder, filter)
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+
+	// Apply the pagination token and limit to the query.
+	if pagination.Token() != "" {
+		var t database.ContinuousToken
+		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
+		if err != nil {
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
+		}
+
+		var v uint64
+		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
+		if err != nil {
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
+		}
+
+		builder = builder.Where(squirrel.GtOrEq{"id": v})
+	}
+
+	builder = builder.OrderBy("id").Limit(uint64(pagination.PageSize() + 1))
 
 	// Generate the SQL query and arguments.
 	var query string
 	query, args, err = builder.ToSql()
 	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
 	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
@@ -74,28 +93,36 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer rows.Close()
 
-	// Process the result rows and store the relationships in a TupleCollection.
-	collection := database.NewTupleCollection()
+	var lastID uint64
+
+	// Iterate through the rows and scan the result into a RelationTuple struct.
+	tuples := make([]*base.Tuple, 0, pagination.PageSize()+1)
 	for rows.Next() {
 		rt := storage.RelationTuple{}
-		err = rows.Scan(&rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation)
+		err = rows.Scan(&rt.ID, &rt.EntityType, &rt.EntityID, &rt.Relation, &rt.SubjectType, &rt.SubjectID, &rt.SubjectRelation)
 		if err != nil {
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 		}
-		collection.Add(rt.ToTuple())
+		lastID = rt.ID
+		tuples = append(tuples, rt.ToTuple())
 	}
+	// Check for any errors during iteration.
 	if err = rows.Err(); err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved relation tuples from the database")
 
 	// Return a TupleIterator created from the TupleCollection.
-	return collection.CreateTupleIterator(), nil
+	if len(tuples) > int(pagination.PageSize()) {
+		return database.NewTupleCollection(tuples[:pagination.PageSize()]...).CreateTupleIterator(), utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
+	}
+
+	return database.NewTupleCollection(tuples...).CreateTupleIterator(), database.NewNoopContinuousToken().Encode(), nil
 }
 
 // ReadRelationships reads relation tuples from the storage based on the given filter and pagination.

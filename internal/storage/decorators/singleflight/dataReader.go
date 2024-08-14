@@ -23,8 +23,8 @@ func NewDataReader(delegate storage.DataReader) *DataReader {
 }
 
 // QueryRelationships - Reads relation tuples from the repository
-func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (*database.TupleIterator, error) {
-	return r.delegate.QueryRelationships(ctx, tenantID, filter, token)
+func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string, pagination database.Pagination) (iterator *database.TupleIterator, ct database.EncodedContinuousToken, err error) {
+	return r.delegate.QueryRelationships(ctx, tenantID, filter, token, pagination)
 }
 
 // ReadRelationships - Reads relation tuples from the repository with different options.

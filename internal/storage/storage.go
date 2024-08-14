@@ -12,7 +12,7 @@ import (
 type DataReader interface {
 	// QueryRelationships reads relation tuples from the storage based on the given filter.
 	// It returns an iterator to iterate over the tuples and any error encountered.
-	QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string) (iterator *database.TupleIterator, err error)
+	QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.Pagination) (iterator *database.TupleIterator, ct database.EncodedContinuousToken, err error)
 
 	// ReadRelationships reads relation tuples from the storage based on the given filter and pagination.
 	// It returns a collection of tuples, a continuous token indicating the position in the data set, and any error encountered.
@@ -49,8 +49,8 @@ func NewNoopRelationshipReader() DataReader {
 	return &NoopDataReader{}
 }
 
-func (f *NoopDataReader) QueryRelationships(_ context.Context, _ string, _ *base.TupleFilter, _ string) (*database.TupleIterator, error) {
-	return database.NewTupleIterator(), nil
+func (f *NoopDataReader) QueryRelationships(_ context.Context, _ string, _ *base.TupleFilter, _ string, _ database.Pagination) (*database.TupleIterator, database.EncodedContinuousToken, error) {
+	return database.NewTupleIterator(), nil, nil
 }
 
 func (f *NoopDataReader) ReadRelationships(_ context.Context, _ string, _ *base.TupleFilter, _ string, _ database.Pagination) (*database.TupleCollection, database.EncodedContinuousToken, error) {

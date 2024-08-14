@@ -1082,27 +1082,6 @@ var _ = Describe("expand-engine", func() {
 										Children: []*base.Expand{
 											{
 												Entity: &base.Entity{
-													Type: "company",
-													Id:   "1",
-												},
-												Permission: "member",
-												Node: &base.Expand_Leaf{
-													Leaf: &base.ExpandLeaf{
-														Type: &base.ExpandLeaf_Subjects{
-															Subjects: &base.Subjects{
-																Subjects: []*base.Subject{
-																	{
-																		Type: "googleuser",
-																		Id:   "2",
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-											{
-												Entity: &base.Entity{
 													Type: "organization",
 													Id:   "1",
 												},
@@ -1123,6 +1102,27 @@ var _ = Describe("expand-engine", func() {
 																	{
 																		Type: "facebookuser",
 																		Id:   "5",
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+											{
+												Entity: &base.Entity{
+													Type: "company",
+													Id:   "1",
+												},
+												Permission: "member",
+												Node: &base.Expand_Leaf{
+													Leaf: &base.ExpandLeaf{
+														Type: &base.ExpandLeaf_Subjects{
+															Subjects: &base.Subjects{
+																Subjects: []*base.Subject{
+																	{
+																		Type: "googleuser",
+																		Id:   "2",
 																	},
 																},
 															},
@@ -1146,27 +1146,6 @@ var _ = Describe("expand-engine", func() {
 										Children: []*base.Expand{
 											{
 												Entity: &base.Entity{
-													Type: "company",
-													Id:   "1",
-												},
-												Permission: "member",
-												Node: &base.Expand_Leaf{
-													Leaf: &base.ExpandLeaf{
-														Type: &base.ExpandLeaf_Subjects{
-															Subjects: &base.Subjects{
-																Subjects: []*base.Subject{
-																	{
-																		Type: "googleuser",
-																		Id:   "2",
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-											{
-												Entity: &base.Entity{
 													Type: "organization",
 													Id:   "1",
 												},
@@ -1187,6 +1166,27 @@ var _ = Describe("expand-engine", func() {
 																	{
 																		Type: "facebookuser",
 																		Id:   "5",
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+											{
+												Entity: &base.Entity{
+													Type: "company",
+													Id:   "1",
+												},
+												Permission: "member",
+												Node: &base.Expand_Leaf{
+													Leaf: &base.ExpandLeaf{
+														Type: &base.ExpandLeaf_Subjects{
+															Subjects: &base.Subjects{
+																Subjects: []*base.Subject{
+																	{
+																		Type: "googleuser",
+																		Id:   "2",
 																	},
 																},
 															},

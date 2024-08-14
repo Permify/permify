@@ -33,33 +33,60 @@ func NewDataReader(database *db.Memory) *DataReader {
 }
 
 // QueryRelationships queries the database for relationships based on the provided filter.
-func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filter *base.TupleFilter, _ string) (it *database.TupleIterator, err error) {
+func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filter *base.TupleFilter, _ string, pagination database.Pagination) (it *database.TupleIterator, ct database.EncodedContinuousToken, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
-	collection := database.NewTupleCollection()
+	var lowerBound uint64
+	if pagination.Token() != "" {
+		var t database.ContinuousToken
+		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
+		if err != nil {
+			return nil, database.NewNoopContinuousToken().Encode(), err
+		}
+		lowerBound, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
+		if err != nil {
+			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String())
+		}
+	}
 
 	// Get the index and arguments based on the filter.
 	index, args := utils.GetRelationTuplesIndexNameAndArgsByFilters(tenantID, filter)
 
-	// Get the result iterator based on the index and arguments.
+	// Get the result iterator using lower bound.
 	var result memdb.ResultIterator
 	result, err = txn.Get(constants.RelationTuplesTable, index, args...)
 	if err != nil {
-		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	// Filter the result iterator and add the tuples to the collection.
+	// Filter the result iterator and add the tuples to the array.
+	tup := make([]storage.RelationTuple, 0, 10)
 	fit := memdb.NewFilterIterator(result, utils.FilterRelationTuplesQuery(tenantID, filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.RelationTuple)
 		if !ok {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
+			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		collection.Add(t.ToTuple())
+		tup = append(tup, t)
 	}
 
-	return collection.CreateTupleIterator(), nil
+	// Sort the tuples and append them to the collection.
+	sort.Slice(tup, func(i, j int) bool {
+		return tup[i].ID < tup[j].ID
+	})
+
+	tuples := make([]*base.Tuple, 0, pagination.PageSize()+1)
+	for _, t := range tup {
+		if t.ID >= lowerBound {
+			tuples = append(tuples, t.ToTuple())
+			if len(tuples) > int(pagination.PageSize()) {
+				return database.NewTupleCollection(tuples[:pagination.PageSize()]...).CreateTupleIterator(), utils.NewContinuousToken(strconv.FormatUint(t.ID, 10)).Encode(), nil
+			}
+		}
+	}
+
+	return database.NewTupleCollection(tuples...).CreateTupleIterator(), database.NewNoopContinuousToken().Encode(), nil
 }
 
 // ReadRelationships reads relationships from the database taking into account the pagination.

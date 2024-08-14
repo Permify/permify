@@ -247,7 +247,7 @@ func (engine *ExpandEngine) expandDirectRelation(request *base.PermissionExpandR
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, _, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewPagination())
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 			return
@@ -393,7 +393,7 @@ func (engine *ExpandEngine) expandTupleToUserSet(
 
 		// Use the filter to query for relationships in the database.
 		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
-		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, _, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewPagination())
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 			return

@@ -62,12 +62,12 @@ var _ = Describe("DataReader", func() {
 			_, err = dataWriter.Write(ctx, "t1", tuples2, database.NewAttributeCollection())
 			Expect(err).ShouldNot(HaveOccurred())
 
-			it1, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+			it1, _, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
 				Entity: &base.EntityFilter{
 					Type: "organization",
 					Ids:  []string{"organization-1"},
 				},
-			}, "")
+			}, "", database.NewPagination())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(it1.HasNext()).Should(Equal(true))

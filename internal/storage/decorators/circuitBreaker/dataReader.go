@@ -23,14 +23,22 @@ func NewDataReader(delegate storage.DataReader, cb *gobreaker.CircuitBreaker) *D
 }
 
 // QueryRelationships - Reads relation tuples from the repository
-func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (*database.TupleIterator, error) {
+func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string, pagination database.Pagination) (iterator *database.TupleIterator, ct database.EncodedContinuousToken, err error) {
+	type circuitBreakerResponse struct {
+		Iterator        *database.TupleIterator
+		ContinuousToken database.EncodedContinuousToken
+	}
+
 	response, err := r.cb.Execute(func() (interface{}, error) {
-		return r.delegate.QueryRelationships(ctx, tenantID, filter, token)
+		var resp circuitBreakerResponse
+		resp.Iterator, resp.ContinuousToken, err = r.delegate.QueryRelationships(ctx, tenantID, filter, token, pagination)
+		return resp, err
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return response.(*database.TupleIterator), nil
+	resp := response.(circuitBreakerResponse)
+	return resp.Iterator, resp.ContinuousToken, nil
 }
 
 // ReadRelationships - Reads relation tuples from the repository with different options.

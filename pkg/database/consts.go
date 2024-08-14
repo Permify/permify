@@ -1,5 +1,7 @@
 package database
 
+import "math"
+
 // Engine - Type declaration of engine
 type Engine string
 
@@ -14,5 +16,5 @@ func (c Engine) String() string {
 }
 
 const (
-	_defaultPageSize = 50
+	_defaultPageSize = math.MaxUint32
 )

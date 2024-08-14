@@ -140,7 +140,7 @@ func (engine *SchemaBasedEntityFilter) relationEntrance(
 
 	// Query the relationships for the entity in the request.
 	// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
-	rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+	rit, _, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewPagination())
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (engine *SchemaBasedEntityFilter) tupleToUserSetEntrance(
 
 		// Use the filter to query for relationships in the database.
 		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
-		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, _, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewPagination())
 		if err != nil {
 			return err
 		}

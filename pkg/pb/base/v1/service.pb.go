@@ -1015,6 +1015,12 @@ type PermissionLookupSubjectRequest struct {
 	SubjectReference *RelationReference `protobuf:"bytes,5,opt,name=subject_reference,proto3" json:"subject_reference,omitempty"`
 	// Context associated with this request.
 	Context *Context `protobuf:"bytes,6,opt,name=context,proto3" json:"context,omitempty"`
+	// page_size is the number of tenants to be returned in the response.
+	// The value should be between 1 and 100.
+	PageSize uint32 `protobuf:"varint,2,opt,name=page_size,proto3" json:"page_size,omitempty"`
+	// continuous_token is an optional parameter used for pagination.
+	// It should be the value received in the previous response.
+	ContinuousToken string `protobuf:"bytes,3,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
 }
 
 func (x *PermissionLookupSubjectRequest) Reset() {
@@ -1091,6 +1097,23 @@ func (x *PermissionLookupSubjectRequest) GetContext() *Context {
 	return nil
 }
 
+
+func (x *PermissionLookupSubjectRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *PermissionLookupSubjectRequest) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
+}
+
+
+
 // PermissionLookupSubjectRequestMetadata metadata for the PermissionLookupSubjectRequest.
 type PermissionLookupSubjectRequestMetadata struct {
 	state         protoimpl.MessageState
@@ -1166,6 +1189,8 @@ type PermissionLookupSubjectResponse struct {
 
 	// List of identifiers for subjects that match the lookup.
 	SubjectIds []string `protobuf:"bytes,1,rep,name=subject_ids,proto3" json:"subject_ids,omitempty"`
+	// continuous_token is a string that can be used to paginate and retrieve the next set of results.
+	ContinuousToken string `protobuf:"bytes,3,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
 }
 
 func (x *PermissionLookupSubjectResponse) Reset() {
@@ -1205,6 +1230,13 @@ func (x *PermissionLookupSubjectResponse) GetSubjectIds() []string {
 		return x.SubjectIds
 	}
 	return nil
+}
+
+func (x *PermissionLookupSubjectResponse) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
 }
 
 // PermissionSubjectPermissionRequest is the request message for the SubjectPermission method in the Permission service.
