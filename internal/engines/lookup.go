@@ -82,16 +82,16 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	}
 
 	// Perform a walk of the entity schema for the permission check
-	valid_permissions := make([]string, 0)
+	validPermissions := make([]string, 0)
 
 	for _, permission := range request.GetPermissions() {
 		err = schema.NewWalker(sc).Walk(request.GetEntityType(), permission)
 		if err == nil {
-			valid_permissions = append(valid_permissions, permission)
+			validPermissions = append(validPermissions, permission)
 		}
 	}
 
-	if err != nil && len(valid_permissions) == 0 {
+	if err != nil && len(validPermissions) == 0 {
 		// If the error is unimplemented, handle it with a MassEntityFilter
 		if errors.Is(err, schema.ErrUnimplemented) {
 			err = NewMassEntityFilter(engine.dataReader).EntityFilter(ctx, request, publisher, &ERMap{})
@@ -103,7 +103,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		}
 	} else {
 
-		request.Permissions = valid_permissions
+		request.Permissions = validPermissions
 
 		// Create a map to keep track of visited entities
 		visits := &ERMap{}
@@ -183,17 +183,17 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	}
 
 	// Perform a permission check walk through the entity schema
-	valid_permissions := make([]string, 0)
+	validPermissions := make([]string, 0)
 
 	for _, permission := range request.GetPermissions() {
 		err = schema.NewWalker(sc).Walk(request.GetEntityType(), permission)
 		if err == nil {
-			valid_permissions = append(valid_permissions, permission)
+			validPermissions = append(validPermissions, permission)
 		}
 	}
 
 	// If error exists in permission check walk
-	if err != nil && len(valid_permissions) == 0 {
+	if err != nil && len(validPermissions) == 0 {
 		// If the error is unimplemented, handle it with a MassEntityFilter
 		if errors.Is(err, schema.ErrUnimplemented) {
 			err = NewMassEntityFilter(engine.dataReader).EntityFilter(ctx, request, publisher, &ERMap{})
@@ -207,7 +207,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 		visits := &ERMap{}
 		permissionChecks := &ERMap{}
 		entityReferences := make([]*base.RelationReference, 0)
-		request.Permissions = valid_permissions
+		request.Permissions = validPermissions
 		for _, permisson := range request.GetPermissions() {
 			entityReferences = append(entityReferences, &base.RelationReference{
 				Type:     request.GetEntityType(),
