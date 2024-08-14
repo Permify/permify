@@ -2049,6 +2049,19 @@
       },
       "description": "EntityFilter is used to filter entities based on the type and ids."
     },
+    "EntityIds": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "entitiy Ids"
+        }
+      },
+      "description": "EntityIds is a helper message used within PermissionLookupEntityResponse to encapsulate a list of entity."
+    },
     "Entry": {
       "type": "object",
       "properties": {
@@ -2255,8 +2268,11 @@
           "type": "string",
           "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
         },
-        "permission": {
-          "type": "string",
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
         },
         "subject": {
@@ -2281,8 +2297,11 @@
           "type": "string",
           "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
         },
-        "permission": {
-          "type": "string",
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
         },
         "subject": {
@@ -2520,9 +2539,9 @@
       "type": "object",
       "properties": {
         "entity_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/EntityIds"
           },
           "description": "List of identifiers for entities that match the lookup."
         }
@@ -2535,6 +2554,10 @@
         "entity_id": {
           "type": "string",
           "description": "Identifier for an entity that matches the lookup."
+        },
+        "permission": {
+          "type": "string",
+          "description": "The name of the permission for which the specified entity_id has access."
         }
       },
       "description": "PermissionLookupEntityStreamResponse is the response message for the LookupEntityStream method in the Permission service."

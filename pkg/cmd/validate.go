@@ -352,7 +352,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							Depth:         100,
 						},
 						EntityType: filter.EntityType,
-						Permission: permission,
+						Permissions: []string{permission},
 						Subject:    subject,
 					})
 					if err != nil {
@@ -365,7 +365,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
 
 					// Check if the actual result matches the expected result.
-					if isSameArray(res.GetEntityIds(), expected) {
+					if isSameArray(res.GetEntityIds()[permission].Ids, expected) {
 						// If the results match, log a success message.
 						color.Success.Print("    success:")
 						fmt.Printf(" %v\n", query)

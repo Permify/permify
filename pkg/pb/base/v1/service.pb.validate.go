@@ -1365,10 +1365,10 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetPermission()) > 64 {
+	if l := len(m.GetPermissions()); l < 1 || l > 100 {
 		err := PermissionLookupEntityRequestValidationError{
-			field:  "Permission",
-			reason: "value length must be at most 64 bytes",
+			field:  "Permissions",
+			reason: "value must contain between 1 and 100 items, inclusive",
 		}
 		if !all {
 			return err
@@ -1376,15 +1376,31 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_PermissionLookupEntityRequest_Permission_Pattern.MatchString(m.GetPermission()) {
-		err := PermissionLookupEntityRequestValidationError{
-			field:  "Permission",
-			reason: "value does not match regex pattern \"^[a-zA-Z_]{1,64}$\"",
+	for idx, item := range m.GetPermissions() {
+		_, _ = idx, item
+
+		if len(item) > 64 {
+			err := PermissionLookupEntityRequestValidationError{
+				field:  fmt.Sprintf("Permissions[%v]", idx),
+				reason: "value length must be at most 64 bytes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
+
+		if !_PermissionLookupEntityRequest_Permissions_Pattern.MatchString(item) {
+			err := PermissionLookupEntityRequestValidationError{
+				field:  fmt.Sprintf("Permissions[%v]", idx),
+				reason: "value does not match regex pattern \"^[a-zA-Z_][a-zA-Z0-9_]*$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		errors = append(errors, err)
+
 	}
 
 	if m.GetSubject() == nil {
@@ -1541,7 +1557,7 @@ var _PermissionLookupEntityRequest_TenantId_Pattern = regexp.MustCompile("^([a-z
 
 var _PermissionLookupEntityRequest_EntityType_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
 
-var _PermissionLookupEntityRequest_Permission_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
+var _PermissionLookupEntityRequest_Permissions_Pattern = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 // Validate checks the field values on PermissionLookupEntityRequestMetadata
 // with the rules defined in the proto definition for this message. If any
@@ -1685,6 +1701,52 @@ func (m *PermissionLookupEntityResponse) validate(all bool) error {
 
 	var errors []error
 
+	{
+		sorted_keys := make([]string, len(m.GetEntityIds()))
+		i := 0
+		for key := range m.GetEntityIds() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetEntityIds()[key]
+			_ = val
+
+			// no validation rules for EntityIds[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, PermissionLookupEntityResponseValidationError{
+							field:  fmt.Sprintf("EntityIds[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, PermissionLookupEntityResponseValidationError{
+							field:  fmt.Sprintf("EntityIds[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return PermissionLookupEntityResponseValidationError{
+						field:  fmt.Sprintf("EntityIds[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
 	if len(errors) > 0 {
 		return PermissionLookupEntityResponseMultiError(errors)
 	}
@@ -1766,6 +1828,105 @@ var _ interface {
 	ErrorName() string
 } = PermissionLookupEntityResponseValidationError{}
 
+// Validate checks the field values on EntityIds with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *EntityIds) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EntityIds with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in EntityIdsMultiError, or nil
+// if none found.
+func (m *EntityIds) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EntityIds) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return EntityIdsMultiError(errors)
+	}
+
+	return nil
+}
+
+// EntityIdsMultiError is an error wrapping multiple validation errors returned
+// by EntityIds.ValidateAll() if the designated constraints aren't met.
+type EntityIdsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EntityIdsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EntityIdsMultiError) AllErrors() []error { return m }
+
+// EntityIdsValidationError is the validation error returned by
+// EntityIds.Validate if the designated constraints aren't met.
+type EntityIdsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EntityIdsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EntityIdsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EntityIdsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EntityIdsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EntityIdsValidationError) ErrorName() string { return "EntityIdsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EntityIdsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEntityIds.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EntityIdsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EntityIdsValidationError{}
+
 // Validate checks the field values on PermissionLookupEntityStreamResponse
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if
@@ -1790,6 +1951,8 @@ func (m *PermissionLookupEntityStreamResponse) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for EntityId
+
+	// no validation rules for Permission
 
 	if len(errors) > 0 {
 		return PermissionLookupEntityStreamResponseMultiError(errors)
@@ -1957,33 +2120,38 @@ func (m *PermissionEntityFilterRequest) validate(all bool) error {
 		}
 	}
 
-	if all {
-		switch v := interface{}(m.GetEntityReference()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PermissionEntityFilterRequestValidationError{
-					field:  "EntityReference",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
+	for idx, item := range m.GetEntityReferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PermissionEntityFilterRequestValidationError{
+						field:  fmt.Sprintf("EntityReferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PermissionEntityFilterRequestValidationError{
+						field:  fmt.Sprintf("EntityReferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-		case interface{ Validate() error }:
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PermissionEntityFilterRequestValidationError{
-					field:  "EntityReference",
+				return PermissionEntityFilterRequestValidationError{
+					field:  fmt.Sprintf("EntityReferences[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
-				})
+				}
 			}
 		}
-	} else if v, ok := interface{}(m.GetEntityReference()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return PermissionEntityFilterRequestValidationError{
-				field:  "EntityReference",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
+
 	}
 
 	if all {

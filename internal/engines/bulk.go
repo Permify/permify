@@ -2,7 +2,6 @@ package engines
 
 import (
 	"context"
-
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 
@@ -35,7 +34,7 @@ type BulkChecker struct {
 	// limit for concurrent permission checks
 	concurrencyLimit int
 	// callback function to handle the result of each permission check
-	callback func(entityID string, result base.CheckResult)
+	callback func(entityID string, permission string, result base.CheckResult)
 }
 
 // NewBulkChecker creates a new BulkChecker instance.
@@ -43,7 +42,7 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, checker invoke.Check, callback func(entityID string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
+func NewBulkChecker(ctx context.Context, checker invoke.Check, callback func(entityID string, permission string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
 	return &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
 		checker:          checker,
@@ -81,17 +80,17 @@ func (c *BulkChecker) Start(typ BulkCheckerType) {
 
 					if typ == BULK_ENTITY {
 						// call the callback with the result
-						c.callback(req.Request.GetEntity().GetId(), result.Can)
+						c.callback(req.Request.GetEntity().GetId(), req.Request.GetPermission(), result.Can)
 					} else if typ == BULK_SUBJECT {
-						c.callback(req.Request.GetSubject().GetId(), result.Can)
+						c.callback(req.Request.GetSubject().GetId(), req.Request.GetPermission(), result.Can)
 					}
 
 				} else {
 					if typ == BULK_ENTITY {
 						// call the callback with the result
-						c.callback(req.Request.GetEntity().GetId(), req.Result)
+						c.callback(req.Request.GetEntity().GetId(), req.Request.GetPermission(), req.Result)
 					} else if typ == BULK_SUBJECT {
-						c.callback(req.Request.GetSubject().GetId(), req.Result)
+						c.callback(req.Request.GetSubject().GetId(), req.Request.GetPermission(), req.Result)
 					}
 				}
 				return nil
@@ -132,17 +131,22 @@ func NewBulkEntityPublisher(ctx context.Context, request *base.PermissionLookupE
 }
 
 // Publish publishes a permission check request to the BulkChecker.
-func (s *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
-	s.bulkChecker.RequestChan <- BulkCheckerRequest{
-		Request: &base.PermissionCheckRequest{
-			TenantId:   s.request.GetTenantId(),
-			Metadata:   metadata,
-			Entity:     entity,
-			Permission: s.request.GetPermission(),
-			Subject:    s.request.GetSubject(),
-			Context:    context,
-		},
-		Result: result,
+func (s *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult, permissionChecks *ERMap) {
+	for _, permission := range s.request.GetPermissions() {
+		if !permissionChecks.Add(entity, permission) {
+			continue
+		}
+		s.bulkChecker.RequestChan <- BulkCheckerRequest{
+			Request: &base.PermissionCheckRequest{
+				TenantId:   s.request.GetTenantId(),
+				Metadata:   metadata,
+				Entity:     entity,
+				Permission: permission,
+				Subject:    s.request.GetSubject(),
+				Context:    context,
+			},
+			Result: result,
+		}
 	}
 }
 

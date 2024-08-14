@@ -2,6 +2,7 @@ package schema
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -86,13 +87,41 @@ func (re LinkedEntrance) LinkedEntranceKind() LinkedEntranceKind {
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) RelationshipLinkedEntrances(target, source *base.RelationReference) ([]*LinkedEntrance, error) {
-	entries, err := g.findEntrance(target, source, map[string]struct{}{})
-	if err != nil {
-		return nil, err
+func (g *LinkedSchemaGraph) RelationshipLinkedEntrances(targets []*base.RelationReference, source *base.RelationReference) ([]*LinkedEntrance, error) {
+	visited := map[string]struct{}{}
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(targets))
+	done := make(chan struct{})
+	totalEntries := make([]*LinkedEntrance, 0)
+	for _, target := range targets {
+		wg.Add(1)
+		go func(target *base.RelationReference) {
+			defer wg.Done()
+			entries, err := g.findEntrance(target, source, visited, &mu)
+			if err != nil {
+				errChan <- err
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			totalEntries = append(totalEntries, entries...)
+
+		}(target)
 	}
 
-	return entries, nil
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// All goroutines finished
+		return totalEntries, nil
+	case err := <-errChan:
+		// Return on the first error encountered
+		return nil, err
+	}
 }
 
 // findEntrance is a recursive helper function that searches the LinkedSchemaGraph for all entry points that can be reached
@@ -110,12 +139,15 @@ func (g *LinkedSchemaGraph) RelationshipLinkedEntrances(target, source *base.Rel
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference, visited map[string]struct{}) ([]*LinkedEntrance, error) {
+func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference, visited map[string]struct{}, mu *sync.Mutex) ([]*LinkedEntrance, error) {
 	key := utils.Key(target.GetType(), target.GetRelation())
+	mu.Lock()
 	if _, ok := visited[key]; ok {
+		mu.Unlock()
 		return nil, nil
 	}
 	visited[key] = struct{}{}
+	mu.Unlock()
 
 	def, ok := g.schema.EntityDefinitions[target.GetType()]
 	if !ok {
@@ -130,13 +162,13 @@ func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference,
 		}
 		child := permission.GetChild()
 		if child.GetRewrite() != nil {
-			return g.findEntranceRewrite(target, source, child.GetRewrite(), visited)
+			return g.findEntranceRewrite(target, source, child.GetRewrite(), visited, mu)
 		}
-		return g.findEntranceLeaf(target, source, child.GetLeaf(), visited)
+		return g.findEntranceLeaf(target, source, child.GetLeaf(), visited, mu)
 	case base.EntityDefinition_REFERENCE_ATTRIBUTE:
 		return nil, ErrUnimplemented
 	case base.EntityDefinition_REFERENCE_RELATION:
-		return g.findRelationEntrance(target, source, visited)
+		return g.findRelationEntrance(target, source, visited, mu)
 	default:
 		return nil, ErrUnimplemented
 	}
@@ -156,7 +188,7 @@ func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference,
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationReference, visited map[string]struct{}) ([]*LinkedEntrance, error) {
+func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationReference, visited map[string]struct{}, mu *sync.Mutex) ([]*LinkedEntrance, error) {
 	var res []*LinkedEntrance
 
 	entity, ok := g.schema.EntityDefinitions[target.GetType()]
@@ -181,7 +213,7 @@ func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationRe
 
 	for _, rel := range relation.GetRelationReferences() {
 		if rel.GetRelation() != "" {
-			entrances, err := g.findEntrance(rel, source, visited)
+			entrances, err := g.findEntrance(rel, source, visited, mu)
 			if err != nil {
 				return nil, err
 			}
@@ -210,7 +242,7 @@ func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationRe
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationReference, leaf *base.Leaf, visited map[string]struct{}) ([]*LinkedEntrance, error) {
+func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationReference, leaf *base.Leaf, visited map[string]struct{}, mu *sync.Mutex) ([]*LinkedEntrance, error) {
 	switch t := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
 		tupleSet := t.TupleToUserSet.GetTupleSet().GetRelation()
@@ -243,6 +275,7 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 				},
 				source,
 				visited,
+				mu,
 			)
 			if err != nil {
 				return nil, err
@@ -268,6 +301,7 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 			},
 			source,
 			visited,
+			mu,
 		)
 		if err != nil {
 			return nil, err
@@ -302,17 +336,17 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntranceRewrite(target, source *base.RelationReference, rewrite *base.Rewrite, visited map[string]struct{}) (results []*LinkedEntrance, err error) {
+func (g *LinkedSchemaGraph) findEntranceRewrite(target, source *base.RelationReference, rewrite *base.Rewrite, visited map[string]struct{}, mu *sync.Mutex) (results []*LinkedEntrance, err error) {
 	var res []*LinkedEntrance
 	for _, child := range rewrite.GetChildren() {
 		switch child.GetType().(type) {
 		case *base.Child_Rewrite:
-			results, err = g.findEntranceRewrite(target, source, child.GetRewrite(), visited)
+			results, err = g.findEntranceRewrite(target, source, child.GetRewrite(), visited, mu)
 			if err != nil {
 				return nil, err
 			}
 		case *base.Child_Leaf:
-			results, err = g.findEntranceLeaf(target, source, child.GetLeaf(), visited)
+			results, err = g.findEntranceLeaf(target, source, child.GetLeaf(), visited, mu)
 			if err != nil {
 				return nil, err
 			}

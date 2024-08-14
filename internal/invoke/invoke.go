@@ -245,7 +245,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 	ctx, span := tracer.Start(ctx, "lookup-entity", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
-		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
+		attribute.KeyValue{Key: "permissions", Value: attribute.StringSliceValue(request.GetPermissions())},
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
@@ -292,7 +292,7 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 	ctx, span := tracer.Start(ctx, "lookup-entity-stream", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
-		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
+		attribute.KeyValue{Key: "permissions", Value: attribute.StringSliceValue(request.GetPermissions())},
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
