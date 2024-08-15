@@ -1,4 +1,4 @@
-name: Quality
+name: Coverage
 on: [push, pull_request]
 permissions:
   contents: read
@@ -9,24 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@0d381219ddf674d61a7572ddd19d7941e271515c # v2.9.0
+      uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
       with:
         egress-policy: audit
+
+    - name: Check out code
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
     - name: Set up Go
       uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
       with:
-        go-version: '1.21'
-    - name: Check out code
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-    - name: Install dependencies
-      run: |
-        go mod download
-    - name: Run Unit tests
-      run: |
-        go test -race -covermode atomic -coverprofile=covprofile  ./cmd/... ./internal/... ./pkg/...
+        go-version: '1.22'
+
+    - name: tests
+      run: make test
+
     - name: Install goveralls
       run: go install github.com/mattn/goveralls@latest
+
     - name: Send coverage
       env:
         COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}

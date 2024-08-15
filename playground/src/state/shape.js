@@ -1,11 +1,8 @@
 import {create} from 'zustand';
 import axios from 'axios'; // Assuming you're using axios as the "client"
 import yaml from 'js-yaml';
-import {toast} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 export const useShapeStore = create((set, get) => ({
-    // main shape items
     schema: ``,
     relationships: [],
     attributes: [],
@@ -20,11 +17,11 @@ export const useShapeStore = create((set, get) => ({
     definitions: {},
 
     // errors
-    systemError: "",
     schemaError: null,
+    visualizerError: "",
     relationshipErrors: [],
     attributeErrors: [],
-    visualizerError: "",
+    yamlValidationErrors: [],
     scenariosError: [],
 
     setSchema: (schema) => {
@@ -88,67 +85,78 @@ export const useShapeStore = create((set, get) => ({
         set({runLoading: true});
         setTimeout(() => {
             get().runAsync().then(() => {
-                set({ runLoading: false });
+                set({runLoading: false});
             })
         }, 500);
     },
 
     run: () => {
-        get().clearErrors()
+        // Clear existing errors
+        get().clearAllErrors();
 
+        // Define the shape object
         const shape = {
             schema: get().schema,
             relationships: get().relationships,
             attributes: get().attributes,
             scenarios: get().scenarios,
-        }
+        };
 
+        // Function to handle errors
+        const handleError = (error) => {
+            switch (error.type) {
+                case 'file_validation':
+                    set((state) => ({yamlValidationErrors: [...state.yamlValidationErrors, error]}));
+                    break;
+                case 'schema':
+                    set({schemaError: handleSchemaError(error.message)});
+                    break;
+                case 'relationships':
+                    set((state) => ({relationshipErrors: [...state.relationshipErrors, error]}));
+                    break;
+                case 'attributes':
+                    set((state) => ({attributeErrors: [...state.attributeErrors, error]}));
+                    break;
+                case 'scenarios':
+                    set((state) => ({scenariosError: [...state.scenariosError, error]}));
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        // Run the shape validation
         Run(JSON.stringify(shape, null, 2))
-            .then((rr) => {
-                for (let i = 0; i < rr.length; i++) {
-                    const error = JSON.parse(rr[i]);
+            .then((response) => {
+                // Process each error in the response
+                response.forEach((errorString) => {
+                    const error = JSON.parse(errorString);
+                    handleError(error);
+                });
 
-                    if (error.type === 'file_validation') {
-                        set((state) => ({scenariosError: [...state.scenariosError, error]}));
-                    }
+                // If no schema or file validation errors, proceed to visualize
+                const hasSchemaError = response.some(error => JSON.parse(error).type === 'schema');
+                const hasFileValidationError = response.some(error => JSON.parse(error).type === 'file_validation');
 
-                    if (error.type === 'schema') {
-                        set({schemaError: handleSchemaError(error.message)});
-                    }
-
-                    if (error.type === 'relationships') {
-                        set((state) => ({relationshipErrors: [...state.relationshipErrors, error]}));
-                    }
-
-                    if (error.type === 'attributes') {
-                        set((state) => ({attributeErrors: [...state.attributeErrors, error]}));
-                    }
-
-                    if (error.type === 'scenarios') {
-                        set((state) => ({scenariosError: [...state.scenariosError, error]}));
-                    }
-                }
-
-                // If there were no schema errors, proceed to visualize
-                if (!rr.some(error => JSON.parse(error).type === 'schema') && !rr.some(error => JSON.parse(error).type === 'file_validation')) {
+                if (!hasSchemaError && !hasFileValidationError) {
                     return Visualize();
                 } else {
-                    // You can add additional error handling or set state as needed
+                    // Set graph to empty if there are schema or file validation errors
+                    set({graph: {nodes: [], edges: []}});
+                }
+            })
+            .then((visualizationResponse) => {
+                if (visualizationResponse) {
+                    // Update the graph and definitions state if visualization was successful
                     set({
-                        graph: {nodes: [], edges: []},
+                        graph: JSON.parse(visualizationResponse[0]),
+                        definitions: JSON.parse(visualizationResponse[1]),
                     });
                 }
-            }).then((vr) => {
-            if (vr) {  // Only execute if vr exists (means no errors previously)
-                set({
-                    graph: JSON.parse(vr[0]),
-                    definitions: JSON.parse(vr[1]),
-                });
-            }
-        }).catch((error) => {
-            toast.error(`System Error: ${error.message}`);
-            set({systemError: error})
-        });
+            })
+            .catch((error) => {
+               console.error(error)
+            });
     },
 
     // Clear the state
@@ -157,7 +165,7 @@ export const useShapeStore = create((set, get) => ({
         relationships: [],
         attributes: [],
         graph: {nodes: [], edges: []},
-        systemError: "",
+        errors: [],
         schemaError: null,
         visualizerError: "",
         relationshipErrors: [],
@@ -166,13 +174,12 @@ export const useShapeStore = create((set, get) => ({
     }),
 
     // Clear the state
-    clearErrors: () => set({
-        systemError: "",
+    clearAllErrors: () => set({
         schemaError: null,
         visualizerError: "",
         relationshipErrors: [],
         attributeErrors: [],
-        scenariosError: ""
+        scenariosError: [],
     }),
 
     fetchShape: async (pond) => {
@@ -193,17 +200,17 @@ export const useShapeStore = create((set, get) => ({
     },
 
     getEntityTypes: () => {
-        const entityDefinitions = get()?.definitions?.entityDefinitions;
+        const entityDefinitions = get().definitions?.entityDefinitions;
         return Object.keys(entityDefinitions || {});
     },
 
     getRelations: (entityType) => {
-        const relations = get()?.definitions?.entityDefinitions?.[entityType]?.relations;
+        const relations = get().definitions?.entityDefinitions?.[entityType]?.relations;
         return Object.keys(relations || {});
     },
 
     getSubjectTypes: (entityType, relation) => {
-        const references = get()?.definitions?.entityDefinitions?.[entityType]?.relations?.[relation]?.relationReferences;
+        const references = get().definitions?.entityDefinitions?.[entityType]?.relations?.[relation]?.relationReferences;
 
         if (!references || references.length === 0) {
             return [];
@@ -214,7 +221,7 @@ export const useShapeStore = create((set, get) => ({
     },
 
     getSubjectRelations: (entityType, relation, subjectType) => {
-        const references = get()?.definitions?.entityDefinitions?.[entityType]?.relations?.[relation]?.relationReferences;
+        const references = get().definitions?.entityDefinitions?.[entityType]?.relations?.[relation]?.relationReferences;
 
         if (!references || references.length === 0) {
             return [];
@@ -227,33 +234,66 @@ export const useShapeStore = create((set, get) => ({
     },
 
     getAttributes: (entityType) => {
-        const attributes = get()?.definitions?.entityDefinitions?.[entityType]?.attributes;
+        const attributes = get().definitions?.entityDefinitions?.[entityType]?.attributes;
         return Object.keys(attributes || {});
     },
 
     getTypeValueBasedOnAttribute: (entityType, attribute) => {
-        const type = get()?.definitions?.entityDefinitions?.[entityType]?.attributes[attribute]?.type;
-        switch (type) {
-            case "ATTRIBUTE_TYPE_BOOLEAN":
-                return "boolean"
-            case "ATTRIBUTE_TYPE_BOOLEAN_ARRAY":
-                return "boolean[]"
-            case "ATTRIBUTE_TYPE_STRING":
-                return "string"
-            case "ATTRIBUTE_TYPE_STRING_ARRAY":
-                return "string[]"
-            case "ATTRIBUTE_TYPE_INTEGER":
-                return "integer"
-            case "ATTRIBUTE_TYPE_INTEGER_ARRAY":
-                return "integer[]"
-            case "ATTRIBUTE_TYPE_DOUBLE":
-                return "double"
-            case "ATTRIBUTE_TYPE_DOUBLE_ARRAY":
-                return "double[]"
-            default:
-                return ""
-        }
+        const type = get().definitions?.entityDefinitions?.[entityType]?.attributes?.[attribute]?.type;
+        const typeMap = {
+            "ATTRIBUTE_TYPE_BOOLEAN": "boolean",
+            "ATTRIBUTE_TYPE_BOOLEAN_ARRAY": "boolean[]",
+            "ATTRIBUTE_TYPE_STRING": "string",
+            "ATTRIBUTE_TYPE_STRING_ARRAY": "string[]",
+            "ATTRIBUTE_TYPE_INTEGER": "integer",
+            "ATTRIBUTE_TYPE_INTEGER_ARRAY": "integer[]",
+            "ATTRIBUTE_TYPE_DOUBLE": "double",
+            "ATTRIBUTE_TYPE_DOUBLE_ARRAY": "double[]"
+        };
+        return typeMap[type] || "";
     },
+
+    setDefinitions: (definitions) => set({definitions}),
+
+    // ERRORS
+
+    setError: (errorType, error) => set(state => {
+        switch (errorType) {
+            case 'yamlValidationErrors':
+                return {yamlValidationErrors: [...state.yamlValidationErrors, error]};
+            case 'schemaError':
+                return {schemaError: error};
+            case 'relationshipErrors':
+                return {relationshipErrors: [...state.relationshipErrors, error]};
+            case 'attributeErrors':
+                return {attributeErrors: [...state.attributeErrors, error]};
+            case 'visualizerError':
+                return {visualizerError: error};
+            case 'scenariosError':
+                return {scenariosError: [...state.scenariosError, error]};
+            default:
+                return {};
+        }
+    }),
+
+    clearError: (errorType) => set(state => {
+        switch (errorType) {
+            case 'yamlValidationErrors':
+                return {yamlValidationErrors: []};
+            case 'schemaError':
+                return {schemaError: null};
+            case 'relationshipErrors':
+                return {relationshipErrors: []};
+            case 'attributeErrors':
+                return {attributeErrors: []};
+            case 'visualizerError':
+                return {visualizerError: ""};
+            case 'scenariosError':
+                return {scenariosError: []};
+            default:
+                return {};
+        }
+    }),
 }));
 
 // Handles schema errors.

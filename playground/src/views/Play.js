@@ -4,7 +4,6 @@ import {Skeleton} from "antd";
 import {ContextLayout} from "@utility/context/Layout";
 import Output from "@layout/sides/output";
 import {useShapeStore} from "@state/shape";
-import {ToastContainer} from 'react-toastify';
 
 function Play() {
     const { fetchShape } = useShapeStore();
@@ -41,7 +40,6 @@ function Play() {
                     return (
                         <LayoutTag>
                             <Suspense fallback={<Skeleton active />}>
-                                <ToastContainer />
                                 <Output loading={loading} />
                             </Suspense>
                         </LayoutTag>

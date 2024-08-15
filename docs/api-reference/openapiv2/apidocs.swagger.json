@@ -3,7 +3,7 @@
   "info": {
     "title": "Permify API",
     "description": "Permify is an open source authorization service for creating fine-grained and scalable authorization systems.",
-    "version": "v0.10.1",
+    "version": "v1.0.1",
     "contact": {
       "name": "API Support",
       "url": "https://github.com/Permify/permify/issues",
@@ -15,6 +15,9 @@
     }
   },
   "tags": [
+    {
+      "name": "Health"
+    },
     {
       "name": "Permission"
     },
@@ -44,6 +47,46 @@
     "application/json"
   ],
   "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "health api",
+        "operationId": "health.check",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/HealthResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "tags": [
+          "Health"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          },
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          },
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          }
+        ]
+      }
+    },
     "/v1/tenants/create": {
       "post": {
         "summary": "create tenant",
@@ -682,7 +725,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/CheckBody"
+              "$ref": "#/definitions/Permission.CheckBody"
             }
           }
         ],
@@ -1551,41 +1594,6 @@
       },
       "description": "BundleWriteResponse is the response for a BundleWriteRequest.\nIt includes a name which could be used as an identifier or acknowledgment."
     },
-    "CheckBody": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/PermissionCheckRequestMetadata",
-          "description": "Metadata associated with this request, required."
-        },
-        "entity": {
-          "$ref": "#/definitions/Entity",
-          "example": "repository:1",
-          "description": "Entity on which the permission needs to be checked, required."
-        },
-        "permission": {
-          "type": "string",
-          "description": "The action the user wants to perform on the resource"
-        },
-        "subject": {
-          "$ref": "#/definitions/Subject",
-          "description": "Subject for which the permission needs to be checked, required."
-        },
-        "context": {
-          "$ref": "#/definitions/Context",
-          "description": "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"
-        },
-        "arguments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/Argument"
-          },
-          "description": "Additional arguments associated with this request."
-        }
-      },
-      "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
-    },
     "CheckResult": {
       "type": "string",
       "enum": [
@@ -2205,6 +2213,14 @@
       },
       "description": "Function type with result and arg types."
     },
+    "HealthResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      }
+    },
     "Ident": {
       "type": "object",
       "properties": {
@@ -2389,6 +2405,41 @@
         }
       },
       "title": "Partials contains the write, update and delete definitions"
+    },
+    "Permission.CheckBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "example": "repository:1",
+          "description": "Entity on which the permission needs to be checked, required."
+        },
+        "permission": {
+          "type": "string",
+          "description": "The action the user wants to perform on the resource"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which the permission needs to be checked, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "description": "Additional arguments associated with this request."
+        }
+      },
+      "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
     },
     "Permission.ExpandBody": {
       "type": "object",
