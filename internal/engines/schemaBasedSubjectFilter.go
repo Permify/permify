@@ -225,7 +225,7 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterDirect(
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
 		// var ct database.EncodedContinuousToken
-		rit, _, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewPagination(database.Size(0), database.Token(request.GetContinuousToken())))
+		rit, _, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken())))
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -399,7 +399,7 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterTupleToUserSet(
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, _, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewPagination(database.Size(0), database.Token(request.GetContinuousToken())))
+		rit, _, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken())))
 		if err != nil {
 			// If an error occurs during querying, an empty response with the error is returned.
 			return subjectFilterEmpty(), err

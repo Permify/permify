@@ -604,6 +604,12 @@ type PermissionLookupEntityRequest struct {
 	Subject *Subject `protobuf:"bytes,5,opt,name=subject,proto3" json:"subject,omitempty"`
 	// Context associated with this request.
 	Context *Context `protobuf:"bytes,6,opt,name=context,proto3" json:"context,omitempty"`
+	// page_size is the number of tenants to be returned in the response.
+	// The value should be between 1 and 100.
+	PageSize uint32 `protobuf:"varint,2,opt,name=page_size,proto3" json:"page_size,omitempty"`
+	// continuous_token is an optional parameter used for pagination.
+	// It should be the value received in the previous response.
+	ContinuousToken string `protobuf:"bytes,3,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
 }
 
 func (x *PermissionLookupEntityRequest) Reset() {
@@ -678,6 +684,20 @@ func (x *PermissionLookupEntityRequest) GetContext() *Context {
 		return x.Context
 	}
 	return nil
+}
+
+func (x *PermissionLookupEntityRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *PermissionLookupEntityRequest) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
 }
 
 // PermissionLookupEntityRequestMetadata metadata for the PermissionLookupEntityRequest.
@@ -755,6 +775,8 @@ type PermissionLookupEntityResponse struct {
 
 	// List of identifiers for entities that match the lookup.
 	EntityIds []string `protobuf:"bytes,1,rep,name=entity_ids,proto3" json:"entity_ids,omitempty"`
+	// continuous_token is a string that can be used to paginate and retrieve the next set of results.
+	ContinuousToken string `protobuf:"bytes,3,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
 }
 
 func (x *PermissionLookupEntityResponse) Reset() {
@@ -794,6 +816,13 @@ func (x *PermissionLookupEntityResponse) GetEntityIds() []string {
 		return x.EntityIds
 	}
 	return nil
+}
+
+func (x *PermissionLookupEntityResponse) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
 }
 
 // PermissionLookupEntityStreamResponse is the response message for the LookupEntityStream method in the Permission service.
@@ -861,6 +890,12 @@ type PermissionEntityFilterRequest struct {
 	Subject *Subject `protobuf:"bytes,4,opt,name=subject,proto3" json:"subject,omitempty"`
 	// Context associated with this request.
 	Context *Context `protobuf:"bytes,5,opt,name=context,proto3" json:"context,omitempty"`
+	// page_size is the number of tenants to be returned in the response.
+	// The value should be between 1 and 100.
+	PageSize uint32 `protobuf:"varint,2,opt,name=page_size,proto3" json:"page_size,omitempty"`
+	// continuous_token is an optional parameter used for pagination.
+	// It should be the value received in the previous response.
+	ContinuousToken string `protobuf:"bytes,3,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
 }
 
 func (x *PermissionEntityFilterRequest) Reset() {
@@ -928,6 +963,20 @@ func (x *PermissionEntityFilterRequest) GetContext() *Context {
 		return x.Context
 	}
 	return nil
+}
+
+func (x *PermissionEntityFilterRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *PermissionEntityFilterRequest) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
 }
 
 // PermissionEntityFilterRequestMetadata metadata for the PermissionEntityFilterRequest.
