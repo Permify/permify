@@ -1005,6 +1005,14 @@ var _ = Describe("linked schema", func() {
 					Kind: RelationLinkedEntrance,
 					TargetEntrance: &base.RelationReference{
 						Type:     "organization",
+						Relation: "member",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "organization",
 						Relation: "admin",
 					},
 					TupleSetRelation: "",
@@ -1022,14 +1030,6 @@ var _ = Describe("linked schema", func() {
 					TargetEntrance: &base.RelationReference{
 						Type:     "container",
 						Relation: "another",
-					},
-					TupleSetRelation: "",
-				},
-				{
-					Kind: RelationLinkedEntrance,
-					TargetEntrance: &base.RelationReference{
-						Type:     "organization",
-						Relation: "member",
 					},
 					TupleSetRelation: "",
 				},
