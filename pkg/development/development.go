@@ -418,10 +418,10 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 						SnapToken:     token.NewNoopToken().Encode().String(),
 						Depth:         100,
 					},
-					Context:    cont,
-					EntityType: filter.EntityType,
+					Context:     cont,
+					EntityType:  filter.EntityType,
 					Permissions: []string{permission},
-					Subject:    subject,
+					Subject:     subject,
 				})
 				if err != nil {
 					errors = append(errors, Error{

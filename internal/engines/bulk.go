@@ -2,6 +2,7 @@ package engines
 
 import (
 	"context"
+
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 
@@ -34,7 +35,7 @@ type BulkChecker struct {
 	// limit for concurrent permission checks
 	concurrencyLimit int
 	// callback function to handle the result of each permission check
-	callback func(entityID string, permission string, result base.CheckResult)
+	callback func(entityID, permission string, result base.CheckResult)
 }
 
 // NewBulkChecker creates a new BulkChecker instance.
@@ -42,7 +43,7 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, checker invoke.Check, callback func(entityID string, permission string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
+func NewBulkChecker(ctx context.Context, checker invoke.Check, callback func(entityID, permission string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
 	return &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
 		checker:          checker,
