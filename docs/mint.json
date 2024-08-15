@@ -26,7 +26,7 @@
   },
   "analytics": {
     "plausible": {
-      "domain": "docs.permify.co"
+        "domain": "docs.permify.co"
     }
   },
   "topbarCtaButton": {
@@ -209,8 +209,8 @@
   ],
   "tabs": [
     {
-      "name": "API References",
-      "url": "api-reference"
+        "name": "API References",
+        "url": "api-reference"
     }
   ],
   "anchors": [
@@ -305,7 +305,9 @@
     },
     {
       "group": "API Documentation",
-      "pages": ["api-reference/introduction"]
+      "pages": [
+        "api-reference/introduction"
+      ]
     },
     {
       "group": "Schema Service",
@@ -334,7 +336,7 @@
         "api-reference/permission/lookup-entity",
         "api-reference/permission/lookup-entity-stream",
         "api-reference/permission/subject-permission"
-      ]
+        ]
     },
     {
       "group": "Tenancy Service",
@@ -354,11 +356,15 @@
     },
     {
       "group": "Watch Service",
-      "pages": ["api-reference/watch/watch-changes"]
+      "pages": [
+        "api-reference/watch/watch-changes"
+      ]
     },
     {
       "group": "Permify Cloud",
-      "pages": ["cloud/intro"]
+      "pages": [
+        "cloud/intro"
+      ]
     }
   ],
   "footerSocials": {
