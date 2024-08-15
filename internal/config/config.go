@@ -292,7 +292,7 @@ func DefaultConfig() *Config {
 		},
 		Log: Log{
 			Level:    "info",
-			Enabled:  true,
+			Enabled:  false,
 			Exporter: "otlp",
 			Headers:  []string{},
 		},
