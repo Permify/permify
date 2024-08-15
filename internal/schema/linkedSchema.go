@@ -105,7 +105,6 @@ func (g *LinkedSchemaGraph) RelationshipLinkedEntrances(targets []*base.Relation
 			mu.Lock()
 			defer mu.Unlock()
 			totalEntries = append(totalEntries, entries...)
-
 		}(target)
 	}
 

@@ -181,7 +181,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 2", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -307,7 +306,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 3", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -430,7 +428,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 4", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -554,7 +551,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 5", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -681,7 +677,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 6", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -829,7 +824,6 @@ entity doc {
 		})
 
 		It("Drive Sample: Case 7", func() {
-
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -1380,7 +1374,6 @@ entity doc {
 	`
 
 	Context("Facebook Group Sample: Entity Filter", func() {
-
 		It("Facebook Group Sample: Case 1", func() {
 			db, err := factories.DatabaseFactory(
 				config.Database{

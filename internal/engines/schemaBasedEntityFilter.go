@@ -3,6 +3,7 @@ package engines
 import (
 	"context"
 	"errors"
+
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/schema"
@@ -281,7 +282,6 @@ func (engine *SchemaBasedEntityFilter) l(
 				}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
 				return nil
 			}
-
 		}
 		return nil // Otherwise, return without publishing any results.
 	}
