@@ -133,14 +133,14 @@ func (engine *SchemaBasedEntityFilter) relationEntrance(
 	// Use the filter to query for relationships in the given context.
 	// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 	// QueryRelationships() then uses the filter to find and return matching relationships.
-	cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+	cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id")))
 	if err != nil {
 		return err
 	}
 
 	// Query the relationships for the entity in the request.
 	// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
-	rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+	rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id")))
 	if err != nil {
 		return err
 	}
@@ -202,14 +202,14 @@ func (engine *SchemaBasedEntityFilter) tupleToUserSetEntrance(
 		// Use the filter to query for relationships in the given context.
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
-		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			return err
 		}
 
 		// Use the filter to query for relationships in the database.
 		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
-		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		if err != nil {
 			return err
 		}

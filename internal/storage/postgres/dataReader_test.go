@@ -119,7 +119,7 @@ var _ = Describe("DataReader", func() {
 					Type: "organization",
 					Ids:  []string{"organization-1"},
 				},
-			}, token1.String())
+			}, token1.String(), database.NewCursorPagination())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(it1.HasNext()).Should(Equal(true))
@@ -131,7 +131,7 @@ var _ = Describe("DataReader", func() {
 					Type: "organization",
 					Ids:  []string{"organization-1"},
 				},
-			}, token2.String())
+			}, token2.String(), database.NewCursorPagination())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(it2.HasNext()).Should(Equal(true))

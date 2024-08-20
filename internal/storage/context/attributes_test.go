@@ -3,6 +3,7 @@ package context
 import (
 	"testing"
 
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -16,7 +17,7 @@ func TestQueryAttributes1(t *testing.T) {
 	contextualAttributes := NewContextualAttributes(attributes...)
 	filter := &base.AttributeFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"1"}}, Attributes: []string{"attribute1"}}
 
-	iterator, err := contextualAttributes.QueryAttributes(filter)
+	iterator, err := contextualAttributes.QueryAttributes(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -45,7 +46,7 @@ func TestQueryAttributes2(t *testing.T) {
 	contextualAttributes := NewContextualAttributes(attributes...)
 	filter := &base.AttributeFilter{Entity: &base.EntityFilter{Type: "type3", Ids: []string{"3"}}, Attributes: []string{"attribute1", "attribute2"}}
 
-	iterator, err := contextualAttributes.QueryAttributes(filter)
+	iterator, err := contextualAttributes.QueryAttributes(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}

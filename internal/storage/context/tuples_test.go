@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -19,7 +20,7 @@ func TestQueryRelationships1(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"1"}}, Relation: "relation1", Subject: &base.SubjectFilter{Type: "type2", Ids: []string{"2"}, Relation: "relation2"}}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -48,7 +49,7 @@ func TestQueryRelationships2(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type", Ids: []string{"5"}}, Relation: "relation5"}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -81,7 +82,7 @@ func TestQueryRelationships3(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"3"}}, Relation: "relation1"}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -119,7 +120,7 @@ func TestQueryRelationships4(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"3"}}, Relation: "relation1", Subject: &base.SubjectFilter{Type: "type2", Ids: []string{}, Relation: ""}}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -157,7 +158,7 @@ func TestQueryRelationships5(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"1", "3"}}, Relation: "relation1", Subject: &base.SubjectFilter{Type: "user", Ids: []string{"1", "6", "4", "7"}, Relation: ""}}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}

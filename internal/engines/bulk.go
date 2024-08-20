@@ -10,6 +10,7 @@ import (
 	"golang.org/x/sync/semaphore"
 
 	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/internal/storage/memory/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -53,7 +54,7 @@ type BulkChecker struct {
 
 	// callback is a function that handles the result of each permission check.
 	// It is called with the entity ID and the result of the permission check (e.g., allowed or denied).
-	callback func(entityID string)
+	callback func(entityID, ct string)
 
 	// sortedList is a slice that stores BulkCheckerRequest objects.
 	// This list is maintained in a sorted order based on some criteria, such as the entity ID.
@@ -75,7 +76,7 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID string), concurrencyLimit int) *BulkChecker {
+func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID, ct string), concurrencyLimit int) *BulkChecker {
 	bc := &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
 		checker:          checker,
@@ -144,15 +145,13 @@ func (bc *BulkChecker) sortRequests() {
 }
 
 // ExecuteRequests begins processing permission check requests from the sorted list.
-func (c *BulkChecker) ExecuteRequests() error {
+func (c *BulkChecker) ExecuteRequests(size uint32) error {
 	// Stop collecting new requests and close the RequestChan to ensure no more requests are added
 	c.StopCollectingRequests()
 
 	// Wait for request collection to complete before proceeding
 	c.wg.Wait()
 
-	// Set a limit on the number of successful results we want to process
-	limit := 1000
 	// Track the number of successful permission checks
 	successCount := int64(0)
 	// Semaphore to control the maximum number of concurrent permission checks
@@ -161,7 +160,7 @@ func (c *BulkChecker) ExecuteRequests() error {
 
 	// Lock the mutex to prevent race conditions while sorting and copying the list of requests
 	c.mu.Lock()
-	c.sortRequests()                                      // Sort requests based on predefined criteria (e.g., priority, timestamp)
+	c.sortRequests()                                      // Sort requests based on id
 	listCopy := append([]BulkCheckerRequest{}, c.list...) // Create a copy of the list to avoid modifying the original during processing
 	c.mu.Unlock()                                         // Unlock the mutex after sorting and copying
 
@@ -173,7 +172,7 @@ func (c *BulkChecker) ExecuteRequests() error {
 	// Loop through each request in the copied list
 	for i, currentRequest := range listCopy {
 		// If we've reached the success limit, stop processing further requests
-		if atomic.LoadInt64(&successCount) >= int64(limit) {
+		if atomic.LoadInt64(&successCount) >= int64(size) {
 			break
 		}
 
@@ -209,12 +208,21 @@ func (c *BulkChecker) ExecuteRequests() error {
 			for processedIndex < len(listCopy) && results[processedIndex] != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
 				// If the result at the processed index is allowed, call the callback function
 				if results[processedIndex] == base.CheckResult_CHECK_RESULT_ALLOWED {
-					if atomic.AddInt64(&successCount, 1) <= int64(limit) {
+					if atomic.AddInt64(&successCount, 1) <= int64(size) {
+						ct := ""
+						if processedIndex+1 < len(listCopy) {
+							// If there is a next item, create a continuous token with the next ID
+							if c.typ == BULK_ENTITY {
+								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetEntity().GetId()).Encode().String()
+							} else if c.typ == BULK_SUBJECT {
+								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetSubject().GetId()).Encode().String()
+							}
+						}
 						// Depending on the type of check (entity or subject), call the appropriate callback
 						if c.typ == BULK_ENTITY {
-							c.callback(listCopy[processedIndex].Request.GetEntity().GetId())
+							c.callback(listCopy[processedIndex].Request.GetEntity().GetId(), ct)
 						} else if c.typ == BULK_SUBJECT {
-							c.callback(listCopy[processedIndex].Request.GetSubject().GetId())
+							c.callback(listCopy[processedIndex].Request.GetSubject().GetId(), ct)
 						}
 					}
 				}

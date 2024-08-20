@@ -23,9 +23,9 @@ func NewDataReader(delegate storage.DataReader, cb *gobreaker.CircuitBreaker) *D
 }
 
 // QueryRelationships - Reads relation tuples from the repository
-func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (*database.TupleIterator, error) {
+func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string, pagination database.CursorPagination) (*database.TupleIterator, error) {
 	response, err := r.cb.Execute(func() (interface{}, error) {
-		return r.delegate.QueryRelationships(ctx, tenantID, filter, token)
+		return r.delegate.QueryRelationships(ctx, tenantID, filter, token, pagination)
 	})
 	if err != nil {
 		return nil, err

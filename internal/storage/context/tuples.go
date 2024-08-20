@@ -1,6 +1,8 @@
 package context
 
 import (
+	"sort"
+
 	"golang.org/x/exp/slices"
 
 	"github.com/Permify/permify/pkg/database"
@@ -19,18 +21,40 @@ func NewContextualTuples(tuples ...*base.Tuple) *ContextualTuples {
 	}
 }
 
-// QueryRelationships filters the ContextualTuples based on the provided TupleFilter and returns a TupleIterator for the filtered tuples.
-func (c *ContextualTuples) QueryRelationships(filter *base.TupleFilter) (*database.TupleIterator, error) {
-	filtered := c.filterTuples(filter)                 // Filter the tuples based on the provided filter
-	return database.NewTupleIterator(filtered...), nil // Return a new TupleIterator for the filtered tuples
+// QueryRelationships filters the ContextualTuples based on the provided TupleFilter
+// and returns a TupleIterator for the filtered tuples.
+// QueryRelationships filters the ContextualTuples based on the provided TupleFilter, applies cursor-based pagination, and returns a TupleIterator for the filtered tuples.
+func (c *ContextualTuples) QueryRelationships(filter *base.TupleFilter, pagination database.CursorPagination) (*database.TupleIterator, error) {
+	// Sort tuples based on the provided order field
+	sort.SliceStable(c.Tuples, func(i, j int) bool {
+		switch pagination.Sort() {
+		case "entity_id":
+			return c.Tuples[i].GetEntity().GetId() < c.Tuples[j].GetEntity().GetId()
+		case "subject_id":
+			return c.Tuples[i].GetSubject().GetId() < c.Tuples[j].GetSubject().GetId()
+		default:
+			return false // If no valid order is provided, no sorting is applied
+		}
+	})
+
+	// Filter the tuples based on the provided filter and cursor
+	filtered := c.filterTuples(filter, pagination.Cursor(), pagination.Sort())
+
+	// Return a new TupleIterator for the filtered tuples
+	return database.NewTupleIterator(filtered...), nil
 }
 
 // filterTuples applies the provided filter to c's Tuples and returns a slice of Tuples that match the filter.
-func (c *ContextualTuples) filterTuples(filter *base.TupleFilter) []*base.Tuple {
+func (c *ContextualTuples) filterTuples(filter *base.TupleFilter, cursor, order string) []*base.Tuple {
 	var filtered []*base.Tuple // Initialize a slice to hold the filtered tuples
 
 	// Iterate over the tuples
 	for _, tup := range c.Tuples {
+		// Skip tuples that come before the cursor based on the specified order field
+		if cursor != "" && !isTupleAfterCursor(tup, cursor, order) {
+			continue
+		}
+
 		// If a tuple matches the Entity, Relation, and Subject filters, add it to the filtered slice
 		if matchesEntityFilterForTuples(tup, filter.GetEntity()) &&
 			matchesRelationFilter(tup, filter.GetRelation()) &&
@@ -42,7 +66,20 @@ func (c *ContextualTuples) filterTuples(filter *base.TupleFilter) []*base.Tuple 
 	return filtered // Return the filtered tuples
 }
 
-// matchesEntityFilter checks if a Tuple matches the conditions in an EntityFilter.
+// isAfterCursor checks if the tuple's ID (based on the order field) comes after the cursor.
+func isTupleAfterCursor(tup *base.Tuple, cursor, order string) bool {
+	switch order {
+	case "entity_id":
+		return tup.GetEntity().GetId() > cursor
+	case "subject_id":
+		return tup.GetSubject().GetId() > cursor
+	default:
+		// If the order field is not recognized, default to not skipping any tuples
+		return true
+	}
+}
+
+// matchesEntityFilterForTuples checks if a Tuple matches the conditions in an EntityFilter.
 func matchesEntityFilterForTuples(tup *base.Tuple, filter *base.EntityFilter) bool {
 	// Return true if the filter is empty or the tuple's entity matches the filter
 	return (filter.GetType() == "" || tup.GetEntity().GetType() == filter.GetType()) &&

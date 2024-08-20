@@ -10,6 +10,8 @@ import (
 // Memory - Structure for in memory db
 type Memory struct {
 	sync.RWMutex
+	rid uint64
+	aid uint64
 
 	DB *memdb.MemDB
 }
@@ -20,6 +22,28 @@ func New(schema *memdb.DBSchema) (*Memory, error) {
 	return &Memory{
 		DB: db,
 	}, err
+}
+
+func (m *Memory) RelationTupleID() (id uint64) {
+	m.Lock()
+	defer m.Unlock()
+	if m.rid == 0 {
+		m.rid++
+	}
+	id = m.rid
+	m.rid++
+	return
+}
+
+func (m *Memory) AttributeID() (id uint64) {
+	m.Lock()
+	defer m.Unlock()
+	if m.aid == 0 {
+		m.aid++
+	}
+	id = m.aid
+	m.aid++
+	return
 }
 
 // GetEngineType - Gets engine type, returns as string

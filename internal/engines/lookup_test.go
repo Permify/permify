@@ -169,7 +169,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -289,7 +289,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -406,7 +406,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -523,7 +523,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -643,7 +643,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -784,7 +784,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -866,7 +866,7 @@ entity doc {
 						entityType: "doc",
 						subject:    "user:1",
 						assertions: map[string][]string{
-							"read": {"1", "2", "3", "4", "7", "10"},
+							"read": {"1", "10", "2", "3", "4", "7"},
 						},
 					},
 					{
@@ -881,7 +881,7 @@ entity doc {
 						entityType: "doc",
 						subject:    "user:3",
 						assertions: map[string][]string{
-							"read":   {"2", "3", "5", "6", "9", "10"},
+							"read":   {"10", "2", "3", "5", "6", "9"},
 							"update": {"5"},
 						},
 					},
@@ -891,15 +891,15 @@ entity doc {
 						assertions: map[string][]string{
 							"read":   {"7", "8"},
 							"delete": {"7", "8"},
-							"share":  {},
+							"share":  nil,
 						},
 					},
 					{
 						entityType: "doc",
 						subject:    "user:5",
 						assertions: map[string][]string{
-							"read":   {"9", "10"},
-							"delete": {"9", "10"},
+							"read":   {"10", "9"},
+							"delete": {"10", "9"},
 						},
 					},
 				},
@@ -963,122 +963,122 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
 	})
 
 	facebookGroupsSchemaEntityFilter := `
-entity user {}
-
-entity group {
-
-   // Relation to represent the members of the group
-   relation member @user
-   // Relation to represent the admins of the group
-   relation admin @user
-   // Relation to represent the moderators of the group
-   relation moderator @user
-
-   // Permissions for the group entity
-   action create = member
-   action join = member
-   action leave = member
-   action invite_to_group = admin
-   action remove_from_group = admin or moderator
-   action edit_settings = admin or moderator
-   action post_to_group = member
-   action comment_on_post = member
-   action view_group_insights = admin or moderator
-}
-
-entity post {
-
-   // Relation to represent the owner of the post
-   relation owner @user
-   // Relation to represent the group that the post belongs to
-   relation group @group
-
-   // Permissions for the post entity
-   action view_post = owner or group.member
-   action edit_post = owner or group.admin
-   action delete_post = owner or group.admin
-
-   permission group_member = group.member
-}
-
-entity comment {
-
-   // Relation to represent the owner of the comment
-   relation owner @user
-
-   // Relation to represent the post that the comment belongs to
-   relation post @post
-
-   // Permissions for the comment entity
-   action view_comment = owner or post.group_member
-   action edit_comment = owner
-   action delete_comment = owner
-}
-
-entity like {
-
-   // Relation to represent the owner of the like
-   relation owner @user
-
-   // Relation to represent the post that the like belongs to
-   relation post @post
-
-   // Permissions for the like entity
-   action like_post = owner or post.group_member
-   action unlike_post = owner or post.group_member
-}
-
-entity poll {
-
-   // Relation to represent the owner of the poll
-   relation owner @user
-
-   // Relation to represent the group that the poll belongs to
-   relation group @group
-
-   // Permissions for the poll entity
-   action create_poll = owner or group.admin
-   action view_poll = owner or group.member
-   action edit_poll = owner or group.admin
-   action delete_poll = owner or group.admin
-}
-
-entity file {
-
-   // Relation to represent the owner of the file
-   relation owner @user
-
-   // Relation to represent the group that the file belongs to
-   relation group @group
-
-   // Permissions for the file entity
-   action upload_file = owner or group.member
-   action view_file = owner or group.member
-   action delete_file = owner or group.admin
-}
-
-entity event {
-
-   // Relation to represent the owner of the event
-   relation owner @user
-   // Relation to represent the group that the event belongs to
-   relation group @group
-
-   // Permissions for the event entity
-   action create_event = owner or group.admin
-   action view_event = owner or group.member
-   action edit_event = owner or group.admin
-   action delete_event = owner or group.admin
-   action RSVP_to_event = owner or group.member
-}
-`
+	entity user {}
+	
+	entity group {
+	
+	  // Relation to represent the members of the group
+	  relation member @user
+	  // Relation to represent the admins of the group
+	  relation admin @user
+	  // Relation to represent the moderators of the group
+	  relation moderator @user
+	
+	  // Permissions for the group entity
+	  action create = member
+	  action join = member
+	  action leave = member
+	  action invite_to_group = admin
+	  action remove_from_group = admin or moderator
+	  action edit_settings = admin or moderator
+	  action post_to_group = member
+	  action comment_on_post = member
+	  action view_group_insights = admin or moderator
+	}
+	
+	entity post {
+	
+	  // Relation to represent the owner of the post
+	  relation owner @user
+	  // Relation to represent the group that the post belongs to
+	  relation group @group
+	
+	  // Permissions for the post entity
+	  action view_post = owner or group.member
+	  action edit_post = owner or group.admin
+	  action delete_post = owner or group.admin
+	
+	  permission group_member = group.member
+	}
+	
+	entity comment {
+	
+	  // Relation to represent the owner of the comment
+	  relation owner @user
+	
+	  // Relation to represent the post that the comment belongs to
+	  relation post @post
+	
+	  // Permissions for the comment entity
+	  action view_comment = owner or post.group_member
+	  action edit_comment = owner
+	  action delete_comment = owner
+	}
+	
+	entity like {
+	
+	  // Relation to represent the owner of the like
+	  relation owner @user
+	
+	  // Relation to represent the post that the like belongs to
+	  relation post @post
+	
+	  // Permissions for the like entity
+	  action like_post = owner or post.group_member
+	  action unlike_post = owner or post.group_member
+	}
+	
+	entity poll {
+	
+	  // Relation to represent the owner of the poll
+	  relation owner @user
+	
+	  // Relation to represent the group that the poll belongs to
+	  relation group @group
+	
+	  // Permissions for the poll entity
+	  action create_poll = owner or group.admin
+	  action view_poll = owner or group.member
+	  action edit_poll = owner or group.admin
+	  action delete_poll = owner or group.admin
+	}
+	
+	entity file {
+	
+	  // Relation to represent the owner of the file
+	  relation owner @user
+	
+	  // Relation to represent the group that the file belongs to
+	  relation group @group
+	
+	  // Permissions for the file entity
+	  action upload_file = owner or group.member
+	  action view_file = owner or group.member
+	  action delete_file = owner or group.admin
+	}
+	
+	entity event {
+	
+	  // Relation to represent the owner of the event
+	  relation owner @user
+	  // Relation to represent the group that the event belongs to
+	  relation group @group
+	
+	  // Permissions for the event entity
+	  action create_event = owner or group.admin
+	  action view_event = owner or group.member
+	  action edit_event = owner or group.admin
+	  action delete_event = owner or group.admin
+	  action RSVP_to_event = owner or group.member
+	}
+	`
 
 	Context("Facebook Group Sample: Entity Filter", func() {
 		It("Facebook Group Sample: Case 1", func() {
@@ -1249,7 +1249,7 @@ entity event {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -1387,8 +1387,8 @@ entity event {
 						entityType: "file",
 						subject:    "user:5",
 						assertions: map[string][]string{
-							"upload_file": {},
-							"view_file":   {},
+							"upload_file": nil,
+							"view_file":   nil,
 							"delete_file": {"1", "2", "3"},
 						},
 					},
@@ -1396,11 +1396,11 @@ entity event {
 						entityType: "event",
 						subject:    "user:6",
 						assertions: map[string][]string{
-							"create_event":  {},
-							"view_event":    {},
-							"edit_event":    {},
-							"delete_event":  {},
-							"RSVP_to_event": {},
+							"create_event":  nil,
+							"view_event":    nil,
+							"edit_event":    nil,
+							"delete_event":  nil,
+							"RSVP_to_event": nil,
 						},
 					},
 				},
@@ -1476,38 +1476,38 @@ entity event {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
 	})
 
 	googleDocsSchemaEntityFilter := `
-entity user {}
-
-entity resource {
-   relation viewer  @user  @group#member @group#manager
-   relation manager @user @group#member @group#manager
-
-   action edit = manager
-   action view = viewer or manager
-}
-
-entity group {
-   relation manager @user @group#member @group#manager
-   relation member @user @group#member @group#manager
-}
-
-entity organization {
-   relation group @group
-   relation resource @resource
-
-   relation administrator @user @group#member @group#manager
-   relation direct_member @user
-
-   permission admin = administrator
-   permission member = direct_member or administrator or group.member
-}`
+	entity user {}
+	
+	entity resource {
+	  relation viewer  @user  @group#member @group#manager
+	  relation manager @user @group#member @group#manager
+	
+	  action edit = manager
+	  action view = viewer or manager
+	}
+	
+	entity group {
+	  relation manager @user @group#member @group#manager
+	  relation member @user @group#member @group#manager
+	}
+	
+	entity organization {
+	  relation group @group
+	  relation resource @resource
+	
+	  relation administrator @user @group#member @group#manager
+	  relation direct_member @user
+	
+	  permission admin = administrator
+	  permission member = direct_member or administrator or group.member
+	}`
 
 	Context("Google Docs Sample: Entity Filter", func() {
 		It("Google Docs Sample: Case 1", func() {
@@ -1659,7 +1659,7 @@ entity organization {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -1840,7 +1840,7 @@ entity organization {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -1889,8 +1889,8 @@ entity organization {
 					entityType: "resource",
 					subject:    "user:1",
 					assertions: map[string][]string{
-						"view": {"2", "36", "22", "47", "1", "23", "16", "43", "24", "41", "13", "26", "10", "45", "11", "37", "20", "46", "99", "38", "12", "25", "40", "49", "17", "15", "4", "27", "83", "48", "5", "57", "75", "29", "39", "77", "98", "97", "81", "78", "76", "80", "3", "21", "65", "66", "53", "44", "34", "71", "58", "14", "74", "72", "70", "51", "33", "84", "67", "50", "63", "68", "8", "6", "69", "62", "73", "79", "91", "88", "35", "100", "64", "30", "7", "19", "18", "93", "32", "56", "55", "86", "59", "90", "60", "9", "87", "89", "31", "95", "52", "92", "61", "94", "28", "42", "85", "82", "54", "96"},
-						"edit": {"57", "67", "64", "51", "94", "91", "77", "69", "81", "66", "84", "86", "70", "79", "59", "73", "76", "80", "78", "74", "93", "61", "92", "97", "96", "72", "71", "98", "99", "65", "95", "54", "89", "88", "63", "53", "82", "100", "85", "56", "87", "75", "90", "52", "58", "55", "68", "60", "62", "83"},
+						"view": {"1", "10", "100", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "3", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "4", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "5", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "6", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "7", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "8", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "9", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+						"edit": {"100", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
 					},
 				},
 			}
@@ -1953,43 +1953,173 @@ entity organization {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Google Docs Sample: Case 4 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(googleDocsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{}
+
+			for i := 1; i <= 50; i++ {
+				relationship := fmt.Sprintf("resource:%d#viewer@user:1", i)
+				tests.relationships = append(tests.relationships, relationship)
+			}
+
+			// Generate 50 manager relationships.
+			for i := 51; i <= 100; i++ {
+				relationship := fmt.Sprintf("resource:%d#manager@user:1", i)
+				tests.relationships = append(tests.relationships, relationship)
+			}
+
+			tests.filters = []filter{
+				{
+					entityType: "resource",
+					subject:    "user:1",
+					assertions: map[string][]string{
+						"view": {"1", "10", "100", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "3", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "4", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "5", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "6", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "7", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "8", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "9", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+						"edit": {"100", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+							TenantId:   "t1",
+							EntityType: filter.entityType,
+							Subject:    subject,
+							Permission: permission,
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         100,
+							},
+							PageSize:        10,
+							ContinuousToken: ct,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetEntityIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
 				}
 			}
 		})
 	})
 
 	weekdaySchemaEntityFilter := `
-		entity user {}
-		
-		entity organization {
-		
-			relation member @user
-		
-			attribute balance integer
-
-			permission view = check_balance(balance) and member
-		}
-		
-		entity repository {
-		
-			relation organization  @organization
-			
-			attribute is_public boolean
-
-			permission view = is_public
-			permission edit = organization.view
-			permission delete = is_weekday(request.day_of_week)
-		}
-		
-		rule check_balance(balance integer) {
-			balance > 5000
-		}
-
-		rule is_weekday(day_of_week string) {
-			  day_of_week != 'saturday' && day_of_week != 'sunday'
-		}
-		`
+			entity user {}
+	
+			entity organization {
+	
+				relation member @user
+	
+				attribute balance integer
+	
+				permission view = check_balance(balance) and member
+			}
+	
+			entity repository {
+	
+				relation organization  @organization
+	
+				attribute is_public boolean
+	
+				permission view = is_public
+				permission edit = organization.view
+				permission delete = is_weekday(request.day_of_week)
+			}
+	
+			rule check_balance(balance integer) {
+				balance > 5000
+			}
+	
+			rule is_weekday(day_of_week string) {
+				  day_of_week != 'saturday' && day_of_week != 'sunday'
+			}
+			`
 
 	Context("Weekday Sample: Entity Filter", func() {
 		It("Weekday Sample: Case 1", func() {
@@ -2022,6 +2152,12 @@ entity organization {
 			}{
 				relationships: []string{
 					"organization:1#member@user:1",
+					"organization:2#member@user:1",
+					"organization:4#member@user:1",
+					"organization:8#member@user:1",
+					"organization:917#member@user:1",
+					"organization:20#member@user:1",
+					"organization:45#member@user:1",
 					"repository:4#organization@organization:1",
 
 					"organization:2#member@user:1",
@@ -2030,23 +2166,31 @@ entity organization {
 					"repository:1$is_public|boolean:true",
 					"repository:2$is_public|boolean:false",
 					"repository:3$is_public|boolean:true",
+					"repository:4$is_public|boolean:true",
+					"repository:5$is_public|boolean:true",
+					"repository:6$is_public|boolean:false",
 
 					"organization:1$balance|integer:4000",
 					"organization:2$balance|integer:6000",
+					"organization:4$balance|integer:6000",
+					"organization:8$balance|integer:6000",
+					"organization:917$balance|integer:6000",
+					"organization:20$balance|integer:6000",
+					"organization:45$balance|integer:6000",
 				},
 				filters: []filter{
 					{
 						entityType: "repository",
 						subject:    "user:1",
 						assertions: map[string][]string{
-							"view": {"1", "3"},
+							"view": {"1", "3", "4", "5"},
 						},
 					},
 					{
 						entityType: "organization",
 						subject:    "user:1",
 						assertions: map[string][]string{
-							"view": {"2"},
+							"view": {"2", "20", "4", "45", "8", "917"},
 						},
 					},
 				},
@@ -2118,42 +2262,210 @@ entity organization {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetEntityIds(), res)).Should(Equal(true))
+					Expect(response.GetEntityIds()).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Weekday Sample: Case 2 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(weekdaySchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"organization:2#member@user:1",
+					"organization:4#member@user:1",
+					"organization:8#member@user:1",
+					"organization:917#member@user:1",
+					"organization:20#member@user:1",
+					"organization:45#member@user:1",
+					"organization:22#member@user:1",
+					"organization:43#member@user:1",
+					"organization:84#member@user:1",
+					"organization:9157#member@user:1",
+					"organization:260#member@user:1",
+					"organization:475#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"organization:2#member@user:1",
+				},
+				attributes: []string{
+					"repository:1$is_public|boolean:true",
+					"repository:2$is_public|boolean:false",
+					"repository:3$is_public|boolean:true",
+					"repository:4$is_public|boolean:true",
+					"repository:5$is_public|boolean:true",
+					"repository:6$is_public|boolean:false",
+
+					"organization:1$balance|integer:4000",
+					"organization:2$balance|integer:6000",
+					"organization:4$balance|integer:6000",
+					"organization:8$balance|integer:6000",
+					"organization:917$balance|integer:6000",
+					"organization:20$balance|integer:6000",
+					"organization:45$balance|integer:6000",
+
+					"organization:22$balance|integer:6000",
+					"organization:43$balance|integer:6000",
+					"organization:84$balance|integer:6000",
+					"organization:9157$balance|integer:6000",
+					"organization:260$balance|integer:6000",
+					"organization:475$balance|integer:6000",
+				},
+				filters: []filter{
+					{
+						entityType: "organization",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"view": {"2", "20", "22", "260", "4", "43", "45", "475", "8", "84", "9157", "917"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+							TenantId:   "t1",
+							EntityType: filter.entityType,
+							Subject:    subject,
+							Permission: permission,
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         100,
+							},
+							PageSize:        10,
+							ContinuousToken: ct,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetEntityIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
 				}
 			}
 		})
 	})
 
 	driveSchemaSubjectFilter := `
-entity user {}
-
-entity organization {
-	relation admin @user
-}
-
-entity folder {
-	relation org @organization
-	relation creator @user
-	relation collaborator @user
-
-	permission read = collaborator
-	permission update = collaborator
-	permission delete = creator or org.admin
-	permission share = update
-}
-
-entity doc {
-	relation org @organization
-	relation parent @folder
-
-	relation owner @user @organization#admin
-	relation member @user
-
-	permission read = owner or member
-	permission update = owner and org.admin
-	permission delete = owner or org.admin
-	permission share = update and (member not parent.update)
-}`
+	entity user {}
+	
+	entity organization {
+		relation admin @user
+	}
+	
+	entity folder {
+		relation org @organization
+		relation creator @user
+		relation collaborator @user
+	
+		permission read = collaborator
+		permission update = collaborator
+		permission delete = creator or org.admin
+		permission share = update
+	}
+	
+	entity doc {
+		relation org @organization
+		relation parent @folder
+	
+		relation owner @user @organization#admin
+		relation member @user
+	
+		permission read = owner or member
+		permission update = owner and org.admin
+		permission delete = owner or org.admin
+		permission share = update and (member not parent.update)
+	}`
 
 	Context("Drive Sample: Subject Filter", func() {
 		It("Drive Sample: Case 1", func() {
@@ -2252,7 +2564,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2353,7 +2665,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2461,7 +2773,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2559,7 +2871,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2659,7 +2971,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2759,7 +3071,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2864,43 +3176,169 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 8", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaSubjectFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				subjectReference string
+				entity           string
+				assertions       map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:1",
+					"doc:1#owner@user:3",
+					"organization:1#admin@user:8",
+					"organization:2#admin@user:32",
+					"organization:3#admin@user:43",
+					"organization:4#admin@user:65",
+					"doc:1#owner@organization:1#admin",
+					"doc:1#owner@organization:2#admin",
+					"doc:1#owner@organization:3#admin",
+					"doc:1#owner@organization:4#admin",
+					"doc:1#owner@organization:5#admin",
+					"doc:1#owner@organization:6#admin",
+					"doc:1#owner@organization:7#admin",
+				},
+				filters: []filter{
+					{
+						subjectReference: "organization#admin",
+						entity:           "doc:1",
+						assertions: map[string][]string{
+							"delete": {"1", "2", "3", "4", "5", "6", "7"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				entity, err := tuple.E(filter.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupSubject(context.Background(), &base.PermissionLookupSubjectRequest{
+							TenantId:         "t1",
+							SubjectReference: tuple.RelationReference(filter.subjectReference),
+							Entity:           entity,
+							Permission:       permission,
+							Metadata: &base.PermissionLookupSubjectRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+							},
+							ContinuousToken: ct,
+							PageSize:        5,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetSubjectIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
 				}
 			}
 		})
 	})
 
 	weekdaySchemaSubjectFilter := `
-		entity user {}
-		
-		entity organization {
-		
-			relation member @user
-		
-			attribute balance integer
-
-			permission view = check_balance(balance) and member
-		}
-		
-		entity repository {
-		
-			relation organization  @organization
-			
-			attribute is_public boolean
-
-			permission view = is_public
-			permission edit = organization.view
-			permission delete = is_weekday(request.day_of_week)
-		}
-		
-		rule check_balance(balance integer) {
-			balance > 5000
-		}
-
-		rule is_weekday(day_of_week string) {
-			  day_of_week != 'saturday' && day_of_week != 'sunday'
-		}
-		`
+			entity user {}
+	
+			entity organization {
+	
+				relation member @user
+	
+				attribute balance integer
+	
+				permission view = check_balance(balance) and member
+			}
+	
+			entity repository {
+	
+				relation organization  @organization
+	
+				attribute is_public boolean
+	
+				permission view = is_public
+				permission edit = organization.view
+				permission delete = is_weekday(request.day_of_week)
+			}
+	
+			rule check_balance(balance integer) {
+				balance > 5000
+			}
+	
+			rule is_weekday(day_of_week string) {
+				  day_of_week != 'saturday' && day_of_week != 'sunday'
+			}
+			`
 
 	Context("Weekday Sample: Subject Filter", func() {
 		It("Weekday Sample: Case 1", func() {
@@ -3028,7 +3466,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})

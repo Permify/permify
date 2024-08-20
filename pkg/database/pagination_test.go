@@ -9,19 +9,19 @@ import (
 func TestNewPagination(t *testing.T) {
 	tests := []struct {
 		name      string
-		opts      []Option
+		opts      []PaginationOption
 		wantSize  uint32
 		wantToken string
 	}{
 		{
 			name:      "Default size",
-			opts:      []Option{},
-			wantSize:  _defaultPageSize,
+			opts:      []PaginationOption{},
+			wantSize:  0,
 			wantToken: "",
 		},
 		{
 			name: "Custom size and token",
-			opts: []Option{
+			opts: []PaginationOption{
 				Size(50),
 				Token("abc123"),
 			},
@@ -48,8 +48,8 @@ func TestNewPagination(t *testing.T) {
 func TestPagination(t *testing.T) {
 	// Test default page size
 	p := NewPagination()
-	if p.PageSize() != _defaultPageSize {
-		t.Errorf("Expected default page size of %d, but got %d", _defaultPageSize, p.PageSize())
+	if p.PageSize() != 0 {
+		t.Errorf("Expected default page size of %d, but got %d", 0, p.PageSize())
 	}
 
 	// Test custom page size
