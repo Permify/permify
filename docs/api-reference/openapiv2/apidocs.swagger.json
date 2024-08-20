@@ -2272,6 +2272,15 @@
         "context": {
           "$ref": "#/definitions/Context",
           "description": "Context associated with this request."
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
         }
       },
       "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
@@ -2298,6 +2307,15 @@
         "context": {
           "$ref": "#/definitions/Context",
           "description": "Context associated with this request."
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
         }
       },
       "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
@@ -2324,6 +2342,15 @@
         "context": {
           "$ref": "#/definitions/Context",
           "description": "Context associated with this request."
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
         }
       },
       "description": "PermissionLookupSubjectRequest is the request message for the LookupSubject method in the Permission service."
@@ -2562,6 +2589,10 @@
             "type": "string"
           },
           "description": "List of identifiers for entities that match the lookup."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
         }
       },
       "description": "PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service."
@@ -2572,6 +2603,10 @@
         "entity_id": {
           "type": "string",
           "description": "Identifier for an entity that matches the lookup."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
         }
       },
       "description": "PermissionLookupEntityStreamResponse is the response message for the LookupEntityStream method in the Permission service."
@@ -2604,6 +2639,10 @@
             "type": "string"
           },
           "description": "List of identifiers for subjects that match the lookup."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
         }
       },
       "description": "PermissionLookupSubjectResponse is the response message for the LookupSubject method in the Permission service."

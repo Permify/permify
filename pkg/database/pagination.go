@@ -1,17 +1,17 @@
 package database
 
-// Option - Option type
-type Option func(*Pagination)
+// PaginationOption - Option type
+type PaginationOption func(*Pagination)
 
 // Size -
-func Size(size uint32) Option {
+func Size(size uint32) PaginationOption {
 	return func(c *Pagination) {
 		c.size = size
 	}
 }
 
 // Token -
-func Token(token string) Option {
+func Token(token string) PaginationOption {
 	return func(c *Pagination) {
 		c.token = token
 	}
@@ -24,16 +24,12 @@ type Pagination struct {
 }
 
 // NewPagination -
-func NewPagination(opts ...Option) Pagination {
+func NewPagination(opts ...PaginationOption) Pagination {
 	pagination := &Pagination{}
 
 	// Custom options
 	for _, opt := range opts {
 		opt(pagination)
-	}
-
-	if pagination.size == 0 {
-		pagination.size = _defaultPageSize
 	}
 
 	return *pagination
@@ -49,51 +45,47 @@ func (p Pagination) Token() string {
 	return p.token
 }
 
-// EncodedContinuousToken -
-type EncodedContinuousToken interface {
-	// String returns the string representation of the continuous token.
-	String() string
-	// Decode decodes the continuous token from a string
-	Decode() (ContinuousToken, error)
+// CursorPaginationOption - Option type
+type CursorPaginationOption func(*CursorPagination)
+
+// CursorPagination -
+type CursorPagination struct {
+	cursor string
+	sort   string
 }
 
-// ContinuousToken -
-type ContinuousToken interface {
-	// Encode encodes the continuous token to a string.
-	Encode() EncodedContinuousToken
+// NewCursorPagination -
+func NewCursorPagination(opts ...CursorPaginationOption) CursorPagination {
+	pagination := &CursorPagination{}
+
+	// Custom options
+	for _, opt := range opts {
+		opt(pagination)
+	}
+
+	return *pagination
 }
 
-type (
-	NoopContinuousToken struct {
-		Value string
-	}
-	NoopEncodedContinuousToken struct {
-		Value string
-	}
-)
-
-// NewNoopContinuousToken - Creates a new continuous token
-func NewNoopContinuousToken() ContinuousToken {
-	return &NoopContinuousToken{
-		Value: "",
+// Cursor -
+func Cursor(cursor string) CursorPaginationOption {
+	return func(c *CursorPagination) {
+		c.cursor = cursor
 	}
 }
 
-// Encode - Encodes the token to a string
-func (t NoopContinuousToken) Encode() EncodedContinuousToken {
-	return NoopEncodedContinuousToken{
-		Value: "",
+// Sort -
+func Sort(sort string) CursorPaginationOption {
+	return func(c *CursorPagination) {
+		c.sort = sort
 	}
 }
 
-// Decode decodes the token from a string
-func (t NoopEncodedContinuousToken) Decode() (ContinuousToken, error) {
-	return NoopContinuousToken{
-		Value: "",
-	}, nil
+// Cursor -
+func (p CursorPagination) Cursor() string {
+	return p.cursor
 }
 
-// Decode decodes the token from a string
-func (t NoopEncodedContinuousToken) String() string {
-	return ""
+// Sort -
+func (p CursorPagination) Sort() string {
+	return p.sort
 }

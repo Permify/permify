@@ -1658,6 +1658,25 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 		}
 	}
 
+	if m.GetPageSize() != 0 {
+
+		if val := m.GetPageSize(); val < 1 || val > 100 {
+			err := PermissionLookupEntityRequestValidationError{
+				field:  "PageSize",
+				reason: "value must be inside range [1, 100]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetContinuousToken() != "" {
+
+	}
+
 	if len(errors) > 0 {
 		return PermissionLookupEntityRequestMultiError(errors)
 	}
@@ -1887,6 +1906,8 @@ func (m *PermissionLookupEntityResponse) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for ContinuousToken
+
 	if len(errors) > 0 {
 		return PermissionLookupEntityResponseMultiError(errors)
 	}
@@ -1992,6 +2013,8 @@ func (m *PermissionLookupEntityStreamResponse) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for EntityId
+
+	// no validation rules for ContinuousToken
 
 	if len(errors) > 0 {
 		return PermissionLookupEntityStreamResponseMultiError(errors)
@@ -2244,6 +2267,10 @@ func (m *PermissionEntityFilterRequest) validate(all bool) error {
 				cause:  err,
 			}
 		}
+	}
+
+	if m.GetCursor() != "" {
+
 	}
 
 	if len(errors) > 0 {
@@ -2664,6 +2691,25 @@ func (m *PermissionLookupSubjectRequest) validate(all bool) error {
 		}
 	}
 
+	if m.GetPageSize() != 0 {
+
+		if val := m.GetPageSize(); val < 1 || val > 100 {
+			err := PermissionLookupSubjectRequestValidationError{
+				field:  "PageSize",
+				reason: "value must be inside range [1, 100]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetContinuousToken() != "" {
+
+	}
+
 	if len(errors) > 0 {
 		return PermissionLookupSubjectRequestMultiError(errors)
 	}
@@ -2891,6 +2937,8 @@ func (m *PermissionLookupSubjectResponse) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for ContinuousToken
 
 	if len(errors) > 0 {
 		return PermissionLookupSubjectResponseMultiError(errors)

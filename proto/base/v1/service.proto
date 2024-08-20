@@ -694,6 +694,17 @@ message PermissionLookupEntityRequest {
 
   // Context associated with this request.
   Context context = 6 [json_name = "context"];
+
+  // page_size is the number of tenants to be returned in the response.
+  // The value should be between 1 and 100.
+  uint32 page_size = 7 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
+  ];
+
+  // continuous_token is an optional parameter used for pagination.
+  // It should be the value received in the previous response.
+  string continuous_token = 8 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
 
 // PermissionLookupEntityRequestMetadata metadata for the PermissionLookupEntityRequest.
@@ -721,6 +732,9 @@ message PermissionLookupEntityResponse {
 
   // List of identifiers for entities that match the lookup.
   repeated string entity_ids = 1 [json_name = "entity_ids"];
+
+  // continuous_token is a string that can be used to paginate and retrieve the next set of results.
+  string continuous_token = 2 [json_name = "continuous_token"];
 }
 
 // LOOKUP STREAM
@@ -730,6 +744,9 @@ message PermissionLookupEntityStreamResponse {
 
   // Identifier for an entity that matches the lookup.
   string entity_id = 1 [json_name = "entity_id"];
+
+  // continuous_token is a string that can be used to paginate and retrieve the next set of results.
+  string continuous_token = 2 [json_name = "continuous_token"];
 }
 
 // PermissionEntityFilterRequest is the request message for the LookupEntityStream method in the Permission service.
@@ -753,6 +770,10 @@ message PermissionEntityFilterRequest {
 
   // Context associated with this request.
   Context context = 5 [json_name = "context"];
+
+  // cursor is an optional parameter used for pagination.
+  // It should be the value received in the previous response.
+  string cursor = 6 [json_name = "cursor", (validate.rules).string = {ignore_empty: true}];
 }
 
 // PermissionEntityFilterRequestMetadata metadata for the PermissionEntityFilterRequest.
@@ -805,6 +826,17 @@ message PermissionLookupSubjectRequest {
 
   // Context associated with this request.
   Context context = 6 [json_name = "context"];
+
+  // page_size is the number of tenants to be returned in the response.
+  // The value should be between 1 and 100.
+  uint32 page_size = 7 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {gte: 1, lte: 100, ignore_empty: true}
+  ];
+
+  // continuous_token is an optional parameter used for pagination.
+  // It should be the value received in the previous response.
+  string continuous_token = 8 [json_name = "continuous_token", (validate.rules).string = {ignore_empty: true}];
 }
 
 // PermissionLookupSubjectRequestMetadata metadata for the PermissionLookupSubjectRequest.
@@ -832,6 +864,9 @@ message PermissionLookupSubjectResponse {
 
   // List of identifiers for subjects that match the lookup.
   repeated string subject_ids = 1 [json_name = "subject_ids"];
+
+  // continuous_token is a string that can be used to paginate and retrieve the next set of results.
+  string continuous_token = 2 [json_name = "continuous_token"];
 }
 
 // SUBJECT PERMISSION

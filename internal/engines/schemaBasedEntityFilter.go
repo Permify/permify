@@ -130,17 +130,31 @@ func (engine *SchemaBasedEntityFilter) relationEntrance(
 		},
 	}
 
-	// Use the filter to query for relationships in the given context.
-	// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
-	// QueryRelationships() then uses the filter to find and return matching relationships.
-	cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+	var (
+		cti, rit   *database.TupleIterator
+		err        error
+		pagination database.CursorPagination
+	)
+
+	// Determine the pagination settings based on the entity type in the request.
+	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
+	// Otherwise, use the default pagination settings.
+	if request.GetEntityReference().GetType() == entrance.TargetEntrance.GetType() {
+		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+	} else {
+		pagination = database.NewCursorPagination()
+	}
+
+	// Query the relationships using the specified pagination settings.
+	// The context tuples are filtered based on the provided filter.
+	cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, pagination)
 	if err != nil {
 		return err
 	}
 
 	// Query the relationships for the entity in the request.
-	// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
-	rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+	// The results are filtered based on the provided filter and pagination settings.
+	rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), pagination)
 	if err != nil {
 		return err
 	}
@@ -199,17 +213,31 @@ func (engine *SchemaBasedEntityFilter) tupleToUserSetEntrance(
 			},
 		}
 
-		// Use the filter to query for relationships in the given context.
-		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
-		// QueryRelationships() then uses the filter to find and return matching relationships.
-		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+		var (
+			cti, rit   *database.TupleIterator
+			err        error
+			pagination database.CursorPagination
+		)
+
+		// Determine the pagination settings based on the entity type in the request.
+		// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
+		// Otherwise, use the default pagination settings.
+		if request.GetEntityReference().GetType() == entrance.TargetEntrance.GetType() {
+			pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+		} else {
+			pagination = database.NewCursorPagination()
+		}
+
+		// Query the relationships using the specified pagination settings.
+		// The context tuples are filtered based on the provided filter.
+		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, pagination)
 		if err != nil {
 			return err
 		}
 
-		// Use the filter to query for relationships in the database.
-		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
-		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		// Query the relationships for the entity in the request.
+		// The results are filtered based on the provided filter and pagination settings.
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), pagination)
 		if err != nil {
 			return err
 		}
@@ -293,6 +321,7 @@ func (engine *SchemaBasedEntityFilter) l(
 			},
 			Metadata: request.GetMetadata(),
 			Context:  request.GetContext(),
+			Cursor:   request.GetCursor(),
 		}, visits, publisher)
 	})
 	return nil
