@@ -1020,6 +1020,8 @@ entity doc {
 	  action view_comment = owner or post.group_member
 	  action edit_comment = owner
 	  action delete_comment = owner
+
+      action remove = post.delete_post
 	}
 	
 	entity like {
@@ -1477,6 +1479,287 @@ entity doc {
 
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(response.GetEntityIds()).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Facebook Group Sample: Case 3 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(facebookGroupsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"group:1#member@user:1",
+					"group:2#member@user:1",
+					"group:3#member@user:1",
+					"group:4#member@user:1",
+
+					"post:99#group@group:1#...",
+					"post:98#group@group:2#...",
+					"post:97#group@group:3#...",
+					"post:96#group@group:4#...",
+					"post:96#group@group:4#...",
+					"post:95#group@group:4#...",
+					"post:94#group@group:4#...",
+					"post:93#group@group:4#...",
+					"post:92#group@group:4#...",
+				},
+				filters: []filter{
+					{
+						entityType: "post",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"view_post": {"92", "93", "94", "95", "96", "97", "98", "99"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+							TenantId:   "t1",
+							EntityType: filter.entityType,
+							Subject:    subject,
+							Permission: permission,
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         100,
+							},
+							PageSize:        5,
+							ContinuousToken: ct,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetEntityIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Facebook Group Sample: Case 4 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(facebookGroupsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"group:1#admin@user:1",
+					"group:2#admin@user:1",
+					"group:3#admin@user:1",
+					"group:4#admin@user:1",
+
+					"post:59#group@group:1#...",
+					"post:58#group@group:2#...",
+					"post:57#group@group:3#...",
+					"post:56#group@group:4#...",
+					"post:55#group@group:4#...",
+					"post:54#group@group:4#...",
+					"post:53#group@group:4#...",
+					"post:52#group@group:4#...",
+
+					"comment:99#post@post:58#...",
+					"comment:98#post@post:58#...",
+					"comment:97#post@post:54#...",
+					"comment:96#post@post:4#...",
+					"comment:96#post@post:57#...",
+					"comment:95#post@post:54#...",
+					"comment:94#post@post:54#...",
+					"comment:93#post@post:54#...",
+					"comment:92#post@post:53#...",
+					"comment:91#post@post:53#...",
+					"comment:90#post@post:53#...",
+					"comment:45#post@post:53#...",
+					"comment:1#post@post:53#...",
+				},
+				filters: []filter{
+					{
+						entityType: "comment",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"remove": {"1", "45", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+							TenantId:   "t1",
+							EntityType: filter.entityType,
+							Subject:    subject,
+							Permission: permission,
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         100,
+							},
+							PageSize:        5,
+							ContinuousToken: ct,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetEntityIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
 				}
 			}
 		})
