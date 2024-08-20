@@ -70,7 +70,7 @@ func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filt
 	}
 
 	// Sort tuples based on the provided order field
-	sort.SliceStable(tup, func(i, j int) bool {
+	sort.Slice(tup, func(i, j int) bool {
 		switch pagination.Sort() {
 		case "entity_id":
 			return tup[i].EntityID < tup[j].EntityID
@@ -330,7 +330,7 @@ func (r *DataReader) QueryUniqueEntities(_ context.Context, tenantID, name, _ st
 	all := append(tupleIds, attributeIds...)
 
 	// Sort the combined slice
-	sort.SliceStable(all, func(i, j int) bool {
+	sort.Slice(all, func(i, j int) bool {
 		return all[i] < all[j]
 	})
 

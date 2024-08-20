@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	"github.com/Permify/permify/internal/storage/context/utils"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -26,7 +27,7 @@ func NewContextualTuples(tuples ...*base.Tuple) *ContextualTuples {
 // QueryRelationships filters the ContextualTuples based on the provided TupleFilter, applies cursor-based pagination, and returns a TupleIterator for the filtered tuples.
 func (c *ContextualTuples) QueryRelationships(filter *base.TupleFilter, pagination database.CursorPagination) (*database.TupleIterator, error) {
 	// Sort tuples based on the provided order field
-	sort.SliceStable(c.Tuples, func(i, j int) bool {
+	sort.Slice(c.Tuples, func(i, j int) bool {
 		switch pagination.Sort() {
 		case "entity_id":
 			return c.Tuples[i].GetEntity().GetId() < c.Tuples[j].GetEntity().GetId()
@@ -37,8 +38,17 @@ func (c *ContextualTuples) QueryRelationships(filter *base.TupleFilter, paginati
 		}
 	})
 
+	cursor := ""
+	if pagination.Cursor() != "" {
+		t, err := utils.EncodedContinuousToken{Value: pagination.Cursor()}.Decode()
+		if err != nil {
+			return nil, err
+		}
+		cursor = t.(utils.ContinuousToken).Value
+	}
+
 	// Filter the tuples based on the provided filter and cursor
-	filtered := c.filterTuples(filter, pagination.Cursor(), pagination.Sort())
+	filtered := c.filterTuples(filter, cursor, pagination.Sort())
 
 	// Return a new TupleIterator for the filtered tuples
 	return database.NewTupleIterator(filtered...), nil
@@ -70,9 +80,9 @@ func (c *ContextualTuples) filterTuples(filter *base.TupleFilter, cursor, order 
 func isTupleAfterCursor(tup *base.Tuple, cursor, order string) bool {
 	switch order {
 	case "entity_id":
-		return tup.GetEntity().GetId() > cursor
+		return tup.GetEntity().GetId() >= cursor
 	case "subject_id":
-		return tup.GetSubject().GetId() > cursor
+		return tup.GetSubject().GetId() >= cursor
 	default:
 		// If the order field is not recognized, default to not skipping any tuples
 		return true

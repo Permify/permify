@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	"github.com/Permify/permify/internal/storage/context/utils"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -36,7 +37,7 @@ func (c *ContextualAttributes) QuerySingleAttribute(filter *base.AttributeFilter
 // and returns an iterator to traverse through the filtered attributes.
 func (c *ContextualAttributes) QueryAttributes(filter *base.AttributeFilter, pagination database.CursorPagination) (*database.AttributeIterator, error) {
 	// Sort tuples based on the provided order field
-	sort.SliceStable(c.Attributes, func(i, j int) bool {
+	sort.Slice(c.Attributes, func(i, j int) bool {
 		switch pagination.Sort() {
 		case "entity_id":
 			return c.Attributes[i].GetEntity().GetId() < c.Attributes[j].GetEntity().GetId()
@@ -45,7 +46,16 @@ func (c *ContextualAttributes) QueryAttributes(filter *base.AttributeFilter, pag
 		}
 	})
 
-	filtered := c.filterAttributes(filter, pagination.Cursor(), pagination.Sort())
+	cursor := ""
+	if pagination.Cursor() != "" {
+		t, err := utils.EncodedContinuousToken{Value: pagination.Cursor()}.Decode()
+		if err != nil {
+			return nil, err
+		}
+		cursor = t.(utils.ContinuousToken).Value
+	}
+
+	filtered := c.filterAttributes(filter, cursor, pagination.Sort())
 	return database.NewAttributeIterator(filtered...), nil
 }
 
@@ -75,7 +85,7 @@ func (c *ContextualAttributes) filterAttributes(filter *base.AttributeFilter, cu
 func isAttributeAfterCursor(attr *base.Attribute, cursor, order string) bool {
 	switch order {
 	case "entity_id":
-		return attr.GetEntity().GetId() > cursor
+		return attr.GetEntity().GetId() >= cursor
 	default:
 		// If the order field is not recognized, default to not skipping any tuples
 		return true
