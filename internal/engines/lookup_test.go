@@ -2748,6 +2748,7 @@ entity doc {
 		permission update = owner and org.admin
 		permission delete = owner or org.admin
 		permission share = update and (member not parent.update)
+		permission remove = owner or parent.delete
 	}`
 
 	Context("Drive Sample: Subject Filter", func() {
@@ -3464,7 +3465,7 @@ entity doc {
 			}
 		})
 
-		It("Drive Sample: Case 8", func() {
+		It("Drive Sample: Case 8 pagination", func() {
 			db, err := factories.DatabaseFactory(
 				config.Database{
 					Engine: "memory",
@@ -3512,6 +3513,141 @@ entity doc {
 						entity:           "doc:1",
 						assertions: map[string][]string{
 							"delete": {"1", "2", "3", "4", "5", "6", "7"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				entity, err := tuple.E(filter.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupSubject(context.Background(), &base.PermissionLookupSubjectRequest{
+							TenantId:         "t1",
+							SubjectReference: tuple.RelationReference(filter.subjectReference),
+							Entity:           entity,
+							Permission:       permission,
+							Metadata: &base.PermissionLookupSubjectRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+							},
+							ContinuousToken: ct,
+							PageSize:        5,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetSubjectIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 9 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaSubjectFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				subjectReference string
+				entity           string
+				assertions       map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:99#owner@user:1",
+					"doc:99#owner@user:3",
+
+					"organization:98#admin@user:101",
+
+					"organization:11#admin@user:99",
+					"organization:12#admin@user:98",
+					"organization:13#admin@user:97",
+					"organization:14#admin@user:96",
+					"organization:14#admin@user:95",
+
+					"folder:1#org@organization:11",
+					"folder:2#org@organization:12",
+					"folder:3#org@organization:13",
+					"folder:4#org@organization:14",
+
+					"doc:99#parent@folder:1",
+					"doc:99#parent@folder:2",
+					"doc:99#parent@folder:3",
+					"doc:99#parent@folder:4",
+
+					"doc:99#owner@organization:98#admin",
+				},
+				filters: []filter{
+					{
+						subjectReference: "user",
+						entity:           "doc:99",
+						assertions: map[string][]string{
+							"remove": {"1", "101", "3", "95", "96", "97", "98", "99"},
 						},
 					},
 				},
