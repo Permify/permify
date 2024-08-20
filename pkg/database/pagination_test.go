@@ -80,3 +80,62 @@ func TestNoopContinuousToken(t *testing.T) {
 	// Test Encode and Decode
 	assert.Empty(t, decodedToken.(NoopContinuousToken).Value)
 }
+
+func TestNewCursorPagination(t *testing.T) {
+	tests := []struct {
+		name       string
+		opts       []CursorPaginationOption
+		wantSort   string
+		wantCursor string
+	}{
+		{
+			name:       "Default size",
+			opts:       []CursorPaginationOption{},
+			wantSort:   "",
+			wantCursor: "",
+		},
+		{
+			name: "Custom size and token",
+			opts: []CursorPaginationOption{
+				Sort("entity_id"),
+				Cursor("abc123"),
+			},
+			wantSort:   "entity_id",
+			wantCursor: "abc123",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := NewCursorPagination(tt.opts...)
+
+			if p.sort != tt.wantSort {
+				t.Errorf("NewCursorPagination() size = %s, want %s", p.sort, tt.wantSort)
+			}
+
+			if p.cursor != tt.wantCursor {
+				t.Errorf("NewCursorPagination() cursor = %s, want %s", p.cursor, tt.wantCursor)
+			}
+		})
+	}
+}
+
+func TestCursorPagination(t *testing.T) {
+	// Test default page size
+	p := NewCursorPagination()
+	if p.Sort() != "" {
+		t.Errorf("Expected default sort empty string, but got %s", p.Sort())
+	}
+
+	// Test custom page size
+	p = NewCursorPagination(Sort("entity_id"))
+	if p.Sort() != "entity_id" {
+		t.Errorf("Expected sort entity_id, but got %s", p.Sort())
+	}
+
+	// Test token
+	p = NewCursorPagination(Cursor("my-cursor"))
+	if p.Cursor() != "my-cursor" {
+		t.Errorf("Expected token of 'my-cursor', but got '%s'", p.Cursor())
+	}
+}
