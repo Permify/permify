@@ -50,6 +50,9 @@ const MainLayout = ({children, ...rest}) => {
             scenarios: scenarios
         })
         const file = new File([yamlString], `s.yaml`, {type: 'text/x-yaml'});
+
+        alert(process.env.BLOB_READ_WRITE_TOKEN)
+
         put("s.yaml", file, {access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN}).then((result) => {
             let fileName = result.url.split('/').pop();
             setId(fileName.replace('.yaml', ''))
