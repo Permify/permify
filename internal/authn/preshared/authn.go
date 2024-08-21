@@ -13,11 +13,6 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// KeyAuthenticator - Interface for key authenticator
-type KeyAuthenticator interface {
-	Authenticate(ctx context.Context) error
-}
-
 // KeyAuthn - Authentication Keys Structure
 type KeyAuthn struct {
 	keys map[string]struct{}
