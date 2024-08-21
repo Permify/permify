@@ -21,11 +21,6 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// Authenticator - Interface for oidc authenticator
-type Authenticator interface {
-	Authenticate(ctx context.Context) error
-}
-
 type Authn struct {
 	// URL of the issuer. This is typically the base URL of the identity provider.
 	IssuerURL string
