@@ -42,23 +42,61 @@ To create them directly we can use a Dockerfile which we'll simplify to a single
 FROM ghcr.io/permify/permify:latest
 ```
 
-Then run the run command for as many machines we want, 1 is the minimum and `fly deploy` usually creates 2. We can even name them as we want using the `-n` or `--name` flags.
+### 3. Create a new Fly App and configure the services
 
+Create a new fly app with the `fly launch` command and edit the `fly.toml` file that gets created:
+
+```toml
+# fly.toml app configuration file generated
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+app = 'permify-fly-deploy-with-postgres'
+primary_region = 'lax'
+
+[experimental]
+  # you'll want to avoid committing the actual username and password in source control for your database
+  # and possibly generate this file in a build process to deploy to inject your database secrets.
+  cmd = ["serve", "--database-engine=postgres", "--database-uri=postgres://<username>:<password>@permify-psql.flycast:5432"]
+
+[[services]]
+  internal_port = 3476
+  protocol = 'tcp'
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 3476
+
+[[services]]
+  internal_port = 3478
+  protocol = 'tcp'
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+  [services.ports]
+  # we don't need any handlers for this one since the permify grpc server
+  # handles tls termination for us.
+    port = 3478
+    tls_options = { "alpn" = ["h2"] }
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+```
+
+### 4. Deploy to fly
+
+With the configuration setup, we can now deploy our container to fly
+
+Run the command in the directory with our `Dockerfile` and `fly.toml` configuration:
 ```sh
-fly machine run . \
-    --app "permify-fly-deploy-example" \
-    -p 3476:3476/tcp:http:tls \
-    -p 3478:3478/tcp:http:tls \
-    --name permify-m-1
-    --entrypoint "permify serve --database-engine=postgres --database-uri='postgres://<usename>:<password>@<url-for-postgres>'"
-
-# or with the image name directly
-fly machine run ghcr.io/permify/permify:latest
-    \ --app "permify-fly-deploy-example" \
-    -p 3476:3476/tcp:http:tls \
-    -p 3478:3478/tcp:http:tls  \
-    -n permify-m-2 \
-    --entrypoint "permify serve --database-engine=postgres --database-uri='postgres://<usename>:<password>@<url-for-postgres>'"
+fly deploy
 ```
 
 ## Running Permify on Fly without a database
@@ -78,7 +116,7 @@ Let's create a Dockerfile that uses the latest container image from the Github R
 
 ```dockerfile
 # file: ./permify-fly-deploy/Dockerfile
-FROM ghcr.io/permify/permify
+FROM ghcr.io/permify/permify:latest
 CMD ["serve"]
 ```
 
@@ -136,8 +174,9 @@ primary_region = 'lax'
   processes = ['app']
 
   [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 3478
+  # we don't need http handlers for our fly machines for port 3478 since our gRPC server handles
+  # tls termination for us
+  port = 3478
 
 [[vm]]
   memory = '1gb'
