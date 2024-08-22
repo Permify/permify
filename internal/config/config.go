@@ -301,7 +301,7 @@ func DefaultConfig() *Config {
 			Headers: []string{},
 		},
 		Meter: Meter{
-			Enabled:  true,
+			Enabled:  false,
 			Exporter: "otlp",
 			Endpoint: "telemetry.permify.co",
 			Headers:  []string{},
