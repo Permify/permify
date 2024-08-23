@@ -736,7 +736,7 @@
           {
             "label": "go",
             "lang": "go",
-            "source": "cr, err := client.Permission.Check(context.Background(), \u0026v1.PermissionCheckRequest {\n    TenantId: \"t1\",\n    Metadata: \u0026v1.PermissionCheckRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Entity: \u0026v1.Entity {\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Permission: \"edit\",\n    Subject: \u0026v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n\n    if (cr.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {\n        // RESULT_ALLOWED\n    } else {\n        // RESULT_DENIED\n    }\n})"
+            "source": "cr, err := client.Permission.Check(context.Background(), \u0026v1.PermissionCheckRequest {\n    TenantId: \"t1\",\n    Metadata: \u0026v1.PermissionCheckRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Entity: \u0026v1.Entity {\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Permission: \"edit\",\n    Subject: \u0026v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n})\nif cr.Can == v1.PermissionCheckResponse_Result_RESULT_ALLOWED {\n    // RESULT_ALLOWED\n} else {\n    // RESULT_DENIED\n}"
           },
           {
             "label": "node",
@@ -746,7 +746,7 @@
           {
             "label": "cURL",
             "lang": "curl",
-            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/check' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\":{\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"depth\": 20\n  },\n  \"entity\": {\n    \"type\": \"repository\",\n    \"id\": \"1\"\n  },\n  \"permission\": \"edit\",\n  \"subject\": {\n    \"type\": \"user\",\n    \"id\": \"1\",\n    \"relation\": \"\"\n  },\n}'"
+            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/check' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\": {\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"depth\": 20\n  },\n  \"entity\": {\n    \"type\": \"repository\",\n    \"id\": \"1\"\n  },\n  \"permission\": \"edit\",\n  \"subject\": {\n    \"type\": \"user\",\n    \"id\": \"1\",\n    \"relation\": \"\"\n  }\n}'"
           }
         ]
       }

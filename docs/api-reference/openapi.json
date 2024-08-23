@@ -12,7 +12,7 @@
       "name": "Apache-2.0 license",
       "url": "https://github.com/Permify/permify/blob/master/LICENSE"
     },
-    "version": "v0.10.1"
+    "version": "v1.0.2"
   },
   "servers": [
     {
@@ -20,6 +20,9 @@
     }
   ],
   "tags": [
+    {
+      "name": "Health"
+    },
     {
       "name": "Permission"
     },
@@ -40,6 +43,54 @@
     }
   ],
   "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "health api",
+        "operationId": "health.check",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          },
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          },
+          {
+            "label": "",
+            "lang": "",
+            "source": ""
+          }
+        ]
+      }
+    },
     "/v1/tenants/create": {
       "post": {
         "tags": [
@@ -801,7 +852,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckBody"
+                "$ref": "#/components/schemas/Permission.CheckBody"
               }
             }
           },
@@ -833,7 +884,7 @@
           {
             "label": "go",
             "lang": "go",
-            "source": "cr, err := client.Permission.Check(context.Background(), &v1.PermissionCheckRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionCheckRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Entity: &v1.Entity {\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Permission: \"edit\",\n    Subject: &v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n\n    if (cr.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {\n        // RESULT_ALLOWED\n    } else {\n        // RESULT_DENIED\n    }\n})"
+            "source": "cr, err := client.Permission.Check(context.Background(), &v1.PermissionCheckRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionCheckRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Entity: &v1.Entity {\n        Type: \"repository\",\n        Id: \"1\",\n    },\n    Permission: \"edit\",\n    Subject: &v1.Subject {\n        Type: \"user\",\n        Id: \"1\",\n    },\n})\nif cr.Can == v1.PermissionCheckResponse_Result_RESULT_ALLOWED {\n    // RESULT_ALLOWED\n} else {\n    // RESULT_DENIED\n}"
           },
           {
             "label": "node",
@@ -843,7 +894,7 @@
           {
             "label": "cURL",
             "lang": "curl",
-            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/check' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\":{\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"depth\": 20\n  },\n  \"entity\": {\n    \"type\": \"repository\",\n    \"id\": \"1\"\n  },\n  \"permission\": \"edit\",\n  \"subject\": {\n    \"type\": \"user\",\n    \"id\": \"1\",\n    \"relation\": \"\"\n  },\n}'"
+            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/check' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\": {\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"depth\": 20\n  },\n  \"entity\": {\n    \"type\": \"repository\",\n    \"id\": \"1\"\n  },\n  \"permission\": \"edit\",\n  \"subject\": {\n    \"type\": \"user\",\n    \"id\": \"1\",\n    \"relation\": \"\"\n  }\n}'"
           }
         ],
         "x-codegen-request-body-name": "body"
@@ -1849,35 +1900,6 @@
         },
         "description": "BundleWriteResponse is the response for a BundleWriteRequest.\nIt includes a name which could be used as an identifier or acknowledgment."
       },
-      "CheckBody": {
-        "type": "object",
-        "properties": {
-          "metadata": {
-            "$ref": "#/components/schemas/PermissionCheckRequestMetadata"
-          },
-          "entity": {
-            "$ref": "#/components/schemas/Entity"
-          },
-          "permission": {
-            "type": "string",
-            "description": "The action the user wants to perform on the resource"
-          },
-          "subject": {
-            "$ref": "#/components/schemas/Subject"
-          },
-          "context": {
-            "$ref": "#/components/schemas/Context"
-          },
-          "arguments": {
-            "type": "array",
-            "description": "Additional arguments associated with this request.",
-            "items": {
-              "$ref": "#/components/schemas/Argument"
-            }
-          }
-        },
-        "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
-      },
       "CheckResult": {
         "type": "string",
         "description": "Enumerates results of a check operation.\n\n - CHECK_RESULT_UNSPECIFIED: Not specified check result. This is the default value.\n - CHECK_RESULT_ALLOWED: Represents a successful check (the check allowed the operation).\n - CHECK_RESULT_DENIED: Represents a failed check (the check denied the operation).",
@@ -1920,7 +1942,14 @@
       },
       "Child": {
         "type": "object",
-        "properties": {},
+        "properties": {
+          "leaf": {
+            "$ref": "#/components/schemas/Leaf"
+          },
+          "rewrite": {
+            "$ref": "#/components/schemas/Rewrite"
+          }
+        },
         "description": "Child represents a node in the permission tree."
       },
       "Comprehension": {
@@ -2380,7 +2409,6 @@
       },
       "Expr": {
         "type": "object",
-        "properties": {},
         "description": "An abstract representation of a common expression.\n\nExpressions are abstractly represented as a collection of identifiers,\nselect statements, function calls, literals, and comprehensions. All\noperators with the exception of the '.' operator are modelled as function\ncalls. This makes it easy to represent new operators into the existing AST.\n\nAll references within expressions must resolve to a [Decl][google.api.expr.v1alpha1.Decl] provided at\ntype-check for an expression to be valid. A reference may either be a bare\nidentifier `name` or a qualified identifier `google.api.name`. References\nmay either refer to a value or a function declaration.\n\nFor example, the expression `google.api.name.startsWith('expr')` references\nthe declaration `google.api.name` within a [Expr.Select][google.api.expr.v1alpha1.Expr.Select] expression, and\nthe function declaration `startsWith`."
       },
       "Expr.Call": {
@@ -2418,6 +2446,14 @@
           }
         },
         "description": "Function type with result and arg types."
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
       },
       "Ident": {
         "type": "object",
@@ -2475,6 +2511,15 @@
           },
           "context": {
             "$ref": "#/components/schemas/Context"
+          },
+          "page_size": {
+            "type": "integer",
+            "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100.",
+            "format": "int64"
+          },
+          "continuous_token": {
+            "type": "string",
+            "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
           }
         },
         "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
@@ -2498,6 +2543,15 @@
           },
           "context": {
             "$ref": "#/components/schemas/Context"
+          },
+          "page_size": {
+            "type": "integer",
+            "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100.",
+            "format": "int64"
+          },
+          "continuous_token": {
+            "type": "string",
+            "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
           }
         },
         "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
@@ -2520,6 +2574,15 @@
           },
           "context": {
             "$ref": "#/components/schemas/Context"
+          },
+          "page_size": {
+            "type": "integer",
+            "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100.",
+            "format": "int64"
+          },
+          "continuous_token": {
+            "type": "string",
+            "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
           }
         },
         "description": "PermissionLookupSubjectRequest is the request message for the LookupSubject method in the Permission service."
@@ -2583,6 +2646,35 @@
             }
           }
         }
+      },
+      "Permission.CheckBody": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "$ref": "#/components/schemas/PermissionCheckRequestMetadata"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "permission": {
+            "type": "string",
+            "description": "The action the user wants to perform on the resource"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/Subject"
+          },
+          "context": {
+            "$ref": "#/components/schemas/Context"
+          },
+          "arguments": {
+            "type": "array",
+            "description": "Additional arguments associated with this request.",
+            "items": {
+              "$ref": "#/components/schemas/Argument"
+            }
+          }
+        },
+        "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
       },
       "Permission.ExpandBody": {
         "type": "object",
@@ -2716,6 +2808,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "continuous_token": {
+            "type": "string",
+            "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
           }
         },
         "description": "PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service."
@@ -2726,6 +2822,10 @@
           "entity_id": {
             "type": "string",
             "description": "Identifier for an entity that matches the lookup."
+          },
+          "continuous_token": {
+            "type": "string",
+            "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
           }
         },
         "description": "PermissionLookupEntityStreamResponse is the response message for the LookupEntityStream method in the Permission service."
@@ -2758,6 +2858,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "continuous_token": {
+            "type": "string",
+            "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
           }
         },
         "description": "PermissionLookupSubjectResponse is the response message for the LookupSubject method in the Permission service."
@@ -3506,7 +3610,6 @@
       },
       "v1.Expand": {
         "type": "object",
-        "properties": {},
         "description": "Expand is used to define a hierarchical structure for permissions.\nIt has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects."
       },
       "v1.Operation": {
@@ -3565,7 +3668,54 @@
       },
       "v1alpha1.Type": {
         "type": "object",
-        "properties": {},
+        "properties": {
+          "dyn": {
+            "type": "object",
+            "properties": {},
+            "description": "Dynamic type."
+          },
+          "null": {
+            "type": "string",
+            "description": "Null value."
+          },
+          "primitive": {
+            "$ref": "#/components/schemas/PrimitiveType"
+          },
+          "wrapper": {
+            "$ref": "#/components/schemas/PrimitiveType"
+          },
+          "wellKnown": {
+            "$ref": "#/components/schemas/WellKnownType"
+          },
+          "listType": {
+            "$ref": "#/components/schemas/ListType"
+          },
+          "mapType": {
+            "$ref": "#/components/schemas/MapType"
+          },
+          "function": {
+            "$ref": "#/components/schemas/FunctionType"
+          },
+          "messageType": {
+            "type": "string",
+            "description": "Protocol buffer message type.\n\nThe `message_type` string specifies the qualified message type name. For\nexample, `google.plus.Profile`."
+          },
+          "typeParam": {
+            "type": "string",
+            "description": "Type param type.\n\nThe `type_param` string specifies the type parameter name, e.g. `list<E>`\nwould be a `list_type` whose element type was a `type_param` type\nnamed `E`."
+          },
+          "type": {
+            "$ref": "#/components/schemas/v1alpha1.Type"
+          },
+          "error": {
+            "type": "object",
+            "properties": {},
+            "description": "Error type.\n\nDuring type-checking if an expression is an error, its type is propagated\nas the `ERROR` type. This permits the type-checker to discover other\nerrors present in the expression."
+          },
+          "abstractType": {
+            "$ref": "#/components/schemas/AbstractType"
+          }
+        },
         "description": "Represents a CEL type."
       }
     },

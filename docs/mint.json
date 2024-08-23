@@ -286,6 +286,7 @@
       "group": "Operations",
       "pages": [
         "operations/bundle",
+        "operations/data-filtering",
         "operations/cache",
         "operations/contextual-tuples",
         "operations/tracing",
