@@ -3,12 +3,10 @@ package instance
 import (
 	"context"
 	"fmt"
-	"testing"
 	"time"
 
 	"github.com/testcontainers/testcontainers-go/wait"
 
-	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/testcontainers/testcontainers-go"
 
@@ -18,11 +16,6 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
-
-func TestPostgres(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "postgres-suite")
-}
 
 func PostgresDB(postgresVersion string) database.Database {
 	ctx := context.Background()
