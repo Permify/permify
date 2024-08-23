@@ -1,9 +1,8 @@
-package postgres
+package instance
 
 import (
 	"context"
 	"fmt"
-	"sort"
 	"testing"
 	"time"
 
@@ -25,7 +24,7 @@ func TestPostgres(t *testing.T) {
 	RunSpecs(t, "postgres-suite")
 }
 
-func postgresDB(postgresVersion string) database.Database {
+func PostgresDB(postgresVersion string) database.Database {
 	ctx := context.Background()
 
 	image := fmt.Sprintf("postgres:%s-alpine", postgresVersion)
@@ -94,27 +93,4 @@ func postgresDB(postgresVersion string) database.Database {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	return db
-}
-
-// isSameArray - check if two arrays are the same
-func isSameArray(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	sortedA := make([]string, len(a))
-	copy(sortedA, a)
-	sort.Strings(sortedA)
-
-	sortedB := make([]string, len(b))
-	copy(sortedB, b)
-	sort.Strings(sortedB)
-
-	for i := range sortedA {
-		if sortedA[i] != sortedB[i] {
-			return false
-		}
-	}
-
-	return true
 }
