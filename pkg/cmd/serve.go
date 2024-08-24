@@ -200,6 +200,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Log.Insecure,
 				cfg.Log.URLPath,
 				headers,
+				cfg.Log.Protocol,
 			)
 			if err != nil {
 				return errors.New("invalid logger exporter")
@@ -293,6 +294,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Tracer.Insecure,
 				cfg.Tracer.URLPath,
 				headers,
+				cfg.Tracer.Protocol,
 			)
 			if err != nil {
 				slog.Error(err.Error())
@@ -344,6 +346,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Meter.Insecure,
 				cfg.Meter.URLPath,
 				headers,
+				cfg.Meter.Protocol,
 			)
 
 			if err != nil {
