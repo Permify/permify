@@ -298,10 +298,12 @@ func DefaultConfig() *Config {
 			Enabled:  false,
 			Exporter: "otlp",
 			Headers:  []string{},
+			Protocol: "http",
 		},
 		Tracer: Tracer{
-			Enabled: false,
-			Headers: []string{},
+			Enabled:  false,
+			Headers:  []string{},
+			Protocol: "http",
 		},
 		Meter: Meter{
 			Enabled:  false,
@@ -309,6 +311,7 @@ func DefaultConfig() *Config {
 			Endpoint: "telemetry.permify.co",
 			Headers:  []string{},
 			Interval: 300,
+			Protocol: "http",
 		},
 		Service: Service{
 			CircuitBreaker: false,
