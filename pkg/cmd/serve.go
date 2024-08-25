@@ -265,6 +265,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			err = storage.Migrate(cfg.Database)
 			if err != nil {
 				slog.Error("failed to migrate database", slog.Any("error", err))
+				return err
 			}
 		}
 
