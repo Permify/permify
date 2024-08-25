@@ -1,21 +1,9 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
-#
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
-#
-# ******** NOTE ********
-# We have attempted to detect the languages in your repository. Please check
-# the `language` matrix defined below to confirm you have the correct set of
-# supported CodeQL languages.
-#
 name: "CodeQL"
 
 on:
   push:
     branches: [ "master" ]
   pull_request:
-    # The branches below must be a subset of the branches above
     branches: [ "master" ]
   schedule:
     - cron: '30 18 * * 2'
@@ -35,26 +23,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'go', 'javascript' ]
+        language: [ 'go' ]
 
     steps:
-    - name: Harden Runner
-      uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
-      with:
-        egress-policy: audit
+      - name: Harden Runner
+        uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
+        with:
+          egress-policy: audit
 
-    - name: Checkout repository
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@f0f3afee809481da311ca3a6ff1ff51d81dbeb24 # v3.26.4
-      with:
-        languages: ${{ matrix.language }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@f0f3afee809481da311ca3a6ff1ff51d81dbeb24 # v3.26.4
+        with:
+          languages: go
 
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@f0f3afee809481da311ca3a6ff1ff51d81dbeb24 # v3.26.4
+      - name: Build the project
+        run: make build
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@f0f3afee809481da311ca3a6ff1ff51d81dbeb24 # v3.26.4
-      with:
-        category: "/language:${{matrix.language}}"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@f0f3afee809481da311ca3a6ff1ff51d81dbeb24 # v3.26.4
+        with:
+          category: "/language:go"
