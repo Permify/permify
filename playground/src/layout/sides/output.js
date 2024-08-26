@@ -86,69 +86,84 @@ function Output(props) {
         <div>
             {!props.loading &&
                 <>
-                    <GuidedTour refSchemaEditor={refSchemaEditor}
-                                refRelationshipsAndAttributes={refRelationshipsAndAttributes}
-                                refEnforcement={refEnforcement}/>
-                    <div style={{height: '100vh'}} className="ml-10 mr-10">
-                        <Allotment vertical defaultSizes={[100, 100]}>
-                            <Allotment.Pane snap visible={!isOpen}>
-                                <Allotment>
-                                    <Allotment.Pane snap ref={refSchemaEditor}>
-                                        <Card title={
-                                            <Radio.Group defaultValue="schema" buttonStyle="solid"
-                                                         onChange={onSchemaSelectedChange}
-                                                         value={schemaSelected} optionType="button">
-                                                <Radio.Button value="schema">Schema</Radio.Button>
-                                                <Radio.Button value="visualizer">Visualizer</Radio.Button>
-                                            </Radio.Group>
-                                        } className="mr-10" extra={<Button onClick={() => {
-                                            copySchema(schema)
-                                        }} icon={<CopyOutlined/>}>{isSchemaCopied ? 'Copied!' : 'Copy'}</Button>}>
-                                            {renderSchemaComponent()}
-                                        </Card>
+                    { props.type === 'f' ?
+                        <Card style={{border: 'none'}} title={
+                            <Radio.Group defaultValue="schema" buttonStyle="solid"
+                                         onChange={onSchemaSelectedChange}
+                                         value={schemaSelected} optionType="button">
+                                <Radio.Button value="schema">Schema</Radio.Button>
+                                <Radio.Button value="visualizer">Visualizer</Radio.Button>
+                            </Radio.Group>
+                        }>
+                            {renderSchemaComponent()}
+                        </Card>
+                        :
+                        <>
+                            <GuidedTour refSchemaEditor={refSchemaEditor}
+                                        refRelationshipsAndAttributes={refRelationshipsAndAttributes}
+                                        refEnforcement={refEnforcement}/>
+                            <div style={{height: '100vh'}} className="ml-10 mr-10">
+                                <Allotment vertical defaultSizes={[100, 100]}>
+                                    <Allotment.Pane snap visible={!isOpen}>
+                                        <Allotment>
+                                            <Allotment.Pane snap ref={refSchemaEditor}>
+                                                <Card title={
+                                                    <Radio.Group defaultValue="schema" buttonStyle="solid"
+                                                                 onChange={onSchemaSelectedChange}
+                                                                 value={schemaSelected} optionType="button">
+                                                        <Radio.Button value="schema">Schema</Radio.Button>
+                                                        <Radio.Button value="visualizer">Visualizer</Radio.Button>
+                                                    </Radio.Group>
+                                                } className="mr-10" extra={<Button onClick={() => {
+                                                    copySchema(schema)
+                                                }} icon={<CopyOutlined/>}>{isSchemaCopied ? 'Copied!' : 'Copy'}</Button>}>
+                                                    {renderSchemaComponent()}
+                                                </Card>
+                                            </Allotment.Pane>
+                                            <Allotment.Pane snap ref={refEnforcement}>
+                                                <Card title="Enforcement" className="ml-10"
+                                                      extra={<div style={{display: 'flex', alignItems: 'center'}}>
+                                                          <Button
+                                                              disabled={yamlValidationErrors.length > 0}
+                                                              icon={assertionCount === 0 ? null : scenariosError.length > 0 ?
+                                                                  <ExclamationCircleOutlined/> :
+                                                                  <CheckCircleOutlined/>}
+                                                              type="primary"
+                                                              loading={runLoading}
+                                                              onClick={() => {
+                                                                  runAssertions()
+                                                              }}>Run</Button>
+                                                      </div>}>
+                                                    <Enforcement/>
+                                                </Card>
+                                            </Allotment.Pane>
+                                        </Allotment>
                                     </Allotment.Pane>
-                                    <Allotment.Pane snap ref={refEnforcement}>
-                                        <Card title="Enforcement" className="ml-10"
-                                              extra={<div style={{display: 'flex', alignItems: 'center'}}>
-                                                  <Button
-                                                      disabled={yamlValidationErrors.length > 0}
-                                                      icon={assertionCount === 0 ? null : scenariosError.length > 0 ?
-                                                          <ExclamationCircleOutlined/> :
-                                                          <CheckCircleOutlined/>}
-                                                      type="primary"
-                                                      loading={runLoading}
-                                                      onClick={() => {
-                                                          runAssertions()
-                                                      }}>Run</Button>
-                                              </div>}>
-                                            <Enforcement/>
+                                    <Allotment.Pane snap>
+                                        <Card title={
+                                            <Radio.Group
+                                                defaultValue="relationships"
+                                                buttonStyle="solid"
+                                                onChange={onDataSelectedChange}
+                                                value={dataSelected}
+                                                ref={refRelationshipsAndAttributes}
+                                            >
+                                                <Radio.Button value="relationships">Relationships</Radio.Button>
+                                                <Radio.Button value="attributes">Attributes</Radio.Button>
+                                            </Radio.Group>} className="mt-10" extra={
+                                            allotmentStatus === "default" ?
+                                                <Button className="ml-auto" icon={<ExpandOutlined/>} onClick={open}/>
+                                                :
+                                                <Button className="ml-auto" icon={<FullscreenExitOutlined/>}
+                                                        onClick={reset}/>
+                                        }>
+                                            {renderDataComponent()}
                                         </Card>
                                     </Allotment.Pane>
                                 </Allotment>
-                            </Allotment.Pane>
-                            <Allotment.Pane snap>
-                                <Card title={
-                                    <Radio.Group
-                                        defaultValue="relationships"
-                                        buttonStyle="solid"
-                                        onChange={onDataSelectedChange}
-                                        value={dataSelected}
-                                        ref={refRelationshipsAndAttributes}
-                                    >
-                                        <Radio.Button value="relationships">Relationships</Radio.Button>
-                                        <Radio.Button value="attributes">Attributes</Radio.Button>
-                                    </Radio.Group>} className="mt-10" extra={
-                                    allotmentStatus === "default" ?
-                                        <Button className="ml-auto" icon={<ExpandOutlined/>} onClick={open}/>
-                                        :
-                                        <Button className="ml-auto" icon={<FullscreenExitOutlined/>}
-                                                onClick={reset}/>
-                                }>
-                                    {renderDataComponent()}
-                                </Card>
-                            </Allotment.Pane>
-                        </Allotment>
-                    </div>
+                            </div>
+                        </>
+                    }
                 </>
             }
         </div>

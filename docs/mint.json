@@ -274,6 +274,7 @@
             "setting-up/installation/aws",
             "setting-up/installation/brew",
             "setting-up/installation/container",
+            "setting-up/installation/fly",
             "setting-up/installation/google",
             "setting-up/installation/helm",
             "setting-up/installation/kubernetes"
@@ -285,6 +286,7 @@
       "group": "Operations",
       "pages": [
         "operations/bundle",
+        "operations/data-filtering",
         "operations/cache",
         "operations/contextual-tuples",
         "operations/tracing",

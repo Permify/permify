@@ -31,41 +31,17 @@ We'll follow a simplified version of the GitHub access control system, where tea
 
 Before start I want to share the full implementation of simple Github access control example with using Permify Schema.
 
-```perm
-entity user {}
-
-entity organization {
-
-    relation admin @user
-    relation member @user
-
-    action create_repository = admin or member
-    action delete = admin
-
-}
-
-entity team {
-
-    relation parent  @organization
-    relation member  @user
-
-    action edit = member or parent.admin
-
-}
-
-entity repository {
-
-    relation parent @organization
-
-    relation owner @user
-    relation maintainer @user @team#member
-
-    action push   = owner or maintainer
-    action read =  org.admin and (owner or maintainer or org.member)
-    action delete = parent.admin or owner
-
-}
-```
+<iframe
+    src="https://play.permify.co/?s=s-d1Qkf1d4y6RsxkugbIDYhxdYxfNRlm&t=f"
+    title="Organizations Hierarchies"
+    style={{
+        width: '100%',
+        height: '700px',
+        border: 'none',
+        margin: '0 auto',
+        display: 'block'
+    }}>
+</iframe>
 
 <Note>
 You can start developing Permify Schema on [VSCode]. You can install the extension by searching for **Perm** in the extensions marketplace.
