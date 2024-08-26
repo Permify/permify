@@ -87,11 +87,6 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 		totalDeleted += int(result.RowsAffected())
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-
 	var name string
 	var createdAt time.Time
 
@@ -100,6 +95,11 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	} else {
 		tenant.Scan(&name, &createdAt)
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	return &base.Tenant{
