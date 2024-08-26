@@ -69,39 +69,39 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 
 	slog.DebugContext(ctx, "deleting tenant", slog.Any("tenant_id", tenantID))
 
-	tx, err := w.database.WritePool.Begin(ctx)
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-	defer tx.Rollback(ctx)
-
+	// Prepare batch operations for deleting tenant-related records from multiple tables
 	tables := []string{"bundles", "relation_tuples", "attributes", "schema_definitions", "transactions"}
-	var totalDeleted int
+	batch := &pgx.Batch{}
 
 	for _, table := range tables {
 		query := fmt.Sprintf(utils.DeleteAllByTenantTemplate, table)
-		result, err := tx.Exec(ctx, query, tenantID)
-		if err != nil {
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-		}
-		totalDeleted += int(result.RowsAffected())
+		batch.Queue(query, tenantID)
 	}
 
+	// Execute the batch of delete queries
+	br := w.database.WritePool.SendBatch(ctx, batch)
+	defer func() {
+		if closeErr := br.Close(); closeErr != nil {
+			if err == nil {
+				err = closeErr
+			}
+		}
+	}()
+
+	if _, err = br.Exec(); err != nil {
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	}
+
+	// Retrieve the tenant details after deletion
 	var name string
 	var createdAt time.Time
-
-	tenant := tx.QueryRow(ctx, utils.DeleteTenantTemplate, tenantID)
-	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-	} else {
-		tenant.Scan(&name, &createdAt)
-	}
-
-	err = tx.Commit(ctx)
+	tenant := w.database.WritePool.QueryRow(ctx, utils.DeleteTenantTemplate, tenantID)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
+	tenant.Scan(&name, &createdAt)
 
+	// Return the deleted tenant information
 	return &base.Tenant{
 		Id:        tenantID,
 		Name:      name,
