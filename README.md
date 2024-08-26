@@ -106,7 +106,7 @@ Before start please see our [contributing guide](https://github.com/Permify/perm
 
 ## Roadmap
 
-You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/projects/1)!
+You can find Permify's Public Roadmap [here](https://permify.featurebase.app/roadmap)!
 
 ## Contributors ♥️
 
