@@ -48,6 +48,39 @@ func (w *TenantWriter) DeleteTenant(_ context.Context, tenantID string) (result 
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
+
+	_, err = txn.First(constants.AttributesTable, "tenant_id", tenantID)
+	if err != nil {
+		if _, deleteErr := txn.DeleteAll(constants.AttributesTable, "tenant_id", tenantID); deleteErr != nil {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		}
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	_, err = txn.First(constants.BundlesTable, "tenant_id", tenantID)
+	if err != nil {
+		if _, deleteErr := txn.DeleteAll(constants.BundlesTable, "tenant_id", tenantID); deleteErr != nil {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		}
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	_, err = txn.First(constants.RelationTuplesTable, "tenant_id", tenantID)
+	if err != nil {
+		if _, deleteErr := txn.DeleteAll(constants.RelationTuplesTable, "tenant_id", tenantID); deleteErr != nil {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		}
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
+	_, err = txn.First(constants.SchemaDefinitionsTable, "tenant_id", tenantID)
+	if err != nil {
+		if _, deleteErr := txn.DeleteAll(constants.SchemaDefinitionsTable, "tenant_id", tenantID); deleteErr != nil {
+			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+		}
+		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+	}
+
 	if _, err = txn.DeleteAll(constants.TenantsTable, "id", tenantID); err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}

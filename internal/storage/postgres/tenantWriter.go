@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 	"time"
@@ -68,15 +69,38 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 
 	slog.DebugContext(ctx, "deleting tenant", slog.Any("tenant_id", tenantID))
 
-	var name string
-	var createdAt time.Time
+	tx, err := w.database.WritePool.Begin(ctx)
+	if err != nil {
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	}
+	defer tx.Rollback(ctx)
 
-	err = w.database.WritePool.QueryRow(ctx, utils.DeleteTenantTemplate, tenantID).Scan(&name, &createdAt)
+	tables := []string{"bundles", "relation_tuples", "attributes", "schema_definitions", "transactions"}
+	var totalDeleted int
+
+	for _, table := range tables {
+		query := fmt.Sprintf(utils.DeleteAllByTenantTemplate, table)
+		result, err := tx.Exec(ctx, query, tenantID)
+		if err != nil {
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		}
+		totalDeleted += int(result.RowsAffected())
+	}
+
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.DebugContext(ctx, "successfully deleted tenant")
+	var name string
+	var createdAt time.Time
+
+	tenant := tx.QueryRow(ctx, utils.DeleteTenantTemplate, tenantID)
+	if err != nil {
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	} else {
+		tenant.Scan(&name, &createdAt)
+	}
 
 	return &base.Tenant{
 		Id:        tenantID,
