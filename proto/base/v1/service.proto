@@ -1750,7 +1750,7 @@ service Schema {
                 fields: {
                   key: "source"
                   value: {string_value:
-                      "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/read' \\\n"
+                      "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/list' \\\n"
                       "--header 'Content-Type: application/json' \\\n"
                       "--data-raw '{\n"
                       "    \"page_size\": 20,\n"
