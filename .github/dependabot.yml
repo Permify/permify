@@ -5,12 +5,10 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 15
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "monthly"  
-    open-pull-requests-limit: 15
   - package-ecosystem: "npm"
     directory: "/playground"
     schedule:
