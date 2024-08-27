@@ -56,7 +56,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 	case "boolean":
 		boolVal, err := strconv.ParseBool(v[1])
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse boolean: %v", err)
+			return nil, fmt.Errorf("failed to parse boolean: %w", err)
 		}
 		wrapped = &base.BooleanValue{Data: boolVal}
 	case "boolean[]":
@@ -65,7 +65,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		for _, value := range val {
 			boolVal, err := strconv.ParseBool(value)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse boolean: %v", err)
+				return nil, fmt.Errorf("failed to parse boolean: %w", err)
 			}
 			ba = append(ba, boolVal)
 		}
@@ -82,7 +82,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 	case "double":
 		doubleVal, err := strconv.ParseFloat(v[1], 64)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse float: %v", err)
+			return nil, fmt.Errorf("failed to parse float: %w", err)
 		}
 		wrapped = &base.DoubleValue{Data: doubleVal}
 	case "double[]":

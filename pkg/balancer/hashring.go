@@ -1,6 +1,7 @@
 package balancer
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -86,7 +87,7 @@ func (b *consistentHashBalancer) UpdateClientConnState(s balancer.ClientConnStat
 
 	// If there are no addresses from the resolver, log an error.
 	if len(s.ResolverState.Addresses) == 0 {
-		b.ResolverError(fmt.Errorf("produced zero addresses"))
+		b.ResolverError(errors.New("produced zero addresses"))
 		return balancer.ErrBadResolverState
 	}
 
@@ -206,14 +207,14 @@ func (b *consistentHashBalancer) mergeErrors() error {
 
 	// If only one of the errors is nil, return the other error.
 	if b.lastConnectionError == nil {
-		return fmt.Errorf("last resolver error: %v", b.lastResolverError)
+		return fmt.Errorf("last resolver error: %w", b.lastResolverError)
 	}
 	if b.lastResolverError == nil {
-		return fmt.Errorf("last connection error: %v", b.lastConnectionError)
+		return fmt.Errorf("last connection error: %w", b.lastConnectionError)
 	}
 
 	// If both errors are present, concatenate them.
-	return fmt.Errorf("last connection error: %v; last resolver error: %v", b.lastConnectionError, b.lastResolverError)
+	return errors.Join(b.lastConnectionError, b.lastResolverError)
 }
 
 // UpdateSubConnState -
