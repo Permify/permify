@@ -191,7 +191,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 			},
 		}, err
 	}
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	invoker.checkDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the check count in the response metadata.
@@ -276,7 +276,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 
 	resp, err := invoker.lo.LookupEntity(ctx, request)
 
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the lookup entity count in the metrics.
@@ -323,7 +323,7 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 
 	resp := invoker.lo.LookupEntityStream(ctx, request, server)
 
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the lookup entity count in the metrics.

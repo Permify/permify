@@ -123,7 +123,7 @@ func (bc *BulkChecker) CollectAndSortRequests() {
 	}
 }
 
-// Signal to stop collecting requests and close the channel
+// StopCollectingRequests Signal to stop collecting requests and close the channel
 func (bc *BulkChecker) StopCollectingRequests() {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
@@ -145,24 +145,24 @@ func (bc *BulkChecker) sortRequests() {
 }
 
 // ExecuteRequests begins processing permission check requests from the sorted list.
-func (c *BulkChecker) ExecuteRequests(size uint32) error {
+func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 	// Stop collecting new requests and close the RequestChan to ensure no more requests are added
-	c.StopCollectingRequests()
+	bc.StopCollectingRequests()
 
 	// Wait for request collection to complete before proceeding
-	c.wg.Wait()
+	bc.wg.Wait()
 
 	// Track the number of successful permission checks
 	successCount := int64(0)
 	// Semaphore to control the maximum number of concurrent permission checks
-	sem := semaphore.NewWeighted(int64(c.concurrencyLimit))
+	sem := semaphore.NewWeighted(int64(bc.concurrencyLimit))
 	var mu sync.Mutex
 
 	// Lock the mutex to prevent race conditions while sorting and copying the list of requests
-	c.mu.Lock()
-	c.sortRequests()                                      // Sort requests based on id
-	listCopy := append([]BulkCheckerRequest{}, c.list...) // Create a copy of the list to avoid modifying the original during processing
-	c.mu.Unlock()                                         // Unlock the mutex after sorting and copying
+	bc.mu.Lock()
+	bc.sortRequests()                                      // Sort requests based on id
+	listCopy := append([]BulkCheckerRequest{}, bc.list...) // Create a copy of the list to avoid modifying the original during processing
+	bc.mu.Unlock()                                         // Unlock the mutex after sorting and copying
 
 	// Pre-allocate a slice to store the results of the permission checks
 	results := make([]base.CheckResult, len(listCopy))
@@ -180,9 +180,9 @@ func (c *BulkChecker) ExecuteRequests(size uint32) error {
 		req := currentRequest
 
 		// Use errgroup to manage the goroutines, which allows for error handling and synchronization
-		c.g.Go(func() error {
+		bc.g.Go(func() error {
 			// Acquire a slot in the semaphore to control concurrency
-			if err := sem.Acquire(c.ctx, 1); err != nil {
+			if err := sem.Acquire(bc.ctx, 1); err != nil {
 				return err // Return an error if semaphore acquisition fails
 			}
 			defer sem.Release(1) // Ensure the semaphore slot is released after processing
@@ -190,7 +190,7 @@ func (c *BulkChecker) ExecuteRequests(size uint32) error {
 			var result base.CheckResult
 			if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
 				// Perform the permission check if the result is not already specified
-				cr, err := c.checker.Check(c.ctx, req.Request)
+				cr, err := bc.checker.Check(bc.ctx, req.Request)
 				if err != nil {
 					return err // Return an error if the check fails
 				}
@@ -212,17 +212,17 @@ func (c *BulkChecker) ExecuteRequests(size uint32) error {
 						ct := ""
 						if processedIndex+1 < len(listCopy) {
 							// If there is a next item, create a continuous token with the next ID
-							if c.typ == BULK_ENTITY {
+							if bc.typ == BULK_ENTITY {
 								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetEntity().GetId()).Encode().String()
-							} else if c.typ == BULK_SUBJECT {
+							} else if bc.typ == BULK_SUBJECT {
 								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetSubject().GetId()).Encode().String()
 							}
 						}
 						// Depending on the type of check (entity or subject), call the appropriate callback
-						if c.typ == BULK_ENTITY {
-							c.callback(listCopy[processedIndex].Request.GetEntity().GetId(), ct)
-						} else if c.typ == BULK_SUBJECT {
-							c.callback(listCopy[processedIndex].Request.GetSubject().GetId(), ct)
+						if bc.typ == BULK_ENTITY {
+							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), ct)
+						} else if bc.typ == BULK_SUBJECT {
+							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), ct)
 						}
 					}
 				}
@@ -235,7 +235,7 @@ func (c *BulkChecker) ExecuteRequests(size uint32) error {
 	}
 
 	// Wait for all goroutines to complete and check for any errors
-	if err := c.g.Wait(); err != nil {
+	if err := bc.g.Wait(); err != nil {
 		return err // Return the error if any goroutine returned an error
 	}
 
