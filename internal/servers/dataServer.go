@@ -176,7 +176,6 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 	relationshipsMap := map[string]struct{}{}
 
 	for _, tup := range request.GetTuples() {
-
 		key := tuple.ToString(tup)
 
 		if _, ok := relationshipsMap[key]; ok {
