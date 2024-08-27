@@ -123,7 +123,7 @@ func (bc *BulkChecker) CollectAndSortRequests() {
 	}
 }
 
-// Signal to stop collecting requests and close the channel
+// StopCollectingRequests Signal to stop collecting requests and close the channel
 func (bc *BulkChecker) StopCollectingRequests() {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
