@@ -61,7 +61,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		wrapped = &base.BooleanValue{Data: boolVal}
 	case "boolean[]":
 		val := strings.Split(v[1], ",")
-		var ba = make([]bool, len(val))
+		ba := make([]bool, len(val))
 		for i, value := range val {
 			boolVal, err := strconv.ParseBool(value)
 			if err != nil {
@@ -73,7 +73,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 	case "string":
 		wrapped = &base.StringValue{Data: v[1]}
 	case "string[]":
-		var sa = strings.Split(v[1], ",")
+		sa := strings.Split(v[1], ",")
 		wrapped = &base.StringArrayValue{Data: sa}
 	case "double":
 		doubleVal, err := strconv.ParseFloat(v[1], 64)
@@ -83,7 +83,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		wrapped = &base.DoubleValue{Data: doubleVal}
 	case "double[]":
 		val := strings.Split(v[1], ",")
-		var da = make([]float64, len(val))
+		da := make([]float64, len(val))
 		for i, value := range val {
 			doubleVal, err := strconv.ParseFloat(value, 64)
 			if err != nil {
@@ -100,7 +100,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		wrapped = &base.IntegerValue{Data: int32(intVal)}
 	case "integer[]":
 		val := strings.Split(v[1], ",")
-		var ia = make([]int32, len(val))
+		ia := make([]int32, len(val))
 		for i, value := range val {
 			intVal, err := strconv.ParseInt(value, 10, 32)
 			if err != nil {

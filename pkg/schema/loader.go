@@ -72,7 +72,7 @@ func determineSchemaType(input string) (Type, error) {
 
 	valid, err := isFilePath(input)
 	if err != nil {
-		return Inline, err
+		return Inline, nil
 	}
 	if valid {
 		return File, nil

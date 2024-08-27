@@ -91,7 +91,7 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 
 	schemaCoverageInfo := SchemaCoverageInfo{}
 
-	var refs = make([]SchemaCoverage, len(definitions))
+	refs := make([]SchemaCoverage, len(definitions))
 	for i, en := range definitions {
 		refs[i] = references(en)
 	}
@@ -269,7 +269,7 @@ func relationships(en string, relationships []string) []string {
 
 // attributes - Get attributes for a given entity
 func attributes(en string, attributes []string) []string {
-	var attrs = make([]string, len(attributes))
+	attrs := make([]string, len(attributes))
 	for i, attr := range attributes {
 		a, err := attribute.Attribute(attr)
 		if err != nil {
