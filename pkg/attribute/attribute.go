@@ -60,24 +60,20 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		}
 		wrapped = &base.BooleanValue{Data: boolVal}
 	case "boolean[]":
-		var ba []bool
 		val := strings.Split(v[1], ",")
-		for _, value := range val {
+		var ba = make([]bool, len(val))
+		for i, value := range val {
 			boolVal, err := strconv.ParseBool(value)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse boolean: %w", err)
 			}
-			ba = append(ba, boolVal)
+			ba[i] = boolVal
 		}
 		wrapped = &base.BooleanArrayValue{Data: ba}
 	case "string":
 		wrapped = &base.StringValue{Data: v[1]}
 	case "string[]":
-		var sa []string
-		val := strings.Split(v[1], ",")
-		for _, value := range val {
-			sa = append(sa, value)
-		}
+		var sa = strings.Split(v[1], ",")
 		wrapped = &base.StringArrayValue{Data: sa}
 	case "double":
 		doubleVal, err := strconv.ParseFloat(v[1], 64)
@@ -86,14 +82,14 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		}
 		wrapped = &base.DoubleValue{Data: doubleVal}
 	case "double[]":
-		var da []float64
 		val := strings.Split(v[1], ",")
-		for _, value := range val {
+		var da = make([]float64, len(val))
+		for i, value := range val {
 			doubleVal, err := strconv.ParseFloat(value, 64)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse float: %v", err)
 			}
-			da = append(da, doubleVal)
+			da[i] = doubleVal
 		}
 		wrapped = &base.DoubleArrayValue{Data: da}
 	case "integer":
@@ -103,15 +99,14 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		}
 		wrapped = &base.IntegerValue{Data: int32(intVal)}
 	case "integer[]":
-
-		var ia []int32
 		val := strings.Split(v[1], ",")
-		for _, value := range val {
+		var ia = make([]int32, len(val))
+		for i, value := range val {
 			intVal, err := strconv.ParseInt(value, 10, 32)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse integer: %v", err)
 			}
-			ia = append(ia, int32(intVal))
+			ia[i] = int32(intVal)
 		}
 		wrapped = &base.IntegerArrayValue{Data: ia}
 	default:
@@ -243,11 +238,7 @@ func AnyToString(any *anypb.Any) string {
 		if err := any.UnmarshalTo(stringVal); err != nil {
 			return "undefined"
 		}
-		var strs []string
-		for _, v := range stringVal.GetData() {
-			strs = append(strs, v)
-		}
-		str = strings.Join(strs, ",")
+		str = strings.Join(stringVal.GetData(), ",")
 	case "type.googleapis.com/base.v1.DoubleValue":
 		doubleVal := &base.DoubleValue{}
 		if err := any.UnmarshalTo(doubleVal); err != nil {
