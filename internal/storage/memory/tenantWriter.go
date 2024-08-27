@@ -86,5 +86,4 @@ func (w *TenantWriter) DeleteTenant(_ context.Context, tenantID string) (result 
 
 	txn.Commit()
 	return raw.(storage.Tenant).ToTenant(), nil
-
 }

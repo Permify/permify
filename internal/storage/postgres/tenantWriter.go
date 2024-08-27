@@ -134,5 +134,4 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 		Name:      name,
 		CreatedAt: timestamppb.New(createdAt),
 	}, nil
-
 }
