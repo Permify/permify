@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 	"time"
@@ -68,19 +69,70 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 
 	slog.DebugContext(ctx, "deleting tenant", slog.Any("tenant_id", tenantID))
 
+	tx, err := w.database.WritePool.Begin(ctx)
+	if err != nil {
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	}
+	defer tx.Rollback(ctx)
+
+	// Prepare batch operations for deleting tenant-related records from multiple tables
+	tables := []string{"bundles", "relation_tuples", "attributes", "schema_definitions", "transactions"}
+	batch := &pgx.Batch{}
+	var totalDeleted int64
+	for _, table := range tables {
+		query := fmt.Sprintf(utils.DeleteAllByTenantTemplate, table)
+		batch.Queue(query, tenantID)
+	}
+	batch.Queue(utils.DeleteTenantTemplate, tenantID)
+
+	// Execute the batch of delete queries
+	br := tx.SendBatch(ctx, batch)
+
+	for i := 0; i < len(tables); i++ {
+		tag, err := br.Exec()
+		if err != nil {
+			err = br.Close()
+			if err != nil {
+				return nil, err
+			}
+			err = tx.Commit(ctx)
+			if err != nil {
+				return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+			}
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		} else {
+			totalDeleted += tag.RowsAffected()
+		}
+	}
+
+	// Retrieve the tenant details after deletion
 	var name string
 	var createdAt time.Time
+	err = br.QueryRow().Scan(&name, &createdAt)
 
-	err = w.database.WritePool.QueryRow(ctx, utils.DeleteTenantTemplate, tenantID).Scan(&name, &createdAt)
+	if err != nil {
+		if totalDeleted > 0 {
+			name = fmt.Sprintf("Affected rows: %d", totalDeleted)
+		} else {
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		}
+	}
+
+	err = br.Close()
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	slog.DebugContext(ctx, "successfully deleted tenant")
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	}
 
+	// Return the deleted tenant information
 	return &base.Tenant{
 		Id:        tenantID,
 		Name:      name,
 		CreatedAt: timestamppb.New(createdAt),
 	}, nil
+
 }
