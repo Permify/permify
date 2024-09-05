@@ -72,7 +72,11 @@
     },
     {
       "source": "/permify-overview/getting-started/modeling",
-      "destination": "/getting-started/modeling"
+      "destination": "/getting-started/modeling/intro"
+    },
+    {
+      "source": "/getting-started/modeling",
+      "destination": "/getting-started/modeling/intro"
     },
     {
       "source": "/installation/installation/azure",
@@ -108,7 +112,7 @@
     },
     {
       "source": "/use-cases/getting-started/modeling",
-      "destination": "/getting-started/modeling"
+      "destination": "/getting-started/modeling/intro"
     },
     {
       "source": "/api-reference/api-overview/:slug*",
@@ -192,7 +196,7 @@
     },
     {
       "source": "/example-use-cases/getting-started/modeling",
-      "destination": "/getting-started/modeling"
+      "destination": "/getting-started/modeling/intro"
     },
     {
       "source": "/getting-started/reference/configuration",
@@ -257,6 +261,37 @@
             "getting-started/examples/instagram",
             "getting-started/examples/mercury",
             "getting-started/examples/notion"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Modeling Guides",
+      "icon": "code",
+      "pages": [
+        {
+          "group": "Model Role Based Access Control (RBAC)",
+          "pages": [
+            "modeling-guides/rbac/global-roles",
+            "modeling-guides/rbac/resource-specific-roles",
+            "modeling-guides/rbac/custom-roles"
+          ]
+        },
+        {
+          "group": "Model Attribute Based Access Control (ABAC)",
+          "pages": [
+            "modeling-guides/abac/public-private",
+            "modeling-guides/abac/text-object-based-conditions",
+            "modeling-guides/abac/numerical-conditions"
+          ]
+        },
+        {
+          "group": "Model Relationship Based Access Control (ReBAC)",
+          "pages": [
+            "modeling-guides/rebac/user-groups",
+            "modeling-guides/rebac/hierarchies",
+            "modeling-guides/rebac/impersonation",
+            "modeling-guides/rebac/recursive-rebac"
           ]
         }
       ]

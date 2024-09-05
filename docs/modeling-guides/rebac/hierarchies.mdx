@@ -1,0 +1,106 @@
+---
+title: Organization Hierarchies 
+mode: wide
+---
+
+Following schema demonstrates a hierarchical structure (Organization > Department > Project) with inherited permissions. 
+
+Each level has its own specific roles (admin/member, manager, lead) that grant certain permissions, while also inheriting permissions from the level above.
+
+Before breaking down, lets provide the completed schema:
+
+```
+entity user {}
+
+ entity organization { 
+    relation admin @user 
+    relation member @user 
+    
+    action view = admin or member 
+    action edit = admin 
+} 
+
+entity department { 
+    relation parent @organization 
+    relation manager @user 
+    
+    action view = parent.view or manager 
+    action edit = parent.edit or manager
+} 
+
+entity project { 
+    relation parent @department 
+    relation lead @user 
+    
+    action view = parent.view or lead 
+    action edit = parent.edit or lead 
+}
+```
+
+## Breaking Down
+
+### User Entity:
+
+```
+entity user {}
+```
+
+This is a simple entity representing a user with no specific relations or actions defined.
+
+Organization Entity:
+
+```
+entity organization {
+    relation admin @user
+    relation member @user
+    
+    action view = admin or member
+    action edit = admin
+}
+```
+
+Has two relations: admin and member, both referring to users
+
+Defines two actions:
+- **view**: can be performed by admins or members
+- **edit**: can only be performed by admins
+
+### Department Entity:
+
+```
+entity department {
+    relation parent @organization
+    relation manager @user
+    
+    action view = parent.view or manager
+    action edit = parent.edit or manager
+}
+```
+
+Has two relations: parent (referring to an organization) and manager (referring to a user)
+
+Defines two actions:
+- **view**: can be performed by those who can view the parent organization or the department manager
+- **edit**: can be performed by those who can edit the parent organization or the department manager
+
+Project Entity:
+
+```
+entity project {
+    relation parent @department
+    relation lead @user
+    
+    action view = parent.view or lead
+    action edit = parent.edit or lead
+}
+```
+
+Has two relations: parent (referring to a department) and lead (referring to a user)
+
+Defines two actions:
+- **view:** can be performed by those who can view the parent department or the project lead
+- **edit:** can be performed by those who can edit the parent department or the project lead
+
+## More Advance Example
+
+See our [Facebook Groups example](/getting-started/examples/facebook-groups) to learn how to apply nested hierarchies in a real-world scenario.

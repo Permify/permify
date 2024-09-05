@@ -1,0 +1,77 @@
+---
+title: Resource Specific Roles
+mode: wide
+---
+
+Let's modify the [global roles schema](/modeling-guides/rbac/global-roles) to represent resource-specific roles. Basically we include a new file entity and define specific permissions for it. 
+
+Here's an updated version of the schema:
+
+```
+entity user {}
+
+entity organization {
+    // roles
+    relation admin @user
+    relation member @user
+    relation manager @user
+    relation agent @user
+}
+
+entity file {
+    // file-specific relations
+    relation owner @user
+    relation org @organization
+    relation vendor @vendor
+
+    // file-specific permissions
+    permission view = org.admin or org.manager or (org.member not org.agent) or owner
+    permission edit = org.admin or org.manager or owner
+    permission delete = org.admin or owner
+}
+
+entity vendor {
+    // vendor-specific relations
+    relation primary_contact @user
+    relation org @organization
+    
+    // vendor-specific permissions
+    permission manage = org.admin or org.agent
+    permission view = org.admin or org.manager or org.agent or primary_contact
+}
+```
+
+This model defines several entities and their relationships, permissions, and actions.
+
+Let's break it down:
+
+## User Entity
+
+This is a basic entity with no defined relations or permissions.
+
+## Organization Entity
+
+- Defines four roles: `admin`, `member`, `manager`, and `agent`.
+- These are represented as relations to the user entity.
+
+## File Entity
+
+### Relations
+- `owner`: relates to a user
+- `org`: relates to an organization
+- `vendor`: relates to a vendor
+
+### Permissions
+- `view`: granted to org admins, managers, members (excluding agents), or the file owner
+- `edit`: granted to org admins, managers, or the file owner
+- `delete`: granted to org admins or the file owner
+
+## Vendor Entity
+
+### Relations
+- `org`: relates to an organization
+- `primary_contact`: relates to a user
+
+### Permissions
+- `manage`: granted to org admins or agents
+- `view`: granted to org admins, managers, or agents

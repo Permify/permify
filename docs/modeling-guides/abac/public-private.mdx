@@ -1,0 +1,59 @@
+---
+title: Public or Private Resources
+mode: wide
+---
+
+This example demonstrates how to model public and private resource permissions.
+
+```
+entity user {}
+
+entity resource {
+  relation owner @user
+  attribute is_public boolean
+
+  permission view = is_public or owner
+  permission edit = owner
+}
+```
+
+In this schema we define two entities: `user` and `resource`. The resource entity has an owner relation to the user entity. We add an is_public attribute of type boolean to the resource entity.
+
+### Permissions
+
+- `view` permission is granted if the resource is public (is_public is true) or if the current user is the owner.
+- `edit` permission is only granted to the owner.
+
+So if `is_public` is set to **true**, anyone can view the resource. If it's **false**, only the owner can view and edit it.
+
+To create a resource with the `is_public` attribute, you would use the attributes argument in a [data write request](https://docs.permify.co/api-reference/data/write-data).
+
+Here's an example using the Go client:
+
+```go
+value, err := anypb.New(&v1.BooleanValue{
+    Data: true, // or false for private resources
+})
+if err != nil {
+    // Handle error
+}
+
+cr, err := client.Data.Write(context.Background(), &v1.DataWriteRequest{
+    TenantId: "t1",
+    Metadata: &v1.DataWriteRequestMetadata{
+        SchemaVersion: "",
+    },
+    Attributes: []*v1.Attribute{
+        {
+            Entity: &v1.Entity{
+                Type: "resource",
+                Id:   "1",
+            },
+            Attribute: "is_public",
+            Value:     value,
+        },
+    },
+})
+```
+
+See our [Instagram authorization logic example](/getting-started/examples/instagram) to learn how to use public and private resource permissions in a real-world use case.

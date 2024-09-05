@@ -1,0 +1,75 @@
+---
+title: Inherited/Nested Permissions
+mode: wide
+---
+
+The reason we have two keywords for defining permissions (`action` and `permission`) is that while most permissions are based on actions (such as view, read, edit, etc.), there are still cases where we need to define permissions based on roles or user types, such as admin or member.
+
+Additionally, there may be permissions that need to be inherited by child entities. Using the `permission` keyword in these cases is more convenient and provides better reasoning of the schema.
+
+Let's examine a small snippet from our [Facebook Groups](/getting-started/examples/facebook-groups) real world example. 
+
+We have the 'view' in the comment entity which represents the comments of the post in Facebook Groups
+
+Users can only view a comment if:
+
+- The user is the owner of that comment
+
+  **or**
+
+- The user is a member of the group to which the comment's post belongs.
+
+```perm
+// Represents a post in a Facebook group
+entity post {
+
+    ..
+    ..
+
+    // Relation to represent the group that the post belongs to
+    relation group @group
+
+    // Permissions for the post entity
+
+    ..
+    ..
+    permission group_member = group.member
+}
+
+// Represents a comment on a post in a Facebook group
+entity comment {
+
+    // Relation to represent the owner of the comment
+    relation owner @user
+
+    // Relation to represent the post that the comment belongs to
+    relation post @post
+    relation comment @comment
+
+    ..
+    ..
+
+    // Permissions
+    action view = owner or post.group_member
+
+    ..
+    ..
+}
+```
+
+The `post.group_member` refers to the members of the group to which the post belongs. We defined it as action in **post** entity as,
+
+```perm
+permission group_member = group.member
+```
+
+Permissions can be inherited as relations in other entities. This allows to form nested hierarchical relationships between entities.
+
+In this example, a comment belongs to a post which is part of a group. Since there is a **'member'** relation defined for the group entity, we can use the **'group_member'** permission to inherit the **member** relation from the group in the post and then use it in the comment.
+
+### Examine Further 
+
+You can examine our [Google Docs](/getting-started/examples/google-docs) example to learn how users can gain direct access to a document through organizational roles or through inherited/nested permissions.
+
+
+
