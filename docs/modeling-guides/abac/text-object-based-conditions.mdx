@@ -1,0 +1,73 @@
+---
+title: Text & Object Based Conditions
+mode: wide
+---
+
+String can be used as attribute data type in a variety of scenarios where text-based information is needed to make access control decisions. Here are a few examples:
+
+- **Location:** If you need to control access based on geographical location, you might have a location attribute (e.g., "USA", "EU", "Asia") stored as a string.
+- **Device Type**: If access control decisions need to consider the type of device being used, a device type attribute (e.g., "mobile", "desktop", "tablet") could be stored as a string.
+- **Time Zone**: If access needs to be controlled based on time zones, a time zone attribute (e.g., "EST", "PST", "GMT") could be stored as a string.
+- **Day of the Week:** In a scenario where access to certain resources is determined by the day of the week, the string data type can be used to represent these days (e.g., "Monday", "Tuesday", etc.) as attributes!
+
+```perm
+entity user {}
+
+entity organization {
+
+	relation admin @user
+
+	attribute location string[]
+
+	permission view = check_location(request.current_location, location) or admin
+}
+
+rule check_location(current_location string, location string[]) {
+	current_location in location
+}
+```
+
+<Warning>If you don’t create the related attribute data, Permify accounts string as `""`</Warning>
+
+### View Access On Weekends
+
+In this example, to be able to view the repository it must not be a weekend, and the user must be a member of the organization.
+
+```perm
+entity user {}
+
+entity organization {
+
+    relation member @user
+
+    permission view = is_weekday(request.day_of_week) and member
+}
+
+entity repository {
+
+    relation organization  @organization
+
+    permission view = organization.view
+}
+
+rule is_weekday(day_of_week string) {
+      day_of_week != 'saturday' && day_of_week != 'sunday'
+}
+```
+
+The permissions in this model state that to 'view' the repository, the user must fulfill two conditions: the current day (according to the context data **`day_of_week`**) must not be a weekend (determined by the **`is_weekday`** rule), and the user must be a member of the organization that owns the repository.
+
+**Relationships:**
+
+- organization:1#member@user:1
+
+**Check Evolution Sub Queries Organization View**
+→ organization:1$is_weekday(context.day_of_week) → true
+→ organization:1#member@user:1 → true
+
+**Request keys before hash**
+
+- `check*{snapshot}*{schema*version}*{context}\_organization:1$is_weekday(context.day_of_week)` → true
+- `check*{snapshot}*{schema*version}*{context}\_post:1#member@user:1` → true
+
+
