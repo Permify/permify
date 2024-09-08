@@ -24,7 +24,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/jackc/pgio v1.0.0
 	github.com/jackc/pgtype v1.14.3
-	github.com/jackc/pgx/v5 v5.6.0
+	github.com/jackc/pgx/v5 v5.7.0
 	github.com/juju/ratelimit v1.0.2
 	github.com/lestrrat-go/jwx v1.2.30
 	github.com/onsi/ginkgo/v2 v2.20.1
@@ -118,7 +118,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
