@@ -30,7 +30,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	github.com/pkg/errors v0.9.1
-	github.com/pressly/goose/v3 v3.21.1
+	github.com/pressly/goose/v3 v3.22.0
 	github.com/rs/cors v1.11.1
 	github.com/rs/xid v1.6.0
 	github.com/sercand/kuberesolver/v5 v5.1.1
@@ -82,7 +82,7 @@ require (
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/sethvargo/go-retry v0.2.4 // indirect
+	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.24.7 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
 )
