@@ -72,11 +72,7 @@
     },
     {
       "source": "/permify-overview/getting-started/modeling",
-      "destination": "/getting-started/modeling/intro"
-    },
-    {
-      "source": "/getting-started/modeling",
-      "destination": "/getting-started/modeling/intro"
+      "destination": "/getting-started/modeling"
     },
     {
       "source": "/installation/installation/azure",
@@ -112,7 +108,7 @@
     },
     {
       "source": "/use-cases/getting-started/modeling",
-      "destination": "/getting-started/modeling/intro"
+      "destination": "/getting-started/modeling"
     },
     {
       "source": "/api-reference/api-overview/:slug*",
@@ -196,7 +192,7 @@
     },
     {
       "source": "/example-use-cases/getting-started/modeling",
-      "destination": "/getting-started/modeling/intro"
+      "destination": "/getting-started/modeling"
     },
     {
       "source": "/getting-started/reference/configuration",
