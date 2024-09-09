@@ -68,7 +68,7 @@
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
-            <version>1.54.0</version>
+            <version>1.66.0</version>
         </dependency>
 
     </dependencies>
