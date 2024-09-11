@@ -30,8 +30,8 @@
     }
   },
   "topbarCtaButton": {
-    "name": "Playground",
-    "url": "https://play.permify.co/?s=organizations-hierarchies"
+    "name": "Sign Up",
+    "url": "https://console.permify.co/sign-up"
   },
   "redirects": [
     {
@@ -225,9 +225,9 @@
       "url": "https://github.com/Permify/permify"
     },
     {
-      "name": "Permify Cloud",
-      "icon": "globe",
-      "url": "cloud"
+      "name": "Playground",
+      "icon": "play",
+      "url": "https://play.permify.co/?s=organizations-hierarchies"
     }
   ],
   "navigation": [
@@ -389,12 +389,6 @@
       "group": "Watch Service",
       "pages": [
         "api-reference/watch/watch-changes"
-      ]
-    },
-    {
-      "group": "Permify Cloud",
-      "pages": [
-        "cloud/intro"
       ]
     }
   ],
