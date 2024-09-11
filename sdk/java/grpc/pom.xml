@@ -36,7 +36,7 @@
         <dependency>
             <groupId>build.buf.gen</groupId>
             <artifactId>permifyco_permify_grpc_java</artifactId>
-            <version>1.66.0.1.20240722150440.5ee7aa4c5fb5</version>
+            <version>1.66.0.1.20240910075319.951f0fc243ab</version>
         </dependency>
         
         <dependency>
