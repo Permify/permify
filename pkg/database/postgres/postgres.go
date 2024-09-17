@@ -180,15 +180,21 @@ func setDefaultQueryExecMode(config *pgx.ConnConfig) {
 var planCacheModes = map[string]string{
 	"auto":              "auto",
 	"force_custom_plan": "force_custom_plan",
+	"disable":		"disable",
 }
 
 func setPlanCacheMode(config *pgx.ConnConfig) {
 	// Default mode if no specific mode is found in the connection string
 	defaultMode := "auto"
-
+	
 	// Check if a plan cache mode is mentioned in the connection string and set it
 	for key := range planCacheModes {
 		if strings.Contains(config.ConnString(), "plan_cache_mode="+key) {
+            if key == "disable" {
+				delete(config.Config.RuntimeParams, "plan_cache_mode")
+                slog.Info("plan_cache_mode disabled")
+                return
+            }
 			config.Config.RuntimeParams["plan_cache_mode"] = planCacheModes[key]
 			slog.Info("setPlanCacheMode", slog.String("mode", key))
 			return
