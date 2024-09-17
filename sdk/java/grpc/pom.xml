@@ -42,7 +42,7 @@
         <dependency>
             <groupId>build.buf.gen</groupId>
             <artifactId>permifyco_permify_protocolbuffers_java</artifactId>
-            <version>28.1.0.1.20240910075319.951f0fc243ab</version>
+            <version>28.1.0.1.20240916080212.d596bd7e4184</version>
         </dependency>
         
         <dependency>
