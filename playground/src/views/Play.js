@@ -40,7 +40,7 @@ function Play() {
                     return (
                         <LayoutTag>
                             <Suspense fallback={<Skeleton active />}>
-                                <Output loading={loading} />
+                                <Output loading={loading} type={type} />
                             </Suspense>
                         </LayoutTag>
                     );

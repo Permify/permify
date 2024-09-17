@@ -73,7 +73,7 @@ See [all of the options] that you can use to set up and deploy Permify in your s
 
 #### Test your connection
 
-You can test your connection with creating an GET request,
+You can test your connection with creating a GET request,
 
 ```shell
 localhost:3476/healthz

@@ -67,7 +67,7 @@ var _ = Describe("DataReader", func() {
 					Type: "organization",
 					Ids:  []string{"organization-1"},
 				},
-			}, "")
+			}, "", database.NewCursorPagination())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(it1.HasNext()).Should(Equal(true))
@@ -400,9 +400,9 @@ var _ = Describe("DataReader", func() {
 
 			ids1, _, err := dataReader.QueryUniqueEntities(ctx, "t1", "organization", "", database.NewPagination())
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(len(ids1)).Should(Equal(9))
+			Expect(len(ids1)).Should(Equal(10))
 
-			Expect(isSameArray(ids1, []string{"organization-1", "organization-2", "organization-3", "organization-19", "organization-10", "organization-16", "organization-14", "organization-28", "organization-17"})).Should(BeTrue())
+			Expect(isSameArray(ids1, []string{"organization-1", "organization-2", "organization-3", "organization-19", "organization-10", "organization-16", "organization-14", "organization-28", "organization-17", "repository-13"})).Should(BeTrue())
 
 			_, err = dataWriter.Delete(ctx, "t1",
 				&base.TupleFilter{},
@@ -416,10 +416,10 @@ var _ = Describe("DataReader", func() {
 
 			ids4, ct4, err := dataReader.QueryUniqueEntities(ctx, "t1", "organization", "", database.NewPagination())
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(len(ids4)).Should(Equal(8))
+			Expect(len(ids4)).Should(Equal(9))
 			Expect(ct4.String()).Should(Equal(""))
 
-			Expect(isSameArray(ids4, []string{"organization-1", "organization-2", "organization-3", "organization-19", "organization-10", "organization-16", "organization-14", "organization-28"})).Should(BeTrue())
+			Expect(isSameArray(ids4, []string{"organization-1", "organization-2", "organization-3", "organization-19", "organization-10", "organization-16", "organization-14", "organization-28", "repository-13"})).Should(BeTrue())
 		})
 	})
 

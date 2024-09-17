@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -79,7 +78,6 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 
 		// Increase the check count in the metrics.
 		c.cacheCounter.Add(ctx, 1)
-		fmt.Println(c.cacheCounter)
 
 		duration := time.Now().Sub(start)
 		c.cacheHitDurationHistogram.Record(ctx, duration.Microseconds())

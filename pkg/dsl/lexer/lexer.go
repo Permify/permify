@@ -122,17 +122,18 @@ func (l *Lexer) NextToken() (tok token.Token) {
 	case 0:
 		tok = token.Token{PositionInfo: positionInfo(l.linePosition, l.columnPosition), Type: token.EOF, Literal: ""}
 	case '/':
-		if l.peekChar() == '/' {
+		switch l.peekChar() {
+		case '/':
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexSingleLineComment()
 			tok.Type = token.SINGLE_LINE_COMMENT
 			return
-		} else if l.peekChar() == '*' {
+		case '*':
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexMultiLineComment()
 			tok.Type = token.MULTI_LINE_COMMENT
 			return
-		} else {
+		default:
 			tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.DIVIDE, l.ch)
 		}
 	case '"':

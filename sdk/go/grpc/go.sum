@@ -4,8 +4,8 @@ buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.2-20240617
 buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.2-20240617172850-a48fcebcf8f1.2/go.mod h1:WZzeH4Sx52g5HpdqDE4B6I0cn5MPzKmp7lSG6oB6ais=
 buf.build/gen/go/permifyco/permify/grpc/go v1.5.1-20240722150440-5ee7aa4c5fb5.1 h1:DSDj0FXKqfw+pNi3xouFc5Ewr5Pz7AJhpNih0nnEsRg=
 buf.build/gen/go/permifyco/permify/grpc/go v1.5.1-20240722150440-5ee7aa4c5fb5.1/go.mod h1:cLym9TbR9HOJOzI97hoD+szCeWqqzlPZdVlDbSXYSLs=
-buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.34.2-20240722150440-5ee7aa4c5fb5.2 h1:wpP+ZuEPdsw8bS76xIAgKMDEQniJsEWFAnWxhc5NMJY=
-buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.34.2-20240722150440-5ee7aa4c5fb5.2/go.mod h1:DiFLFtaImmhn+nE0fSIvwvjdg6sTYITslVJWQXUBL3g=
+buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.34.2-20240910075319-951f0fc243ab.2 h1:/QvbXlWuboSjt/KTRS/UitkrsEUTp9k1fdxgzAMX+io=
+buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.34.2-20240910075319-951f0fc243ab.2/go.mod h1:DiFLFtaImmhn+nE0fSIvwvjdg6sTYITslVJWQXUBL3g=
 github.com/Permify/permify-go v0.4.9 h1:+BLAlbHR/5ZUZYZGOy7jwbSo5MVdofciK2GV2iiZHXo=
 github.com/Permify/permify-go v0.4.9/go.mod h1:YK3zhtF/ILLoiXcBDv9ct9O8NkX4UsP9YnwfgrPGHyY=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
@@ -30,8 +30,8 @@ google.golang.org/genproto/googleapis/api v0.0.0-20240805194559-2c9e96a0b5d4 h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20240805194559-2c9e96a0b5d4/go.mod h1:4+X6GvPs+25wZKbQq9qyAXrwIRExv7w0Ea6MgZLZiDM=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240805194559-2c9e96a0b5d4 h1:OsSGQeIIsyOEOimVxLEIL4rwGcnrjOydQaiA2bOnZUM=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240805194559-2c9e96a0b5d4/go.mod h1:Ue6ibwXGpU+dqIcODieyLOcgj7z8+IcskoNIgZxtrFY=
-google.golang.org/grpc v1.65.0 h1:bs/cUb4lp1G5iImFFd3u5ixQzweKizoZJAwBNLR42lc=
-google.golang.org/grpc v1.65.0/go.mod h1:WgYC2ypjlB0EiQi6wdKixMqukr6lBc0Vo+oOgjrM5ZQ=
+google.golang.org/grpc v1.66.2 h1:3QdXkuq3Bkh7w+ywLdLvM56cmGvQHUMZpiCzt6Rqaoo=
+google.golang.org/grpc v1.66.2/go.mod h1:s3/l6xSSCURdVfAnL+TqCNMyTDAGN6+lZeVxnZR128Y=
 google.golang.org/protobuf v1.34.2 h1:6xV6lTsCfpGD21XK49h7MhtcApnLqkfYgPcdHftf6hg=
 google.golang.org/protobuf v1.34.2/go.mod h1:qYOHts0dSfpeUzUFpOMr/WGzszTmLH+DiWniOlNbLDw=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 h1:uRGJdciOHaEIrze2W8Q3AKkepLTh2hOroT7a+7czfdQ=

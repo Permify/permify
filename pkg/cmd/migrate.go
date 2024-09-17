@@ -128,7 +128,7 @@ func migrateDown() func(cmd *cobra.Command, args []string) error {
 
 		p, err := strconv.ParseInt(flags[target], 10, 64)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		if p == 0 {

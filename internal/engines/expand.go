@@ -237,7 +237,7 @@ func (engine *ExpandEngine) expandDirectRelation(request *base.PermissionExpandR
 		// Use the filter to query for relationships in the given context.
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
-		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
 			expandChan <- expandFailResponse(err)
@@ -247,7 +247,7 @@ func (engine *ExpandEngine) expandDirectRelation(request *base.PermissionExpandR
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 			return
@@ -385,7 +385,7 @@ func (engine *ExpandEngine) expandTupleToUserSet(
 		// Use the filter to query for relationships in the given context.
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
-		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 			return
@@ -393,7 +393,7 @@ func (engine *ExpandEngine) expandTupleToUserSet(
 
 		// Use the filter to query for relationships in the database.
 		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
-		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		if err != nil {
 			expandChan <- expandFailResponse(err)
 			return
@@ -655,7 +655,7 @@ func (engine *ExpandEngine) expandDirectCall(
 			}
 
 			// Query the attributes from the context.
-			cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter)
+			cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, database.NewCursorPagination())
 			if err != nil {
 				expandChan <- expandFailResponse(err)
 				return

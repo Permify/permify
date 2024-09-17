@@ -187,6 +187,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("logger.protocol", flags.Lookup("log-protocol")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("logger.protocol", "PERMIFY_LOG_PROTOCOL"); err != nil {
+		panic(err)
+	}
+
 	// AUTHN
 	if err = viper.BindPFlag("authn.enabled", flags.Lookup("authn-enabled")); err != nil {
 		panic(err)
@@ -301,6 +308,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("tracer.protocol", flags.Lookup("tracer-protocol")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("tracer.protocol", "PERMIFY_TRACER_PROTOCOL"); err != nil {
+		panic(err)
+	}
+
 	// METER
 	if err = viper.BindPFlag("meter.enabled", flags.Lookup("meter-enabled")); err != nil {
 		panic(err)
@@ -341,6 +355,20 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 	if err = viper.BindEnv("meter.headers", "PERMIFY_METER_HEADERS"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("meter.interval", flags.Lookup("meter-interval")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("meter.interval", "PERMIFY_METER_INTERVAL"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("meter.protocol", flags.Lookup("meter-protocol")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("meter.protocol", "PERMIFY_METER_PROTOCOL"); err != nil {
 		panic(err)
 	}
 

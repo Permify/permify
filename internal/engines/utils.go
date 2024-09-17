@@ -318,7 +318,6 @@ func GenerateKey(key *base.PermissionCheckRequest, isRelational bool) string {
 		if entityRelationString != "" {
 			parts = append(parts, fmt.Sprintf("%s@%s", entityRelationString, subjectString))
 		}
-
 	} else {
 		parts = append(parts, attribute.EntityAndCallOrAttributeToString(
 			key.GetEntity(),

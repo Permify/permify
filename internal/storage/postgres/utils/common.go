@@ -21,24 +21,26 @@ import (
 
 const (
 	BulkEntityFilterTemplate = `
-    WITH entities AS (
-        (SELECT id, entity_id, entity_type, tenant_id, created_tx_id, expired_tx_id FROM relation_tuples)
+WITH filtered_entities AS (
+    SELECT DISTINCT ON (entity_id) id, entity_id
+    FROM (
+        SELECT id, entity_id, tenant_id, entity_type, created_tx_id, expired_tx_id
+        FROM relation_tuples
+        WHERE tenant_id = '%s' AND entity_type = '%s' AND %s AND %s
         UNION ALL
-        (SELECT id, entity_id, entity_type, tenant_id, created_tx_id, expired_tx_id FROM attributes)
-    ), filtered_entities AS (
-        SELECT DISTINCT ON (entity_id) id, entity_id
-        FROM entities
-        WHERE tenant_id = '%s'
-        AND entity_type = '%s'
-        AND %s
-        AND %s
-    )
-    SELECT id, entity_id
-    FROM filtered_entities`
+        SELECT id, entity_id, tenant_id, entity_type, created_tx_id, expired_tx_id
+        FROM attributes
+        WHERE tenant_id = '%s' AND entity_type = '%s' AND %s AND %s
+    ) AS entities
+)
+SELECT entity_id
+FROM filtered_entities
+`
 
-	TransactionTemplate  = `INSERT INTO transactions (tenant_id) VALUES ($1) RETURNING id`
-	InsertTenantTemplate = `INSERT INTO tenants (id, name) VALUES ($1, $2) RETURNING created_at`
-	DeleteTenantTemplate = `DELETE FROM tenants WHERE id = $1 RETURNING name, created_at`
+	TransactionTemplate       = `INSERT INTO transactions (tenant_id) VALUES ($1) RETURNING id`
+	InsertTenantTemplate      = `INSERT INTO tenants (id, name) VALUES ($1, $2) RETURNING created_at`
+	DeleteTenantTemplate      = `DELETE FROM tenants WHERE id = $1 RETURNING name, created_at`
+	DeleteAllByTenantTemplate = `DELETE FROM %s WHERE tenant_id = $1`
 )
 
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
@@ -101,7 +103,7 @@ func snapshotQuery(value uint64) (string, string) {
 // BulkEntityFilterQuery -
 func BulkEntityFilterQuery(tenantID, entityType string, snap uint64) string {
 	createdWhere, expiredWhere := snapshotQuery(snap)
-	return fmt.Sprintf(BulkEntityFilterTemplate, tenantID, entityType, createdWhere, expiredWhere)
+	return fmt.Sprintf(BulkEntityFilterTemplate, tenantID, entityType, createdWhere, expiredWhere, tenantID, entityType, createdWhere, expiredWhere)
 }
 
 // GenerateGCQuery generates a Squirrel DELETE query builder for garbage collection.

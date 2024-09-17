@@ -216,7 +216,7 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterDirect(
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
 		var cti *database.TupleIterator
-		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -224,7 +224,7 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterDirect(
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -286,6 +286,7 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterDirect(
 				SubjectReference: request.GetSubjectReference(),
 				Metadata:         request.GetMetadata(),
 				Context:          request.GetContext(),
+				ContinuousToken:  request.GetContinuousToken(),
 			})
 			if err != nil {
 				return subjectFilterEmpty(), err
@@ -362,6 +363,8 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterComputedUserSet(
 
 			// The contextual tuples are preserved from the original request.
 			Context: request.GetContext(),
+
+			ContinuousToken: request.GetContinuousToken(),
 		})
 	}
 }
@@ -389,7 +392,7 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterTupleToUserSet(
 		// Use the filter to query for relationships in the given context.
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
-		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			// If an error occurs during querying, an empty response with the error is returned.
 			return subjectFilterEmpty(), err
@@ -398,7 +401,7 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterTupleToUserSet(
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		if err != nil {
 			// If an error occurs during querying, an empty response with the error is returned.
 			return subjectFilterEmpty(), err
@@ -429,6 +432,7 @@ func (engine *SchemaBasedSubjectFilter) subjectFilterTupleToUserSet(
 				SubjectReference: request.GetSubjectReference(),
 				Metadata:         request.GetMetadata(),
 				Context:          request.GetContext(),
+				ContinuousToken:  request.GetContinuousToken(),
 			}, ttu.GetComputed()))
 		}
 

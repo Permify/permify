@@ -49,6 +49,7 @@ func NewConfigCommand() *cobra.Command {
 	f.Bool("log-insecure", conf.Log.Insecure, "use https or http for logs")
 	f.String("log-urlpath", conf.Log.URLPath, "allow to set url path for otlp exporter")
 	f.StringSlice("log-headers", conf.Log.Headers, "allows setting custom headers for the log exporter in key-value pairs")
+	f.String("log-protocol", conf.Log.Protocol, "allows setting the communication protocol for the log exporter, with options http or grpc")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
@@ -65,6 +66,7 @@ func NewConfigCommand() *cobra.Command {
 	f.Bool("tracer-insecure", conf.Tracer.Insecure, "use https or http for tracer data, only used for otlp exporter or signoz")
 	f.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
 	f.StringSlice("tracer-headers", conf.Tracer.Headers, "allows setting custom headers for the tracer exporter in key-value pairs")
+	f.String("tracer-protocol", conf.Tracer.Protocol, "allows setting the communication protocol for the tracer exporter, with options http or grpc")
 	f.Bool("meter-enabled", conf.Meter.Enabled, "switch option for metric")
 	f.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
@@ -72,6 +74,7 @@ func NewConfigCommand() *cobra.Command {
 	f.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
 	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
 	f.Int("meter-interval", conf.Meter.Interval, "allows to set metrics to be pushed in certain time interval")
+	f.String("meter-protocol", conf.Meter.Protocol, "allows setting the communication protocol for the meter exporter, with options http or grpc")
 	f.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	f.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
 	f.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
@@ -161,6 +164,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"logger.insecure", fmt.Sprintf("%v", cfg.Log.Insecure), getKeyOrigin(cmd, "log-insecure", "PERMIFY_LOG_INSECURE")},
 			[]string{"logger.urlpath", cfg.Log.URLPath, getKeyOrigin(cmd, "log-urlpath", "PERMIFY_LOG_URL_PATH")},
 			[]string{"logger.headers", fmt.Sprintf("%v", cfg.Log.Headers), getKeyOrigin(cmd, "log-headers", "PERMIFY_LOG_HEADERS")},
+			[]string{"logger.protocol", cfg.Log.Protocol, getKeyOrigin(cmd, "log-protocol", "PERMIFY_LOG_PROTOCOL")},
 			// AUTHN
 			[]string{"authn.enabled", fmt.Sprintf("%v", cfg.Authn.Enabled), getKeyOrigin(cmd, "authn-enabled", "PERMIFY_AUTHN_ENABLED")},
 			[]string{"authn.method", cfg.Authn.Method, getKeyOrigin(cmd, "authn-method", "PERMIFY_AUTHN_METHOD")},
@@ -179,6 +183,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"tracer.insecure", fmt.Sprintf("%v", cfg.Tracer.Insecure), getKeyOrigin(cmd, "tracer-insecure", "PERMIFY_TRACER_INSECURE")},
 			[]string{"tracer.urlpath", cfg.Tracer.URLPath, getKeyOrigin(cmd, "tracer-urlpath", "PERMIFY_TRACER_URL_PATH")},
 			[]string{"tracer.headers", fmt.Sprintf("%v", cfg.Tracer.Headers), getKeyOrigin(cmd, "tracer-headers", "PERMIFY_TRACER_HEADERS")},
+			[]string{"tracer.protocol", cfg.Tracer.Protocol, getKeyOrigin(cmd, "tracer-protocol", "PERMIFY_TRACER_PROTOCOL")},
 			// METER
 			[]string{"meter.enabled", fmt.Sprintf("%v", cfg.Meter.Enabled), getKeyOrigin(cmd, "meter-enabled", "PERMIFY_METER_ENABLED")},
 			[]string{"meter.exporter", cfg.Meter.Exporter, getKeyOrigin(cmd, "meter-exporter", "PERMIFY_METER_EXPORTER")},
@@ -186,6 +191,8 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"meter.insecure", fmt.Sprintf("%v", cfg.Meter.Insecure), getKeyOrigin(cmd, "meter-insecure", "PERMIFY_METER_INSECURE")},
 			[]string{"meter.urlpath", cfg.Meter.URLPath, getKeyOrigin(cmd, "meter-urlpath", "PERMIFY_METER_URL_PATH")},
 			[]string{"meter.headers", fmt.Sprintf("%v", cfg.Meter.Headers), getKeyOrigin(cmd, "meter-headers", "PERMIFY_METER_HEADERS")},
+			[]string{"meter.protocol", cfg.Meter.Protocol, getKeyOrigin(cmd, "meter-protocol", "PERMIFY_METER_PROTOCOL")},
+			[]string{"meter.interval", fmt.Sprintf("%v", cfg.Meter.Interval), getKeyOrigin(cmd, "meter-interval", "PERMIFY_METER_INTERVAL")},
 			// SERVICE
 			[]string{"service.circuit_breaker", fmt.Sprintf("%v", cfg.Service.CircuitBreaker), getKeyOrigin(cmd, "service-circuit-breaker", "PERMIFY_SERVICE_CIRCUIT_BREAKER")},
 			[]string{"service.schema.cache.number_of_counters", fmt.Sprintf("%v", cfg.Service.Schema.Cache.NumberOfCounters), getKeyOrigin(cmd, "service-schema-cache-number-of-counters", "PERMIFY_SERVICE_WATCH_ENABLED")},

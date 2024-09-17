@@ -902,7 +902,7 @@ entity doc {
 						subject:     "user:1",
 						permissions: []string{"read"},
 						assertions: map[string][]string{
-							"read": {"1", "2", "3", "4", "7", "10"},
+							"read": {"1", "10", "2", "3", "4", "7"},
 						},
 					},
 					{
@@ -919,7 +919,7 @@ entity doc {
 						subject:     "user:3",
 						permissions: []string{"read", "update"},
 						assertions: map[string][]string{
-							"read":   {"2", "3", "5", "6", "9", "10"},
+							"read":   {"10", "2", "3", "5", "6", "9"},
 							"update": {"5"},
 						},
 					},
@@ -930,7 +930,7 @@ entity doc {
 						assertions: map[string][]string{
 							"read":   {"7", "8"},
 							"delete": {"7", "8"},
-							"share":  {},
+							"share":  nil,
 						},
 					},
 					{
@@ -938,8 +938,8 @@ entity doc {
 						subject:     "user:5",
 						permissions: []string{"read", "delete"},
 						assertions: map[string][]string{
-							"read":   {"9", "10"},
-							"delete": {"9", "10"},
+							"read":   {"10", "9"},
+							"delete": {"10", "9"},
 						},
 					},
 				},
@@ -1697,8 +1697,8 @@ entity doc {
 						subject:     "user:5",
 						permissions: []string{"upload_file", "view_file", "delete_file"},
 						assertions: map[string][]string{
-							"upload_file": {},
-							"view_file":   {},
+							"upload_file": nil,
+							"view_file":   nil,
 							"delete_file": {"1", "2", "3"},
 						},
 					},
@@ -1707,11 +1707,11 @@ entity doc {
 						subject:     "user:6",
 						permissions: []string{"create_event", "view_event", "edit_event", "delete_event", "RSVP_to_event"},
 						assertions: map[string][]string{
-							"create_event":  {},
-							"view_event":    {},
-							"edit_event":    {},
-							"delete_event":  {},
-							"RSVP_to_event": {},
+							"create_event":  nil,
+							"view_event":    nil,
+							"edit_event":    nil,
+							"delete_event":  nil,
+							"RSVP_to_event": nil,
 						},
 					},
 				},
@@ -2228,8 +2228,8 @@ entity doc {
 					subject:     "user:1",
 					permissions: []string{"view", "edit"},
 					assertions: map[string][]string{
-						"view": {"2", "36", "22", "47", "1", "23", "16", "43", "24", "41", "13", "26", "10", "45", "11", "37", "20", "46", "99", "38", "12", "25", "40", "49", "17", "15", "4", "27", "83", "48", "5", "57", "75", "29", "39", "77", "98", "97", "81", "78", "76", "80", "3", "21", "65", "66", "53", "44", "34", "71", "58", "14", "74", "72", "70", "51", "33", "84", "67", "50", "63", "68", "8", "6", "69", "62", "73", "79", "91", "88", "35", "100", "64", "30", "7", "19", "18", "93", "32", "56", "55", "86", "59", "90", "60", "9", "87", "89", "31", "95", "52", "92", "61", "94", "28", "42", "85", "82", "54", "96"},
-						"edit": {"57", "67", "64", "51", "94", "91", "77", "69", "81", "66", "84", "86", "70", "79", "59", "73", "76", "80", "78", "74", "93", "61", "92", "97", "96", "72", "71", "98", "99", "65", "95", "54", "89", "88", "63", "53", "82", "100", "85", "56", "87", "75", "90", "52", "58", "55", "68", "60", "62", "83"},
+						"view": {"1", "10", "100", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "3", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "4", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "5", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "6", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "7", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "8", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "9", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+						"edit": {"100", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
 					},
 				},
 			}
@@ -2365,6 +2365,12 @@ entity doc {
 			}{
 				relationships: []string{
 					"organization:1#member@user:1",
+					"organization:2#member@user:1",
+					"organization:4#member@user:1",
+					"organization:8#member@user:1",
+					"organization:917#member@user:1",
+					"organization:20#member@user:1",
+					"organization:45#member@user:1",
 					"repository:4#organization@organization:1",
 
 					"organization:2#member@user:1",
@@ -2373,9 +2379,17 @@ entity doc {
 					"repository:1$is_public|boolean:true",
 					"repository:2$is_public|boolean:false",
 					"repository:3$is_public|boolean:true",
+					"repository:4$is_public|boolean:true",
+					"repository:5$is_public|boolean:true",
+					"repository:6$is_public|boolean:false",
 
 					"organization:1$balance|integer:4000",
 					"organization:2$balance|integer:6000",
+					"organization:4$balance|integer:6000",
+					"organization:8$balance|integer:6000",
+					"organization:917$balance|integer:6000",
+					"organization:20$balance|integer:6000",
+					"organization:45$balance|integer:6000",
 				},
 				filters: []filter{
 					{
@@ -2383,7 +2397,7 @@ entity doc {
 						subject:     "user:1",
 						permissions: []string{"view"},
 						assertions: map[string][]string{
-							"view": {"1", "3"},
+							"view": {"1", "3", "4", "5"},
 						},
 					},
 					{
@@ -2391,7 +2405,7 @@ entity doc {
 						subject:     "user:1",
 						permissions: []string{"view"},
 						assertions: map[string][]string{
-							"view": {"2"},
+							"view": {"2", "20", "4", "45", "8", "917"},
 						},
 					},
 				},
@@ -2600,7 +2614,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2701,7 +2715,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2809,7 +2823,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -2907,7 +2921,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -3007,7 +3021,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -3107,7 +3121,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -3212,7 +3226,268 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 8 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaSubjectFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				subjectReference string
+				entity           string
+				assertions       map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:1",
+					"doc:1#owner@user:3",
+					"organization:1#admin@user:8",
+					"organization:2#admin@user:32",
+					"organization:3#admin@user:43",
+					"organization:4#admin@user:65",
+					"doc:1#owner@organization:1#admin",
+					"doc:1#owner@organization:2#admin",
+					"doc:1#owner@organization:3#admin",
+					"doc:1#owner@organization:4#admin",
+					"doc:1#owner@organization:5#admin",
+					"doc:1#owner@organization:6#admin",
+					"doc:1#owner@organization:7#admin",
+				},
+				filters: []filter{
+					{
+						subjectReference: "organization#admin",
+						entity:           "doc:1",
+						assertions: map[string][]string{
+							"delete": {"1", "2", "3", "4", "5", "6", "7"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				entity, err := tuple.E(filter.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupSubject(context.Background(), &base.PermissionLookupSubjectRequest{
+							TenantId:         "t1",
+							SubjectReference: tuple.RelationReference(filter.subjectReference),
+							Entity:           entity,
+							Permission:       permission,
+							Metadata: &base.PermissionLookupSubjectRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+							},
+							ContinuousToken: ct,
+							PageSize:        5,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetSubjectIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 9 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaSubjectFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				subjectReference string
+				entity           string
+				assertions       map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:99#owner@user:1",
+					"doc:99#owner@user:3",
+
+					"organization:98#admin@user:101",
+
+					"organization:11#admin@user:99",
+					"organization:12#admin@user:98",
+					"organization:13#admin@user:97",
+					"organization:14#admin@user:96",
+					"organization:14#admin@user:95",
+
+					"folder:1#org@organization:11",
+					"folder:2#org@organization:12",
+					"folder:3#org@organization:13",
+					"folder:4#org@organization:14",
+
+					"doc:99#parent@folder:1",
+					"doc:99#parent@folder:2",
+					"doc:99#parent@folder:3",
+					"doc:99#parent@folder:4",
+
+					"doc:99#owner@organization:98#admin",
+				},
+				filters: []filter{
+					{
+						subjectReference: "user",
+						entity:           "doc:99",
+						assertions: map[string][]string{
+							"remove": {"1", "101", "3", "95", "96", "97", "98", "99"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				entity, err := tuple.E(filter.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupSubject(context.Background(), &base.PermissionLookupSubjectRequest{
+							TenantId:         "t1",
+							SubjectReference: tuple.RelationReference(filter.subjectReference),
+							Entity:           entity,
+							Permission:       permission,
+							Metadata: &base.PermissionLookupSubjectRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+							},
+							ContinuousToken: ct,
+							PageSize:        5,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetSubjectIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
 				}
 			}
 		})
@@ -3376,7 +3651,7 @@ entity doc {
 					})
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(isSameArray(response.GetSubjectIds(), res)).Should(Equal(true))
+					Expect(response.GetSubjectIds()).Should(Equal(res))
 				}
 			}
 		})

@@ -36,7 +36,7 @@ func (filter *MassEntityFilter) EntityFilter(
 		Entity: &base.EntityFilter{
 			Type: request.GetEntityType(),
 		},
-	})
+	}, database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("entity_id")))
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (filter *MassEntityFilter) EntityFilter(
 		Entity: &base.EntityFilter{
 			Type: request.GetEntityType(),
 		},
-	})
+	}, database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("entity_id")))
 	if err != nil {
 		return err
 	}
@@ -76,42 +76,30 @@ func (filter *MassEntityFilter) EntityFilter(
 	}
 
 	// Creating a pagination object
-	pagination := database.NewPagination(database.Size(100), database.Token(""))
+	pagination := database.NewPagination(database.Token(request.GetContinuousToken()))
 
-	// This loop continues until all unique entities have been queried and published
-	for {
+	// Querying unique entities from the database
+	ids, _, err := filter.dataReader.QueryUniqueEntities(
+		ctx,
+		request.GetTenantId(),
+		request.GetEntityType(),
+		request.GetMetadata().GetSnapToken(),
+		pagination,
+	)
+	if err != nil {
+		return err
+	}
 
-		// Querying unique entities from the database
-		ids, continuationToken, err := filter.dataReader.QueryUniqueEntities(
-			ctx,
-			request.GetTenantId(),
-			request.GetEntityType(),
-			request.GetMetadata().GetSnapToken(),
-			pagination,
-		)
-		if err != nil {
-			return err
-		}
-
-		// Publishing the unique entities
-		for _, id := range ids {
-			publisher.Publish(&base.Entity{
-				Type: request.GetEntityType(),
-				Id:   id,
-			}, &base.PermissionCheckRequestMetadata{
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
-		}
-
-		// Checking if all entities have been retrieved. If the continuation token is empty, the loop breaks
-		if continuationToken.String() == "" {
-			break
-		}
-
-		// Updating the continuation token in the pagination object for the next loop iteration
-		pagination = database.NewPagination(database.Size(100), database.Token(continuationToken.String()))
+	// Publishing the unique entities
+	for _, id := range ids {
+		publisher.Publish(&base.Entity{
+			Type: request.GetEntityType(),
+			Id:   id,
+		}, &base.PermissionCheckRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
 	// Return successful completion of the function

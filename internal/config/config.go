@@ -95,6 +95,7 @@ type (
 		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
 		URLPath  string   `mapstructure:"path"`     // Path for the log exporter, if not defined /v1/logs will be used
 		Headers  []string `mapstructure:"headers"`
+		Protocol string   `mapstructure:"protocol"` // Protocol for the log exporter, e.g., http, grpc
 	}
 
 	// Tracer contains configuration for distributed tracing.
@@ -105,6 +106,7 @@ type (
 		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
 		URLPath  string   `mapstructure:"path"`     // Path for the tracing exporter, if not defined /v1/trace will be used
 		Headers  []string `mapstructure:"headers"`
+		Protocol string   `mapstructure:"protocol"` // Protocol for the tracing exporter, e.g., http, grpc
 	}
 
 	// Meter contains configuration for metrics collection and reporting.
@@ -116,6 +118,7 @@ type (
 		URLPath  string   `mapstructure:"path"`     // Path for the metrics exporter, if not defined /v1/metrics will be used
 		Headers  []string `mapstructure:"headers"`
 		Interval int      `mapstructure:"interval"`
+		Protocol string   `mapstructure:"protocol"` // Protocol for the metrics exporter, e.g., http, grpc
 	}
 
 	// Service contains configuration for various service-level features.
@@ -295,17 +298,20 @@ func DefaultConfig() *Config {
 			Enabled:  false,
 			Exporter: "otlp",
 			Headers:  []string{},
+			Protocol: "http",
 		},
 		Tracer: Tracer{
-			Enabled: false,
-			Headers: []string{},
+			Enabled:  false,
+			Headers:  []string{},
+			Protocol: "http",
 		},
 		Meter: Meter{
-			Enabled:  true,
+			Enabled:  false,
 			Exporter: "otlp",
 			Endpoint: "telemetry.permify.co",
 			Headers:  []string{},
 			Interval: 300,
+			Protocol: "http",
 		},
 		Service: Service{
 			CircuitBreaker: false,

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.springframework</groupId>
@@ -31,45 +30,45 @@
          <dependency>
              <groupId>joda-time</groupId>
              <artifactId>joda-time</artifactId>
-             <version>2.9.2</version>
+             <version>2.13.0</version>
         </dependency>
 
         <dependency>
             <groupId>build.buf.gen</groupId>
             <artifactId>permifyco_permify_grpc_java</artifactId>
-            <version>1.65.1.1.20240628085453.215bbf832f82</version>
+            <version>1.66.0.1.20240910075319.951f0fc243ab</version>
         </dependency>
         
         <dependency>
             <groupId>build.buf.gen</groupId>
             <artifactId>permifyco_permify_protocolbuffers_java</artifactId>
-            <version>27.2.0.1.20240628085453.215bbf832f82</version>
+            <version>28.1.0.1.20240910075319.951f0fc243ab</version>
         </dependency>
         
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>
-            <version>1.54.0</version> <!-- Ensure this matches the version of grpc you are using -->
+            <version>1.66.0</version> <!-- Ensure this matches the version of grpc you are using -->
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-core</artifactId>
-            <version>1.54.0</version>
+            <version>1.66.0</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-api</artifactId>
-            <version>1.54.0</version>
+            <version>1.66.0</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
-            <version>1.54.0</version>
+            <version>1.66.0</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
-            <version>1.54.0</version>
+            <version>1.66.0</version>
         </dependency>
 
     </dependencies>
@@ -80,7 +79,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -89,8 +88,7 @@
                         </goals>
                         <configuration>
                             <transformers>
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>grpc.TenantCreator</mainClass>
                                 </transformer>
                             </transformers>
@@ -100,4 +98,40 @@
             </plugin>
         </plugins>
     </build>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>32.0.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-handler</artifactId>
+                <version>4.1.113.Final</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec-http</artifactId>
+                <version>4.1.113.Final</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec-http2</artifactId>
+                <version>4.1.113.Final</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

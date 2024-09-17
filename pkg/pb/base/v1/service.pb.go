@@ -604,6 +604,12 @@ type PermissionLookupEntityRequest struct {
 	Subject *Subject `protobuf:"bytes,5,opt,name=subject,proto3" json:"subject,omitempty"`
 	// Context associated with this request.
 	Context *Context `protobuf:"bytes,6,opt,name=context,proto3" json:"context,omitempty"`
+	// page_size is the number of tenants to be returned in the response.
+	// The value should be between 1 and 100.
+	PageSize uint32 `protobuf:"varint,7,opt,name=page_size,proto3" json:"page_size,omitempty"`
+	// continuous_token is an optional parameter used for pagination.
+	// It should be the value received in the previous response.
+	ContinuousToken string `protobuf:"bytes,8,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
 }
 
 func (x *PermissionLookupEntityRequest) Reset() {
@@ -678,6 +684,20 @@ func (x *PermissionLookupEntityRequest) GetContext() *Context {
 		return x.Context
 	}
 	return nil
+}
+
+func (x *PermissionLookupEntityRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *PermissionLookupEntityRequest) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
 }
 
 // PermissionLookupEntityRequestMetadata metadata for the PermissionLookupEntityRequest.
@@ -919,6 +939,9 @@ type PermissionEntityFilterRequest struct {
 	Subject *Subject `protobuf:"bytes,4,opt,name=subject,proto3" json:"subject,omitempty"`
 	// Context associated with this request.
 	Context *Context `protobuf:"bytes,5,opt,name=context,proto3" json:"context,omitempty"`
+	// cursor is an optional parameter used for pagination.
+	// It should be the value received in the previous response.
+	Cursor string `protobuf:"bytes,6,opt,name=cursor,proto3" json:"cursor,omitempty"`
 }
 
 func (x *PermissionEntityFilterRequest) Reset() {
@@ -986,6 +1009,13 @@ func (x *PermissionEntityFilterRequest) GetContext() *Context {
 		return x.Context
 	}
 	return nil
+}
+
+func (x *PermissionEntityFilterRequest) GetCursor() string {
+	if x != nil {
+		return x.Cursor
+	}
+	return ""
 }
 
 // PermissionEntityFilterRequestMetadata metadata for the PermissionEntityFilterRequest.
@@ -1073,6 +1103,12 @@ type PermissionLookupSubjectRequest struct {
 	SubjectReference *RelationReference `protobuf:"bytes,5,opt,name=subject_reference,proto3" json:"subject_reference,omitempty"`
 	// Context associated with this request.
 	Context *Context `protobuf:"bytes,6,opt,name=context,proto3" json:"context,omitempty"`
+	// page_size is the number of tenants to be returned in the response.
+	// The value should be between 1 and 100.
+	PageSize uint32 `protobuf:"varint,7,opt,name=page_size,proto3" json:"page_size,omitempty"`
+	// continuous_token is an optional parameter used for pagination.
+	// It should be the value received in the previous response.
+	ContinuousToken string `protobuf:"bytes,8,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
 }
 
 func (x *PermissionLookupSubjectRequest) Reset() {
@@ -1147,6 +1183,20 @@ func (x *PermissionLookupSubjectRequest) GetContext() *Context {
 		return x.Context
 	}
 	return nil
+}
+
+func (x *PermissionLookupSubjectRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *PermissionLookupSubjectRequest) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
 }
 
 // PermissionLookupSubjectRequestMetadata metadata for the PermissionLookupSubjectRequest.
@@ -1224,6 +1274,8 @@ type PermissionLookupSubjectResponse struct {
 
 	// List of identifiers for subjects that match the lookup.
 	SubjectIds []string `protobuf:"bytes,1,rep,name=subject_ids,proto3" json:"subject_ids,omitempty"`
+	// continuous_token is a string that can be used to paginate and retrieve the next set of results.
+	ContinuousToken string `protobuf:"bytes,2,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
 }
 
 func (x *PermissionLookupSubjectResponse) Reset() {
@@ -1263,6 +1315,13 @@ func (x *PermissionLookupSubjectResponse) GetSubjectIds() []string {
 		return x.SubjectIds
 	}
 	return nil
+}
+
+func (x *PermissionLookupSubjectResponse) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
 }
 
 // PermissionSubjectPermissionRequest is the request message for the SubjectPermission method in the Permission service.
@@ -3930,13 +3989,13 @@ var file_base_v1_service_proto_rawDesc = []byte{
 	0x0a, 0x15, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x2f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31,
 	0x1a, 0x12, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x17, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x2f, 0x76,
-	0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1c, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x63, 0x2d, 0x67, 0x65, 0x6e, 0x2d, 0x6f, 0x70, 0x65, 0x6e, 0x61, 0x70, 0x69, 0x76,
-	0x32, 0x2f, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x0f, 0x0a, 0x0d, 0x48,
+	0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1c, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x1a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x2d, 0x67, 0x65, 0x6e, 0x2d, 0x6f,
+	0x70, 0x65, 0x6e, 0x61, 0x70, 0x69, 0x76, 0x32, 0x2f, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x1a, 0x17, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x2f, 0x76, 0x61, 0x6c,
+	0x69, 0x64, 0x61, 0x74, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x0f, 0x0a, 0x0d, 0x48,
 	0x65, 0x61, 0x6c, 0x74, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x28, 0x0a, 0x0e,
 	0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16,
 	0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06,

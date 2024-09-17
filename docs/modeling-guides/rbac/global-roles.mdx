@@ -1,0 +1,63 @@
+---
+title: Global Roles
+mode: wide
+---
+
+Here is an example schema which provides a flexible way to define role-based access control within an organization, separating permissions for regular organizational files and vendor-specific files.
+
+```
+entity user {}
+
+entity organization {
+
+    // roles
+    relation admin @user
+    relation member @user
+    relation manager @user
+    relation agent @user
+
+    // organization files access permissions
+    permission view_files = admin or manager or (member not agent)
+    permission delete_file = admin
+
+    // vendor files access permissions
+    permission view_vendor_files = admin or manager or agent
+    permission delete_vendor_file = agent
+
+}
+```
+
+## Entities
+
+- **user:** Represents individual users.
+- **organization:** Represents the organization with roles and permissions
+
+## Roles
+
+- **admin:** Users with administrative privileges
+- **member:** Regular members of the organization
+- **manager:** Users with managerial responsibilities
+- **agent:** Users with specific agent related to specific vendor
+
+## Permissions
+
+### a. Organization files access
+
+The permissions use boolean logic (OR, AND, NOT) to combine roles.
+
+For example,
+
+```
+view_files = admin or manager or (member not agent)
+```
+
+means admins, managers, or members who are not agents can view files.
+
+- **delete_file:** Only admins can delete files
+
+### b. Vendor files access
+
+- **view_vendor_files:** Admins, managers, or agents can view vendor files
+- **delete_vendor_file:** Only agents can delete vendor files
+
+In [Resource Specific Roles](/modeling-guides/rbac/) section, we seperate these permissions and make them file-specific and vendor specific.

@@ -36,7 +36,7 @@ func (filter *MassSubjectFilter) SubjectFilter(
 			Type:     request.GetSubjectReference().GetType(),
 			Relation: request.GetSubjectReference().GetRelation(),
 		},
-	})
+	}, database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 	// Return any error encountered during the query.
 	if err != nil {
 		return err
@@ -62,42 +62,31 @@ func (filter *MassSubjectFilter) SubjectFilter(
 	}
 
 	// Prepare the initial pagination object.
-	pagination := database.NewPagination(database.Size(100), database.Token(""))
+	pagination := database.NewPagination(database.Token(request.GetContinuousToken()))
 
-	// Continuously query for unique subject references until all have been retrieved.
-	for {
-		ids, continuationToken, err := filter.dataReader.QueryUniqueSubjectReferences(
-			ctx,
-			request.GetTenantId(),
-			request.GetSubjectReference(),
-			request.GetMetadata().GetSnapToken(),
-			pagination,
-		)
-		// Return any error encountered during the query.
-		if err != nil {
-			return err
-		}
+	ids, _, err := filter.dataReader.QueryUniqueSubjectReferences(
+		ctx,
+		request.GetTenantId(),
+		request.GetSubjectReference(),
+		request.GetMetadata().GetSnapToken(),
+		pagination,
+	)
+	// Return any error encountered during the query.
+	if err != nil {
+		return err
+	}
 
-		// Publish each subject retrieved.
-		for _, id := range ids {
-			publisher.Publish(&base.Subject{
-				Type:     request.GetSubjectReference().GetType(),
-				Id:       id,
-				Relation: request.GetSubjectReference().GetRelation(),
-			}, &base.PermissionCheckRequestMetadata{
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
-		}
-
-		// If the continuation token is empty, all subjects have been retrieved.
-		if continuationToken.String() == "" {
-			break
-		}
-
-		// Update the continuation token in the pagination for the next loop iteration.
-		pagination = database.NewPagination(database.Size(100), database.Token(continuationToken.String()))
+	// Publish each subject retrieved.
+	for _, id := range ids {
+		publisher.Publish(&base.Subject{
+			Type:     request.GetSubjectReference().GetType(),
+			Id:       id,
+			Relation: request.GetSubjectReference().GetRelation(),
+		}, &base.PermissionCheckRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
 	// Return all IDs retrieved.

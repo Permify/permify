@@ -41,7 +41,7 @@ func NewDataReader(database *db.Postgres) *DataReader {
 }
 
 // QueryRelationships reads relation tuples from the storage based on the given filter.
-func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string) (it *database.TupleIterator, err error) {
+func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.CursorPagination) (it *database.TupleIterator, err error) {
 	// Start a new trace span and end it when the function exits.
 	ctx, span := tracer.Start(ctx, "data-reader.query-relationships")
 	defer span.End()
@@ -60,6 +60,19 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	builder := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.TuplesFilterQueryForSelectBuilder(builder, filter)
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+
+	if pagination.Cursor() != "" {
+		var t database.ContinuousToken
+		t, err = utils.EncodedContinuousToken{Value: pagination.Cursor()}.Decode()
+		if err != nil {
+			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
+		}
+		builder = builder.Where(squirrel.GtOrEq{pagination.Sort(): t.(utils.ContinuousToken).Value})
+	}
+
+	if pagination.Sort() != "" {
+		builder = builder.OrderBy(pagination.Sort())
+	}
 
 	// Generate the SQL query and arguments.
 	var query string
@@ -133,7 +146,11 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 		builder = builder.Where(squirrel.GtOrEq{"id": v})
 	}
 
-	builder = builder.OrderBy("id").Limit(uint64(pagination.PageSize() + 1))
+	builder = builder.OrderBy("id")
+
+	if pagination.PageSize() != 0 {
+		builder = builder.Limit(uint64(pagination.PageSize() + 1))
+	}
 
 	// Generate the SQL query and arguments.
 	var query string
@@ -174,7 +191,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	slog.DebugContext(ctx, "successfully read relation tuples from database")
 
 	// Return the results and encoded continuous token for pagination.
-	if len(tuples) > int(pagination.PageSize()) {
+	if pagination.PageSize() != 0 && len(tuples) > int(pagination.PageSize()) {
 		return database.NewTupleCollection(tuples[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
 	}
 
@@ -348,7 +365,11 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 		builder = builder.Where(squirrel.GtOrEq{"id": v})
 	}
 
-	builder = builder.OrderBy("id").Limit(uint64(pagination.PageSize() + 1))
+	builder = builder.OrderBy("id")
+
+	if pagination.PageSize() != 0 {
+		builder = builder.Limit(uint64(pagination.PageSize() + 1))
+	}
 
 	// Generate the SQL query and arguments.
 	var query string
@@ -434,17 +455,15 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 		if err != nil {
 			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
-		var v uint64
-		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
-		}
-
-		query = fmt.Sprintf("%s WHERE id >= %s", query, strconv.FormatUint(v, 10))
+		query = fmt.Sprintf("%s WHERE entity_id >= '%s'", query, t.(utils.ContinuousToken).Value)
 	}
 
 	// Append ORDER BY and LIMIT clauses.
-	query = fmt.Sprintf("%s ORDER BY id LIMIT %d", query, pagination.PageSize()+1)
+	query = fmt.Sprintf("%s ORDER BY entity_id", query)
+
+	if pagination.PageSize() != 0 {
+		query = fmt.Sprintf("%s LIMIT %d", query, pagination.PageSize()+1)
+	}
 
 	slog.DebugContext(ctx, "generated sql query", slog.String("query", query))
 
@@ -456,18 +475,19 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	}
 	defer rows.Close()
 
-	var lastID uint64
+	var lastID string
 
 	// Iterate through the rows and scan the result into a RelationTuple struct.
 	entityIDs := make([]string, 0, pagination.PageSize()+1)
 	for rows.Next() {
 		var entityId string
-		err = rows.Scan(&lastID, &entityId)
+		err = rows.Scan(&entityId)
 		if err != nil {
 			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
 
 		entityIDs = append(entityIDs, entityId)
+		lastID = entityId
 	}
 
 	// Check for any errors during iteration.
@@ -478,8 +498,8 @@ func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, sn
 	slog.DebugContext(ctx, "successfully retrieved unique entities from the database")
 
 	// Return the results and encoded continuous token for pagination.
-	if len(entityIDs) > int(pagination.PageSize()) {
-		return entityIDs[:pagination.PageSize()], utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
+	if pagination.PageSize() != 0 && len(entityIDs) > int(pagination.PageSize()) {
+		return entityIDs[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil
 	}
 
 	return entityIDs, database.NewNoopContinuousToken().Encode(), nil
@@ -502,7 +522,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.
-		Select("MIN(id) as id, subject_id"). // This will pick the smallest `id` for each unique `subject_id`.
+		Select("subject_id"). // This will pick the smallest `id` for each unique `subject_id`.
 		From(RelationTuplesTable).
 		Where(squirrel.Eq{"tenant_id": tenantID}).
 		GroupBy("subject_id")
@@ -516,15 +536,14 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 		if err != nil {
 			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
 		}
-		var v uint64
-		v, err = strconv.ParseUint(t.(utils.ContinuousToken).Value, 10, 64)
-		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN)
-		}
-		builder = builder.Where(squirrel.GtOrEq{"id": v})
+		builder = builder.Where(squirrel.GtOrEq{"subject_id": t.(utils.ContinuousToken).Value})
 	}
 
-	builder = builder.OrderBy("id").Limit(uint64(pagination.PageSize() + 1))
+	builder = builder.OrderBy("subject_id")
+
+	if pagination.PageSize() != 0 {
+		builder = builder.Limit(uint64(pagination.PageSize() + 1))
+	}
 
 	// Generate the SQL query and arguments.
 	var query string
@@ -544,17 +563,19 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	}
 	defer rows.Close()
 
-	var lastID uint64
+	var lastID string
 
 	// Iterate through the rows and scan the result into a RelationTuple struct.
 	subjectIDs := make([]string, 0, pagination.PageSize()+1)
 	for rows.Next() {
 		var subjectID string
-		err = rows.Scan(&lastID, &subjectID)
+		err = rows.Scan(&subjectID)
 		if err != nil {
-			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
+
 		subjectIDs = append(subjectIDs, subjectID)
+		lastID = subjectID
 	}
 	// Check for any errors during iteration.
 	if err = rows.Err(); err != nil {
@@ -564,8 +585,8 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	slog.DebugContext(ctx, "successfully retrieved unique subject references from the database")
 
 	// Return the results and encoded continuous token for pagination.
-	if len(subjectIDs) > int(pagination.PageSize()) {
-		return subjectIDs[:pagination.PageSize()], utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
+	if pagination.PageSize() != 0 && len(subjectIDs) > int(pagination.PageSize()) {
+		return subjectIDs[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil
 	}
 
 	return subjectIDs, database.NewNoopContinuousToken().Encode(), nil

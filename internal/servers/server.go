@@ -143,16 +143,16 @@ func (s *Container) Run(
 			if err != nil {
 				return err
 			}
-			unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.KeyAuthFunc(authenticator)))
-			streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.KeyAuthFunc(authenticator)))
+			unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.AuthFunc(authenticator)))
+			streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.AuthFunc(authenticator)))
 		case "oidc":
 			var authenticator *oidc.Authn
 			authenticator, err = oidc.NewOidcAuthn(ctx, authentication.Oidc)
 			if err != nil {
 				return err
 			}
-			unaryInterceptors = append(unaryInterceptors, oidc.UnaryServerInterceptor(authenticator))
-			streamingInterceptors = append(streamingInterceptors, oidc.StreamServerInterceptor(authenticator))
+			unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.AuthFunc(authenticator)))
+			streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.AuthFunc(authenticator)))
 		default:
 			return fmt.Errorf("unknown authentication method: '%s'", authentication.Method)
 		}

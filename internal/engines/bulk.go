@@ -2,11 +2,15 @@ package engines
 
 import (
 	"context"
+	"sort"
+	"sync"
+	"sync/atomic"
 
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/Permify/permify/internal/invoke"
+	"github.com/Permify/permify/internal/storage/memory/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -24,15 +28,28 @@ type BulkCheckerRequest struct {
 }
 
 // BulkChecker is a struct for checking permissions in bulk.
+// It processes permission check requests concurrently and maintains a sorted list of these requests.
 type BulkChecker struct {
+	// typ defines the type of bulk checking being performed.
+	// It distinguishes between different modes of operation within the BulkChecker,
+	// such as whether the check is focused on entities, subjects, or another criterion.
+	typ BulkCheckerType
+
 	checker invoke.Check
-	// input queue for permission check requests
+	// RequestChan is the input queue for permission check requests.
+	// Incoming requests are received on this channel and processed by the BulkChecker.
 	RequestChan chan BulkCheckerRequest
-	// context to manage goroutines and cancellation
+
+	// ctx is the context used to manage goroutines and handle cancellation.
+	// It allows for graceful shutdown of all goroutines when the context is canceled.
 	ctx context.Context
-	// errgroup for managing multiple goroutines
+
+	// g is an errgroup used for managing multiple goroutines.
+	// It allows BulkChecker to wait for all goroutines to finish and to capture any errors they may return.
 	g *errgroup.Group
-	// limit for concurrent permission checks
+
+	// concurrencyLimit is the maximum number of concurrent permission checks that can be processed at one time.
+	// It controls the level of parallelism within the BulkChecker.
 	concurrencyLimit int
 	// callback function to handle the result of each permission check
 	callback func(entityID, permission string, result base.CheckResult)
@@ -51,33 +68,52 @@ func NewBulkChecker(ctx context.Context, checker invoke.Check, callback func(ent
 		concurrencyLimit: concurrencyLimit,
 		ctx:              ctx,
 		callback:         callback,
+		typ:              typ,
+		wg:               &sync.WaitGroup{},
+	}
+
+	// Start processing requests in a separate goroutine
+	// Use a WaitGroup to ensure all requests are collected before proceeding
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done() // Signal that the request collection is finished
+		bc.CollectAndSortRequests()
+	}()
+
+	bc.wg = &wg // Store the WaitGroup for future use
+
+	return bc
+}
+
+// CollectAndSortRequests processes incoming requests and maintains a sorted list.
+func (bc *BulkChecker) CollectAndSortRequests() {
+	for {
+		select {
+		case req, ok := <-bc.RequestChan:
+			if !ok {
+				// Channel closed, process remaining requests
+				return
+			}
+
+			bc.mu.Lock()
+			bc.list = append(bc.list, req)
+			// Optionally, you could sort here or later in ExecuteRequests
+			bc.mu.Unlock()
+
+		case <-bc.ctx.Done():
+			return
+		}
 	}
 }
 
-// Start begins processing permission check requests from the RequestChan.
-// It starts an errgroup that manages multiple goroutines for performing permission checks.
-func (c *BulkChecker) Start(typ BulkCheckerType) {
-	c.g.Go(func() error {
-		sem := semaphore.NewWeighted(int64(c.concurrencyLimit))
-		for {
-			// acquire a semaphore before processing a request
-			if err := sem.Acquire(c.ctx, 1); err != nil {
-				return err
-			}
-			// read a request from the RequestChan
-			req, ok := <-c.RequestChan
-			if !ok {
-				sem.Release(1)
-				break
-			}
-			// run the permission check in a separate goroutine
-			c.g.Go(func() error {
-				defer sem.Release(1)
-				if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
-					result, err := c.checker.Check(c.ctx, req.Request)
-					if err != nil {
-						return err
-					}
+// StopCollectingRequests Signal to stop collecting requests and close the channel
+func (bc *BulkChecker) StopCollectingRequests() {
+	bc.mu.Lock()
+	defer bc.mu.Unlock()
+	// Close the channel to signal no more requests will be sent
+	close(bc.RequestChan)
+}
 
 					if typ == BULK_ENTITY {
 						// call the callback with the result
@@ -94,23 +130,20 @@ func (c *BulkChecker) Start(typ BulkCheckerType) {
 						c.callback(req.Request.GetSubject().GetId(), req.Request.GetPermission(), req.Result)
 					}
 				}
-				return nil
-			})
-		}
-		// wait for all remaining semaphore resources to be released
-		return sem.Acquire(c.ctx, int64(c.concurrencyLimit))
-	})
-}
+				processedIndex++ // Move to the next index for processing
+			}
+			mu.Unlock() // Unlock the mutex after updating the results and processed index
 
-// Stop stops input by closing the RequestChan.
-func (c *BulkChecker) Stop() {
-	close(c.RequestChan)
-}
+			return nil // Return nil to indicate successful processing
+		})
+	}
 
-// Wait waits for all goroutines in the errgroup to finish.
-// Returns an error if any of the goroutines encounter an error.
-func (c *BulkChecker) Wait() error {
-	return c.g.Wait()
+	// Wait for all goroutines to complete and check for any errors
+	if err := bc.g.Wait(); err != nil {
+		return err // Return the error if any goroutine returned an error
+	}
+
+	return nil // Return nil if all processing completed successfully
 }
 
 // BulkEntityPublisher is a struct for streaming permission check results.

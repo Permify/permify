@@ -30,8 +30,8 @@
     }
   },
   "topbarCtaButton": {
-    "name": "Playground",
-    "url": "https://play.permify.co/?s=organizations-hierarchies"
+    "name": "Sign Up",
+    "url": "https://console.permify.co/sign-up"
   },
   "redirects": [
     {
@@ -225,9 +225,9 @@
       "url": "https://github.com/Permify/permify"
     },
     {
-      "name": "Permify Cloud",
-      "icon": "globe",
-      "url": "cloud"
+      "name": "Playground",
+      "icon": "play",
+      "url": "https://play.permify.co/?s=organizations-hierarchies"
     }
   ],
   "navigation": [
@@ -262,6 +262,37 @@
       ]
     },
     {
+      "group": "Modeling Guides",
+      "icon": "code",
+      "pages": [
+        {
+          "group": "Model Role Based Access Control (RBAC)",
+          "pages": [
+            "modeling-guides/rbac/global-roles",
+            "modeling-guides/rbac/resource-specific-roles",
+            "modeling-guides/rbac/custom-roles"
+          ]
+        },
+        {
+          "group": "Model Attribute Based Access Control (ABAC)",
+          "pages": [
+            "modeling-guides/abac/public-private",
+            "modeling-guides/abac/text-object-based-conditions",
+            "modeling-guides/abac/numerical-conditions"
+          ]
+        },
+        {
+          "group": "Model Relationship Based Access Control (ReBAC)",
+          "pages": [
+            "modeling-guides/rebac/user-groups",
+            "modeling-guides/rebac/hierarchies",
+            "modeling-guides/rebac/impersonation",
+            "modeling-guides/rebac/recursive-rebac"
+          ]
+        }
+      ]
+    },
+    {
       "group": "Setting Up",
       "icon": "cloud-arrow-up",
       "pages": [
@@ -274,6 +305,7 @@
             "setting-up/installation/aws",
             "setting-up/installation/brew",
             "setting-up/installation/container",
+            "setting-up/installation/fly",
             "setting-up/installation/google",
             "setting-up/installation/helm",
             "setting-up/installation/kubernetes"
@@ -357,12 +389,6 @@
       "group": "Watch Service",
       "pages": [
         "api-reference/watch/watch-changes"
-      ]
-    },
-    {
-      "group": "Permify Cloud",
-      "pages": [
-        "cloud/intro"
       ]
     }
   ],

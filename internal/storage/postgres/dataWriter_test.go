@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/postgres/instance"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -29,7 +30,7 @@ var _ = Describe("DataWriter", func() {
 			version = "14"
 		}
 
-		db = postgresDB(version)
+		db = instance.PostgresDB(version)
 		dataWriter = NewDataWriter(db.(*PQDatabase.Postgres))
 		dataReader = NewDataReader(db.(*PQDatabase.Postgres))
 		bundleWriter = NewBundleWriter(db.(*PQDatabase.Postgres))
