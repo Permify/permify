@@ -141,10 +141,12 @@ func (engine *SchemaBasedEntityFilter) relationEntrance(
 	// Determine the pagination settings based on the entity type in the request.
 	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
 	// Otherwise, use the default pagination settings.
-	if request.GetEntityReference().GetType() == entrance.TargetEntrance.GetType() {
-		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-	} else {
-		pagination = database.NewCursorPagination()
+	pagination = database.NewCursorPagination()
+	for _, entityReference := range request.GetEntityReferences() {
+		if entityReference.GetType() == entrance.TargetEntrance.GetType() {
+			pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+			break
+		}
 	}
 
 	// Query the relationships using the specified pagination settings.
@@ -226,10 +228,12 @@ func (engine *SchemaBasedEntityFilter) tupleToUserSetEntrance(
 		// Determine the pagination settings based on the entity type in the request.
 		// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
 		// Otherwise, use the default pagination settings.
-		if request.GetEntityReference().GetType() == entrance.TargetEntrance.GetType() {
-			pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-		} else {
-			pagination = database.NewCursorPagination()
+		pagination = database.NewCursorPagination()
+		for _, entityReference := range request.GetEntityReferences() {
+			if entityReference.GetType() == entrance.TargetEntrance.GetType() {
+				pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+				break
+			}
 		}
 
 		// Query the relationships using the specified pagination settings.
@@ -325,6 +329,7 @@ func (engine *SchemaBasedEntityFilter) l(
 			},
 			Metadata: request.GetMetadata(),
 			Context:  request.GetContext(),
+			Cursor:   request.GetCursor(),
 		}, visits, publisher, permissionChecks)
 	})
 	return nil

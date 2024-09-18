@@ -2637,6 +2637,10 @@
           "type": "string",
           "description": "Identifier for an entity that matches the lookup."
         },
+        "permission": {
+          "type": "string",
+          "description": "The name of the permission for which the specified entity_id has access."
+        },
         "continuous_token": {
           "type": "string",
           "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."

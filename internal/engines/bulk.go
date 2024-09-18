@@ -51,8 +51,24 @@ type BulkChecker struct {
 	// concurrencyLimit is the maximum number of concurrent permission checks that can be processed at one time.
 	// It controls the level of parallelism within the BulkChecker.
 	concurrencyLimit int
-	// callback function to handle the result of each permission check
-	callback func(entityID, permission string, result base.CheckResult)
+
+	// callback is a function that handles the result of each permission check.
+	// It is called with the entity ID and the result of the permission check (e.g., allowed or denied).
+	callback func(entityID, permission string, ct string)
+
+	// sortedList is a slice that stores BulkCheckerRequest objects.
+	// This list is maintained in a sorted order based on some criteria, such as the entity ID.
+	list []BulkCheckerRequest
+
+	// mu is a mutex used for thread-safe access to the sortedList.
+	// It ensures that only one goroutine can modify the sortedList at a time, preventing data races.
+	mu sync.Mutex
+
+	// wg is a WaitGroup used to coordinate the completion of request collection.
+	// It ensures that all requests are collected and processed before ExecuteRequests begins execution.
+	// The WaitGroup helps to synchronize the collection of requests with the execution of those requests,
+	// preventing race conditions where the execution starts before all requests are collected.
+	wg *sync.WaitGroup
 }
 
 // NewBulkChecker creates a new BulkChecker instance.
@@ -60,8 +76,8 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, checker invoke.Check, callback func(entityID, permission string, result base.CheckResult), concurrencyLimit int) *BulkChecker {
-	return &BulkChecker{
+func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID, permission string, ct string), concurrencyLimit int) *BulkChecker {
+	bc := &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
 		checker:          checker,
 		g:                &errgroup.Group{},
@@ -115,19 +131,99 @@ func (bc *BulkChecker) StopCollectingRequests() {
 	close(bc.RequestChan)
 }
 
-					if typ == BULK_ENTITY {
-						// call the callback with the result
-						c.callback(req.Request.GetEntity().GetId(), req.Request.GetPermission(), result.Can)
-					} else if typ == BULK_SUBJECT {
-						c.callback(req.Request.GetSubject().GetId(), req.Request.GetPermission(), result.Can)
-					}
+// sortRequests sorts the sortedList based on the type (entity or subject).
+func (bc *BulkChecker) sortRequests() {
+	if bc.typ == BULK_ENTITY {
+		sort.Slice(bc.list, func(i, j int) bool {
+			return bc.list[i].Request.GetEntity().GetId() < bc.list[j].Request.GetEntity().GetId()
+		})
+	} else if bc.typ == BULK_SUBJECT {
+		sort.Slice(bc.list, func(i, j int) bool {
+			return bc.list[i].Request.GetSubject().GetId() < bc.list[j].Request.GetSubject().GetId()
+		})
+	}
+}
 
-				} else {
-					if typ == BULK_ENTITY {
-						// call the callback with the result
-						c.callback(req.Request.GetEntity().GetId(), req.Request.GetPermission(), req.Result)
-					} else if typ == BULK_SUBJECT {
-						c.callback(req.Request.GetSubject().GetId(), req.Request.GetPermission(), req.Result)
+// ExecuteRequests begins processing permission check requests from the sorted list.
+func (bc *BulkChecker) ExecuteRequests(size uint32) error {
+	// Stop collecting new requests and close the RequestChan to ensure no more requests are added
+	bc.StopCollectingRequests()
+
+	// Wait for request collection to complete before proceeding
+	bc.wg.Wait()
+
+	// Track the number of successful permission checks
+	successCount := int64(0)
+	// Semaphore to control the maximum number of concurrent permission checks
+	sem := semaphore.NewWeighted(int64(bc.concurrencyLimit))
+	var mu sync.Mutex
+
+	// Lock the mutex to prevent race conditions while sorting and copying the list of requests
+	bc.mu.Lock()
+	bc.sortRequests()                                      // Sort requests based on id
+	listCopy := append([]BulkCheckerRequest{}, bc.list...) // Create a copy of the list to avoid modifying the original during processing
+	bc.mu.Unlock()                                         // Unlock the mutex after sorting and copying
+
+	// Pre-allocate a slice to store the results of the permission checks
+	results := make([]base.CheckResult, len(listCopy))
+	// Track the index of the last processed request to ensure results are processed in order
+	processedIndex := 0
+
+	// Loop through each request in the copied list
+	for i, currentRequest := range listCopy {
+		// If we've reached the success limit, stop processing further requests
+		if atomic.LoadInt64(&successCount) >= int64(size) {
+			break
+		}
+
+		index := i
+		req := currentRequest
+
+		// Use errgroup to manage the goroutines, which allows for error handling and synchronization
+		bc.g.Go(func() error {
+			// Acquire a slot in the semaphore to control concurrency
+			if err := sem.Acquire(bc.ctx, 1); err != nil {
+				return err // Return an error if semaphore acquisition fails
+			}
+			defer sem.Release(1) // Ensure the semaphore slot is released after processing
+
+			var result base.CheckResult
+			if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+				// Perform the permission check if the result is not already specified
+				cr, err := bc.checker.Check(bc.ctx, req.Request)
+				if err != nil {
+					return err // Return an error if the check fails
+				}
+				result = cr.GetCan() // Get the result from the check
+			} else {
+				// Use the already specified result
+				result = req.Result
+			}
+
+			// Lock the mutex to safely update shared resources
+			mu.Lock()
+			results[index] = result // Store the result in the pre-allocated slice
+
+			// Process the results in order, starting from the current processed index
+			for processedIndex < len(listCopy) && results[processedIndex] != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+				// If the result at the processed index is allowed, call the callback function
+				if results[processedIndex] == base.CheckResult_CHECK_RESULT_ALLOWED {
+					if atomic.AddInt64(&successCount, 1) <= int64(size) {
+						ct := ""
+						if processedIndex+1 < len(listCopy) {
+							// If there is a next item, create a continuous token with the next ID
+							if bc.typ == BULK_ENTITY {
+								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetEntity().GetId()).Encode().String()
+							} else if bc.typ == BULK_SUBJECT {
+								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetSubject().GetId()).Encode().String()
+							}
+						}
+						// Depending on the type of check (entity or subject), call the appropriate callback
+						if bc.typ == BULK_ENTITY {
+							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), req.Request.GetPermission(), ct)
+						} else if bc.typ == BULK_SUBJECT {
+							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), req.Request.GetPermission(), ct)
+						}
 					}
 				}
 				processedIndex++ // Move to the next index for processing

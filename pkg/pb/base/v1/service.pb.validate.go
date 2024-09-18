@@ -1968,6 +1968,8 @@ func (m *PermissionLookupEntityResponse) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for ContinuousToken
+
 	if len(errors) > 0 {
 		return PermissionLookupEntityResponseMultiError(errors)
 	}
@@ -2174,6 +2176,8 @@ func (m *PermissionLookupEntityStreamResponse) validate(all bool) error {
 	// no validation rules for EntityId
 
 	// no validation rules for Permission
+
+	// no validation rules for ContinuousToken
 
 	if len(errors) > 0 {
 		return PermissionLookupEntityStreamResponseMultiError(errors)

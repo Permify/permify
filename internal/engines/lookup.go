@@ -52,19 +52,24 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	// A mutex and slice are declared to safely store entity IDs from concurrent callbacks
 	var mu sync.Mutex
 	entityIDsByPermission := make(map[string]*base.EntityIds)
+	var ct string
+
+	size := request.GetPageSize()
+	if size == 0 {
+		size = 1000
+	}
 
 	// Callback function which is called for each entity. If the entity passes the permission check,
 	// the entity ID is appended to the entityIDs slice.
-	callback := func(entityID, permission string, result base.CheckResult) {
-		if result == base.CheckResult_CHECK_RESULT_ALLOWED {
-			mu.Lock()         // Safeguard access to the shared slice with a mutex
-			defer mu.Unlock() // Ensure the lock is released after appending the ID
-			if _, exists := entityIDsByPermission[permission]; !exists {
-				// If not, initialize it with an empty EntityIds struct
-				entityIDsByPermission[permission] = &base.EntityIds{Ids: []string{}}
-			}
-			entityIDsByPermission[permission].Ids = append(entityIDsByPermission[permission].Ids, entityID)
+	callback := func(entityID, permission string, token string) {
+		mu.Lock()         // Safeguard access to the shared slice with a mutex
+		defer mu.Unlock() // Ensure the lock is released after appending the ID
+		if _, exists := entityIDsByPermission[permission]; !exists {
+			// If not, initialize it with an empty EntityIds struct
+			entityIDsByPermission[permission] = &base.EntityIds{Ids: []string{}}
 		}
+		entityIDsByPermission[permission].Ids = append(entityIDsByPermission[permission].Ids, entityID)
+		ct = token
 	}
 
 	// Create and start BulkChecker. It performs permission checks in parallel.
@@ -103,10 +108,10 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	} else {
 
 		request.Permissions = validPermissions
-
 		// Create a map to keep track of visited entities
 		visits := &ERMap{}
 		// Create
+
 		permissionChecks := &ERMap{}
 
 		entityReferences := make([]*base.RelationReference, 0)
@@ -129,6 +134,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 			EntityReferences: entityReferences,
 			Subject:          request.GetSubject(),
 			Context:          request.GetContext(),
+			Cursor:           request.GetContinuousToken(),
 		}, visits, publisher, permissionChecks)
 
 		if err != nil {
@@ -144,7 +150,8 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 
 	// Return response containing allowed entity IDs
 	return &base.PermissionLookupEntityResponse{
-		EntityIds: entityIDsByPermission,
+		EntityIds:       entityIDsByPermission,
+		ContinuousToken: ct,
 	}, nil
 }
 
@@ -158,16 +165,15 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 
 	// Define a callback function that will be called for each entity that passes the permission check.
 	// If the check result is allowed, it sends the entity ID to the server stream.
-	callback := func(entityID, permission string, result base.CheckResult) {
-		if result == base.CheckResult_CHECK_RESULT_ALLOWED {
-			err := server.Send(&base.PermissionLookupEntityStreamResponse{
-				EntityId:   entityID,
-				Permission: permission,
-			})
-			// If there is an error in sending the response, the function will return
-			if err != nil {
-				return
-			}
+	callback := func(entityID, permission string, token string) {
+		err := server.Send(&base.PermissionLookupEntityStreamResponse{
+			EntityId:        entityID,
+			Permission:      permission,
+			ContinuousToken: token,
+		})
+		// If there is an error in sending the response, the function will return
+		if err != nil {
+			return
 		}
 	}
 
@@ -184,6 +190,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 		return err
 	}
 
+	// Perform a permission check walk through the entity schema
 	for _, permission := range request.GetPermissions() {
 		err = schema.NewWalker(sc).Walk(request.GetEntityType(), permission)
 		// If error exists in permission check walk
@@ -222,6 +229,10 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 			if err != nil {
 				return err
 			}
+			if err != nil {
+				return err
+			}
+
 		}
 	}
 
@@ -248,7 +259,7 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 
 	// Callback function to handle the results of permission checks.
 	// If an entity passes the permission check, its ID is stored in the subjectIDs slice.
-	callback := func(subjectID, token string) {
+	callback := func(subjectID, permission string, token string) {
 		mu.Lock()         // Lock to prevent concurrent modification of the slice.
 		defer mu.Unlock() // Unlock after the ID is appended.
 		subjectIDs = append(subjectIDs, subjectID)

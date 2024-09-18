@@ -99,7 +99,7 @@ func (filter *MassEntityFilter) EntityFilter(
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
-		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
 	}
 
 	// Return successful completion of the function

@@ -1024,16 +1024,17 @@ message PermissionLookupEntityRequest {
 
   // Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   repeated string permissions = 4 [json_name = "permissions", (validate.rules).repeated = {
-    min_items : 1,
-    max_items : 100,
-    items: {
-      string: {
-        pattern: "^[a-zA-Z_][a-zA-Z0-9_]*$",
-        max_bytes: 64,
-        ignore_empty: false 
+      min_items : 1,
+      max_items : 100,
+      items: {
+        string: {
+          pattern: "^[a-zA-Z_][a-zA-Z0-9_]*$",
+          max_bytes: 64,
+          ignore_empty: false 
+        }
       }
     }
-  }];
+  ];
 
   // Subject for which to check the permission, required.
   Subject subject = 5 [
@@ -1084,15 +1085,17 @@ message PermissionLookupEntityRequestMetadata {
 
 // PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service.
 message PermissionLookupEntityResponse {
-  // List of identifiers for entities that match the lookup.
-  map<string, EntityIds> entity_ids = 1 [json_name = "entity_ids"];
+    // List of identifiers for entities that match the lookup.
+    map<string, EntityIds> entity_ids = 1 [json_name = "entity_ids"];
+
+    // continuous_token is a string that can be used to paginate and retrieve the next set of results.
+    string continuous_token = 2 [json_name = "continuous_token"];
 }
 
 // EntityIds is a helper message used within PermissionLookupEntityResponse to encapsulate a list of entity.
 message EntityIds {
-
-  // entitiy Ids
-  repeated string ids = 1;
+    // entitiy Ids
+    repeated string ids = 1;
 }
 
 // LOOKUP STREAM
@@ -1104,6 +1107,9 @@ message PermissionLookupEntityStreamResponse {
 
   // The name of the permission for which the specified entity_id has access.
   string permission = 2 [json_name = "permission"];
+
+  // continuous_token is a string that can be used to paginate and retrieve the next set of results.
+  string continuous_token = 3 [json_name = "continuous_token"];
 }
 
 // PermissionEntityFilterRequest is the request message for the LookupEntityStream method in the Permission service.
