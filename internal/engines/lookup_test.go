@@ -68,9 +68,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -90,8 +91,9 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "doc",
-						subject:    "user:1",
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
 						assertions: map[string][]string{
 							"read": {"1"},
 						},
@@ -154,22 +156,25 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-						Context: reqContext,
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+					Context: reqContext,
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -192,9 +197,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -211,8 +217,9 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "doc",
-						subject:    "user:2",
+						entityType:  "doc",
+						subject:     "user:2",
+						permissions: []string{"read", "update", "delete", "share"},
 						assertions: map[string][]string{
 							"read":   {"2"},
 							"update": {"2"},
@@ -221,8 +228,9 @@ entity doc {
 						},
 					},
 					{
-						entityType: "folder",
-						subject:    "user:3",
+						entityType:  "folder",
+						subject:     "user:3",
+						permissions: []string{"read", "update"},
 						assertions: map[string][]string{
 							"read":   {"2"},
 							"update": {"2"},
@@ -275,21 +283,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -312,9 +323,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -332,15 +344,17 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "doc",
-						subject:    "user:1",
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
 						assertions: map[string][]string{
 							"read": {"1"},
 						},
 					},
 					{
-						entityType: "folder",
-						subject:    "user:2",
+						entityType:  "folder",
+						subject:     "user:2",
+						permissions: []string{"delete"},
 						assertions: map[string][]string{
 							"delete": {"1"},
 						},
@@ -392,21 +406,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -429,9 +446,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -449,15 +467,17 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "doc",
-						subject:    "user:1",
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
 						assertions: map[string][]string{
 							"read": {"1"},
 						},
 					},
 					{
-						entityType: "folder",
-						subject:    "user:2",
+						entityType:  "folder",
+						subject:     "user:2",
+						permissions: []string{"delete"},
 						assertions: map[string][]string{
 							"delete": {"1"},
 						},
@@ -509,21 +529,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -546,9 +569,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -569,15 +593,17 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "doc",
-						subject:    "user:1",
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
 						assertions: map[string][]string{
 							"read": {"1", "2"},
 						},
 					},
 					{
-						entityType: "folder",
-						subject:    "user:2",
+						entityType:  "folder",
+						subject:     "user:2",
+						permissions: []string{"delete"},
 						assertions: map[string][]string{
 							"delete": {"1"},
 						},
@@ -629,21 +655,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -669,6 +698,7 @@ entity doc {
 				entityType string
 				subject    string
 				assertions map[string][]string
+				permission []string
 			}
 
 			tests := struct {
@@ -700,6 +730,7 @@ entity doc {
 					{
 						entityType: "doc",
 						subject:    "user:1",
+						permission: []string{"read"},
 						assertions: map[string][]string{
 							"read": {"1", "2", "3", "4", "5", "6"},
 						},
@@ -707,6 +738,7 @@ entity doc {
 					{
 						entityType: "folder",
 						subject:    "user:2",
+						permission: []string{"delete"},
 						assertions: map[string][]string{
 							"delete": {"1"},
 						},
@@ -769,22 +801,25 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-						Context: reqContext,
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permission,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+					Context: reqContext,
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permission {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -807,9 +842,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -863,31 +899,35 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "doc",
-						subject:    "user:1",
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
 						assertions: map[string][]string{
 							"read": {"1", "10", "2", "3", "4", "7"},
 						},
 					},
 					{
-						entityType: "doc",
-						subject:    "user:2",
+						entityType:  "doc",
+						subject:     "user:2",
+						permissions: []string{"read", "delete"},
 						assertions: map[string][]string{
 							"read":   {"1", "3", "4", "5", "6", "7", "8"},
 							"delete": {"1", "3", "4", "6", "8"},
 						},
 					},
 					{
-						entityType: "doc",
-						subject:    "user:3",
+						entityType:  "doc",
+						subject:     "user:3",
+						permissions: []string{"read", "update"},
 						assertions: map[string][]string{
 							"read":   {"10", "2", "3", "5", "6", "9"},
 							"update": {"5"},
 						},
 					},
 					{
-						entityType: "doc",
-						subject:    "user:4",
+						entityType:  "doc",
+						subject:     "user:4",
+						permissions: []string{"read", "delete", "share"},
 						assertions: map[string][]string{
 							"read":   {"7", "8"},
 							"delete": {"7", "8"},
@@ -895,8 +935,9 @@ entity doc {
 						},
 					},
 					{
-						entityType: "doc",
-						subject:    "user:5",
+						entityType:  "doc",
+						subject:     "user:5",
+						permissions: []string{"read", "delete"},
 						assertions: map[string][]string{
 							"read":   {"10", "9"},
 							"delete": {"10", "9"},
@@ -949,21 +990,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -1101,9 +1145,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -1129,8 +1174,9 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "group",
-						subject:    "user:1",
+						entityType:  "group",
+						subject:     "user:1",
+						permissions: []string{"create", "join", "leave", "post_to_group", "comment_on_post"},
 						assertions: map[string][]string{
 							"create":          {"1"},
 							"join":            {"1"},
@@ -1140,32 +1186,36 @@ entity doc {
 						},
 					},
 					{
-						entityType: "post",
-						subject:    "user:1",
+						entityType:  "post",
+						subject:     "user:1",
+						permissions: []string{"view_post", "edit_post"},
 						assertions: map[string][]string{
 							"view_post": {"1"},
 							"edit_post": {"1"},
 						},
 					},
 					{
-						entityType: "comment",
-						subject:    "user:1",
+						entityType:  "comment",
+						subject:     "user:1",
+						permissions: []string{"view_comment", "edit_comment"},
 						assertions: map[string][]string{
 							"view_comment": {"1"},
 							"edit_comment": {"1"},
 						},
 					},
 					{
-						entityType: "like",
-						subject:    "user:1",
+						entityType:  "like",
+						subject:     "user:1",
+						permissions: []string{"like_post", "unlike_post"},
 						assertions: map[string][]string{
 							"like_post":   {"1"},
 							"unlike_post": {"1"},
 						},
 					},
 					{
-						entityType: "poll",
-						subject:    "user:2",
+						entityType:  "poll",
+						subject:     "user:2",
+						permissions: []string{"create_poll", "view_poll", "edit_poll"},
 						assertions: map[string][]string{
 							"create_poll": {"1"},
 							"view_poll":   {"1"},
@@ -1173,16 +1223,18 @@ entity doc {
 						},
 					},
 					{
-						entityType: "file",
-						subject:    "user:3",
+						entityType:  "file",
+						subject:     "user:3",
+						permissions: []string{"upload_file", "view_file"},
 						assertions: map[string][]string{
 							"upload_file": {"1"},
 							"view_file":   {"1"},
 						},
 					},
 					{
-						entityType: "event",
-						subject:    "user:2",
+						entityType:  "event",
+						subject:     "user:2",
+						permissions: []string{"create_event", "view_event", "edit_event", "RSVP_to_event"},
 						assertions: map[string][]string{
 							"create_event":  {"1"},
 							"view_event":    {"1"},
@@ -1237,21 +1289,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -1274,9 +1329,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -1342,8 +1398,9 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "group",
-						subject:    "user:1",
+						entityType:  "group",
+						subject:     "user:1",
+						permissions: []string{"create", "join", "leave", "post_to_group", "comment_on_post"},
 						assertions: map[string][]string{
 							"create":          {"1"},
 							"join":            {"1"},
@@ -1353,32 +1410,36 @@ entity doc {
 						},
 					},
 					{
-						entityType: "post",
-						subject:    "user:1",
+						entityType:  "post",
+						subject:     "user:1",
+						permissions: []string{"view_post", "edit_post"},
 						assertions: map[string][]string{
 							"view_post": {"1", "2", "3"},
 							"edit_post": {"1"},
 						},
 					},
 					{
-						entityType: "comment",
-						subject:    "user:2",
+						entityType:  "comment",
+						subject:     "user:2",
+						permissions: []string{"view_comment", "edit_comment"},
 						assertions: map[string][]string{
 							"view_comment": {"1", "2", "3"},
 							"edit_comment": {"2"},
 						},
 					},
 					{
-						entityType: "like",
-						subject:    "user:3",
+						entityType:  "like",
+						subject:     "user:3",
+						permissions: []string{"like_post", "unlike_post"},
 						assertions: map[string][]string{
 							"like_post":   {"1", "2", "3"},
 							"unlike_post": {"1", "2", "3"},
 						},
 					},
 					{
-						entityType: "poll",
-						subject:    "user:4",
+						entityType:  "poll",
+						subject:     "user:4",
+						permissions: []string{"create_poll", "view_poll", "edit_poll"},
 						assertions: map[string][]string{
 							"create_poll": {"1", "2", "3"},
 							"view_poll":   {"1"},
@@ -1386,8 +1447,9 @@ entity doc {
 						},
 					},
 					{
-						entityType: "file",
-						subject:    "user:5",
+						entityType:  "file",
+						subject:     "user:5",
+						permissions: []string{"upload_file", "view_file", "delete_file"},
 						assertions: map[string][]string{
 							"upload_file": nil,
 							"view_file":   nil,
@@ -1395,8 +1457,9 @@ entity doc {
 						},
 					},
 					{
-						entityType: "event",
-						subject:    "user:6",
+						entityType:  "event",
+						subject:     "user:6",
+						permissions: []string{"create_event", "view_event", "edit_event", "delete_event", "RSVP_to_event"},
 						assertions: map[string][]string{
 							"create_event":  nil,
 							"view_event":    nil,
@@ -1463,22 +1526,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-						Context: reqContext,
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -1501,9 +1566,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -1528,8 +1594,9 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "post",
-						subject:    "user:1",
+						entityType:  "post",
+						subject:     "user:1",
+						permissions: []string{"view_post"},
 						assertions: map[string][]string{
 							"view_post": {"92", "93", "94", "95", "96", "97", "98", "99"},
 						},
@@ -1589,10 +1656,10 @@ entity doc {
 
 					for {
 						response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-							TenantId:   "t1",
-							EntityType: filter.entityType,
-							Subject:    subject,
-							Permission: permission,
+							TenantId:    "t1",
+							EntityType:  filter.entityType,
+							Subject:     subject,
+							Permissions: []string{permission},
 							Metadata: &base.PermissionLookupEntityRequestMetadata{
 								SnapToken:     token.NewNoopToken().Encode().String(),
 								SchemaVersion: "",
@@ -1603,7 +1670,9 @@ entity doc {
 						})
 						Expect(err).ShouldNot(HaveOccurred())
 
-						ids = append(ids, response.GetEntityIds()...)
+						if res, ok := response.GetEntityIds()[permission]; ok {
+							ids = append(ids, res.Ids...)
+						}
 
 						ct = response.GetContinuousToken()
 
@@ -1635,9 +1704,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -1675,8 +1745,9 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "comment",
-						subject:    "user:1",
+						entityType:  "comment",
+						subject:     "user:1",
+						permissions: []string{"remove"},
 						assertions: map[string][]string{
 							"remove": {"1", "45", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
 						},
@@ -1736,10 +1807,10 @@ entity doc {
 
 					for {
 						response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-							TenantId:   "t1",
-							EntityType: filter.entityType,
-							Subject:    subject,
-							Permission: permission,
+							TenantId:    "t1",
+							EntityType:  filter.entityType,
+							Subject:     subject,
+							Permissions: []string{permission},
 							Metadata: &base.PermissionLookupEntityRequestMetadata{
 								SnapToken:     token.NewNoopToken().Encode().String(),
 								SchemaVersion: "",
@@ -1750,7 +1821,9 @@ entity doc {
 						})
 						Expect(err).ShouldNot(HaveOccurred())
 
-						ids = append(ids, response.GetEntityIds()...)
+						if res, ok := response.GetEntityIds()[permission]; ok {
+							ids = append(ids, res.Ids...)
+						}
 
 						ct = response.GetContinuousToken()
 
@@ -1811,9 +1884,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -1837,46 +1911,52 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "resource",
-						subject:    "user:1",
+						entityType:  "resource",
+						subject:     "user:1",
+						permissions: []string{"view"},
 						assertions: map[string][]string{
 							"view": {"1"},
 						},
 					},
 					{
-						entityType: "resource",
-						subject:    "group:1#member",
+						entityType:  "resource",
+						subject:     "group:1#member",
+						permissions: []string{"view"},
 						assertions: map[string][]string{
 							"view": {"1"},
 						},
 					},
 					{
-						entityType: "resource",
-						subject:    "user:2",
+						entityType:  "resource",
+						subject:     "user:2",
+						permissions: []string{"edit", "view"},
 						assertions: map[string][]string{
 							"edit": {"1"},
 							"view": {"1"},
 						},
 					},
 					{
-						entityType: "organization",
-						subject:    "user:5",
+						entityType:  "organization",
+						subject:     "user:5",
+						permissions: []string{"admin", "member"},
 						assertions: map[string][]string{
 							"admin":  {"1"},
 							"member": {"1"},
 						},
 					},
 					{
-						entityType: "organization",
-						subject:    "group:1#manager",
+						entityType:  "organization",
+						subject:     "group:1#manager",
+						permissions: []string{"admin", "member"},
 						assertions: map[string][]string{
 							"admin":  {"1"},
 							"member": {"1"},
 						},
 					},
 					{
-						entityType: "organization",
-						subject:    "user:6",
+						entityType:  "organization",
+						subject:     "user:6",
+						permissions: []string{"member"},
 						assertions: map[string][]string{
 							"member": {"1"},
 						},
@@ -1928,21 +2008,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -1965,9 +2048,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -2004,60 +2088,68 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "resource",
-						subject:    "user:1",
+						entityType:  "resource",
+						subject:     "user:1",
+						permissions: []string{"view"},
 						assertions: map[string][]string{
 							"view": {"1"},
 						},
 					},
 					{
-						entityType: "resource",
-						subject:    "group:2#manager",
+						entityType:  "resource",
+						subject:     "group:2#manager",
+						permissions: []string{"view"},
 						assertions: map[string][]string{
 							"view": {"1", "2"},
 						},
 					},
 					{
-						entityType: "resource",
-						subject:    "user:4",
+						entityType:  "resource",
+						subject:     "user:4",
+						permissions: []string{"edit", "view"},
 						assertions: map[string][]string{
 							"edit": {"2"},
 							"view": {"2"},
 						},
 					},
 					{
-						entityType: "group",
-						subject:    "user:5",
+						entityType:  "group",
+						subject:     "user:5",
+						permissions: []string{"member"},
 						assertions: map[string][]string{
 							"member": {"2"},
 						},
 					},
 					{
-						entityType: "group",
-						subject:    "group:1#manager",
+						entityType:  "group",
+						subject:     "group:1#manager",
+						permissions: []string{"member"},
 						assertions: map[string][]string{
 							"member": {"2"},
 						},
 					},
 					{
-						entityType: "organization",
-						subject:    "user:9",
+						entityType:  "organization",
+						subject:     "user:9",
+						permissions: []string{"admin", "member"},
 						assertions: map[string][]string{
 							"admin":  {"1"},
 							"member": {"1"},
 						},
 					},
 					{
-						entityType: "organization",
-						subject:    "group:2#member",
+						entityType:  "organization",
+						subject:     "group:2#member",
+						permissions: []string{"admin", "member"},
 						assertions: map[string][]string{
 							"admin":  {"1"},
 							"member": {"1"},
 						},
 					},
 					{
-						entityType: "organization",
-						subject:    "user:10",
+						entityType:  "organization",
+						subject:     "user:10",
+						permissions: []string{"member"},
 						assertions: map[string][]string{
 							"member": {"1"},
 						},
@@ -2109,21 +2201,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -2146,9 +2241,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -2169,8 +2265,9 @@ entity doc {
 
 			tests.filters = []filter{
 				{
-					entityType: "resource",
-					subject:    "user:1",
+					entityType:  "resource",
+					subject:     "user:1",
+					permissions: []string{"view", "edit"},
 					assertions: map[string][]string{
 						"view": {"1", "10", "100", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "3", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "4", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "5", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "6", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "7", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "8", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "9", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
 						"edit": {"100", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
@@ -2222,21 +2319,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -2259,9 +2359,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -2282,8 +2383,9 @@ entity doc {
 
 			tests.filters = []filter{
 				{
-					entityType: "resource",
-					subject:    "user:1",
+					entityType:  "resource",
+					subject:     "user:1",
+					permissions: []string{"view", "edit"},
 					assertions: map[string][]string{
 						"view": {"1", "10", "100", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "3", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "4", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "5", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "6", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "7", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "8", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "9", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
 						"edit": {"100", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
@@ -2343,10 +2445,10 @@ entity doc {
 
 					for {
 						response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-							TenantId:   "t1",
-							EntityType: filter.entityType,
-							Subject:    subject,
-							Permission: permission,
+							TenantId:    "t1",
+							EntityType:  filter.entityType,
+							Subject:     subject,
+							Permissions: []string{permission},
 							Metadata: &base.PermissionLookupEntityRequestMetadata{
 								SnapToken:     token.NewNoopToken().Encode().String(),
 								SchemaVersion: "",
@@ -2357,7 +2459,9 @@ entity doc {
 						})
 						Expect(err).ShouldNot(HaveOccurred())
 
-						ids = append(ids, response.GetEntityIds()...)
+						if res, ok := response.GetEntityIds()[permission]; ok {
+							ids = append(ids, res.Ids...)
+						}
 
 						ct = response.GetContinuousToken()
 
@@ -2423,9 +2527,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -2463,15 +2568,17 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "repository",
-						subject:    "user:1",
+						entityType:  "repository",
+						subject:     "user:1",
+						permissions: []string{"view"},
 						assertions: map[string][]string{
 							"view": {"1", "3", "4", "5"},
 						},
 					},
 					{
-						entityType: "organization",
-						subject:    "user:1",
+						entityType:  "organization",
+						subject:     "user:1",
+						permissions: []string{"view"},
 						assertions: map[string][]string{
 							"view": {"2", "20", "4", "45", "8", "917"},
 						},
@@ -2531,21 +2638,24 @@ entity doc {
 					Relation: ear.GetRelation(),
 				}
 
-				for permission, res := range filter.assertions {
-					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-						TenantId:   "t1",
-						EntityType: filter.entityType,
-						Subject:    subject,
-						Permission: permission,
-						Metadata: &base.PermissionLookupEntityRequestMetadata{
-							SnapToken:     token.NewNoopToken().Encode().String(),
-							SchemaVersion: "",
-							Depth:         100,
-						},
-					})
-
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(response.GetEntityIds()).Should(Equal(res))
+				response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for _, permission := range filter.permissions {
+					var responseIdsForPermission []string
+					if res, ok := response.GetEntityIds()[permission]; ok {
+						responseIdsForPermission = res.Ids
+					}
+					Expect(isSameArray(responseIdsForPermission, filter.assertions[permission])).Should(Equal(true))
 				}
 			}
 		})
@@ -2568,9 +2678,10 @@ entity doc {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			type filter struct {
-				entityType string
-				subject    string
-				assertions map[string][]string
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
 			}
 
 			tests := struct {
@@ -2621,8 +2732,9 @@ entity doc {
 				},
 				filters: []filter{
 					{
-						entityType: "organization",
-						subject:    "user:1",
+						entityType:  "organization",
+						subject:     "user:1",
+						permissions: []string{"view"},
 						assertions: map[string][]string{
 							"view": {"2", "20", "22", "260", "4", "43", "45", "475", "8", "84", "9157", "917"},
 						},
@@ -2690,10 +2802,10 @@ entity doc {
 
 					for {
 						response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-							TenantId:   "t1",
-							EntityType: filter.entityType,
-							Subject:    subject,
-							Permission: permission,
+							TenantId:    "t1",
+							EntityType:  filter.entityType,
+							Subject:     subject,
+							Permissions: []string{permission},
 							Metadata: &base.PermissionLookupEntityRequestMetadata{
 								SnapToken:     token.NewNoopToken().Encode().String(),
 								SchemaVersion: "",
@@ -2704,7 +2816,9 @@ entity doc {
 						})
 						Expect(err).ShouldNot(HaveOccurred())
 
-						ids = append(ids, response.GetEntityIds()...)
+						if res, ok := response.GetEntityIds()[permission]; ok {
+							ids = append(ids, res.Ids...)
+						}
 
 						ct = response.GetContinuousToken()
 

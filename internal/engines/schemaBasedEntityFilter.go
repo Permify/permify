@@ -36,30 +36,31 @@ func (engine *SchemaBasedEntityFilter) EntityFilter(
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
+	permissionChecks *ERMap, // A thread safe map to check if for a entity same permission already checked or not
 ) (err error) { // Returns an error if one occurs during execution.
 	// Check if direct result
-	if request.GetEntityReference().GetType() == request.GetSubject().GetType() && request.GetEntityReference().GetRelation() == request.GetSubject().GetRelation() {
-		found := &base.Entity{
-			Type: request.GetSubject().GetType(),
-			Id:   request.GetSubject().GetId(),
+	for _, entityReference := range request.GetEntityReferences() {
+		if entityReference.GetType() == request.GetSubject().GetType() && entityReference.GetRelation() == request.GetSubject().GetRelation() {
+			found := &base.Entity{
+				Type: request.GetSubject().GetType(),
+				Id:   request.GetSubject().GetId(),
+			}
+			// If the entity reference is the same as the subject, publish the result directly and return.
+			publisher.Publish(found, &base.PermissionCheckRequestMetadata{
+				SnapToken:     request.GetMetadata().GetSnapToken(),
+				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+				Depth:         request.GetMetadata().GetDepth(),
+			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
+			// Breaking loop here as publisher would make sure now to check for all permissions
+			break
 		}
-
-		// If the entity reference is the same as the subject, publish the result directly and return.
-		publisher.Publish(found, &base.PermissionCheckRequestMetadata{
-			SnapToken:     request.GetMetadata().GetSnapToken(),
-			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-			Depth:         request.GetMetadata().GetDepth(),
-		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
 	// Retrieve linked entrances
 	cn := schema.NewLinkedGraph(engine.schema) // Create a new linked graph from the schema definition.
 	var entrances []*schema.LinkedEntrance
 	entrances, err = cn.RelationshipLinkedEntrances(
-		&base.RelationReference{
-			Type:     request.GetEntityReference().GetType(),
-			Relation: request.GetEntityReference().GetRelation(),
-		},
+		request.GetEntityReferences(),
 		&base.RelationReference{
 			Type:     request.GetSubject().GetType(),
 			Relation: request.GetSubject().GetRelation(),
@@ -78,7 +79,7 @@ func (engine *SchemaBasedEntityFilter) EntityFilter(
 		// Switch on the kind of linked entrance.
 		switch entrance.LinkedEntranceKind() {
 		case schema.RelationLinkedEntrance: // If the linked entrance is a relation entrance.
-			err = engine.relationEntrance(cont, request, entrance, visits, g, publisher) // Call the relation entrance method.
+			err = engine.relationEntrance(cont, request, entrance, visits, g, publisher, permissionChecks) // Call the relation entrance method.
 			if err != nil {
 				return err
 			}
@@ -89,12 +90,12 @@ func (engine *SchemaBasedEntityFilter) EntityFilter(
 					Id:   request.GetSubject().GetId(),
 				},
 				Relation: entrance.TargetEntrance.GetRelation(),
-			}, visits, g, publisher)
+			}, visits, g, publisher, permissionChecks)
 			if err != nil {
 				return err
 			}
 		case schema.TupleToUserSetLinkedEntrance: // If the linked entrance is a tuple to user set entrance.
-			err = engine.tupleToUserSetEntrance(cont, request, entrance, visits, g, publisher) // Call the tuple to user set entrance method.
+			err = engine.tupleToUserSetEntrance(cont, request, entrance, visits, g, publisher, permissionChecks) // Call the tuple to user set entrance method.
 			if err != nil {
 				return err
 			}
@@ -114,6 +115,7 @@ func (engine *SchemaBasedEntityFilter) relationEntrance(
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
+	permissionChecks *ERMap, // A thread safe map to check if for a entity same permission already checked or not
 ) error { // Returns an error if one occurs during execution.
 	// Define a TupleFilter. This specifies which tuples we're interested in.
 	// We want tuples that match the entity type and ID from the request, and have a specific relation.
@@ -139,10 +141,12 @@ func (engine *SchemaBasedEntityFilter) relationEntrance(
 	// Determine the pagination settings based on the entity type in the request.
 	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
 	// Otherwise, use the default pagination settings.
-	if request.GetEntityReference().GetType() == entrance.TargetEntrance.GetType() {
-		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-	} else {
-		pagination = database.NewCursorPagination()
+	pagination = database.NewCursorPagination()
+	for _, entityReference := range request.GetEntityReferences() {
+		if entityReference.GetType() == entrance.TargetEntrance.GetType() {
+			pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+			break
+		}
 	}
 
 	// Query the relationships using the specified pagination settings.
@@ -176,7 +180,7 @@ func (engine *SchemaBasedEntityFilter) relationEntrance(
 					Id:   current.GetEntity().GetId(),
 				},
 				Relation: current.GetRelation(),
-			}, visits, g, publisher)
+			}, visits, g, publisher, permissionChecks)
 		})
 	}
 	return nil
@@ -196,6 +200,8 @@ func (engine *SchemaBasedEntityFilter) tupleToUserSetEntrance(
 	g *errgroup.Group,
 	// A custom publisher that publishes results in bulk.
 	publisher *BulkEntityPublisher,
+	// A thread safe map to check if for a entity same permission already checked or not
+	permissionChecks *ERMap,
 ) error { // Returns an error if one occurs during execution.
 	for _, relation := range []string{"", tuple.ELLIPSIS} {
 		// Define a TupleFilter. This specifies which tuples we're interested in.
@@ -222,10 +228,12 @@ func (engine *SchemaBasedEntityFilter) tupleToUserSetEntrance(
 		// Determine the pagination settings based on the entity type in the request.
 		// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
 		// Otherwise, use the default pagination settings.
-		if request.GetEntityReference().GetType() == entrance.TargetEntrance.GetType() {
-			pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-		} else {
-			pagination = database.NewCursorPagination()
+		pagination = database.NewCursorPagination()
+		for _, entityReference := range request.GetEntityReferences() {
+			if entityReference.GetType() == entrance.TargetEntrance.GetType() {
+				pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+				break
+			}
 		}
 
 		// Query the relationships using the specified pagination settings.
@@ -259,7 +267,7 @@ func (engine *SchemaBasedEntityFilter) tupleToUserSetEntrance(
 						Id:   current.GetEntity().GetId(),
 					},
 					Relation: entrance.TargetEntrance.GetRelation(),
-				}, visits, g, publisher)
+				}, visits, g, publisher, permissionChecks)
 			})
 		}
 	}
@@ -274,6 +282,7 @@ func (engine *SchemaBasedEntityFilter) l(
 	visits *ERMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
+	permissionChecks *ERMap, // A thread safe map to check if for a entity same permission already checked or not
 ) error { // Returns an error if one occurs during execution.
 	if !visits.Add(found.GetEntity(), found.GetRelation()) { // If the entity and relation has already been visited.
 		return nil
@@ -285,10 +294,7 @@ func (engine *SchemaBasedEntityFilter) l(
 	cn := schema.NewLinkedGraph(engine.schema)
 	var entrances []*schema.LinkedEntrance
 	entrances, err = cn.RelationshipLinkedEntrances(
-		&base.RelationReference{
-			Type:     request.GetEntityReference().GetType(),
-			Relation: request.GetEntityReference().GetRelation(),
-		},
+		request.GetEntityReferences(),
 		&base.RelationReference{
 			Type:     request.GetSubject().GetType(),
 			Relation: request.GetSubject().GetRelation(),
@@ -299,21 +305,23 @@ func (engine *SchemaBasedEntityFilter) l(
 	}
 
 	if entrances == nil { // If there are no linked entrances for the request.
-		if found.GetEntity().GetType() == request.GetEntityReference().GetType() && found.GetRelation() == request.GetEntityReference().GetRelation() { // Check if the found entity matches the requested entity reference.
-			publisher.Publish(found.GetEntity(), &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
-			return nil
+		for _, reference := range request.GetEntityReferences() {
+			if found.GetEntity().GetType() == reference.GetType() && found.GetRelation() == reference.GetRelation() { // Check if the found entity matches the requested entity reference.
+				publisher.Publish(found.GetEntity(), &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
+					SnapToken:     request.GetMetadata().GetSnapToken(),
+					SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+					Depth:         request.GetMetadata().GetDepth(),
+				}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
+				return nil
+			}
 		}
 		return nil // Otherwise, return without publishing any results.
 	}
 
 	g.Go(func() error {
 		return engine.EntityFilter(ctx, &base.PermissionEntityFilterRequest{ // Call the Run method recursively with a new permission request.
-			TenantId:        request.GetTenantId(),
-			EntityReference: request.GetEntityReference(),
+			TenantId:         request.GetTenantId(),
+			EntityReferences: request.GetEntityReferences(),
 			Subject: &base.Subject{
 				Type:     found.GetEntity().GetType(),
 				Id:       found.GetEntity().GetId(),
@@ -322,7 +330,7 @@ func (engine *SchemaBasedEntityFilter) l(
 			Metadata: request.GetMetadata(),
 			Context:  request.GetContext(),
 			Cursor:   request.GetCursor(),
-		}, visits, publisher)
+		}, visits, publisher, permissionChecks)
 	})
 	return nil
 }

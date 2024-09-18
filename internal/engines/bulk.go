@@ -54,7 +54,7 @@ type BulkChecker struct {
 
 	// callback is a function that handles the result of each permission check.
 	// It is called with the entity ID and the result of the permission check (e.g., allowed or denied).
-	callback func(entityID, ct string)
+	callback func(entityID, permission string, ct string)
 
 	// sortedList is a slice that stores BulkCheckerRequest objects.
 	// This list is maintained in a sorted order based on some criteria, such as the entity ID.
@@ -76,7 +76,7 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID, ct string), concurrencyLimit int) *BulkChecker {
+func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID, permission string, ct string), concurrencyLimit int) *BulkChecker {
 	bc := &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
 		checker:          checker,
@@ -220,9 +220,9 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 						}
 						// Depending on the type of check (entity or subject), call the appropriate callback
 						if bc.typ == BULK_ENTITY {
-							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), ct)
+							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), req.Request.GetPermission(), ct)
 						} else if bc.typ == BULK_SUBJECT {
-							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), ct)
+							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), req.Request.GetPermission(), ct)
 						}
 					}
 				}
@@ -261,17 +261,22 @@ func NewBulkEntityPublisher(ctx context.Context, request *base.PermissionLookupE
 }
 
 // Publish publishes a permission check request to the BulkChecker.
-func (s *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
-	s.bulkChecker.RequestChan <- BulkCheckerRequest{
-		Request: &base.PermissionCheckRequest{
-			TenantId:   s.request.GetTenantId(),
-			Metadata:   metadata,
-			Entity:     entity,
-			Permission: s.request.GetPermission(),
-			Subject:    s.request.GetSubject(),
-			Context:    context,
-		},
-		Result: result,
+func (s *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult, permissionChecks *ERMap) {
+	for _, permission := range s.request.GetPermissions() {
+		if !permissionChecks.Add(entity, permission) {
+			continue
+		}
+		s.bulkChecker.RequestChan <- BulkCheckerRequest{
+			Request: &base.PermissionCheckRequest{
+				TenantId:   s.request.GetTenantId(),
+				Metadata:   metadata,
+				Entity:     entity,
+				Permission: permission,
+				Subject:    s.request.GetSubject(),
+				Context:    context,
+			},
+			Result: result,
+		}
 	}
 }
 

@@ -26,9 +26,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "viewer",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "viewer",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -65,9 +67,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -120,9 +124,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -179,9 +185,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -243,9 +251,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -311,9 +321,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -366,9 +378,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -453,9 +467,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "document",
 				Relation: "viewer",
@@ -500,9 +516,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "organization",
 				Relation: "admin",
@@ -549,9 +567,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "container",
 				Relation: "local_admin",
@@ -606,9 +626,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "container",
 				Relation: "local_admin",
@@ -654,9 +676,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "document",
 				Relation: "viewer",
@@ -704,9 +728,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -744,9 +770,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "document",
-				Relation: "view",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -796,9 +824,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "account",
-				Relation: "add_member",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "account",
+					Relation: "add_member",
+				},
 			}, &base.RelationReference{
 				Type:     "user",
 				Relation: "",
@@ -839,9 +869,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "account",
-				Relation: "add_member",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "account",
+					Relation: "add_member",
+				},
 			}, &base.RelationReference{
 				Type:     "account",
 				Relation: "admin",
@@ -890,9 +922,11 @@ var _ = Describe("linked schema", func() {
 
 			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
 
-			ent, err := g.RelationshipLinkedEntrances(&base.RelationReference{
-				Type:     "account",
-				Relation: "admin",
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "account",
+					Relation: "admin",
+				},
 			}, &base.RelationReference{
 				Type:     "account",
 				Relation: "admin",
@@ -920,6 +954,86 @@ var _ = Describe("linked schema", func() {
 				},
 				TupleSetRelation: "",
 			}.LinkedEntranceKind()).Should(Equal(RelationLinkedEntrance))
+		})
+
+		It("Case 19", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity organization {
+				relation admin @user
+				relation member @user
+			}
+			entity container {
+				relation parent @organization
+				relation local_admin @user
+				relation another @user
+				action admin = parent.admin or local_admin
+				action test = local_admin and another
+			}
+			entity document {
+				relation container @container
+				action view = container.admin or container.test
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, err := c.Compile()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			ent, err := g.RelationshipLinkedEntrances([]*base.RelationReference{
+				{
+					Type:     "document",
+					Relation: "view",
+				},
+				{
+					Type:     "organization",
+					Relation: "member",
+				},
+			}, &base.RelationReference{
+				Type:     "user",
+				Relation: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "organization",
+						Relation: "member",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "organization",
+						Relation: "admin",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "container",
+						Relation: "local_admin",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.RelationReference{
+						Type:     "container",
+						Relation: "another",
+					},
+					TupleSetRelation: "",
+				},
+			}))
 		})
 	})
 })

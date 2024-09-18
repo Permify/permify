@@ -27,6 +27,7 @@ func (filter *MassEntityFilter) EntityFilter(
 	ctx context.Context,
 	request *base.PermissionLookupEntityRequest,
 	publisher *BulkEntityPublisher,
+	permissionChecks *ERMap,
 ) (err error) {
 	contextIds := make(map[string]struct{}) // Make an empty set to avoid duplicates
 
@@ -71,7 +72,7 @@ func (filter *MassEntityFilter) EntityFilter(
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
-		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
 	}
 
 	// Creating a pagination object
@@ -98,7 +99,7 @@ func (filter *MassEntityFilter) EntityFilter(
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
-		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
 	}
 
 	// Return successful completion of the function

@@ -351,9 +351,9 @@ func validate() func(cmd *cobra.Command, args []string) error {
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							Depth:         100,
 						},
-						EntityType: filter.EntityType,
-						Permission: permission,
-						Subject:    subject,
+						EntityType:  filter.EntityType,
+						Permissions: []string{permission},
+						Subject:     subject,
 					})
 					if err != nil {
 						// If an error occurs, add it to the list and continue to the next assertion.
@@ -364,15 +364,18 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					// Format the subject, permission, and entity type as a string for logging.
 					query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
 
-					// Check if the actual result matches the expected result.
-					if isSameArray(res.GetEntityIds(), expected) {
+					if res.GetEntityIds()[permission] == nil && len(expected) == 0 {
+						// If the results match, log a success message.
+						color.Success.Print("    success:")
+						fmt.Printf(" %v\n", query)
+					} else if res.GetEntityIds()[permission] != nil && isSameArray(res.GetEntityIds()[permission].Ids, expected) {
 						// If the results match, log a success message.
 						color.Success.Print("    success:")
 						fmt.Printf(" %v\n", query)
 					} else {
 						// If the results don't match, log a failure message with the expected and actual results.
-						color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetEntityIds())
-						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetEntityIds()))
+						color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetEntityIds()[permission].Ids)
+						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetEntityIds()[permission].Ids))
 					}
 				}
 			}
