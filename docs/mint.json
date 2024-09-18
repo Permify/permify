@@ -30,8 +30,8 @@
     }
   },
   "topbarCtaButton": {
-    "name": "Sign Up",
-    "url": "https://console.permify.co/sign-up"
+    "name": "Playground",
+    "url": "https://play.permify.co/?s=organizations-hierarchies"
   },
   "redirects": [
     {
