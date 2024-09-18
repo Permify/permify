@@ -24,15 +24,11 @@ type DataReader interface {
 
 	// QueryAttributes reads multiple attributes from the storage based on the given filter.
 	// It returns an iterator to iterate over the attributes and any error encountered.
-	QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string) (iterator *database.AttributeIterator, err error)
+	QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string, pagination database.CursorPagination) (iterator *database.AttributeIterator, err error)
 
 	// ReadAttributes reads multiple attributes from the storage based on the given filter and pagination.
 	// It returns a collection of attributes, a continuous token indicating the position in the data set, and any error encountered.
 	ReadAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string, pagination database.Pagination) (collection *database.AttributeCollection, ct database.EncodedContinuousToken, err error)
-
-	// QueryUniqueEntities reads unique entities from the storage based on the given filter and pagination.
-	// It returns a slice of entity IDs, a continuous token indicating the position in the data set, and any error encountered.
-	QueryUniqueEntities(ctx context.Context, tenantID, name, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error)
 
 	// QueryUniqueSubjectReferences reads unique subject references from the storage based on the given filter and pagination.
 	// It returns a slice of subject reference IDs, a continuous token indicating the position in the data set, and any error encountered.
@@ -61,7 +57,7 @@ func (f *NoopDataReader) QuerySingleAttribute(_ context.Context, _ string, _ *ba
 	return &base.Attribute{}, nil
 }
 
-func (f *NoopDataReader) QueryAttributes(_ context.Context, _ string, _ *base.AttributeFilter, _ string) (*database.AttributeIterator, error) {
+func (f *NoopDataReader) QueryAttributes(_ context.Context, _ string, _ *base.AttributeFilter, _ string, _ database.CursorPagination) (*database.AttributeIterator, error) {
 	return database.NewAttributeIterator(), nil
 }
 

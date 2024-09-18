@@ -46,6 +46,7 @@ const (
 	RelationLinkedEntrance        LinkedEntranceKind = "relation"
 	TupleToUserSetLinkedEntrance  LinkedEntranceKind = "tuple_to_user_set"
 	ComputedUserSetLinkedEntrance LinkedEntranceKind = "computed_user_set"
+	AttributeLinkedEntrance       LinkedEntranceKind = "attribute"
 )
 
 // LinkedEntrance represents an entry point into the LinkedSchemaGraph, which is used to resolve permissions and expand user
@@ -60,7 +61,7 @@ const (
 //     for the entry point
 type LinkedEntrance struct {
 	Kind             LinkedEntranceKind
-	TargetEntrance   *base.RelationReference
+	TargetEntrance   *base.Entrance
 	TupleSetRelation string
 }
 
@@ -86,7 +87,7 @@ func (re LinkedEntrance) LinkedEntranceKind() LinkedEntranceKind {
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) RelationshipLinkedEntrances(target, source *base.RelationReference) ([]*LinkedEntrance, error) {
+func (g *LinkedSchemaGraph) LinkedEntrances(target, source *base.Entrance) ([]*LinkedEntrance, error) {
 	entries, err := g.findEntrance(target, source, map[string]struct{}{})
 	if err != nil {
 		return nil, err
@@ -110,8 +111,8 @@ func (g *LinkedSchemaGraph) RelationshipLinkedEntrances(target, source *base.Rel
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference, visited map[string]struct{}) ([]*LinkedEntrance, error) {
-	key := utils.Key(target.GetType(), target.GetRelation())
+func (g *LinkedSchemaGraph) findEntrance(target, source *base.Entrance, visited map[string]struct{}) ([]*LinkedEntrance, error) {
+	key := utils.Key(target.GetType(), target.GetValue())
 	if _, ok := visited[key]; ok {
 		return nil, nil
 	}
@@ -122,9 +123,9 @@ func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference,
 		return nil, errors.New("entity definition not found")
 	}
 
-	switch def.References[target.GetRelation()] {
+	switch def.References[target.GetValue()] {
 	case base.EntityDefinition_REFERENCE_PERMISSION:
-		permission, ok := def.Permissions[target.GetRelation()]
+		permission, ok := def.Permissions[target.GetValue()]
 		if !ok {
 			return nil, errors.New("permission not found")
 		}
@@ -134,7 +135,19 @@ func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference,
 		}
 		return g.findEntranceLeaf(target, source, child.GetLeaf(), visited)
 	case base.EntityDefinition_REFERENCE_ATTRIBUTE:
-		return nil, ErrUnimplemented
+		attribute, ok := def.Attributes[target.GetValue()]
+		if !ok {
+			return nil, errors.New("attribute not found")
+		}
+		return []*LinkedEntrance{
+			{
+				Kind: AttributeLinkedEntrance,
+				TargetEntrance: &base.Entrance{
+					Type:  target.GetType(),
+					Value: attribute.GetName(),
+				},
+			},
+		}, nil
 	case base.EntityDefinition_REFERENCE_RELATION:
 		return g.findRelationEntrance(target, source, visited)
 	default:
@@ -156,7 +169,7 @@ func (g *LinkedSchemaGraph) findEntrance(target, source *base.RelationReference,
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationReference, visited map[string]struct{}) ([]*LinkedEntrance, error) {
+func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.Entrance, visited map[string]struct{}) ([]*LinkedEntrance, error) {
 	var res []*LinkedEntrance
 
 	entity, ok := g.schema.EntityDefinitions[target.GetType()]
@@ -164,7 +177,7 @@ func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationRe
 		return nil, errors.New("entity definition not found")
 	}
 
-	relation, ok := entity.Relations[target.GetRelation()]
+	relation, ok := entity.Relations[target.GetValue()]
 	if !ok {
 		return nil, errors.New("relation definition not found")
 	}
@@ -172,16 +185,19 @@ func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationRe
 	if IsDirectlyRelated(relation, source) {
 		res = append(res, &LinkedEntrance{
 			Kind: RelationLinkedEntrance,
-			TargetEntrance: &base.RelationReference{
-				Type:     target.GetType(),
-				Relation: target.GetRelation(),
+			TargetEntrance: &base.Entrance{
+				Type:  target.GetType(),
+				Value: target.GetValue(),
 			},
 		})
 	}
 
 	for _, rel := range relation.GetRelationReferences() {
 		if rel.GetRelation() != "" {
-			entrances, err := g.findEntrance(rel, source, visited)
+			entrances, err := g.findEntrance(&base.Entrance{
+				Type:  rel.GetType(),
+				Value: rel.GetRelation(),
+			}, source, visited)
 			if err != nil {
 				return nil, err
 			}
@@ -210,7 +226,7 @@ func (g *LinkedSchemaGraph) findRelationEntrance(target, source *base.RelationRe
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationReference, leaf *base.Leaf, visited map[string]struct{}) ([]*LinkedEntrance, error) {
+func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.Entrance, leaf *base.Leaf, visited map[string]struct{}) ([]*LinkedEntrance, error) {
 	switch t := leaf.GetType().(type) {
 	case *base.Leaf_TupleToUserSet:
 		tupleSet := t.TupleToUserSet.GetTupleSet().GetRelation()
@@ -228,7 +244,7 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 		}
 
 		for _, rel := range relations.GetRelationReferences() {
-			if rel.GetType() == source.GetType() && source.GetRelation() == computedUserSet {
+			if rel.GetType() == source.GetType() && source.GetValue() == computedUserSet {
 				res = append(res, &LinkedEntrance{
 					Kind:             TupleToUserSetLinkedEntrance,
 					TargetEntrance:   target,
@@ -237,9 +253,9 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 			}
 
 			results, err := g.findEntrance(
-				&base.RelationReference{
-					Type:     rel.GetType(),
-					Relation: computedUserSet,
+				&base.Entrance{
+					Type:  rel.GetType(),
+					Value: computedUserSet,
 				},
 				source,
 				visited,
@@ -251,10 +267,9 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 		}
 		return res, nil
 	case *base.Leaf_ComputedUserSet:
-
 		var entrances []*LinkedEntrance
 
-		if target.GetType() == source.GetType() && t.ComputedUserSet.GetRelation() == source.GetRelation() {
+		if target.GetType() == source.GetType() && t.ComputedUserSet.GetRelation() == source.GetValue() {
 			entrances = append(entrances, &LinkedEntrance{
 				Kind:           ComputedUserSetLinkedEntrance,
 				TargetEntrance: target,
@@ -262,9 +277,9 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 		}
 
 		results, err := g.findEntrance(
-			&base.RelationReference{
-				Type:     target.GetType(),
-				Relation: t.ComputedUserSet.GetRelation(),
+			&base.Entrance{
+				Type:  target.GetType(),
+				Value: t.ComputedUserSet.GetRelation(),
 			},
 			source,
 			visited,
@@ -279,9 +294,30 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 		)
 		return entrances, nil
 	case *base.Leaf_ComputedAttribute:
-		return nil, ErrUnimplemented
+		var entrances []*LinkedEntrance
+		entrances = append(entrances, &LinkedEntrance{
+			Kind: AttributeLinkedEntrance,
+			TargetEntrance: &base.Entrance{
+				Type:  target.GetType(),
+				Value: t.ComputedAttribute.GetName(),
+			},
+		})
+		return entrances, nil
 	case *base.Leaf_Call:
-		return nil, ErrUnimplemented
+		var entrances []*LinkedEntrance
+		for _, arg := range t.Call.GetArguments() {
+			computedAttr := arg.GetComputedAttribute()
+			if computedAttr != nil {
+				entrances = append(entrances, &LinkedEntrance{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  target.GetType(),
+						Value: computedAttr.GetName(),
+					},
+				})
+			}
+		}
+		return entrances, nil
 	default:
 		return nil, ErrUndefinedLeafType
 	}
@@ -302,7 +338,7 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.RelationRefere
 // Returns:
 //   - slice of LinkedEntrance objects that represent entry points into the LinkedSchemaGraph, or an error if the target or
 //     source relation does not exist in the schema graph
-func (g *LinkedSchemaGraph) findEntranceRewrite(target, source *base.RelationReference, rewrite *base.Rewrite, visited map[string]struct{}) (results []*LinkedEntrance, err error) {
+func (g *LinkedSchemaGraph) findEntranceRewrite(target, source *base.Entrance, rewrite *base.Rewrite, visited map[string]struct{}) (results []*LinkedEntrance, err error) {
 	var res []*LinkedEntrance
 	for _, child := range rewrite.GetChildren() {
 		switch child.GetType().(type) {

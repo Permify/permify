@@ -79,14 +79,21 @@ type CheckResponse struct {
 	err  error
 }
 
-// ERMap - a thread-safe map of ENR records.
-type ERMap struct {
-	value sync.Map
+// VisitsMap - a thread-safe map of ENR records.
+type VisitsMap struct {
+	er        sync.Map
+	published sync.Map
 }
 
-func (s *ERMap) Add(entity *base.Entity, relation string) bool {
+func (s *VisitsMap) AddER(entity *base.Entity, relation string) bool {
 	key := tuple.EntityAndRelationToString(entity, relation)
-	_, existed := s.value.LoadOrStore(key, struct{}{})
+	_, existed := s.er.LoadOrStore(key, struct{}{})
+	return !existed
+}
+
+func (s *VisitsMap) AddPublished(entity *base.Entity) bool {
+	key := tuple.EntityToString(entity)
+	_, existed := s.published.LoadOrStore(key, struct{}{})
 	return !existed
 }
 

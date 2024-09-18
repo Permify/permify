@@ -246,12 +246,12 @@ var _ = Describe("utils", func() {
 				attribute public boolean
 	
 				permission edit = public
-				permission view = check_ip_range(request.ip_address, ip_range) or admin
+				permission view = check_ip_range(ip_range) or admin
 				permission delete = view and admin
 			}
 	
-			rule check_ip_range(ip_address string, ip_range string[]) {
-				ip_address in ip_range
+			rule check_ip_range(ip_range string[]) {
+				context.data.ip_address in ip_range
 			}`)
 
 			Expect(err).ShouldNot(HaveOccurred())

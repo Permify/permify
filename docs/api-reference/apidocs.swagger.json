@@ -1428,9 +1428,6 @@
       "properties": {
         "computedAttribute": {
           "$ref": "#/definitions/ComputedAttribute"
-        },
-        "contextAttribute": {
-          "$ref": "#/definitions/ContextAttribute"
         }
       },
       "description": "Argument defines the type of argument in a Call. It can be either a ComputedAttribute or a ContextAttribute."
@@ -1778,16 +1775,6 @@
         }
       },
       "description": "Context encapsulates the information related to a single operation,\nincluding the tuples involved and the associated attributes."
-    },
-    "ContextAttribute": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "Name of the context attribute"
-        }
-      },
-      "description": "ContextAttribute defines a context attribute which includes its name."
     },
     "CreateList": {
       "type": "object",
@@ -2283,6 +2270,13 @@
           "$ref": "#/definitions/Context",
           "description": "Context associated with this request."
         },
+        "scope": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/StringArrayValue"
+          },
+          "description": "Scope: A map that associates entity types with lists of identifiers. Each entry\nhelps filter requests by specifying which entities are relevant to the operation."
+        },
         "page_size": {
           "type": "integer",
           "format": "int64",
@@ -2317,6 +2311,13 @@
         "context": {
           "$ref": "#/definitions/Context",
           "description": "Context associated with this request."
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/StringArrayValue"
+          },
+          "description": "Scope: A map that associates entity types with lists of identifiers. Each entry\nhelps filter requests by specifying which entities are relevant to the operation."
         },
         "page_size": {
           "type": "integer",
@@ -3142,6 +3143,19 @@
           }
         }
       }
+    },
+    "StringArrayValue": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The array of strings."
+        }
+      },
+      "description": "Wrapper for an array of strings."
     },
     "Subject": {
       "type": "object",

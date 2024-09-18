@@ -183,6 +183,7 @@ func (t *Compiler) compileRule(sc *ast.RuleStatement) (*base.RuleDefinition, err
 	}
 
 	var envOptions []cel.EnvOption
+	envOptions = append(envOptions, cel.Variable("context", cel.DynType))
 
 	// Iterate over the arguments in the rule statement.
 	for name, ty := range sc.Arguments {
@@ -435,6 +436,10 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 		}
 	}
 
+	if len(call.Arguments) == 0 {
+		return nil, compileError(call.Name.PositionInfo, base.ErrorCode_ERROR_CODE_MISSING_ARGUMENT.String())
+	}
+
 	// Loop through each argument in the call.
 	for _, argument := range call.Arguments {
 
@@ -473,34 +478,6 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 				Type: &base.Argument_ComputedAttribute{
 					ComputedAttribute: &base.ComputedAttribute{
 						Name: argument.Idents[0].Literal,
-					},
-				},
-			})
-			continue
-		}
-
-		// If the argument has two identifiers, it is a context attribute.
-		if len(argument.Idents) == 2 {
-
-			// Check if the first identifier is "request" (context attribute).
-			// If it's not "request," it means an unsupported relation walk is attempted, so return an error.
-			if argument.Idents[0].Literal != "request" {
-				return nil, compileError(argument.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_NOT_IMPLEMENTED.String())
-			}
-
-			// If reference validation is enabled, check if the context attribute exists in the types map.
-			if t.withReferenceValidation {
-				_, exist := types[argument.Idents[1].Literal]
-				if !exist {
-					return nil, compileError(argument.Idents[1].PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
-				}
-			}
-
-			// Append the context attribute to the arguments slice.
-			arguments = append(arguments, &base.Argument{
-				Type: &base.Argument_ContextAttribute{
-					ContextAttribute: &base.ContextAttribute{
-						Name: argument.Idents[1].Literal,
 					},
 				},
 			})

@@ -1523,8 +1523,8 @@ var _ = Describe("check-engine", func() {
 		})
 	})
 
-	// WEEKDAY SAMPLE
-	weekdaySchema := `
+	// WORKDAY SAMPLE
+	workdaySchema := `
 		entity user {}
 		
 		entity organization {
@@ -1544,15 +1544,15 @@ var _ = Describe("check-engine", func() {
 
 			permission view = is_public
 			permission edit = organization.view
-			permission delete = is_weekday(request.day_of_week)
+			permission delete = is_workday(is_public)
 		}
 		
 		rule check_balance(balance integer) {
 			balance > 5000
 		}
 
-		rule is_weekday(day_of_week string) {
-			  day_of_week != 'saturday' && day_of_week != 'sunday'
+		rule is_workday(is_public boolean) {
+			  is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
 		}
 		`
 
@@ -1566,7 +1566,7 @@ var _ = Describe("check-engine", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			conf, err := newSchema(weekdaySchema)
+			conf, err := newSchema(workdaySchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			schemaWriter := factories.SchemaWriterFactory(db)
@@ -1675,7 +1675,7 @@ var _ = Describe("check-engine", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			conf, err := newSchema(weekdaySchema)
+			conf, err := newSchema(workdaySchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			schemaWriter := factories.SchemaWriterFactory(db)
@@ -1821,7 +1821,7 @@ var _ = Describe("check-engine", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			conf, err := newSchema(weekdaySchema)
+			conf, err := newSchema(workdaySchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			schemaWriter := factories.SchemaWriterFactory(db)
@@ -1931,11 +1931,11 @@ var _ = Describe("check-engine", func() {
 	
 			attribute ip_range string[]
 	
-			permission view = check_ip_range(request.ip_address, ip_range) or admin
+			permission view = check_ip_range(ip_range) or admin
 		}
 	
-		rule check_ip_range(ip_address string, ip_range string[]) {
-			ip_address in ip_range
+		rule check_ip_range(ip_range string[]) {
+			 context.data.ip_address in ip_range
 		}
 		`
 

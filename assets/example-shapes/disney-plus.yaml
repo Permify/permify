@@ -36,17 +36,17 @@ schema: |-
         attribute age_rating integer
         attribute allowed_region string[]
 
-        action view = check_age(request.age, age_rating) and check_region(request.region, allowed_region)
+        action view = check_age(age_rating) and check_region(allowed_region)
         action add_watchlist = user 
 
     }
 
-    rule check_age(age integer, age_rating integer) {
-        age >= age_rating
+    rule check_age(age_rating integer) {
+        context.data.age >= age_rating
     }
 
     rule check_region(region string, allowed_region string[]) {
-        region in allowed_region
+        context.data.region in allowed_region
     }
 
 relationships:

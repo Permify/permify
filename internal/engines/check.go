@@ -544,7 +544,11 @@ func (engine *CheckEngine) checkDirectCall(
 		}
 
 		// Initialize an arguments map to hold argument values.
-		arguments := make(map[string]interface{})
+		arguments := map[string]interface{}{
+			"context": map[string]interface{}{
+				"data": request.GetContext().GetData().AsMap(),
+			},
+		}
 
 		// List to store computed attributes.
 		attributes := make([]string, 0)
@@ -558,16 +562,6 @@ func (engine *CheckEngine) checkDirectCall(
 				emptyValue := getEmptyValueForType(ru.GetArguments()[attrName])
 				arguments[attrName] = emptyValue
 				attributes = append(attributes, attrName)
-
-			case *base.Argument_ContextAttribute:
-				// Handle context attributes: Use the value from context or default to an empty value.
-				attrName := actualArg.ContextAttribute.GetName()
-				value, exists := request.GetContext().GetData().AsMap()[attrName]
-				if !exists {
-					value = getEmptyValueForType(ru.GetArguments()[attrName])
-				}
-				arguments[attrName] = value
-
 			default:
 				// Return an error for any unsupported argument types.
 				return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
@@ -584,7 +578,7 @@ func (engine *CheckEngine) checkDirectCall(
 				Attributes: attributes,
 			}
 
-			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 			if err != nil {
 				return denied(&base.PermissionCheckResponseMetadata{}), err
 			}

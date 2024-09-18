@@ -21,33 +21,33 @@ var _ = Describe("lookup-entity-engine", func() {
 	// DRIVE SAMPLE
 
 	driveSchemaEntityFilter := `
-entity user {}
-
-entity organization {
-	relation admin @user
-}
-
-entity folder {
-	relation org @organization
-	relation creator @user
-	relation collaborator @user
-
-	permission read = collaborator
-	permission update = collaborator
-	permission delete = creator or org.admin
-}
-
-entity doc {
-	relation org @organization
-	relation parent @folder
-	relation owner @user
-
-	permission read = (owner or parent.collaborator) or org.admin
-	permission update = owner and org.admin
-	permission delete = owner or org.admin
-	permission share = update and (owner or parent.update)
-}
-`
+	entity user {}
+	
+	entity organization {
+		relation admin @user
+	}
+	
+	entity folder {
+		relation org @organization
+		relation creator @user
+		relation collaborator @user
+	
+		permission read = collaborator
+		permission update = collaborator
+		permission delete = creator or org.admin
+	}
+	
+	entity doc {
+		relation org @organization
+		relation parent @folder
+		relation owner @user
+	
+		permission read = (owner or parent.collaborator) or org.admin
+		permission update = owner and org.admin
+		permission delete = owner or org.admin
+		permission share = update and (owner or parent.update)
+	}
+	`
 
 	Context("Drive Sample: Entity Filter", func() {
 		It("Drive Sample: Case 1", func() {
@@ -967,120 +967,314 @@ entity doc {
 				}
 			}
 		})
+
+		It("Drive Sample: Case 8 scope", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				scope      map[string]*base.StringArrayValue
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:2#owner@user:3",
+					"doc:3#owner@user:3",
+					"doc:4#owner@user:2",
+					"doc:5#owner@user:3",
+					"doc:6#owner@user:2",
+					"doc:7#owner@user:4",
+					"doc:8#owner@user:4",
+					"doc:9#owner@user:5",
+					"doc:10#owner@user:5",
+					"doc:1#parent@folder:1#...",
+					"doc:2#parent@folder:1#...",
+					"doc:3#parent@folder:2#...",
+					"doc:4#parent@folder:2#...",
+					"doc:5#parent@folder:3#...",
+					"doc:6#parent@folder:3#...",
+					"doc:7#parent@folder:4#...",
+					"doc:8#parent@folder:4#...",
+					"doc:9#parent@folder:5#...",
+					"doc:10#parent@folder:5#...",
+					"folder:1#collaborator@user:1",
+					"folder:2#collaborator@user:1",
+					"folder:3#collaborator@user:2",
+					"folder:4#collaborator@user:2",
+					"folder:5#collaborator@user:3",
+					"folder:1#creator@user:2",
+					"folder:2#creator@user:3",
+					"folder:3#creator@user:4",
+					"folder:4#creator@user:4",
+					"folder:5#creator@user:5",
+					"organization:1#admin@user:1",
+					"organization:2#admin@user:2",
+					"organization:3#admin@user:3",
+					"doc:1#org@organization:1#...",
+					"doc:2#org@organization:1#...",
+					"doc:3#org@organization:2#...",
+					"doc:4#org@organization:2#...",
+					"doc:5#org@organization:3#...",
+					"doc:6#org@organization:3#...",
+					"doc:7#org@organization:1#...",
+					"doc:8#org@organization:2#...",
+					"doc:9#org@organization:3#...",
+					"doc:10#org@organization:1#...",
+				},
+				filters: []filter{
+					{
+						entityType: "doc",
+						subject:    "user:1",
+						scope: map[string]*base.StringArrayValue{
+							"organization": {
+								Data: []string{"2"},
+							},
+						},
+						assertions: map[string][]string{
+							"read": {"1", "2", "3", "4"},
+						},
+					},
+					{
+						entityType: "doc",
+						subject:    "user:1",
+						scope: map[string]*base.StringArrayValue{
+							"organization": {
+								Data: []string{"2"},
+							},
+							"folder": {
+								Data: []string{"2"},
+							},
+						},
+						assertions: map[string][]string{
+							"read": {"3", "4"},
+						},
+					},
+					{
+						entityType: "doc",
+						subject:    "user:2",
+						scope: map[string]*base.StringArrayValue{
+							"organization": {
+								Data: []string{"1"},
+							},
+						},
+						assertions: map[string][]string{
+							"read":   {"1", "4", "5", "6", "7", "8"},
+							"delete": {"1", "4", "6"},
+						},
+					},
+					{
+						entityType: "doc",
+						subject:    "user:3",
+						scope: map[string]*base.StringArrayValue{
+							"organization": {
+								Data: []string{"1", "2", "3"},
+							},
+						},
+						assertions: map[string][]string{
+							"read":   {"10", "2", "3", "5", "6", "9"},
+							"update": {"5"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+						TenantId:   "t1",
+						EntityType: filter.entityType,
+						Subject:    subject,
+						Permission: permission,
+						Scope:      filter.scope,
+						Metadata: &base.PermissionLookupEntityRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         100,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(response.GetEntityIds()).Should(Equal(res))
+				}
+			}
+		})
 	})
 
 	facebookGroupsSchemaEntityFilter := `
-	entity user {}
+		entity user {}
 	
-	entity group {
+		entity group {
 	
-	  // Relation to represent the members of the group
-	  relation member @user
-	  // Relation to represent the admins of the group
-	  relation admin @user
-	  // Relation to represent the moderators of the group
-	  relation moderator @user
+		  // Relation to represent the members of the group
+		  relation member @user
+		  // Relation to represent the admins of the group
+		  relation admin @user
+		  // Relation to represent the moderators of the group
+		  relation moderator @user
 	
-	  // Permissions for the group entity
-	  action create = member
-	  action join = member
-	  action leave = member
-	  action invite_to_group = admin
-	  action remove_from_group = admin or moderator
-	  action edit_settings = admin or moderator
-	  action post_to_group = member
-	  action comment_on_post = member
-	  action view_group_insights = admin or moderator
-	}
+		  // Permissions for the group entity
+		  action create = member
+		  action join = member
+		  action leave = member
+		  action invite_to_group = admin
+		  action remove_from_group = admin or moderator
+		  action edit_settings = admin or moderator
+		  action post_to_group = member
+		  action comment_on_post = member
+		  action view_group_insights = admin or moderator
+		}
 	
-	entity post {
+		entity post {
 	
-	  // Relation to represent the owner of the post
-	  relation owner @user
-	  // Relation to represent the group that the post belongs to
-	  relation group @group
+		  // Relation to represent the owner of the post
+		  relation owner @user
+		  // Relation to represent the group that the post belongs to
+		  relation group @group
 	
-	  // Permissions for the post entity
-	  action view_post = owner or group.member
-	  action edit_post = owner or group.admin
-	  action delete_post = owner or group.admin
+		  // Permissions for the post entity
+		  action view_post = owner or group.member
+		  action edit_post = owner or group.admin
+		  action delete_post = owner or group.admin
 	
-	  permission group_member = group.member
-	}
+		  permission group_member = group.member
+		}
 	
-	entity comment {
+		entity comment {
 	
-	  // Relation to represent the owner of the comment
-	  relation owner @user
+		  // Relation to represent the owner of the comment
+		  relation owner @user
 	
-	  // Relation to represent the post that the comment belongs to
-	  relation post @post
+		  // Relation to represent the post that the comment belongs to
+		  relation post @post
 	
-	  // Permissions for the comment entity
-	  action view_comment = owner or post.group_member
-	  action edit_comment = owner
-	  action delete_comment = owner
-
-      action remove = post.delete_post
-	}
+		  // Permissions for the comment entity
+		  action view_comment = owner or post.group_member
+		  action edit_comment = owner
+		  action delete_comment = owner
 	
-	entity like {
+	     action remove = post.delete_post
+		}
 	
-	  // Relation to represent the owner of the like
-	  relation owner @user
+		entity like {
 	
-	  // Relation to represent the post that the like belongs to
-	  relation post @post
+		  // Relation to represent the owner of the like
+		  relation owner @user
 	
-	  // Permissions for the like entity
-	  action like_post = owner or post.group_member
-	  action unlike_post = owner or post.group_member
-	}
+		  // Relation to represent the post that the like belongs to
+		  relation post @post
 	
-	entity poll {
+		  // Permissions for the like entity
+		  action like_post = owner or post.group_member
+		  action unlike_post = owner or post.group_member
+		}
 	
-	  // Relation to represent the owner of the poll
-	  relation owner @user
+		entity poll {
 	
-	  // Relation to represent the group that the poll belongs to
-	  relation group @group
+		  // Relation to represent the owner of the poll
+		  relation owner @user
 	
-	  // Permissions for the poll entity
-	  action create_poll = owner or group.admin
-	  action view_poll = owner or group.member
-	  action edit_poll = owner or group.admin
-	  action delete_poll = owner or group.admin
-	}
+		  // Relation to represent the group that the poll belongs to
+		  relation group @group
 	
-	entity file {
+		  // Permissions for the poll entity
+		  action create_poll = owner or group.admin
+		  action view_poll = owner or group.member
+		  action edit_poll = owner or group.admin
+		  action delete_poll = owner or group.admin
+		}
 	
-	  // Relation to represent the owner of the file
-	  relation owner @user
+		entity file {
 	
-	  // Relation to represent the group that the file belongs to
-	  relation group @group
+		  // Relation to represent the owner of the file
+		  relation owner @user
 	
-	  // Permissions for the file entity
-	  action upload_file = owner or group.member
-	  action view_file = owner or group.member
-	  action delete_file = owner or group.admin
-	}
+		  // Relation to represent the group that the file belongs to
+		  relation group @group
 	
-	entity event {
+		  // Permissions for the file entity
+		  action upload_file = owner or group.member
+		  action view_file = owner or group.member
+		  action delete_file = owner or group.admin
+		}
 	
-	  // Relation to represent the owner of the event
-	  relation owner @user
-	  // Relation to represent the group that the event belongs to
-	  relation group @group
+		entity event {
 	
-	  // Permissions for the event entity
-	  action create_event = owner or group.admin
-	  action view_event = owner or group.member
-	  action edit_event = owner or group.admin
-	  action delete_event = owner or group.admin
-	  action RSVP_to_event = owner or group.member
-	}
-	`
+		  // Relation to represent the owner of the event
+		  relation owner @user
+		  // Relation to represent the group that the event belongs to
+		  relation group @group
+	
+		  // Permissions for the event entity
+		  action create_event = owner or group.admin
+		  action view_event = owner or group.member
+		  action edit_event = owner or group.admin
+		  action delete_event = owner or group.admin
+		  action RSVP_to_event = owner or group.member
+		}
+		`
 
 	Context("Facebook Group Sample: Entity Filter", func() {
 		It("Facebook Group Sample: Case 1", func() {
@@ -1766,31 +1960,31 @@ entity doc {
 	})
 
 	googleDocsSchemaEntityFilter := `
-	entity user {}
+		entity user {}
 	
-	entity resource {
-	  relation viewer  @user  @group#member @group#manager
-	  relation manager @user @group#member @group#manager
+		entity resource {
+		  relation viewer  @user  @group#member @group#manager
+		  relation manager @user @group#member @group#manager
 	
-	  action edit = manager
-	  action view = viewer or manager
-	}
+		  action edit = manager
+		  action view = viewer or manager
+		}
 	
-	entity group {
-	  relation manager @user @group#member @group#manager
-	  relation member @user @group#member @group#manager
-	}
+		entity group {
+		  relation manager @user @group#member @group#manager
+		  relation member @user @group#member @group#manager
+		}
 	
-	entity organization {
-	  relation group @group
-	  relation resource @resource
+		entity organization {
+		  relation group @group
+		  relation resource @resource
 	
-	  relation administrator @user @group#member @group#manager
-	  relation direct_member @user
+		  relation administrator @user @group#member @group#manager
+		  relation direct_member @user
 	
-	  permission admin = administrator
-	  permission member = direct_member or administrator or group.member
-	}`
+		  permission admin = administrator
+		  permission member = direct_member or administrator or group.member
+		}`
 
 	Context("Google Docs Sample: Entity Filter", func() {
 		It("Google Docs Sample: Case 1", func() {
@@ -2372,7 +2566,7 @@ entity doc {
 		})
 	})
 
-	weekdaySchemaEntityFilter := `
+	workdaySchemaEntityFilter := `
 			entity user {}
 	
 			entity organization {
@@ -2392,15 +2586,15 @@ entity doc {
 	
 				permission view = is_public
 				permission edit = organization.view
-				permission delete = is_weekday(request.day_of_week)
+				permission delete = is_workday(is_public)
 			}
 	
 			rule check_balance(balance integer) {
 				balance > 5000
 			}
 	
-			rule is_weekday(day_of_week string) {
-				  day_of_week != 'saturday' && day_of_week != 'sunday'
+			rule is_workday(is_public boolean) {
+				  is_public && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
 			}
 			`
 
@@ -2414,7 +2608,7 @@ entity doc {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			conf, err := newSchema(weekdaySchemaEntityFilter)
+			conf, err := newSchema(workdaySchemaEntityFilter)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			schemaWriter := factories.SchemaWriterFactory(db)
@@ -2559,7 +2753,7 @@ entity doc {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			conf, err := newSchema(weekdaySchemaEntityFilter)
+			conf, err := newSchema(workdaySchemaEntityFilter)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			schemaWriter := factories.SchemaWriterFactory(db)
@@ -2714,6 +2908,153 @@ entity doc {
 					}
 
 					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Weekday Sample: Case 3 scope", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(workdaySchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				scope      map[string]*base.StringArrayValue
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"organization:2#member@user:1",
+					"organization:4#member@user:1",
+					"organization:8#member@user:1",
+					"organization:917#member@user:1",
+					"organization:20#member@user:1",
+					"organization:45#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"organization:2#member@user:1",
+				},
+				attributes: []string{
+					"repository:1$is_public|boolean:true",
+					"repository:2$is_public|boolean:false",
+					"repository:3$is_public|boolean:true",
+					"repository:4$is_public|boolean:true",
+					"repository:5$is_public|boolean:true",
+					"repository:6$is_public|boolean:false",
+
+					"organization:1$balance|integer:4000",
+					"organization:2$balance|integer:6000",
+					"organization:4$balance|integer:6000",
+					"organization:8$balance|integer:6000",
+					"organization:917$balance|integer:6000",
+					"organization:20$balance|integer:6000",
+					"organization:45$balance|integer:6000",
+				},
+				filters: []filter{
+					{
+						entityType: "repository",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"view": {"1", "3", "4", "5"},
+						},
+					},
+					{
+						entityType: "organization",
+						subject:    "user:1",
+						assertions: map[string][]string{
+							"view": {"2", "20", "4", "45", "8", "917"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+						TenantId:   "t1",
+						EntityType: filter.entityType,
+						Subject:    subject,
+						Permission: permission,
+						Scope:      filter.scope,
+						Metadata: &base.PermissionLookupEntityRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         100,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(response.GetEntityIds()).Should(Equal(res))
 				}
 			}
 		})
@@ -3727,7 +4068,7 @@ entity doc {
 		})
 	})
 
-	weekdaySchemaSubjectFilter := `
+	workdaySchemaSubjectFilter := `
 			entity user {}
 	
 			entity organization {
@@ -3747,15 +4088,15 @@ entity doc {
 	
 				permission view = is_public
 				permission edit = organization.view
-				permission delete = is_weekday(request.day_of_week)
+				permission delete = is_workday(is_public)
 			}
 	
 			rule check_balance(balance integer) {
 				balance > 5000
 			}
 	
-			rule is_weekday(day_of_week string) {
-				  day_of_week != 'saturday' && day_of_week != 'sunday'
+			rule is_workday(is_public boolean) {
+				  is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
 			}
 			`
 
@@ -3769,7 +4110,7 @@ entity doc {
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			conf, err := newSchema(weekdaySchemaSubjectFilter)
+			conf, err := newSchema(workdaySchemaSubjectFilter)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			schemaWriter := factories.SchemaWriterFactory(db)

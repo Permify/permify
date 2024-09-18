@@ -41,17 +41,17 @@ func (w *Walker) Walk(
 	w.visited[key] = struct{}{}
 
 	// Lookup the entity definition in the schema
-	def, ok := w.schema.EntityDefinitions[entityType]
+	def, ok := w.schema.GetEntityDefinitions()[entityType]
 	if !ok {
 		// Error is returned if entity definition is not found
 		return errors.New(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String())
 	}
 
 	// Switch on the type of reference specified by the permission
-	switch def.References[permission] {
+	switch def.GetReferences()[permission] {
 	case base.EntityDefinition_REFERENCE_PERMISSION:
 		// If the reference type is a permission, look up the permission
-		permission, ok := def.Permissions[permission]
+		permission, ok := def.GetPermissions()[permission]
 		if !ok {
 			// Error is returned if permission is not found
 			return errors.New(base.ErrorCode_ERROR_CODE_PERMISSION_NOT_FOUND.String())
