@@ -20,23 +20,6 @@ import (
 )
 
 const (
-	BulkEntityFilterTemplate = `
-WITH filtered_entities AS (
-    SELECT DISTINCT ON (entity_id) id, entity_id
-    FROM (
-        SELECT id, entity_id, tenant_id, entity_type, created_tx_id, expired_tx_id
-        FROM relation_tuples
-        WHERE tenant_id = '%s' AND entity_type = '%s' AND %s AND %s
-        UNION ALL
-        SELECT id, entity_id, tenant_id, entity_type, created_tx_id, expired_tx_id
-        FROM attributes
-        WHERE tenant_id = '%s' AND entity_type = '%s' AND %s AND %s
-    ) AS entities
-)
-SELECT entity_id
-FROM filtered_entities
-`
-
 	TransactionTemplate       = `INSERT INTO transactions (tenant_id) VALUES ($1) RETURNING id`
 	InsertTenantTemplate      = `INSERT INTO tenants (id, name) VALUES ($1, $2) RETURNING created_at`
 	DeleteTenantTemplate      = `DELETE FROM tenants WHERE id = $1 RETURNING name, created_at`
@@ -98,12 +81,6 @@ func snapshotQuery(value uint64) (string, string) {
 
 	// Return the conditions for both 'created' and 'expired' transactions. These can be used in a WHERE clause of a SQL query to filter results.
 	return createdWhere, expiredWhere
-}
-
-// BulkEntityFilterQuery -
-func BulkEntityFilterQuery(tenantID, entityType string, snap uint64) string {
-	createdWhere, expiredWhere := snapshotQuery(snap)
-	return fmt.Sprintf(BulkEntityFilterTemplate, tenantID, entityType, createdWhere, expiredWhere, tenantID, entityType, createdWhere, expiredWhere)
 }
 
 // GenerateGCQuery generates a Squirrel DELETE query builder for garbage collection.

@@ -180,30 +180,36 @@ func setDefaultQueryExecMode(config *pgx.ConnConfig) {
 var planCacheModes = map[string]string{
 	"auto":              "auto",
 	"force_custom_plan": "force_custom_plan",
-	"disable":		"disable",
+	"disable":           "disable",
 }
 
 func setPlanCacheMode(config *pgx.ConnConfig) {
-	// Default mode if no specific mode is found in the connection string
-	defaultMode := "auto"
-	
-	// Check if a plan cache mode is mentioned in the connection string and set it
-	for key := range planCacheModes {
-		if strings.Contains(config.ConnString(), "plan_cache_mode="+key) {
-            if key == "disable" {
+	// Default plan cache mode
+	const defaultMode = "auto"
+
+	// Extract connection string
+	connStr := config.ConnString()
+	planCacheMode := defaultMode
+
+	// Check for specific plan cache modes in the connection string
+	for key, value := range planCacheModes {
+		if strings.Contains(connStr, "plan_cache_mode="+key) {
+			if key == "disable" {
 				delete(config.Config.RuntimeParams, "plan_cache_mode")
-                slog.Info("plan_cache_mode disabled")
-                return
-            }
-			config.Config.RuntimeParams["plan_cache_mode"] = planCacheModes[key]
+				slog.Info("setPlanCacheMode", slog.String("mode", "disabled"))
+				return
+			}
+			planCacheMode = value
 			slog.Info("setPlanCacheMode", slog.String("mode", key))
-			return
+			break
 		}
 	}
 
-	// Set to default mode if no matching mode is found
-	config.Config.RuntimeParams["plan_cache_mode"] = planCacheModes[defaultMode]
-	slog.Warn("setPlanCacheMode", slog.String("mode", defaultMode))
+	// Set the plan cache mode
+	config.Config.RuntimeParams["plan_cache_mode"] = planCacheMode
+	if planCacheMode == defaultMode {
+		slog.Warn("setPlanCacheMode", slog.String("mode", defaultMode))
+	}
 }
 
 // createPools initializes read and write connection pools with appropriate configurations and error handling.

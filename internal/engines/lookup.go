@@ -81,43 +81,28 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		return nil, err
 	}
 
-	// Perform a walk of the entity schema for the permission check
-	err = schema.NewWalker(sc).Walk(request.GetEntityType(), request.GetPermission())
+	// Create a map to keep track of visited entities
+	visits := &VisitsMap{}
+
+	// Perform an entity filter operation based on the permission request
+	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+		TenantId: request.GetTenantId(),
+		Metadata: &base.PermissionEntityFilterRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		},
+		Entrance: &base.Entrance{
+			Type:  request.GetEntityType(),
+			Value: request.GetPermission(),
+		},
+		Subject: request.GetSubject(),
+		Context: request.GetContext(),
+		Scope:   request.GetScope(),
+		Cursor:  request.GetContinuousToken(),
+	}, visits, publisher)
 	if err != nil {
-		// If the error is unimplemented, handle it with a MassEntityFilter
-		if errors.Is(err, schema.ErrUnimplemented) {
-			err = NewMassEntityFilter(engine.dataReader).EntityFilter(ctx, request, publisher)
-			if err != nil {
-				return nil, err
-			}
-		} else { // For other errors, simply return the error
-			return nil, err
-		}
-	} else {
-
-		// Create a map to keep track of visited entities
-		visits := &ERMap{}
-
-		// Perform an entity filter operation based on the permission request
-		err = NewSchemaBasedEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
-			TenantId: request.GetTenantId(),
-			Metadata: &base.PermissionEntityFilterRequestMetadata{
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			},
-			EntityReference: &base.RelationReference{
-				Type:     request.GetEntityType(),
-				Relation: request.GetPermission(),
-			},
-			Subject: request.GetSubject(),
-			Context: request.GetContext(),
-			Cursor:  request.GetContinuousToken(),
-		}, visits, publisher)
-
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	// At this point, the BulkChecker has collected and sorted requests
@@ -167,43 +152,26 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 		return err
 	}
 
-	// Perform a permission check walk through the entity schema
-	err = schema.NewWalker(sc).Walk(request.GetEntityType(), request.GetPermission())
+	visits := &VisitsMap{}
 
-	// If error exists in permission check walk
+	// Perform an entity filter operation based on the permission request
+	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+		TenantId: request.GetTenantId(),
+		Metadata: &base.PermissionEntityFilterRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		},
+		Entrance: &base.Entrance{
+			Type:  request.GetEntityType(),
+			Value: request.GetPermission(),
+		},
+		Subject: request.GetSubject(),
+		Context: request.GetContext(),
+		Cursor:  request.GetContinuousToken(),
+	}, visits, publisher)
 	if err != nil {
-		// If the error is unimplemented, handle it with a MassEntityFilter
-		if errors.Is(err, schema.ErrUnimplemented) {
-			err = NewMassEntityFilter(engine.dataReader).EntityFilter(ctx, request, publisher)
-			if err != nil {
-				return err
-			}
-		} else { // For other types of errors, simply return the error
-			return err
-		}
-	} else { // If there was no error in permission check walk
-		visits := &ERMap{}
-
-		// Perform an entity filter operation based on the permission request
-		err = NewSchemaBasedEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
-			TenantId: request.GetTenantId(),
-			Metadata: &base.PermissionEntityFilterRequestMetadata{
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			},
-			EntityReference: &base.RelationReference{
-				Type:     request.GetEntityType(),
-				Relation: request.GetPermission(),
-			},
-			Subject: request.GetSubject(),
-			Context: request.GetContext(),
-			Cursor:  request.GetContinuousToken(),
-		}, visits, publisher)
-
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	err = checker.ExecuteRequests(size)

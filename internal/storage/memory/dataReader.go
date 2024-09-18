@@ -185,11 +185,20 @@ func (r *DataReader) QuerySingleAttribute(_ context.Context, tenantID string, fi
 }
 
 // QueryAttributes queries the database for attributes based on the provided filter.
-func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter *base.AttributeFilter, _ string) (iterator *database.AttributeIterator, err error) {
+func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter *base.AttributeFilter, _ string, pagination database.CursorPagination) (iterator *database.AttributeIterator, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
-	collection := database.NewAttributeCollection()
+	var lowerBound string
+
+	if pagination.Cursor() != "" {
+		var t database.ContinuousToken
+		t, err = utils.EncodedContinuousToken{Value: pagination.Cursor()}.Decode()
+		if err != nil {
+			return nil, err
+		}
+		lowerBound = t.(utils.ContinuousToken).Value
+	}
 
 	// Get the index and arguments based on the filter.
 	index, args := utils.GetAttributesIndexNameAndArgsByFilters(tenantID, filter)
@@ -202,16 +211,39 @@ func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter 
 	}
 
 	// Filter the result iterator and add the attributes to the collection.
+	attr := make([]storage.Attribute, 0, 10)
 	fit := memdb.NewFilterIterator(result, utils.FilterAttributesQuery(tenantID, filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.Attribute)
 		if !ok {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		collection.Add(t.ToAttribute())
+		attr = append(attr, t)
 	}
 
-	return collection.CreateAttributeIterator(), nil
+	// Sort tuples based on the provided order field
+	sort.Slice(attr, func(i, j int) bool {
+		switch pagination.Sort() {
+		case "entity_id":
+			return attr[i].EntityID < attr[j].EntityID
+		default:
+			return false // No sorting if order field is invalid
+		}
+	})
+
+	var attrs []*base.Attribute
+	for _, t := range attr {
+		switch pagination.Sort() {
+		case "entity_id":
+			if t.EntityID >= lowerBound {
+				attrs = append(attrs, t.ToAttribute())
+			}
+		default:
+			attrs = append(attrs, t.ToAttribute())
+		}
+	}
+
+	return database.NewAttributeCollection(attrs...).CreateAttributeIterator(), nil
 }
 
 // ReadAttributes reads attributes from the database taking into account the pagination.
@@ -269,93 +301,6 @@ func (r *DataReader) ReadAttributes(_ context.Context, tenantID string, filter *
 	}
 
 	return database.NewAttributeCollection(attributes...), database.NewNoopContinuousToken().Encode(), nil
-}
-
-// QueryUniqueEntities is a function that searches for unique entities in a given database.
-func (r *DataReader) QueryUniqueEntities(_ context.Context, tenantID, name, _ string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
-	// Starts a new read-only transaction
-	txn := r.database.DB.Txn(false)
-	defer txn.Abort()
-
-	var lowerBound string
-	if pagination.Token() != "" {
-		var t database.ContinuousToken
-		t, err := utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
-		if err != nil {
-			return nil, database.NewNoopContinuousToken().Encode(), err
-		}
-		lowerBound = t.(utils.ContinuousToken).Value
-	}
-
-	var tupleIds []string
-
-	// Query the database for entities matching the given tenant ID and name
-	var entityResult memdb.ResultIterator
-	entityResult, err = txn.LowerBound(constants.RelationTuplesTable, "entity-type-index", tenantID, name)
-	if err != nil {
-		// Returns an error if execution fails
-		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-	}
-
-	// Iterates over the resulting entities and append their IDs to the tupleIds slice
-	for obj := entityResult.Next(); obj != nil; obj = entityResult.Next() {
-		t, ok := obj.(storage.RelationTuple)
-		if !ok {
-			// Returns an error if type conversion fails
-			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
-		}
-		tupleIds = append(tupleIds, t.EntityID)
-	}
-
-	var attributeIds []string
-
-	// Query the database for attributes matching the given tenant ID and name
-	var attributeResult memdb.ResultIterator
-	attributeResult, err = txn.LowerBound(constants.AttributesTable, "entity-type-index", tenantID, name)
-	if err != nil {
-		// Returns an error if execution fails
-		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-	}
-
-	// Iterates over the resulting attributes and append their IDs to the tupleIds slice
-	for obj := attributeResult.Next(); obj != nil; obj = attributeResult.Next() {
-		t, ok := obj.(storage.Attribute)
-		if !ok {
-			// Returns an error if type conversion fails
-			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
-		}
-		attributeIds = append(attributeIds, t.EntityID)
-	}
-
-	all := append(tupleIds, attributeIds...)
-
-	// Sort the combined slice
-	sort.Slice(all, func(i, j int) bool {
-		return all[i] < all[j]
-	})
-
-	mp := make(map[string]bool)
-	var lastID string
-
-	for _, b := range all {
-		if _, exists := mp[b]; !exists && b >= lowerBound {
-			ids = append(ids, b)
-			mp[b] = true
-
-			// Capture the last ID after adding pagesize + 1 elements
-			if len(ids) == int(pagination.PageSize())+1 {
-				lastID = b
-			}
-
-			// Stop appending if we've reached the page size
-			if pagination.PageSize() != 0 && len(ids) > int(pagination.PageSize()) {
-				return ids[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil
-			}
-		}
-	}
-
-	// If page size is not exceeded, return the entire list with a noop token
-	return ids, database.NewNoopContinuousToken().Encode(), nil
 }
 
 // QueryUniqueSubjectReferences is a function that searches for unique subject references in a given database.

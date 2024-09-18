@@ -103,7 +103,6 @@ const MainLayout = ({children, ...rest}) => {
                             <Option key="rbac" value="rbac">RBAC</Option>
                             <Option key="custom-roles" value="custom-roles">Custom Roles</Option>
                             <Option key="user-groups" value="user-groups">User Groups</Option>
-                            <Option key="weekday" value="weekday">Weekday</Option>
                             <Option key="banking-system" value="banking-system">Banking System</Option>
                         </OptGroup>
                         <OptGroup label="Sample Apps">

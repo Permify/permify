@@ -171,11 +171,7 @@ func CallOrAttributeToString(attributeOrCall string, arguments ...*base.Argument
 	if len(arguments) > 0 {
 		var args []string
 		for _, arg := range arguments {
-			if arg.GetComputedAttribute() != nil {
-				args = append(args, arg.GetComputedAttribute().GetName())
-			} else {
-				args = append(args, "request."+arg.GetContextAttribute().GetName())
-			}
+			args = append(args, arg.GetComputedAttribute().GetName())
 		}
 		return fmt.Sprintf("%s(%s)", attributeOrCall, strings.Join(args, ","))
 	}

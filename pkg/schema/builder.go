@@ -79,6 +79,7 @@ func Entities(defs ...*base.EntityDefinition) []*base.EntityDefinition {
 func Rule(name string, arguments map[string]base.AttributeType, expression string) *base.RuleDefinition {
 	// Initialize an empty slice of environment options.
 	var envOptions []cel.EnvOption
+	envOptions = append(envOptions, cel.Variable("context", cel.DynType))
 
 	// Iterate through each argument.
 	for name, ty := range arguments {

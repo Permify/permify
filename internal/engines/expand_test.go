@@ -1255,9 +1255,9 @@ var _ = Describe("expand-engine", func() {
 		})
 	})
 
-	// WEEKDAY SAMPLE
+	// WORKDAY SAMPLE
 
-	weekdaySchema := `
+	workdaySchema := `
 		entity user {}
 	
 		entity organization {
@@ -1277,15 +1277,15 @@ var _ = Describe("expand-engine", func() {
 	
 			permission view = is_public or organization.member
 			permission edit = organization.view
-			permission delete = is_weekday(request.day_of_week)
+			permission delete = is_workday(is_public)
 		}
 	
 		rule check_balance(balance integer) {
 			balance > 5000
 		}
 	
-		rule is_weekday(day_of_week string) {
-			  day_of_week != 'saturday' && day_of_week != 'sunday'
+		rule is_workday(is_public boolean) {
+			 is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
 		}
 		`
 
@@ -1301,7 +1301,7 @@ var _ = Describe("expand-engine", func() {
 
 			// SCHEMA
 
-			conf, err := newSchema(weekdaySchema)
+			conf, err := newSchema(workdaySchema)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			schemaWriter := factories.SchemaWriterFactory(db)
@@ -1317,7 +1317,6 @@ var _ = Describe("expand-engine", func() {
 			}
 
 			anyVal, _ := anypb.New(&base.BooleanValue{Data: true})
-			dow, _ := anypb.New(&base.StringValue{Data: "monday"})
 
 			tests := struct {
 				relationships []string
@@ -1406,12 +1405,12 @@ var _ = Describe("expand-engine", func() {
 									Type: "repository",
 									Id:   "1",
 								},
-								Permission: "is_weekday",
+								Permission: "is_workday",
 								Arguments: []*base.Argument{
 									{
-										Type: &base.Argument_ContextAttribute{
-											ContextAttribute: &base.ContextAttribute{
-												Name: "day_of_week",
+										Type: &base.Argument_ComputedAttribute{
+											ComputedAttribute: &base.ComputedAttribute{
+												Name: "is_public",
 											},
 										},
 									},
@@ -1421,7 +1420,7 @@ var _ = Describe("expand-engine", func() {
 										Type: &base.ExpandLeaf_Values{
 											Values: &base.Values{
 												Values: map[string]*anypb.Any{
-													"day_of_week": dow,
+													"is_public": anyVal,
 												},
 											},
 										},

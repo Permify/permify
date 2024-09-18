@@ -337,13 +337,6 @@ var _ = Describe("attribute", func() {
 					attributeOrCall: "check_balance",
 					arguments: []*base.Argument{
 						{
-							Type: &base.Argument_ContextAttribute{
-								ContextAttribute: &base.ContextAttribute{
-									Name: "amount",
-								},
-							},
-						},
-						{
 							Type: &base.Argument_ComputedAttribute{
 								ComputedAttribute: &base.ComputedAttribute{
 									Name: "balance",
@@ -351,7 +344,7 @@ var _ = Describe("attribute", func() {
 							},
 						},
 					},
-					result: "organization:877$check_balance(request.amount,balance)",
+					result: "organization:877$check_balance(balance)",
 				},
 			}
 

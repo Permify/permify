@@ -38,18 +38,13 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 }
 
 // QueryAttributes - Reads multiple attributes from the repository.
-func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, token string) (*database.AttributeIterator, error) {
-	return r.delegate.QueryAttributes(ctx, tenantID, filter, token)
+func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, token string, pagination database.CursorPagination) (*database.AttributeIterator, error) {
+	return r.delegate.QueryAttributes(ctx, tenantID, filter, token, pagination)
 }
 
 // ReadAttributes - Reads multiple attributes from the repository with different options.
 func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, token string, pagination database.Pagination) (collection *database.AttributeCollection, ct database.EncodedContinuousToken, err error) {
 	return r.delegate.ReadAttributes(ctx, tenantID, filter, token, pagination)
-}
-
-// QueryUniqueEntities - Reads unique entities from the repository with different options.
-func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, token string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
-	return r.delegate.QueryUniqueEntities(ctx, tenantID, name, token, pagination)
 }
 
 // QueryUniqueSubjectReferences - Reads unique subject references from the repository with different options.

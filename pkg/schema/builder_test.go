@@ -539,13 +539,15 @@ var _ = Describe("schema", func() {
 							Relation("parent", Reference("organization")),
 							Relation("owner", Reference("user"), Reference("organization#admin")),
 						),
-						Attributes(),
+						Attributes(
+							Attribute("is_public", base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN),
+						),
 						Permissions(
 							Permission("edit",
-								Call("is_weekday", &base.Argument{
-									Type: &base.Argument_ContextAttribute{
-										ContextAttribute: &base.ContextAttribute{
-											Name: "day_of_week",
+								Call("is_workday", &base.Argument{
+									Type: &base.Argument_ComputedAttribute{
+										ComputedAttribute: &base.ComputedAttribute{
+											Name: "is_public",
 										},
 									},
 								}),
@@ -563,11 +565,11 @@ var _ = Describe("schema", func() {
 					),
 				),
 				Rules(
-					Rule("is_weekday",
+					Rule("is_workday",
 						map[string]base.AttributeType{
-							"day_of_week": base.AttributeType_ATTRIBUTE_TYPE_STRING,
+							"is_public": base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
 						},
-						"day_of_week != 'saturday' && day_of_week != 'sunday'",
+						"is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')",
 					),
 				),
 			)
@@ -677,7 +679,12 @@ var _ = Describe("schema", func() {
 							},
 						},
 					},
-					Attributes: map[string]*base.AttributeDefinition{},
+					Attributes: map[string]*base.AttributeDefinition{
+						"is_public": {
+							Name: "is_public",
+							Type: base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
+						},
+					},
 					Permissions: map[string]*base.PermissionDefinition{
 						"edit": {
 							Name: "edit",
@@ -686,12 +693,12 @@ var _ = Describe("schema", func() {
 									Leaf: &base.Leaf{
 										Type: &base.Leaf_Call{
 											Call: &base.Call{
-												RuleName: "is_weekday",
+												RuleName: "is_workday",
 												Arguments: []*base.Argument{
 													{
-														Type: &base.Argument_ContextAttribute{
-															ContextAttribute: &base.ContextAttribute{
-																Name: "day_of_week",
+														Type: &base.Argument_ComputedAttribute{
+															ComputedAttribute: &base.ComputedAttribute{
+																Name: "is_public",
 															},
 														},
 													},
@@ -768,10 +775,11 @@ var _ = Describe("schema", func() {
 						},
 					},
 					References: map[string]base.EntityDefinition_Reference{
-						"parent": base.EntityDefinition_REFERENCE_RELATION,
-						"owner":  base.EntityDefinition_REFERENCE_RELATION,
-						"edit":   base.EntityDefinition_REFERENCE_PERMISSION,
-						"delete": base.EntityDefinition_REFERENCE_PERMISSION,
+						"parent":    base.EntityDefinition_REFERENCE_RELATION,
+						"owner":     base.EntityDefinition_REFERENCE_RELATION,
+						"is_public": base.EntityDefinition_REFERENCE_ATTRIBUTE,
+						"edit":      base.EntityDefinition_REFERENCE_PERMISSION,
+						"delete":    base.EntityDefinition_REFERENCE_PERMISSION,
 					},
 				},
 			}))

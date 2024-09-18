@@ -1517,11 +1517,11 @@ var _ = Describe("compiler", func() {
     			relation owner @user
     			attribute balance integer
 
-    			permission withdraw = check_balance(request.amount, balance) and owner
+    			permission withdraw = check_balance(balance) and owner
 			}
 	
-			rule check_balance(amount integer, balance integer) {
-				balance >= amount && amount <= 5000
+			rule check_balance(balance integer) {
+				balance >= context.data.amount && context.data.amount <= 5000
 			}
 			`).Parse()
 
@@ -1578,13 +1578,6 @@ var _ = Describe("compiler", func() {
 																RuleName: "check_balance",
 																Arguments: []*base.Argument{
 																	{
-																		Type: &base.Argument_ContextAttribute{
-																			ContextAttribute: &base.ContextAttribute{
-																				Name: "amount",
-																			},
-																		},
-																	},
-																	{
 																		Type: &base.Argument_ComputedAttribute{
 																			ComputedAttribute: &base.ComputedAttribute{
 																				Name: "balance",
@@ -1623,13 +1616,13 @@ var _ = Describe("compiler", func() {
 			}
 
 			env, err := cel.NewEnv(
-				cel.Variable("amount", cel.IntType),
+				cel.Variable("context", cel.DynType),
 				cel.Variable("balance", cel.IntType),
 			)
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			compiledExp, issues := env.Compile("\nbalance >= amount && amount <= 5000\n\t\t")
+			compiledExp, issues := env.Compile("\nbalance >= context.data.amount && context.data.amount <= 5000\n\t\t")
 			Expect(issues.Err()).ShouldNot(HaveOccurred())
 
 			expr, err := cel.AstToCheckedExpr(compiledExp)
@@ -1640,7 +1633,6 @@ var _ = Describe("compiler", func() {
 				{
 					Name: "check_balance",
 					Arguments: map[string]base.AttributeType{
-						"amount":  base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
 						"balance": base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
 					},
 					Expression: expr,
@@ -1866,11 +1858,11 @@ var _ = Describe("compiler", func() {
     			relation owner @user
     			attribute balance integer
 
-    			permission withdraw = check_balance(request.amount, balance) and owner
+    			permission withdraw = check_balance(balance) and owner
 			}
 	
-			rule check_balance(amount integer, balance double) {
-				balance >= amount && amount <= 5000
+			rule check_balance(balance double) {
+				balance >= context.data.amount && context.data.amount <= 5000
 			}
 			`).Parse()
 
@@ -1880,7 +1872,7 @@ var _ = Describe("compiler", func() {
 
 			_, _, err = c.Compile()
 
-			Expect(err.Error()).Should(Equal("8:61: invalid argument"))
+			Expect(err.Error()).Should(Equal("8:45: invalid argument"))
 		})
 
 		It("Case 18", func() {
@@ -1891,11 +1883,11 @@ var _ = Describe("compiler", func() {
     			relation owner @user
     			attribute balance integer
 
-    			permission withdraw = check_balance(request.amount, bal) and owner
+    			permission withdraw = check_balance(bal) and owner
 			}
 	
-			rule check_balance(amount integer, balance integer) {
-				balance >= amount && amount <= 5000
+			rule check_balance(balance integer) {
+				balance >= context.data.amount && context.data.amount <= 5000
 			}
 			`).Parse()
 
@@ -1943,11 +1935,11 @@ var _ = Describe("compiler", func() {
 				
 					attribute location string[]
 				
-					permission view = check_location(request.current_location, location) or admin
+					permission view = check_location(location) or admin
 				}
 				
-				rule check_location(current_location string, location string[]) {
-					current_location in location
+				rule check_location(location string[]) {
+					context.data.current_location in location
 				}
 			`).Parse()
 
@@ -2004,13 +1996,6 @@ var _ = Describe("compiler", func() {
 																RuleName: "check_location",
 																Arguments: []*base.Argument{
 																	{
-																		Type: &base.Argument_ContextAttribute{
-																			ContextAttribute: &base.ContextAttribute{
-																				Name: "current_location",
-																			},
-																		},
-																	},
-																	{
 																		Type: &base.Argument_ComputedAttribute{
 																			ComputedAttribute: &base.ComputedAttribute{
 																				Name: "location",
@@ -2049,13 +2034,13 @@ var _ = Describe("compiler", func() {
 			}
 
 			env, err := cel.NewEnv(
-				cel.Variable("current_location", cel.StringType),
+				cel.Variable("context", cel.DynType),
 				cel.Variable("location", cel.ListType(cel.StringType)),
 			)
 
 			Expect(err).ShouldNot(HaveOccurred())
 
-			compiledExp, issues := env.Compile("\ncurrent_location in location\n\t\t\t")
+			compiledExp, issues := env.Compile("\ncontext.data.current_location in location\n\t\t\t")
 			Expect(issues.Err()).ShouldNot(HaveOccurred())
 
 			expr, err := cel.AstToCheckedExpr(compiledExp)
@@ -2066,8 +2051,7 @@ var _ = Describe("compiler", func() {
 				{
 					Name: "check_location",
 					Arguments: map[string]base.AttributeType{
-						"current_location": base.AttributeType_ATTRIBUTE_TYPE_STRING,
-						"location":         base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+						"location": base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
 					},
 					Expression: expr,
 				},
