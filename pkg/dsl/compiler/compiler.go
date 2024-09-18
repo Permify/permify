@@ -486,7 +486,7 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 
 		// If the argument has more than two identifiers, it indicates an unsupported relation walk.
 		// Return an error in this case.
-		return nil, compileError(argument.Idents[2].PositionInfo, base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_WALK.String())
+		return nil, compileError(argument.Idents[1].PositionInfo, base.ErrorCode_ERROR_CODE_NOT_SUPPORTED_WALK.String())
 	}
 
 	// Set the child's type to be a leaf with the compiled call information.
