@@ -114,7 +114,6 @@ entity post {
 		permission view = is_public
 }
 ```
-<Warning>If you don’t create the related attribute data, Permify accounts boolean as `FALSE`</Warning>
 
 ### Text & Object Based Conditions
 
@@ -142,9 +141,6 @@ rule check_location(location string[]) {
 }
 ```
 
-<Warning>If you don’t create the related attribute data, Permify accounts string as `""`</Warning>
-
-
 ### Numerical Conditions
 
 #### Integers
@@ -167,7 +163,6 @@ rule check_age(min_age integer) {
 		context.data.age >= min_age
 }
 ```
-<Warning>If you don’t create the related attribute data, Permify accounts integer as `0`</Warning>
 
 #### Double - Precise numerical information
 
@@ -192,7 +187,6 @@ rule check_balance(balance double) {
 	(balance >= context.data.amount) && (context.data.amount <= 5000)
 }
 ```
-<Warning>If you don’t create the related attribute data, Permify accounts double as `0.0`</Warning>
 
 ## Example Use Cases
 
