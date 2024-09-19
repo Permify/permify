@@ -1021,5 +1021,165 @@ var _ = Describe("linked schema", func() {
 				},
 			}))
 		})
+
+		It("Case 21", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity organization {
+				relation owner @user
+
+				attribute balance integer
+
+				permission withdraw = check_balance(balance) or owner
+			}
+
+			entity account {
+
+				relation parent @organization
+
+				relation owner @user
+				
+				attribute balance integer
+			
+				permission withdraw = check_balance(balance) and owner or parent.withdraw
+			}
+
+			rule check_balance(balance integer) {
+				(balance >= 5000)
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "account",
+				Value: "withdraw",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "account",
+						Value: "balance",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "account",
+						Value: "owner",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "organization",
+						Value: "balance",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "organization",
+						Value: "owner",
+					},
+					TupleSetRelation: "",
+				},
+			}))
+		})
+
+		It("Case 22", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity organization {
+				relation owner @user
+
+				attribute balance integer
+
+				permission withdraw = check_balance(balance) or owner
+			}
+
+			entity account {
+
+				relation parent @organization
+
+				relation owner @user @account#owner
+				
+				attribute balance integer
+			
+				permission withdraw = check_balance(balance) and owner or parent.withdraw
+			}
+
+			rule check_balance(balance integer) {
+				(balance >= 5000)
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "account",
+				Value: "withdraw",
+			}, &base.Entrance{
+				Type:  "account",
+				Value: "owner",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "account",
+						Value: "balance",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: ComputedUserSetLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "account",
+						Value: "withdraw",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "account",
+						Value: "owner",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "organization",
+						Value: "balance",
+					},
+					TupleSetRelation: "",
+				},
+			}))
+		})
 	})
 })
