@@ -1051,7 +1051,6 @@ message PermissionLookupEntityRequest {
     json_name = "page_size",
     (validate.rules).uint32 = {
       gte: 1
-      lte: 100
       ignore_empty: true
     }
   ];
@@ -1214,7 +1213,6 @@ message PermissionLookupSubjectRequest {
     json_name = "page_size",
     (validate.rules).uint32 = {
       gte: 1
-      lte: 100
       ignore_empty: true
     }
   ];
@@ -1904,7 +1902,6 @@ message SchemaListRequest {
     json_name = "page_size",
     (validate.rules).uint32 = {
       gte: 1
-      lte: 100
       ignore_empty: true
     }
   ];
@@ -2775,7 +2772,6 @@ message RelationshipReadRequest {
     json_name = "page_size",
     (validate.rules).uint32 = {
       gte: 1
-      lte: 100
       ignore_empty: true
     }
   ];
@@ -2839,7 +2835,6 @@ message AttributeReadRequest {
     json_name = "page_size",
     (validate.rules).uint32 = {
       gte: 1
-      lte: 100
       ignore_empty: true
     }
   ];
@@ -3657,7 +3652,6 @@ message TenantListRequest {
     json_name = "page_size",
     (validate.rules).uint32 = {
       gte: 1
-      lte: 100
       ignore_empty: true
     }
   ];

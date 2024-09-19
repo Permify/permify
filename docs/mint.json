@@ -26,7 +26,7 @@
   },
   "analytics": {
     "plausible": {
-        "domain": "docs.permify.co"
+      "domain": "docs.permify.co"
     }
   },
   "topbarCtaButton": {
@@ -209,8 +209,8 @@
   ],
   "tabs": [
     {
-        "name": "API References",
-        "url": "api-reference"
+      "name": "API References",
+      "url": "api-reference"
     }
   ],
   "anchors": [
@@ -335,6 +335,12 @@
       ]
     },
     {
+      "group": "Migration",
+      "pages": [
+        "migration/v1.0-v1.1"
+      ]
+    },
+    {
       "group": "API Documentation",
       "pages": [
         "api-reference/introduction"
@@ -367,7 +373,7 @@
         "api-reference/permission/lookup-entity",
         "api-reference/permission/lookup-entity-stream",
         "api-reference/permission/subject-permission"
-        ]
+      ]
     },
     {
       "group": "Tenancy Service",

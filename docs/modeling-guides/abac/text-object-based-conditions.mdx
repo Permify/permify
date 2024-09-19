@@ -19,19 +19,19 @@ entity organization {
 
 	attribute location string[]
 
-	permission view = check_location(request.current_location, location) or admin
+	permission view = check_location(location) or admin
 }
 
 rule check_location(current_location string, location string[]) {
-	current_location in location
+	context.data.current_location in location
 }
 ```
-
-<Warning>If you don’t create the related attribute data, Permify accounts string as `""`</Warning>
 
 ### View Access On Weekends
 
 In this example, to be able to view the repository it must not be a weekend, and the user must be a member of the organization.
+
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
 
 ```perm
 entity user {}
@@ -40,7 +40,9 @@ entity organization {
 
     relation member @user
 
-    permission view = is_weekday(request.day_of_week) and member
+    attribute valid_weekdays string[]
+
+    permission view = is_weekday(valid_weekdays) and member
 }
 
 entity repository {
@@ -50,8 +52,8 @@ entity repository {
     permission view = organization.view
 }
 
-rule is_weekday(day_of_week string) {
-      day_of_week != 'saturday' && day_of_week != 'sunday'
+rule is_weekday(valid_weekdays string[]) {
+    context.data.day_of_week in valid_weekdays
 }
 ```
 
@@ -62,12 +64,12 @@ The permissions in this model state that to 'view' the repository, the user must
 - organization:1#member@user:1
 
 **Check Evolution Sub Queries Organization View**
-→ organization:1$is_weekday(context.day_of_week) → true
+→ organization:1$is_weekday(valid_weekdays) → true
 → organization:1#member@user:1 → true
 
 **Request keys before hash**
 
-- `check*{snapshot}*{schema*version}*{context}\_organization:1$is_weekday(context.day_of_week)` → true
+- `check*{snapshot}*{schema*version}*{context}\_organization:1$is_weekday(valid_weekdays)` → true
 - `check*{snapshot}*{schema*version}*{context}\_post:1#member@user:1` → true
 
 
