@@ -1706,10 +1706,10 @@ func (m *PermissionLookupEntityRequest) validate(all bool) error {
 
 	if m.GetPageSize() != 0 {
 
-		if val := m.GetPageSize(); val < 1 || val > 100 {
+		if m.GetPageSize() < 1 {
 			err := PermissionLookupEntityRequestValidationError{
 				field:  "PageSize",
-				reason: "value must be inside range [1, 100]",
+				reason: "value must be greater than or equal to 1",
 			}
 			if !all {
 				return err
@@ -2785,10 +2785,10 @@ func (m *PermissionLookupSubjectRequest) validate(all bool) error {
 
 	if m.GetPageSize() != 0 {
 
-		if val := m.GetPageSize(); val < 1 || val > 100 {
+		if m.GetPageSize() < 1 {
 			err := PermissionLookupSubjectRequestValidationError{
 				field:  "PageSize",
-				reason: "value must be inside range [1, 100]",
+				reason: "value must be greater than or equal to 1",
 			}
 			if !all {
 				return err
@@ -4977,10 +4977,10 @@ func (m *SchemaListRequest) validate(all bool) error {
 
 	if m.GetPageSize() != 0 {
 
-		if val := m.GetPageSize(); val < 1 || val > 100 {
+		if m.GetPageSize() < 1 {
 			err := SchemaListRequestValidationError{
 				field:  "PageSize",
-				reason: "value must be inside range [1, 100]",
+				reason: "value must be greater than or equal to 1",
 			}
 			if !all {
 				return err
@@ -6362,10 +6362,10 @@ func (m *RelationshipReadRequest) validate(all bool) error {
 
 	if m.GetPageSize() != 0 {
 
-		if val := m.GetPageSize(); val < 1 || val > 100 {
+		if m.GetPageSize() < 1 {
 			err := RelationshipReadRequestValidationError{
 				field:  "PageSize",
-				reason: "value must be inside range [1, 100]",
+				reason: "value must be greater than or equal to 1",
 			}
 			if !all {
 				return err
@@ -6830,10 +6830,10 @@ func (m *AttributeReadRequest) validate(all bool) error {
 
 	if m.GetPageSize() != 0 {
 
-		if val := m.GetPageSize(); val < 1 || val > 100 {
+		if m.GetPageSize() < 1 {
 			err := AttributeReadRequestValidationError{
 				field:  "PageSize",
-				reason: "value must be inside range [1, 100]",
+				reason: "value must be greater than or equal to 1",
 			}
 			if !all {
 				return err
@@ -9251,10 +9251,10 @@ func (m *TenantListRequest) validate(all bool) error {
 
 	if m.GetPageSize() != 0 {
 
-		if val := m.GetPageSize(); val < 1 || val > 100 {
+		if m.GetPageSize() < 1 {
 			err := TenantListRequestValidationError{
 				field:  "PageSize",
-				reason: "value must be inside range [1, 100]",
+				reason: "value must be greater than or equal to 1",
 			}
 			if !all {
 				return err
