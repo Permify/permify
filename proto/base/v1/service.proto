@@ -1045,7 +1045,7 @@ message PermissionLookupEntityRequest {
   // helps filter requests by specifying which entities are relevant to the operation.
   map<string, StringArrayValue> scope = 7 [json_name = "scope"];
 
-  // page_size is the number of tenants to be returned in the response.
+  // page_size is the number of entities to be returned in the response.
   // The value should be between 1 and 100.
   uint32 page_size = 8 [
     json_name = "page_size",
@@ -1208,7 +1208,7 @@ message PermissionLookupSubjectRequest {
   // Context associated with this request.
   Context context = 6 [json_name = "context"];
 
-  // page_size is the number of tenants to be returned in the response.
+  // page_size is the number of subjects to be returned in the response.
   // The value should be between 1 and 100.
   uint32 page_size = 7 [
     json_name = "page_size",
@@ -1898,7 +1898,7 @@ message SchemaListRequest {
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
 
-  // page_size is the number of tenants to be returned in the response.
+  // page_size is the number of schemas to be returned in the response.
   // The value should be between 1 and 100.
   uint32 page_size = 2 [
     json_name = "page_size",

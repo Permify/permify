@@ -2280,7 +2280,7 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of entities to be returned in the response.\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
@@ -2322,7 +2322,7 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of entities to be returned in the response.\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
@@ -2357,7 +2357,7 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of subjects to be returned in the response.\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
@@ -2920,7 +2920,7 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of schemas to be returned in the response.\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
