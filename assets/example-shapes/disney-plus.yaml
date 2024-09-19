@@ -45,7 +45,7 @@ schema: |-
         context.data.age >= age_rating
     }
 
-    rule check_region(region string, allowed_region string[]) {
+    rule check_region(allowed_region string[]) {
         context.data.region in allowed_region
     }
 
