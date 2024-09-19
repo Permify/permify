@@ -124,6 +124,8 @@ String can be used as attribute data type in a variety of scenarios where text-b
 - **Time Zone**: If access needs to be controlled based on time zones, a time zone attribute (e.g., "EST", "PST", "GMT") could be stored as a string.
 - **Day of the Week:** In a scenario where access to certain resources is determined by the day of the week, the string data type can be used to represent these days (e.g., "Monday", "Tuesday", etc.) as attributes!
 
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
+
 ```perm
 entity user {}
 
@@ -152,6 +154,8 @@ Integer can be used as attribute data type in several scenarios where numerical 
 - **Resource Size or Length:** If access to resources is controlled based on their size or length (like a document's length or a file's size), these can be stored as integer attributes.
 - **Version Number:** If access control decisions need to consider the version number of a resource (like a software version or a document revision), these can be stored as integer attributes.
 
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
+
 ```perm
 entity content {
     attribute min_age integer
@@ -172,6 +176,8 @@ Double can be used as attribute data type in several scenarios where precise num
 - **Transaction Amount:** In a financial system, if access control decisions need to consider the amount of a transaction, and this amount needs to be represented with decimal precision (like $100.50), these amounts can be stored as double attributes.
 - **User Rating:** If access control decisions need to consider a user's rating (like a rating out of 5 with decimal points, such as 4.7), these ratings can be stored as double attributes.
 - **Geolocation:** If access control decisions need to consider precise geographical coordinates (like latitude and longitude, which are often represented with decimal points), these coordinates can be stored as double attributes.
+
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
 
 ```perm
 entity user {}
@@ -237,6 +243,8 @@ This means that the 'view' permission is granted if either the repository is pub
 
 In this example, to be able to view the repository it must not be a weekend, and the user must be a member of the organization.
 
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
+
 ```perm
 entity user {}
 
@@ -282,6 +290,8 @@ This model represents a banking system with two entities: **`user`** and **`acco
 
 1. **`user`**: Represents a customer of the bank.
 2. **`account`**: Represents a bank account that has an **`owner`** (which is a **`user`**), and a **`balance`** (amount of money in the account).
+
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
 
 ```perm
 entity user {}
@@ -383,6 +393,8 @@ rule check_budget(budget double) {
 ## Evaluation of ABAC Access Checks
 
 **Model**
+
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
 
 ```perm
 entity user {}
@@ -533,6 +545,8 @@ permission delete = is_weekday(valid_weekdays)
 In the model, a **`delete`** permission rule is set. It calls the function **`is_weekday`** with the value of **`valid_weekdays`** from the related entity. If **`is_weekday(["monday", "tuesday", "wednesday", "thursday", "friday"])`** is true, the delete permission is granted.
 
 **Create Validation File**
+
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
 
 ```yaml
 schema: >-

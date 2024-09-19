@@ -1,0 +1,93 @@
+---
+title: Upgrade Guide from v1.0 to v1.1
+---
+
+This document will help you upgrade from antd v1.0 to antd v1.1.
+
+# DSL Context
+
+In version 1.0, when importing data from the context, it was accessed using `request.field_name` and injected into the rule as a parameter. In version 1.1, this has been updated to access it as `context.data.field_name` within the rule.
+
+## v1.0
+
+```perm
+entity user {}
+
+entity account {
+    relation owner @user
+    attribute balance double
+
+    permission withdraw = check_balance(request.amount, balance) and owner
+}
+
+rule check_balance(amount double, balance double) {
+    (balance >= amount) && (amount <= 5000)
+}
+```
+
+## v1.1
+
+```perm
+entity user {}
+
+entity account {
+    relation owner @user
+    attribute balance double
+
+    permission withdraw = check_balance(balance) and owner
+}
+
+rule check_balance(balance double) {
+    (balance >= context.data.amount) && (context.data.amount <= 5000)
+}
+```
+
+# Lookup Entity Scopes
+
+A new field called `scope`  has been added to the lookup entity and lookup entity stream APIs. Here’s an example of how the scope can be used:
+
+```json
+"scope": {
+    "repository": {
+        "data": ["r1", "r2"]
+    },
+    "organization": {
+        "data": ["o2"]
+    }
+}
+```
+
+You can use the scope for multiple entity types. This request allows you to query only certain organizations and repositories. Below is an example that includes the entire body of the request:
+
+```json
+{
+    "metadata": {
+        "snap_token": {{snap_token}},
+        "schema_version": {{schema_version}},
+        "depth": 100
+    },
+    "entity_type": "repository",
+    "permission": "edit",
+    "subject": {
+        "type": "user",
+        "id": "u1",
+        "relation": ""
+    },
+    "scope": {
+        "repository": {
+            "data": ["r1", "r2"]
+        },
+        "organization": {
+            "data": ["o2"]
+        }
+    },
+    "page_size": 20,
+    "continuous_token": ""
+}
+```
+
+By default, it will operate as it did in the previous version.
+
+# Page Size Limitations
+
+The maximum validation for the `page_size`  field in the lookup entity and lookup entity stream APIs was previously set to 100. This restriction has been removed, and there is now no limit on the page size.

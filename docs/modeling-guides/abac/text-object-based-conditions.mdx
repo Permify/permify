@@ -31,6 +31,8 @@ rule check_location(current_location string, location string[]) {
 
 In this example, to be able to view the repository it must not be a weekend, and the user must be a member of the organization.
 
+<Warning>This schema works correctly in versions above v1.1. If you are using an earlier version, please refer to the version differences [here](/migration/v1.0-v1.1).</Warning>
+
 ```perm
 entity user {}
 
