@@ -607,7 +607,7 @@ type PermissionLookupEntityRequest struct {
 	// Scope: A map that associates entity types with lists of identifiers. Each entry
 	// helps filter requests by specifying which entities are relevant to the operation.
 	Scope map[string]*StringArrayValue `protobuf:"bytes,7,rep,name=scope,proto3" json:"scope,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// page_size is the number of tenants to be returned in the response.
+	// page_size is the number of entities to be returned in the response.
 	// The value should be between 1 and 100.
 	PageSize uint32 `protobuf:"varint,8,opt,name=page_size,proto3" json:"page_size,omitempty"`
 	// continuous_token is an optional parameter used for pagination.
@@ -1083,7 +1083,7 @@ type PermissionLookupSubjectRequest struct {
 	SubjectReference *RelationReference `protobuf:"bytes,5,opt,name=subject_reference,proto3" json:"subject_reference,omitempty"`
 	// Context associated with this request.
 	Context *Context `protobuf:"bytes,6,opt,name=context,proto3" json:"context,omitempty"`
-	// page_size is the number of tenants to be returned in the response.
+	// page_size is the number of subjects to be returned in the response.
 	// The value should be between 1 and 100.
 	PageSize uint32 `protobuf:"varint,7,opt,name=page_size,proto3" json:"page_size,omitempty"`
 	// continuous_token is an optional parameter used for pagination.
@@ -2072,7 +2072,7 @@ type SchemaListRequest struct {
 	// tenant_id is a string that identifies the tenant. It must match the pattern "[a-zA-Z0-9-,]+",
 	// be a maximum of 64 bytes, and must not be empty.
 	TenantId string `protobuf:"bytes,1,opt,name=tenant_id,proto3" json:"tenant_id,omitempty"`
-	// page_size is the number of tenants to be returned in the response.
+	// page_size is the number of schemas to be returned in the response.
 	// The value should be between 1 and 100.
 	PageSize uint32 `protobuf:"varint,2,opt,name=page_size,proto3" json:"page_size,omitempty"`
 	// continuous_token is an optional parameter used for pagination.
