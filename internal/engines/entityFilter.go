@@ -66,6 +66,10 @@ func (engine *EntityFilter) EntityFilter(
 		},
 	) // Retrieve the linked entrances between the entity reference and subject.
 
+	if entrances == nil {
+		return nil
+	}
+
 	// Create a new context for executing goroutines and a cancel function.
 	cctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -83,7 +87,7 @@ func (engine *EntityFilter) EntityFilter(
 				return err
 			}
 		case schema.ComputedUserSetLinkedEntrance: // If the linked entrance is a computed user set entrance.
-			err = engine.lt(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
+			err = engine.lt(cont, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
 				Entity: &base.Entity{
 					Type: entrance.TargetEntrance.GetType(),
 					Id:   request.GetSubject().GetId(),

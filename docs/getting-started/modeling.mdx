@@ -345,11 +345,11 @@ entity organization {
 
 	attribute ip_range string[]
 
-	permission view = check_ip_range(request.ip, ip_range) or admin
+	permission view = check_ip_range(ip_range) or admin
 }
 
-rule check_ip_range(ip string, ip_range string[]) {
-	ip in ip_range
+rule check_ip_range(ip_range string[]) {
+	context.data.ip in ip_range
 }
 ```
 

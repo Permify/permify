@@ -87,11 +87,11 @@ entity organization {
 
 	attribute ip_range string[]
 
-	permission view = check_ip_range(request.ip, ip_range) or admin
+	permission view = check_ip_range(ip_range) or admin
 }
 
 rule check_ip_range(ip string, ip_range string[]) {
-	ip in ip_range
+	context.data.ip in ip_range
 }
 ```
 
@@ -134,11 +134,11 @@ entity organization {
 
 	attribute location string[]
 
-	permission view = check_location(request.current_location, location) or admin
+	permission view = check_location(location) or admin
 }
 
-rule check_location(current_location string, location string[]) {
-	current_location in location
+rule check_location(location string[]) {
+	context.data.current_location in location
 }
 ```
 
@@ -158,11 +158,13 @@ Integer can be used as attribute data type in several scenarios where numerical 
 
 ```perm
 entity content {
-    permission view = check_age(request.age)
+    attribute min_age integer
+
+    permission view = check_age(min_age)
 }
 
-rule check_age(age integer) {
-		age >= 18
+rule check_age(min_age integer) {
+		context.data.age >= min_age
 }
 ```
 <Warning>If you don’t create the related attribute data, Permify accounts integer as `0`</Warning>
@@ -183,11 +185,11 @@ entity account {
     relation owner @user
     attribute balance double
 
-    permission withdraw = check_balance(request.amount, balance) and owner
+    permission withdraw = check_balance(balance) and owner
 }
 
-rule check_balance(amount double, balance double) {
-	(balance >= amount) && (amount <= 5000)
+rule check_balance(balance double) {
+	(balance >= context.data.amount) && (context.data.amount <= 5000)
 }
 ```
 <Warning>If you don’t create the related attribute data, Permify accounts double as `0.0`</Warning>
@@ -248,7 +250,9 @@ entity organization {
 
     relation member @user
 
-    permission view = is_weekday(request.day_of_week) and member
+    attribute valid_weekdays string[]
+
+    permission view = is_weekday(valid_weekdays) and member
 }
 
 entity repository {
@@ -258,8 +262,8 @@ entity repository {
     permission view = organization.view
 }
 
-rule is_weekday(day_of_week string) {
-      day_of_week != 'saturday' && day_of_week != 'sunday'
+rule is_weekday(valid_weekdays string[]) {
+      context.data.day_of_week in valid_weekdays
 }
 ```
 
@@ -270,12 +274,12 @@ The permissions in this model state that to 'view' the repository, the user must
 - organization:1#member@user:1
 
 **Check Evolution Sub Queries Organization View**
-→ organization:1$is_weekday(context.day_of_week) → true
+→ organization:1$is_weekday(valid_weekdays) → true
 → organization:1#member@user:1 → true
 
 **Request keys before hash**
 
-- `check*{snapshot}*{schema*version}*{context}\_organization:1$is_weekday(context.day_of_week)` → true
+- `check*{snapshot}*{schema*version}*{context}\_organization:1$is_weekday(valid_weekdays)` → true
 - `check*{snapshot}*{schema*version}*{context}\_post:1#member@user:1` → true
 
 ### Example of Banking System
@@ -292,11 +296,11 @@ entity account {
     relation owner @user
     attribute balance double
 
-    permission withdraw = check_balance(request.amount, balance) and owner
+    permission withdraw = check_balance(balance) and owner
 }
 
-rule check_balance(amount double, balance double) {
-    (balance >= amount) && (amount <= 5000)
+rule check_balance(balance double) {
+    (balance >= context.data.amount) && (context.data.amount <= 5000)
 }
 ```
 
@@ -314,12 +318,12 @@ Both of these conditions need to be true for the **`withdraw`** permission to be
 - account:1$balance|double:4000
 
 **Check Evolution Sub Queries For Account Withdraw**
-→ account:1$check_balance(context.amount,balance) → true
+→ account:1$check_balance(balance) → true
 → account:1#owner@user:1 → true
 
 **Request keys before hash**
 
-- `check*{snapshot}*{schema*version}*{context}\_account:1$check_balance(context.amount,balance)` → true
+- `check*{snapshot}*{schema*version}*{context}\_account:1$check_balance(balance)` → true
 - `check*{snapshot}*{schema*version}*{context}\_account:1#owner@user:1` → true
 
 ### Hierarchical Usage
@@ -395,11 +399,11 @@ entity organization {
 
     attribute ip_range string[]
 
-    permission view = check_ip_range(request.ip_address, ip_range) or admin
+    permission view = check_ip_range(ip_range) or admin
 }
 
-rule check_ip_range(ip_address string, ip_range string[]) {
-    ip in ip_range
+rule check_ip_range(ip_range string[]) {
+    context.data.ip in ip_range
 }
 ```
 
@@ -411,7 +415,7 @@ For instance,
 "context": {
 	"data": {
 		"ip_address": "187.182.51.206",
-    "day_of_week": "monday"
+        "day_of_week": "monday"
     },
 }
 ```
@@ -529,10 +533,10 @@ This YAML snippet specifies a validation context with no tuples or attributes, a
 **Example in model**
 
 ```yaml
-permission delete = is_weekday(request.day_of_week)
+permission delete = is_weekday(valid_weekdays)
 ```
 
-In the model, a **`delete`** permission rule is set. It calls the function **`is_weekday`** with the value of **`day_of_week`** from the context. If **`is_weekday("saturday")`** is true, the delete permission is granted.
+In the model, a **`delete`** permission rule is set. It calls the function **`is_weekday`** with the value of **`valid_weekdays`** from the related entity. If **`is_weekday(["monday", "tuesday", "wednesday", "thursday", "friday"])`** is true, the delete permission is granted.
 
 **Create Validation File**
 
@@ -554,18 +558,19 @@ schema: >-
       relation organization  @organization
 
       attribute is_public boolean
+      attribute valid_weekdays string[]
 
       permission view = is_public
       permission edit = organization.view
-      permission delete = is_weekday(request.day_of_week)
+      permission delete = is_weekday(valid_weekdays)
   }
 
   rule check_credit(credit integer) {
       credit > 5000
   }
 
-  rule is_weekday(day_of_week string) {
-        day_of_week != 'saturday' && day_of_week != 'sunday'
+  rule is_weekday(valid_weekdays string[]) {
+      context.data.day_of_week in valid_weekdays
   }
 
 relationships:
