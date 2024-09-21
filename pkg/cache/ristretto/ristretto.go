@@ -11,7 +11,7 @@ type Ristretto struct {
 	maxCost     string
 	bufferItems int64
 
-	c *ristretto.Cache
+	c *ristretto.Cache[string, any]
 }
 
 // New - Creates new ristretto cache
@@ -32,7 +32,7 @@ func New(opts ...Option) (*Ristretto, error) {
 		return nil, err
 	}
 
-	c, err := ristretto.NewCache(&ristretto.Config{
+	c, err := ristretto.NewCache(&ristretto.Config[string, any]{
 		NumCounters: rs.numCounters,
 		MaxCost:     int64(mc),
 		BufferItems: rs.bufferItems,
@@ -44,12 +44,12 @@ func New(opts ...Option) (*Ristretto, error) {
 }
 
 // Get - Gets value from cache
-func (r *Ristretto) Get(key interface{}) (interface{}, bool) {
+func (r *Ristretto) Get(key string) (interface{}, bool) {
 	return r.c.Get(key)
 }
 
 // Set - Sets value to cache
-func (r *Ristretto) Set(key, value interface{}, cost int64) bool {
+func (r *Ristretto) Set(key string, value any, cost int64) bool {
 	return r.c.Set(key, value, cost)
 }
 

@@ -2,8 +2,8 @@ package cache
 
 // Cache - Defines an interface for a generic cache.
 type Cache interface {
-	Get(key interface{}) (interface{}, bool)
-	Set(key, value interface{}, cost int64) bool
+	Get(key string) (any, bool)
+	Set(key string, value any, cost int64) bool
 	Wait()
 	Close()
 }
@@ -13,11 +13,11 @@ type noopCache struct{}
 
 func NewNoopCache() Cache { return &noopCache{} }
 
-func (c *noopCache) Get(_ any) (any, bool) {
+func (c *noopCache) Get(_ string) (any, bool) {
 	return nil, false
 }
 
-func (c *noopCache) Set(_, _ any, _ int64) bool {
+func (c *noopCache) Set(_ string, _ any, _ int64) bool {
 	return false
 }
 
