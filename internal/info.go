@@ -23,7 +23,7 @@ var Identifier = ""
 */
 const (
 	// Version is the last release of the Permify (e.g. v0.1.0)
-	Version = "v1.1.0"
+	Version = "v1.1.1"
 )
 
 // Function to create a single line of the ASCII art with centered content and color
