@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import {Layout, Row, Button, Select} from 'antd';
+import {Layout, Row, Button, Select, Grid, Typography} from 'antd';
 import {toAbsoluteUrl} from "@utility/helpers/asset";
 import {GithubOutlined, ShareAltOutlined, ExportOutlined} from "@ant-design/icons";
 import {put} from '@vercel/blob';
@@ -9,8 +9,12 @@ import Share from "@layout/components/Modals/Share";
 
 const {Option, OptGroup} = Select;
 const {Content} = Layout;
+const {useBreakpoint} = Grid;
+const {Text, Title} = Typography;
 
 const MainLayout = ({children, ...rest}) => {
+
+    const screens = useBreakpoint();
 
     const {
         schema,
@@ -86,63 +90,80 @@ const MainLayout = ({children, ...rest}) => {
         <Layout className="App h-screen flex flex-col">
             <Share visible={shareModalVisibility} toggle={toggleShareModalVisibility} id={id}></Share>
 
-            <Row justify="center" type="flex" className="header">
-                <div className="logo">
-                    <a href="/">
-                        <img alt="logo"
-                             src={toAbsoluteUrl("/media/svg/permify.svg")}/>
-                    </a>
+            {/* Conditional message for small screens */}
+            {!screens.md ?
+                <div className="center-of-screen text-center">
+                    <Title level={5}>Screen size too small!</Title>
+                    <Text>This application is optimized for larger screens. Please switch to a larger screen for the
+                        best experience.</Text>
                 </div>
-                <div className="ml-12">
-                    <Select className="mr-8" value={label} style={{width: 220}}
-                            onChange={handleSampleChange}>
-                        <OptGroup label="Use Cases">
-                            <Option key="empty" value="empty">Empty</Option>
-                            <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations &
-                                Hierarchies</Option>
-                            <Option key="rbac" value="rbac">RBAC</Option>
-                            <Option key="custom-roles" value="custom-roles">Custom Roles</Option>
-                            <Option key="user-groups" value="user-groups">User Groups</Option>
-                            <Option key="banking-system" value="banking-system">Banking System</Option>
-                        </OptGroup>
-                        <OptGroup label="Sample Apps">
-                            <Option key="google-docs-simplified" value="google-docs-simplified">Google Docs
-                                Simplified</Option>
-                            <Option key="facebook-groups" value="facebook-groups">Facebook Groups</Option>
-                            <Option key="notion" value="notion">Notion</Option>
-                            <Option key="mercury" value="mercury">Mercury</Option>
-                            <Option key="instagram" value="instagram">Instagram</Option>
-                            <Option key="disney-plus" value="disney-plus">Disney Plus</Option>
-                        </OptGroup>
-                    </Select>
-                    <Button className="mr-8" onClick={() => {
-                        exp()
-                    }} icon={<ExportOutlined/>}>Export</Button>
-                    <Button onClick={() => {
-                        share()
-                    }} icon={<ShareAltOutlined/>}>Share</Button>
-                </div>
-                <div className="ml-auto">
-                    <Button className="mr-8 text-white" type="link" target="_blank"
-                            href="https://docs.permify.co/docs/playground">
-                        How to use playground?
-                    </Button>
-                    <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}
-                            href="https://github.com/Permify/permify">
-                        Star us on GitHub
-                    </Button>
-                    <Button type="primary" href="https://discord.com/invite/MJbUjwskdH" target="_blank">Join
-                        Community</Button>
-                </div>
-            </Row>
+                :
+                <>
+                    <Row justify="center" type="flex" className="header">
+                        <div className="logo">
+                            <a href="/">
+                                <img alt="logo"
+                                     src={toAbsoluteUrl("/media/svg/permify.svg")}/>
+                            </a>
+                        </div>
+                        <div className="ml-12">
+                            <Select className="mr-8" value={label} style={{width: 220}}
+                                    onChange={handleSampleChange}>
+                                <OptGroup label="Use Cases">
+                                    <Option key="empty" value="empty">Empty</Option>
+                                    <Option key="organizations-hierarchies" value="organizations-hierarchies">Organizations
+                                        &
+                                        Hierarchies</Option>
+                                    <Option key="rbac" value="rbac">RBAC</Option>
+                                    <Option key="custom-roles" value="custom-roles">Custom Roles</Option>
+                                    <Option key="user-groups" value="user-groups">User Groups</Option>
+                                    <Option key="banking-system" value="banking-system">Banking System</Option>
+                                </OptGroup>
+                                <OptGroup label="Sample Apps">
+                                    <Option key="google-docs-simplified" value="google-docs-simplified">Google Docs
+                                        Simplified</Option>
+                                    <Option key="facebook-groups" value="facebook-groups">Facebook Groups</Option>
+                                    <Option key="notion" value="notion">Notion</Option>
+                                    <Option key="mercury" value="mercury">Mercury</Option>
+                                    <Option key="instagram" value="instagram">Instagram</Option>
+                                    <Option key="disney-plus" value="disney-plus">Disney Plus</Option>
+                                </OptGroup>
+                            </Select>
+                            <Button className="mr-8" onClick={() => {
+                                exp()
+                            }} icon={<ExportOutlined/>}>Export</Button>
+                            <Button onClick={() => {
+                                share()
+                            }} icon={<ShareAltOutlined/>}>Share</Button>
+                        </div>
+                        <div className="ml-auto">
+                            {screens.xl &&
+                                <>
+                                    <Button className="mr-8 text-white" type="link" target="_blank"
+                                            href="https://docs.permify.co/docs/playground">
+                                        How to use playground?
+                                    </Button>
+                                    <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}
+                                            href="https://github.com/Permify/permify">
+                                        Star us on GitHub
+                                    </Button>
+                                    <Button type="primary" href="https://discord.com/invite/MJbUjwskdH" target="_blank">
+                                        Join Community
+                                    </Button>
+                                </>
+                            }
+                        </div>
+                    </Row>
 
-            <Layout>
-                <Content className="h-full flex flex-col max-h-full">
-                    <div className="flex-auto overflow-hidden">
-                        {children}
-                    </div>
-                </Content>
-            </Layout>
+                    <Layout>
+                        <Content className="h-full flex flex-col max-h-full">
+                            <div className="flex-auto overflow-hidden">
+                                {children}
+                            </div>
+                        </Content>
+                    </Layout>
+                </>
+            }
         </Layout>
     );
 };
