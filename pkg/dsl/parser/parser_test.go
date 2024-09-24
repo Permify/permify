@@ -896,5 +896,24 @@ var _ = Describe("parser", func() {
 			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
 			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
 		})
+
+		It("Case 25 - Multi-line Permission Expression w/ Rule - should fail", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			attribute balance float
+
+    			permission withdraw = check_balance(request.amount, balance)
+					owner
+			}
+	
+			rule check_balance(amount float, balance float) {
+				balance >= amount && amount <= 5000
+			}
+			`)
+
+			_, err := pr.Parse()
+			Expect(err).Should(HaveOccurred())
+		})
 	})
 })
