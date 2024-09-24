@@ -588,6 +588,11 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	var exp ast.Expression
 	var err error
 
+	if p.currentTokenIs(token.NEWLINE) {
+		// advance to the next token
+		p.next()
+	}
+
 	if p.currentTokenIs(token.LP) {
 		p.next() // Consume the left parenthesis.
 		exp, err = p.parseExpression(LOWEST)
