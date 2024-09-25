@@ -1,4 +1,4 @@
-[permify-banner](https://github.com/user-attachments/assets/a4ff3ba8-8b2e-40cd-85f6-e6dac7a0359b)
+![permify-banner](https://github.com/user-attachments/assets/a0539355-4767-4063-862e-b20ffdd0e9ca)
 
 <h1 align="center">
     Permify - Open Source Fine-Grained Authorization
