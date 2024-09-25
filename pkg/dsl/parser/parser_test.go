@@ -961,9 +961,15 @@ var _ = Describe("parser", func() {
 
 			_, err := pr.Parse()
 			Expect(err).Should(HaveOccurred())
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("8:2:expected token to be RELATION, PERMISSION, ATTRIBUTE, got IDENT instead"))
 		})
 
-		It("Case 26 - Multi-line Permission Complex Expression w/ Rule", func() {
+		It("Case 27 - Multi-line Permission Complex Expression w/ Rule", func() {
 			pr := NewParser(`
 entity report {
     relation parent @organization
