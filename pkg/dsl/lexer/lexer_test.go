@@ -980,5 +980,97 @@ rule check_ip_address(ip_addresses string[]) {
 				Expect(index + lexeme.Literal).Should(Equal(index + tt.expectedLiteral))
 			}
 		})
+
+		It("Case 10", func() {
+			str := `
+entity user {}
+
+entity organization {
+	relation admin @user
+    relation member @user
+
+	action create_repository = nil
+	action delete = nil
+}
+
+`
+
+			tests := []struct {
+				expectedType    token.Type
+				expectedLiteral string
+			}{
+				{token.NEWLINE, "\n"},
+				{token.ENTITY, "entity"},
+				{token.SPACE, " "},
+				{token.IDENT, "user"},
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.RCB, "}"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				// --
+				{token.ENTITY, "entity"},
+				{token.SPACE, " "},
+				{token.IDENT, "organization"},
+				{token.SPACE, " "},
+				{token.LCB, "{"},
+				{token.NEWLINE, "\n"},
+				// --
+				{token.TAB, "\t"},
+				{token.RELATION, "relation"},
+				{token.SPACE, " "},
+				{token.IDENT, "admin"},
+				{token.SPACE, " "},
+				{token.SIGN, "@"},
+				{token.IDENT, "user"},
+				{token.NEWLINE, "\n"},
+				// --
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.SPACE, " "},
+				{token.RELATION, "relation"},
+				{token.SPACE, " "},
+				{token.IDENT, "member"},
+				{token.SPACE, " "},
+				{token.SIGN, "@"},
+				{token.IDENT, "user"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				// --
+				{token.TAB, "\t"},
+				{token.PERMISSION, "action"},
+				{token.SPACE, " "},
+				{token.IDENT, "create_repository"},
+				{token.SPACE, " "},
+				{token.ASSIGN, "="},
+				{token.SPACE, " "},
+				{token.NIL, "nil"},
+				{token.NEWLINE, "\n"},
+				// --
+				{token.TAB, "\t"},
+				{token.PERMISSION, "action"},
+				{token.SPACE, " "},
+				{token.IDENT, "delete"},
+				{token.SPACE, " "},
+				{token.ASSIGN, "="},
+				{token.SPACE, " "},
+				{token.NIL, "nil"},
+				{token.NEWLINE, "\n"},
+				{token.RCB, "}"},
+				{token.NEWLINE, "\n"},
+				{token.NEWLINE, "\n"},
+				// --
+			}
+
+			l := NewLexer(str)
+
+			for i, tt := range tests {
+				lexeme := l.NextToken()
+				index := strconv.Itoa(i) + ": "
+				Expect(index + lexeme.Type.String()).Should(Equal(index + tt.expectedType.String()))
+				Expect(index + lexeme.Literal).Should(Equal(index + tt.expectedLiteral))
+			}
+		})
 	})
 })

@@ -1041,5 +1041,22 @@ rule confidentiality_level_low(confidentiality_level double) {
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("7:15:expected token to be RELATION, PERMISSION, ATTRIBUTE, got OR instead"))
 		})
+
+		It("Case 30 - Nil Permission", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			relation admin @user
+
+				action check_balance = nil
+
+    			permission withdraw = nil 
+			}
+			`)
+
+			_, err := pr.Parse()
+			// Ensure an error is not returned
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 })
