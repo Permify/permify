@@ -962,5 +962,44 @@ var _ = Describe("parser", func() {
 			_, err := pr.Parse()
 			Expect(err).Should(HaveOccurred())
 		})
+
+		It("Case 26 - Multi-line Permission Complex Expression w/ Rule", func() {
+			pr := NewParser(`
+entity report {
+    relation parent @organization
+    relation team @team
+    attribute confidentiality_level double
+
+    permission view = 
+		confidentiality_level_high(confidentiality_level) and 
+		parent.director or 
+		confidentiality_level_medium_high(confidentiality_level) and 
+		(parent.director or team.lead) or 
+		confidentiality_level_medium(confidentiality_level) and (team.lead or team.member) or 
+		confidentiality_level_low(confidentiality_level) and 
+		parent.member
+    permission edit = team.lead
+}
+
+rule confidentiality_level_high(confidentiality_level double) {
+    confidentiality_level == 4.0
+}
+
+rule confidentiality_level_medium_high(confidentiality_level double) {
+    confidentiality_level == 3.0
+}
+
+rule confidentiality_level_medium(confidentiality_level double) {
+    confidentiality_level == 2.0
+}
+
+rule confidentiality_level_low(confidentiality_level double) {
+    confidentiality_level == 1.0
+}
+			`)
+
+			_, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 })

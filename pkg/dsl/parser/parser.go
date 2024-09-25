@@ -604,7 +604,7 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	var exp ast.Expression
 	var err error
 
-	if p.currentTokenIs(token.NEWLINE) && p.previousTokenIs(token.LP, token.AND, token.OR, token.IN, token.NOT, token.ASSIGN) {
+	if p.currentTokenIs(token.NEWLINE) && p.previousTokenIs(token.LP, token.AND, token.OR, token.NOT, token.ASSIGN) {
 		// advance to the next token
 		p.next()
 	}
