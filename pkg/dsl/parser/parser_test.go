@@ -849,5 +849,197 @@ var _ = Describe("parser", func() {
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
 		})
+
+		It("Case 24 - Multi-line Permission Expression w/ Rule", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			attribute balance float
+
+    			permission withdraw = check_balance(request.amount, balance) and 
+					owner
+			}
+	
+			rule check_balance(amount float, balance float) {
+				balance >= amount && amount <= 5000
+			}
+			`)
+
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			st := schema.Statements[0].(*ast.EntityStatement)
+
+			Expect(st.Name.Literal).Should(Equal("account"))
+
+			r1 := st.RelationStatements[0].(*ast.RelationStatement)
+			Expect(r1.Name.Literal).Should(Equal("owner"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.Type.Literal).Should(Equal("user"))
+			}
+
+			a1 := st.AttributeStatements[0].(*ast.AttributeStatement)
+			Expect(a1.Name.Literal).Should(Equal("balance"))
+			Expect(a1.AttributeType.Type.Literal).Should(Equal("float"))
+
+			p1 := st.PermissionStatements[0].(*ast.PermissionStatement)
+			Expect(p1.Name.Literal).Should(Equal("withdraw"))
+
+			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement)
+
+			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(request.amount, balance)"))
+			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))
+
+			rs1 := schema.Statements[1].(*ast.RuleStatement)
+
+			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
+			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
+		})
+
+		It("Case 25 - Multi-line Permission Expression w/ Rule", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			attribute balance float
+
+    			permission withdraw = 
+					check_balance(request.amount, balance) and owner
+			}
+	
+			rule check_balance(amount float, balance float) {
+				balance >= amount && amount <= 5000
+			}
+			`)
+
+			schema, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			st := schema.Statements[0].(*ast.EntityStatement)
+
+			Expect(st.Name.Literal).Should(Equal("account"))
+
+			r1 := st.RelationStatements[0].(*ast.RelationStatement)
+			Expect(r1.Name.Literal).Should(Equal("owner"))
+
+			for _, a := range r1.RelationTypes {
+				Expect(a.Type.Literal).Should(Equal("user"))
+			}
+
+			a1 := st.AttributeStatements[0].(*ast.AttributeStatement)
+			Expect(a1.Name.Literal).Should(Equal("balance"))
+			Expect(a1.AttributeType.Type.Literal).Should(Equal("float"))
+
+			p1 := st.PermissionStatements[0].(*ast.PermissionStatement)
+			Expect(p1.Name.Literal).Should(Equal("withdraw"))
+
+			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement)
+
+			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(request.amount, balance)"))
+			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))
+
+			rs1 := schema.Statements[1].(*ast.RuleStatement)
+
+			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
+			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
+		})
+
+		It("Case 26 - Multi-line Permission Expression w/ Rule - should fail", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			attribute balance float
+
+    			permission withdraw = check_balance(request.amount, balance)
+					owner
+			}
+	
+			rule check_balance(amount float, balance float) {
+				balance >= amount && amount <= 5000
+			}
+			`)
+
+			_, err := pr.Parse()
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("8:2:expected token to be RELATION, PERMISSION, ATTRIBUTE, got IDENT instead"))
+		})
+
+		It("Case 27 - Multi-line Permission Complex Expression w/ Rule", func() {
+			pr := NewParser(`
+entity report {
+    relation parent @organization
+    relation team @team
+    attribute confidentiality_level double
+
+    permission view = 
+		confidentiality_level_high(confidentiality_level) and 
+		parent.director or 
+		confidentiality_level_medium_high(confidentiality_level) and 
+		(parent.director or team.lead) or 
+		confidentiality_level_medium(confidentiality_level) and (team.lead or team.member) or 
+		confidentiality_level_low(confidentiality_level) and 
+		parent.member
+    permission edit = team.lead
+}
+
+rule confidentiality_level_high(confidentiality_level double) {
+    confidentiality_level == 4.0
+}
+
+rule confidentiality_level_medium_high(confidentiality_level double) {
+    confidentiality_level == 3.0
+}
+
+rule confidentiality_level_medium(confidentiality_level double) {
+    confidentiality_level == 2.0
+}
+
+rule confidentiality_level_low(confidentiality_level double) {
+    confidentiality_level == 1.0
+}
+			`)
+
+			_, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("Case 28 - Multi-line Permission Expression w/ Rule", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			relation admin @user
+
+    			permission withdraw = admin or 
+					owner
+			}
+			`)
+
+			_, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("Case 29 - Multi-line Permission Expression w/ Rule - should fail", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			relation admin @user
+
+    			permission withdraw = admin 
+					or owner
+			}
+			`)
+
+			_, err := pr.Parse()
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("7:15:expected token to be RELATION, PERMISSION, ATTRIBUTE, got OR instead"))
+		})
 	})
 })
