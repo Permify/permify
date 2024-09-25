@@ -1,6 +1,6 @@
+[permify-banner](https://github.com/user-attachments/assets/a4ff3ba8-8b2e-40cd-85f6-e6dac7a0359b)
 
 <h1 align="center">
-    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
     Permify - Open Source Fine-Grained Authorization
 </h1>
 <p align="center">
