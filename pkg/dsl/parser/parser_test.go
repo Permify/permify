@@ -1007,5 +1007,39 @@ rule confidentiality_level_low(confidentiality_level double) {
 			_, err := pr.Parse()
 			Expect(err).ShouldNot(HaveOccurred())
 		})
+
+		It("Case 28 - Multi-line Permission Expression w/ Rule", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			relation admin @user
+
+    			permission withdraw = admin or 
+					owner
+			}
+			`)
+
+			_, err := pr.Parse()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("Case 29 - Multi-line Permission Expression w/ Rule - should fail", func() {
+			pr := NewParser(`
+			entity account {
+    			relation owner @user
+    			relation admin @user
+
+    			permission withdraw = admin 
+					or owner
+			}
+			`)
+
+			_, err := pr.Parse()
+			// Ensure an error is returned
+			Expect(err).Should(HaveOccurred())
+
+			// Ensure the error message contains the expected string
+			Expect(err.Error()).Should(ContainSubstring("7:15:expected token to be RELATION, PERMISSION, ATTRIBUTE, got OR instead"))
+		})
 	})
 })
