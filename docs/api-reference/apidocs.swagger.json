@@ -55,7 +55,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/HealthResponse"
+              "$ref": "#/definitions/HealthCheckResponse"
             }
           },
           "default": {
@@ -65,6 +65,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "service",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Health"
         ],
@@ -1371,7 +1379,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/WatchBody"
+              "$ref": "#/definitions/Watch.WatchBody"
             }
           }
         ],
@@ -2197,11 +2205,11 @@
       },
       "description": "Function type with result and arg types."
     },
-    "HealthResponse": {
+    "HealthCheckResponse": {
       "type": "object",
       "properties": {
         "status": {
-          "type": "string"
+          "$ref": "#/definitions/ServingStatus"
         }
       }
     },
@@ -3088,6 +3096,17 @@
       },
       "description": "A field selection expression. e.g. `request.auth`."
     },
+    "ServingStatus": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "SERVING",
+        "NOT_SERVING",
+        "SERVICE_UNKNOWN"
+      ],
+      "default": "UNKNOWN",
+      "description": " - SERVICE_UNKNOWN: Used only by the Watch method."
+    },
     "SourceInfo": {
       "type": "object",
       "properties": {
@@ -3379,7 +3398,7 @@
         }
       }
     },
-    "WatchBody": {
+    "Watch.WatchBody": {
       "type": "object",
       "properties": {
         "snap_token": {
