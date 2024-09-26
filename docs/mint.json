@@ -325,6 +325,22 @@
       ]
     },
     {
+      "group": "Integrations",
+      "icon": "code",
+      "pages": [
+        "integrations/data-sync",
+        {
+          "group": "Tracing & Metrics",
+          "pages": [
+            "integrations/metrics/otlp",
+            "integrations/metrics/jaeger",
+            "integrations/metrics/signoz",
+            "integrations/metrics/zipkin"
+          ]
+        }
+      ]
+    },
+    {
       "group": "Use Cases",
       "pages": [
         "use-cases/rbac",
