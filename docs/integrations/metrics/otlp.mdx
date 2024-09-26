@@ -1,0 +1,91 @@
+---
+title: OpenTelemetry
+---
+
+Here’s the step-by-step guide to set up [OpenTelemetry](https://opentelemetry.io/) for export Permify traces, metrics and logs.
+
+### Step 1: Install OpenTelemetry in Your Environment
+
+To set up OpenTelemetry, you’ll need to install the OpenTelemetry Collector. You can run it via Docker using the following command:
+
+```bash
+docker run --rm -it -p 4317:4317 -p 4318:4318 otel/opentelemetry-collector:latest
+```
+
+This command runs the OpenTelemetry Collector, exposing the necessary ports for receiving telemetry data.
+
+### Step 2: Configure Permify for OpenTelemetry Tracing
+
+In your configuration file, set up OpenTelemetry as the exporter and provide the endpoint for exporting traces.
+
+Here’s an example configuration:
+
+```yaml
+tracer:
+  exporter: otlp
+  endpoint: http://localhost:4317
+  enabled: true
+  insecure: true
+```
+
+Explanation:
+- `exporter: otlp`: Specifies that OpenTelemetry (OTLP) will be used as the exporter.
+- `endpoint: http://localhost:4317`: This is the default OpenTelemetry Collector endpoint for receiving traces.
+- `enabled: true`: Enables the tracing feature.
+- `insecure: true`: Uses HTTP instead of HTTPS for exporting traces.
+
+<Info>
+Refer to the [Configuration](/setting-up/configuration) section for more details on how to use the configuration file. You can also use environment variables (ENVs) for this.
+</Info>
+
+### Step 3: Start Permify with OpenTelemetry Configuration
+
+Ensure that your configuration file is loaded when starting Permify, and confirm that the OpenTelemetry Collector is running. Permify will now start sending trace data to the OpenTelemetry Collector.
+
+### Step 4: View Traces in Your Chosen UI
+
+Once the setup is complete and your application begins sending traces, you can view the trace data in a backend such as Jaeger, Zipkin, or any system supported by the OpenTelemetry Collector.
+
+### Meter Configuration
+
+We also have a meter configuration section in the Permify configuration file, which allows you to use the OpenTelemetry Collector to export metric data to other sources, such as ClickHouse.
+
+**Definition:**
+
+Configuration for observing metrics like check count, cache check count as well as system details such as Permify version, hostname, OS, and architecture.
+
+**Structure:**
+
+```yaml
+meter:
+  exporter: otlp
+  endpoint: http://localhost:4317
+  enabled: true
+  insecure: true
+  urlpath: /v1/metrics
+```
+
+| Required | Argument | Default | Description                                                  |
+|----------|----------|---------|--------------------------------------------------------------|
+| [x]      | exporter | otlp    | [otlp](https://opentelemetry.io/docs/collector/) is the default. |
+| [x]      | endpoint | -       | The export URI for metric observation.                       |
+| [ ]      | enabled  | true    | Switch option for meter tracing.                             |
+| [ ]      | urlpath  | /v1/metrics | Allows you to override the default URL path for metrics export. |
+| [ ]      | insecure | false   | Whether to use HTTP instead of HTTPS for exporting metrics.   |
+
+### Example: Exporting Metrics to OpenTelemetry Collector
+
+To export metrics to the **OpenTelemetry Collector**, you can configure your `meter` section like this:
+
+```yaml
+meter:
+  enabled: true
+  exporter: otlp
+  endpoint: collector:4317
+  insecure: true
+  urlpath: /v1/metrics
+```
+
+In this setup:
+- `endpoint: http://collector:4317`: This is the URL of your OpenTelemetry Collector instance for receiving metrics data.
+- `urlpath: /v1/metrics`: The URL path used for sending the metrics (you can override it as needed).

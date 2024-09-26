@@ -1,0 +1,65 @@
+---
+title: SigNoz
+---
+
+Here’s a step-by-step guide to set up [SigNoz](https://signoz.io/) for export Permify traces.
+
+### Step 1: Install SigNoz in Your Environment
+
+You can install SigNoz via Docker. Run the following command to set up SigNoz:
+
+```bash
+git clone https://github.com/SigNoz/signoz.git
+cd signoz/deploy/
+./install.sh
+```
+
+Once the installation is complete, you can access the SigNoz dashboard at `http://localhost:3301`.
+
+### Step 2: Configure Permify for SigNoz Tracing
+
+In your configuration file, set up SigNoz as the exporter and provide the appropriate endpoint for exporting the traces.
+
+Here’s an example configuration:
+
+```yaml
+tracer:
+  exporter: signoz
+  endpoint: http://localhost:4317
+  enabled: true
+  insecure: true
+```
+
+Explanation:
+- `exporter: signoz`: Specifies that SigNoz will be used as the exporter.
+- `endpoint: http://localhost:4317`: This is the default SigNoz OpenTelemetry Collector endpoint.
+- `enabled: true`: Turns on the tracing feature.
+- `insecure: true`: Enables HTTP instead of HTTPS for exporting traces.
+
+<Info>
+Refer to the [Configuration](/setting-up/configuration) section for more details on how to use the configuration file. You can also use environment variables (ENVs) for this.
+</Info>
+
+### Step 3: Start Permify with SigNoz Configuration
+
+Ensure your configuration file is correctly loaded when starting Permify, and verify that the SigNoz instance is running. Permify will now start sending tracing data to SigNoz.
+
+### Step 4: View Traces in the SigNoz Dashboard
+
+Once the setup is complete and your application starts sending requests, you can access the SigNoz dashboard at `http://localhost:3301` to observe the traces related to your authorization system.
+
+### Optional: Use Secure Connection
+
+If you need to use HTTPS for secure communication with SigNoz, adjust the configuration as follows:
+
+```yaml
+tracer:
+  exporter: signoz
+  endpoint: https://your-signoz-endpoint
+  enabled: true
+  insecure: false
+```
+
+This sets up a secure connection for exporting traces to SigNoz.
+
+See more configurations on [Configuration](/setting-up/configuration) section.

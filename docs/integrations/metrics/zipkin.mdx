@@ -1,0 +1,62 @@
+---
+title: Zipkin
+---
+
+Here’s a step-by-step guide to set up [Zipkin](https://zipkin.io/) for export Permify traces.
+
+### Step 1: Install Zipkin in Your Environment
+You can run Zipkin via Docker using the following command:
+
+```bash
+docker run -d -p 9411:9411 openzipkin/zipkin
+```
+
+This command runs the Zipkin server and exposes the UI on `http://localhost:9411`.
+
+### Step 2: Configure Permify for Zipkin Tracing
+
+In your configuration file, set up Zipkin as the exporter and provide the endpoint for exporting traces.
+
+Here’s an example configuration:
+
+```yaml
+tracer:
+  exporter: zipkin
+  endpoint: http://localhost:9411/api/v2/spans
+  enabled: true
+  insecure: true
+```
+
+Explanation:
+- `exporter: zipkin`: Specifies that Zipkin will be used as the exporter.
+- `endpoint: http://localhost:9411/api/v2/spans`: This is the default Zipkin endpoint for trace data.
+- `enabled: true`: Turns on the tracing feature.
+- `insecure: true`: Enables HTTP instead of HTTPS for exporting traces.
+
+<Info>
+Refer to the [Configuration](/setting-up/configuration) section for more details on how to use the configuration file. You can also use environment variables (ENVs) for this.
+</Info>
+
+### Step 3: Start Permify with Zipkin Configuration
+
+Ensure that your configuration file is loaded when starting Permify, and confirm that the Zipkin instance is running. Permify will now start sending trace data to Zipkin.
+
+### Step 4: View Traces in the Zipkin UI
+
+After your setup is complete and your application begins sending traces, you can access the Zipkin UI at `http://localhost:9411` to view the traces and analyze the performance of your authorization system.
+
+### Optional: Use Secure Connection
+
+If you need to use HTTPS for secure communication with Zipkin, update the configuration as follows:
+
+```yaml
+tracer:
+  exporter: zipkin
+  endpoint: https://your-zipkin-endpoint/api/v2/spans
+  enabled: true
+  insecure: false
+```
+
+This sets up a secure connection for exporting traces to Zipkin.
+
+See more configurations on [Configuration](/setting-up/configuration) section.
