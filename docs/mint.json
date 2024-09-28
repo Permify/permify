@@ -320,8 +320,7 @@
         "operations/cache",
         "operations/contextual-tuples",
         "operations/tracing",
-        "operations/snap-tokens",
-        "operations/partial-schema-update"
+        "operations/snap-tokens"
       ]
     },
     {
@@ -367,6 +366,7 @@
       "pages": [
         "api-reference/schema/write-schema",
         "api-reference/schema/list-schema",
+        "api-reference/schema/partial-write",
         "api-reference/schema/read-schema"
       ]
     },
