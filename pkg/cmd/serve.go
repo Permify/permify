@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/agoda-com/opentelemetry-go/otelslog"
+	slogmulti "github.com/samber/slog-multi"
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -187,6 +188,22 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		internal.Identifier = cfg.AccountID
 
 		var logger *slog.Logger
+		var handler slog.Handler
+
+		switch cfg.Log.Output {
+		case "json":
+			handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			})
+		case "text":
+			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			})
+		default:
+			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+				Level: getLogLevel(cfg.Log.Level),
+			})
+		}
 
 		if cfg.Log.Enabled {
 			headers := map[string]string{}
@@ -211,38 +228,27 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			}
 			lp := telemetry.NewLog(exporter)
 
-			logger = slog.New(otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
+			otelHandler := otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
 				Level: getLogLevel(cfg.Log.Level),
-			}))
-
-			slog.SetDefault(logger)
+			})
 
 			defer func() {
 				if err = lp.Shutdown(ctx); err != nil {
 					slog.Error(err.Error())
 				}
 			}()
+
+			logger = slog.New(
+				slogmulti.Fanout(
+					otelHandler,
+					handler,
+				),
+			)
 		} else {
-			var handler slog.Handler
-
-			switch cfg.Log.Output {
-			case "json":
-				handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-					Level: getLogLevel(cfg.Log.Level),
-				})
-			case "text":
-				handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-					Level: getLogLevel(cfg.Log.Level),
-				})
-			default:
-				handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-					Level: getLogLevel(cfg.Log.Level),
-				})
-			}
-
 			logger = slog.New(handler)
-			slog.SetDefault(logger)
 		}
+
+		slog.SetDefault(logger)
 
 		if internal.Identifier == "" {
 			message := "Account ID is not set. Please fill in the Account ID for better support. Get your Account ID from https://permify.co/account"
