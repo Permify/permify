@@ -2266,6 +2266,7 @@ func (m *PermissionsLookupEntityResponse) validate(all bool) error {
 		}
 	}
 
+
 	// no validation rules for ContinuousToken
 
 	if len(errors) > 0 {

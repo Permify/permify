@@ -64,7 +64,11 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	callback := func(entityID, permission, token string) {
 		mu.Lock()         // Safeguard access to the shared slice with a mutex
 		defer mu.Unlock() // Ensure the lock is released after appending the ID
-		entityIDs = append(entityIDs, entityID)
+		if _, exists := entityIDsByPermission[permission]; !exists {
+			// If not, initialize it with an empty EntityIds struct
+			entityIDsByPermission[permission] = &base.EntityIds{Ids: []string{}}
+		}
+		entityIDsByPermission[permission].Ids = append(entityIDsByPermission[permission].Ids, entityID)
 		ct = token
 	}
 
@@ -218,6 +222,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	callback := func(entityID, permission, token string) {
 		err := server.Send(&base.PermissionLookupEntityStreamResponse{
 			EntityId:        entityID,
+			Permission:      permission,
 			ContinuousToken: token,
 		})
 		// If there is an error in sending the response, the function will return

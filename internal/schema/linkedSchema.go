@@ -141,6 +141,8 @@ func (g *LinkedSchemaGraph) LinkedEntrances(targets []*base.Entrance, source *ba
 func (g *LinkedSchemaGraph) findEntrance(target, source *base.Entrance, visited map[string]struct{}, mu *sync.Mutex) ([]*LinkedEntrance, error) {
 	key := utils.Key(target.GetType(), target.GetValue())
 	mu.Lock()
+	mu.Lock()
+
 	if _, ok := visited[key]; ok {
 		mu.Unlock()
 		return nil, nil

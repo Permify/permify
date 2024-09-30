@@ -221,7 +221,9 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 						// Depending on the type of check (entity or subject), call the appropriate callback
 						if bc.typ == BULK_ENTITY {
 							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), req.Request.GetPermission(), ct)
+							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), req.Request.GetPermission(), ct)
 						} else if bc.typ == BULK_SUBJECT {
+							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), req.Request.GetPermission(), ct)
 							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), req.Request.GetPermission(), ct)
 						}
 					}
