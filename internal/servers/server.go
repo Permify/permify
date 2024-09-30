@@ -35,6 +35,7 @@ import (
 	"github.com/Permify/permify/internal/middleware"
 	"github.com/Permify/permify/internal/storage"
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
+	health "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 var (
@@ -181,15 +182,17 @@ func (s *Container) Run(
 	grpcV1.RegisterBundleServer(grpcServer, NewBundleServer(s.BR, s.BW))
 	grpcV1.RegisterTenancyServer(grpcServer, NewTenancyServer(s.TR, s.TW))
 	grpcV1.RegisterWatchServer(grpcServer, NewWatchServer(s.W, s.DR))
-	grpcV1.RegisterHealthServer(grpcServer, NewHealthServer())
 
+	// Register health check and reflection services for gRPC.
+	health.RegisterHealthServer(grpcServer, NewHealthServer())
 	reflection.Register(grpcServer)
 
 	// Create another gRPC server, presumably for invoking permissions.
 	invokeServer := grpc.NewServer(opts...)
 	grpcV1.RegisterPermissionServer(invokeServer, NewPermissionServer(localInvoker))
-	grpcV1.RegisterHealthServer(invokeServer, NewHealthServer())
 
+	// Register health check and reflection services for the invokeServer.
+	health.RegisterHealthServer(invokeServer, NewHealthServer())
 	reflection.Register(invokeServer)
 
 	// If profiling is enabled, set up the profiler using the net/http package.
@@ -286,7 +289,9 @@ func (s *Container) Run(
 			}
 		}()
 
+		healthClient := health.NewHealthClient(conn)
 		muxOpts := []runtime.ServeMuxOption{
+			runtime.WithHealthzEndpoint(healthClient),
 			runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
 				Marshaler: &runtime.JSONPb{
 					MarshalOptions: protojson.MarshalOptions{
@@ -302,9 +307,6 @@ func (s *Container) Run(
 
 		mux := runtime.NewServeMux(muxOpts...)
 
-		if err = grpcV1.RegisterHealthHandler(ctx, mux, conn); err != nil {
-			return err
-		}
 		if err = grpcV1.RegisterPermissionHandler(ctx, mux, conn); err != nil {
 			return err
 		}

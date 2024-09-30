@@ -16,9 +16,6 @@
   },
   "tags": [
     {
-      "name": "Health"
-    },
-    {
       "name": "Permission"
     },
     {
@@ -47,54 +44,6 @@
     "application/json"
   ],
   "paths": {
-    "/healthz": {
-      "get": {
-        "summary": "health api",
-        "operationId": "health.check",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/HealthCheckResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/Status"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "service",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Health"
-        ],
-        "x-codeSamples": [
-          {
-            "label": "",
-            "lang": "",
-            "source": ""
-          },
-          {
-            "label": "",
-            "lang": "",
-            "source": ""
-          },
-          {
-            "label": "",
-            "lang": "",
-            "source": ""
-          }
-        ]
-      }
-    },
     "/v1/tenants/create": {
       "post": {
         "summary": "create tenant",
@@ -733,7 +682,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Permission.CheckBody"
+              "$ref": "#/definitions/CheckBody"
             }
           }
         ],
@@ -1379,7 +1328,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Watch.WatchBody"
+              "$ref": "#/definitions/WatchBody"
             }
           }
         ],
@@ -1598,6 +1547,41 @@
         }
       },
       "description": "BundleWriteResponse is the response for a BundleWriteRequest.\nIt includes a name which could be used as an identifier or acknowledgment."
+    },
+    "CheckBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "example": "repository:1",
+          "description": "Entity on which the permission needs to be checked, required."
+        },
+        "permission": {
+          "type": "string",
+          "description": "The action the user wants to perform on the resource"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which the permission needs to be checked, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "description": "Additional arguments associated with this request."
+        }
+      },
+      "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
     },
     "CheckResult": {
       "type": "string",
@@ -2195,14 +2179,6 @@
       },
       "description": "Function type with result and arg types."
     },
-    "HealthCheckResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "$ref": "#/definitions/ServingStatus"
-        }
-      }
-    },
     "Ident": {
       "type": "object",
       "properties": {
@@ -2422,41 +2398,6 @@
         }
       },
       "title": "Partials contains the write, update and delete definitions"
-    },
-    "Permission.CheckBody": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "$ref": "#/definitions/PermissionCheckRequestMetadata",
-          "description": "Metadata associated with this request, required."
-        },
-        "entity": {
-          "$ref": "#/definitions/Entity",
-          "example": "repository:1",
-          "description": "Entity on which the permission needs to be checked, required."
-        },
-        "permission": {
-          "type": "string",
-          "description": "The action the user wants to perform on the resource"
-        },
-        "subject": {
-          "$ref": "#/definitions/Subject",
-          "description": "Subject for which the permission needs to be checked, required."
-        },
-        "context": {
-          "$ref": "#/definitions/Context",
-          "description": "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"
-        },
-        "arguments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/Argument"
-          },
-          "description": "Additional arguments associated with this request."
-        }
-      },
-      "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
     },
     "Permission.ExpandBody": {
       "type": "object",
@@ -3076,15 +3017,6 @@
       },
       "description": "A field selection expression. e.g. `request.auth`."
     },
-    "ServingStatus": {
-      "type": "string",
-      "enum": [
-        "SERVING",
-        "NOT_SERVING",
-        "SERVICE_UNKNOWN"
-      ],
-      "description": " - SERVICE_UNKNOWN: Used only by the Watch method."
-    },
     "SourceInfo": {
       "type": "object",
       "properties": {
@@ -3376,7 +3308,7 @@
         }
       }
     },
-    "Watch.WatchBody": {
+    "WatchBody": {
       "type": "object",
       "properties": {
         "snap_token": {
