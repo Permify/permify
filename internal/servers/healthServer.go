@@ -3,14 +3,14 @@ package servers
 import (
 	"context"
 
-	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 	"google.golang.org/grpc/codes"
+	health "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 )
 
 // HealthServer - Structure for Health Server
 type HealthServer struct {
-	v1.UnimplementedHealthServer
+	health.UnimplementedHealthServer
 }
 
 // NewHealthServer - Creates new HealthServer Server
@@ -19,12 +19,12 @@ func NewHealthServer() *HealthServer {
 }
 
 // Check - Return health check status response
-func (s *HealthServer) Check(_ context.Context, _ *v1.HealthCheckRequest) (*v1.HealthCheckResponse, error) {
-	return &v1.HealthCheckResponse{Status: v1.HealthCheckResponse_SERVING}, nil
+func (s *HealthServer) Check(_ context.Context, _ *health.HealthCheckRequest) (*health.HealthCheckResponse, error) {
+	return &health.HealthCheckResponse{Status: health.HealthCheckResponse_SERVING}, nil
 }
 
 // Watch - TO:DO
-func (s *HealthServer) Watch(_ *v1.HealthCheckRequest, _ v1.Health_WatchServer) error {
+func (s *HealthServer) Watch(_ *health.HealthCheckRequest, _ health.Health_WatchServer) error {
 	// Example of how to register both methods but only implement the Check method.
 	return status.Error(codes.Unimplemented, "unimplemented")
 }
