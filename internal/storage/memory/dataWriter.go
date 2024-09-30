@@ -51,7 +51,7 @@ func (w *DataWriter) Write(_ context.Context, tenantID string, tupleCollection *
 			srelation = ""
 		}
 		if err = txn.Insert(constants.RelationTuplesTable, storage.RelationTuple{
-			ID:              utils.RelationTuplesID.ID(),
+			ID:              w.database.RelationTupleID(),
 			TenantID:        tenantID,
 			EntityType:      bt.GetEntity().GetType(),
 			EntityID:        bt.GetEntity().GetId(),
@@ -67,7 +67,7 @@ func (w *DataWriter) Write(_ context.Context, tenantID string, tupleCollection *
 	for attributeIterator.HasNext() {
 		at := attributeIterator.GetNext()
 		if err = txn.Insert(constants.AttributesTable, storage.Attribute{
-			ID:         utils.AttributesID.ID(),
+			ID:         w.database.AttributeID(),
 			TenantID:   tenantID,
 			EntityType: at.GetEntity().GetType(),
 			EntityID:   at.GetEntity().GetId(),
@@ -181,7 +181,7 @@ func (w *DataWriter) runOperation(
 
 			// Insert the tuple into the RelationTuplesTable
 			if err := txn.Insert(constants.RelationTuplesTable, storage.RelationTuple{
-				ID:              utils.RelationTuplesID.ID(),
+				ID:              w.database.RelationTupleID(),
 				EntityID:        t.GetEntity().GetId(),
 				EntityType:      t.GetEntity().GetType(),
 				Relation:        t.GetRelation(),
@@ -199,7 +199,7 @@ func (w *DataWriter) runOperation(
 		for aiter := ab.Write.CreateAttributeIterator(); aiter.HasNext(); {
 			a := aiter.GetNext()
 			if err := txn.Insert(constants.AttributesTable, storage.Attribute{
-				ID:         utils.AttributesID.ID(),
+				ID:         w.database.AttributeID(),
 				EntityID:   a.GetEntity().GetId(),
 				EntityType: a.GetEntity().GetType(),
 				Attribute:  a.GetAttribute(),

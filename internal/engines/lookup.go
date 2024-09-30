@@ -51,25 +51,105 @@ func NewLookupEngine(
 func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
 	// A mutex and slice are declared to safely store entity IDs from concurrent callbacks
 	var mu sync.Mutex
-	entityIDsByPermission := make(map[string]*base.EntityIds)
+	var entityIDs []string
+	var ct string
+
+	size := request.GetPageSize()
+	if size == 0 {
+		size = 1000
+	}
 
 	// Callback function which is called for each entity. If the entity passes the permission check,
 	// the entity ID is appended to the entityIDs slice.
-	callback := func(entityID, permission string, result base.CheckResult) {
-		if result == base.CheckResult_CHECK_RESULT_ALLOWED {
-			mu.Lock()         // Safeguard access to the shared slice with a mutex
-			defer mu.Unlock() // Ensure the lock is released after appending the ID
-			if _, exists := entityIDsByPermission[permission]; !exists {
-				// If not, initialize it with an empty EntityIds struct
-				entityIDsByPermission[permission] = &base.EntityIds{Ids: []string{}}
-			}
-			entityIDsByPermission[permission].Ids = append(entityIDsByPermission[permission].Ids, entityID)
-		}
+	callback := func(entityID, permission, token string) {
+		mu.Lock()         // Safeguard access to the shared slice with a mutex
+		defer mu.Unlock() // Ensure the lock is released after appending the ID
+		entityIDs = append(entityIDs, entityID)
+		ct = token
 	}
 
 	// Create and start BulkChecker. It performs permission checks in parallel.
-	checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
-	checker.Start(BULK_ENTITY)
+	checker := NewBulkChecker(ctx, engine.checkEngine, BULK_ENTITY, callback, engine.concurrencyLimit)
+
+	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
+	publisher := NewBulkEntityPublisher(ctx, ConvertToPermissionsLookupEntityRequest(request), checker)
+
+	// Retrieve the schema of the entity based on the tenantId and schema version
+	var sc *base.SchemaDefinition
+	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a map to keep track of visited entities
+	visits := &VisitsMap{}
+
+	permissionChecks := &VisitsMap{}
+
+	// Perform an entity filter operation based on the permission request
+	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+		TenantId: request.GetTenantId(),
+		Metadata: &base.PermissionEntityFilterRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		},
+		Entrances: []*base.Entrance{
+			{
+				Type:  request.GetEntityType(),
+				Value: request.GetPermission(),
+			},
+		},
+		Subject: request.GetSubject(),
+		Context: request.GetContext(),
+		Scope:   request.GetScope(),
+		Cursor:  request.GetContinuousToken(),
+	}, visits, publisher, permissionChecks)
+	if err != nil {
+		return nil, err
+	}
+
+	// At this point, the BulkChecker has collected and sorted requests
+	err = checker.ExecuteRequests(size) // Execute the collected requests in parallel
+	if err != nil {
+		return nil, err
+	}
+
+	// Return response containing allowed entity IDs
+	return &base.PermissionLookupEntityResponse{
+		EntityIds:       entityIDs,
+		ContinuousToken: ct,
+	}, nil
+}
+
+// LookupEntity performs a permission check on a set of entities and returns a response
+// containing the IDs of the entities that have the requested permission.
+func (engine *LookupEngine) LookupEntities(ctx context.Context, request *base.PermissionsLookupEntityRequest) (response *base.PermissionsLookupEntityResponse, err error) {
+	// A mutex and slice are declared to safely store entity IDs from concurrent callbacks
+	var mu sync.Mutex
+	entityIDsByPermission := make(map[string]*base.EntityIds)
+	var ct string
+
+	size := request.GetPageSize()
+	if size == 0 {
+		size = 1000
+	}
+
+	// Callback function which is called for each entity. If the entity passes the permission check,
+	// the entity ID is appended to the entityIDs slice.
+	callback := func(entityID, permission, token string) {
+		mu.Lock()         // Safeguard access to the shared slice with a mutex
+		defer mu.Unlock() // Ensure the lock is released after appending the ID
+		if _, exists := entityIDsByPermission[permission]; !exists {
+			// If not, initialize it with an empty EntityIds struct
+			entityIDsByPermission[permission] = &base.EntityIds{Ids: []string{}}
+		}
+		entityIDsByPermission[permission].Ids = append(entityIDsByPermission[permission].Ids, entityID)
+		ct = token
+	}
+
+	// Create and start BulkChecker. It performs permission checks in parallel.
+	checker := NewBulkChecker(ctx, engine.checkEngine, BULK_ENTITY, callback, engine.concurrencyLimit)
 
 	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
 	publisher := NewBulkEntityPublisher(ctx, request, checker)
@@ -81,96 +161,141 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		return nil, err
 	}
 
-	// Perform a walk of the entity schema for the permission check
-	validPermissions := make([]string, 0)
+	// Create a map to keep track of visited entities
+	visits := &VisitsMap{}
+	permissionChecks := &VisitsMap{}
+
+	entrances := make([]*base.Entrance, 0)
 
 	for _, permission := range request.GetPermissions() {
-		err = schema.NewWalker(sc).Walk(request.GetEntityType(), permission)
-		if err == nil {
-			validPermissions = append(validPermissions, permission)
-		}
+		entrances = append(entrances, &base.Entrance{
+			Type:  request.GetEntityType(),
+			Value: permission,
+		})
 	}
 
-	if err != nil && len(validPermissions) == 0 {
-		// If the error is unimplemented, handle it with a MassEntityFilter
-		if errors.Is(err, schema.ErrUnimplemented) {
-			err = NewMassEntityFilter(engine.dataReader).EntityFilter(ctx, request, publisher, &ERMap{})
-			if err != nil {
-				return nil, err
-			}
-		} else { // For other errors, simply return the error
-			return nil, err
-		}
-	} else {
-
-		request.Permissions = validPermissions
-
-		// Create a map to keep track of visited entities
-		visits := &ERMap{}
-		// Create
-		permissionChecks := &ERMap{}
-
-		entityReferences := make([]*base.RelationReference, 0)
-
-		for _, permisson := range request.GetPermissions() {
-			entityReferences = append(entityReferences, &base.RelationReference{
-				Type:     request.GetEntityType(),
-				Relation: permisson,
-			})
-		}
-
-		// Perform an entity filter operation based on the permission request
-		err = NewSchemaBasedEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
-			TenantId: request.GetTenantId(),
-			Metadata: &base.PermissionEntityFilterRequestMetadata{
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			},
-			EntityReferences: entityReferences,
-			Subject:          request.GetSubject(),
-			Context:          request.GetContext(),
-		}, visits, publisher, permissionChecks)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Stop the BulkChecker and wait for it to finish processing entities
-	checker.Stop()
-	err = checker.Wait()
+	// Perform an entity filter operation based on the permission request
+	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+		TenantId: request.GetTenantId(),
+		Metadata: &base.PermissionEntityFilterRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		},
+		Entrances: entrances,
+		Subject:   request.GetSubject(),
+		Context:   request.GetContext(),
+		Scope:     request.GetScope(),
+		Cursor:    request.GetContinuousToken(),
+	}, visits, publisher, permissionChecks)
 	if err != nil {
-		return
+		return nil, err
+	}
+
+	// At this point, the BulkChecker has collected and sorted requests
+	err = checker.ExecuteRequests(size) // Execute the collected requests in parallel
+	if err != nil {
+		return nil, err
 	}
 
 	// Return response containing allowed entity IDs
-	return &base.PermissionLookupEntityResponse{
-		EntityIds: entityIDsByPermission,
+	return &base.PermissionsLookupEntityResponse{
+		EntityIds:       entityIDsByPermission,
+		ContinuousToken: ct,
 	}, nil
 }
 
 // LookupEntityStream performs a permission check on a set of entities and streams the results
 // containing the IDs of the entities that have the requested permission.
 func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
+	size := request.GetPageSize()
+	if size == 0 {
+		size = 1000
+	}
+
 	// Define a callback function that will be called for each entity that passes the permission check.
 	// If the check result is allowed, it sends the entity ID to the server stream.
-	callback := func(entityID, permission string, result base.CheckResult) {
-		if result == base.CheckResult_CHECK_RESULT_ALLOWED {
-			err := server.Send(&base.PermissionLookupEntityStreamResponse{
-				EntityId:   entityID,
-				Permission: permission,
-			})
-			// If there is an error in sending the response, the function will return
-			if err != nil {
-				return
-			}
+	callback := func(entityID, permission, token string) {
+		err := server.Send(&base.PermissionLookupEntityStreamResponse{
+			EntityId:        entityID,
+			ContinuousToken: token,
+		})
+		// If there is an error in sending the response, the function will return
+		if err != nil {
+			return
 		}
 	}
 
 	// Create and start BulkChecker. It performs permission checks concurrently.
-	checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
-	checker.Start(BULK_ENTITY)
+	checker := NewBulkChecker(ctx, engine.checkEngine, BULK_ENTITY, callback, engine.concurrencyLimit)
+
+	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
+	publisher := NewBulkEntityPublisher(ctx, ConvertToPermissionsLookupEntityRequest(request), checker)
+
+	// Retrieve the entity definition schema based on the tenantId and schema version
+	var sc *base.SchemaDefinition
+	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	if err != nil {
+		return err
+	}
+
+	visits := &VisitsMap{}
+	permissionChecks := &VisitsMap{}
+
+	// Perform an entity filter operation based on the permission request
+	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+		TenantId: request.GetTenantId(),
+		Metadata: &base.PermissionEntityFilterRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		},
+		Entrances: []*base.Entrance{
+			{
+				Type:  request.GetEntityType(),
+				Value: request.GetPermission(),
+			},
+		},
+		Subject: request.GetSubject(),
+		Context: request.GetContext(),
+		Cursor:  request.GetContinuousToken(),
+	}, visits, publisher, permissionChecks)
+	if err != nil {
+		return err
+	}
+
+	err = checker.ExecuteRequests(size)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// LookupEntityStream performs a permission check on a set of entities and streams the results
+// containing the IDs of the entities that have the requested permission.
+func (engine *LookupEngine) LookupEntitiesStream(ctx context.Context, request *base.PermissionsLookupEntityRequest, server base.Permission_LookupEntitiesStreamServer) (err error) {
+	size := request.GetPageSize()
+	if size == 0 {
+		size = 1000
+	}
+
+	// Define a callback function that will be called for each entity that passes the permission check.
+	// If the check result is allowed, it sends the entity ID to the server stream.
+	callback := func(entityID, permission, token string) {
+		err := server.Send(&base.PermissionsLookupEntityStreamResponse{
+			EntityId:        entityID,
+			Permission:      permission,
+			ContinuousToken: token,
+		})
+		// If there is an error in sending the response, the function will return
+		if err != nil {
+			return
+		}
+	}
+
+	// Create and start BulkChecker. It performs permission checks concurrently.
+	checker := NewBulkChecker(ctx, engine.checkEngine, BULK_ENTITY, callback, engine.concurrencyLimit)
 
 	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
 	publisher := NewBulkEntityPublisher(ctx, request, checker)
@@ -182,60 +307,71 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 		return err
 	}
 
+	visits := &VisitsMap{}
+	permissionChecks := &VisitsMap{}
+
+	entrances := make([]*base.Entrance, 0)
+
 	for _, permission := range request.GetPermissions() {
-		err = schema.NewWalker(sc).Walk(request.GetEntityType(), permission)
-		// If error exists in permission check walk
-		if err != nil {
-			// If the error is unimplemented, handle it with a MassEntityFilter
-			if errors.Is(err, schema.ErrUnimplemented) {
-				err = NewMassEntityFilter(engine.dataReader).EntityFilter(ctx, request, publisher, &ERMap{})
-				if err != nil {
-					return err
-				}
-			} else { // For other types of errors, simply return the error
-				return err
-			}
-		} else { // If there was no error in permission check walk
-			visits := &ERMap{}
-			permissionChecks := &ERMap{}
-
-			// Perform an entity filter operation based on the permission request
-			err = NewSchemaBasedEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
-				TenantId: request.GetTenantId(),
-				Metadata: &base.PermissionEntityFilterRequestMetadata{
-					SnapToken:     request.GetMetadata().GetSnapToken(),
-					SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-					Depth:         request.GetMetadata().GetDepth(),
-				},
-				EntityReferences: []*base.RelationReference{
-					{
-						Type:     request.GetEntityType(),
-						Relation: permission,
-					},
-				},
-				Subject: request.GetSubject(),
-				Context: request.GetContext(),
-			}, visits, publisher, permissionChecks)
-
-			if err != nil {
-				return err
-			}
-		}
+		entrances = append(entrances, &base.Entrance{
+			Type:  request.GetEntityType(),
+			Value: permission,
+		})
 	}
 
-	// Stop the BulkChecker and wait for it to finish processing entities
-	checker.Stop()
-	err = checker.Wait()
+	// Perform an entity filter operation based on the permission request
+	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+		TenantId: request.GetTenantId(),
+		Metadata: &base.PermissionEntityFilterRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		},
+		Entrances: entrances,
+		Subject:   request.GetSubject(),
+		Context:   request.GetContext(),
+		Cursor:    request.GetContinuousToken(),
+	}, visits, publisher, permissionChecks)
 	if err != nil {
-		return
+		return err
 	}
 
-	return err
+	err = checker.ExecuteRequests(size)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // LookupSubject checks if a subject has a particular permission based on the schema and version.
 // It returns a list of subjects that have the given permission.
 func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error) {
+	size := request.GetPageSize()
+	if size == 0 {
+		size = 1000
+	}
+
+	// Use a mutex to protect concurrent writes to the subjectIDs slice.
+	var mu sync.Mutex
+	var subjectIDs []string
+	var ct string
+
+	// Callback function to handle the results of permission checks.
+	// If an entity passes the permission check, its ID is stored in the subjectIDs slice.
+	callback := func(subjectID, permission, token string) {
+		mu.Lock()         // Lock to prevent concurrent modification of the slice.
+		defer mu.Unlock() // Unlock after the ID is appended.
+		subjectIDs = append(subjectIDs, subjectID)
+		ct = token
+	}
+
+	// Create and initiate a BulkChecker to perform permission checks in parallel.
+	checker := NewBulkChecker(ctx, engine.checkEngine, BULK_SUBJECT, callback, engine.concurrencyLimit)
+
+	// Create and start a BulkPublisher to provide entities to the BulkChecker.
+	publisher := NewBulkSubjectPublisher(ctx, request, checker)
+
 	// Retrieve the schema of the entity based on the provided tenantId and schema version.
 	var sc *base.SchemaDefinition
 	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
@@ -249,60 +385,44 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 	if err != nil {
 		// If the error indicates the schema walk is unimplemented, handle it with a MassEntityFilter.
 		if errors.Is(err, schema.ErrUnimplemented) {
-
-			// Use a mutex to protect concurrent writes to the subjectIDs slice.
-			var mu sync.Mutex
-			var subjectIDs []string
-
-			// Callback function to handle the results of permission checks.
-			// If an entity passes the permission check, its ID is stored in the subjectIDs slice.
-			callback := func(subjectID, permission string, result base.CheckResult) {
-				if result == base.CheckResult_CHECK_RESULT_ALLOWED {
-					mu.Lock()         // Lock to prevent concurrent modification of the slice.
-					defer mu.Unlock() // Unlock after the ID is appended.
-					subjectIDs = append(subjectIDs, subjectID)
-				}
-			}
-
-			// Create and initiate a BulkChecker to perform permission checks in parallel.
-			checker := NewBulkChecker(ctx, engine.checkEngine, callback, engine.concurrencyLimit)
-			checker.Start(BULK_SUBJECT)
-
-			// Create and start a BulkPublisher to provide entities to the BulkChecker.
-			publisher := NewBulkSubjectPublisher(ctx, request, checker)
-
 			err = NewMassSubjectFilter(engine.dataReader).SubjectFilter(ctx, request, publisher)
 			if err != nil {
 				// Return an error if there was an issue with the subject filter.
 				return nil, err
 			}
-
-			// Stop the BulkChecker and ensure all entities have been processed.
-			checker.Stop()
-			err = checker.Wait()
-			if err != nil {
-				return nil, err
-			}
-
-			// Return the list of entity IDs that have the required permission.
-			return &base.PermissionLookupSubjectResponse{
-				SubjectIds: subjectIDs,
-			}, nil
+		} else { // For other errors, simply return the error
+			return nil, err
+		}
+	} else {
+		// Use the schema-based subject filter to get the list of subjects with the requested permission.
+		ids, err := NewSchemaBasedSubjectFilter(engine.schemaReader, engine.dataReader, SchemaBaseSubjectFilterConcurrencyLimit(engine.concurrencyLimit)).SubjectFilter(ctx, request)
+		if err != nil {
+			return nil, err
 		}
 
-		// If the error wasn't due to unimplemented schema walking, return the error.
-		return nil, err
+		for _, id := range ids {
+			publisher.Publish(&base.Subject{
+				Type:     request.GetSubjectReference().GetType(),
+				Id:       id,
+				Relation: request.GetSubjectReference().GetRelation(),
+			}, &base.PermissionCheckRequestMetadata{
+				SnapToken:     request.GetMetadata().GetSnapToken(),
+				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+				Depth:         request.GetMetadata().GetDepth(),
+			}, request.GetContext(), base.CheckResult_CHECK_RESULT_ALLOWED)
+		}
 	}
 
-	// Use the schema-based subject filter to get the list of subjects with the requested permission.
-	ids, err := NewSchemaBasedSubjectFilter(engine.schemaReader, engine.dataReader, SchemaBaseSubjectFilterConcurrencyLimit(engine.concurrencyLimit)).SubjectFilter(ctx, request)
+	err = checker.ExecuteRequests(size)
 	if err != nil {
+		// Return an error if there was an issue with the subject filter.
 		return nil, err
 	}
 
 	// Return the list of entity IDs that have the required permission.
 	return &base.PermissionLookupSubjectResponse{
-		SubjectIds: ids,
+		SubjectIds:      subjectIDs,
+		ContinuousToken: ct,
 	}, nil
 }
 

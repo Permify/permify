@@ -26,7 +26,7 @@
   },
   "analytics": {
     "plausible": {
-        "domain": "docs.permify.co"
+      "domain": "docs.permify.co"
     }
   },
   "topbarCtaButton": {
@@ -209,8 +209,8 @@
   ],
   "tabs": [
     {
-        "name": "API References",
-        "url": "api-reference"
+      "name": "API References",
+      "url": "api-reference"
     }
   ],
   "anchors": [
@@ -225,9 +225,9 @@
       "url": "https://github.com/Permify/permify"
     },
     {
-      "name": "Permify Cloud",
-      "icon": "globe",
-      "url": "cloud"
+      "name": "Playground",
+      "icon": "play",
+      "url": "https://play.permify.co/?s=organizations-hierarchies"
     }
   ],
   "navigation": [
@@ -262,6 +262,37 @@
       ]
     },
     {
+      "group": "Modeling Guides",
+      "icon": "code",
+      "pages": [
+        {
+          "group": "Model Role Based Access Control (RBAC)",
+          "pages": [
+            "modeling-guides/rbac/global-roles",
+            "modeling-guides/rbac/resource-specific-roles",
+            "modeling-guides/rbac/custom-roles"
+          ]
+        },
+        {
+          "group": "Model Attribute Based Access Control (ABAC)",
+          "pages": [
+            "modeling-guides/abac/public-private",
+            "modeling-guides/abac/text-object-based-conditions",
+            "modeling-guides/abac/numerical-conditions"
+          ]
+        },
+        {
+          "group": "Model Relationship Based Access Control (ReBAC)",
+          "pages": [
+            "modeling-guides/rebac/user-groups",
+            "modeling-guides/rebac/hierarchies",
+            "modeling-guides/rebac/impersonation",
+            "modeling-guides/rebac/recursive-rebac"
+          ]
+        }
+      ]
+    },
+    {
       "group": "Setting Up",
       "icon": "cloud-arrow-up",
       "pages": [
@@ -274,6 +305,7 @@
             "setting-up/installation/aws",
             "setting-up/installation/brew",
             "setting-up/installation/container",
+            "setting-up/installation/fly",
             "setting-up/installation/google",
             "setting-up/installation/helm",
             "setting-up/installation/kubernetes"
@@ -288,8 +320,23 @@
         "operations/cache",
         "operations/contextual-tuples",
         "operations/tracing",
-        "operations/snap-tokens",
-        "operations/partial-schema-update"
+        "operations/snap-tokens"
+      ]
+    },
+    {
+      "group": "Integrations",
+      "icon": "code",
+      "pages": [
+        "integrations/data-sync",
+        {
+          "group": "Tracing & Metrics",
+          "pages": [
+            "integrations/metrics/otlp",
+            "integrations/metrics/jaeger",
+            "integrations/metrics/signoz",
+            "integrations/metrics/zipkin"
+          ]
+        }
       ]
     },
     {
@@ -303,6 +350,12 @@
       ]
     },
     {
+      "group": "Migration",
+      "pages": [
+        "migration/v1.0-v1.1"
+      ]
+    },
+    {
       "group": "API Documentation",
       "pages": [
         "api-reference/introduction"
@@ -313,6 +366,7 @@
       "pages": [
         "api-reference/schema/write-schema",
         "api-reference/schema/list-schema",
+        "api-reference/schema/partial-write",
         "api-reference/schema/read-schema"
       ]
     },
@@ -335,7 +389,7 @@
         "api-reference/permission/lookup-entity",
         "api-reference/permission/lookup-entity-stream",
         "api-reference/permission/subject-permission"
-        ]
+      ]
     },
     {
       "group": "Tenancy Service",
@@ -357,12 +411,6 @@
       "group": "Watch Service",
       "pages": [
         "api-reference/watch/watch-changes"
-      ]
-    },
-    {
-      "group": "Permify Cloud",
-      "pages": [
-        "cloud/intro"
       ]
     }
   ],

@@ -12,14 +12,14 @@ schema: |-
         // Permission to withdraw from an account.
         // A user can withdraw from an account if the requested amount is less than or equal to the current balance,
         // the requested amount is less than or equal to 5000, and the user is the owner of the account.
-        permission withdraw = check_balance(request.amount, balance) and owner
+        permission withdraw = check_balance(balance) and owner
     }
 
     // Rule to verify if a withdrawal is possible.
     // The withdrawal is allowed if the current balance can cover the requested amount,
     // and if the requested amount doesn't exceed a limit of 5000.
-    rule check_balance(amount integer, balance integer) {
-        (balance >= amount) && (amount <= 5000)
+    rule check_balance(balance integer) {
+        (balance >= context.data.amount) && (context.data.amount <= 5000)
     }
 
 relationships:

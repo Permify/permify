@@ -23,9 +23,9 @@ func NewDataReader(delegate storage.DataReader, cb *gobreaker.CircuitBreaker) *D
 }
 
 // QueryRelationships - Reads relation tuples from the repository
-func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string) (*database.TupleIterator, error) {
+func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string, pagination database.CursorPagination) (*database.TupleIterator, error) {
 	response, err := r.cb.Execute(func() (interface{}, error) {
-		return r.delegate.QueryRelationships(ctx, tenantID, filter, token)
+		return r.delegate.QueryRelationships(ctx, tenantID, filter, token, pagination)
 	})
 	if err != nil {
 		return nil, err
@@ -66,9 +66,9 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 }
 
 // QueryAttributes - Reads multiple attributes from the repository.
-func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, token string) (*database.AttributeIterator, error) {
+func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, token string, pagination database.CursorPagination) (*database.AttributeIterator, error) {
 	response, err := r.cb.Execute(func() (interface{}, error) {
-		return r.delegate.QueryAttributes(ctx, tenantID, filter, token)
+		return r.delegate.QueryAttributes(ctx, tenantID, filter, token, pagination)
 	})
 	if err != nil {
 		return nil, err
@@ -95,27 +95,6 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 
 	resp := response.(circuitBreakerResponse)
 	return resp.Collection, resp.ContinuousToken, nil
-}
-
-// QueryUniqueEntities - Reads unique entities from the repository with different options.
-func (r *DataReader) QueryUniqueEntities(ctx context.Context, tenantID, name, token string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
-	type circuitBreakerResponse struct {
-		IDs             []string
-		ContinuousToken database.EncodedContinuousToken
-	}
-
-	response, err := r.cb.Execute(func() (interface{}, error) {
-		var err error
-		var resp circuitBreakerResponse
-		resp.IDs, resp.ContinuousToken, err = r.delegate.QueryUniqueEntities(ctx, tenantID, name, token, pagination)
-		return resp, err
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-
-	resp := response.(circuitBreakerResponse)
-	return resp.IDs, resp.ContinuousToken, nil
 }
 
 // QueryUniqueSubjectReferences - Reads unique subject references from the repository with different options.

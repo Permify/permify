@@ -224,8 +224,6 @@ func (b Builder) buildPermissionGraph(entity *base.EntityDefinition, from *Node,
 							ID:    leaf.GetCall().GetRuleName(),
 							Label: leaf.GetCall().GetRuleName(),
 						})
-					case *base.Argument_ContextAttribute:
-						break
 					default:
 						break
 					}

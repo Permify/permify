@@ -94,7 +94,7 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	r.readRelationshipsHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.RelationshipReadResponse{
@@ -140,7 +140,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	r.readAttributesHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.AttributeReadResponse{
@@ -176,7 +176,6 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 	relationshipsMap := map[string]struct{}{}
 
 	for _, tup := range request.GetTuples() {
-
 		key := tuple.ToString(tup)
 
 		if _, ok := relationshipsMap[key]; ok {
@@ -241,7 +240,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	r.writeDataHistogram.Record(ctx, duration.Microseconds())
 
 	return &v1.DataWriteResponse{

@@ -418,10 +418,10 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 						SnapToken:     token.NewNoopToken().Encode().String(),
 						Depth:         100,
 					},
-					Context:     cont,
-					EntityType:  filter.EntityType,
-					Permissions: []string{permission},
-					Subject:     subject,
+					Context:    cont,
+					EntityType: filter.EntityType,
+					Permission: permission,
+					Subject:    subject,
 				})
 				if err != nil {
 					errors = append(errors, Error{
@@ -435,9 +435,9 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 				query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
 
 				// Check if the actual result of the entity lookup does NOT match the expected result
-				if !isSameArray(res.GetEntityIds()[permission].Ids, expected) {
+				if !isSameArray(res.GetEntityIds(), expected) {
 					expectedStr := strings.Join(expected, ", ")
-					actualStr := strings.Join(res.GetEntityIds()[permission].Ids, ", ")
+					actualStr := strings.Join(res.GetEntityIds(), ", ")
 
 					errorMsg := fmt.Sprintf("Query: %s, Expected: [%s], Actual: [%s]", query, expectedStr, actualStr)
 
@@ -452,7 +452,6 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 
 		// Each SubjectFilter in the current scenario is processed
 		for _, filter := range scenario.SubjectFilters {
-
 			subjectReference := tuple.RelationReference(filter.SubjectReference)
 			if err != nil {
 				errors = append(errors, Error{

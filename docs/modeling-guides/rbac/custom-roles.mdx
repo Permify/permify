@@ -1,0 +1,127 @@
+---
+title: Custom Roles
+mode: wide
+---
+
+In this example, we will create custom **admin** and **member** roles in a project. Then set the permissions of these roles according to their capabilities on the dashboard and tasks.
+
+[Permify Schema]: ../../getting-started/modeling
+
+Here's the final schema that we will create.
+
+```perm
+entity user {}
+
+entity role {
+    relation assignee @user
+}
+
+entity dashboard {
+    relation view @role#assignee
+    relation edit @role#assignee
+}
+
+entity task {
+    relation view @role#assignee
+    relation edit @role#assignee
+}
+```
+
+This schema encompasses several crucial elements to structure a custom role-based access control system. 
+
+The role entity enables the creation of multiple custom roles. These roles may vary according to the needs of the application and could include roles like **admin**, **editor**, or **member**, among others.
+
+Once these custom roles have been established, they can be assigned to other entities in the system. Specifically, in this schema, these roles are attached to the dashboard and task entities. 
+
+Each of these entities, dashboard and task, has pre-defined permissions associated with them. These permissions, defined within the schema or model, could represent various operations such as **view**, **edit**, and so forth.
+
+With this setup, it's possible to map these pre-defined permissions of the dashboard and task entities to the custom roles that have been created. This implies that specific permissions, for instance, **view** and **edit** for a dashboard or a task, could be assigned to a particular custom role.
+
+Based on this model, the example relationships are as follows. With these relationships, custom roles such as **admin** and **member** have been created.
+
+#### Relationships
+
+dashboard:145#view@role:admin#assignee
+
+dashboard:145#view@role:member#assignee
+
+dashboard:145#edit@role:admin#assignee
+
+task:5621#view@role:admin#assignee
+
+task:5621#view@role:member#assignee
+
+task:5621#edit@role:admin#assignee
+
+Together with these relationships and the model, a view has been created for the **dashboard:145**  and the **task:5621** as shown in the table below.
+
+| permission         | admin | member  |
+|--------------------|-------|---------|
+| **dashboard:view** | ✅     | ✅      |
+| **dashboard:edit** | ✅     | ⛔      |
+| **task:view**      | ✅     | ✅      |
+| **task:edit**      | ✅     | ⛔      |
+
+
+Subsequently, you can make authorization decisions by assigning these custom roles to the users that you have created.
+
+role:member#assignee@user:1
+
+When we write these relationship, the final situation will be as follows. 
+
+#### `Can user:1 view dashboard:145?` 
+
+[POST /v1/permissions/check](/api-reference/permission/check-api)
+
+```json
+{
+  "metadata": {
+    "schema_version": "",
+    "snap_token": "",
+    "depth": 20
+  },
+  "entity": {
+    "type": "dashboard",
+    "id": "145"
+  },
+  "permission": "view",
+  "subject": {
+    "type": "user",
+    "id": "1",
+    "relation": ""
+  }
+}
+```
+
+returns **Allow** result since the `user:1` is assignee of `role:member` and `role:member` has `dashboard:145#view` permission.
+
+#### `Can user:1 view task:5621?` 
+
+[POST /v1/permissions/check](/api-reference/permission/check-api)
+
+```json
+{
+  "metadata": {
+    "schema_version": "",
+    "snap_token": "",
+    "depth": 20
+  },
+  "entity": {
+    "type": "task",
+    "id": "5621"
+  },
+  "permission": "view",
+  "subject": {
+    "type": "user",
+    "id": "1",
+    "relation": ""
+  }
+}
+```
+
+returns **Denied** result since the `user:1` is not assignee of `role:admin`.
+
+## Need any help ?
+
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a call with one of our Permify engineers](https://calendly.com/d/cj79-kyf-b4z). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.
+

@@ -1,0 +1,150 @@
+---
+title: Data Synchronization
+---
+
+<Note>
+This is a <strong>Permify Cloud</strong> feature. To get more information, [schedule a call with an expert](https://calendly.com/d/cj79-kyf-b4z).
+</Note>
+
+Permify can connect to your databases to capture changes in your application’s database and sync authorization-related data in real time.
+
+By using **Debezium**, **Kafka**, and the **Permify Sync Service**, your system can efficiently handle updates to permissions and roles without manual intervention.
+
+## Permify Sync Architecture Overview
+
+![data-sync](https://github.com/user-attachments/assets/a08ee2f2-7a3d-40df-9751-e8de9b9195d7)
+
+### 1. Your Databases
+
+The **databases of your applications** serve as the primary source, holding various data like user information, roles, permissions, and entity relationships. These databases contain the **authorization-related data** that will be captured and synchronized.
+
+### 2. Debezium 
+
+**Debezium** is responsible for **Change Data Capture (CDC)**, monitoring your application's database for any changes (e.g., in tables like `repository` and `organization`). Debezium detects these changes in real-time and **publishes them to Kafka**, ensuring that any modifications are captured without impacting database performance.
+
+### 3. Kafka 
+
+**Kafka** acts as the **message broker**, receiving change events from Debezium. It queues these events and passes them on for further processing.
+
+### 4. Permify Sync Service
+
+The **Permify Sync Service** is responsible for filtering the incoming data from Kafka. It **identifies authorization-related changes** (such as role assignments or permission updates) and **synchronizes** this data with Permify. Only relevant data is extracted and passed on.
+
+- **Role**: Filters and processes the events from Kafka to focus on authorization data.
+- **Integration**: Ensures that only the necessary authorization changes are synced.
+
+### 5. Permify
+
+**Permify** is an open-source authorization service. It applies authorization policies and ensures real-time enforcement of roles, permissions, and relationships based on the data synced from your databases.
+
+- **Role**: Provides a centralized service to manage and enforce authorization policies.
+- **Functionality**: Maintains up-to-date access controls, permissions, and entity relationships within your system, based on predefined policies.
+
+## Permify Sync Configuration
+
+You can use the configuration file, which maps changes in database tables to Permify entities and their relationships. 
+
+By syncing the database changes with Permify, you ensure that any updates to the authorization data are handled in real time.
+
+To give an example of how the configuration works, let's examine the following schema.
+
+### Example Permify Schema
+
+The **Permify Schema** defines the entities, relationships, and permissions that are relevant to your application. In this example:
+
+- **Entities** like `user`, `organization`, and `repository` are defined.
+- Relationships between entities, such as `admin` or `member` roles in an organization, are established.
+- **Permissions** are specified based on relationships or attributes. For example, a repository can be viewed if it is public (`is_public`), and only admins or owners can edit it.
+
+```yaml
+entity user {}
+
+entity organization {
+    relation admin @user
+    relation member @user
+}
+
+entity repository {
+    relation parent @organization
+    relation owner  @user
+
+    attribute is_public boolean
+
+    permission view   = is_public
+    permission edit   = parent.admin or owner
+    permission delete = owner
+}
+
+```
+
+### Postgres Connector Example Config
+
+In this example, the **Postgres Connector** is configured to track changes in the `repository` and `organization` tables:
+
+- **Entities**: Each table is mapped to a Permify entity (e.g., `repository`, `organization`).
+- **Relationships**: Columns like `owner_id` or `organization_id` in the database are mapped to relationships like `owner` or `parent` in Permify.
+- **Attributes**: Columns such as `is_public` are mapped to entity attributes.
+- **Logging and Retry Policy**: This configuration includes logging at the `error` level and a retry policy to handle connection issues with an exponential backoff strategy.
+- **Recovery**: Backups are scheduled every 12 hours and stored in an S3 bucket.
+
+```yaml
+# my_postgres_instance.yaml
+
+connector: postgres
+metadata:
+  name: my_postgres_instance
+tables:
+  - name: repository
+    permify_entity: repository
+    primary_key: id
+    relationships:
+      - column: owner_id
+        column_type: uint64
+        permify_reference: owner
+      - column: organization_id
+        column_type: uint64
+        permify_reference: parent
+    attributes:
+      - column: is_public
+        column_type: boolean
+        permify_reference: is_public
+  - name: organization
+    permify_entity: organization
+    primary_key: id
+    relationships:
+      - column: user_id
+        column_type: uint64
+        join_table: organization_admins
+        join_column: organization_id
+        join_column_type: uint64
+        permify_reference: admin
+      - column: user_id
+        column_type: uint64
+        join_table: organization_members
+        join_column: organization_id
+        join_column_type: uint64
+        permify_reference: member
+logger:
+  enabled: true
+  level: error
+retry_policy:
+  max_retries: 5
+  backoff_strategy: exponential
+  backoff_interval: 2s
+recovery:
+  backup:
+    enabled: true
+    schedule: "0 */12 * * *"
+    location: "s3://backup-bucket/my-postgres-instance-backups"
+
+```
+
+This setup ensures a seamless sync between your PostgreSQL database and Permify for managing authorization logic efficiently.
+
+The **Permify Sync Service** is applied using a resource configuration, like the one above, through a CLI tool. You can apply this service using the following command:
+
+```bash
+permfiy-sync apply -f ./my_postgres_instance.yaml
+```
+
+This command ensures that the sync service is properly configured with your database.

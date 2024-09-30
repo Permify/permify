@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -19,7 +20,7 @@ func TestQueryRelationships1(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"1"}}, Relation: "relation1", Subject: &base.SubjectFilter{Type: "type2", Ids: []string{"2"}, Relation: "relation2"}}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -48,7 +49,7 @@ func TestQueryRelationships2(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type", Ids: []string{"5"}}, Relation: "relation5"}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -81,7 +82,7 @@ func TestQueryRelationships3(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"3"}}, Relation: "relation1"}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -119,7 +120,7 @@ func TestQueryRelationships4(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"3"}}, Relation: "relation1", Subject: &base.SubjectFilter{Type: "type2", Ids: []string{}, Relation: ""}}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -157,7 +158,7 @@ func TestQueryRelationships5(t *testing.T) {
 	contextualTuples := NewContextualTuples(tuples...)
 	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "type1", Ids: []string{"1", "3"}}, Relation: "relation1", Subject: &base.SubjectFilter{Type: "user", Ids: []string{"1", "6", "4", "7"}, Relation: ""}}
 
-	iterator, err := contextualTuples.QueryRelationships(filter)
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -178,6 +179,88 @@ func TestQueryRelationships5(t *testing.T) {
 	}
 
 	if count != 3 {
+		t.Errorf("Unexpected count")
+	}
+}
+
+func TestQueryRelationships6(t *testing.T) {
+	tuples := []*base.Tuple{
+		{Entity: &base.Entity{Type: "type1", Id: "2"}, Relation: "relation1", Subject: &base.Subject{Type: "user", Id: "1", Relation: ""}},
+		{Entity: &base.Entity{Type: "type1", Id: "3"}, Relation: "relation1", Subject: &base.Subject{Type: "user", Id: "6", Relation: ""}},
+		{Entity: &base.Entity{Type: "type1", Id: "3"}, Relation: "relation1", Subject: &base.Subject{Type: "user", Id: "4", Relation: ""}},
+		{Entity: &base.Entity{Type: "type2", Id: "12"}, Relation: "relation2", Subject: &base.Subject{Type: "user", Id: "6", Relation: ""}},
+		{Entity: &base.Entity{Type: "type2", Id: "32"}, Relation: "relation1", Subject: &base.Subject{Type: "user", Id: "5", Relation: ""}},
+		{Entity: &base.Entity{Type: "type3", Id: "43"}, Relation: "relation2", Subject: &base.Subject{Type: "user", Id: "6", Relation: ""}},
+		{Entity: &base.Entity{Type: "type3", Id: "56"}, Relation: "relation2", Subject: &base.Subject{Type: "user", Id: "6", Relation: ""}},
+	}
+
+	contextualTuples := NewContextualTuples(tuples...)
+	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "", Ids: []string{"1", "3", "12", "32", "43", "56"}}, Relation: "", Subject: &base.SubjectFilter{Type: "user", Ids: []string{"1", "6", "4", "7"}, Relation: ""}}
+
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination(database.Cursor("Mw=="), database.Sort("entity_id")))
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	count := 0
+	for iterator.HasNext() {
+		filteredTuple := iterator.GetNext()
+
+		count++
+
+		if !slices.Contains([]string{
+			"type1:3#relation1@user:6",
+			"type1:3#relation1@user:4",
+			"type3:43#relation2@user:6",
+			"type3:56#relation2@user:6",
+		}, tuple.ToString(filteredTuple)) {
+			t.Errorf("Unexpected tuple: %+v", filteredTuple)
+		}
+	}
+
+	if count != 4 {
+		t.Errorf("Unexpected count")
+	}
+}
+
+func TestQueryRelationships7(t *testing.T) {
+	tuples := []*base.Tuple{
+		{Entity: &base.Entity{Type: "type1", Id: "2"}, Relation: "relation1", Subject: &base.Subject{Type: "user", Id: "1", Relation: ""}},
+		{Entity: &base.Entity{Type: "type1", Id: "3"}, Relation: "relation1", Subject: &base.Subject{Type: "user", Id: "6", Relation: ""}},
+		{Entity: &base.Entity{Type: "type1", Id: "3"}, Relation: "relation1", Subject: &base.Subject{Type: "user", Id: "4", Relation: ""}},
+		{Entity: &base.Entity{Type: "type2", Id: "12"}, Relation: "relation2", Subject: &base.Subject{Type: "user", Id: "6", Relation: ""}},
+		{Entity: &base.Entity{Type: "type2", Id: "32"}, Relation: "relation1", Subject: &base.Subject{Type: "user", Id: "5", Relation: ""}},
+		{Entity: &base.Entity{Type: "type3", Id: "43"}, Relation: "relation2", Subject: &base.Subject{Type: "user", Id: "6", Relation: ""}},
+		{Entity: &base.Entity{Type: "type3", Id: "56"}, Relation: "relation2", Subject: &base.Subject{Type: "user", Id: "6", Relation: ""}},
+	}
+
+	contextualTuples := NewContextualTuples(tuples...)
+	filter := &base.TupleFilter{Entity: &base.EntityFilter{Type: "", Ids: []string{"1", "3", "12", "32", "43", "56"}}, Relation: "", Subject: &base.SubjectFilter{Type: "user", Ids: []string{"1", "6", "4", "5", "7"}, Relation: ""}}
+
+	iterator, err := contextualTuples.QueryRelationships(filter, database.NewCursorPagination(database.Cursor("NA=="), database.Sort("subject_id")))
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	count := 0
+	for iterator.HasNext() {
+		filteredTuple := iterator.GetNext()
+
+		count++
+
+		if !slices.Contains([]string{
+			"type1:3#relation1@user:4",
+			"type2:32#relation1@user:5",
+			"type1:3#relation1@user:6",
+			"type2:12#relation2@user:6",
+			"type3:43#relation2@user:6",
+			"type3:56#relation2@user:6",
+		}, tuple.ToString(filteredTuple)) {
+			t.Errorf("Unexpected tuple: %+v", filteredTuple)
+		}
+	}
+
+	if count != 6 {
 		t.Errorf("Unexpected count")
 	}
 }

@@ -165,13 +165,13 @@ func GetAttributeByNameInEntityDefinition(entityDefinition *base.EntityDefinitio
 
 // IsDirectlyRelated checks if a source `RelationReference` is directly related to a target `RelationDefinition`.
 // It returns true if the source and target have the same type and relation, false otherwise.
-func IsDirectlyRelated(target *base.RelationDefinition, source *base.RelationReference) bool {
+func IsDirectlyRelated(target *base.RelationDefinition, source *base.Entrance) bool {
 	// Loop through all the relation references of the target
 	for _, refs := range target.GetRelationReferences() {
 		// Check if the source and reference have the same type
 		if source.GetType() == refs.GetType() {
 			// Check if the source and reference have the same relation
-			if refs.GetRelation() == source.GetRelation() {
+			if refs.GetRelation() == source.GetValue() {
 				// If both type and relation match, return true
 				return true
 			}

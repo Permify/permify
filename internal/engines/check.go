@@ -268,7 +268,7 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
 		var cti *database.TupleIterator
-		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
@@ -277,7 +277,7 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 
 		// If there's an error in querying, return a denied permission response along with the error.
 		if err != nil {
@@ -350,7 +350,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 		// Use the filter to query for relationships in the given context.
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
-		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter)
+		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
@@ -358,7 +358,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 
 		// Use the filter to query for relationships in the database.
 		// relationshipReader.QueryRelationships() uses the filter to find and return matching relationships.
-		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
 			return denied(&base.PermissionCheckResponseMetadata{}), err
@@ -544,7 +544,11 @@ func (engine *CheckEngine) checkDirectCall(
 		}
 
 		// Initialize an arguments map to hold argument values.
-		arguments := make(map[string]interface{})
+		arguments := map[string]interface{}{
+			"context": map[string]interface{}{
+				"data": request.GetContext().GetData().AsMap(),
+			},
+		}
 
 		// List to store computed attributes.
 		attributes := make([]string, 0)
@@ -558,16 +562,6 @@ func (engine *CheckEngine) checkDirectCall(
 				emptyValue := getEmptyValueForType(ru.GetArguments()[attrName])
 				arguments[attrName] = emptyValue
 				attributes = append(attributes, attrName)
-
-			case *base.Argument_ContextAttribute:
-				// Handle context attributes: Use the value from context or default to an empty value.
-				attrName := actualArg.ContextAttribute.GetName()
-				value, exists := request.GetContext().GetData().AsMap()[attrName]
-				if !exists {
-					value = getEmptyValueForType(ru.GetArguments()[attrName])
-				}
-				arguments[attrName] = value
-
 			default:
 				// Return an error for any unsupported argument types.
 				return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
@@ -584,12 +578,12 @@ func (engine *CheckEngine) checkDirectCall(
 				Attributes: attributes,
 			}
 
-			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
+			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 			if err != nil {
 				return denied(&base.PermissionCheckResponseMetadata{}), err
 			}
 
-			cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter)
+			cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, database.NewCursorPagination())
 			if err != nil {
 				return denied(&base.PermissionCheckResponseMetadata{}), err
 			}

@@ -54,7 +54,7 @@ func NewReferences() *References {
 
 // AddEntityReference sets a reference for an entity.
 func (refs *References) AddEntityReference(name string) error {
-	if len(name) == 0 {
+	if name == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
 	if refs.IsReferenceExist(name) {
@@ -67,7 +67,7 @@ func (refs *References) AddEntityReference(name string) error {
 
 // AddRuleReference sets a reference for a rule.
 func (refs *References) AddRuleReference(name string, types map[string]string) error {
-	if len(name) == 0 {
+	if name == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
 	if refs.IsReferenceExist(name) {
@@ -80,7 +80,7 @@ func (refs *References) AddRuleReference(name string, types map[string]string) e
 
 // AddRelationReferences sets references for a relation with its types.
 func (refs *References) AddRelationReferences(key string, types []RelationTypeStatement) error {
-	if len(key) == 0 {
+	if key == "" {
 		return fmt.Errorf("key cannot be empty")
 	}
 	if refs.IsReferenceExist(key) {
@@ -93,7 +93,7 @@ func (refs *References) AddRelationReferences(key string, types []RelationTypeSt
 
 // AddPermissionReference sets a reference for a permission.
 func (refs *References) AddPermissionReference(key string) error {
-	if len(key) == 0 {
+	if key == "" {
 		return fmt.Errorf("key cannot be empty")
 	}
 	if refs.IsReferenceExist(key) {
@@ -106,7 +106,7 @@ func (refs *References) AddPermissionReference(key string) error {
 
 // AddAttributeReferences sets references for an attribute with its type.
 func (refs *References) AddAttributeReferences(key string, typ AttributeTypeStatement) error {
-	if len(key) == 0 {
+	if key == "" {
 		return fmt.Errorf("key cannot be empty")
 	}
 	if refs.IsReferenceExist(key) {

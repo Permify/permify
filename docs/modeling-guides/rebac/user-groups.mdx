@@ -1,0 +1,130 @@
+---
+title: User Groups
+mode: wide
+---
+
+For large number of users, managing access for entire groups can be more efficient than assigning roles to individual users.
+
+User groups essentially define that, if you're part of a group, you can access certain resources or perform specific actions.
+
+Let’s demonstrate how this can be modeled using a simple project management system scenario.
+
+```
+entity user {}
+
+entity organization {
+
+    // organizational roles
+    relation admin @user
+    relation member @user
+
+}
+
+entity team {
+
+    // represents owner or creator of the team
+    relation owner @user
+
+    // represents direct member of the team
+    relation member @user
+
+    // reference for organization that team belong
+    relation org @organization
+
+    // organization admins or owners can edit, delete the team details
+    permission edit = org.admin or owner
+    permission delete = org.admin or owner
+
+    // to invite someone you need to be admin and either owner or member of this team
+    permission invite = org.admin and (owner or member)
+
+    // only owners can remove users
+    permission remove_user =  owner
+}
+
+entity project {
+
+    // references for team and organization that project belongs
+    relation team @team
+    relation org @organization
+
+    permission view = org.admin or team.member
+    permission edit = org.admin or team.member
+    permission delete = team.member
+}
+```
+
+## Breaking Down
+
+### User Entity:
+
+```
+entity user {}
+```
+
+This is a basic entity representing a user in the system. It doesn't have any specific relations or permissions defined.
+
+### Organization Entity:
+
+```
+entity organization {
+    relation admin @user
+    relation member @user
+}
+```
+
+The organization entity has two relations: admin and member, both referencing users.
+
+This allows users to be assigned roles within an organization.
+
+### Team Entity:
+
+```
+entity team {
+    relation owner @user
+    relation member @user
+    relation org @organization
+
+    permission edit = org.admin or owner
+    permission delete = org.admin or owner
+    permission invite = org.admin and (owner or member)
+    permission remove_user = owner
+}
+```
+
+The team entity has three relations: owner (a user), member (users), and org (the organization it belongs to).
+
+It defines four permissions:
+
+- **edit**: Organization admins or team owners can edit the team.
+- **delete**: Organization admins or team owners can delete the team.
+- **invite**: Organization admins who are also either team owners or members can invite others.
+- **remove_user**: Only team owners can remove users from the team.
+
+### Project Entity:
+
+```
+entity project {
+    relation team @team
+    relation org @organization
+
+    permission view = org.admin or team.member
+    permission edit = org.admin or team.member
+    permission delete = team.member
+}
+```
+
+The project entity has two relations: team and org, representing the team and organization it belongs to.
+
+It defines three permissions:
+
+- **view**: Organization admins or team members can view the project.
+- **edit**: Organization admins or team members can edit the project.
+- **delete**: Only team members can delete the project.
+
+This model establishes a hierarchy where organizations contain teams, which in turn contain projects. It also defines various permissions based on user roles within organizations and teams.
+
+## More Advance Example
+
+See our [Facebook Groups example](/getting-started/examples/facebook-groups) to learn how to apply user groups in a real-world scenario.
+

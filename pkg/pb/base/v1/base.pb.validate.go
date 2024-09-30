@@ -2120,6 +2120,153 @@ var _RelationReference_Type_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
 
 var _RelationReference_Relation_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
 
+// Validate checks the field values on Entrance with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Entrance) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Entrance with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in EntranceMultiError, or nil
+// if none found.
+func (m *Entrance) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Entrance) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetType()) > 64 {
+		err := EntranceValidationError{
+			field:  "Type",
+			reason: "value length must be at most 64 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_Entrance_Type_Pattern.MatchString(m.GetType()) {
+		err := EntranceValidationError{
+			field:  "Type",
+			reason: "value does not match regex pattern \"^[a-zA-Z_]{1,64}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetValue()) > 64 {
+		err := EntranceValidationError{
+			field:  "Value",
+			reason: "value length must be at most 64 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_Entrance_Value_Pattern.MatchString(m.GetValue()) {
+		err := EntranceValidationError{
+			field:  "Value",
+			reason: "value does not match regex pattern \"^[a-zA-Z_]{1,64}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return EntranceMultiError(errors)
+	}
+
+	return nil
+}
+
+// EntranceMultiError is an error wrapping multiple validation errors returned
+// by Entrance.ValidateAll() if the designated constraints aren't met.
+type EntranceMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EntranceMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EntranceMultiError) AllErrors() []error { return m }
+
+// EntranceValidationError is the validation error returned by
+// Entrance.Validate if the designated constraints aren't met.
+type EntranceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EntranceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EntranceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EntranceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EntranceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EntranceValidationError) ErrorName() string { return "EntranceValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EntranceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEntrance.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EntranceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EntranceValidationError{}
+
+var _Entrance_Type_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
+
+var _Entrance_Value_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
+
 // Validate checks the field values on Argument with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -2178,47 +2325,6 @@ func (m *Argument) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ArgumentValidationError{
 					field:  "ComputedAttribute",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	case *Argument_ContextAttribute:
-		if v == nil {
-			err := ArgumentValidationError{
-				field:  "Type",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetContextAttribute()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ArgumentValidationError{
-						field:  "ContextAttribute",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, ArgumentValidationError{
-						field:  "ContextAttribute",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetContextAttribute()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ArgumentValidationError{
-					field:  "ContextAttribute",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -2565,130 +2671,6 @@ var _ interface {
 } = ComputedAttributeValidationError{}
 
 var _ComputedAttribute_Name_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
-
-// Validate checks the field values on ContextAttribute with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *ContextAttribute) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on ContextAttribute with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// ContextAttributeMultiError, or nil if none found.
-func (m *ContextAttribute) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *ContextAttribute) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if len(m.GetName()) > 64 {
-		err := ContextAttributeValidationError{
-			field:  "Name",
-			reason: "value length must be at most 64 bytes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if !_ContextAttribute_Name_Pattern.MatchString(m.GetName()) {
-		err := ContextAttributeValidationError{
-			field:  "Name",
-			reason: "value does not match regex pattern \"^[a-zA-Z_]{1,64}$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if len(errors) > 0 {
-		return ContextAttributeMultiError(errors)
-	}
-
-	return nil
-}
-
-// ContextAttributeMultiError is an error wrapping multiple validation errors
-// returned by ContextAttribute.ValidateAll() if the designated constraints
-// aren't met.
-type ContextAttributeMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m ContextAttributeMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m ContextAttributeMultiError) AllErrors() []error { return m }
-
-// ContextAttributeValidationError is the validation error returned by
-// ContextAttribute.Validate if the designated constraints aren't met.
-type ContextAttributeValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ContextAttributeValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ContextAttributeValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ContextAttributeValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ContextAttributeValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ContextAttributeValidationError) ErrorName() string { return "ContextAttributeValidationError" }
-
-// Error satisfies the builtin error interface
-func (e ContextAttributeValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sContextAttribute.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ContextAttributeValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ContextAttributeValidationError{}
-
-var _ContextAttribute_Name_Pattern = regexp.MustCompile("^[a-zA-Z_]{1,64}$")
 
 // Validate checks the field values on ComputedUserSet with the rules defined
 // in the proto definition for this message. If any rules are violated, the

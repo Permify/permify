@@ -33,33 +33,71 @@ func NewDataReader(database *db.Memory) *DataReader {
 }
 
 // QueryRelationships queries the database for relationships based on the provided filter.
-func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filter *base.TupleFilter, _ string) (it *database.TupleIterator, err error) {
+func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filter *base.TupleFilter, _ string, pagination database.CursorPagination) (it *database.TupleIterator, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
-	collection := database.NewTupleCollection()
+	var lowerBound string
+
+	if pagination.Cursor() != "" {
+		var t database.ContinuousToken
+		t, err = utils.EncodedContinuousToken{Value: pagination.Cursor()}.Decode()
+		if err != nil {
+			return nil, err
+		}
+		lowerBound = t.(utils.ContinuousToken).Value
+	}
 
 	// Get the index and arguments based on the filter.
 	index, args := utils.GetRelationTuplesIndexNameAndArgsByFilters(tenantID, filter)
 
 	// Get the result iterator based on the index and arguments.
 	var result memdb.ResultIterator
-	result, err = txn.Get(constants.RelationTuplesTable, index, args...)
+	result, err = txn.LowerBound(constants.RelationTuplesTable, index, args...)
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	// Filter the result iterator and add the tuples to the collection.
+	tup := make([]storage.RelationTuple, 0, 10)
 	fit := memdb.NewFilterIterator(result, utils.FilterRelationTuplesQuery(tenantID, filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.RelationTuple)
 		if !ok {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		collection.Add(t.ToTuple())
+		tup = append(tup, t)
 	}
 
-	return collection.CreateTupleIterator(), nil
+	// Sort tuples based on the provided order field
+	sort.Slice(tup, func(i, j int) bool {
+		switch pagination.Sort() {
+		case "entity_id":
+			return tup[i].EntityID < tup[j].EntityID
+		case "subject_id":
+			return tup[i].SubjectID < tup[j].SubjectID
+		default:
+			return false // No sorting if order field is invalid
+		}
+	})
+
+	var tuples []*base.Tuple
+	for _, t := range tup {
+		switch pagination.Sort() {
+		case "entity_id":
+			if t.EntityID >= lowerBound {
+				tuples = append(tuples, t.ToTuple())
+			}
+		case "subject_id":
+			if t.SubjectID >= lowerBound {
+				tuples = append(tuples, t.ToTuple())
+			}
+		default:
+			tuples = append(tuples, t.ToTuple())
+		}
+	}
+
+	return database.NewTupleCollection(tuples...).CreateTupleIterator(), nil
 }
 
 // ReadRelationships reads relationships from the database taking into account the pagination.
@@ -109,7 +147,7 @@ func (r *DataReader) ReadRelationships(_ context.Context, tenantID string, filte
 	for _, t := range tup {
 		if t.ID >= lowerBound {
 			tuples = append(tuples, t.ToTuple())
-			if len(tuples) > int(pagination.PageSize()) {
+			if pagination.PageSize() != 0 && len(tuples) > int(pagination.PageSize()) {
 				return database.NewTupleCollection(tuples[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(t.ID, 10)).Encode(), nil
 			}
 		}
@@ -147,11 +185,20 @@ func (r *DataReader) QuerySingleAttribute(_ context.Context, tenantID string, fi
 }
 
 // QueryAttributes queries the database for attributes based on the provided filter.
-func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter *base.AttributeFilter, _ string) (iterator *database.AttributeIterator, err error) {
+func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter *base.AttributeFilter, _ string, pagination database.CursorPagination) (iterator *database.AttributeIterator, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
-	collection := database.NewAttributeCollection()
+	var lowerBound string
+
+	if pagination.Cursor() != "" {
+		var t database.ContinuousToken
+		t, err = utils.EncodedContinuousToken{Value: pagination.Cursor()}.Decode()
+		if err != nil {
+			return nil, err
+		}
+		lowerBound = t.(utils.ContinuousToken).Value
+	}
 
 	// Get the index and arguments based on the filter.
 	index, args := utils.GetAttributesIndexNameAndArgsByFilters(tenantID, filter)
@@ -164,16 +211,39 @@ func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter 
 	}
 
 	// Filter the result iterator and add the attributes to the collection.
+	attr := make([]storage.Attribute, 0, 10)
 	fit := memdb.NewFilterIterator(result, utils.FilterAttributesQuery(tenantID, filter))
 	for obj := fit.Next(); obj != nil; obj = fit.Next() {
 		t, ok := obj.(storage.Attribute)
 		if !ok {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		collection.Add(t.ToAttribute())
+		attr = append(attr, t)
 	}
 
-	return collection.CreateAttributeIterator(), nil
+	// Sort tuples based on the provided order field
+	sort.Slice(attr, func(i, j int) bool {
+		switch pagination.Sort() {
+		case "entity_id":
+			return attr[i].EntityID < attr[j].EntityID
+		default:
+			return false // No sorting if order field is invalid
+		}
+	})
+
+	var attrs []*base.Attribute
+	for _, t := range attr {
+		switch pagination.Sort() {
+		case "entity_id":
+			if t.EntityID >= lowerBound {
+				attrs = append(attrs, t.ToAttribute())
+			}
+		default:
+			attrs = append(attrs, t.ToAttribute())
+		}
+	}
+
+	return database.NewAttributeCollection(attrs...).CreateAttributeIterator(), nil
 }
 
 // ReadAttributes reads attributes from the database taking into account the pagination.
@@ -224,7 +294,7 @@ func (r *DataReader) ReadAttributes(_ context.Context, tenantID string, filter *
 	for _, t := range attr {
 		if t.ID >= lowerBound {
 			attributes = append(attributes, t.ToAttribute())
-			if len(attributes) > int(pagination.PageSize()) {
+			if pagination.PageSize() != 0 && len(attributes) > int(pagination.PageSize()) {
 				return database.NewAttributeCollection(attributes[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(t.ID, 10)).Encode(), nil
 			}
 		}
@@ -233,68 +303,28 @@ func (r *DataReader) ReadAttributes(_ context.Context, tenantID string, filter *
 	return database.NewAttributeCollection(attributes...), database.NewNoopContinuousToken().Encode(), nil
 }
 
-// QueryUniqueEntities is a function that searches for unique entities in a given database.
-func (r *DataReader) QueryUniqueEntities(_ context.Context, tenantID, name, _ string, _ database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
-	// Starts a new read-only transaction
-	txn := r.database.DB.Txn(false)
-	defer txn.Abort()
-
-	var tupleIds []string
-
-	// Query the database for entities matching the given tenant ID and name
-	var entityResult memdb.ResultIterator
-	entityResult, err = txn.Get(constants.RelationTuplesTable, "entity-type-index", tenantID, name)
-	if err != nil {
-		// Returns an error if execution fails
-		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-	}
-
-	// Iterates over the resulting entities and append their IDs to the tupleIds slice
-	for obj := entityResult.Next(); obj != nil; obj = entityResult.Next() {
-		t, ok := obj.(storage.RelationTuple)
-		if !ok {
-			// Returns an error if type conversion fails
-			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
-		}
-		tupleIds = append(tupleIds, t.EntityID)
-	}
-
-	var attributeIds []string
-
-	// Query the database for attributes matching the given tenant ID and name
-	var attributeResult memdb.ResultIterator
-	attributeResult, err = txn.Get(constants.AttributesTable, "entity-type-index", tenantID, name)
-	if err != nil {
-		// Returns an error if execution fails
-		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-	}
-
-	// Iterates over the resulting attributes and append their IDs to the tupleIds slice
-	for obj := attributeResult.Next(); obj != nil; obj = attributeResult.Next() {
-		t, ok := obj.(storage.Attribute)
-		if !ok {
-			// Returns an error if type conversion fails
-			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
-		}
-		tupleIds = append(tupleIds, t.EntityID)
-	}
-
-	// Returns the union of tupleIds and attributeIds, a new noop continuous token, and no error
-	return utils.Union(tupleIds, attributeIds), database.NewNoopContinuousToken().Encode(), nil
-}
-
 // QueryUniqueSubjectReferences is a function that searches for unique subject references in a given database.
-func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID string, subjectReference *base.RelationReference, _ string, _ database.Pagination) ([]string, database.EncodedContinuousToken, error) {
+func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID string, subjectReference *base.RelationReference, _ string, pagination database.Pagination) (ids []string, _ database.EncodedContinuousToken, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
-	ids := make(map[string]bool)
+	var lowerBound string
+	if pagination.Token() != "" {
+		var t database.ContinuousToken
+		t, err := utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
+		if err != nil {
+			return nil, database.NewNoopContinuousToken().Encode(), err
+		}
+		lowerBound = t.(utils.ContinuousToken).Value
+	}
 
 	// Get the result iterator based on the index and arguments.
-	result, err := txn.Get(constants.RelationTuplesTable, "id")
+	result, err := txn.LowerBound(constants.RelationTuplesTable, "id")
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
+
+	var subjectIDs []string
 
 	// Filter the result iterator and add the tuples to the collection.
 	fit := memdb.NewFilterIterator(result, utils.FilterRelationTuplesQuery(tenantID, &base.TupleFilter{
@@ -308,19 +338,35 @@ func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID st
 		if !ok {
 			return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		// If the id is not already in the map, add it.
-		if _, exists := ids[t.SubjectID]; !exists {
-			ids[t.SubjectID] = true
+		subjectIDs = append(subjectIDs, t.SubjectID)
+	}
+
+	// Sort the tuples and append them to the collection.
+	sort.Slice(subjectIDs, func(i, j int) bool {
+		return subjectIDs[i] < subjectIDs[j]
+	})
+
+	mp := make(map[string]bool)
+	var lastID string
+
+	for _, b := range subjectIDs {
+		if _, exists := mp[b]; !exists && b >= lowerBound {
+			ids = append(ids, b)
+			mp[b] = true
+
+			// Capture the last ID after adding pagesize + 1 elements
+			if len(ids) == int(pagination.PageSize())+1 {
+				lastID = b
+			}
+
+			// Stop appending if we've reached the page size
+			if pagination.PageSize() != 0 && len(ids) > int(pagination.PageSize()) {
+				return ids[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil
+			}
 		}
 	}
 
-	// Convert the map keys to a slice.
-	uniqueIDs := make([]string, 0, len(ids))
-	for id := range ids {
-		uniqueIDs = append(uniqueIDs, id)
-	}
-
-	return uniqueIDs, database.NewNoopContinuousToken().Encode(), nil
+	return ids, database.NewNoopContinuousToken().Encode(), nil
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.

@@ -21,11 +21,6 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// Authenticator - Interface for oidc authenticator
-type Authenticator interface {
-	Authenticate(ctx context.Context) error
-}
-
 type Authn struct {
 	// URL of the issuer. This is typically the base URL of the identity provider.
 	IssuerURL string
@@ -137,7 +132,7 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 
 		// Retrieve the key ID from the JWT header and find the corresponding key in the JWKS.
 		if keyID, ok := token.Header["kid"].(string); ok {
-			return oidc.getKeyWithRetry(keyID, requestContext)
+			return oidc.getKeyWithRetry(requestContext, keyID)
 		}
 		slog.Error("jwt does not contain a key ID")
 		// If the JWT does not contain a key ID, return an error.
@@ -193,7 +188,7 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 }
 
 // getKeyWithRetry attempts to retrieve the key for the given keyID with retries using a custom backoff strategy.
-func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface{}, error) {
+func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface{}, error) {
 	var rawKey interface{}
 	var err error
 
@@ -212,7 +207,7 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 		oidc.mu.Unlock()
 
 		// Try to fetch the keyID once
-		rawKey, err = oidc.fetchKey(keyID, ctx)
+		rawKey, err = oidc.fetchKey(ctx, keyID)
 		if err == nil {
 			oidc.mu.Lock()
 			if _, ok := oidc.globalRetryKeyIds[keyID]; ok {
@@ -237,7 +232,7 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 	// Retry mechanism
 	retries := 0
 	for retries <= oidc.backoffMaxRetries {
-		rawKey, err = oidc.fetchKey(keyID, ctx)
+		rawKey, err = oidc.fetchKey(ctx, keyID)
 		if err == nil {
 			if retries != 0 {
 				oidc.mu.Lock()
@@ -303,7 +298,7 @@ func (oidc *Authn) getKeyWithRetry(keyID string, ctx context.Context) (interface
 }
 
 // fetchKey attempts to fetch the JWKS and retrieve the key for the given keyID.
-func (oidc *Authn) fetchKey(keyID string, ctx context.Context) (interface{}, error) {
+func (oidc *Authn) fetchKey(ctx context.Context, keyID string) (interface{}, error) {
 	// Log the attempt to find the key.
 	slog.DebugContext(ctx, "attempting to find key in JWKS", "kid", keyID)
 

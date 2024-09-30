@@ -1,0 +1,98 @@
+---
+title: Numerical Conditions
+mode: wide
+---
+
+### Integers
+
+Integer can be used as attribute data type in several scenarios where numerical information is needed to make access control decisions. Here are a few examples:
+
+- **Age:** If access to certain resources is age-restricted, an age attribute stored as an integer can be used to control access.
+- **Security Clearance Level:** In a system where users have different security clearance levels, these levels can be stored as integer attributes (e.g., 1, 2, 3 with 3 being the highest clearance).
+- **Resource Size or Length:** If access to resources is controlled based on their size or length (like a document's length or a file's size), these can be stored as integer attributes.
+- **Version Number:** If access control decisions need to consider the version number of a resource (like a software version or a document revision), these can be stored as integer attributes.
+
+```perm
+entity content {
+    permission view = check_age(request.age)
+}
+
+rule check_age(age integer) {
+		age >= 18
+}
+```
+<Warning>If you don’t create the related attribute data, Permify accounts integer as `0`</Warning>
+
+### Double 
+
+Double can be used as attribute data type in several scenarios where precise numerical information is needed to make access control decisions. Here are a few examples:
+
+- **Usage Limit:** If a user has a usage limit (like the amount of storage they can use or the amount of data they can download), and this limit needs to be represented with decimal precision, it can be stored as a double attribute.
+- **Transaction Amount:** In a financial system, if access control decisions need to consider the amount of a transaction, and this amount needs to be represented with decimal precision (like $100.50), these amounts can be stored as double attributes.
+- **User Rating:** If access control decisions need to consider a user's rating (like a rating out of 5 with decimal points, such as 4.7), these ratings can be stored as double attributes.
+- **Geolocation:** If access control decisions need to consider precise geographical coordinates (like latitude and longitude, which are often represented with decimal points), these coordinates can be stored as double attributes.
+
+```perm
+entity user {}
+
+entity account {
+    relation owner @user
+    attribute balance double
+
+    permission withdraw = check_balance(request.amount, balance) and owner
+}
+
+rule check_balance(amount double, balance double) {
+	(balance >= amount) && (amount <= 5000)
+}
+```
+<Warning>If you don’t create the related attribute data, Permify accounts double as `0.0`</Warning>
+
+### Withdraw Access In Banking System
+
+This model represents a banking system with two entities: **`user`** and **`account`**.
+
+1. **`user`**: Represents a customer of the bank.
+2. **`account`**: Represents a bank account that has an **`owner`** (which is a **`user`**), and a **`balance`** (amount of money in the account).
+
+```perm
+entity user {}
+
+entity account {
+    relation owner @user
+    attribute balance double
+
+    permission withdraw = check_balance(request.amount, balance) and owner
+}
+
+rule check_balance(amount double, balance double) {
+    (balance >= amount) && (amount <= 5000)
+}
+```
+
+**The check_balance rule:** This rule verifies if the withdrawal amount is less than or equal to the account's balance and doesn't exceed 5000 (the maximum amount allowed for a withdrawal). It accepts two parameters, the withdrawal amount (amount) and the account's current balance (balance).
+**The owner check:** This condition checks if the person requesting the withdrawal is the owner of the account.
+
+Both of these conditions need to be true for the **`withdraw`** permission to be granted. In other words, a user can withdraw money from an account only if they are the owner of that account, and the amount they want to withdraw is within the account balance and doesn't exceed 5000.
+
+**Relationships**
+
+- account:1#owner@user:1
+
+**Attributes**
+
+- account:1$balance|double:4000
+
+**Check Evolution Sub Queries For Account Withdraw**
+→ account:1$check_balance(context.amount,balance) → true
+→ account:1#owner@user:1 → true
+
+**Request keys before hash**
+
+- `check*{snapshot}*{schema*version}*{context}\_account:1$check_balance(context.amount,balance)` → true
+- `check*{snapshot}*{schema*version}*{context}\_account:1#owner@user:1` → true
+
+## More Advance Example
+
+See our [Mercury authorization logic example](/getting-started/examples/mercury) to learn how to apply numerical conditions in a more complex scenario.
+

@@ -1,6 +1,5 @@
 # IDE
 .idea
-.vscode
 
 # Config
 .env
@@ -23,6 +22,7 @@ vendor/dist/
 /dist
 /config
 /tmp
+node_modules
 
 # macOS
 *.DS_Store

@@ -49,6 +49,8 @@ type Lookup interface {
 	LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error)
 	LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error)
 	LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error)
+	LookupEntities(ctx context.Context, request *base.PermissionsLookupEntityRequest) (response *base.PermissionsLookupEntityResponse, err error)
+	LookupEntitiesStream(ctx context.Context, request *base.PermissionsLookupEntityRequest, server base.Permission_LookupEntitiesStreamServer) (err error)
 }
 
 // SubjectPermission -
@@ -191,7 +193,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 			},
 		}, err
 	}
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	invoker.checkDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the check count in the response metadata.
@@ -245,7 +247,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 	ctx, span := tracer.Start(ctx, "lookup-entity", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
-		attribute.KeyValue{Key: "permissions", Value: attribute.StringSliceValue(request.GetPermissions())},
+		attribute.KeyValue{Key: "permissions", Value: attribute.StringValue(request.GetPermission())},
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
@@ -276,7 +278,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 
 	resp, err := invoker.lo.LookupEntity(ctx, request)
 
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the lookup entity count in the metrics.
@@ -290,6 +292,100 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 // and returns an error if any.
 func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
 	ctx, span := tracer.Start(ctx, "lookup-entity-stream", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
+		attribute.KeyValue{Key: "permissions", Value: attribute.StringValue(request.GetPermission())},
+		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
+	))
+	defer span.End()
+
+	start := time.Now()
+
+	// Set SnapToken if not provided
+	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
+		var st token.SnapToken
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return err
+		}
+		request.Metadata.SnapToken = st.Encode().String() // Set the SnapToken in the request metadata.
+	}
+
+	// Set SchemaVersion if not provided
+	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
+		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return err
+		}
+	}
+
+	resp := invoker.lo.LookupEntityStream(ctx, request, server)
+
+	duration := time.Since(start)
+	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
+
+	// Increase the lookup entity count in the metrics.
+	invoker.lookupEntityCounter.Add(ctx, 1)
+
+	return resp
+}
+
+// LookupEntities is a method that implements the LookupEntities interface.
+// It calls the Run method of the LookupEntitiesEngine with the provided context and PermissionsLookupEntityRequest,
+// and returns a PermissionsLookupEntityResponse and an error if any.
+func (invoker *DirectInvoker) LookupEntities(ctx context.Context, request *base.PermissionsLookupEntityRequest) (response *base.PermissionsLookupEntityResponse, err error) {
+	ctx, span := tracer.Start(ctx, "lookup-entities", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
+		attribute.KeyValue{Key: "permissions", Value: attribute.StringSliceValue(request.GetPermissions())},
+		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
+	))
+	defer span.End()
+
+	start := time.Now()
+
+	// Set SnapToken if not provided
+	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
+		var st token.SnapToken
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId()) // Retrieve the head snapshot from the relationship reader.
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return response, err
+		}
+		request.Metadata.SnapToken = st.Encode().String() // Set the SnapToken in the request metadata.
+	}
+
+	// Set SchemaVersion if not provided
+	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
+		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(otelCodes.Error, err.Error())
+			return response, err
+		}
+	}
+
+	resp, err := invoker.lo.LookupEntities(ctx, request)
+
+	duration := time.Since(start)
+	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
+
+	// Increase the lookup entity count in the metrics.
+	invoker.lookupEntityCounter.Add(ctx, 1)
+
+	return resp, err
+}
+
+// LookupEntitiesStream is a method that implements the LookupEntitiesStream interface.
+// It calls the Stream method of the LookupEntitiesEngine with the provided context, PermissionsLookupEntityRequest, and Permission_LookupEntitiesStreamServer,
+// and returns an error if any.
+func (invoker *DirectInvoker) LookupEntitiesStream(ctx context.Context, request *base.PermissionsLookupEntityRequest, server base.Permission_LookupEntitiesStreamServer) (err error) {
+	ctx, span := tracer.Start(ctx, "lookup-entities-stream", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
 		attribute.KeyValue{Key: "permissions", Value: attribute.StringSliceValue(request.GetPermissions())},
@@ -321,9 +417,9 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 		}
 	}
 
-	resp := invoker.lo.LookupEntityStream(ctx, request, server)
+	resp := invoker.lo.LookupEntitiesStream(ctx, request, server)
 
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// Increase the lookup entity count in the metrics.

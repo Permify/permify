@@ -11,6 +11,7 @@ We structured Permify API in 4 core parts:
 - [DataService]: Authorization data operations such as creating, deleting and reading relational tuples.
 - [SchemaService]: Modeling and Permify Schema related functionalities including configuration and auditing.
 - [TenancyService]: Consists tenant operations such as creating, deleting and listing.
+- [BundleService]: Manages bundled creation and deletion of relations and attributes to keep authorization data aligned with the business model.
 
 Permify exposes its APIs via both [gRPC](https://buf.build/permifyco/permify/docs/main:base.v1) and [REST](https://restfulapi.net/).
 
@@ -18,6 +19,7 @@ Permify exposes its APIs via both [gRPC](https://buf.build/permifyco/permify/doc
 [DataService]: ./data/write-data
 [SchemaService]: ./schema/write-schema
 [TenancyService]: ./tenancy/create-tenant
+[BundleService]: ./bundle/write-bundle
 
 **SDKs:**
 

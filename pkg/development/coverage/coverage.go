@@ -91,9 +91,9 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 
 	schemaCoverageInfo := SchemaCoverageInfo{}
 
-	var refs []SchemaCoverage
-	for _, en := range definitions {
-		refs = append(refs, references(en))
+	refs := make([]SchemaCoverage, len(definitions))
+	for i, en := range definitions {
+		refs[i] = references(en)
 	}
 
 	// Iterate through the schema coverage references
@@ -269,8 +269,8 @@ func relationships(en string, relationships []string) []string {
 
 // attributes - Get attributes for a given entity
 func attributes(en string, attributes []string) []string {
-	var attrs []string
-	for _, attr := range attributes {
+	attrs := make([]string, len(attributes))
+	for i, attr := range attributes {
 		a, err := attribute.Attribute(attr)
 		if err != nil {
 			return []string{}
@@ -278,7 +278,7 @@ func attributes(en string, attributes []string) []string {
 		if a.GetEntity().GetType() != en {
 			continue
 		}
-		attrs = append(attrs, fmt.Sprintf("%s#%s", a.GetEntity().GetType(), a.GetAttribute()))
+		attrs[i] = fmt.Sprintf("%s#%s", a.GetEntity().GetType(), a.GetAttribute())
 	}
 	return attrs
 }

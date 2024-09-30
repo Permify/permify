@@ -79,14 +79,21 @@ type CheckResponse struct {
 	err  error
 }
 
-// ERMap - a thread-safe map of ENR records.
-type ERMap struct {
-	value sync.Map
+// VisitsMap - a thread-safe map of ENR records.
+type VisitsMap struct {
+	er        sync.Map
+	published sync.Map
 }
 
-func (s *ERMap) Add(entity *base.Entity, relation string) bool {
+func (s *VisitsMap) AddER(entity *base.Entity, relation string) bool {
 	key := tuple.EntityAndRelationToString(entity, relation)
-	_, existed := s.value.LoadOrStore(key, struct{}{})
+	_, existed := s.er.LoadOrStore(key, struct{}{})
+	return !existed
+}
+
+func (s *VisitsMap) AddPublished(entity *base.Entity) bool {
+	key := tuple.EntityToString(entity)
+	_, existed := s.published.LoadOrStore(key, struct{}{})
 	return !existed
 }
 
@@ -318,7 +325,6 @@ func GenerateKey(key *base.PermissionCheckRequest, isRelational bool) string {
 		if entityRelationString != "" {
 			parts = append(parts, fmt.Sprintf("%s@%s", entityRelationString, subjectString))
 		}
-
 	} else {
 		parts = append(parts, attribute.EntityAndCallOrAttributeToString(
 			key.GetEntity(),
@@ -386,4 +392,18 @@ func IsRelational(en *base.EntityDefinition, permission string) bool {
 	}
 
 	return isRelational
+}
+
+func ConvertToPermissionsLookupEntityRequest(req *base.PermissionLookupEntityRequest) *base.PermissionsLookupEntityRequest {
+	return &base.PermissionsLookupEntityRequest{
+		TenantId:        req.TenantId,
+		Metadata:        req.Metadata,
+		EntityType:      req.EntityType,
+		Permissions:     []string{req.Permission},
+		Subject:         req.Subject,
+		Context:         req.Context,
+		Scope:           req.Scope,
+		PageSize:        req.PageSize,
+		ContinuousToken: req.ContinuousToken,
+	}
 }

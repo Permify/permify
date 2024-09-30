@@ -69,7 +69,7 @@ var _ = Describe("walker", func() {
 
 			permission view = is_public
 			permission edit = organization.view
-			permission delete = is_weekday(request.day_of_week)
+			permission delete = is_workday(is_public)
 			permission create = organization.member
 		}
 		
@@ -77,8 +77,8 @@ var _ = Describe("walker", func() {
 			balance > 5000
 		}
 
-		rule is_weekday(day_of_week string) {
-			  day_of_week != 'saturday' && day_of_week != 'sunday'
+		rule is_workday(is_public boolean) {
+			  is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
 		}
 			`).Parse()
 
