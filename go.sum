@@ -15,8 +15,8 @@ github.com/Masterminds/squirrel v1.5.4 h1:uUcX/aBc8O7Fg9kaISIUsHXdKuqehiXAMQTYX8
 github.com/Masterminds/squirrel v1.5.4/go.mod h1:NNaOrjSoIDfDA40n7sr2tPNZRfjzjA400rg+riTZj10=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
-github.com/agoda-com/opentelemetry-go/otelslog v0.1.1 h1:6nV8PZCzySHuh9kP/HZ2OJqGucwQiM+yZRugKDvtzj4=
-github.com/agoda-com/opentelemetry-go/otelslog v0.1.1/go.mod h1:CSc0veIcY/HsIfH7l5PGtIpRvBttk09QUQlweVkD2PI=
+github.com/agoda-com/opentelemetry-go/otelslog v0.2.0 h1:rzjfZxpmek5BmzEufD3vSaNIsOTECYzPH82lHEqRUUw=
+github.com/agoda-com/opentelemetry-go/otelslog v0.2.0/go.mod h1:CSc0veIcY/HsIfH7l5PGtIpRvBttk09QUQlweVkD2PI=
 github.com/agoda-com/opentelemetry-logs-go v0.5.1 h1:6iQrLaY4M0glBZb/xVN559qQutK4V+HJ/mB1cbwaX3c=
 github.com/agoda-com/opentelemetry-logs-go v0.5.1/go.mod h1:35B5ypjX5pkVCPJR01i6owJSYWe8cnbWLpEyHgAGD/E=
 github.com/antlr4-go/antlr/v4 v4.13.0 h1:lxCg3LAv+EUK6t1i0y1V6/SLeUi0eKEKdhQAlS8TVTI=

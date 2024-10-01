@@ -92,7 +92,7 @@ require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/agoda-com/opentelemetry-go/otelslog v0.1.1
+	github.com/agoda-com/opentelemetry-go/otelslog v0.2.0
 	github.com/agoda-com/opentelemetry-logs-go v0.5.1
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
