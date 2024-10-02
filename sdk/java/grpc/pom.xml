@@ -112,7 +112,7 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
-                <version>4.1.113.Final</version>
+                <version>4.1.114.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
