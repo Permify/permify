@@ -22,7 +22,7 @@ entity organization {
 	permission view = check_location(location) or admin
 }
 
-rule check_location(current_location string, location string[]) {
+rule check_location(location string[]) {
 	context.data.current_location in location
 }
 ```
