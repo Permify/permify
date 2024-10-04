@@ -223,6 +223,13 @@ var _ = Describe("SchemaReader", func() {
 			err = schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
+			version = xid.New().String()
+			schema = []storage.SchemaDefinition{
+				{TenantID: "t2", Name: "test6", SerializedDefinition: []byte("entity user {}"), Version: version},
+			}
+			err = schemaWriter.WriteSchema(ctx, schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
 			col1, ct1, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(3), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(col1)).Should(Equal(3))
