@@ -208,6 +208,7 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 			for processedIndex < len(listCopy) && results[processedIndex] != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
 				// If the result at the processed index is allowed, call the callback function
 				if results[processedIndex] == base.CheckResult_CHECK_RESULT_ALLOWED {
+
 					if atomic.AddInt64(&successCount, 1) <= int64(size) {
 						ct := ""
 						if processedIndex+1 < len(listCopy) {
@@ -218,13 +219,14 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetSubject().GetId()).Encode().String()
 							}
 						}
+
 						// Depending on the type of check (entity or subject), call the appropriate callback
 						if bc.typ == BULK_ENTITY {
-							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), req.Request.GetPermission(), ct)
-							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), req.Request.GetPermission(), ct)
+							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), listCopy[processedIndex].Request.GetPermission(), ct)
+
 						} else if bc.typ == BULK_SUBJECT {
-							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), req.Request.GetPermission(), ct)
-							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), req.Request.GetPermission(), ct)
+							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), listCopy[processedIndex].Request.GetPermission(), ct)
+
 						}
 					}
 				}

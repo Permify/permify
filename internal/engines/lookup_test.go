@@ -1204,8 +1204,9 @@ var _ = Describe("lookup-entity-engine", func() {
 				},
 				filters: []filter{
 					{
-						entityType: "doc",
-						subject:    "user:1",
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
 						assertions: map[string][]string{
 							"read": {"1"},
 						},
@@ -1282,7 +1283,13 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
 			}
 		})
 
@@ -1335,8 +1342,10 @@ var _ = Describe("lookup-entity-engine", func() {
 						},
 					},
 					{
-						entityType: "folder",
-						subject:    "user:3",
+						entityType: "doc",
+						subject:    "user:2",
+						// permissions: []string{"read"},
+						permissions: []string{"read", "update"},
 						assertions: map[string][]string{
 							"read":   {"2"},
 							"update": {"2"},
@@ -1401,7 +1410,13 @@ var _ = Describe("lookup-entity-engine", func() {
 					},
 				})
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
 			}
 		})
 
@@ -1519,7 +1534,13 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
 			}
 		})
 
@@ -1637,7 +1658,9 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
 			}
 		})
 
@@ -1758,7 +1781,9 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
 			}
 		})
 
@@ -1900,7 +1925,9 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
 			}
 		})
 
@@ -2083,7 +2110,13 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
 			}
 		})
 
@@ -2178,7 +2211,7 @@ var _ = Describe("lookup-entity-engine", func() {
 					{
 						entityType:  "doc",
 						subject:     "user:1",
-						permissions: []string{"folder"},
+						permissions: []string{"read"},
 						scope: map[string]*base.StringArrayValue{
 							"organization": {
 								Data: []string{"2"},
@@ -2271,6 +2304,7 @@ var _ = Describe("lookup-entity-engine", func() {
 					EntityType:  filter.entityType,
 					Subject:     subject,
 					Permissions: filter.permissions,
+					Scope:       filter.scope,
 					Metadata: &base.PermissionLookupEntityRequestMetadata{
 						SnapToken:     token.NewNoopToken().Encode().String(),
 						SchemaVersion: "",
@@ -2279,123 +2313,125 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
 			}
 		})
 	})
 
 	facebookGroupsSchemaEntityFilter := `
-		entity user {}
+			entity user {}
 	
-		entity group {
+			entity group {
 	
-		  // Relation to represent the members of the group
-		  relation member @user
-		  // Relation to represent the admins of the group
-		  relation admin @user
-		  // Relation to represent the moderators of the group
-		  relation moderator @user
+			  // Relation to represent the members of the group
+			  relation member @user
+			  // Relation to represent the admins of the group
+			  relation admin @user
+			  // Relation to represent the moderators of the group
+			  relation moderator @user
 	
-		  // Permissions for the group entity
-		  action create = member
-		  action join = member
-		  action leave = member
-		  action invite_to_group = admin
-		  action remove_from_group = admin or moderator
-		  action edit_settings = admin or moderator
-		  action post_to_group = member
-		  action comment_on_post = member
-		  action view_group_insights = admin or moderator
-		}
+			  // Permissions for the group entity
+			  action create = member
+			  action join = member
+			  action leave = member
+			  action invite_to_group = admin
+			  action remove_from_group = admin or moderator
+			  action edit_settings = admin or moderator
+			  action post_to_group = member
+			  action comment_on_post = member
+			  action view_group_insights = admin or moderator
+			}
 	
-		entity post {
+			entity post {
 	
-		  // Relation to represent the owner of the post
-		  relation owner @user
-		  // Relation to represent the group that the post belongs to
-		  relation group @group
+			  // Relation to represent the owner of the post
+			  relation owner @user
+			  // Relation to represent the group that the post belongs to
+			  relation group @group
 	
-		  // Permissions for the post entity
-		  action view_post = owner or group.member
-		  action edit_post = owner or group.admin
-		  action delete_post = owner or group.admin
+			  // Permissions for the post entity
+			  action view_post = owner or group.member
+			  action edit_post = owner or group.admin
+			  action delete_post = owner or group.admin
 	
-		  permission group_member = group.member
-		}
+			  permission group_member = group.member
+			}
 	
-		entity comment {
+			entity comment {
 	
-		  // Relation to represent the owner of the comment
-		  relation owner @user
+			  // Relation to represent the owner of the comment
+			  relation owner @user
 	
-		  // Relation to represent the post that the comment belongs to
-		  relation post @post
+			  // Relation to represent the post that the comment belongs to
+			  relation post @post
 	
-		  // Permissions for the comment entity
-		  action view_comment = owner or post.group_member
-		  action edit_comment = owner
-		  action delete_comment = owner
+			  // Permissions for the comment entity
+			  action view_comment = owner or post.group_member
+			  action edit_comment = owner
+			  action delete_comment = owner
 	
-	     action remove = post.delete_post
-		}
+		     action remove = post.delete_post
+			}
 	
-		entity like {
+			entity like {
 	
-		  // Relation to represent the owner of the like
-		  relation owner @user
+			  // Relation to represent the owner of the like
+			  relation owner @user
 	
-		  // Relation to represent the post that the like belongs to
-		  relation post @post
+			  // Relation to represent the post that the like belongs to
+			  relation post @post
 	
-		  // Permissions for the like entity
-		  action like_post = owner or post.group_member
-		  action unlike_post = owner or post.group_member
-		}
+			  // Permissions for the like entity
+			  action like_post = owner or post.group_member
+			  action unlike_post = owner or post.group_member
+			}
 	
-		entity poll {
+			entity poll {
 	
-		  // Relation to represent the owner of the poll
-		  relation owner @user
+			  // Relation to represent the owner of the poll
+			  relation owner @user
 	
-		  // Relation to represent the group that the poll belongs to
-		  relation group @group
+			  // Relation to represent the group that the poll belongs to
+			  relation group @group
 	
-		  // Permissions for the poll entity
-		  action create_poll = owner or group.admin
-		  action view_poll = owner or group.member
-		  action edit_poll = owner or group.admin
-		  action delete_poll = owner or group.admin
-		}
+			  // Permissions for the poll entity
+			  action create_poll = owner or group.admin
+			  action view_poll = owner or group.member
+			  action edit_poll = owner or group.admin
+			  action delete_poll = owner or group.admin
+			}
 	
-		entity file {
+			entity file {
 	
-		  // Relation to represent the owner of the file
-		  relation owner @user
+			  // Relation to represent the owner of the file
+			  relation owner @user
 	
-		  // Relation to represent the group that the file belongs to
-		  relation group @group
+			  // Relation to represent the group that the file belongs to
+			  relation group @group
 	
-		  // Permissions for the file entity
-		  action upload_file = owner or group.member
-		  action view_file = owner or group.member
-		  action delete_file = owner or group.admin
-		}
+			  // Permissions for the file entity
+			  action upload_file = owner or group.member
+			  action view_file = owner or group.member
+			  action delete_file = owner or group.admin
+			}
 	
-		entity event {
+			entity event {
 	
-		  // Relation to represent the owner of the event
-		  relation owner @user
-		  // Relation to represent the group that the event belongs to
-		  relation group @group
+			  // Relation to represent the owner of the event
+			  relation owner @user
+			  // Relation to represent the group that the event belongs to
+			  relation group @group
 	
-		  // Permissions for the event entity
-		  action create_event = owner or group.admin
-		  action view_event = owner or group.member
-		  action edit_event = owner or group.admin
-		  action delete_event = owner or group.admin
-		  action RSVP_to_event = owner or group.member
-		}
-		`
+			  // Permissions for the event entity
+			  action create_event = owner or group.admin
+			  action view_event = owner or group.member
+			  action edit_event = owner or group.admin
+			  action delete_event = owner or group.admin
+			  action RSVP_to_event = owner or group.member
+			}
+			`
 
 	Context("Facebook Group Sample: Entity Filter", func() {
 		It("Facebook Group Sample: Case 1", func() {
@@ -3256,7 +3292,13 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
 			}
 		})
 
@@ -3488,7 +3530,13 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
 			}
 		})
 
@@ -3779,31 +3827,31 @@ var _ = Describe("lookup-entity-engine", func() {
 	})
 
 	googleDocsSchemaEntityFilter := `
-		entity user {}
+			entity user {}
 	
-		entity resource {
-		  relation viewer  @user  @group#member @group#manager
-		  relation manager @user @group#member @group#manager
+			entity resource {
+			  relation viewer  @user  @group#member @group#manager
+			  relation manager @user @group#member @group#manager
 	
-		  action edit = manager
-		  action view = viewer or manager
-		}
+			  action edit = manager
+			  action view = viewer or manager
+			}
 	
-		entity group {
-		  relation manager @user @group#member @group#manager
-		  relation member @user @group#member @group#manager
-		}
+			entity group {
+			  relation manager @user @group#member @group#manager
+			  relation member @user @group#member @group#manager
+			}
 	
-		entity organization {
-		  relation group @group
-		  relation resource @resource
+			entity organization {
+			  relation group @group
+			  relation resource @resource
 	
-		  relation administrator @user @group#member @group#manager
-		  relation direct_member @user
+			  relation administrator @user @group#member @group#manager
+			  relation direct_member @user
 	
-		  permission admin = administrator
-		  permission member = direct_member or administrator or group.member
-		}`
+			  permission admin = administrator
+			  permission member = direct_member or administrator or group.member
+			}`
 
 	Context("Google Docs Sample: Entity Filter", func() {
 		It("Google Docs Sample: Case 1", func() {
@@ -4541,7 +4589,13 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
 			}
 		})
 
@@ -4621,7 +4675,7 @@ var _ = Describe("lookup-entity-engine", func() {
 					{
 						entityType:  "resource",
 						subject:     "user:4",
-						permissions: []string{"view", "edit"},
+						permissions: []string{"edit", "view"},
 						assertions: map[string][]string{
 							"edit": {"2"},
 							"view": {"2"},
@@ -4729,7 +4783,13 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
 			}
 		})
 
@@ -4842,7 +4902,9 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
 			}
 		})
 
@@ -4980,36 +5042,36 @@ var _ = Describe("lookup-entity-engine", func() {
 	})
 
 	workdaySchemaEntityFilter := `
-			entity user {}
+					entity user {}
 	
-			entity organization {
+					entity organization {
 	
-				relation member @user
+						relation member @user
 	
-				attribute balance integer
+						attribute balance integer
 	
-				permission view = check_balance(balance) and member
-			}
+						permission view = check_balance(balance) and member
+					}
 	
-			entity repository {
+					entity repository {
 	
-				relation organization  @organization
+						relation organization  @organization
 	
-				attribute is_public boolean
+						attribute is_public boolean
 	
-				permission view = is_public
-				permission edit = organization.view
-				permission delete = is_workday(is_public)
-			}
+						permission view = is_public
+						permission edit = organization.view
+						permission delete = is_workday(is_public)
+					}
 	
-			rule check_balance(balance integer) {
-				balance > 5000
-			}
+					rule check_balance(balance integer) {
+						balance > 5000
+					}
 	
-			rule is_workday(is_public boolean) {
-				  is_public && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
-			}
-			`
+					rule is_workday(is_public boolean) {
+						  is_public && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
+					}
+					`
 
 	Context("Weekday Sample: Entity Filter", func() {
 		It("Weekday Sample: Case 1", func() {
@@ -5616,7 +5678,14 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+
 			}
 		})
 
@@ -5934,42 +6003,44 @@ var _ = Describe("lookup-entity-engine", func() {
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(response.GetEntityIds()).Should(Equal(filter.assertions))
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
 			}
 		})
 	})
 
 	driveSchemaSubjectFilter := `
-	entity user {}
+			entity user {}
 	
-	entity organization {
-		relation admin @user
-	}
+			entity organization {
+				relation admin @user
+			}
 	
-	entity folder {
-		relation org @organization
-		relation creator @user
-		relation collaborator @user
+			entity folder {
+				relation org @organization
+				relation creator @user
+				relation collaborator @user
 	
-		permission read = collaborator
-		permission update = collaborator
-		permission delete = creator or org.admin
-		permission share = update
-	}
+				permission read = collaborator
+				permission update = collaborator
+				permission delete = creator or org.admin
+				permission share = update
+			}
 	
-	entity doc {
-		relation org @organization
-		relation parent @folder
+			entity doc {
+				relation org @organization
+				relation parent @folder
 	
-		relation owner @user @organization#admin
-		relation member @user
+				relation owner @user @organization#admin
+				relation member @user
 	
-		permission read = owner or member
-		permission update = owner and org.admin
-		permission delete = owner or org.admin
-		permission share = update and (member not parent.update)
-		permission remove = owner or parent.delete
-	}`
+				permission read = owner or member
+				permission update = owner and org.admin
+				permission delete = owner or org.admin
+				permission share = update and (member not parent.update)
+				permission remove = owner or parent.delete
+			}`
 
 	Context("Drive Sample: Subject Filter", func() {
 		It("Drive Sample: Case 1", func() {
@@ -6948,36 +7019,36 @@ var _ = Describe("lookup-entity-engine", func() {
 	})
 
 	workdaySchemaSubjectFilter := `
-			entity user {}
+					entity user {}
 	
-			entity organization {
+					entity organization {
 	
-				relation member @user
+						relation member @user
 	
-				attribute balance integer
+						attribute balance integer
 	
-				permission view = check_balance(balance) and member
-			}
+						permission view = check_balance(balance) and member
+					}
 	
-			entity repository {
+					entity repository {
 	
-				relation organization  @organization
+						relation organization  @organization
 	
-				attribute is_public boolean
+						attribute is_public boolean
 	
-				permission view = is_public
-				permission edit = organization.view
-				permission delete = is_workday(is_public)
-			}
+						permission view = is_public
+						permission edit = organization.view
+						permission delete = is_workday(is_public)
+					}
 	
-			rule check_balance(balance integer) {
-				balance > 5000
-			}
+					rule check_balance(balance integer) {
+						balance > 5000
+					}
 	
-			rule is_workday(is_public boolean) {
-				  is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
-			}
-			`
+					rule is_workday(is_public boolean) {
+						  is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
+					}
+					`
 
 	Context("Weekday Sample: Subject Filter", func() {
 		It("Weekday Sample: Case 1", func() {

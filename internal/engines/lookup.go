@@ -3,12 +3,11 @@ package engines
 import (
 	"context"
 	"errors"
-	"sync"
-
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"sync"
 )
 
 type LookupEngine struct {
@@ -122,8 +121,8 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	}, nil
 }
 
-// LookupEntity performs a permission check on a set of entities and returns a response
-// containing the IDs of the entities that have the requested permission.
+// LookupEntities performs a permission check on a set of entities and returns a response
+// containing the IDs of the entities that have the requested permissions.
 func (engine *LookupEngine) LookupEntities(ctx context.Context, request *base.PermissionsLookupEntityRequest) (response *base.PermissionsLookupEntityResponse, err error) {
 	// A mutex and slice are declared to safely store entity IDs from concurrent callbacks
 	var mu sync.Mutex
@@ -174,7 +173,7 @@ func (engine *LookupEngine) LookupEntities(ctx context.Context, request *base.Pe
 		})
 	}
 
-	// Perform an entity filter operation based on the permission request
+	// Perform an entity filter operation based on the permissions request
 	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 		TenantId: request.GetTenantId(),
 		Metadata: &base.PermissionEntityFilterRequestMetadata{
@@ -272,8 +271,8 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	return nil
 }
 
-// LookupEntityStream performs a permission check on a set of entities and streams the results
-// containing the IDs of the entities that have the requested permission.
+// LookupEntitiesStream performs a permission check on a set of entities and streams the results
+// containing the IDs of the entities that have the requested permissions.
 func (engine *LookupEngine) LookupEntitiesStream(ctx context.Context, request *base.PermissionsLookupEntityRequest, server base.Permission_LookupEntitiesStreamServer) (err error) {
 	size := request.GetPageSize()
 	if size == 0 {

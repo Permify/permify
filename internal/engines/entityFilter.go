@@ -3,7 +3,6 @@ package engines
 import (
 	"context"
 	"errors"
-
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/schema"
@@ -38,7 +37,6 @@ func (engine *EntityFilter) EntityFilter(
 	permissionChecks *VisitsMap, // A thread safe map to check if for a entity same permission already checked or not
 ) (err error) { // Returns an error if one occurs during execution.
 	// Check if direct result
-
 	for _, entrance := range request.Entrances {
 		if entrance.GetType() == request.GetSubject().GetType() && entrance.GetValue() == request.GetSubject().GetRelation() {
 			found := &base.Entity{
