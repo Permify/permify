@@ -548,8 +548,8 @@ service Permission {
                 fields: {
                   key: "source"
                   value: {string_value:
-                      "str, err := client.Permission.LookupEntitiesStream(context.Background(), &v1.PermissionLookupEntityRequest{\n"
-                      "    Metadata: &v1.PermissionLookupEntityRequestMetadata{\n"
+                      "str, err := client.Permission.LookupEntitiesStream(context.Background(), &v1.PermissionsLookupEntityRequest{\n"
+                      "    Metadata: &v1.PermissionsLookupEntityRequestMetadata{\n"
                       "        SnapToken: \"\",\n"
                       "        SchemaVersion: \"\",\n"
                       "        Depth: 50,\n"
@@ -569,7 +569,7 @@ service Permission {
                       "    if err == io.EOF {\n"
                       "        break\n"
                       "    }\n\n"
-                      "    // res.EntityId\n"
+                      "    // res.EntityId, res.Permission\n"
                       "}"
 }
                 }
@@ -613,7 +613,7 @@ service Permission {
                       "}\n\n"
                       "async function handle(res: AsyncIterable<PermissionsLookupEntityStreamResponse>) {\n"
                       "    for await (const response of res) {\n"
-                      "        // response.entityId\n"
+                      "        // response.entityId, response.permission\n"
                       "    }\n"
                       "}"
 }
