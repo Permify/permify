@@ -242,3 +242,4 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = HealthCheckResponseValidationError{}
+

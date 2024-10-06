@@ -311,3 +311,4 @@ func file_base_v1_health_proto_init() {
 	file_base_v1_health_proto_goTypes = nil
 	file_base_v1_health_proto_depIdxs = nil
 }
+

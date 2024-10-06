@@ -1,0 +1,148 @@
+---
+title: LLM Authorization 
+---
+
+With Permify integrated into RAG systems, users can create permission schemas using natural language and consult documentation while maintaining fine-grained authorization. 
+
+This integration allows for effective control over what data users can access, mitigating potential security risks.
+
+We thought of an additional layer to the system that limits the knowledge available to the RAG based on which user is asking for it -  here is a high level design.
+
+![Screenshot 2024-09-24 at 6 06 30 PM](https://github.com/user-attachments/assets/107b6299-67a4-4cab-9f8d-33339c191665)
+
+Let's dive into a use case of a RAG system authorized by Permify, which controls the vectors an LLM can access based on user requests.
+
+In this scenario, users are organized into teams within organizations, and the LLM system utilizes three source types: `db_table`, `report`, and `excel_file`. 
+
+Each user has specific roles, and our authorization system is structured according to the confidentiality levels of these sources.
+
+For instance, two users ask the same question: `"Can you provide a list of all current clients, their contact details, and agreements?"` The response data is pulled from three different database tables:
+
+- **Companies** table contains client company names and basic details.
+- **Contacts** table holds the contact information (e.g., emails, phone numbers) for those client companies.
+- **Contracts** table stores sensitive agreements, including terms, legal obligations, and pricing information. 
+ 
+All members of the organization, such as team leads or members, have access to the **Companies** and **Contacts** tables. This means they can view client names and contact details, as these are non-sensitive pieces of information necessary for daily operations. 
+
+However, the **Contracts** table is restricted to high-level roles like the organization’s director. This table holds confidential legal agreements, so access is limited to protect sensitive business data.
+
+In this scenario, the organization director, would receive the full response, including client names, contacts, and contractual details. 
+
+Meanwhile, the team lead would only receive data from the Companies and Contacts tables, effectively hiding the Contracts table from their view, ensuring the sensitive agreement details remain confidential as in the figure.
+
+This structured approach not only protects sensitive data but also aligns access permissions with the roles and responsibilities of each user, enhancing overall data security and ensuring that critical information is only available to those who need it for their work. 
+
+Through this careful management of access, organizations can foster a secure environment that encourages collaboration while safeguarding proprietary information.
+
+### Overview of Implementation in Permify
+
+The authorization system in **Permify** is structured to manage access to various entities—`db_table`, `report`, and `excel_file`—based on a user’s role within an organization or team and the confidentiality level assigned to each resource. This framework ensures that access permissions are applied consistently and securely across all resources.
+
+#### Entities and Roles
+1. **User**: Represents an individual in the system.
+2. **Organization**: Contains two primary roles:
+   - **Director**: Has the highest level of access, able to view all resources with the highest confidentiality.
+   - **Member**: Regular members of the organization.
+3. **Team**: Has two primary roles:
+   - **Lead**: Manages the team and has access to most team-level resources.
+   - **Member**: General team participants with restricted access.
+
+#### Confidentiality Levels
+Resources are assigned a `confidentiality_level` attribute to define access restrictions. The levels include:
+1. Accessible by all organization members.
+2. Accessible by the organization's `director`, team `lead`, and team `members`.
+3. Accessible by the organization's `director` and the team `lead`.
+4. Accessible only by the organization's `director`.
+
+#### Authorization Logic
+Each resource entity (`db_table`, `report`, `excel_file`) has a `view` permission defined using the `confidentiality` rules, which verifies the confidentiality level of the document/entity. The rule works as follows:
+
+1. **High Level Access (`4`)**:
+   - Only users with the `director` role in the organization can view resources labeled with the `4` confidentiality level.
+
+2. **Medium-High Level Access (`3`)**:
+   - Resources with this level are accessible to `directors` of the organization and `leads` of the relevant team.
+
+3. **Medium Level Access (`2`)**:
+   - Accessible by team `leads`, team `members`, and `directors` of the organization.
+
+4. **Low Level Access (`1`)**:
+   - Any `member` of the organization can access these resources.
+
+
+#### Schema
+
+```json
+entity user {}
+
+entity organization {
+    relation director @user
+    relation member @user
+}
+
+entity team {
+    relation lead @user
+    relation member @user
+    relation parent @organization
+}
+
+entity db_table {
+    relation parent @organization
+    relation team @team
+    attribute confidentiality_level integer
+    
+    permission view_director = check_confidentiality_high(confidentiality_level) and parent.director
+    permission view_team_lead = check_confidentiality_medium_high(confidentiality_level) and (parent.director or team.lead)
+    permission view_team_member = check_confidentiality_medium(confidentiality_level) and (team.lead or team.member)
+    permission view_org_member = check_confidentiality_low(confidentiality_level) and parent.member
+
+    action view = view_director or view_team_lead or view_team_member or view_org_member
+    action edit = team.lead
+}
+
+entity report {
+    relation parent @organization
+    relation team @team
+    attribute confidentiality_level integer
+    
+    permission view_director = check_confidentiality_high(confidentiality_level) and parent.director
+    permission view_team_lead = check_confidentiality_medium_high(confidentiality_level) and (parent.director or team.lead)
+    permission view_team_member = check_confidentiality_medium(confidentiality_level) and (team.lead or team.member)
+    permission view_org_member = check_confidentiality_low(confidentiality_level) and parent.member
+
+    action view = view_director or view_team_lead or view_team_member or view_org_member
+    action edit = team.lead
+}
+
+entity excel_file {
+    relation parent @organization
+    relation team @team
+    attribute confidentiality_level integer
+    
+    permission view_director = check_confidentiality_high(confidentiality_level) and parent.director
+    permission view_team_lead = check_confidentiality_medium_high(confidentiality_level) and (parent.director or team.lead)
+    permission view_team_member = check_confidentiality_medium(confidentiality_level) and (parent.director or team.lead or team.member)
+    permission view_org_member = check_confidentiality_low(confidentiality_level) and (parent.director or team.lead or team.member or parent.member)
+
+    action view = view_director or view_team_lead or view_team_member or view_org_member
+    action edit = team.lead
+}
+
+rule check_confidentiality_high(confidentiality_level integer) {
+	confidentiality_level == 4
+}
+
+rule check_confidentiality_medium_high(confidentiality_level integer) {
+	confidentiality_level == 3
+}
+
+rule check_confidentiality_medium(confidentiality_level integer) {
+	confidentiality_level == 2
+}
+
+rule check_confidentiality_low(confidentiality_level integer) {
+	confidentiality_level == 1
+}
+```
+
+For a practical demonstration of this authorization system, you can explore the [Permify Playground](https://play.permify.co/?s=s-XKwXABwwAq5smR9tJ4ITcusoOfmYTd), which covers the same example with data inserted and sample tests written.

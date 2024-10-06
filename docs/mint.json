@@ -346,7 +346,8 @@
         "use-cases/rebac",
         "use-cases/abac",
         "use-cases/custom-roles",
-        "use-cases/multi-tenancy"
+        "use-cases/multi-tenancy",
+        "use-cases/llm-authorization"
       ]
     },
     {

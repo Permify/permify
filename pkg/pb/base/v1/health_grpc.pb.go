@@ -178,3 +178,4 @@ var Health_ServiceDesc = grpc.ServiceDesc{
 	},
 	Metadata: "base/v1/health.proto",
 }
+

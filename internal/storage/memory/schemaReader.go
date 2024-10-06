@@ -141,7 +141,7 @@ func (r *SchemaReader) ListSchemas(_ context.Context, tenantID string, paginatio
 	defer txn.Abort()
 
 	var result memdb.ResultIterator
-	result, err = txn.Get(constants.SchemaDefinitionsTable, "version")
+	result, err = txn.Get(constants.SchemaDefinitionsTable, "tenant", tenantID)
 	if err != nil {
 		return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}

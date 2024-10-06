@@ -36,13 +36,13 @@
         <dependency>
             <groupId>build.buf.gen</groupId>
             <artifactId>permifyco_permify_grpc_java</artifactId>
-            <version>1.66.0.1.20240916080212.d596bd7e4184</version>
+            <version>1.66.0.1.20240930153438.5bdb051ac145</version>
         </dependency>
         
         <dependency>
             <groupId>build.buf.gen</groupId>
             <artifactId>permifyco_permify_protocolbuffers_java</artifactId>
-            <version>28.2.0.1.20240916080212.d596bd7e4184</version>
+            <version>28.2.0.1.20240930153438.5bdb051ac145</version>
         </dependency>
         
         <dependency>
@@ -112,7 +112,7 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
-                <version>4.1.113.Final</version>
+                <version>4.1.114.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -121,7 +121,7 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http</artifactId>
-                <version>4.1.113.Final</version>
+                <version>4.1.114.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -130,7 +130,7 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http2</artifactId>
-                <version>4.1.113.Final</version>
+                <version>4.1.114.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
