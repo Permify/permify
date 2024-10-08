@@ -27,7 +27,7 @@ jobs:
               uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
             - name: Generate Python Client
-              uses: openapi-generators/openapitools-generator-action@c3f7802734bd5e41bb6c5fcf5c708133ee52f060 # v1
+              uses: openapi-generators/openapitools-generator-action@e2367b13d18174ee00d5c2894492883965808c8f # v1
               with:
                   generator: ${{ matrix.language }}
                   openapi-file: ${SWAGGER_PATH}
