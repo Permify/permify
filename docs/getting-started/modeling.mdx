@@ -30,16 +30,16 @@ We'll follow a simplified version of the GitHub access control system, where tea
 Before start I want to share the full implementation of simple Github access control example with using Permify Schema.
 
 <iframe
-    src="https://play.permify.co/?s=s-d1Qkf1d4y6RsxkugbIDYhxdYxfNRlm&t=f"
-    title="Organizations Hierarchies"
-    style={{
-        width: '100%',
-        height: '700px',
-        border: 'none',
-        margin: '0 auto',
-        display: 'block'
-    }}>
-</iframe>
+  src="https://play.permify.co/?s=s-d1Qkf1d4y6RsxkugbIDYhxdYxfNRlm&t=f"
+  title="Organizations Hierarchies"
+  style={{
+    width: "100%",
+    height: "700px",
+    border: "none",
+    margin: "0 auto",
+    display: "block",
+  }}
+></iframe>
 
 <Note>
 You can start developing Permify Schema on [VSCode]. You can install the extension by searching for **Perm** in the extensions marketplace.
@@ -244,6 +244,31 @@ Using `action` and `permission` will yield the same result for defining permissi
 
 </Note>
 
+It's important to understand the nature of the `and` operation: it creates an intersection between relations but is not necessarily tied to specific entities.
+
+For example, in the following model, users can see a repository if they are a member or admin of any organization.
+
+Let's say `user:1` is a member of `organization:1` and an admin of `organization:2`. If `repository:1` belongs to `organization:1` (via the parent relationship), then `user:1` is granted access to edit `repository:1`.
+
+```perm
+entity user {}
+
+entity organization {
+
+    relation member @user
+    relation admin @user
+
+    permission view = member and admin
+}
+
+entity repository {
+
+    relation parent @organization
+
+    permission view = parent.member and parent.admin
+}
+```
+
 #### Exclusion
 
 After this point, we'll move beyond the GitHub example and explore more advanced abilities of Permify DSL.
@@ -353,6 +378,44 @@ rule check_ip_range(ip_range string[]) {
 }
 ```
 
+### Using Attributes Across Entities
+
+You can use attributes across entities with rules. Specifically, rules can be written inside entities to create entity-specific conditioning.
+
+In the example below, we defined a check_confidentiality rule inside the organization entity. This rule is responsible for comparing the specific organization's authority level with the given authority level.
+
+If the organization's authority is higher than the given authority, it will return true.
+
+```
+entity user {}
+
+entity organization {
+
+    attribute authority integer
+
+    // organizational roles
+    relation admin @user
+    relation member @user
+
+    rule check_confidentiality(authority integer) {
+        this.authority >= authority
+    }
+}
+
+entity repository {
+
+    attribute authority integer
+
+    // represents repositories parent organization
+    relation parent @organization
+
+    // permissions
+    permission edit = parent.check_confidentiality(authority)
+}
+```
+
+As shown in the example, we used this rule in the `edit` permission of the repository to check whether the organization:X has edit access or not, depending on the authority level it possess.
+
 <Note>
 We design our schema language based on [Common Expression Language (CEL)](https://github.com/google/cel-go). So the syntax looks nearly identical to equivalent expressions in C++, Go, Java, and TypeScript.
 
@@ -365,17 +428,20 @@ Please let us know via our [Discord channel](https://discord.gg/n6KfzYxhPp) if y
 Let’s examine our modeling guides for common permission use cases.
 
 **Role-Based Access Control (RBAC)**
+
 - [Global Roles](/modeling-guides/rbac/global-roles)
 - [Resource Specific Roles](/modeling-guides/rbac/resource-specific-roles)
 - [Custom Roles](/modeling-guides/rbac/custom-roles)
 
 **Relationship Based Access Control (ReBAC)**
+
 - [User Groups](/modeling-guides/rebac/user-groups)
 - [Hierarchies](/modeling-guides/rebac/hierarchies)
 - [Nested/Inherited Permissions](/modeling-guides/rebac/impersonation)
 - [Recursive Relationships](/modeling-guides/rebac/recursive-rebac)
 
 **Attribute Based Access Control (ABAC)**
+
 - [Public or Private Resources](/modeling-guides/abac/public-private)
 - [Text & Object Based Conditions](/modeling-guides/abac/text-object-based-conditions)
 - [Numerical Conditions](/modeling-guides/abac/numerical-conditions)
