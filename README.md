@@ -81,9 +81,11 @@ localhost:3476/healthz
 
 ## Community ♥️
 
-We would love to hear from you!
+Permify is a [Cloud Native Computing Foundation](https://www.cncf.io/) member and a community-driven project supported by companies worldwide, from startups to Fortune 500 enterprises.
 
-Get the latest product updates, receive immediate assistance from our team members, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
+Your feedback helps shape the future of Permify, and we'd love to hear from you!
+
+Share your use case, get the latest product updates, receive immediate assistance from our team, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
 
 <a href="https://discord.gg/n6KfzYxhPp" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord" /></a>&nbsp;
 
