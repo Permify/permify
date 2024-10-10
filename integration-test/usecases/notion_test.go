@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -17,7 +16,6 @@ var _ = Describe("notion-test", func() {
 
 	Context("Notion Sample: Assertions", func() {
 		It("Notion Sample: Checks", func() {
-			fmt.Print("here")
 			for _, scenario := range shapes.InitialNotionShape.Scenarios {
 				for _, check := range scenario.Checks {
 
@@ -129,7 +127,6 @@ var _ = Describe("notion-test", func() {
 					TenantId: "notion",
 					Checks:   checks,
 				})
-				fmt.Println("here")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				// Iterate over results and validate them
