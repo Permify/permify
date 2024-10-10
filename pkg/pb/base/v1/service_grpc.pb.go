@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion8
 
 const (
 	Permission_Check_FullMethodName              = "/base.v1.Permission/Check"
+	Permission_BulkCheck_FullMethodName          = "/base.v1.Permission/BulkCheck"
 	Permission_Expand_FullMethodName             = "/base.v1.Permission/Expand"
 	Permission_LookupEntity_FullMethodName       = "/base.v1.Permission/LookupEntity"
 	Permission_LookupEntityStream_FullMethodName = "/base.v1.Permission/LookupEntityStream"
@@ -37,6 +38,10 @@ type PermissionClient interface {
 	// It is used to determine whether a specific user has permission to perform an action on a resource.
 	// For example, "Can the user 1 push to repository 1?"
 	Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResponse, error)
+	// Bulk Check method receives a BulkPermissionCheckRequest and returns a BulkPermissionCheckResponse.
+	// It is used to determine whether multiple users have permission to perform actions on resources.
+	// For example, "Can user 1 push to repository 1?" and "Can user 2 read from repository 2?"
+	BulkCheck(ctx context.Context, in *BulkPermissionCheckRequest, opts ...grpc.CallOption) (*BulkPermissionCheckResponse, error)
 	// Expand method receives a PermissionExpandRequest and returns a PermissionExpandResponse.
 	// It expands relationships according to the schema provided.
 	Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error)
@@ -66,6 +71,16 @@ func (c *permissionClient) Check(ctx context.Context, in *PermissionCheckRequest
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PermissionCheckResponse)
 	err := c.cc.Invoke(ctx, Permission_Check_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *permissionClient) BulkCheck(ctx context.Context, in *BulkPermissionCheckRequest, opts ...grpc.CallOption) (*BulkPermissionCheckResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BulkPermissionCheckResponse)
+	err := c.cc.Invoke(ctx, Permission_BulkCheck_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +170,10 @@ type PermissionServer interface {
 	// It is used to determine whether a specific user has permission to perform an action on a resource.
 	// For example, "Can the user 1 push to repository 1?"
 	Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResponse, error)
+	// Bulk Check method receives a BulkPermissionCheckRequest and returns a BulkPermissionCheckResponse.
+	// It is used to determine whether multiple users have permission to perform actions on resources.
+	// For example, "Can user 1 push to repository 1?" and "Can user 2 read from repository 2?"
+	BulkCheck(context.Context, *BulkPermissionCheckRequest) (*BulkPermissionCheckResponse, error)
 	// Expand method receives a PermissionExpandRequest and returns a PermissionExpandResponse.
 	// It expands relationships according to the schema provided.
 	Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error)
@@ -179,6 +198,9 @@ type UnimplementedPermissionServer struct {
 
 func (UnimplementedPermissionServer) Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
+}
+func (UnimplementedPermissionServer) BulkCheck(context.Context, *BulkPermissionCheckRequest) (*BulkPermissionCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkCheck not implemented")
 }
 func (UnimplementedPermissionServer) Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Expand not implemented")
@@ -222,6 +244,24 @@ func _Permission_Check_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PermissionServer).Check(ctx, req.(*PermissionCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Permission_BulkCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkPermissionCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionServer).BulkCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Permission_BulkCheck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionServer).BulkCheck(ctx, req.(*BulkPermissionCheckRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -329,6 +369,10 @@ var Permission_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Check",
 			Handler:    _Permission_Check_Handler,
+		},
+		{
+			MethodName: "BulkCheck",
+			Handler:    _Permission_BulkCheck_Handler,
 		},
 		{
 			MethodName: "Expand",
