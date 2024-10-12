@@ -765,6 +765,124 @@
         ]
       }
     },
+    "/v1/tenants/{tenant_id}/permissions/lookup-entities": {
+      "post": {
+        "summary": "lookup entities",
+        "operationId": "permissions.lookupEntities",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PermissionsLookupEntityResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant \u003ccode\u003et1\u003c/code\u003e for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LookupEntitiesBody"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "go",
+            "lang": "go",
+            "source": "cr, err := client.Permission.LookupEntities(context.Background(), \u0026v1.PermissionsLookupEntityRequest{\n    TenantId: \"t1\",\n    Metadata: \u0026v1.PermissionLookupEntityRequestMetadata{\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    EntityType: \"document\",\n    Permissions: [\"edit\"],\n    Subject: \u0026v1.Subject{\n        Type: \"user\",\n        Id: \"1\",\n    }\n    PageSize: 20,\n    ContinuousToken: \"\",\n})"
+          },
+          {
+            "label": "node",
+            "lang": "javascript",
+            "source": "client.permission.lookupEntities({\n    tenantId: \"t1\",\n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\",\n        depth: 20\n    },\n    entity_type: \"document\",\n    permissions: [\"edit\"],\n    subject: {\n        type: \"user\",\n        id: \"1\"\n    },\n    page_size: 20,\n    continuous_token: \"\"\n}).then((response) =\u003e {\n    console.log(response.entity_ids)\n})"
+          },
+          {
+            "label": "cURL",
+            "lang": "curl",
+            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/lookup-entities' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\":{\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"depth\": 20\n  },\n  \"entity_type\": \"document\",\n  \"permissions\": [\"edit\"],\n  \"subject\": {\n    \"type\":\"user\",\n    \"id\":\"1\"\n  },\n  \"page_size\": 20,\n  \"continuous_token\": \"\",\n}'"
+          }
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/permissions/lookup-entities-stream": {
+      "post": {
+        "summary": "lookup entities stream",
+        "operationId": "permissions.lookupEntitiesStream",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/PermissionsLookupEntityStreamResponse"
+                },
+                "error": {
+                  "$ref": "#/definitions/Status"
+                }
+              },
+              "title": "Stream result of PermissionsLookupEntityStreamResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant \u003ccode\u003et1\u003c/code\u003e for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LookupEntitiesStreamBody"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "go",
+            "lang": "go",
+            "source": "str, err := client.Permission.LookupEntitiesStream(context.Background(), \u0026v1.PermissionsLookupEntityRequest{\n    Metadata: \u0026v1.PermissionsLookupEntityRequestMetadata{\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 50,\n    },\n    EntityType: \"document\",\n    Permissions: [\"view\"],\n    Subject: \u0026v1.Subject{\n        Type: \"user\",\n        Id: \"1\",\n    },\n    PageSize: 20,\n    ContinuousToken: \"\",\n})\n\n// handle stream response\nfor {\n    res, err := str.Recv()\n\n    if err == io.EOF {\n        break\n    }\n\n    // res.EntityId, res.Permission\n}"
+          },
+          {
+            "label": "node",
+            "lang": "javascript",
+            "source": "const permify = require(\"@permify/permify-node\");\nconst {PermissionsLookupEntityStreamResponse} = require(\"@permify/permify-node/dist/src/grpc/generated/base/v1/service\");\n\nfunction main() {\n    const client = new permify.grpc.newClient({\n        endpoint: \"localhost:3478\",\n    });\n\n    let res = client.permission.lookupEntitiesStream({\n        metadata: {\n            snapToken: \"\",\n            schemaVersion: \"\",\n            depth: 20\n        },\n        entityType: \"document\",\n        permissions: [\"view\"],\n        subject: {\n            type: \"user\",\n            id: \"1\"\n        },\n        page_size: 20,\n        continuous_token: \"\"\n    });\n\n    handle(res);\n}\n\nasync function handle(res: AsyncIterable\u003cPermissionsLookupEntityStreamResponse\u003e) {\n    for await (const response of res) {\n        // response.entityId, response.permission\n    }\n}"
+          }
+        ]
+      }
+    },
     "/v1/tenants/{tenant_id}/permissions/lookup-entity": {
       "post": {
         "summary": "lookup entity",
@@ -2036,6 +2154,18 @@
       },
       "description": "EntityFilter is used to filter entities based on the type and ids."
     },
+    "EntityIds": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "entitiy Ids"
+        }
+      }
+    },
     "Entry": {
       "type": "object",
       "properties": {
@@ -2230,6 +2360,96 @@
         }
       },
       "description": "List type with typed elements, e.g. `list\u003cexample.proto.MyMessage\u003e`."
+    },
+    "LookupEntitiesBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionLookupEntityRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity_type": {
+          "type": "string",
+          "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which to check the permission, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Context associated with this request."
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/StringArrayValue"
+          },
+          "description": "Scope: A map that associates entity types with lists of identifiers. Each entry\nhelps filter requests by specifying which entities are relevant to the operation."
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size is the number of entities to be returned in the response.\nThe value should be between 1 and 100."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
+        }
+      },
+      "description": "PermissionsLookupEntityRequest is the request message for the LookupEntities method in the Permission service."
+    },
+    "LookupEntitiesStreamBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/PermissionLookupEntityRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity_type": {
+          "type": "string",
+          "description": "Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes."
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which to check the permission, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Context associated with this request."
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/StringArrayValue"
+          },
+          "description": "Scope: A map that associates entity types with lists of identifiers. Each entry\nhelps filter requests by specifying which entities are relevant to the operation."
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size is the number of entities to be returned in the response.\nThe value should be between 1 and 100."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
+        }
+      },
+      "description": "PermissionsLookupEntityRequest is the request message for the LookupEntities method in the Permission service."
     },
     "LookupEntityBody": {
       "type": "object",
@@ -2646,6 +2866,40 @@
         }
       },
       "description": "PermissionSubjectPermissionResponse is the response message for the SubjectPermission method in the Permission service."
+    },
+    "PermissionsLookupEntityResponse": {
+      "type": "object",
+      "properties": {
+        "entity_ids": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/EntityIds"
+          },
+          "description": "List of identifiers for entities that match the lookup."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
+        }
+      },
+      "description": "PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service."
+    },
+    "PermissionsLookupEntityStreamResponse": {
+      "type": "object",
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "description": "Identifier for an entity that matches the lookup."
+        },
+        "permission": {
+          "type": "string",
+          "title": "The name of the permission for which the specified entity_id has access"
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
+        }
+      }
     },
     "PrimitiveType": {
       "type": "string",

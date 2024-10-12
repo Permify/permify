@@ -390,6 +390,244 @@ service Permission {
     };
   }
 
+
+  // LookupEntity method receives a PermissionsLookupEntityRequest and returns a PermissionsLookupEntityResponse.
+  // It is used to retrieve entities by its identifier.
+  rpc LookupEntities(PermissionsLookupEntityRequest) returns (PermissionsLookupEntityResponse) {
+    // HTTP mapping for this method
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/permissions/lookup-entities"
+      body: "*"
+    };
+    // OpenAPI annotations for this method
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "lookup entities"
+      tags: ["Permission"]
+      operation_id: "permissions.lookupEntities"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value: {string_value: "go"}
+                }
+                fields: {
+                  key: "label"
+                  value: {string_value: "go"}
+                }
+                fields: {
+                  key: "source"
+                  value: {string_value:
+                      "cr, err := client.Permission.LookupEntities(context.Background(), &v1.PermissionsLookupEntityRequest{\n"
+                      "    TenantId: \"t1\",\n"
+                      "    Metadata: &v1.PermissionLookupEntityRequestMetadata{\n"
+                      "        SnapToken: \"\",\n"
+                      "        SchemaVersion: \"\",\n"
+                      "        Depth: 20,\n"
+                      "    },\n"
+                      "    EntityType: \"document\",\n"
+                      "    Permissions: [\"edit\"],\n"
+                      "    Subject: &v1.Subject{\n"
+                      "        Type: \"user\",\n"
+                      "        Id: \"1\",\n"
+                      "    }\n"
+                      "    PageSize: 20,\n"
+                      "    ContinuousToken: \"\",\n"
+                      "})"
+}
+                }
+              }
+            }
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value: {string_value: "javascript"}
+                }
+                fields: {
+                  key: "label"
+                  value: {string_value: "node"}
+                }
+                fields: {
+                  key: "source"
+                  value: {string_value:
+                      "client.permission.lookupEntities({\n"
+                      "    tenantId: \"t1\",\n"
+                      "    metadata: {\n"
+                      "        snapToken: \"\",\n"
+                      "        schemaVersion: \"\",\n"
+                      "        depth: 20\n"
+                      "    },\n"
+                      "    entity_type: \"document\",\n"
+                      "    permissions: [\"edit\"],\n"
+                      "    subject: {\n"
+                      "        type: \"user\",\n"
+                      "        id: \"1\"\n"
+                      "    },\n"
+                      "    page_size: 20,\n"
+                      "    continuous_token: \"\"\n"
+                      "}).then((response) => {\n"
+                      "    console.log(response.entity_ids)\n"
+                      "})"
+}
+                }
+              }
+            }
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value: {string_value: "curl"}
+                }
+                fields: {
+                  key: "label"
+                  value: {string_value: "cURL"}
+                }
+                fields: {
+                  key: "source"
+                  value: {string_value:
+                      "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/lookup-entities' \\\n"
+                      "--header 'Content-Type: application/json' \\\n"
+                      "--data-raw '{\n"
+                      "  \"metadata\":{\n"
+                      "    \"snap_token\": \"\",\n"
+                      "    \"schema_version\": \"\",\n"
+                      "    \"depth\": 20\n"
+                      "  },\n"
+                      "  \"entity_type\": \"document\",\n"
+                      "  \"permissions\": [\"edit\"],\n"
+                      "  \"subject\": {\n"
+                      "    \"type\":\"user\",\n"
+                      "    \"id\":\"1\"\n"
+                      "  },\n"
+                      "  \"page_size\": 20,\n"
+                      "  \"continuous_token\": \"\",\n"
+                      "}'"
+}
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+  }
+
+  // LookupEntityStream method receives a PermissionLookupEntityRequest and streams a series of PermissionLookupEntityStreamResponse messages.
+  // It is used to retrieve entities by their identifiers in a streaming fashion.
+  rpc LookupEntitiesStream(PermissionsLookupEntityRequest) returns (stream PermissionsLookupEntityStreamResponse) {
+    // HTTP mapping for this method
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/permissions/lookup-entities-stream"
+      body: "*"
+    };
+    // OpenAPI annotations for this method
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "lookup entities stream"
+      tags: ["Permission"]
+      operation_id: "permissions.lookupEntitiesStream"
+      description: ""
+      extensions: {
+        key: "x-codeSamples"
+        value: {
+          list_value: {
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value: {string_value: "go"}
+                }
+                fields: {
+                  key: "label"
+                  value: {string_value: "go"}
+                }
+                fields: {
+                  key: "source"
+                  value: {string_value:
+                      "str, err := client.Permission.LookupEntitiesStream(context.Background(), &v1.PermissionsLookupEntityRequest{\n"
+                      "    Metadata: &v1.PermissionsLookupEntityRequestMetadata{\n"
+                      "        SnapToken: \"\",\n"
+                      "        SchemaVersion: \"\",\n"
+                      "        Depth: 50,\n"
+                      "    },\n"
+                      "    EntityType: \"document\",\n"
+                      "    Permissions: [\"view\"],\n"
+                      "    Subject: &v1.Subject{\n"
+                      "        Type: \"user\",\n"
+                      "        Id: \"1\",\n"
+                      "    },\n"
+                      "    PageSize: 20,\n"
+                      "    ContinuousToken: \"\",\n"
+                      "})\n\n"
+                      "// handle stream response\n"
+                      "for {\n"
+                      "    res, err := str.Recv()\n\n"
+                      "    if err == io.EOF {\n"
+                      "        break\n"
+                      "    }\n\n"
+                      "    // res.EntityId, res.Permission\n"
+                      "}"
+}
+                }
+              }
+            }
+            values: {
+              struct_value: {
+                fields: {
+                  key: "lang"
+                  value: {string_value: "javascript"}
+                }
+                fields: {
+                  key: "label"
+                  value: {string_value: "node"}
+                }
+                fields: {
+                  key: "source"
+                  value: {string_value:
+                      "const permify = require(\"@permify/permify-node\");\n"
+                      "const {PermissionsLookupEntityStreamResponse} = require(\"@permify/permify-node/dist/src/grpc/generated/base/v1/service\");\n\n"
+                      "function main() {\n"
+                      "    const client = new permify.grpc.newClient({\n"
+                      "        endpoint: \"localhost:3478\",\n"
+                      "    });\n\n"
+                      "    let res = client.permission.lookupEntitiesStream({\n"
+                      "        metadata: {\n"
+                      "            snapToken: \"\",\n"
+                      "            schemaVersion: \"\",\n"
+                      "            depth: 20\n"
+                      "        },\n"
+                      "        entityType: \"document\",\n"
+                      "        permissions: [\"view\"],\n"
+                      "        subject: {\n"
+                      "            type: \"user\",\n"
+                      "            id: \"1\"\n"
+                      "        },\n"
+                      "        page_size: 20,\n"
+                      "        continuous_token: \"\"\n"
+                      "    });\n\n"
+                      "    handle(res);\n"
+                      "}\n\n"
+                      "async function handle(res: AsyncIterable<PermissionsLookupEntityStreamResponse>) {\n"
+                      "    for await (const response of res) {\n"
+                      "        // response.entityId, response.permission\n"
+                      "    }\n"
+                      "}"
+}
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+  }
+
+
+
   // LookupEntityStream method receives a PermissionLookupEntityRequest and streams a series of PermissionLookupEntityStreamResponse messages.
   // It is used to retrieve entities by their identifiers in a streaming fashion.
   rpc LookupEntityStream(PermissionLookupEntityRequest) returns (stream PermissionLookupEntityStreamResponse) {
@@ -988,6 +1226,81 @@ message PermissionLookupEntityRequest {
   ];
 }
 
+// PermissionsLookupEntityRequest is the request message for the LookupEntities method in the Permission service.
+message PermissionsLookupEntityRequest {
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {
+      pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
+      max_bytes: 128
+      ignore_empty: false
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
+
+  // Metadata associated with this request, required.
+  PermissionLookupEntityRequestMetadata metadata = 2 [
+    json_name = "metadata",
+    (validate.rules).message.required = true
+  ];
+
+  // Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
+  string entity_type = 3 [
+    json_name = "entity_type",
+    (validate.rules).string = {
+      pattern: "^[a-zA-Z_]{1,64}$"
+      max_bytes: 64
+      ignore_empty: false
+    }
+  ];
+
+  // Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
+  repeated string permissions = 4 [json_name = "permissions", (validate.rules).repeated = {
+    min_items : 1,
+    max_items : 100,
+    items: {
+      string: {
+        pattern: "^[a-zA-Z_][a-zA-Z0-9_]*$",
+        max_bytes: 64,
+        ignore_empty: false 
+      }
+    }
+  }
+ ];
+
+  // Subject for which to check the permission, required.
+  Subject subject = 5 [
+    json_name = "subject",
+    (validate.rules).message.required = true
+  ];
+
+  // Context associated with this request.
+  Context context = 6 [json_name = "context"];
+
+  // Scope: A map that associates entity types with lists of identifiers. Each entry
+  // helps filter requests by specifying which entities are relevant to the operation.
+  map<string, StringArrayValue> scope = 7 [json_name = "scope"];
+
+  // page_size is the number of entities to be returned in the response.
+  // The value should be between 1 and 100.
+  uint32 page_size = 8 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {
+      gte: 1
+      ignore_empty: true
+    }
+  ];
+
+  // continuous_token is an optional parameter used for pagination.
+  // It should be the value received in the previous response.
+  string continuous_token = 9 [
+    json_name = "continuous_token",
+    (validate.rules).string = {ignore_empty: true}
+  ];
+}
+
+
 // PermissionLookupEntityRequestMetadata metadata for the PermissionLookupEntityRequest.
 message PermissionLookupEntityRequestMetadata {
   // Version of the schema.
@@ -1016,6 +1329,22 @@ message PermissionLookupEntityResponse {
   string continuous_token = 2 [json_name = "continuous_token"];
 }
 
+
+// PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service.
+message PermissionsLookupEntityResponse {
+  // List of identifiers for entities that match the lookup.
+  map<string, EntityIds> entity_ids = 1 [json_name = "entity_ids"];
+
+  // continuous_token is a string that can be used to paginate and retrieve the next set of results.
+  string continuous_token = 2 [json_name = "continuous_token"];
+}
+
+message EntityIds {
+  // entitiy Ids
+  repeated string ids = 1;
+}
+
+
 // LOOKUP STREAM
 
 // PermissionLookupEntityStreamResponse is the response message for the LookupEntityStream method in the Permission service.
@@ -1025,6 +1354,17 @@ message PermissionLookupEntityStreamResponse {
 
   // continuous_token is a string that can be used to paginate and retrieve the next set of results.
   string continuous_token = 2 [json_name = "continuous_token"];
+}
+
+message PermissionsLookupEntityStreamResponse {
+  // Identifier for an entity that matches the lookup.
+  string entity_id = 1 [json_name = "entity_id"];
+
+  // The name of the permission for which the specified entity_id has access
+  string permission = 2 [json_name = "permission"];
+
+  // continuous_token is a string that can be used to paginate and retrieve the next set of results.
+  string continuous_token = 3 [json_name = "continuous_token"];
 }
 
 // PermissionEntityFilterRequest is the request message for the LookupEntityStream method in the Permission service.
@@ -1047,7 +1387,7 @@ message PermissionEntityFilterRequest {
   ];
 
   // Reference to the entity to filter.
-  Entrance entrance = 3 [json_name = "entrance"];
+  repeated Entrance entrances = 3 [json_name = "entrances"];
 
   // Subject for which to check the permission.
   Subject subject = 4 [json_name = "subject"];

@@ -393,3 +393,17 @@ func IsRelational(en *base.EntityDefinition, permission string) bool {
 
 	return isRelational
 }
+
+func ConvertToPermissionsLookupEntityRequest(req *base.PermissionLookupEntityRequest) *base.PermissionsLookupEntityRequest {
+	return &base.PermissionsLookupEntityRequest{
+		TenantId:        req.TenantId,
+		Metadata:        req.Metadata,
+		EntityType:      req.EntityType,
+		Permissions:     []string{req.Permission},
+		Subject:         req.Subject,
+		Context:         req.Context,
+		Scope:           req.Scope,
+		PageSize:        req.PageSize,
+		ContinuousToken: req.ContinuousToken,
+	}
+}

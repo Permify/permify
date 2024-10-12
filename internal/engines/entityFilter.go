@@ -3,7 +3,6 @@ package engines
 import (
 	"context"
 	"errors"
-
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Permify/permify/internal/schema"
@@ -35,31 +34,36 @@ func (engine *EntityFilter) EntityFilter(
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
+	permissionChecks *VisitsMap, // A thread safe map to check if for a entity same permission already checked or not
 ) (err error) { // Returns an error if one occurs during execution.
 	// Check if direct result
-	if request.GetEntrance().GetType() == request.GetSubject().GetType() && request.GetEntrance().GetValue() == request.GetSubject().GetRelation() {
-		found := &base.Entity{
-			Type: request.GetSubject().GetType(),
-			Id:   request.GetSubject().GetId(),
-		}
+	for _, entrance := range request.Entrances {
+		if entrance.GetType() == request.GetSubject().GetType() && entrance.GetValue() == request.GetSubject().GetRelation() {
+			found := &base.Entity{
+				Type: request.GetSubject().GetType(),
+				Id:   request.GetSubject().GetId(),
+			}
 
-		if !visits.AddPublished(found) { // If the entity and relation has already been visited.
-			return nil
-		}
+			if !visits.AddPublished(found) { // If the entity and relation has already been visited.
+				return nil
+			}
 
-		// If the entity reference is the same as the subject, publish the result directly and return.
-		publisher.Publish(found, &base.PermissionCheckRequestMetadata{
-			SnapToken:     request.GetMetadata().GetSnapToken(),
-			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-			Depth:         request.GetMetadata().GetDepth(),
-		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+			// If the entity reference is the same as the subject, publish the result directly and return.
+			publisher.Publish(found, &base.PermissionCheckRequestMetadata{
+				SnapToken:     request.GetMetadata().GetSnapToken(),
+				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+				Depth:         request.GetMetadata().GetDepth(),
+			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
+			// Breaking loop here as publisher would make sure now to check for all permissions
+			break
+		}
 	}
 
 	// Retrieve linked entrances
 	cn := schema.NewLinkedGraph(engine.schema) // Create a new linked graph from the schema definition.
 	var entrances []*schema.LinkedEntrance
 	entrances, err = cn.LinkedEntrances(
-		request.GetEntrance(),
+		request.GetEntrances(),
 		&base.Entrance{
 			Type:  request.GetSubject().GetType(),
 			Value: request.GetSubject().GetRelation(),
@@ -82,7 +86,7 @@ func (engine *EntityFilter) EntityFilter(
 		// Switch on the kind of linked entrance.
 		switch entrance.LinkedEntranceKind() {
 		case schema.RelationLinkedEntrance: // If the linked entrance is a relation entrance.
-			err = engine.relationEntrance(cont, request, entrance, visits, g, publisher) // Call the relation entrance method.
+			err = engine.relationEntrance(cont, request, entrance, visits, g, publisher, permissionChecks) // Call the relation entrance method.
 			if err != nil {
 				return err
 			}
@@ -93,17 +97,17 @@ func (engine *EntityFilter) EntityFilter(
 					Id:   request.GetSubject().GetId(),
 				},
 				Relation: entrance.TargetEntrance.GetValue(),
-			}, visits, g, publisher)
+			}, visits, g, publisher, permissionChecks)
 			if err != nil {
 				return err
 			}
 		case schema.AttributeLinkedEntrance: // If the linked entrance is a computed user set entrance.
-			err = engine.attributeEntrance(cont, request, entrance, visits, g, publisher) // Call the tuple to user set entrance method.
+			err = engine.attributeEntrance(cont, request, entrance, visits, g, publisher, permissionChecks) // Call the tuple to user set entrance method.
 			if err != nil {
 				return err
 			}
 		case schema.TupleToUserSetLinkedEntrance: // If the linked entrance is a tuple to user set entrance.
-			err = engine.tupleToUserSetEntrance(cont, request, entrance, visits, g, publisher) // Call the tuple to user set entrance method.
+			err = engine.tupleToUserSetEntrance(cont, request, entrance, visits, g, publisher, permissionChecks) // Call the tuple to user set entrance method.
 			if err != nil {
 				return err
 			}
@@ -123,6 +127,7 @@ func (engine *EntityFilter) attributeEntrance(
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
+	entityChecks *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 ) error { // Returns an error if one occurs during execution.
 
 	// Retrieve the scope associated with the target entrance type.
@@ -156,10 +161,12 @@ func (engine *EntityFilter) attributeEntrance(
 	// Determine the pagination settings based on the entity type in the request.
 	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
 	// Otherwise, use the default pagination settings.
-	if request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() {
-		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-	} else {
-		pagination = database.NewCursorPagination()
+	pagination = database.NewCursorPagination()
+	for _, reqEntrance := range request.GetEntrances() {
+		if reqEntrance.GetType() == entrance.TargetEntrance.GetType() {
+			pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+			break
+		}
 	}
 
 	// Query the relationships using the specified pagination settings.
@@ -193,7 +200,7 @@ func (engine *EntityFilter) attributeEntrance(
 				&base.Entity{
 					Type: entrance.TargetEntrance.GetType(),
 					Id:   current.GetEntity().GetId(),
-				}, visits, g, publisher)
+				}, visits, g, publisher, entityChecks)
 		})
 	}
 
@@ -208,6 +215,7 @@ func (engine *EntityFilter) relationEntrance(
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
+	permissionChecks *VisitsMap, // A thread safe map to check if for a entity same permission already checked or not
 ) error { // Returns an error if one occurs during execution.
 	// Retrieve the scope associated with the target entrance type.
 	// Check if it exists to avoid accessing a nil map entry.
@@ -245,10 +253,12 @@ func (engine *EntityFilter) relationEntrance(
 	// Determine the pagination settings based on the entity type in the request.
 	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
 	// Otherwise, use the default pagination settings.
-	if request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() {
-		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-	} else {
-		pagination = database.NewCursorPagination()
+	pagination = database.NewCursorPagination()
+	for _, reqEntrance := range request.GetEntrances() {
+		if reqEntrance.GetType() == entrance.TargetEntrance.GetType() {
+			pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+			break
+		}
 	}
 
 	// Query the relationships using the specified pagination settings.
@@ -282,7 +292,7 @@ func (engine *EntityFilter) relationEntrance(
 					Id:   current.GetEntity().GetId(),
 				},
 				Relation: current.GetRelation(),
-			}, visits, g, publisher)
+			}, visits, g, publisher, permissionChecks)
 		})
 	}
 	return nil
@@ -302,6 +312,8 @@ func (engine *EntityFilter) tupleToUserSetEntrance(
 	g *errgroup.Group,
 	// A custom publisher that publishes results in bulk.
 	publisher *BulkEntityPublisher,
+	// A thread safe map to check if for a entity same permission already checked or not
+	permissionChecks *VisitsMap,
 ) error { // Returns an error if one occurs during execution.
 	// Retrieve the scope associated with the target entrance type.
 	// Check if it exists to avoid accessing a nil map entry.
@@ -339,10 +351,12 @@ func (engine *EntityFilter) tupleToUserSetEntrance(
 	// Determine the pagination settings based on the entity type in the request.
 	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
 	// Otherwise, use the default pagination settings.
-	if request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() {
-		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-	} else {
-		pagination = database.NewCursorPagination()
+	pagination = database.NewCursorPagination()
+	for _, reqEntrance := range request.GetEntrances() {
+		if reqEntrance.GetType() == entrance.TargetEntrance.GetType() {
+			pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
+			break
+		}
 	}
 
 	// Query the relationships using the specified pagination settings.
@@ -376,7 +390,7 @@ func (engine *EntityFilter) tupleToUserSetEntrance(
 					Id:   current.GetEntity().GetId(),
 				},
 				Relation: entrance.TargetEntrance.GetValue(),
-			}, visits, g, publisher)
+			}, visits, g, publisher, permissionChecks)
 		})
 	}
 	return nil
@@ -390,6 +404,7 @@ func (engine *EntityFilter) lt(
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
+	permissionChecks *VisitsMap, // A thread safe map to check if for a entity same permission already checked or not
 ) error { // Returns an error if one occurs during execution.
 	if !visits.AddER(found.GetEntity(), found.GetRelation()) { // If the entity and relation has already been visited.
 		return nil
@@ -401,7 +416,7 @@ func (engine *EntityFilter) lt(
 	cn := schema.NewLinkedGraph(engine.schema)
 	var entrances []*schema.LinkedEntrance
 	entrances, err = cn.LinkedEntrances(
-		request.GetEntrance(),
+		request.GetEntrances(),
 		&base.Entrance{
 			Type:  request.GetSubject().GetType(),
 			Value: request.GetSubject().GetRelation(),
@@ -412,24 +427,26 @@ func (engine *EntityFilter) lt(
 	}
 
 	if entrances == nil { // If there are no linked entrances for the request.
-		if found.GetEntity().GetType() == request.GetEntrance().GetType() && found.GetRelation() == request.GetEntrance().GetValue() { // Check if the found entity matches the requested entity reference.
-			if !visits.AddPublished(found.GetEntity()) { // If the entity and relation has already been visited.
+		for _, entrance := range request.GetEntrances() {
+			if found.GetEntity().GetType() == entrance.GetType() && found.GetRelation() == entrance.GetValue() { // Check if the found entity matches the requested entity reference.
+				if !visits.AddPublished(found.GetEntity()) { // If the entity and relation has already been visited.
+					return nil
+				}
+				publisher.Publish(found.GetEntity(), &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
+					SnapToken:     request.GetMetadata().GetSnapToken(),
+					SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+					Depth:         request.GetMetadata().GetDepth(),
+				}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, permissionChecks)
 				return nil
 			}
-			publisher.Publish(found.GetEntity(), &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
-			return nil
 		}
 		return nil // Otherwise, return without publishing any results.
 	}
 
 	g.Go(func() error {
 		return engine.EntityFilter(ctx, &base.PermissionEntityFilterRequest{ // Call the Run method recursively with a new permission request.
-			TenantId: request.GetTenantId(),
-			Entrance: request.GetEntrance(),
+			TenantId:  request.GetTenantId(),
+			Entrances: request.GetEntrances(),
 			Subject: &base.Subject{
 				Type:     found.GetEntity().GetType(),
 				Id:       found.GetEntity().GetId(),
@@ -439,7 +456,7 @@ func (engine *EntityFilter) lt(
 			Metadata: request.GetMetadata(),
 			Context:  request.GetContext(),
 			Cursor:   request.GetCursor(),
-		}, visits, publisher)
+		}, visits, publisher, permissionChecks)
 	})
 	return nil
 }
@@ -451,6 +468,7 @@ func (engine *EntityFilter) la(
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
+	entityChecks *VisitsMap, // A thread safe map to check if for a entity same permission already checked or not
 ) error { // Returns an error if one occurs during execution.
 	if !visits.AddPublished(found) { // If the entity and relation has already been visited.
 		return nil
@@ -460,6 +478,6 @@ func (engine *EntityFilter) la(
 		SnapToken:     request.GetMetadata().GetSnapToken(),
 		SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 		Depth:         request.GetMetadata().GetDepth(),
-	}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+	}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED, entityChecks)
 	return nil
 }
