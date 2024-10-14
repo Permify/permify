@@ -19,7 +19,23 @@ type BulkCheckerType string
 const (
 	BULK_SUBJECT BulkCheckerType = "subject"
 	BULK_ENTITY  BulkCheckerType = "entity"
+	BULK_CHECK   BulkCheckerType = "check"
 )
+
+type BulkSubjectCallbackParams struct {
+	subjectID string
+	token     string
+}
+
+type BulkEntityCallbackParams struct {
+	entityID string
+	token    string
+}
+
+type BulkCheckCallbackParams struct {
+	index  int
+	result base.CheckResult
+}
 
 // BulkCheckerRequest is a struct for a permission check request and the channel to send the result.
 type BulkCheckerRequest struct {
@@ -54,7 +70,8 @@ type BulkChecker struct {
 
 	// callback is a function that handles the result of each permission check.
 	// It is called with the entity ID and the result of the permission check (e.g., allowed or denied).
-	callback func(entityID, ct string)
+	// callback func(entityID, ct string)
+	callback func(params ...interface{})
 
 	// sortedList is a slice that stores BulkCheckerRequest objects.
 	// This list is maintained in a sorted order based on some criteria, such as the entity ID.
@@ -76,7 +93,7 @@ type BulkChecker struct {
 // engine: the CheckEngine to use for permission checks
 // callback: a callback function that handles the result of each permission check
 // concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID, ct string), concurrencyLimit int) *BulkChecker {
+func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(params ...interface{}), concurrencyLimit int) *BulkChecker {
 	bc := &BulkChecker{
 		RequestChan:      make(chan BulkCheckerRequest),
 		checker:          checker,
@@ -144,6 +161,39 @@ func (bc *BulkChecker) sortRequests() {
 	}
 }
 
+// processLookupResults processes the results for BULK_ENTITY or BULK_SUBJECT.
+func (bc *BulkChecker) processLookupResults(listCopy []BulkCheckerRequest, results []base.CheckResult, processedIndex *int, successCount *int64, size uint32) {
+	for *processedIndex < len(listCopy) && results[*processedIndex] != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+		// If the result at the processed index is allowed, call the callback function
+		if results[*processedIndex] == base.CheckResult_CHECK_RESULT_ALLOWED {
+			if atomic.AddInt64(successCount, 1) <= int64(size) {
+				ct := ""
+				if *processedIndex+1 < len(listCopy) {
+					// If there is a next item, create a continuous token with the next ID
+					if bc.typ == BULK_ENTITY {
+						ct = utils.NewContinuousToken(listCopy[*processedIndex+1].Request.GetEntity().GetId()).Encode().String()
+					} else if bc.typ == BULK_SUBJECT {
+						ct = utils.NewContinuousToken(listCopy[*processedIndex+1].Request.GetSubject().GetId()).Encode().String()
+					}
+				}
+				// Depending on the type of check (entity or subject), call the appropriate callback
+				if bc.typ == BULK_ENTITY {
+					bc.callback(&BulkEntityCallbackParams{
+						listCopy[*processedIndex].Request.GetEntity().GetId(),
+						ct,
+					})
+				} else if bc.typ == BULK_SUBJECT {
+					bc.callback(&BulkSubjectCallbackParams{
+						listCopy[*processedIndex].Request.GetSubject().GetId(),
+						ct,
+					})
+				}
+			}
+		}
+		*processedIndex++ // Move to the next index for processing
+	}
+}
+
 // ExecuteRequests begins processing permission check requests from the sorted list.
 func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 	// Stop collecting new requests and close the RequestChan to ensure no more requests are added
@@ -168,7 +218,6 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 	results := make([]base.CheckResult, len(listCopy))
 	// Track the index of the last processed request to ensure results are processed in order
 	processedIndex := 0
-
 	// Loop through each request in the copied list
 	for i, currentRequest := range listCopy {
 		// If we've reached the success limit, stop processing further requests
@@ -178,7 +227,6 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 
 		index := i
 		req := currentRequest
-
 		// Use errgroup to manage the goroutines, which allows for error handling and synchronization
 		bc.g.Go(func() error {
 			// Acquire a slot in the semaphore to control concurrency
@@ -190,10 +238,12 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 			var result base.CheckResult
 			if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
 				// Perform the permission check if the result is not already specified
+
 				cr, err := bc.checker.Check(bc.ctx, req.Request)
 				if err != nil {
 					return err // Return an error if the check fails
 				}
+
 				result = cr.GetCan() // Get the result from the check
 			} else {
 				// Use the already specified result
@@ -202,32 +252,16 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 
 			// Lock the mutex to safely update shared resources
 			mu.Lock()
+
 			results[index] = result // Store the result in the pre-allocated slice
 
-			// Process the results in order, starting from the current processed index
-			for processedIndex < len(listCopy) && results[processedIndex] != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
-				// If the result at the processed index is allowed, call the callback function
-				if results[processedIndex] == base.CheckResult_CHECK_RESULT_ALLOWED {
-					if atomic.AddInt64(&successCount, 1) <= int64(size) {
-						ct := ""
-						if processedIndex+1 < len(listCopy) {
-							// If there is a next item, create a continuous token with the next ID
-							if bc.typ == BULK_ENTITY {
-								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetEntity().GetId()).Encode().String()
-							} else if bc.typ == BULK_SUBJECT {
-								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetSubject().GetId()).Encode().String()
-							}
-						}
-						// Depending on the type of check (entity or subject), call the appropriate callback
-						if bc.typ == BULK_ENTITY {
-							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), ct)
-						} else if bc.typ == BULK_SUBJECT {
-							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), ct)
-						}
-					}
-				}
-				processedIndex++ // Move to the next index for processing
+			if bc.typ == BULK_CHECK {
+				bc.callback(&BulkCheckCallbackParams{i, result})
+			} else {
+				// Process the results in order, starting from the current processed index
+				bc.processLookupResults(listCopy, results, &processedIndex, &successCount, size)
 			}
+
 			mu.Unlock() // Unlock the mutex after updating the results and processed index
 
 			return nil // Return nil to indicate successful processing
@@ -307,3 +341,45 @@ func (s *BulkSubjectPublisher) Publish(subject *base.Subject, metadata *base.Per
 		Result: result,
 	}
 }
+
+// BulkCheckPublisher is a struct for streaming permission check results.
+type BulkCheckPublisher struct {
+	bulkChecker *BulkChecker
+
+	request *base.BulkPermissionCheckRequest
+	// context to manage goroutines and cancellation
+	ctx context.Context
+}
+
+// NewBulkCheckPublisher creates a new BulkStreamer instance.
+func NewBulkCheckPublisher(ctx context.Context, request *base.BulkPermissionCheckRequest, bulkChecker *BulkChecker) *BulkCheckPublisher {
+	return &BulkCheckPublisher{
+		bulkChecker: bulkChecker,
+		request:     request,
+		ctx:         ctx,
+	}
+}
+
+// Publish publishes a permission check request to the BulkChecker.
+func (s *BulkCheckPublisher) Publish(result base.CheckResult) {
+	// Loop through all mapping requests inside s.request.Requests
+	for _, req := range s.request.Checks {
+		s.bulkChecker.RequestChan <- BulkCheckerRequest{
+			Request: &base.PermissionCheckRequest{
+				TenantId: s.request.GetTenantId(), // Manually set tenantID from the main request
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     req.GetMetadata().GetSnapToken(),
+					SchemaVersion: req.GetMetadata().GetSchemaVersion(),
+					Depth:         req.GetMetadata().GetDepth(),
+				},
+				Entity:     req.GetEntity(),     // Use the specific request's entity
+				Permission: req.GetPermission(), // Use the specific request's permission
+				Subject:    req.GetSubject(),    // The subject passed into the function
+				Context:    req.GetContext(),    // The context passed into the function
+			},
+			Result: result, // Pass the result into the bulk checker
+		}
+	}
+}
+
+func (s *BulkCheckPublisher) ProcessResult(results []base.CheckResult) {}

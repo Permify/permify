@@ -694,6 +694,123 @@ var _ = Describe("check-engine", func() {
 				}
 			}
 		})
+
+		It("Github Sample: Case 4", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(githubSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.CheckResult
+			}
+
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"repository:1#owner@user:2",
+				},
+				checks: []check{
+					{
+						entity:  "repository:1",
+						subject: "user:1",
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_CHECK_RESULT_DENIED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Prepare bulk permission check request
+			bulkRequest := &base.BulkPermissionCheckRequest{
+				TenantId: "t1",
+				Checks:   make([]*base.SinglePermissionCheck, 0),
+			}
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, _ := range check.assertions {
+					req := &base.SinglePermissionCheck{
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission, // Adjust based on specific permission
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         20,
+						},
+					}
+					bulkRequest.Checks = append(bulkRequest.Checks, req)
+				}
+			}
+
+			// Perform bulk check
+			response, err := invoker.BulkCheck(context.Background(), bulkRequest) // Assuming this method exists
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Validate the responses against the assertions
+			for i, check := range tests.checks {
+				singleResponse := response.Results[i]      // Assuming the responses align with the checks
+				expectedResult := check.assertions["push"] // Adjust if there are multiple permissions
+
+				Expect(expectedResult).Should(Equal(singleResponse.GetCan()))
+			}
+		})
+
 	})
 
 	// EXCLUSION SAMPLE
@@ -1378,6 +1495,127 @@ var _ = Describe("check-engine", func() {
 				}
 			}
 		})
+
+		It("Exclusion Sample: Case 7", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(exclusionSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.CheckResult
+			}
+
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"organization:1#member@user:2",
+					"parent:1#member@user:1",
+					"repo:1#org@organization:1#...",
+					"repo:1#parent@parent:1#...",
+				},
+				checks: []check{
+					{
+						entity:  "repo:1",
+						subject: "user:2",
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Prepare bulk permission check request
+			bulkRequest := &base.BulkPermissionCheckRequest{
+				TenantId: "t1",
+				Checks:   make([]*base.SinglePermissionCheck, 0),
+			}
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, _ := range check.assertions {
+					req := &base.SinglePermissionCheck{
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission, // Adjust based on specific permission
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         20,
+						},
+					}
+					bulkRequest.Checks = append(bulkRequest.Checks, req)
+				}
+			}
+
+			// Perform bulk check
+			response, err := invoker.BulkCheck(context.Background(), bulkRequest) // Assuming this method exists
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Validate the responses against the assertions
+			for i, check := range tests.checks {
+				singleResponse := response.Results[i]      // Assuming the responses align with the checks
+				expectedResult := check.assertions["push"] // Adjust if there are multiple permissions
+
+				Expect(expectedResult).Should(Equal(singleResponse.GetCan()))
+			}
+		})
+
 	})
 
 	// POLYMORPHIC RELATIONS SAMPLE
@@ -1521,6 +1759,140 @@ var _ = Describe("check-engine", func() {
 				}
 			}
 		})
+
+		It("Exclusion Sample: Case 7", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(polymorphicRelationsSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type check struct {
+				entity     string
+				subject    string
+				assertions map[string]base.CheckResult
+			}
+
+			tests := struct {
+				relationships []string
+				checks        []check
+			}{
+				relationships: []string{
+					"repo:1#parent@organization:1",
+					"repo:1#parent@company:1",
+					"company:1#member@googleuser:2",
+					"organization:1#member@facebookuser:3",
+				},
+				checks: []check{
+					{
+						entity:  "repo:1",
+						subject: "googleuser:2",
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+					{
+						entity:  "repo:1",
+						subject: "facebookuser:3",
+						assertions: map[string]base.CheckResult{
+							"push": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+					{
+						entity:  "organization:1",
+						subject: "facebookuser:3",
+						assertions: map[string]base.CheckResult{
+							"edit": base.CheckResult_CHECK_RESULT_ALLOWED,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Prepare bulk permission check request
+			bulkRequest := &base.BulkPermissionCheckRequest{
+				TenantId: "t1",
+				Checks:   make([]*base.SinglePermissionCheck, 0),
+			}
+
+			for _, check := range tests.checks {
+				entity, err := tuple.E(check.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(check.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, _ := range check.assertions {
+					req := &base.SinglePermissionCheck{
+						Entity:     entity,
+						Subject:    subject,
+						Permission: permission, // Adjust based on specific permission
+						Metadata: &base.PermissionCheckRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         20,
+						},
+					}
+					bulkRequest.Checks = append(bulkRequest.Checks, req)
+				}
+			}
+
+			// Perform bulk check
+			response, err := invoker.BulkCheck(context.Background(), bulkRequest) // Assuming this method exists
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Validate the responses against the assertions
+			for i, check := range tests.checks {
+				singleResponse := response.Results[i]      // Assuming the responses align with the checks
+				expectedResult := check.assertions["push"] // Adjust if there are multiple permissions
+
+				Expect(expectedResult).Should(Equal(singleResponse.GetCan()))
+			}
+		})
+
 	})
 
 	// WORKDAY SAMPLE

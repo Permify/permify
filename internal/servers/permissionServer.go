@@ -46,6 +46,29 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	return response, nil
 }
 
+// Bulk Check - Performs Bulk Authorization Checks
+func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.BulkPermissionCheckRequest) (*v1.BulkPermissionCheckResponse, error) {
+	ctx, span := tracer.Start(ctx, "permissions.bulk-check")
+	defer span.End()
+
+	// Validate the incoming request
+	v := request.Validate()
+	if v != nil {
+		return nil, status.Error(GetStatus(v), v.Error())
+	}
+
+	response, err := r.invoker.BulkCheck(ctx, request)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		slog.ErrorContext(ctx, err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
+	}
+
+	return response, nil
+
+}
+
 // Expand - Get schema actions in a tree structure
 func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
 	ctx, span := tracer.Start(ctx, "permissions.expand")

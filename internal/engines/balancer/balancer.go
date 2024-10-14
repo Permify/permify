@@ -33,6 +33,11 @@ type Balancer struct {
 	options      []grpc.DialOption
 }
 
+// BulkCheck implements invoke.Check.
+func (c *Balancer) BulkCheck(ctx context.Context, request *base.BulkPermissionCheckRequest) (response *base.BulkPermissionCheckResponse, err error) {
+	panic("unimplemented")
+}
+
 // NewCheckEngineWithBalancer creates a new check engine with a load balancer.
 // It takes a Check interface, SchemaReader, distributed config, gRPC config, and authn config as input.
 // It returns a Check interface and an error if any.

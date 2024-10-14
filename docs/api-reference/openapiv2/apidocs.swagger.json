@@ -651,6 +651,64 @@
         ]
       }
     },
+    "/v1/tenants/{tenant_id}/permissions/bulk-check": {
+      "post": {
+        "summary": "Bulk check permissions",
+        "description": "Checks multiple permissions for specified subjects on specified entities.",
+        "operationId": "permissions.bulkCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/BulkPermissionCheckResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "description": "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant \u003ccode\u003et1\u003c/code\u003e for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BulkCheckBody"
+            }
+          }
+        ],
+        "tags": [
+          "Permission"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "go",
+            "lang": "go",
+            "source": ""
+          },
+          {
+            "label": "node",
+            "lang": "javascript",
+            "source": ""
+          },
+          {
+            "label": "cURL",
+            "lang": "curl",
+            "source": ""
+          }
+        ]
+      }
+    },
     "/v1/tenants/{tenant_id}/permissions/check": {
       "post": {
         "summary": "check api",
@@ -1476,6 +1534,34 @@
         "ATTRIBUTE_TYPE_DOUBLE_ARRAY"
       ],
       "description": "Enumerates the types of attribute.\n\n - ATTRIBUTE_TYPE_BOOLEAN: A boolean attribute type.\n - ATTRIBUTE_TYPE_BOOLEAN_ARRAY: A boolean array attribute type.\n - ATTRIBUTE_TYPE_STRING: A string attribute type.\n - ATTRIBUTE_TYPE_STRING_ARRAY: A string array attribute type.\n - ATTRIBUTE_TYPE_INTEGER: An integer attribute type.\n - ATTRIBUTE_TYPE_INTEGER_ARRAY: An integer array attribute type.\n - ATTRIBUTE_TYPE_DOUBLE: A double attribute type.\n - ATTRIBUTE_TYPE_DOUBLE_ARRAY: A double array attribute type."
+    },
+    "BulkCheckBody": {
+      "type": "object",
+      "properties": {
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/SinglePermissionCheck"
+          },
+          "description": "A list of permission checks to perform, required."
+        }
+      },
+      "description": "BulkPermissionCheckRequest is the request message for the BulkCheck method in the Permission service."
+    },
+    "BulkPermissionCheckResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/SinglePermissionCheckResponse"
+          },
+          "description": "A list of results for each permission check performed."
+        }
+      },
+      "description": "BulkPermissionCheckResponse is the response message for the BulkCheck method in the Permission service."
     },
     "Bundle.DeleteBody": {
       "type": "object",
@@ -3016,6 +3102,65 @@
         }
       },
       "description": "A field selection expression. e.g. `request.auth`."
+    },
+    "SinglePermissionCheck": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The index of this permission check in the bulk request. Required."
+        },
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckRequestMetadata",
+          "description": "Metadata associated with this request, required."
+        },
+        "entity": {
+          "$ref": "#/definitions/Entity",
+          "example": "repository:1",
+          "description": "Entity on which the permission needs to be checked, required."
+        },
+        "permission": {
+          "type": "string",
+          "description": "The action the user wants to perform on the resource"
+        },
+        "subject": {
+          "$ref": "#/definitions/Subject",
+          "description": "Subject for which the permission needs to be checked, required."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "description": "Additional arguments associated with this request."
+        }
+      },
+      "description": "PermissionCheck defines a single permission check within a bulk request."
+    },
+    "SinglePermissionCheckResponse": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The index of this permission check in the bulk response."
+        },
+        "can": {
+          "$ref": "#/definitions/CheckResult",
+          "description": "Result of the permission check."
+        },
+        "metadata": {
+          "$ref": "#/definitions/PermissionCheckResponseMetadata",
+          "description": "Metadata associated with this response."
+        }
+      },
+      "description": "SinglePermissionCheckResponse is the response message for the Check method in the Permission service."
     },
     "SourceInfo": {
       "type": "object",

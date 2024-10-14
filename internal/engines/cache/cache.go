@@ -35,6 +35,11 @@ type CheckEngineWithCache struct {
 	cacheHitDurationHistogram api.Int64Histogram
 }
 
+// BulkCheck implements invoke.Check.
+func (c *CheckEngineWithCache) BulkCheck(ctx context.Context, request *base.BulkPermissionCheckRequest) (response *base.BulkPermissionCheckResponse, err error) {
+	panic("unimplemented")
+}
+
 // NewCheckEngineWithCache creates a new instance of EngineKeyManager by initializing an EngineKeys
 // struct with the provided cache.Cache instance.
 func NewCheckEngineWithCache(

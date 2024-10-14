@@ -77,7 +77,6 @@ func (r *SchemaReader) ReadEntityDefinition(_ context.Context, tenantID, entityN
 	if err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
-
 	def, ok := raw.(storage.SchemaDefinition)
 	if ok {
 		var sch *base.SchemaDefinition

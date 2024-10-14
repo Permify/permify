@@ -61,6 +61,7 @@ func (engine *CheckEngine) SetInvoker(invoker invoke.Check) {
 // This function performs various checks and returns the permission check response
 // along with any errors that may have occurred.
 func (engine *CheckEngine) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+
 	emptyResp := denied(&base.PermissionCheckResponseMetadata{
 		CheckCount: 0,
 	})
@@ -899,4 +900,44 @@ func allowed(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckRe
 		Can:      base.CheckResult_CHECK_RESULT_ALLOWED,
 		Metadata: meta,
 	}
+}
+
+// LookupEntity performs a permission check on a set of entities and returns a response
+// containing the IDs of the entities that have the requested permission.
+func (engine *CheckEngine) BulkCheck(ctx context.Context, request *base.BulkPermissionCheckRequest) (response *base.BulkPermissionCheckResponse, err error) {
+	// A mutex and slice are declared to safely store entity IDs from concurrent callbacks
+	var mu sync.Mutex
+	var results []*base.SinglePermissionCheckResponse
+
+	// Callback function which is called for each entity. If the entity passes the permission check,
+	// the entity ID is appended to the entityIDs slice.
+	callback := func(params ...interface{}) {
+		mu.Lock()         // Safeguard access to the shared slice with a mutex
+		defer mu.Unlock() // Ensure the lock is released after appending the ID
+		if resp, ok := params[0].(*BulkCheckCallbackParams); ok {
+			results = append(results, &base.SinglePermissionCheckResponse{
+				Index: int32(resp.index),
+				Can:   resp.result,
+			})
+		}
+	}
+
+	// Create and start BulkChecker. It performs permission checks in parallel.
+	checker := NewBulkChecker(ctx, engine, BULK_CHECK, callback, engine.concurrencyLimit)
+
+	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
+	publisher := NewBulkCheckPublisher(ctx, request, checker)
+
+	publisher.Publish(base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+
+	// At this point, the BulkChecker has collected and sorted requests
+	err = checker.ExecuteRequests(uint32(len(request.GetChecks()))) // Execute the collected requests in parallel
+	if err != nil {
+		return nil, err
+	}
+
+	// Return response containing allowed entity IDs
+	return &base.BulkPermissionCheckResponse{
+		Results: results,
+	}, nil
 }
