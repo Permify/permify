@@ -2,6 +2,7 @@ package invoke
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -36,6 +37,7 @@ type Invoker interface {
 // and returns a PermissionCheckResponse and an error if any.
 type Check interface {
 	Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error)
+	BulkCheck(ctx context.Context, request *base.BulkPermissionCheckRequest) (response *base.BulkPermissionCheckResponse, err error)
 }
 
 // Expand is an interface that defines a method for expanding permissions.
@@ -202,6 +204,38 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 
 	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
 	return
+}
+
+// BulkCheck implements Check.
+func (invoker *DirectInvoker) BulkCheck(ctx context.Context, request *base.BulkPermissionCheckRequest) (response *base.BulkPermissionCheckResponse, err error) {
+
+	ctx, span := tracer.Start(ctx, "bulk-check", trace.WithAttributes(
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
+		attribute.KeyValue{Key: "no_checks", Value: attribute.IntValue(len(request.GetChecks()))},
+	))
+	defer span.End()
+
+	start := time.Now()
+
+	var schemaVersion string
+	schemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
+	fmt.Println(invoker.schemaReader.ReadSchema(ctx, request.GetTenantId(), schemaVersion))
+	for i, check := range request.GetChecks() {
+		if check.GetMetadata().GetSchemaVersion() == "" {
+			request.Checks[i].Metadata.SchemaVersion = schemaVersion
+		}
+	}
+
+	fmt.Println(request.GetChecks())
+	resp, err := invoker.cc.BulkCheck(ctx, request)
+
+	duration := time.Since(start)
+	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
+
+	// Increase the lookup entity count in the metrics.
+	invoker.checkCounter.Add(ctx, int64(len(request.GetChecks())))
+
+	return resp, err
 }
 
 // Expand is a method that implements the Expand interface.

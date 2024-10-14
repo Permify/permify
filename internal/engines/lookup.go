@@ -61,11 +61,13 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 
 	// Callback function which is called for each entity. If the entity passes the permission check,
 	// the entity ID is appended to the entityIDs slice.
-	callback := func(entityID, token string) {
+	callback := func(params ...interface{}) {
 		mu.Lock()         // Safeguard access to the shared slice with a mutex
 		defer mu.Unlock() // Ensure the lock is released after appending the ID
-		entityIDs = append(entityIDs, entityID)
-		ct = token
+		if resp, ok := params[0].(*BulkEntityCallbackParams); ok {
+			entityIDs = append(entityIDs, resp.entityID)
+			ct = resp.token
+		}
 	}
 
 	// Create and start BulkChecker. It performs permission checks in parallel.
@@ -128,14 +130,17 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 
 	// Define a callback function that will be called for each entity that passes the permission check.
 	// If the check result is allowed, it sends the entity ID to the server stream.
-	callback := func(entityID, token string) {
-		err := server.Send(&base.PermissionLookupEntityStreamResponse{
-			EntityId:        entityID,
-			ContinuousToken: token,
-		})
-		// If there is an error in sending the response, the function will return
-		if err != nil {
-			return
+	callback := func(params ...interface{}) {
+
+		if resp, ok := params[0].(*BulkEntityCallbackParams); ok {
+			err := server.Send(&base.PermissionLookupEntityStreamResponse{
+				EntityId:        resp.entityID,
+				ContinuousToken: resp.token,
+			})
+			// If there is an error in sending the response, the function will return
+			if err != nil {
+				return
+			}
 		}
 	}
 
@@ -197,11 +202,14 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 
 	// Callback function to handle the results of permission checks.
 	// If an entity passes the permission check, its ID is stored in the subjectIDs slice.
-	callback := func(subjectID, token string) {
+	callback := func(params ...interface{}) {
 		mu.Lock()         // Lock to prevent concurrent modification of the slice.
 		defer mu.Unlock() // Unlock after the ID is appended.
-		subjectIDs = append(subjectIDs, subjectID)
-		ct = token
+
+		if resp, ok := params[0].(*BulkSubjectCallbackParams); ok {
+			subjectIDs = append(subjectIDs, resp.subjectID)
+			ct = resp.token
+		}
 	}
 
 	// Create and initiate a BulkChecker to perform permission checks in parallel.

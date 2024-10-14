@@ -57,49 +57,16 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.BulkPermis
 		return nil, status.Error(GetStatus(v), v.Error())
 	}
 
-	checks := request.Checks
-	results := make([]*v1.SinglePermissionCheckResponse, len(checks))
-
-	for i, check := range checks {
-		// Create individual PermissionCheckRequest for each item
-		singleRequest := &v1.PermissionCheckRequest{
-			TenantId:   request.TenantId,
-			Metadata:   check.Metadata,
-			Entity:     check.Entity,
-			Permission: check.Permission,
-			Subject:    check.Subject,
-			Context:    check.Context,
-			Arguments:  check.Arguments,
-		}
-
-		// Perform the permission check
-		response, err := r.invoker.Check(ctx, singleRequest)
-		if err != nil {
-			// Log and record the error for each failed check
-			span.RecordError(err)
-			span.SetStatus(otelCodes.Error, err.Error())
-			slog.ErrorContext(ctx, err.Error())
-
-			// Add the failure response with index
-			results[i] = &v1.SinglePermissionCheckResponse{
-				Can:      v1.CheckResult_CHECK_RESULT_DENIED,
-				Metadata: &v1.PermissionCheckResponseMetadata{},
-				Index:    int32(i),
-			}
-		} else {
-			// Successful check response, attach the index
-			results[i] = &v1.SinglePermissionCheckResponse{
-				Can:      response.Can,
-				Metadata: response.Metadata,
-				Index:    int32(i),
-			}
-		}
+	response, err := r.invoker.BulkCheck(ctx, request)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		slog.ErrorContext(ctx, err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	// Return the bulk response
-	return &v1.BulkPermissionCheckResponse{
-		Results: results,
-	}, nil
+	return response, nil
+
 }
 
 // Expand - Get schema actions in a tree structure

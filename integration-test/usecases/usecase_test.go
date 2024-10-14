@@ -49,7 +49,7 @@ var _ = BeforeSuite(func() {
 
 	var err error
 	// Set up a connection to the server.
-	conn, err = grpc.DialContext(ctx, "permify:3478", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err = grpc.DialContext(ctx, "localhost:3478", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	Expect(err).ShouldNot(HaveOccurred())
 
 	// Create a PermissionClient using the connection.
