@@ -3,7 +3,6 @@ package engines
 import (
 	"context"
 	"fmt"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -1163,118 +1162,1276 @@ var _ = Describe("lookup-entity-engine", func() {
 		})
 	})
 
+	Context("Drive Sample: Entity Filters", func() {
+		It("Drive Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				contextual    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:1#folder@user:3",
+					"folder:1#collaborator@user:1",
+				},
+				contextual: []string{
+					"folder:1#collaborator@user:3",
+					"organization:1#admin@user:1",
+					"doc:1#org@organization:1#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
+						assertions: map[string][]string{
+							"read": {"1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			reqContext := &base.Context{
+				Tuples:     []*base.Tuple{},
+				Attributes: []*base.Attribute{},
+			}
+
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				reqContext.Tuples = append(reqContext.Tuples, t)
+			}
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+					Context: reqContext,
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 2", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:2#owner@user:2",
+					"doc:2#parent@folder:2#...",
+					"folder:2#collaborator@user:3",
+					"folder:2#creator@user:2",
+					"organization:2#admin@user:2",
+					"doc:2#org@organization:2#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "doc",
+						subject:     "user:2",
+						permissions: []string{"read", "update", "delete", "share"},
+						assertions: map[string][]string{
+							"read":   {"2"},
+							"update": {"2"},
+							"delete": {"2"},
+							"share":  {"2"},
+						},
+					},
+					{
+						entityType: "doc",
+						subject:    "user:2",
+						// permissions: []string{"read"},
+						permissions: []string{"read", "update"},
+						assertions: map[string][]string{
+							"read":   {"2"},
+							"update": {"2"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 3", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:1#parent@folder:1#...",
+					"folder:1#collaborator@user:1",
+					"folder:1#collaborator@user:3",
+					"folder:1#creator@user:2",
+					"organization:1#admin@user:1",
+					"doc:1#org@organization:1#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
+						assertions: map[string][]string{
+							"read": {"1"},
+						},
+					},
+					{
+						entityType:  "folder",
+						subject:     "user:2",
+						permissions: []string{"delete"},
+						assertions: map[string][]string{
+							"delete": {"1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 4", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:1#parent@folder:1#...",
+					"folder:1#collaborator@user:1",
+					"folder:1#collaborator@user:3",
+					"folder:1#creator@user:2",
+					"organization:1#admin@user:1",
+					"doc:1#org@organization:1#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
+						assertions: map[string][]string{
+							"read": {"1"},
+						},
+					},
+					{
+						entityType:  "folder",
+						subject:     "user:2",
+						permissions: []string{"delete"},
+						assertions: map[string][]string{
+							"delete": {"1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 5", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:2#owner@user:3",
+					"doc:1#parent@folder:1#...",
+					"doc:2#parent@folder:1#...",
+					"folder:1#collaborator@user:1",
+					"folder:1#collaborator@user:3",
+					"folder:1#creator@user:2",
+					"organization:1#admin@user:1",
+					"doc:1#org@organization:1#...",
+					"doc:2#org@organization:1#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
+						assertions: map[string][]string{
+							"read": {"1", "2"},
+						},
+					},
+					{
+						entityType:  "folder",
+						subject:     "user:2",
+						permissions: []string{"delete"},
+						assertions: map[string][]string{
+							"delete": {"1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 6", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				contextual    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:2#owner@user:3",
+					"doc:3#owner@user:3",
+					"doc:4#owner@user:2",
+					"doc:5#owner@user:3",
+					"doc:6#owner@user:2",
+					"doc:1#parent@folder:1#...",
+					"doc:2#parent@folder:1#...",
+					"doc:3#parent@folder:1#...",
+				},
+				contextual: []string{
+					"doc:4#parent@folder:1#...",
+					"doc:5#parent@folder:1#...",
+					"doc:6#parent@folder:1#...",
+					"folder:1#collaborator@user:1",
+					"folder:1#collaborator@user:3",
+					"folder:1#creator@user:2",
+					"organization:1#admin@user:1",
+				},
+				filters: []filter{
+					{
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
+						assertions: map[string][]string{
+							"read": {"1", "2", "3", "4", "5", "6"},
+						},
+					},
+					{
+						entityType:  "folder",
+						subject:     "user:2",
+						permissions: []string{"delete"},
+						assertions: map[string][]string{
+							"delete": {"1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			reqContext := &base.Context{
+				Tuples:     []*base.Tuple{},
+				Attributes: []*base.Attribute{},
+			}
+
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				reqContext.Tuples = append(reqContext.Tuples, t)
+			}
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+					Context: reqContext,
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 7", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:2#owner@user:3",
+					"doc:3#owner@user:3",
+					"doc:4#owner@user:2",
+					"doc:5#owner@user:3",
+					"doc:6#owner@user:2",
+					"doc:7#owner@user:4",
+					"doc:8#owner@user:4",
+					"doc:9#owner@user:5",
+					"doc:10#owner@user:5",
+					"doc:1#parent@folder:1#...",
+					"doc:2#parent@folder:1#...",
+					"doc:3#parent@folder:2#...",
+					"doc:4#parent@folder:2#...",
+					"doc:5#parent@folder:3#...",
+					"doc:6#parent@folder:3#...",
+					"doc:7#parent@folder:4#...",
+					"doc:8#parent@folder:4#...",
+					"doc:9#parent@folder:5#...",
+					"doc:10#parent@folder:5#...",
+					"folder:1#collaborator@user:1",
+					"folder:2#collaborator@user:1",
+					"folder:3#collaborator@user:2",
+					"folder:4#collaborator@user:2",
+					"folder:5#collaborator@user:3",
+					"folder:1#creator@user:2",
+					"folder:2#creator@user:3",
+					"folder:3#creator@user:4",
+					"folder:4#creator@user:4",
+					"folder:5#creator@user:5",
+					"organization:1#admin@user:1",
+					"organization:2#admin@user:2",
+					"organization:3#admin@user:3",
+					"doc:1#org@organization:1#...",
+					"doc:2#org@organization:1#...",
+					"doc:3#org@organization:2#...",
+					"doc:4#org@organization:2#...",
+					"doc:5#org@organization:3#...",
+					"doc:6#org@organization:3#...",
+					"doc:7#org@organization:1#...",
+					"doc:8#org@organization:2#...",
+					"doc:9#org@organization:3#...",
+					"doc:10#org@organization:1#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
+						assertions: map[string][]string{
+							"read": {"1", "10", "2", "3", "4", "7"},
+						},
+					},
+					{
+						entityType:  "doc",
+						subject:     "user:2",
+						permissions: []string{"read", "delete"},
+						assertions: map[string][]string{
+							"read":   {"1", "3", "4", "5", "6", "7", "8"},
+							"delete": {"1", "3", "4", "6", "8"},
+						},
+					},
+					{
+						entityType:  "doc",
+						subject:     "user:3",
+						permissions: []string{"read", "update"},
+						assertions: map[string][]string{
+							"read":   {"10", "2", "3", "5", "6", "9"},
+							"update": {"5"},
+						},
+					},
+					{
+						entityType:  "doc",
+						subject:     "user:4",
+						permissions: []string{"read", "delete", "share"},
+						assertions: map[string][]string{
+							"read":   {"7", "8"},
+							"delete": {"7", "8"},
+							"share":  nil,
+						},
+					},
+					{
+						entityType:  "doc",
+						subject:     "user:5",
+						permissions: []string{"read", "delete"},
+						assertions: map[string][]string{
+							"read":   {"10", "9"},
+							"delete": {"10", "9"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Drive Sample: Case 8 scope", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				scope       map[string]*base.StringArrayValue
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"doc:1#owner@user:2",
+					"doc:2#owner@user:3",
+					"doc:3#owner@user:3",
+					"doc:4#owner@user:2",
+					"doc:5#owner@user:3",
+					"doc:6#owner@user:2",
+					"doc:7#owner@user:4",
+					"doc:8#owner@user:4",
+					"doc:9#owner@user:5",
+					"doc:10#owner@user:5",
+					"doc:1#parent@folder:1#...",
+					"doc:2#parent@folder:1#...",
+					"doc:3#parent@folder:2#...",
+					"doc:4#parent@folder:2#...",
+					"doc:5#parent@folder:3#...",
+					"doc:6#parent@folder:3#...",
+					"doc:7#parent@folder:4#...",
+					"doc:8#parent@folder:4#...",
+					"doc:9#parent@folder:5#...",
+					"doc:10#parent@folder:5#...",
+					"folder:1#collaborator@user:1",
+					"folder:2#collaborator@user:1",
+					"folder:3#collaborator@user:2",
+					"folder:4#collaborator@user:2",
+					"folder:5#collaborator@user:3",
+					"folder:1#creator@user:2",
+					"folder:2#creator@user:3",
+					"folder:3#creator@user:4",
+					"folder:4#creator@user:4",
+					"folder:5#creator@user:5",
+					"organization:1#admin@user:1",
+					"organization:2#admin@user:2",
+					"organization:3#admin@user:3",
+					"doc:1#org@organization:1#...",
+					"doc:2#org@organization:1#...",
+					"doc:3#org@organization:2#...",
+					"doc:4#org@organization:2#...",
+					"doc:5#org@organization:3#...",
+					"doc:6#org@organization:3#...",
+					"doc:7#org@organization:1#...",
+					"doc:8#org@organization:2#...",
+					"doc:9#org@organization:3#...",
+					"doc:10#org@organization:1#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
+						scope: map[string]*base.StringArrayValue{
+							"organization": {
+								Data: []string{"2"},
+							},
+						},
+						assertions: map[string][]string{
+							"read": {"1", "2", "3", "4"},
+						},
+					},
+					{
+						entityType:  "doc",
+						subject:     "user:1",
+						permissions: []string{"read"},
+						scope: map[string]*base.StringArrayValue{
+							"organization": {
+								Data: []string{"2"},
+							},
+							"folder": {
+								Data: []string{"2"},
+							},
+						},
+						assertions: map[string][]string{
+							"read": {"3", "4"},
+						},
+					},
+					{
+						entityType:  "doc",
+						subject:     "user:2",
+						permissions: []string{"read", "delete"},
+						scope: map[string]*base.StringArrayValue{
+							"organization": {
+								Data: []string{"1"},
+							},
+						},
+						assertions: map[string][]string{
+							"read":   {"1", "4", "5", "6", "7", "8"},
+							"delete": {"1", "4", "6"},
+						},
+					},
+					{
+						entityType:  "doc",
+						subject:     "user:3",
+						permissions: []string{"read", "update"},
+						scope: map[string]*base.StringArrayValue{
+							"organization": {
+								Data: []string{"1", "2", "3"},
+							},
+						},
+						assertions: map[string][]string{
+							"read":   {"10", "2", "3", "5", "6", "9"},
+							"update": {"5"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Scope:       filter.scope,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
+			}
+		})
+	})
+
 	facebookGroupsSchemaEntityFilter := `
-		entity user {}
+			entity user {}
 	
-		entity group {
+			entity group {
 	
-		  // Relation to represent the members of the group
-		  relation member @user
-		  // Relation to represent the admins of the group
-		  relation admin @user
-		  // Relation to represent the moderators of the group
-		  relation moderator @user
+			  // Relation to represent the members of the group
+			  relation member @user
+			  // Relation to represent the admins of the group
+			  relation admin @user
+			  // Relation to represent the moderators of the group
+			  relation moderator @user
 	
-		  // Permissions for the group entity
-		  action create = member
-		  action join = member
-		  action leave = member
-		  action invite_to_group = admin
-		  action remove_from_group = admin or moderator
-		  action edit_settings = admin or moderator
-		  action post_to_group = member
-		  action comment_on_post = member
-		  action view_group_insights = admin or moderator
-		}
+			  // Permissions for the group entity
+			  action create = member
+			  action join = member
+			  action leave = member
+			  action invite_to_group = admin
+			  action remove_from_group = admin or moderator
+			  action edit_settings = admin or moderator
+			  action post_to_group = member
+			  action comment_on_post = member
+			  action view_group_insights = admin or moderator
+			}
 	
-		entity post {
+			entity post {
 	
-		  // Relation to represent the owner of the post
-		  relation owner @user
-		  // Relation to represent the group that the post belongs to
-		  relation group @group
+			  // Relation to represent the owner of the post
+			  relation owner @user
+			  // Relation to represent the group that the post belongs to
+			  relation group @group
 	
-		  // Permissions for the post entity
-		  action view_post = owner or group.member
-		  action edit_post = owner or group.admin
-		  action delete_post = owner or group.admin
+			  // Permissions for the post entity
+			  action view_post = owner or group.member
+			  action edit_post = owner or group.admin
+			  action delete_post = owner or group.admin
 	
-		  permission group_member = group.member
-		}
+			  permission group_member = group.member
+			}
 	
-		entity comment {
+			entity comment {
 	
-		  // Relation to represent the owner of the comment
-		  relation owner @user
+			  // Relation to represent the owner of the comment
+			  relation owner @user
 	
-		  // Relation to represent the post that the comment belongs to
-		  relation post @post
+			  // Relation to represent the post that the comment belongs to
+			  relation post @post
 	
-		  // Permissions for the comment entity
-		  action view_comment = owner or post.group_member
-		  action edit_comment = owner
-		  action delete_comment = owner
+			  // Permissions for the comment entity
+			  action view_comment = owner or post.group_member
+			  action edit_comment = owner
+			  action delete_comment = owner
 	
-	     action remove = post.delete_post
-		}
+		     action remove = post.delete_post
+			}
 	
-		entity like {
+			entity like {
 	
-		  // Relation to represent the owner of the like
-		  relation owner @user
+			  // Relation to represent the owner of the like
+			  relation owner @user
 	
-		  // Relation to represent the post that the like belongs to
-		  relation post @post
+			  // Relation to represent the post that the like belongs to
+			  relation post @post
 	
-		  // Permissions for the like entity
-		  action like_post = owner or post.group_member
-		  action unlike_post = owner or post.group_member
-		}
+			  // Permissions for the like entity
+			  action like_post = owner or post.group_member
+			  action unlike_post = owner or post.group_member
+			}
 	
-		entity poll {
+			entity poll {
 	
-		  // Relation to represent the owner of the poll
-		  relation owner @user
+			  // Relation to represent the owner of the poll
+			  relation owner @user
 	
-		  // Relation to represent the group that the poll belongs to
-		  relation group @group
+			  // Relation to represent the group that the poll belongs to
+			  relation group @group
 	
-		  // Permissions for the poll entity
-		  action create_poll = owner or group.admin
-		  action view_poll = owner or group.member
-		  action edit_poll = owner or group.admin
-		  action delete_poll = owner or group.admin
-		}
+			  // Permissions for the poll entity
+			  action create_poll = owner or group.admin
+			  action view_poll = owner or group.member
+			  action edit_poll = owner or group.admin
+			  action delete_poll = owner or group.admin
+			}
 	
-		entity file {
+			entity file {
 	
-		  // Relation to represent the owner of the file
-		  relation owner @user
+			  // Relation to represent the owner of the file
+			  relation owner @user
 	
-		  // Relation to represent the group that the file belongs to
-		  relation group @group
+			  // Relation to represent the group that the file belongs to
+			  relation group @group
 	
-		  // Permissions for the file entity
-		  action upload_file = owner or group.member
-		  action view_file = owner or group.member
-		  action delete_file = owner or group.admin
-		}
+			  // Permissions for the file entity
+			  action upload_file = owner or group.member
+			  action view_file = owner or group.member
+			  action delete_file = owner or group.admin
+			}
 	
-		entity event {
+			entity event {
 	
-		  // Relation to represent the owner of the event
-		  relation owner @user
-		  // Relation to represent the group that the event belongs to
-		  relation group @group
+			  // Relation to represent the owner of the event
+			  relation owner @user
+			  // Relation to represent the group that the event belongs to
+			  relation group @group
 	
-		  // Permissions for the event entity
-		  action create_event = owner or group.admin
-		  action view_event = owner or group.member
-		  action edit_event = owner or group.admin
-		  action delete_event = owner or group.admin
-		  action RSVP_to_event = owner or group.member
-		}
-		`
+			  // Permissions for the event entity
+			  action create_event = owner or group.admin
+			  action view_event = owner or group.member
+			  action edit_event = owner or group.admin
+			  action delete_event = owner or group.admin
+			  action RSVP_to_event = owner or group.member
+			}
+			`
 
 	Context("Facebook Group Sample: Entity Filter", func() {
 		It("Facebook Group Sample: Case 1", func() {
@@ -1959,32 +3116,742 @@ var _ = Describe("lookup-entity-engine", func() {
 		})
 	})
 
+	Context("Facebook Group Sample: Entities Filter", func() {
+		It("Facebook Group Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(facebookGroupsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"group:1#member@user:1",
+					"group:1#admin@user:2",
+					"group:1#moderator@user:3",
+					"post:1#owner@user:1",
+					"post:1#group@group:1#...",
+					"comment:1#owner@user:1",
+					"comment:1#post@post:1#...",
+					"like:1#owner@user:1",
+					"like:1#post@post:1#...",
+					"poll:1#owner@user:2",
+					"poll:1#group@group:1#...",
+					"file:1#owner@user:3",
+					"file:1#group@group:1#...",
+					"event:1#owner@user:2",
+					"event:1#group@group:1#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "group",
+						subject:     "user:1",
+						permissions: []string{"create", "join", "leave", "post_to_group", "comment_on_post"},
+						assertions: map[string][]string{
+							"create":          {"1"},
+							"join":            {"1"},
+							"leave":           {"1"},
+							"post_to_group":   {"1"},
+							"comment_on_post": {"1"},
+						},
+					},
+					{
+						entityType:  "post",
+						subject:     "user:1",
+						permissions: []string{"view_post", "edit_post"},
+						assertions: map[string][]string{
+							"view_post": {"1"},
+							"edit_post": {"1"},
+						},
+					},
+					{
+						entityType:  "comment",
+						subject:     "user:1",
+						permissions: []string{"view_comment", "edit_comment"},
+						assertions: map[string][]string{
+							"view_comment": {"1"},
+							"edit_comment": {"1"},
+						},
+					},
+					{
+						entityType:  "like",
+						subject:     "user:1",
+						permissions: []string{"like_post", "unlike_post"},
+						assertions: map[string][]string{
+							"like_post":   {"1"},
+							"unlike_post": {"1"},
+						},
+					},
+					{
+						entityType:  "poll",
+						subject:     "user:2",
+						permissions: []string{"create_poll", "view_poll", "edit_poll"},
+						assertions: map[string][]string{
+							"create_poll": {"1"},
+							"view_poll":   {"1"},
+							"edit_poll":   {"1"},
+						},
+					},
+					{
+						entityType:  "file",
+						subject:     "user:3",
+						permissions: []string{"upload_file", "view_file"},
+						assertions: map[string][]string{
+							"upload_file": {"1"},
+							"view_file":   {"1"},
+						},
+					},
+					{
+						entityType:  "event",
+						subject:     "user:2",
+						permissions: []string{"create_event", "view_event", "edit_event", "RSVP_to_event"},
+						assertions: map[string][]string{
+							"create_event":  {"1"},
+							"view_event":    {"1"},
+							"edit_event":    {"1"},
+							"RSVP_to_event": {"1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Facebook Group Sample: Case 2", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(facebookGroupsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				contextual    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"group:1#member@user:1",
+					"group:1#member@user:2",
+					"group:1#member@user:3",
+					"group:1#admin@user:4",
+					"group:1#admin@user:5",
+					"group:1#moderator@user:6",
+					"group:1#moderator@user:7",
+					"post:1#owner@user:1",
+					"post:2#owner@user:2",
+					"post:3#owner@user:3",
+					"post:1#group@group:1#...",
+					"post:2#group@group:1#...",
+					"post:3#group@group:1#...",
+					"comment:1#owner@user:1",
+					"comment:2#owner@user:2",
+					"comment:3#owner@user:3",
+					"comment:1#post@post:1#...",
+					"comment:2#post@post:2#...",
+					"comment:3#post@post:3#...",
+					"like:1#owner@user:1",
+					"like:2#owner@user:2",
+					"like:3#owner@user:3",
+					"like:1#post@post:1#...",
+					"like:2#post@post:2#...",
+					"like:3#post@post:3#...",
+					"poll:1#owner@user:4",
+					"poll:2#owner@user:5",
+					"poll:3#owner@user:6",
+					"poll:1#group@group:1#...",
+					"poll:2#group@group:1#...",
+					"poll:3#group@group:1#...",
+					"file:1#owner@user:7",
+					"file:2#owner@user:8",
+					"file:3#owner@user:9",
+					"file:1#group@group:1#...",
+					"file:2#group@group:1#...",
+					"file:3#group@group:1#...",
+					"event:1#owner@user:10",
+					"event:2#owner@user:11",
+					"event:3#owner@user:12",
+					"event:1#group@group:1#...",
+					"event:2#group@group:1#...",
+					"event:3#group@group:1#...",
+				},
+				contextual: []string{
+					"file:1#group@group:1#...",
+					"file:2#group@group:1#...",
+					"file:3#group@group:1#...",
+					"event:1#owner@user:10",
+					"event:2#owner@user:11",
+					"event:3#owner@user:12",
+					"event:1#group@group:1#...",
+					"event:2#group@group:1#...",
+					"event:3#group@group:1#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "group",
+						subject:     "user:1",
+						permissions: []string{"create", "join", "leave", "post_to_group", "comment_on_post"},
+						assertions: map[string][]string{
+							"create":          {"1"},
+							"join":            {"1"},
+							"leave":           {"1"},
+							"post_to_group":   {"1"},
+							"comment_on_post": {"1"},
+						},
+					},
+					{
+						entityType:  "post",
+						subject:     "user:1",
+						permissions: []string{"view_post", "edit_post"},
+						assertions: map[string][]string{
+							"view_post": {"1", "2", "3"},
+							"edit_post": {"1"},
+						},
+					},
+					{
+						entityType:  "comment",
+						subject:     "user:2",
+						permissions: []string{"view_comment", "edit_comment"},
+						assertions: map[string][]string{
+							"view_comment": {"1", "2", "3"},
+							"edit_comment": {"2"},
+						},
+					},
+					{
+						entityType:  "like",
+						subject:     "user:3",
+						permissions: []string{"like_post", "unlike_post"},
+						assertions: map[string][]string{
+							"like_post":   {"1", "2", "3"},
+							"unlike_post": {"1", "2", "3"},
+						},
+					},
+					{
+						entityType:  "poll",
+						subject:     "user:4",
+						permissions: []string{"create_poll", "view_poll", "edit_poll"},
+						assertions: map[string][]string{
+							"create_poll": {"1", "2", "3"},
+							"view_poll":   {"1"},
+							"edit_poll":   {"1", "2", "3"},
+						},
+					},
+					{
+						entityType:  "file",
+						subject:     "user:5",
+						permissions: []string{"upload_file", "view_file", "delete_file"},
+						assertions: map[string][]string{
+							"upload_file": nil,
+							"view_file":   nil,
+							"delete_file": {"1", "2", "3"},
+						},
+					},
+					{
+						entityType:  "event",
+						subject:     "user:6",
+						permissions: []string{"create_event", "view_event", "edit_event", "delete_event", "RSVP_to_event"},
+						assertions: map[string][]string{
+							"create_event":  nil,
+							"view_event":    nil,
+							"edit_event":    nil,
+							"delete_event":  nil,
+							"RSVP_to_event": nil,
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			reqContext := &base.Context{
+				Tuples:     []*base.Tuple{},
+				Attributes: []*base.Attribute{},
+			}
+
+			for _, relationship := range tests.contextual {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				reqContext.Tuples = append(reqContext.Tuples, t)
+			}
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Facebook Group Sample: Case 3 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(facebookGroupsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"group:1#member@user:1",
+					"group:2#member@user:1",
+					"group:3#member@user:1",
+					"group:4#member@user:1",
+
+					"post:99#group@group:1#...",
+					"post:98#group@group:2#...",
+					"post:97#group@group:3#...",
+					"post:96#group@group:4#...",
+					"post:96#group@group:4#...",
+					"post:95#group@group:4#...",
+					"post:94#group@group:4#...",
+					"post:93#group@group:4#...",
+					"post:92#group@group:4#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "post",
+						subject:     "user:1",
+						permissions: []string{"view_post"},
+						assertions: map[string][]string{
+							"view_post": {"92", "93", "94", "95", "96", "97", "98", "99"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+							TenantId:    "t1",
+							EntityType:  filter.entityType,
+							Subject:     subject,
+							Permissions: []string{permission},
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         100,
+							},
+							PageSize:        5,
+							ContinuousToken: ct,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetEntityIds()[permission].Ids...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Facebook Group Sample: Case 4 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(facebookGroupsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"group:1#admin@user:1",
+					"group:2#admin@user:1",
+					"group:3#admin@user:1",
+					"group:4#admin@user:1",
+
+					"post:59#group@group:1#...",
+					"post:58#group@group:2#...",
+					"post:57#group@group:3#...",
+					"post:56#group@group:4#...",
+					"post:55#group@group:4#...",
+					"post:54#group@group:4#...",
+					"post:53#group@group:4#...",
+					"post:52#group@group:4#...",
+
+					"comment:99#post@post:58#...",
+					"comment:98#post@post:58#...",
+					"comment:97#post@post:54#...",
+					"comment:96#post@post:4#...",
+					"comment:96#post@post:57#...",
+					"comment:95#post@post:54#...",
+					"comment:94#post@post:54#...",
+					"comment:93#post@post:54#...",
+					"comment:92#post@post:53#...",
+					"comment:91#post@post:53#...",
+					"comment:90#post@post:53#...",
+					"comment:45#post@post:53#...",
+					"comment:1#post@post:53#...",
+				},
+				filters: []filter{
+					{
+						entityType:  "comment",
+						subject:     "user:1",
+						permissions: []string{"remove"},
+						assertions: map[string][]string{
+							"remove": {"1", "45", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+							TenantId:    "t1",
+							EntityType:  filter.entityType,
+							Subject:     subject,
+							Permissions: []string{permission},
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         100,
+							},
+							PageSize:        5,
+							ContinuousToken: ct,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetEntityIds()[permission].Ids...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+	})
+
 	googleDocsSchemaEntityFilter := `
-		entity user {}
+			entity user {}
 	
-		entity resource {
-		  relation viewer  @user  @group#member @group#manager
-		  relation manager @user @group#member @group#manager
+			entity resource {
+			  relation viewer  @user  @group#member @group#manager
+			  relation manager @user @group#member @group#manager
 	
-		  action edit = manager
-		  action view = viewer or manager
-		}
+			  action edit = manager
+			  action view = viewer or manager
+			}
 	
-		entity group {
-		  relation manager @user @group#member @group#manager
-		  relation member @user @group#member @group#manager
-		}
+			entity group {
+			  relation manager @user @group#member @group#manager
+			  relation member @user @group#member @group#manager
+			}
 	
-		entity organization {
-		  relation group @group
-		  relation resource @resource
+			entity organization {
+			  relation group @group
+			  relation resource @resource
 	
-		  relation administrator @user @group#member @group#manager
-		  relation direct_member @user
+			  relation administrator @user @group#member @group#manager
+			  relation direct_member @user
 	
-		  permission admin = administrator
-		  permission member = direct_member or administrator or group.member
-		}`
+			  permission admin = administrator
+			  permission member = direct_member or administrator or group.member
+			}`
 
 	Context("Google Docs Sample: Entity Filter", func() {
 		It("Google Docs Sample: Case 1", func() {
@@ -2566,37 +4433,645 @@ var _ = Describe("lookup-entity-engine", func() {
 		})
 	})
 
+	Context("Google Docs Sample: Entities Filter", func() {
+		It("Google Docs Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(googleDocsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"resource:1#viewer@user:1",
+					"resource:1#viewer@group:1#member",
+					"resource:1#manager@user:2",
+					"resource:1#manager@group:1#manager",
+					"group:1#manager@user:3",
+					"group:1#manager@group:1#member",
+					"group:1#member@user:4",
+					"group:1#member@group:1#manager",
+					"organization:1#group@group:1#...",
+					"organization:1#resource@resource:1#...",
+					"organization:1#administrator@user:5",
+					"organization:1#administrator@group:1#manager",
+					"organization:1#direct_member@user:6",
+				},
+				filters: []filter{
+					{
+						entityType:  "resource",
+						subject:     "user:1",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"1"},
+						},
+					},
+					{
+						entityType:  "resource",
+						subject:     "group:1#member",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"1"},
+						},
+					},
+					{
+						entityType:  "resource",
+						subject:     "user:2",
+						permissions: []string{"edit", "view"},
+						assertions: map[string][]string{
+							"edit": {"1"},
+							"view": {"1"},
+						},
+					},
+					{
+						entityType:  "organization",
+						subject:     "user:5",
+						permissions: []string{"admin", "member"},
+						assertions: map[string][]string{
+							"admin":  {"1"},
+							"member": {"1"},
+						},
+					},
+					{
+						entityType:  "organization",
+						subject:     "group:1#manager",
+						permissions: []string{"admin", "member"},
+						assertions: map[string][]string{
+							"admin":  {"1"},
+							"member": {"1"},
+						},
+					},
+					{
+						entityType:  "organization",
+						subject:     "user:6",
+						permissions: []string{"member"},
+						assertions: map[string][]string{
+							"member": {"1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Google Docs Sample: Case 2", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(googleDocsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"resource:1#viewer@user:1",
+					"resource:1#viewer@group:1#member",
+					"resource:1#viewer@group:2#manager",
+					"resource:1#manager@user:2",
+					"resource:1#manager@group:1#manager",
+					"resource:1#manager@group:2#member",
+					"resource:2#viewer@user:3",
+					"resource:2#viewer@group:2#manager",
+					"resource:2#manager@user:4",
+					"resource:2#manager@group:1#manager",
+					"group:1#manager@user:5",
+					"group:1#manager@group:2#member",
+					"group:1#member@user:6",
+					"group:1#member@group:2#manager",
+					"group:2#manager@user:7",
+					"group:2#manager@group:1#member",
+					"group:2#member@user:8",
+					"group:2#member@group:1#manager",
+					"organization:1#group@group:1#...",
+					"organization:1#group@group:2#...",
+					"organization:1#resource@resource:1#...",
+					"organization:1#resource@resource:2#...",
+					"organization:1#administrator@user:9",
+					"organization:1#administrator@group:1#manager",
+					"organization:1#administrator@group:2#member",
+					"organization:1#direct_member@user:10",
+				},
+				filters: []filter{
+					{
+						entityType:  "resource",
+						subject:     "user:1",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"1"},
+						},
+					},
+					{
+						entityType:  "resource",
+						subject:     "group:2#manager",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"1", "2"},
+						},
+					},
+					{
+						entityType:  "resource",
+						subject:     "user:4",
+						permissions: []string{"edit", "view"},
+						assertions: map[string][]string{
+							"edit": {"2"},
+							"view": {"2"},
+						},
+					},
+					{
+						entityType:  "group",
+						subject:     "user:5",
+						permissions: []string{"member"},
+						assertions: map[string][]string{
+							"member": {"2"},
+						},
+					},
+					{
+						entityType:  "group",
+						subject:     "group:1#manager",
+						permissions: []string{"member"},
+						assertions: map[string][]string{
+							"member": {"2"},
+						},
+					},
+					{
+						entityType:  "organization",
+						subject:     "user:9",
+						permissions: []string{"admin", "member"},
+						assertions: map[string][]string{
+							"admin":  {"1"},
+							"member": {"1"},
+						},
+					},
+					{
+						entityType:  "organization",
+						subject:     "group:2#member",
+						permissions: []string{"admin", "member"},
+						assertions: map[string][]string{
+							"admin":  {"1"},
+							"member": {"1"},
+						},
+					},
+					{
+						entityType:  "organization",
+						subject:     "user:10",
+						permissions: []string{"member"},
+						assertions: map[string][]string{
+							"member": {"1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds() != nil && response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Google Docs Sample: Case 3", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(googleDocsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{}
+
+			for i := 1; i <= 50; i++ {
+				relationship := fmt.Sprintf("resource:%d#viewer@user:1", i)
+				tests.relationships = append(tests.relationships, relationship)
+			}
+
+			// Generate 50 manager relationships.
+			for i := 51; i <= 100; i++ {
+				relationship := fmt.Sprintf("resource:%d#manager@user:1", i)
+				tests.relationships = append(tests.relationships, relationship)
+			}
+
+			tests.filters = []filter{
+				{
+					entityType:  "resource",
+					subject:     "user:1",
+					permissions: []string{"view", "edit"},
+					assertions: map[string][]string{
+						"view": {"1", "10", "100", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "3", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "4", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "5", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "6", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "7", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "8", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "9", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+						"edit": {"100", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Google Docs Sample: Case 4 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(googleDocsSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				filters       []filter
+			}{}
+
+			for i := 1; i <= 50; i++ {
+				relationship := fmt.Sprintf("resource:%d#viewer@user:1", i)
+				tests.relationships = append(tests.relationships, relationship)
+			}
+
+			// Generate 50 manager relationships.
+			for i := 51; i <= 100; i++ {
+				relationship := fmt.Sprintf("resource:%d#manager@user:1", i)
+				tests.relationships = append(tests.relationships, relationship)
+			}
+
+			tests.filters = []filter{
+				{
+					entityType:  "resource",
+					subject:     "user:1",
+					permissions: []string{"view", "edit"},
+					assertions: map[string][]string{
+						"view": {"1", "10", "100", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "3", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "4", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "5", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "6", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "7", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "8", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "9", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+						"edit": {"100", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+							TenantId:    "t1",
+							EntityType:  filter.entityType,
+							Subject:     subject,
+							Permissions: filter.permissions,
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         100,
+							},
+							PageSize:        10,
+							ContinuousToken: ct,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetEntityIds()[permission].Ids...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+	})
+
 	workdaySchemaEntityFilter := `
-			entity user {}
+					entity user {}
 	
-			entity organization {
+					entity organization {
 	
-				relation member @user
+						relation member @user
 	
-				attribute balance integer
+						attribute balance integer
 	
-				permission view = check_balance(balance) and member
-			}
+						permission view = check_balance(balance) and member
+					}
 	
-			entity repository {
+					entity repository {
 	
-				relation organization  @organization
+						relation organization  @organization
 	
-				attribute is_public boolean
+						attribute is_public boolean
 	
-				permission view = is_public
-				permission edit = organization.view
-				permission delete = is_workday(is_public)
-			}
+						permission view = is_public
+						permission edit = organization.view
+						permission delete = is_workday(is_public)
+					}
 	
-			rule check_balance(balance integer) {
-				balance > 5000
-			}
+					rule check_balance(balance integer) {
+						balance > 5000
+					}
 	
-			rule is_workday(is_public boolean) {
-				  is_public && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
-			}
-			`
+					rule is_workday(is_public boolean) {
+						  is_public && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
+					}
+					`
 
 	Context("Weekday Sample: Entity Filter", func() {
 		It("Weekday Sample: Case 1", func() {
@@ -3060,37 +5535,512 @@ var _ = Describe("lookup-entity-engine", func() {
 		})
 	})
 
+	Context("Weekday Sample: Entities Filter", func() {
+		It("Weekday Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(workdaySchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"organization:2#member@user:1",
+					"organization:4#member@user:1",
+					"organization:8#member@user:1",
+					"organization:917#member@user:1",
+					"organization:20#member@user:1",
+					"organization:45#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"organization:2#member@user:1",
+				},
+				attributes: []string{
+					"repository:1$is_public|boolean:true",
+					"repository:2$is_public|boolean:false",
+					"repository:3$is_public|boolean:true",
+					"repository:4$is_public|boolean:true",
+					"repository:5$is_public|boolean:true",
+					"repository:6$is_public|boolean:false",
+
+					"organization:1$balance|integer:4000",
+					"organization:2$balance|integer:6000",
+					"organization:4$balance|integer:6000",
+					"organization:8$balance|integer:6000",
+					"organization:917$balance|integer:6000",
+					"organization:20$balance|integer:6000",
+					"organization:45$balance|integer:6000",
+				},
+				filters: []filter{
+					{
+						entityType:  "repository",
+						subject:     "user:1",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"1", "3", "4", "5"},
+						},
+					},
+					{
+						entityType:  "organization",
+						subject:     "user:1",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"2", "20", "4", "45", "8", "917"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					var permissions []string
+					if response.GetEntityIds()[permission] != nil {
+						permissions = response.GetEntityIds()[permission].Ids
+					}
+					Expect(permissions).Should(Equal(res))
+				}
+
+			}
+		})
+
+		It("Weekday Sample: Case 2 pagination", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(workdaySchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				assertions  map[string][]string
+				permissions []string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"organization:2#member@user:1",
+					"organization:4#member@user:1",
+					"organization:8#member@user:1",
+					"organization:917#member@user:1",
+					"organization:20#member@user:1",
+					"organization:45#member@user:1",
+					"organization:22#member@user:1",
+					"organization:43#member@user:1",
+					"organization:84#member@user:1",
+					"organization:9157#member@user:1",
+					"organization:260#member@user:1",
+					"organization:475#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"organization:2#member@user:1",
+				},
+				attributes: []string{
+					"repository:1$is_public|boolean:true",
+					"repository:2$is_public|boolean:false",
+					"repository:3$is_public|boolean:true",
+					"repository:4$is_public|boolean:true",
+					"repository:5$is_public|boolean:true",
+					"repository:6$is_public|boolean:false",
+
+					"organization:1$balance|integer:4000",
+					"organization:2$balance|integer:6000",
+					"organization:4$balance|integer:6000",
+					"organization:8$balance|integer:6000",
+					"organization:917$balance|integer:6000",
+					"organization:20$balance|integer:6000",
+					"organization:45$balance|integer:6000",
+
+					"organization:22$balance|integer:6000",
+					"organization:43$balance|integer:6000",
+					"organization:84$balance|integer:6000",
+					"organization:9157$balance|integer:6000",
+					"organization:260$balance|integer:6000",
+					"organization:475$balance|integer:6000",
+				},
+				filters: []filter{
+					{
+						entityType:  "organization",
+						subject:     "user:1",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"2", "20", "22", "260", "4", "43", "45", "475", "8", "84", "9157", "917"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+							TenantId:    "t1",
+							EntityType:  filter.entityType,
+							Subject:     subject,
+							Permissions: []string{permission},
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         100,
+							},
+							PageSize:        10,
+							ContinuousToken: ct,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetEntityIds()[permission].Ids...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Weekday Sample: Case 3 scope", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(workdaySchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType  string
+				subject     string
+				permissions []string
+				scope       map[string]*base.StringArrayValue
+				assertions  map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"organization:2#member@user:1",
+					"organization:4#member@user:1",
+					"organization:8#member@user:1",
+					"organization:917#member@user:1",
+					"organization:20#member@user:1",
+					"organization:45#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"organization:2#member@user:1",
+				},
+				attributes: []string{
+					"repository:1$is_public|boolean:true",
+					"repository:2$is_public|boolean:false",
+					"repository:3$is_public|boolean:true",
+					"repository:4$is_public|boolean:true",
+					"repository:5$is_public|boolean:true",
+					"repository:6$is_public|boolean:false",
+
+					"organization:1$balance|integer:4000",
+					"organization:2$balance|integer:6000",
+					"organization:4$balance|integer:6000",
+					"organization:8$balance|integer:6000",
+					"organization:917$balance|integer:6000",
+					"organization:20$balance|integer:6000",
+					"organization:45$balance|integer:6000",
+				},
+				filters: []filter{
+					{
+						entityType:  "repository",
+						subject:     "user:1",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"1", "3", "4", "5"},
+						},
+					},
+					{
+						entityType:  "organization",
+						subject:     "user:1",
+						permissions: []string{"view"},
+						assertions: map[string][]string{
+							"view": {"2", "20", "4", "45", "8", "917"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.LookupEntities(context.Background(), &base.PermissionsLookupEntityRequest{
+					TenantId:    "t1",
+					EntityType:  filter.entityType,
+					Subject:     subject,
+					Permissions: filter.permissions,
+					Scope:       filter.scope,
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         100,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				for permission, res := range filter.assertions {
+					Expect(response.GetEntityIds()[permission].Ids).Should(Equal(res))
+				}
+			}
+		})
+	})
+
 	driveSchemaSubjectFilter := `
-	entity user {}
+			entity user {}
 	
-	entity organization {
-		relation admin @user
-	}
+			entity organization {
+				relation admin @user
+			}
 	
-	entity folder {
-		relation org @organization
-		relation creator @user
-		relation collaborator @user
+			entity folder {
+				relation org @organization
+				relation creator @user
+				relation collaborator @user
 	
-		permission read = collaborator
-		permission update = collaborator
-		permission delete = creator or org.admin
-		permission share = update
-	}
+				permission read = collaborator
+				permission update = collaborator
+				permission delete = creator or org.admin
+				permission share = update
+			}
 	
-	entity doc {
-		relation org @organization
-		relation parent @folder
+			entity doc {
+				relation org @organization
+				relation parent @folder
 	
-		relation owner @user @organization#admin
-		relation member @user
+				relation owner @user @organization#admin
+				relation member @user
 	
-		permission read = owner or member
-		permission update = owner and org.admin
-		permission delete = owner or org.admin
-		permission share = update and (member not parent.update)
-		permission remove = owner or parent.delete
-	}`
+				permission read = owner or member
+				permission update = owner and org.admin
+				permission delete = owner or org.admin
+				permission share = update and (member not parent.update)
+				permission remove = owner or parent.delete
+			}`
 
 	Context("Drive Sample: Subject Filter", func() {
 		It("Drive Sample: Case 1", func() {
@@ -4069,36 +7019,36 @@ var _ = Describe("lookup-entity-engine", func() {
 	})
 
 	workdaySchemaSubjectFilter := `
-			entity user {}
+					entity user {}
 	
-			entity organization {
+					entity organization {
 	
-				relation member @user
+						relation member @user
 	
-				attribute balance integer
+						attribute balance integer
 	
-				permission view = check_balance(balance) and member
-			}
+						permission view = check_balance(balance) and member
+					}
 	
-			entity repository {
+					entity repository {
 	
-				relation organization  @organization
+						relation organization  @organization
 	
-				attribute is_public boolean
+						attribute is_public boolean
 	
-				permission view = is_public
-				permission edit = organization.view
-				permission delete = is_workday(is_public)
-			}
+						permission view = is_public
+						permission edit = organization.view
+						permission delete = is_workday(is_public)
+					}
 	
-			rule check_balance(balance integer) {
-				balance > 5000
-			}
+					rule check_balance(balance integer) {
+						balance > 5000
+					}
 	
-			rule is_workday(is_public boolean) {
-				  is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
-			}
-			`
+					rule is_workday(is_public boolean) {
+						  is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')
+					}
+					`
 
 	Context("Weekday Sample: Subject Filter", func() {
 		It("Weekday Sample: Case 1", func() {
