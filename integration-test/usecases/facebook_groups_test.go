@@ -111,13 +111,17 @@ var _ = Describe("facebook-groups-test", func() {
 							Context: &base.Context{
 								Tuples: contextTuples,
 							},
-							EntityType: filter.EntityType,
-							Permission: permission,
-							Subject:    subject,
+							EntityType:  filter.EntityType,
+							Permissions: []string{permission},
+							Subject:     subject,
 						})
 
 						Expect(err).ShouldNot(HaveOccurred())
-						Expect(IsSameArray(res.GetEntityIds(), expected)).Should(Equal(true))
+						var responseIdsForPermission []string
+						if res, ok := res.GetEntityIds()[permission]; ok {
+							responseIdsForPermission = res.Ids
+						}
+						Expect(IsSameArray(responseIdsForPermission, expected)).Should(Equal(true))
 					}
 				}
 			}

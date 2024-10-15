@@ -364,8 +364,11 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					// Format the subject, permission, and entity type as a string for logging.
 					query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
 
-					// Check if the actual result matches the expected result.
-					if isSameArray(res.GetEntityIds(), expected) {
+					if res.GetEntityIds() == nil && len(expected) == 0 {
+						// If the results match, log a success message.
+						color.Success.Print("    success:")
+						fmt.Printf(" %v\n", query)
+					} else if res.GetEntityIds() != nil && isSameArray(res.GetEntityIds(), expected) {
 						// If the results match, log a success message.
 						color.Success.Print("    success:")
 						fmt.Printf(" %v\n", query)
