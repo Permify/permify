@@ -37,12 +37,12 @@ func LookupConcurrencyLimit(limit int) LookupOption {
 	}
 }
 
-// SchemaBaseSubjectFilterOption - a functional option type for configuring the LookupSubjectEngine.
-type SchemaBaseSubjectFilterOption func(engine *SchemaBasedSubjectFilter)
+// SubjectFilterOption - a functional option type for configuring the LookupSubjectEngine.
+type SubjectFilterOption func(engine *SubjectFilter)
 
-// SchemaBaseSubjectFilterConcurrencyLimit - a functional option that sets the concurrency limit for the LookupSubjectEngine.
-func SchemaBaseSubjectFilterConcurrencyLimit(limit int) SchemaBaseSubjectFilterOption {
-	return func(c *SchemaBasedSubjectFilter) {
+// SubjectFilterConcurrencyLimit - a functional option that sets the concurrency limit for the LookupSubjectEngine.
+func SubjectFilterConcurrencyLimit(limit int) SubjectFilterOption {
+	return func(c *SubjectFilter) {
 		c.concurrencyLimit = limit
 	}
 }
@@ -104,9 +104,14 @@ func (s *VisitsMap) AddPublished(entity *base.Entity) bool {
 	return !existed
 }
 
+type IdResponse struct {
+	Ids         []string
+	ExcludedIds []string // Holds the list of excluded IDs.
+}
+
 // SubjectFilterResponse -
 type SubjectFilterResponse struct {
-	resp []string
+	resp IdResponse
 	err  error
 }
 

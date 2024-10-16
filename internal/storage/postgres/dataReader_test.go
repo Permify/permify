@@ -459,14 +459,14 @@ var _ = Describe("DataReader", func() {
 			refs1, ct1, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{
 				Type:     "user",
 				Relation: "",
-			}, token1.String(), database.NewPagination(database.Size(2), database.Token("")))
+			}, []string{}, token1.String(), database.NewPagination(database.Size(2), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(refs1)).Should(Equal(2))
 
 			refs2, ct2, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{
 				Type:     "user",
 				Relation: "",
-			}, token1.String(), database.NewPagination(database.Size(2), database.Token(ct1.String())))
+			}, []string{}, token1.String(), database.NewPagination(database.Size(2), database.Token(ct1.String())))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(refs2)).Should(Equal(2))
 			Expect(ct2.String()).Should(Equal(""))
@@ -474,7 +474,7 @@ var _ = Describe("DataReader", func() {
 			refs3, ct3, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{
 				Type:     "user",
 				Relation: "",
-			}, token1.String(), database.NewPagination(database.Size(20), database.Token("")))
+			}, []string{}, token1.String(), database.NewPagination(database.Size(20), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(refs3)).Should(Equal(4))
 			Expect(ct3.String()).Should(Equal(""))
@@ -484,7 +484,7 @@ var _ = Describe("DataReader", func() {
 			refs4, ct4, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{
 				Type:     "organization",
 				Relation: "member",
-			}, token1.String(), database.NewPagination(database.Size(20), database.Token("")))
+			}, []string{}, token1.String(), database.NewPagination(database.Size(20), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(refs4)).Should(Equal(1))
 			Expect(ct4.String()).Should(Equal(""))

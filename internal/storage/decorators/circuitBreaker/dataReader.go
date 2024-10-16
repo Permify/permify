@@ -98,7 +98,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 }
 
 // QueryUniqueSubjectReferences - Reads unique subject references from the repository with different options.
-func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, token string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
+func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, excluded []string, token string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
 	type circuitBreakerResponse struct {
 		IDs             []string
 		ContinuousToken database.EncodedContinuousToken
@@ -107,7 +107,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	response, err := r.cb.Execute(func() (interface{}, error) {
 		var err error
 		var resp circuitBreakerResponse
-		resp.IDs, resp.ContinuousToken, err = r.delegate.QueryUniqueSubjectReferences(ctx, tenantID, subjectReference, token, pagination)
+		resp.IDs, resp.ContinuousToken, err = r.delegate.QueryUniqueSubjectReferences(ctx, tenantID, subjectReference, excluded, token, pagination)
 		return resp, err
 	})
 	if err != nil {

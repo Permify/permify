@@ -2,12 +2,14 @@ package engines
 
 import (
 	"context"
-	"errors"
+	"slices"
+	"sort"
 	"sync"
 
 	"github.com/Permify/permify/internal/invoke"
-	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/internal/storage/context/utils"
+	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -190,77 +192,85 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 		size = 1000
 	}
 
-	// Use a mutex to protect concurrent writes to the subjectIDs slice.
-	var mu sync.Mutex
-	var subjectIDs []string
+	var ids IdResponse
 	var ct string
 
-	// Callback function to handle the results of permission checks.
-	// If an entity passes the permission check, its ID is stored in the subjectIDs slice.
-	callback := func(subjectID, token string) {
-		mu.Lock()         // Lock to prevent concurrent modification of the slice.
-		defer mu.Unlock() // Unlock after the ID is appended.
-		subjectIDs = append(subjectIDs, subjectID)
-		ct = token
-	}
-
-	// Create and initiate a BulkChecker to perform permission checks in parallel.
-	checker := NewBulkChecker(ctx, engine.checkEngine, BULK_SUBJECT, callback, engine.concurrencyLimit)
-
-	// Create and start a BulkPublisher to provide entities to the BulkChecker.
-	publisher := NewBulkSubjectPublisher(ctx, request, checker)
-
-	// Retrieve the schema of the entity based on the provided tenantId and schema version.
-	var sc *base.SchemaDefinition
-	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	// Use the schema-based subject filter to get the list of subjects with the requested permission.
+	ids, err = NewSubjectFilter(engine.schemaReader, engine.dataReader, SubjectFilterConcurrencyLimit(engine.concurrencyLimit)).SubjectFilter(ctx, request)
 	if err != nil {
-		// Return an error if there was an issue retrieving the schema.
 		return nil, err
 	}
 
-	// Walk the entity schema to perform a permission check.
-	err = schema.NewWalker(sc).Walk(request.GetEntity().GetType(), request.GetPermission())
-	if err != nil {
-		// If the error indicates the schema walk is unimplemented, handle it with a MassEntityFilter.
-		if errors.Is(err, schema.ErrUnimplemented) {
-			err = NewMassSubjectFilter(engine.dataReader).SubjectFilter(ctx, request, publisher)
-			if err != nil {
-				// Return an error if there was an issue with the subject filter.
-				return nil, err
-			}
-		} else { // For other errors, simply return the error
-			return nil, err
-		}
-	} else {
-		// Use the schema-based subject filter to get the list of subjects with the requested permission.
-		ids, err := NewSchemaBasedSubjectFilter(engine.schemaReader, engine.dataReader, SchemaBaseSubjectFilterConcurrencyLimit(engine.concurrencyLimit)).SubjectFilter(ctx, request)
+	// Check if the wildcard '*' is present in the ids.Ids
+	if slices.Contains(ids.Ids, "*") {
+		resp, pct, err := engine.dataReader.QueryUniqueSubjectReferences(
+			ctx,
+			request.GetTenantId(),
+			request.GetSubjectReference(),
+			ids.ExcludedIds,
+			request.GetMetadata().GetSnapToken(),
+			database.NewPagination(database.Size(size), database.Token(request.GetContinuousToken())),
+		)
 		if err != nil {
 			return nil, err
 		}
+		ct = pct.String()
 
-		for _, id := range ids {
-			publisher.Publish(&base.Subject{
-				Type:     request.GetSubjectReference().GetType(),
-				Id:       id,
-				Relation: request.GetSubjectReference().GetRelation(),
-			}, &base.PermissionCheckRequestMetadata{
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			}, request.GetContext(), base.CheckResult_CHECK_RESULT_ALLOWED)
+		// Return the list of entity IDs that have the required permission.
+		return &base.PermissionLookupSubjectResponse{
+			SubjectIds:      resp,
+			ContinuousToken: ct,
+		}, nil
+	}
+
+	// Sort the IDs
+	sort.Strings(ids.Ids)
+
+	// Initialize the start index as a string (to match token format)
+	start := ""
+
+	// Handle continuous token if present
+	if request.GetContinuousToken() != "" {
+		var t database.ContinuousToken
+		t, err := utils.EncodedContinuousToken{Value: request.GetContinuousToken()}.Decode()
+		if err != nil {
+			return nil, err
+		}
+		start = t.(utils.ContinuousToken).Value
+	}
+
+	// Find the start index based on the continuous token
+	startIndex := 0
+	if start != "" {
+		// Locate the position in the sorted list where the ID equals or exceeds the token value
+		for i, id := range ids.Ids {
+			if id >= start {
+				startIndex = i
+				break
+			}
 		}
 	}
 
-	err = checker.ExecuteRequests(size)
-	if err != nil {
-		// Return an error if there was an issue with the subject filter.
-		return nil, err
+	// Convert size to int for compatibility with startIndex
+	pageSize := int(size)
+
+	// Calculate the end index based on the page size
+	end := startIndex + pageSize
+	if end > len(ids.Ids) {
+		end = len(ids.Ids)
 	}
 
-	// Return the list of entity IDs that have the required permission.
+	// Generate the next continuous token if there are more results
+	if end < len(ids.Ids) {
+		ct = utils.NewContinuousToken(ids.Ids[end]).Encode().String()
+	} else {
+		ct = ""
+	}
+
+	// Return the paginated and sorted list of IDs
 	return &base.PermissionLookupSubjectResponse{
-		SubjectIds:      subjectIDs,
-		ContinuousToken: ct,
+		SubjectIds:      ids.Ids[startIndex:end], // Slice the IDs based on pagination
+		ContinuousToken: ct,                      // Return the next continuous token
 	}, nil
 }
 
