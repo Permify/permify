@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/Permify/permify/internal/invoke"
@@ -192,7 +193,7 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 		size = 1000
 	}
 
-	var ids IdResponse
+	var ids []string
 	var ct string
 
 	// Use the schema-based subject filter to get the list of subjects with the requested permission.
@@ -201,13 +202,29 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 		return nil, err
 	}
 
-	// Check if the wildcard '*' is present in the ids.Ids
-	if slices.Contains(ids.Ids, "*") {
+	// Initialize excludedIds to be used in the query
+	var excludedIds []string
+
+	// Check if the wildcard '*' is present in the ids.Ids or if it's formatted like "*-1,2,3"
+	for _, id := range ids {
+		if id == "*" {
+			// Handle '*' case: no exclusions, include all resources
+			excludedIds = nil
+			break
+		} else if strings.HasPrefix(id, "*-") {
+			// Handle '*-1,2,3' case: parse exclusions after '-'
+			excludedIds = strings.Split(strings.TrimPrefix(id, "*-"), ",")
+			break
+		}
+	}
+
+	// If '*' was found, query all subjects with exclusions if provided
+	if excludedIds != nil || slices.Contains(ids, "*") {
 		resp, pct, err := engine.dataReader.QueryUniqueSubjectReferences(
 			ctx,
 			request.GetTenantId(),
 			request.GetSubjectReference(),
-			ids.ExcludedIds,
+			excludedIds, // Pass the exclusions if any
 			request.GetMetadata().GetSnapToken(),
 			database.NewPagination(database.Size(size), database.Token(request.GetContinuousToken())),
 		)
@@ -224,7 +241,7 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 	}
 
 	// Sort the IDs
-	sort.Strings(ids.Ids)
+	sort.Strings(ids)
 
 	// Initialize the start index as a string (to match token format)
 	start := ""
@@ -243,7 +260,7 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 	startIndex := 0
 	if start != "" {
 		// Locate the position in the sorted list where the ID equals or exceeds the token value
-		for i, id := range ids.Ids {
+		for i, id := range ids {
 			if id >= start {
 				startIndex = i
 				break
@@ -256,21 +273,21 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 
 	// Calculate the end index based on the page size
 	end := startIndex + pageSize
-	if end > len(ids.Ids) {
-		end = len(ids.Ids)
+	if end > len(ids) {
+		end = len(ids)
 	}
 
 	// Generate the next continuous token if there are more results
-	if end < len(ids.Ids) {
-		ct = utils.NewContinuousToken(ids.Ids[end]).Encode().String()
+	if end < len(ids) {
+		ct = utils.NewContinuousToken(ids[end]).Encode().String()
 	} else {
 		ct = ""
 	}
 
 	// Return the paginated and sorted list of IDs
 	return &base.PermissionLookupSubjectResponse{
-		SubjectIds:      ids.Ids[startIndex:end], // Slice the IDs based on pagination
-		ContinuousToken: ct,                      // Return the next continuous token
+		SubjectIds:      ids[startIndex:end], // Slice the IDs based on pagination
+		ContinuousToken: ct,                  // Return the next continuous token
 	}, nil
 }
 
