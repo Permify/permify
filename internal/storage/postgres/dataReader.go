@@ -444,7 +444,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 }
 
 // QueryUniqueSubjectReferences reads unique subject references from the storage based on the given filter and pagination.
-func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
+func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, excluded []string, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
 	// Start a new trace span and end it when the function exits.
 	ctx, span := tracer.Start(ctx, "data-reader.query-unique-subject-reference")
 	defer span.End()
@@ -464,8 +464,22 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 		From(RelationTuplesTable).
 		Where(squirrel.Eq{"tenant_id": tenantID}).
 		GroupBy("subject_id")
-	builder = utils.TuplesFilterQueryForSelectBuilder(builder, &base.TupleFilter{Subject: &base.SubjectFilter{Type: subjectReference.GetType(), Relation: subjectReference.GetRelation()}})
+
+	// Apply subject filter
+	builder = utils.TuplesFilterQueryForSelectBuilder(builder, &base.TupleFilter{
+		Subject: &base.SubjectFilter{
+			Type:     subjectReference.GetType(),
+			Relation: subjectReference.GetRelation(),
+		},
+	})
+
+	// Apply snapshot filter
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+
+	// Apply exclusion if the list is not empty
+	if len(excluded) > 0 {
+		builder = builder.Where(squirrel.NotEq{"subject_id": excluded})
+	}
 
 	// Apply the pagination token and limit to the query.
 	if pagination.Token() != "" {

@@ -32,7 +32,7 @@ type DataReader interface {
 
 	// QueryUniqueSubjectReferences reads unique subject references from the storage based on the given filter and pagination.
 	// It returns a slice of subject reference IDs, a continuous token indicating the position in the data set, and any error encountered.
-	QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error)
+	QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, excluded []string, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error)
 
 	// HeadSnapshot reads the latest version of the snapshot from the storage for a specific tenant.
 	// It returns the snapshot token representing the version of the snapshot and any error encountered.
@@ -65,11 +65,7 @@ func (f *NoopDataReader) ReadAttributes(_ context.Context, _ string, _ *base.Att
 	return database.NewAttributeCollection(), database.NewNoopContinuousToken().Encode(), nil
 }
 
-func (f *NoopDataReader) QueryUniqueEntities(_ context.Context, _, _, _ string, _ database.Pagination) ([]string, database.EncodedContinuousToken, error) {
-	return []string{}, database.NewNoopContinuousToken().Encode(), nil
-}
-
-func (f *NoopDataReader) QueryUniqueSubjectReferences(_ context.Context, _ string, _ *base.RelationReference, _ string, _ database.Pagination) ([]string, database.EncodedContinuousToken, error) {
+func (f *NoopDataReader) QueryUniqueSubjectReferences(_ context.Context, _ string, _ *base.RelationReference, _ []string, _ string, _ database.Pagination) ([]string, database.EncodedContinuousToken, error) {
 	return []string{}, database.NewNoopContinuousToken().Encode(), nil
 }
 

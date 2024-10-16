@@ -2338,6 +2338,14 @@
           "$ref": "#/definitions/Context",
           "description": "Context associated with this request."
         },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Argument"
+          },
+          "description": "Additional arguments associated with this request."
+        },
         "page_size": {
           "type": "integer",
           "format": "int64",

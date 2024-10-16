@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/storage/memory/constants"
@@ -304,7 +306,7 @@ func (r *DataReader) ReadAttributes(_ context.Context, tenantID string, filter *
 }
 
 // QueryUniqueSubjectReferences is a function that searches for unique subject references in a given database.
-func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID string, subjectReference *base.RelationReference, _ string, pagination database.Pagination) (ids []string, _ database.EncodedContinuousToken, err error) {
+func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID string, subjectReference *base.RelationReference, excluded []string, _ string, pagination database.Pagination) (ids []string, _ database.EncodedContinuousToken, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -350,7 +352,11 @@ func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID st
 	var lastID string
 
 	for _, b := range subjectIDs {
+		if slices.Contains(excluded, b) {
+			continue
+		}
 		if _, exists := mp[b]; !exists && b >= lowerBound {
+
 			ids = append(ids, b)
 			mp[b] = true
 

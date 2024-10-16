@@ -381,7 +381,7 @@ var _ = Describe("DataReader", func() {
 			refs1, _, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{
 				Type:     "user",
 				Relation: "",
-			}, token1.String(), database.NewPagination())
+			}, []string{}, token1.String(), database.NewPagination())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(refs1)).Should(Equal(4))
 
@@ -390,7 +390,7 @@ var _ = Describe("DataReader", func() {
 			refs4, ct4, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{
 				Type:     "organization",
 				Relation: "member",
-			}, token1.String(), database.NewPagination())
+			}, []string{}, token1.String(), database.NewPagination())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(refs4)).Should(Equal(1))
 			Expect(ct4.String()).Should(Equal(""))

@@ -48,8 +48,8 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 }
 
 // QueryUniqueSubjectReferences - Reads unique subject references from the repository with different options.
-func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, token string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
-	return r.delegate.QueryUniqueSubjectReferences(ctx, tenantID, subjectReference, token, pagination)
+func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, excluded []string, token string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
+	return r.delegate.QueryUniqueSubjectReferences(ctx, tenantID, subjectReference, excluded, token, pagination)
 }
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.

@@ -1132,9 +1132,12 @@ message PermissionLookupSubjectRequest {
   // Context associated with this request.
   Context context = 6 [json_name = "context"];
 
+  // Additional arguments associated with this request.
+  repeated Argument arguments = 7 [json_name = "arguments"];
+
   // page_size is the number of subjects to be returned in the response.
   // The value should be between 1 and 100.
-  uint32 page_size = 7 [
+  uint32 page_size = 8 [
     json_name = "page_size",
     (validate.rules).uint32 = {
       gte: 1
@@ -1144,7 +1147,7 @@ message PermissionLookupSubjectRequest {
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
-  string continuous_token = 8 [
+  string continuous_token = 9 [
     json_name = "continuous_token",
     (validate.rules).string = {ignore_empty: true}
   ];
