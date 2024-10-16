@@ -63,6 +63,11 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 	defer span.End()
 	start := time.Now()
 
+	size := request.GetPageSize()
+	if size == 0 {
+		size = 50
+	}
+
 	v := request.Validate()
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error())
@@ -83,7 +88,7 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 		request.GetFilter(),
 		snap,
 		database.NewPagination(
-			database.Size(request.GetPageSize()),
+			database.Size(size),
 			database.Token(request.GetContinuousToken()),
 		),
 	)
@@ -109,6 +114,11 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 	defer span.End()
 	start := time.Now()
 
+	size := request.GetPageSize()
+	if size == 0 {
+		size = 50
+	}
+
 	v := request.Validate()
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error())
@@ -129,7 +139,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 		request.GetFilter(),
 		snap,
 		database.NewPagination(
-			database.Size(request.GetPageSize()),
+			database.Size(size),
 			database.Token(request.GetContinuousToken()),
 		),
 	)

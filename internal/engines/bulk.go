@@ -6,6 +6,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/pkg/errors"
+
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 
@@ -123,6 +125,15 @@ func (bc *BulkChecker) CollectAndSortRequests() {
 	}
 }
 
+// prepareRequestList sorts and prepares a copy of the request list.
+func (bc *BulkChecker) prepareRequestList() []BulkCheckerRequest {
+	bc.mu.Lock()
+	defer bc.mu.Unlock()
+
+	bc.sortRequests()                                 // Sort requests based on ID
+	return append([]BulkCheckerRequest{}, bc.list...) // Return a copy of the list to avoid modifying the original
+}
+
 // StopCollectingRequests Signal to stop collecting requests and close the channel
 func (bc *BulkChecker) StopCollectingRequests() {
 	bc.mu.Lock()
@@ -152,17 +163,18 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 	// Wait for request collection to complete before proceeding
 	bc.wg.Wait()
 
+	// Create a context with cancellation that will be used to stop further processing
+	ctx, cancel := context.WithCancel(bc.ctx)
+	defer cancel() // Ensure the context is canceled when done
+
 	// Track the number of successful permission checks
 	successCount := int64(0)
 	// Semaphore to control the maximum number of concurrent permission checks
 	sem := semaphore.NewWeighted(int64(bc.concurrencyLimit))
 	var mu sync.Mutex
 
-	// Lock the mutex to prevent race conditions while sorting and copying the list of requests
-	bc.mu.Lock()
-	bc.sortRequests()                                      // Sort requests based on id
-	listCopy := append([]BulkCheckerRequest{}, bc.list...) // Create a copy of the list to avoid modifying the original during processing
-	bc.mu.Unlock()                                         // Unlock the mutex after sorting and copying
+	// Sort and copy the list of requests
+	listCopy := bc.prepareRequestList()
 
 	// Pre-allocate a slice to store the results of the permission checks
 	results := make([]base.CheckResult, len(listCopy))
@@ -173,6 +185,7 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 	for i, currentRequest := range listCopy {
 		// If we've reached the success limit, stop processing further requests
 		if atomic.LoadInt64(&successCount) >= int64(size) {
+			cancel() // Cancel the context to stop further goroutines
 			break
 		}
 
@@ -181,18 +194,31 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 
 		// Use errgroup to manage the goroutines, which allows for error handling and synchronization
 		bc.g.Go(func() error {
+			// Check if the context has been canceled, and return without error if so
+			if err := ctx.Err(); err == context.Canceled {
+				return nil // Gracefully exit the goroutine if context is canceled
+			}
+
 			// Acquire a slot in the semaphore to control concurrency
-			if err := sem.Acquire(bc.ctx, 1); err != nil {
-				return err // Return an error if semaphore acquisition fails
+			if err := sem.Acquire(ctx, 1); err != nil {
+				// Return nil instead of error if the context was canceled during semaphore acquisition
+				if IsContextRelatedError(ctx, err) {
+					return nil
+				}
+				return err // Return an error if semaphore acquisition fails for other reasons
 			}
 			defer sem.Release(1) // Ensure the semaphore slot is released after processing
 
 			var result base.CheckResult
 			if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
 				// Perform the permission check if the result is not already specified
-				cr, err := bc.checker.Check(bc.ctx, req.Request)
+				cr, err := bc.checker.Check(ctx, req.Request)
 				if err != nil {
-					return err // Return an error if the check fails
+					// Handle context cancellation error here
+					if IsContextRelatedError(ctx, err) {
+						return nil // Ignore the cancellation error
+					}
+					return err // Return the actual error if it's not due to cancellation
 				}
 				result = cr.GetCan() // Get the result from the check
 			} else {
@@ -230,13 +256,22 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 			}
 			mu.Unlock() // Unlock the mutex after updating the results and processed index
 
+			// If the success limit has been reached, cancel the context to stop further processing
+			if atomic.LoadInt64(&successCount) >= int64(size) {
+				cancel()
+			}
+
 			return nil // Return nil to indicate successful processing
 		})
 	}
 
 	// Wait for all goroutines to complete and check for any errors
 	if err := bc.g.Wait(); err != nil {
-		return err // Return the error if any goroutine returned an error
+		// Ignore context cancellation as an error
+		if IsContextRelatedError(ctx, err) {
+			return nil
+		}
+		return err // Return other errors if any goroutine returned an error
 	}
 
 	return nil // Return nil if all processing completed successfully
@@ -306,4 +341,9 @@ func (s *BulkSubjectPublisher) Publish(subject *base.Subject, metadata *base.Per
 		},
 		Result: result,
 	}
+}
+
+// IsContextRelatedError checks if the error is due to context cancellation, deadline exceedance, or closed connection
+func IsContextRelatedError(ctx context.Context, err error) bool {
+	return errors.Is(ctx.Err(), context.Canceled) || errors.Is(ctx.Err(), context.DeadlineExceeded)
 }
