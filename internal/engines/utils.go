@@ -82,11 +82,18 @@ type CheckResponse struct {
 // VisitsMap - a thread-safe map of ENR records.
 type VisitsMap struct {
 	er        sync.Map
+	ea        sync.Map
 	published sync.Map
 }
 
 func (s *VisitsMap) AddER(entity *base.Entity, relation string) bool {
 	key := tuple.EntityAndRelationToString(entity, relation)
+	_, existed := s.er.LoadOrStore(key, struct{}{})
+	return !existed
+}
+
+func (s *VisitsMap) AddEA(entityType, attribute string) bool {
+	key := fmt.Sprintf("%s$%s", entityType, attribute)
 	_, existed := s.er.LoadOrStore(key, struct{}{})
 	return !existed
 }

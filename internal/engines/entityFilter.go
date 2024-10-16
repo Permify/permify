@@ -124,6 +124,9 @@ func (engine *EntityFilter) attributeEntrance(
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
+	if !visits.AddEA(entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue()) { // If the entity and relation has already been visited.
+		return nil
+	}
 
 	// Retrieve the scope associated with the target entrance type.
 	// Check if it exists to avoid accessing a nil map entry.
@@ -180,21 +183,31 @@ func (engine *EntityFilter) attributeEntrance(
 	// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
 	it := database.NewUniqueAttributeIterator(rit, cti)
 
-	for it.HasNext() { // Loop over each relationship.
-		// Get the next tuple's subject.
+	// Iterate over the relationships.
+	for it.HasNext() {
+		// Get the next attribute's entity.
 		current, ok := it.GetNext()
-
 		if !ok {
 			break
 		}
 
-		g.Go(func() error {
-			return engine.la(ctx, request,
-				&base.Entity{
-					Type: entrance.TargetEntrance.GetType(),
-					Id:   current.GetEntity().GetId(),
-				}, visits, g, publisher)
-		})
+		// Extract the entity details.
+		entity := &base.Entity{
+			Type: entrance.TargetEntrance.GetType(), // Example: using the type from a previous variable 'entrance'
+			Id:   current.GetEntity().GetId(),
+		}
+
+		// Check if the entity has already been visited to prevent processing it again.
+		if !visits.AddPublished(entity) {
+			continue // Skip this entity if it has already been visited.
+		}
+
+		// Publish the entity with its metadata.
+		publisher.Publish(entity, &base.PermissionCheckRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
 	return nil
@@ -441,25 +454,5 @@ func (engine *EntityFilter) lt(
 			Cursor:   request.GetCursor(),
 		}, visits, publisher)
 	})
-	return nil
-}
-
-func (engine *EntityFilter) la(
-	ctx context.Context, // A context used for tracing and cancellation.
-	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
-	found *base.Entity, // An entity and relation that was previously found.
-	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
-) error { // Returns an error if one occurs during execution.
-	if !visits.AddPublished(found) { // If the entity and relation has already been visited.
-		return nil
-	}
-
-	publisher.Publish(found, &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
-		SnapToken:     request.GetMetadata().GetSnapToken(),
-		SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-		Depth:         request.GetMetadata().GetDepth(),
-	}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	return nil
 }
