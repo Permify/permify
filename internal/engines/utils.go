@@ -104,14 +104,9 @@ func (s *VisitsMap) AddPublished(entity *base.Entity) bool {
 	return !existed
 }
 
-type IdResponse struct {
-	Ids         []string
-	ExcludedIds []string // Holds the list of excluded IDs.
-}
-
 // SubjectFilterResponse -
 type SubjectFilterResponse struct {
-	resp IdResponse
+	resp []string
 	err  error
 }
 

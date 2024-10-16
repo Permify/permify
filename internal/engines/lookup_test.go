@@ -4078,17 +4078,22 @@ var _ = Describe("lookup-entity-engine", func() {
 				attribute balance integer
 	
 				permission view = check_balance(balance) and member
+				permission delete = check_balance(balance) not member
 			}
 	
 			entity repository {
 	
 				relation organization  @organization
+				relation member  @user
 	
 				attribute is_public boolean
 	
 				permission view = is_public
 				permission edit = organization.view
 				permission delete = is_workday(is_public)
+				permission up = is_public not organization.member
+				permission deploy = is_public not member
+				permission check = is_public and organization.delete
 			}
 	
 			rule check_balance(balance integer) {
@@ -4159,6 +4164,165 @@ var _ = Describe("lookup-entity-engine", func() {
 						entity:           "organization:2",
 						assertions: map[string][]string{
 							"view": {"1", "3"},
+						},
+					},
+				},
+			}
+
+			// filters
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				entity, err := tuple.E(filter.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range filter.assertions {
+					response, err := invoker.LookupSubject(context.Background(), &base.PermissionLookupSubjectRequest{
+						TenantId:         "t1",
+						SubjectReference: tuple.RelationReference(filter.subjectReference),
+						Entity:           entity,
+						Permission:       permission,
+						Metadata: &base.PermissionLookupSubjectRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         100,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(response.GetSubjectIds()).Should(Equal(res))
+				}
+			}
+		})
+
+		It("Weekday Sample: Case 2", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(workdaySchemaSubjectFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				subjectReference string
+				entity           string
+				assertions       map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"organization:1#member@user:1",
+					"repository:4#organization@organization:1",
+
+					"repository:3#organization@organization:1",
+					"repository:1#organization@organization:1",
+
+					"organization:2#member@user:1",
+					"organization:2#member@user:3",
+					"organization:5#member@user:2",
+					"organization:5#member@user:5",
+
+					"repository:12#member@user:1",
+					"repository:12#member@user:2",
+
+					"repository:82#organization@organization:43",
+
+					"organization:43#member@user:90",
+					"organization:43#member@user:54",
+				},
+				attributes: []string{
+					"repository:1$is_public|boolean:true",
+					"repository:2$is_public|boolean:false",
+					"repository:3$is_public|boolean:true",
+					"repository:12$is_public|boolean:true",
+					"repository:82$is_public|boolean:true",
+
+					"organization:1$balance|integer:4000",
+					"organization:2$balance|integer:6000",
+
+					"organization:43$balance|integer:6000",
+				},
+				filters: []filter{
+					{
+						subjectReference: "user",
+						entity:           "repository:1",
+						assertions: map[string][]string{
+							"up": {"2", "3", "5", "54", "90"},
+						},
+					},
+					{
+						subjectReference: "user",
+						entity:           "repository:3",
+						assertions: map[string][]string{
+							"up": {"2", "3", "5", "54", "90"},
+						},
+					},
+					{
+						subjectReference: "user",
+						entity:           "repository:12",
+						assertions: map[string][]string{
+							"deploy": {"3", "5", "54", "90"},
+						},
+					},
+					{
+						subjectReference: "user",
+						entity:           "repository:82",
+						assertions: map[string][]string{
+							"check": {"1", "2", "3", "5"},
 						},
 					},
 				},

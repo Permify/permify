@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/cel-go/cel"
@@ -45,40 +46,35 @@ func NewSubjectFilter(schemaReader storage.SchemaReader, dataReader storage.Data
 // SubjectFilterFunction defines the type for a function that takes a context and
 // returns a pointer to a PermissionSubjectFilterResponse and an error.
 // This type is often used when you want to pass around functions with this specific signature.
-type SubjectFilterFunction func(ctx context.Context) (IdResponse, error)
+type SubjectFilterFunction func(ctx context.Context) ([]string, error)
 
 // SubjectFilterCombiner defines the type for a function that takes a context, a slice of SubjectFilterFunctions,
 // an integer as a limit and returns a pointer to a PermissionSubjectFilterResponse and an error.
 // This type is useful when you want to define a function that can execute multiple SubjectFilterFunctions in a specific way
 // (like concurrently with a limit or sequentially) and combine their results into a single PermissionSubjectFilterResponse.
-type SubjectFilterCombiner func(ctx context.Context, functions []SubjectFilterFunction, limit int) (IdResponse, error)
+type SubjectFilterCombiner func(ctx context.Context, functions []SubjectFilterFunction, limit int) ([]string, error)
 
 // SubjectFilter is a method for the SubjectFilterEngine struct.
 // It takes a context and a pointer to a PermissionSubjectFilterRequest
 // and returns a pointer to a PermissionSubjectFilterResponse and an error.
-func (engine *SubjectFilter) SubjectFilter(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response IdResponse, err error) {
+func (engine *SubjectFilter) SubjectFilter(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response []string, err error) {
 	// ReadEntityDefinition method of the SchemaReader interface is used to retrieve the entity's schema definition.
 	// GetTenantId, GetType and GetSchemaVersion methods are used to provide necessary arguments to ReadEntityDefinition.
 	var en *base.EntityDefinition
 	en, _, err = engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		// If an error is encountered while reading the schema definition, return an empty response and the error.
-		return IdResponse{
-			ExcludedIds: []string{},
-			Ids:         []string{},
-		}, err
+		return subjectFilterEmpty(), err
 	}
 
-	var res IdResponse
+	var res []string
+
 	// Call the subjectFilter method of the engine, which returns a function.
 	// That function is then immediately called with the context to perform the actual subject lookup.
 	res, err = engine.subjectFilter(ctx, request, en)(ctx)
 	if err != nil {
 		// If an error is encountered during the lookup, return an empty response and the error.
-		return IdResponse{
-			ExcludedIds: []string{},
-			Ids:         []string{},
-		}, err
+		return subjectFilterEmpty(), err
 	}
 
 	// If everything went smoothly, return the lookup result and nil error.
@@ -129,7 +125,7 @@ func (engine *SubjectFilter) subjectFilter(
 	}
 
 	// Finally, we return a function that combines results from the prepared function.
-	return func(ctx context.Context) (IdResponse, error) {
+	return func(ctx context.Context) ([]string, error) {
 		return subjectFilterUnion(ctx, []SubjectFilterFunction{fn}, engine.concurrencyLimit)
 	}
 }
@@ -202,7 +198,7 @@ func (engine *SubjectFilter) subjectfFlterComputedAttribute(
 ) SubjectFilterFunction {
 	// This function creates a new SubjectFilterFunction. This function is defined to call SubjectFilter on the engine,
 	// with a new PermissionSubjectFilterRequest based on the current request and the ComputedUserSet.
-	return func(ctx context.Context) (IdResponse, error) {
+	return func(ctx context.Context) ([]string, error) {
 		return engine.SubjectFilter(ctx, &base.PermissionLookupSubjectRequest{
 			// The tenant ID is preserved from the original request.
 			TenantId: request.GetTenantId(),
@@ -234,7 +230,7 @@ func (engine *SubjectFilter) subjectFilterDirectAttribute(
 	request *base.PermissionLookupSubjectRequest,
 ) SubjectFilterFunction {
 	// We're returning a function here - this is the actual CheckFunction.
-	return func(ctx context.Context) (result IdResponse, err error) {
+	return func(ctx context.Context) (result []string, err error) {
 		// Create a new AttributeFilter with the entity type and ID from the request
 		// and the requested permission.
 		filter := &base.AttributeFilter{
@@ -281,7 +277,7 @@ func (engine *SubjectFilter) subjectFilterDirectAttribute(
 
 		// If the attribute's value is true, return an allowed response.
 		if msg.Data {
-			return IdResponse{Ids: []string{"*"}}, nil
+			return []string{"*"}, nil
 		}
 
 		// If the attribute's value is not true, return a denied response.
@@ -294,7 +290,7 @@ func (engine *SubjectFilter) subjectFilterCall(
 	call *base.Call,
 ) SubjectFilterFunction {
 	// Construct a new permission check request based on the input request and call details.
-	return func(ctx context.Context) (IdResponse, error) {
+	return func(ctx context.Context) ([]string, error) {
 		return engine.SubjectFilter(ctx, &base.PermissionLookupSubjectRequest{
 			TenantId:         request.GetTenantId(),
 			Entity:           request.GetEntity(),
@@ -312,7 +308,7 @@ func (engine *SubjectFilter) subjectFilterCall(
 func (engine *SubjectFilter) subjectFilterDirectCall(
 	request *base.PermissionLookupSubjectRequest,
 ) SubjectFilterFunction {
-	return func(ctx context.Context) (ids IdResponse, err error) {
+	return func(ctx context.Context) (ids []string, err error) {
 		// Read the rule definition from the schema. If an error occurs, return the default denied response.
 		var ru *base.RuleDefinition
 		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
@@ -403,7 +399,7 @@ func (engine *SubjectFilter) subjectFilterDirectCall(
 
 		// If the result of the CEL evaluation is true, return an "allowed" response, otherwise return a "denied" response
 		if result {
-			return IdResponse{Ids: []string{"*"}}, nil
+			return []string{"*"}, nil
 		}
 
 		return subjectFilterEmpty(), err
@@ -418,7 +414,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 	// The returned SubjectFilterFunction first queries relationships of the entity in the request using the request's permission.
 	// Then it separates the subjects into foundedUsers and foundedUserSets depending on the relation and exclusion flag.
 	// Finally, it adds the ids of all foundedUsers and foundedUserSets to the response.
-	return func(ctx context.Context) (result IdResponse, err error) {
+	return func(ctx context.Context) (result []string, err error) {
 		filter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
 				Type: request.GetEntity().GetType(),
@@ -479,11 +475,11 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		}
 
 		// Initialize the response.
-		var re IdResponse
+		var re []string
 
 		// Add the ids of all foundedUsers to the response.
 		for _, s := range foundedUsers.GetSubjects() {
-			re.Ids = append(re.Ids, s.GetId())
+			re = append(re, s.GetId())
 		}
 
 		// Iterate over the foundedUserSets.
@@ -508,7 +504,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 			}
 
 			// Add the subject ids from the response to the final response.
-			re.Ids = append(re.Ids, resp.Ids...)
+			re = append(re, resp...)
 		}
 
 		// Return the final response with all subject ids and nil error.
@@ -543,7 +539,7 @@ func (engine *SubjectFilter) setChild(
 	}
 
 	// Return a function that when executed, applies the SubjectFilterCombiner on the generated lookup functions
-	return func(ctx context.Context) (IdResponse, error) {
+	return func(ctx context.Context) ([]string, error) {
 		return combiner(ctx, functions, engine.concurrencyLimit)
 	}
 }
@@ -556,7 +552,7 @@ func (engine *SubjectFilter) subjectFilterComputedUserSet(
 ) SubjectFilterFunction {
 	// This function creates a new SubjectFilterFunction. This function is defined to call SubjectFilter on the engine,
 	// with a new PermissionSubjectFilterRequest based on the current request and the ComputedUserSet.
-	return func(ctx context.Context) (IdResponse, error) {
+	return func(ctx context.Context) ([]string, error) {
 		return engine.SubjectFilter(ctx, &base.PermissionLookupSubjectRequest{
 			// The tenant ID is preserved from the original request.
 			TenantId: request.GetTenantId(),
@@ -593,7 +589,7 @@ func (engine *SubjectFilter) subjectFilterTupleToUserSet(
 	// The returned SubjectFilterFunction first queries relationships of the entity in the request using the relation from the TupleToUserSet.
 	// For each subject in the relationships, it generates a SubjectFilterFunction by treating it as a ComputedUserSet.
 	// Finally, it combines all these functions into a single response.
-	return func(ctx context.Context) (IdResponse, error) {
+	return func(ctx context.Context) ([]string, error) {
 		// Define a TupleFilter. This specifies which tuples we're interested in.
 		// We want tuples that match the entity type and ID from the request, and have a specific relation.
 		filter := &base.TupleFilter{
@@ -658,170 +654,191 @@ func (engine *SubjectFilter) subjectFilterTupleToUserSet(
 
 // subjectFilterUnion function is used to find the union of subjects
 // returned by executing multiple lookup subject functions concurrently.
-func subjectFilterUnion(ctx context.Context, functions []SubjectFilterFunction, limit int) (IdResponse, error) {
+func subjectFilterUnion(ctx context.Context, functions []SubjectFilterFunction, limit int) ([]string, error) {
 	// If there are no functions to be executed, return an empty response
 	if len(functions) == 0 {
 		return subjectFilterEmpty(), nil
 	}
 
-	// Create a buffered channel to collect the results of the concurrently executing functions
+	// Create channels to handle asynchronous responses from lookup functions.
 	decisionChan := make(chan SubjectFilterResponse, len(functions))
 
-	// Create a context that can be cancelled
+	// Create a cancellable context
 	cancelCtx, cancel := context.WithCancel(ctx)
 
-	// Execute the functions concurrently, passing the cancel context and decision channel
+	// Run the functions concurrently
 	clean := subjectFiltersRun(cancelCtx, functions, decisionChan, limit)
 
 	// Ensure resources are cleaned up correctly after functions are done executing
 	defer func() {
-		// Cancel the context
 		cancel()
-		// Clean up any remaining resources
 		clean()
-		// Close the decision channel
 		close(decisionChan)
 	}()
 
-	// Initialize the response which will hold the union of subjects
-	var res IdResponse
-
-	// A flag to indicate if "*" has already been encountered
+	var res []string
+	var excludedIds []string
 	encounteredWildcard := false
 
-	// For each function that was executed, collect its result from the decision channel
+	// For each function, collect results
 	for i := 0; i < len(functions); i++ {
 		select {
 		case d := <-decisionChan:
-			// If an error occurred executing the function, return the error
+			// If an error occurred in the function, return the error
 			if d.err != nil {
 				return subjectFilterEmpty(), d.err
 			}
-			// If no error occurred, append the unique subject ids from the function result to the response
-			for _, id := range d.resp.Ids {
-
-				// If "*" is encountered, add it and stop collecting more IDs
-				if id == "*" {
-					// Set the flag and clear previous IDs since "*" includes all
-					res.Ids = []string{"*"}
-					encounteredWildcard = true
-					break
+			// Check if the response contains "*" or "* plus additional IDs"
+			if containsWildcard(d.resp) {
+				encounteredWildcard = true
+				// Collect any additional IDs alongside "*", treat them as exclusions
+				for _, id := range d.resp {
+					if id != "*" && !slices.Contains(excludedIds, id) {
+						excludedIds = append(excludedIds, id)
+					}
 				}
-
-				// Only append IDs if "*" hasn't been encountered
-				if !encounteredWildcard && !slices.Contains(res.Ids, id) {
-					res.Ids = append(res.Ids, id)
+				continue
+			}
+			// Otherwise, append the unique subject IDs to the result
+			for _, id := range d.resp {
+				if !encounteredWildcard && !slices.Contains(res, id) {
+					res = append(res, id)
+				} else if encounteredWildcard {
+					// If wildcard was encountered, treat these as exclusions
+					if !slices.Contains(excludedIds, id) {
+						excludedIds = append(excludedIds, id)
+					}
 				}
 			}
-		// If the context is cancelled before all results are collected, return an error
 		case <-ctx.Done():
 			return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
-	// Return the response containing the union of subject IDs
+	// If a wildcard ("*") was encountered, include everything except the exclusions.
+	if encounteredWildcard {
+		// Return the wildcard result with exclusions as "*-1,2,3"
+		finalRes := []string{"*"}
+		if len(excludedIds) > 0 {
+			exclusions := "-" + strings.Join(excludedIds, ",")
+			finalRes = []string{finalRes[0] + exclusions}
+		}
+		return finalRes, nil
+	}
+
+	// Return the union of all IDs collected
 	return res, nil
 }
 
 // subjectFilterIntersection function is used to find the intersection of subjects
 // returned by executing multiple lookup subject functions concurrently.
-func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFunction, limit int) (IdResponse, error) {
+func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFunction, limit int) ([]string, error) {
 	// If there are no functions to be executed, return an empty response
 	if len(functions) == 0 {
 		return subjectFilterEmpty(), nil
 	}
 
-	// Create a buffered channel to collect the results of the concurrently executing functions
+	// Create channels to handle asynchronous responses from lookup functions.
 	decisionChan := make(chan SubjectFilterResponse, len(functions))
 
-	// Create a context that can be cancelled
+	// Create a cancellable context
 	cancelCtx, cancel := context.WithCancel(ctx)
 
-	// Execute the functions concurrently, passing the cancel context and decision channel
+	// Run the functions concurrently
 	clean := subjectFiltersRun(cancelCtx, functions, decisionChan, limit)
 
 	// Ensure resources are cleaned up correctly after functions are done executing
 	defer func() {
-		// Cancel the context
 		cancel()
-		// Clean up any remaining resources
 		clean()
-		// Close the decision channel
 		close(decisionChan)
 	}()
 
-	// ids is a slice to collect the subject ids returned by the functions
-	var ids [][]string // Her fonksiyonun id listesini ayrı ayrı saklayacağız
-	var res []string
-
-	// A flag to indicate if "*" has been encountered
+	var commonIds []string
+	initialized := false
 	encounteredWildcard := false
+	var excludedIds []string
 
-	// For each function that was executed, collect its result from the decision channel
+	// For each function, collect results
 	for i := 0; i < len(functions); i++ {
 		select {
 		case d := <-decisionChan:
-			// If an error occurred executing the function, return the error
+			// If an error occurred in the function, return the error
 			if d.err != nil {
 				return subjectFilterEmpty(), d.err
 			}
-
-			// If "*" is encountered, set the flag but continue collecting other IDs
-			if containsWildcard(d.resp.Ids) {
+			// If "*" is encountered, handle any exclusions that come with it
+			if containsWildcard(d.resp) {
 				encounteredWildcard = true
-				// Continue processing other functions' results, but we skip adding "*" to the ids slice
+				for _, id := range d.resp {
+					if id != "*" && !slices.Contains(excludedIds, id) {
+						excludedIds = append(excludedIds, id)
+					}
+				}
 				continue
 			}
-
-			// Append the subject ids from the function result to the ids slice
-			ids = append(ids, d.resp.Ids)
-		// If the context is cancelled before all results are collected, return an error
+			// If it's the first function, initialize the common IDs list
+			if !initialized {
+				commonIds = append(commonIds, d.resp...)
+				initialized = true
+			} else {
+				// Intersect the current common IDs with the new set of IDs
+				commonIds = intersect(commonIds, d.resp)
+			}
 		case <-ctx.Done():
 			return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
-	// If there are no valid ids and wildcard was encountered, return wildcard
-	if encounteredWildcard && len(ids) == 0 {
-		return IdResponse{Ids: []string{"*"}}, nil
-	}
-
-	// Filter the ids to only include the intersection (common elements)
-	res = getIntersection(ids)
-
-	// If wildcard was encountered, return the union of intersection and wildcard
+	// If wildcard was encountered, we exclude the IDs in `excludedIds`
 	if encounteredWildcard {
-		return IdResponse{Ids: res}, nil // We return only valid intersection when wildcard exists
+		if len(commonIds) == 0 {
+			// No specific common IDs were found, so all are included except exclusions
+			finalRes := []string{"*"}
+			if len(excludedIds) > 0 {
+				exclusions := "-" + strings.Join(excludedIds, ",")
+				return []string{finalRes[0] + exclusions}, nil
+			}
+			return []string{"*"}, nil
+		}
+
+		// Exclude IDs from commonIds that are in excludedIds
+		filteredCommonIds := []string{}
+		for _, id := range commonIds {
+			if !slices.Contains(excludedIds, id) {
+				filteredCommonIds = append(filteredCommonIds, id)
+			}
+		}
+		return filteredCommonIds, nil
 	}
 
-	// Return the intersection of ids (if no wildcard)
-	return IdResponse{Ids: res}, nil
+	// Return the final intersection of IDs
+	return commonIds, nil
 }
 
 // subjectFilterExclusion is a function that checks for a subject's exclusion
 // among different lookup subject functions and returns the subjects not found
 // in the excluded list.
-func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFunction, limit int) (IdResponse, error) {
-	// If there are not more than one lookup functions, it returns an error because
-	// exclusion requires at least two functions for comparison.
+func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFunction, limit int) ([]string, error) {
+	// Ensure that we have more than one function for exclusion comparison
 	if len(functions) <= 1 {
 		return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_EXCLUSION_REQUIRES_MORE_THAN_ONE_FUNCTION.String())
 	}
 
-	// Create channels to handle asynchronous responses from lookup functions.
+	// Create channels to handle asynchronous responses from lookup functions
 	leftDecisionChan := make(chan SubjectFilterResponse, 1)
 	decisionChan := make(chan SubjectFilterResponse, len(functions)-1)
 
-	// Create a cancellable context to be able to stop the function execution prematurely.
+	// Create a cancellable context
 	cancelCtx, cancel := context.WithCancel(ctx)
 
-	// Use a WaitGroup to ensure all goroutines have completed.
+	// Use a WaitGroup to ensure all goroutines have completed
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		// Run the first lookup function in a goroutine.
+		// Run the first lookup function in a goroutine
 		result, err := functions[0](cancelCtx)
-		// Send the result to the channel.
+		// Send the result to the leftDecisionChan
 		leftDecisionChan <- SubjectFilterResponse{
 			resp: result,
 			err:  err,
@@ -829,10 +846,10 @@ func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFuncti
 		wg.Done()
 	}()
 
-	// Run the rest of the lookup functions in parallel.
+	// Run the rest of the lookup functions in parallel
 	clean := subjectFiltersRun(cancelCtx, functions[1:], decisionChan, limit-1)
 
-	// Defer a function to cancel the context, clean up the resources, close the channels, and wait for all goroutines to finish.
+	// Ensure resources are cleaned up properly
 	defer func() {
 		cancel()
 		clean()
@@ -842,65 +859,74 @@ func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFuncti
 	}()
 
 	var leftIds []string
-	var res IdResponse
+	var res []string
 
-	// Retrieve the result of the first lookup function.
+	// Retrieve the result of the first lookup function (base set for exclusion)
 	select {
 	case left := <-leftDecisionChan:
-		// If there's an error, return it.
+		// If there's an error, return it
 		if left.err != nil {
 			return subjectFilterEmpty(), left.err
 		}
-		// Get the list of subject IDs from the first lookup function.
-		leftIds = left.resp.Ids
+		// Get the list of subject IDs from the first lookup function
+		leftIds = left.resp
 
-		// If the context is cancelled, return a cancellation error.
+	// If the context is cancelled, return a cancellation error
 	case <-ctx.Done():
 		return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 	}
 
 	var exIds []string
+	encounteredRightWildcard := false
 
-	// A flag to indicate if "*" has been encountered
-	encounteredWildcard := false
-
-	// Retrieve the results of the remaining lookup functions.
+	// Retrieve the results of the remaining lookup functions (to use for exclusion)
 	for i := 0; i < len(functions)-1; i++ {
 		select {
 		case d := <-decisionChan:
-			// If there's an error, return it.
+			// If there's an error, return it
 			if d.err != nil {
 				return subjectFilterEmpty(), d.err
 			}
-			// If "*" is encountered, mark it in the response.
-			if containsWildcard(d.resp.Ids) {
-				encounteredWildcard = true
+			// If "*" is encountered in the right functions, mark the wildcard for exclusion
+			if containsWildcard(d.resp) {
+				encounteredRightWildcard = true
+				// If a wildcard is encountered, no need to process further, as all should be excluded
+				break
 			}
-			// Otherwise, append the IDs to the list of exclusion IDs.
-			exIds = append(exIds, d.resp.Ids...)
-		// If the context is cancelled, return a cancellation error.
+			// Otherwise, append the IDs to the exclusion list
+			exIds = append(exIds, d.resp...)
 		case <-ctx.Done():
 			return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
-	// If "*" is encountered, return it along with the exclusion list.
-	if encounteredWildcard {
-		res.Ids = []string{"*"}
-		// Set the excluded IDs to exIds, which are the IDs to be excluded when "*" is present.
-		res.ExcludedIds = exIds
-		return res, nil
+	// Handle wildcard logic in the rightIds (i.e., if "*" is in rightIds)
+	if encounteredRightWildcard {
+		// If any of the right-side functions contains "*", return an empty result (exclude all)
+		return []string{}, nil
 	}
 
-	// Normal case (no wildcard): Exclude IDs from leftIds based on exIds.
+	// Handle wildcard logic in the leftIds (i.e., if "*" is in leftIds)
+	if containsWildcard(leftIds) {
+		// If left side contains "*", return it with exclusions
+		if len(exIds) > 0 {
+			// Format the result as "*-id1,id2,id3" where id1, id2, id3 are the exclusions
+			exclusions := "-" + strings.Join(exIds, ",")
+			return []string{"*" + exclusions}, nil
+		}
+		// If no exclusions are provided, return just "*"
+		return []string{"*"}, nil
+	}
+
+	// Normal case (no wildcard): Exclude the IDs from `leftIds` that are in `exIds`
 	for _, id := range leftIds {
-		// Only include IDs that are not in exIds (exclude the excluded IDs).
+		// Only include IDs from `leftIds` that are NOT in `exIds`
 		if !slices.Contains(exIds, id) {
-			res.Ids = append(res.Ids, id)
+			res = append(res, id)
 		}
 	}
 
-	// Return the response and no error.
+	// Return the filtered result after exclusion
 	return res, nil
 }
 
@@ -958,48 +984,38 @@ func subjectFiltersRun(ctx context.Context, functions []SubjectFilterFunction, d
 // The returned function, when invoked, will always return an error that is provided as an argument to subjectFilterFail.
 // The SubjectFilterFunction could be used as a mock function in unit tests to simulate failure scenarios.
 func subjectFilterFail(err error) SubjectFilterFunction {
-	return func(ctx context.Context) (IdResponse, error) {
+	return func(ctx context.Context) ([]string, error) {
 		// We return a default PermissionSubjectFilterResponse with an empty slice of subject IDs
 		// and the error that was passed into the subjectFilterFail function.
-		return IdResponse{}, err
+		return subjectFilterEmpty(), err
 	}
 }
 
 // empty is a helper function that returns a pointer to a PermissionSubjectFilterResponse
 // with an empty SubjectIds slice.
 // This function could be used in tests where a default or "empty" PermissionSubjectFilterResponse is needed.
-func subjectFilterEmpty() IdResponse {
-	return IdResponse{
-		ExcludedIds: []string{},
-		Ids:         []string{},
-	}
+func subjectFilterEmpty() []string {
+	return []string{}
 }
 
 // getIntersection finds the common elements (intersection) across multiple slices of ids
-func getIntersection(idLists [][]string) []string {
-	if len(idLists) == 0 {
-		return []string{}
+// Helper function to intersect two slices
+func intersect(a, b []string) []string {
+	set := make(map[string]bool)
+	var result []string
+
+	// Add all elements from `a` to the set
+	for _, v := range a {
+		set[v] = true
 	}
 
-	intersection := make(map[string]bool)
-	for _, id := range idLists[0] {
-		intersection[id] = true
-	}
-
-	for _, idList := range idLists[1:] {
-		tempIntersection := make(map[string]bool)
-		for _, id := range idList {
-			if intersection[id] {
-				tempIntersection[id] = true
-			}
+	// Check elements in `b` and only keep those that are in `a`
+	for _, v := range b {
+		if set[v] {
+			result = append(result, v)
 		}
-		intersection = tempIntersection
 	}
 
-	result := []string{}
-	for id := range intersection {
-		result = append(result, id)
-	}
 	return result
 }
 
