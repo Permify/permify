@@ -1,0 +1,664 @@
+---
+sidebar_position: 5
+icon: 'cube'
+title: 'Permify Cloud: End to End Example'
+mode: wide
+---
+
+
+In this tutorial, we’ll walk you through how to build a comprehensive end-to-end authorization system using Permify Cloud. We’ll dive into example use cases, explore key concepts of Permify, and integrate sample codes from Permify’s SDKs to get you up and running quickly.
+
+
+This guide consist of 4 main sections:
+
+1. [Set Up Your First Project & Integrate With Your App](#setting-up-your-first-project)
+2. [Model Authorization Policy](#model-authorization-policy)
+3. [Add Permissions & Store Authorization Data](#add-permissions-and-store-authorization-data)
+4. [Perform Access Check](#perform-access-check)
+
+By the end of this guide, you'll be able to:
+
+- Set up and configure Permify Cloud for your application.
+- Build and test a secure authorization flow to control access across different parts of your app.
+
+Let’s get started!
+
+## Setting Up Your First Project
+
+To get started with building your authorization system, the first step is to sign up for a Permify Cloud account.
+
+1. Navigate to the [Permify Cloud](https://console.permify.co/sign-up).
+2. Enter your details and create your account.
+3. After signing up, it will redirect you to the **Organization Creation** step.
+![create-organization](https://github.com/user-attachments/assets/699c3f99-4ec1-4dea-8b35-4a5094bf5aaf)
+4. After creating the organization, you can invite your organization members.
+
+Once your organization is created, Permify will automatically spin up a **Starter** project to set up your first authorization system. 
+
+![starter-project](https://github.com/user-attachments/assets/3220329c-dcbc-4a22-960c-0f1f2382125b)
+
+<Note>
+It can take a couple of minutes to boot up the Starter project. Sometimes, refreshing the page might be required to see the active state.
+</Note>
+
+Click the starter project to see the dashboard. You're now ready to start defining your authorization rules and policies! 
+
+### Integrating With Your Application
+
+Now that your project is set up, it’s time to integrate Permify Cloud with your application using the appropriate client library. 
+   
+### Setup your client
+
+Permify Cloud currently gives you an Endpoint and an API Key to connect via gRPC or REST connection. Here is where ou can find your **Permify Host** and **API Key** from project page as in the figure below:
+
+![Permify Cloud Project Page](https://github.com/user-attachments/assets/174e1d7f-a615-4715-8dd5-75a3d51e6c5f)
+
+By using these configuration you can set up clients via our SDKs.
+
+<Tabs>
+<Tab title="Java">
+```java
+// Rest SDK for Java
+import org.permify.ApiClient;
+
+ApiClient apiClient = new ApiClient();
+apiClient.setBasePath("<your-permify-host>");
+apiClient.addDefaultHeader("Authorization", "Bearer <your-permify-api-key>");
+```
+</Tab>
+
+<Tab title="Python">
+
+```python
+# Rest SDK for Python
+import permify
+configuration = permify.Configuration(
+    host = "<your-permify-host>",
+    api_key= "<your-permify-api-key>"
+)
+api_client = permify.ApiClient(configuration)
+```
+</Tab>
+
+<Tab title="Javascript">
+
+```javascript
+// Rest SDK for Javascript
+const permify = require('permify-javascript');
+const apiClient = new permify.ApiClient("<your-permify-host>");
+apiClient.defaultHeaders = {'Authorization': "Bearer <your-permify-api-key>"};
+```
+</Tab>
+
+<Tab title="Typescript">
+
+```typescript
+// Rest SDK for Typescript
+import * as permify from 'permify-typescript';
+const apiClient = new permify.ApiClient("<your-permify-host>");
+apiClient.defaultHeaders = {'Authorization': "Bearer <your-permify-api-key>"};
+```
+</Tab>
+
+<Tab title="Node">
+```javascript
+// gRPC SDK for Node
+const permify = require("@permify/permify-node");
+
+const interceptor = permify.grpc.newAccessTokenInterceptor("<your-permify-api-key>");
+const client = permify.grpc.newClient({
+    endpoint: "<your-permify-host>",
+    cert: undefined,
+    pk: undefined,
+    certChain: undefined,
+    insecure: false
+}, interceptor);
+```
+</Tab>
+</Tabs>
+
+Lets move forward with defining our authorization model into Permify Cloud!
+
+## Model Authorization Policy 
+
+In Permify, you can define that a user has certain permissions because of their relation to other entities. 
+
+An example of this would be granting a manager the same permissions as their subordinates, or giving a user access to a resource because they belong to a certain group.
+
+This is facilitated by our relationship-based access control, which allows the definition of complex permission structures based on the relationships between users, roles, and resources.
+
+### What You Will Be Building
+
+In this tutorial, we will build a sample application using Permify’s default example. Here is the schema that defines the relationships and permissions for our application:
+
+```text
+entity user {}
+
+entity organization {
+    relation admin @user
+    relation member @user
+}
+
+entity repository {
+    relation parent @organization
+    relation owner @user
+    
+    permission edit = parent.admin or owner
+    permission delete = owner
+}
+```
+Let's dive into more details to understand our model:
+
+#### Entities
+Entity is an object that defines your resources that held role in your permission system. Our application will manage three main entities: **User**, **Organization**, and **Repository**. 
+
+```text
+entity user {}
+entity organization {}
+entity repository {}
+```
+
+#### Relations
+Relations represent relationships between entities. Our application will have relations between users, organizations and repositories as follow:
+
+- The relationship between a user and an organization involves the user potentially being either a member or an admin of the organization.
+```text
+entity organization {
+    relation admin @user
+    relation member @user
+}
+```
+
+- The relationship between a repository and an organization is such that a repository belongs to an organization.
+```text
+entity repository {
+    relation parent @organization
+}
+```
+
+- The relationship between a repository and an user is such that a repository is created by a user.
+```text
+entity repository {
+    relation owner @user
+}
+```
+
+#### Permissions
+Permissions define what entities can perform within the system. Our application will manage permissions in relation to users, organizations, and repositories as follows:
+
+- If a user is an admin of an organization, that user can edit all repositories within that organization.
+- If a user is the owner of a repository, that user can edit the corresponding repository.
+- If a user is the owner of a repository, that user can delete the corresponding repository.
+```text
+entity repository {
+    permission edit = parent.admin or owner
+    permission delete = owner
+}
+```
+
+To see a live example and test of this example schema, visit the [Permify Playground](https://play.permify.co/?s=organizations-hierarchies). 
+
+![playground](https://github.com/user-attachments/assets/a732f4d5-9767-45ee-9c95-b72a834b3dbb)
+
+### Apply Model via SDK
+
+Let's insert the example schema into Permify using the [Write Schema API](https://docs.permify.co/api-reference/schema/write-schema)
+
+<Tabs>
+<Tab title="Java">
+```java
+// Rest SDK for Java
+import org.permify.api.SchemaApi;
+import org.permify.model.SchemasWriteRequest;
+import org.permify.model.SchemaWriteResponse;
+
+SchemaApi schemaApi = new SchemaApi(apiClient); // previously created apiClient
+try {
+    SchemasWriteRequest req = new SchemasWriteRequest();
+    req.setSchema("entity user {}\n\nentity organization {\n    relation admin @user\n    relation member @user\n}\n\nentity repository {\n    relation parent @organization\n    relation owner @user\n    \n    permission edit = parent.admin or owner\n    permission delete = owner\n}");
+    schemaApi.schemasWrite("t1", req);
+} catch (Exception e) {
+    System.out.println("Error occurred: " + e.getMessage());
+}
+```
+</Tab>
+
+<Tab title="Python">
+
+```python
+# Rest SDK for Python
+schema = "entity user {}\n\nentity organization {\n    relation admin @user\n    relation member @user\n}\n\nentity repository {\n    relation parent @organization\n    relation owner @user\n    \n    permission edit = parent.admin or owner\n    permission delete = owner\n}"
+body = permify.SchemaWriteBody(schema=schema)
+try:
+    response = api_instance.schemas_write("t1", body)
+    pprint(response)
+except ApiException as e:
+    print("Exception when inserting schema: %s\n" % e)
+```
+</Tab>
+
+<Tab title="Javascript">
+
+```javascript
+// Rest SDK for Javascript
+const api = permify.SchemaApi(apiClient)
+const schema = "entity user {}\n\nentity organization {\n    relation admin @user\n    relation member @user\n}\n\nentity repository {\n    relation parent @organization\n    relation owner @user\n    \n    permission edit = parent.admin or owner\n    permission delete = owner\n}";
+const. body = {
+    tenantId: "t1",
+    schema: schema
+};
+try {
+    api.schemasWrite("t1", body, (error, data, response) => {
+        if (error) {
+            // handle the error
+        }
+        // handle the response
+    });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch REST errors here.
+}
+```
+</Tab>
+
+<Tab title="Typescript">
+
+```typescript
+// Rest SDK for Typescript
+const api = permify.SchemaApi(apiClient)
+const schema = "entity user {}\n\nentity organization {\n    relation admin @user\n    relation member @user\n}\n\nentity repository {\n    relation parent @organization\n    relation owner @user\n    \n    permission edit = parent.admin or owner\n    permission delete = owner\n}";
+const. body = {
+    tenantId: "t1",
+    schema: schema
+};
+try {
+    api.schemasWrite("t1", body, (error, data, response) => {
+        if (error) {
+            // handle the error
+        }
+        // handle the response
+    });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch REST errors here.
+}
+```
+</Tab>
+
+<Tab title="Node">
+
+```javascript
+// gRPC SDK for Node
+const schema = "entity user {}\n\nentity organization {\n    relation admin @user\n    relation member @user\n}\n\nentity repository {\n    relation parent @organization\n    relation owner @user\n    \n    permission edit = parent.admin or owner\n    permission delete = owner\n}";
+const. body = {
+    tenantId: "t1",
+    schema: schema
+};
+try {
+    client.schema.write(body)
+        .then((response) => {
+            // handle the response
+        })
+        .catch((error) => {
+            // handle the error
+        });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch gRPC errors here.
+}
+```
+</Tab>
+</Tabs>
+
+We defined our model to Permify Cloud, lets add some permissions and send example API check request in our application.
+
+## Add Permissions & Store Authorization Data
+
+Permify unifies your authorization data and the authorization schemas you have in a database of your preference, which serves as the single source of truth for all authorization queries and requests via the Permify API.
+
+In Permify, you can store authorization data in two different forms: as relationships and as attributes.
+
+For the sake of simplicity, we will only add relationships in this tutorial. Hence, same write API also applies for inserting attributes too. 
+
+For more information about adding permissions and storing data refer to [Storing Data](http://localhost:3000/getting-started/sync-data) section.
+
+#### Relationships
+
+In Permify, relationship between your entities, objects, and users builds up a collection of access control lists (ACLs). Here is how we insert relationships into Permify via our SDKs using the [Data Write API](https://docs.permify.co/api-reference/data/write-data)
+
+We will assign **admin** role to the user:1 in organization:1 --> `organization:1@admin#user:1`
+
+<Tabs>
+<Tab title="Java">
+
+```java
+// Rest SDK for Java
+import org.permify.api.DataApi;
+
+import org.permify.model.Tuple;
+import org.permify.model.Entity;
+import org.permify.model.Subject;
+
+import org.permify.model.DataWriteRequest;
+import org.permify.model.DataWriteResponse;
+
+DataApi dataApi = new DataApi(apiClient); // previously created apiClient
+try {
+    DataWriteRequest req = new DataWriteRequest();
+    
+    // Create a tuple for the relation
+    Tuple tuple = new Tuple();
+    tuple.setRelation("admin");
+
+    // Create the entity for the organization
+    Entity entity = new Entity();
+    entity.setId("organization1");
+    entity.setType("organization");
+    tuple.setEntity(entity);
+
+    // Create the subject for the user
+    Subject subject = new Subject();
+    subject.setId("user1");
+    subject.setType("user");
+    tuple.setSubject(subject);
+
+    // Add the tuple to the DataWriteRequest
+    req.addTuplesItem(tuple);
+    dataApi.dataWrite("t1", req);
+} catch (Exception e) {
+    System.out.println("Error occurred: " + e.getMessage());
+}
+```
+</Tab>
+
+<Tab title="Python">
+
+```python
+# Rest SDK for Python
+api_instance = permify.DataApi(api_client)
+tuples = [permify.Tuple(permify.Entity("organization", "organization1"), "admin", permify.Subject("user", "user1"))]
+metadata = permify.DataWriteRequestMetadata()
+body = permify.DataWriteBody(metadata=metadata, tuples=tuples, attributes=[])
+try:
+    response = api_instance.data_write("t1", body)
+    # handle response here
+except ApiException as e:
+    # handle error here
+```
+</Tab>
+
+<Tab title="Javascript">
+
+```javascript
+// Rest SDK for Javascript
+const api = permify.DataApi(apiClient)
+const body = {
+        tenantId: "t1",
+        metadata: {
+            schemaVersion: ""
+        },
+        tuples: [{
+            entity: {
+                type: "organization",
+                id: "organization1"
+            },
+            relation: "admin",
+            subject: {
+                type: "user",
+                id: "user1"
+            }
+        }],
+        attributes: []
+};
+try {
+    api.dataWrite(tenantId, body, (error, data, response) => {
+        if (error) {
+            // handle the error
+        }
+        // handle the response
+    });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch REST errors here.
+}
+```
+</Tab>
+
+<Tab title="Typescript">
+
+```typescript
+// Rest SDK for Typescript
+const api = permify.DataApi(apiClient)
+const body = {
+        tenantId: "t1",
+        metadata: {
+            schemaVersion: ""
+        },
+        tuples: [{
+            entity: {
+                type: "organization",
+                id: "organization1"
+            },
+            relation: "admin",
+            subject: {
+                type: "user",
+                id: "user1"
+            }
+        }],
+        attributes: []
+};
+try {
+    api.dataWrite(tenantId, body, (error, data, response) => {
+        if (error) {
+            // handle the error
+        }
+        // handle the response
+    });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch REST errors here.
+}
+```
+</Tab>
+
+<Tab title="Node">
+
+```javascript
+// gRPC SDK for Node
+const body = {
+    tenantId: "t1",
+    metadata: {
+        schemaVersion: ""
+    },
+    tuples: [{
+        entity: {
+            type: "organization",
+            id: "organization1"
+        },
+        relation: "admin",
+        subject: {
+            type: "user",
+            id: "user1"
+        }
+    }],
+    attributes: []
+};
+try {
+    client.data.write(body)
+        .then((response) => {
+            // handle the response
+        })
+        .catch((error) => {
+            // handle the error
+        });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch gRPC errors here.
+}
+```
+</Tab>
+</Tabs>
+
+
+## Perform Access Check
+
+#### **Access Check**
+Verify whether a specific subject has access to a given entity. This allows you to determine permissions such as whether a user can view, edit, or delete a particular resource.
+
+<Tabs>
+<Tab title="Java">
+
+```java
+// Rest SDK for Java
+import org.permify.api.PermissionApi;
+import org.permify.model.*;
+
+public static void main(String[] args) {
+
+    PermissionApi permissionApi = new PermissionApi(apiClient);
+
+    try {
+      PermissionsCheckRequest req = new PermissionsCheckRequest();
+      PermissionCheckRequestMetadata metadata = new PermissionCheckRequestMetadata();
+      metadata.setDepth(20);
+
+      // Create the entity for the organization
+      Entity entity = new Entity();
+      entity.setId("organization1");
+      entity.setType("organization");
+
+      // Create the subject for the user
+      Subject subject = new Subject();
+      subject.setId("user1");
+      subject.setType("user");
+
+      req.setSubject(subject);
+      req.setEntity(entity);
+      req.setPermission("edit");
+      req.setMetadata(metadata);
+
+      permissionApi.permissionsCheck("t1", req);
+
+    } catch (Exception e) {
+      System.out.println("Error occurred: " + e.getMessage());
+    }
+}
+```
+</Tab>
+
+<Tab title="Python">
+
+```python
+# Rest SDK for Python
+api_instance = permify.PermissionApi(api_client)
+metadata = permify.PermissionCheckRequestMetadata()
+body = permify.CheckBody(metadata=metadata, entity=permify.Entity("organization", "organization1"), permission="edit", subject=permify.Subject("user", "user1"))
+try:
+    response = api_instance.permissions_check("t1", body)
+    pprint(response.can)
+except ApiException as e:
+    print("Exception when checking permission: %s\n" % e)
+```
+</Tab>
+
+<Tab title="Javascript">
+
+```javascript
+// Rest SDK for Javascript
+const api = permify.PermissionApi(apiClient)
+const body = {
+    tenantId: "t1",
+    metadata: {
+        snapToken: "",
+        schemaVersion: "",
+        depth: 20
+    },
+    entity: {
+        type: "organization",
+        id: "organization1"
+    },
+    permission: "edit",
+    subject: {
+        type: "user",
+        id: "user1"
+    }
+};
+try {
+    api.permissionsCheck(tenantId, body, (error, data, response) => {
+    if (error) {
+        // handle the error
+    }
+    // handle the response
+});
+```
+</Tab>
+
+<Tab title="Typescript">
+
+```typescript
+// Rest SDK for Typescript
+const api = permify.PermissionApi(apiClient)
+const body = {
+    tenantId: "t1",
+    metadata: {
+        snapToken: "",
+        schemaVersion: "",
+        depth: 20
+    },
+    entity: {
+        type: "organization",
+        id: "organization1"
+    },
+    permission: "edit",
+    subject: {
+        type: "user",
+        id: "user1"
+    }
+};
+try {
+    api.permissionsCheck(tenantId, body, (error, data, response) => {
+    if (error) {
+        // handle the error
+    }
+    // handle the response
+});
+```
+</Tab>
+
+<Tab title="Node">
+
+```javascript
+// gRPC SDK for Node
+const body = {
+    tenantId: "t1",
+    metadata: {
+        snapToken: "",
+        schemaVersion: "",
+        depth: 20
+    },
+    entity: {
+        type: "organization",
+        id: "organization1"
+    },
+    permission: "edit",
+    subject: {
+        type: "user",
+        id: "user1"
+    }
+};
+
+try {
+    client.permission.check(body)
+        .then((response) => {
+            // handle the response
+        })
+        .catch((error) => {
+            // handle the error
+        });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch gRPC errors here.
+}
+```
+</Tab>
+</Tabs>
