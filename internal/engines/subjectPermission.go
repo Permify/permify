@@ -76,6 +76,10 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 		}
 	}
 
+	if len(refs) == 0 {
+		return emptyResp, nil
+	}
+
 	// Create a buffered channel for SubjectPermissionResponses.
 	// The buffer size is equal to the number of references in the entity.
 	resultChannel := make(chan SubjectPermissionResponse, len(refs))
