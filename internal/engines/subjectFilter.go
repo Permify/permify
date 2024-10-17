@@ -20,6 +20,8 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
+const ALL = "<>"
+
 type SubjectFilter struct {
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
@@ -277,7 +279,7 @@ func (engine *SubjectFilter) subjectFilterDirectAttribute(
 
 		// If the attribute's value is true, return an allowed response.
 		if msg.Data {
-			return []string{"*"}, nil
+			return []string{ALL}, nil
 		}
 
 		// If the attribute's value is not true, return a denied response.
@@ -399,7 +401,7 @@ func (engine *SubjectFilter) subjectFilterDirectCall(
 
 		// If the result of the CEL evaluation is true, return an "allowed" response, otherwise return a "denied" response
 		if result {
-			return []string{"*"}, nil
+			return []string{ALL}, nil
 		}
 
 		return subjectFilterEmpty(), err
@@ -688,12 +690,12 @@ func subjectFilterUnion(ctx context.Context, functions []SubjectFilterFunction, 
 			if d.err != nil {
 				return subjectFilterEmpty(), d.err
 			}
-			// Check if the response contains "*" or "* plus additional IDs"
+			// Check if the response contains "<>" or "<> plus additional IDs"
 			if containsWildcard(d.resp) {
 				encounteredWildcard = true
-				// Collect any additional IDs alongside "*", treat them as exclusions
+				// Collect any additional IDs alongside "<>", treat them as exclusions
 				for _, id := range d.resp {
-					if id != "*" && !slices.Contains(excludedIds, id) {
+					if id != "<>" && !slices.Contains(excludedIds, id) {
 						excludedIds = append(excludedIds, id)
 					}
 				}
@@ -715,10 +717,10 @@ func subjectFilterUnion(ctx context.Context, functions []SubjectFilterFunction, 
 		}
 	}
 
-	// If a wildcard ("*") was encountered, include everything except the exclusions.
+	// If a wildcard ("<>") was encountered, include everything except the exclusions.
 	if encounteredWildcard {
-		// Return the wildcard result with exclusions as "*-1,2,3"
-		finalRes := []string{"*"}
+		// Return the wildcard result with exclusions as "<>-1,2,3"
+		finalRes := []string{ALL}
 		if len(excludedIds) > 0 {
 			exclusions := "-" + strings.Join(excludedIds, ",")
 			finalRes = []string{finalRes[0] + exclusions}
@@ -767,11 +769,11 @@ func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFun
 			if d.err != nil {
 				return subjectFilterEmpty(), d.err
 			}
-			// If "*" is encountered, handle any exclusions that come with it
+			// If "<>" is encountered, handle any exclusions that come with it
 			if containsWildcard(d.resp) {
 				encounteredWildcard = true
 				for _, id := range d.resp {
-					if id != "*" && !slices.Contains(excludedIds, id) {
+					if id != ALL && !slices.Contains(excludedIds, id) {
 						excludedIds = append(excludedIds, id)
 					}
 				}
@@ -794,12 +796,12 @@ func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFun
 	if encounteredWildcard {
 		if len(commonIds) == 0 {
 			// No specific common IDs were found, so all are included except exclusions
-			finalRes := []string{"*"}
+			finalRes := []string{ALL}
 			if len(excludedIds) > 0 {
 				exclusions := "-" + strings.Join(excludedIds, ",")
 				return []string{finalRes[0] + exclusions}, nil
 			}
-			return []string{"*"}, nil
+			return []string{ALL}, nil
 		}
 
 		// Exclude IDs from commonIds that are in excludedIds
@@ -887,7 +889,7 @@ func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFuncti
 			if d.err != nil {
 				return subjectFilterEmpty(), d.err
 			}
-			// If "*" is encountered in the right functions, mark the wildcard for exclusion
+			// If "<>" is encountered in the right functions, mark the wildcard for exclusion
 			if containsWildcard(d.resp) {
 				encounteredRightWildcard = true
 				// If a wildcard is encountered, no need to process further, as all should be excluded
@@ -900,22 +902,22 @@ func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFuncti
 		}
 	}
 
-	// Handle wildcard logic in the rightIds (i.e., if "*" is in rightIds)
+	// Handle wildcard logic in the rightIds (i.e., if "<>" is in rightIds)
 	if encounteredRightWildcard {
-		// If any of the right-side functions contains "*", return an empty result (exclude all)
+		// If any of the right-side functions contains "<>", return an empty result (exclude all)
 		return []string{}, nil
 	}
 
-	// Handle wildcard logic in the leftIds (i.e., if "*" is in leftIds)
+	// Handle wildcard logic in the leftIds (i.e., if "<>" is in leftIds)
 	if containsWildcard(leftIds) {
-		// If left side contains "*", return it with exclusions
+		// If left side contains "<>", return it with exclusions
 		if len(exIds) > 0 {
-			// Format the result as "*-id1,id2,id3" where id1, id2, id3 are the exclusions
+			// Format the result as "<>-id1,id2,id3" where id1, id2, id3 are the exclusions
 			exclusions := "-" + strings.Join(exIds, ",")
-			return []string{"*" + exclusions}, nil
+			return []string{ALL + exclusions}, nil
 		}
-		// If no exclusions are provided, return just "*"
-		return []string{"*"}, nil
+		// If no exclusions are provided, return just "<>"
+		return []string{ALL}, nil
 	}
 
 	// Normal case (no wildcard): Exclude the IDs from `leftIds` that are in `exIds`
@@ -1019,10 +1021,10 @@ func intersect(a, b []string) []string {
 	return result
 }
 
-// containsWildcard checks if the wildcard "*" is present in the id list
+// containsWildcard checks if the wildcard "<>" is present in the id list
 func containsWildcard(ids []string) bool {
 	for _, id := range ids {
-		if id == "*" {
+		if id == ALL {
 			return true
 		}
 	}

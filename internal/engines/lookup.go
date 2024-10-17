@@ -205,21 +205,21 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 	// Initialize excludedIds to be used in the query
 	var excludedIds []string
 
-	// Check if the wildcard '*' is present in the ids.Ids or if it's formatted like "*-1,2,3"
+	// Check if the wildcard '<>' is present in the ids.Ids or if it's formatted like "<>-1,2,3"
 	for _, id := range ids {
-		if id == "*" {
-			// Handle '*' case: no exclusions, include all resources
+		if id == ALL {
+			// Handle '<>' case: no exclusions, include all resources
 			excludedIds = nil
 			break
-		} else if strings.HasPrefix(id, "*-") {
-			// Handle '*-1,2,3' case: parse exclusions after '-'
-			excludedIds = strings.Split(strings.TrimPrefix(id, "*-"), ",")
+		} else if strings.HasPrefix(id, ALL+"-") {
+			// Handle '<>-1,2,3' case: parse exclusions after '-'
+			excludedIds = strings.Split(strings.TrimPrefix(id, ALL+"-"), ",")
 			break
 		}
 	}
 
-	// If '*' was found, query all subjects with exclusions if provided
-	if excludedIds != nil || slices.Contains(ids, "*") {
+	// If '<>' was found, query all subjects with exclusions if provided
+	if excludedIds != nil || slices.Contains(ids, "<>") {
 		resp, pct, err := engine.dataReader.QueryUniqueSubjectReferences(
 			ctx,
 			request.GetTenantId(),
