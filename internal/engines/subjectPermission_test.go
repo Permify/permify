@@ -427,5 +427,104 @@ var _ = Describe("subject-permission-engine", func() {
 				Expect(reflect.DeepEqual(response.Results, assertion.result)).Should(Equal(true))
 			}
 		})
+
+		It("Drive Sample: Case 4: empty references", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type assertion struct {
+				onlyPermission bool
+				subject        string
+				entity         string
+				result         map[string]base.CheckResult
+			}
+
+			tests := struct {
+				relationships []string
+				assertions    []assertion
+			}{
+				relationships: []string{},
+				assertions: []assertion{
+					{
+						subject:        "user:12",
+						entity:         "organization:1",
+						onlyPermission: true,
+						result:         map[string]base.CheckResult{},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			subjectPermissionEngine := NewSubjectPermission(checkEngine, schemaReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				subjectPermissionEngine,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, assertion := range tests.assertions {
+				entity, err := tuple.E(assertion.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				ear, err := tuple.EAR(assertion.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				response, err := invoker.SubjectPermission(context.Background(), &base.PermissionSubjectPermissionRequest{
+					TenantId: "t1",
+					Subject:  subject,
+					Entity:   entity,
+					Metadata: &base.PermissionSubjectPermissionRequestMetadata{
+						SnapToken:      token.NewNoopToken().Encode().String(),
+						SchemaVersion:  "",
+						Depth:          100,
+						OnlyPermission: assertion.onlyPermission,
+					},
+				})
+
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(reflect.DeepEqual(response.Results, assertion.result)).Should(Equal(true))
+			}
+		})
 	})
 })
