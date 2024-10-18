@@ -49,6 +49,11 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 	changes := make(chan *base.DataChanges, w.database.GetWatchBufferSize())
 	errs := make(chan error, 1)
 
+	var sleep *time.Timer
+	const maxSleepDuration = 2 * time.Second
+	const defaultSleepDuration = 100 * time.Millisecond
+	sleepDuration := defaultSleepDuration
+
 	slog.DebugContext(ctx, "watching for changes in the database", slog.Any("tenant_id", tenantID), slog.Any("snapshot", snap))
 
 	// Decode the snapshot value.
@@ -91,38 +96,48 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 				updates, err := w.getChanges(ctx, id, tenantID)
 				if err != nil {
 					// If there is an error in getting the changes, send the error and return.
-
 					slog.ErrorContext(ctx, "failed to get changes for transaction", slog.Any("id", id), slog.Any("error", err))
-
 					errs <- err
 					return
 				}
 
 				// Send the changes, but respect the context cancellation.
 				select {
-				case changes <- updates: // Send updates to the changes channel.
-					slog.DebugContext(ctx, "sent updates to the changes channel for transaction", slog.Any("id", id))
 				case <-ctx.Done(): // If the context is done, send an error and return.
 					slog.ErrorContext(ctx, "context canceled, stopping watch")
 					errs <- errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 					return
+				case changes <- updates: // Send updates to the changes channel.
+					slog.DebugContext(ctx, "sent updates to the changes channel for transaction", slog.Any("id", id))
 				}
 
 				// Update the transaction ID for the next round.
 				cr = id.Uint
+				sleepDuration = defaultSleepDuration
 			}
 
-			// If there are no recent transaction IDs, wait for a short period before trying again.
 			if len(recentIDs) == 0 {
-				sleep := time.NewTimer(100 * time.Millisecond)
+
+				if sleep == nil {
+					sleep = time.NewTimer(sleepDuration)
+				} else {
+					sleep.Reset(sleepDuration)
+				}
+
+				// Increase the sleep duration exponentially, but cap it at maxSleepDuration.
+				if sleepDuration < maxSleepDuration {
+					sleepDuration *= 2
+				} else {
+					sleepDuration = maxSleepDuration
+				}
 
 				select {
-				case <-sleep.C: // If the timer is done, continue the loop.
-					slog.DebugContext(ctx, "no recent transaction IDs, waiting for changes")
 				case <-ctx.Done(): // If the context is done, send an error and return.
 					slog.ErrorContext(ctx, "context canceled, stopping watch")
 					errs <- errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
 					return
+				case <-sleep.C: // If the timer is done, continue the loop.
+					slog.DebugContext(ctx, "no recent transaction IDs, waiting for changes")
 				}
 			}
 		}
@@ -174,9 +189,7 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 	// Execute the SQL query.
 	rows, err := w.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
-
-		slog.ErrorContext(ctx, "failed to execute sql query", slog.Any("error", err))
-
+		slog.ErrorContext(ctx, "failed to execute SQL query", slog.Any("error", err))
 		return nil, err
 	}
 	defer rows.Close()
@@ -187,9 +200,7 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 		var xid types.XID8
 		err := rows.Scan(&xid)
 		if err != nil {
-
 			slog.ErrorContext(ctx, "error while scanning row", slog.Any("error", err))
-
 			return nil, err
 		}
 		xids = append(xids, xid)
