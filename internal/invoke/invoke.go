@@ -2,6 +2,7 @@ package invoke
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -175,8 +176,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		}
 	}
 
-	// Decrease the depth of the request metadata.
-	request.Metadata = decreaseDepth(request.GetMetadata())
+	atomic.AddInt32(&request.GetMetadata().Depth, -1)
 
 	// Perform the actual permission check using the provided request.
 	response, err = invoker.cc.Check(ctx, request)
@@ -194,8 +194,8 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	duration := time.Since(start)
 	invoker.checkDurationHistogram.Record(ctx, duration.Microseconds())
 
-	// Increase the check count in the response metadata.
-	response.Metadata = increaseCheckCount(response.Metadata)
+	// increaseCheckCount increments the CheckCount value in the response metadata by 1.
+	atomic.AddInt32(&response.GetMetadata().CheckCount, +1)
 
 	// Increase the check count in the metrics.
 	invoker.checkCounter.Add(ctx, 1)

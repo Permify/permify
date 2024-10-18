@@ -61,9 +61,7 @@ func (engine *CheckEngine) SetInvoker(invoker invoke.Check) {
 // This function performs various checks and returns the permission check response
 // along with any errors that may have occurred.
 func (engine *CheckEngine) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-	emptyResp := denied(&base.PermissionCheckResponseMetadata{
-		CheckCount: 0,
-	})
+	emptyResp := denied(emptyResponseMetadata())
 
 	// Retrieve entity definition
 	var en *base.EntityDefinition
@@ -115,7 +113,7 @@ func (engine *CheckEngine) check(
 	// If the request's entity and permission are the same as the subject, return a CheckFunction that always allows the permission.
 	if tuple.AreQueryAndSubjectEqual(request.GetEntity(), request.GetPermission(), request.GetSubject()) {
 		return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-			return allowed(&base.PermissionCheckResponseMetadata{}), nil
+			return allowed(emptyResponseMetadata()), nil
 		}
 	}
 
@@ -271,7 +269,7 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
-			return denied(&base.PermissionCheckResponseMetadata{}), err
+			return denied(emptyResponseMetadata()), err
 		}
 
 		// Query the relationships for the entity in the request.
@@ -281,7 +279,7 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 
 		// If there's an error in querying, return a denied permission response along with the error.
 		if err != nil {
-			return denied(&base.PermissionCheckResponseMetadata{}), err
+			return denied(emptyResponseMetadata()), err
 		}
 
 		// Create a new UniqueTupleIterator from the two TupleIterators.
@@ -301,7 +299,7 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 
 			// If the subject of the tuple is the same as the subject in the request, permission is allowed.
 			if tuple.AreSubjectsEqual(subject, request.GetSubject()) {
-				return allowed(&base.PermissionCheckResponseMetadata{}), nil
+				return allowed(emptyResponseMetadata()), nil
 			}
 			// If the subject is not a user and the relation is not ELLIPSIS, append a check function to the list.
 			if !tuple.IsDirectSubject(subject) && subject.GetRelation() != tuple.ELLIPSIS {
@@ -325,7 +323,7 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 		}
 
 		// If there's no CheckFunction, return a denied permission response.
-		return denied(&base.PermissionCheckResponseMetadata{}), nil
+		return denied(emptyResponseMetadata()), nil
 	}
 }
 
@@ -353,7 +351,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
-			return denied(&base.PermissionCheckResponseMetadata{}), err
+			return denied(emptyResponseMetadata()), err
 		}
 
 		// Use the filter to query for relationships in the database.
@@ -361,7 +359,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		if err != nil {
 			// If an error occurred while querying, return a "denied" response and the error.
-			return denied(&base.PermissionCheckResponseMetadata{}), err
+			return denied(emptyResponseMetadata()), err
 		}
 
 		// Create a new UniqueTupleIterator from the two TupleIterators.
@@ -390,6 +388,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 				Subject:    request.GetSubject(),
 				Metadata:   request.GetMetadata(),
 				Context:    request.GetContext(),
+				Arguments:  request.GetArguments(),
 			}, ttu.GetComputed()))
 		}
 
@@ -416,6 +415,7 @@ func (engine *CheckEngine) checkComputedUserSet(
 		Subject:    request.GetSubject(),  // The subject from the incoming request
 		Metadata:   request.GetMetadata(), // Metadata from the incoming request
 		Context:    request.GetContext(),
+		Arguments:  request.GetArguments(),
 	})
 }
 
@@ -437,6 +437,7 @@ func (engine *CheckEngine) checkComputedAttribute(
 		Subject:    request.GetSubject(),
 		Metadata:   request.GetMetadata(),
 		Context:    request.GetContext(),
+		Arguments:  request.GetArguments(),
 	})
 }
 
@@ -469,7 +470,7 @@ func (engine *CheckEngine) checkDirectAttribute(
 		// An error occurred while querying the single attribute, so we return a denied response with empty metadata
 		// and the error.
 		if err != nil {
-			return denied(&base.PermissionCheckResponseMetadata{}), err
+			return denied(emptyResponseMetadata()), err
 		}
 
 		if val == nil {
@@ -477,30 +478,30 @@ func (engine *CheckEngine) checkDirectAttribute(
 			val, err = engine.dataReader.QuerySingleAttribute(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken())
 			// If there was an error, return a denied response and the error.
 			if err != nil {
-				return denied(&base.PermissionCheckResponseMetadata{}), err
+				return denied(emptyResponseMetadata()), err
 			}
 		}
 
 		// No attribute was found matching the provided filter. In this case, we return a denied response with empty metadata
 		// and no error.
 		if val == nil {
-			return denied(&base.PermissionCheckResponseMetadata{}), nil
+			return denied(emptyResponseMetadata()), nil
 		}
 
 		// Unmarshal the attribute value into a BoolValue message.
 		var msg base.BooleanValue
 		if err := val.GetValue().UnmarshalTo(&msg); err != nil {
 			// If there was an error unmarshaling, return a denied response and the error.
-			return denied(&base.PermissionCheckResponseMetadata{}), err
+			return denied(emptyResponseMetadata()), err
 		}
 
 		// If the attribute's value is true, return an allowed response.
 		if msg.Data {
-			return allowed(&base.PermissionCheckResponseMetadata{}), nil
+			return allowed(emptyResponseMetadata()), nil
 		}
 
 		// If the attribute's value is not true, return a denied response.
-		return denied(&base.PermissionCheckResponseMetadata{}), nil
+		return denied(emptyResponseMetadata()), nil
 	}
 }
 
@@ -532,9 +533,7 @@ func (engine *CheckEngine) checkDirectCall(
 		var err error
 
 		// If an error occurs during the check, this default "denied" response will be returned.
-		emptyResp := denied(&base.PermissionCheckResponseMetadata{
-			CheckCount: 0,
-		})
+		emptyResp := denied(emptyResponseMetadata())
 
 		// Read the rule definition from the schema. If an error occurs, return the default denied response.
 		var ru *base.RuleDefinition
@@ -564,7 +563,7 @@ func (engine *CheckEngine) checkDirectCall(
 				attributes = append(attributes, attrName)
 			default:
 				// Return an error for any unsupported argument types.
-				return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
+				return denied(emptyResponseMetadata()), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 		}
 
@@ -580,12 +579,12 @@ func (engine *CheckEngine) checkDirectCall(
 
 			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 			if err != nil {
-				return denied(&base.PermissionCheckResponseMetadata{}), err
+				return denied(emptyResponseMetadata()), err
 			}
 
 			cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, database.NewCursorPagination())
 			if err != nil {
-				return denied(&base.PermissionCheckResponseMetadata{}), err
+				return denied(emptyResponseMetadata()), err
 			}
 
 			// Combine attributes from different sources ensuring uniqueness.
@@ -615,21 +614,21 @@ func (engine *CheckEngine) checkDirectCall(
 		// Evaluate the rule expression with the provided arguments.
 		out, _, err := prg.Eval(arguments)
 		if err != nil {
-			return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf("failed to evaluate expression: %w", err)
+			return denied(emptyResponseMetadata()), fmt.Errorf("failed to evaluate expression: %w", err)
 		}
 
 		// Ensure the result of evaluation is boolean and decide on permission.
 		result, ok := out.Value().(bool)
 		if !ok {
-			return denied(&base.PermissionCheckResponseMetadata{}), fmt.Errorf("expected boolean result, but got %T", out.Value())
+			return denied(emptyResponseMetadata()), fmt.Errorf("expected boolean result, but got %T", out.Value())
 		}
 
 		// If the result of the CEL evaluation is true, return an "allowed" response, otherwise return a "denied" response
 		if result {
-			return allowed(&base.PermissionCheckResponseMetadata{}), nil
+			return allowed(emptyResponseMetadata()), nil
 		}
 
-		return denied(&base.PermissionCheckResponseMetadata{}), err
+		return denied(emptyResponseMetadata()), err
 	}
 }
 
@@ -637,7 +636,7 @@ func (engine *CheckEngine) checkDirectCall(
 // the permission check is successful if any one of the CheckFunctions succeeds (union).
 func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error) {
 	// Initialize the response metadata
-	responseMetadata := &base.PermissionCheckResponseMetadata{}
+	responseMetadata := emptyResponseMetadata()
 
 	// If there are no functions, deny the permission and return
 	if len(functions) == 0 {
@@ -691,7 +690,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 // the permission check is successful only when all CheckFunctions succeed (intersection).
 func checkIntersection(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error) {
 	// Initialize the response metadata
-	responseMetadata := &base.PermissionCheckResponseMetadata{}
+	responseMetadata := emptyResponseMetadata()
 
 	// If there are no functions, deny the permission and return
 	if len(functions) == 0 {
@@ -741,7 +740,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 // checkExclusion is a function that checks if there are any exclusions for given CheckFunctions
 func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error) {
 	// Initialize the response metadata
-	responseMetadata := &base.PermissionCheckResponseMetadata{}
+	responseMetadata := emptyResponseMetadata()
 
 	// Check if there are at least 2 functions, otherwise return an error indicating that exclusion requires more than one function
 	if len(functions) <= 1 {
@@ -898,5 +897,15 @@ func allowed(meta *base.PermissionCheckResponseMetadata) *base.PermissionCheckRe
 	return &base.PermissionCheckResponse{
 		Can:      base.CheckResult_CHECK_RESULT_ALLOWED,
 		Metadata: meta,
+	}
+}
+
+// emptyResponseMetadata creates and returns an empty PermissionCheckResponseMetadata.
+//
+// Returns:
+// - A pointer to PermissionCheckResponseMetadata with the CheckCount initialized to 0.
+func emptyResponseMetadata() *base.PermissionCheckResponseMetadata {
+	return &base.PermissionCheckResponseMetadata{
+		CheckCount: 0,
 	}
 }
