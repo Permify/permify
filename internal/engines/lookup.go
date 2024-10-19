@@ -219,7 +219,7 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 	}
 
 	// If '<>' was found, query all subjects with exclusions if provided
-	if excludedIds != nil || slices.Contains(ids, "<>") {
+	if excludedIds != nil || slices.Contains(ids, ALL) {
 		resp, pct, err := engine.dataReader.QueryUniqueSubjectReferences(
 			ctx,
 			request.GetTenantId(),
@@ -243,30 +243,10 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 	// Sort the IDs
 	sort.Strings(ids)
 
-	// Initialize the start index as a string (to match token format)
-	start := ""
-
-	// Handle continuous token if present
-	if request.GetContinuousToken() != "" {
-		var t database.ContinuousToken
-		t, err := utils.EncodedContinuousToken{Value: request.GetContinuousToken()}.Decode()
-		if err != nil {
-			return nil, err
-		}
-		start = t.(utils.ContinuousToken).Value
-	}
-
-	// Find the start index based on the continuous token
+	// Since the incoming 'ids' are already filtered based on the continuous token,
+	// there is no need to decode or handle the continuous token manually.
+	// The startIndex is initialized to 0.
 	startIndex := 0
-	if start != "" {
-		// Locate the position in the sorted list where the ID equals or exceeds the token value
-		for i, id := range ids {
-			if id >= start {
-				startIndex = i
-				break
-			}
-		}
-	}
 
 	// Convert size to int for compatibility with startIndex
 	pageSize := int(size)
@@ -284,7 +264,7 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 		ct = ""
 	}
 
-	// Return the paginated and sorted list of IDs
+	// Return the paginated list of IDs
 	return &base.PermissionLookupSubjectResponse{
 		SubjectIds:      ids[startIndex:end], // Slice the IDs based on pagination
 		ContinuousToken: ct,                  // Return the next continuous token
