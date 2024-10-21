@@ -429,7 +429,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
 		var cti *database.TupleIterator
-		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
+		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -437,7 +437,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -795,13 +795,11 @@ func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFun
 	// If wildcard was encountered, we exclude the IDs in `excludedIds`
 	if encounteredWildcard {
 		if len(commonIds) == 0 {
-			// No specific common IDs were found, so all are included except exclusions
-			finalRes := []string{ALL}
 			if len(excludedIds) > 0 {
 				exclusions := "-" + strings.Join(excludedIds, ",")
-				return []string{finalRes[0] + exclusions}, nil
+				return []string{ALL + exclusions}, nil
 			}
-			return []string{ALL}, nil
+			return []string{}, nil
 		}
 
 		// Exclude IDs from commonIds that are in excludedIds
