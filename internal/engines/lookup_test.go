@@ -4570,4 +4570,187 @@ var _ = Describe("lookup-entity-engine", func() {
 			}
 		})
 	})
+
+	exampleSchemaSubjectFilter := `
+entity user {
+    attribute first_name string
+}
+
+entity org {
+    relation admin @user
+    relation perms @group_perms
+}
+
+entity project {
+    relation parent @org
+    relation admin @user 
+    relation perms @group_perms
+
+    permission project_edit = admin or parent.admin or perms.project_edit
+    permission project_view = project_edit or perms.project_view
+	permission edit = perms.project_edit
+}
+
+entity group {
+    relation member @user
+}
+
+entity group_perms {
+    relation members @group
+
+    attribute can_project_edit boolean
+    attribute can_project_view boolean
+
+    permission project_edit = can_project_edit and members.member
+    permission project_view = (can_project_view and members.member) or project_edit
+	permission edit = can_project_edit
+}
+			`
+
+	Context("Sample: Subject Filter", func() {
+		It("Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(exampleSchemaSubjectFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				subjectReference string
+				entity           string
+				assertions       map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"project:project_1#perms@group_perms:group_perms_1",
+					"project:project_2#perms@group_perms:group_perms_2",
+
+					"group_perms:group_perms_1#members@group:group_1",
+					"group:group_1#member@user:user_1",
+					"group:group_1#member@user:user_3",
+					"group:group_1#member@user:user_4",
+
+					"group:group_2#member@user:user_2",
+				},
+				attributes: []string{
+					"group_perms:group_perms_1$can_project_view|boolean:true",
+					"group_perms:group_perms_1$can_project_edit|boolean:true",
+				},
+				filters: []filter{
+					{
+						subjectReference: "user",
+						entity:           "project:project_1",
+						assertions: map[string][]string{
+							"project_view": {"user_1", "user_3", "user_4"},
+							"edit":         {"user_1", "user_3", "user_4"},
+						},
+					},
+					{
+						subjectReference: "user",
+						entity:           "group_perms:group_perms_1",
+						assertions: map[string][]string{
+							"edit": {"user_1", "user_2", "user_3", "user_4"},
+						},
+					},
+				},
+			}
+
+			// filters
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				entity, err := tuple.E(filter.entity)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				for permission, res := range filter.assertions {
+
+					ct := ""
+
+					var ids []string
+
+					for {
+						response, err := invoker.LookupSubject(context.Background(), &base.PermissionLookupSubjectRequest{
+							TenantId:         "t1",
+							SubjectReference: tuple.RelationReference(filter.subjectReference),
+							Entity:           entity,
+							Permission:       permission,
+							Metadata: &base.PermissionLookupSubjectRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+							},
+							ContinuousToken: ct,
+							PageSize:        2,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						ids = append(ids, response.GetSubjectIds()...)
+
+						ct = response.GetContinuousToken()
+
+						if ct == "" {
+							break
+						}
+					}
+
+					Expect(ids).Should(Equal(res))
+				}
+			}
+		})
+	})
 })

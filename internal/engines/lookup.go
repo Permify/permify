@@ -240,13 +240,35 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 		}, nil
 	}
 
+	start := ""
+
 	// Sort the IDs
 	sort.Strings(ids)
+
+	// Handle continuous token if present
+	if request.GetContinuousToken() != "" {
+		var t database.ContinuousToken
+		t, err := utils.EncodedContinuousToken{Value: request.GetContinuousToken()}.Decode()
+		if err != nil {
+			return nil, err
+		}
+		start = t.(utils.ContinuousToken).Value
+	}
 
 	// Since the incoming 'ids' are already filtered based on the continuous token,
 	// there is no need to decode or handle the continuous token manually.
 	// The startIndex is initialized to 0.
 	startIndex := 0
+
+	if start != "" {
+		// Locate the position in the sorted list where the ID equals or exceeds the token value
+		for i, id := range ids {
+			if id >= start {
+				startIndex = i
+				break
+			}
+		}
+	}
 
 	// Convert size to int for compatibility with startIndex
 	pageSize := int(size)

@@ -561,6 +561,9 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
+	// TODO: To optimize this query, create the following index concurrently to avoid table locks:
+	// CREATE INDEX CONCURRENTLY idx_transactions_tenant_id_id ON transactions(tenant_id, id DESC);
+
 	// Execute the query and retrieve the highest transaction ID.
 	err = r.database.ReadPool.QueryRow(ctx, query, args...).Scan(&xid)
 	if err != nil {

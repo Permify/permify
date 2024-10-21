@@ -429,7 +429,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
 		var cti *database.TupleIterator
-		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
+		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -437,7 +437,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -695,7 +695,7 @@ func subjectFilterUnion(ctx context.Context, functions []SubjectFilterFunction, 
 				encounteredWildcard = true
 				// Collect any additional IDs alongside "<>", treat them as exclusions
 				for _, id := range d.resp {
-					if id != "<>" && !slices.Contains(excludedIds, id) {
+					if id != ALL && !slices.Contains(excludedIds, id) {
 						excludedIds = append(excludedIds, id)
 					}
 				}
