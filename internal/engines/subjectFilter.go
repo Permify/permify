@@ -517,10 +517,10 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 // setChild generates a SubjectFilterFunction by applying a SubjectFilterCombiner
 // to a set of child permission lookups, given a request and a list of Child objects.
 func (engine *SubjectFilter) setChild(
-	ctx context.Context, // The context for carrying out the operation
+	ctx context.Context,                          // The context for carrying out the operation
 	request *base.PermissionLookupSubjectRequest, // The request containing parameters for lookup
-	children []*base.Child, // The children of a particular node in the permission schema
-	combiner SubjectFilterCombiner, // A function to combine the results from multiple lookup functions
+	children []*base.Child,                       // The children of a particular node in the permission schema
+	combiner SubjectFilterCombiner,               // A function to combine the results from multiple lookup functions
 ) SubjectFilterFunction {
 	var functions []SubjectFilterFunction // Array of functions to store lookup functions for each child
 
@@ -795,10 +795,6 @@ func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFun
 	// If wildcard was encountered, we exclude the IDs in `excludedIds`
 	if encounteredWildcard {
 		if len(commonIds) == 0 {
-			if len(excludedIds) > 0 {
-				exclusions := "-" + strings.Join(excludedIds, ",")
-				return []string{ALL + exclusions}, nil
-			}
 			return []string{}, nil
 		}
 
