@@ -429,7 +429,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		// NewContextualRelationships() creates a ContextualRelationships instance from tuples in the request.
 		// QueryRelationships() then uses the filter to find and return matching relationships.
 		var cti *database.TupleIterator
-		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
+		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -437,7 +437,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		// Query the relationships for the entity in the request.
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
+		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}
@@ -517,10 +517,10 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 // setChild generates a SubjectFilterFunction by applying a SubjectFilterCombiner
 // to a set of child permission lookups, given a request and a list of Child objects.
 func (engine *SubjectFilter) setChild(
-	ctx context.Context, // The context for carrying out the operation
+	ctx context.Context,                          // The context for carrying out the operation
 	request *base.PermissionLookupSubjectRequest, // The request containing parameters for lookup
-	children []*base.Child, // The children of a particular node in the permission schema
-	combiner SubjectFilterCombiner, // A function to combine the results from multiple lookup functions
+	children []*base.Child,                       // The children of a particular node in the permission schema
+	combiner SubjectFilterCombiner,               // A function to combine the results from multiple lookup functions
 ) SubjectFilterFunction {
 	var functions []SubjectFilterFunction // Array of functions to store lookup functions for each child
 
@@ -795,13 +795,7 @@ func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFun
 	// If wildcard was encountered, we exclude the IDs in `excludedIds`
 	if encounteredWildcard {
 		if len(commonIds) == 0 {
-			// No specific common IDs were found, so all are included except exclusions
-			finalRes := []string{ALL}
-			if len(excludedIds) > 0 {
-				exclusions := "-" + strings.Join(excludedIds, ",")
-				return []string{finalRes[0] + exclusions}, nil
-			}
-			return []string{ALL}, nil
+			return []string{}, nil
 		}
 
 		// Exclude IDs from commonIds that are in excludedIds
