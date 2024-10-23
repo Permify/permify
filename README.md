@@ -59,7 +59,7 @@ It works in run time and can respond to any type of access control checks (can u
 You can quickly start Permify on your local with running the docker command below:
 
 ```shell
-docker run -p 3476:3476 -p 3478:3478  ghcr.io/permify/permify
+docker run -p 3476:3476 -p 3478:3478 ghcr.io/permify/permify serve
 ```
 
 This will start Permify with the default configuration options: 
