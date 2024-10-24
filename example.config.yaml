@@ -8,6 +8,7 @@ server:
   http:
     enabled: true
     port: 3476
+    expose_openapi: false
     tls:
       enabled: false
       cert: /etc/letsencrypt/live/yourdomain.com/fullchain.pem
