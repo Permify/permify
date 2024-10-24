@@ -305,23 +305,36 @@ func (s *Container) Run(
 			}),
 		}
 
-		mux := runtime.NewServeMux(muxOpts...)
+		// Create the gRPC gateway mux
+    grpcMux := runtime.NewServeMux(muxOpts...)
 
-		if err = grpcV1.RegisterPermissionHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterPermissionHandler(ctx, grpcMux, conn); err != nil {
 			return err
 		}
-		if err = grpcV1.RegisterSchemaHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterSchemaHandler(ctx, grpcMux, conn); err != nil {
 			return err
 		}
-		if err = grpcV1.RegisterDataHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterDataHandler(ctx, grpcMux, conn); err != nil {
 			return err
 		}
-		if err = grpcV1.RegisterBundleHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterBundleHandler(ctx, grpcMux, conn); err != nil {
 			return err
 		}
-		if err = grpcV1.RegisterTenancyHandler(ctx, mux, conn); err != nil {
+		if err = grpcV1.RegisterTenancyHandler(ctx, grpcMux, conn); err != nil {
 			return err
 		}
+
+		// Create a new http.ServeMux for serving your OpenAPI file and gRPC gateway
+    httpMux := http.NewServeMux()
+
+		if srv.HTTP.ExposeOpenAPI {
+			httpMux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+				http.ServeFile(w, r, "./docs/api-reference/openapi.json")
+			})
+		}
+
+    // Handle all gRPC gateway routes
+    httpMux.Handle("/", grpcMux)
 
 		httpServer = &http.Server{
 			Addr: ":" + srv.HTTP.Port,
@@ -333,7 +346,7 @@ func (s *Container) Run(
 					http.MethodGet, http.MethodPost,
 					http.MethodHead, http.MethodPatch, http.MethodDelete, http.MethodPut,
 				},
-			}).Handler(mux),
+			}).Handler(httpMux),
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 
