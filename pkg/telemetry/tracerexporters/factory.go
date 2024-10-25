@@ -17,6 +17,8 @@ func ExporterFactory(name, url string, insecure bool, urlpath string, headers ma
 		return NewOTLP(url, insecure, urlpath, headers, protocol)
 	case "signoz":
 		return NewSigNoz(url, insecure, headers)
+	case "gcp":
+		return NewGCP(url, insecure, headers)
 	default:
 		return nil, fmt.Errorf("%s tracer exporter is unsupported", name)
 	}
