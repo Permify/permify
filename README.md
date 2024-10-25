@@ -20,7 +20,7 @@
     <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>
 </p>        
 
-![permify-centralized](https://github.com/user-attachments/assets/e1c22244-1fa4-4bc3-8b7a-bdfb97610c5f)
+![permify-centralized](https://github.com/user-attachments/assets/124eaa43-5d33-423d-a258-5d6f4afbc774)
 
 ## What is Permify?
 
