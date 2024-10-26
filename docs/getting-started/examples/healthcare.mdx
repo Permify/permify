@@ -1,0 +1,209 @@
+---
+title: 'Healthcare System'
+mode: wide
+---
+
+This example represents a healthcare company permission system where users, such as doctors, patients, and administrators, have fine-grained access to medical records, appointments, and patient management. 
+
+## Schema
+
+```permify
+entity user {}
+
+entity doctor {
+    // Doctors can have multiple patients.
+    relation patient @patient
+    relation group @group
+}
+
+entity partner {
+    relation admin @user
+    relation member @user
+
+    permission edit = admin
+    permission view = edit or member
+}
+
+entity group {
+    relation partner @partner
+    relation doctor @doctor
+
+    permission edit = partner.edit or doctor
+    permission view = edit or partner.view
+}
+
+entity state {
+    attribute age_limit integer
+
+    rule check_age(age integer) {
+        this.age_limit > age
+    }
+}
+
+entity patient {
+    // Patients can have multiple doctors and be linked to groups and states.
+    relation primary_doctor @doctor
+    relation consultant @doctor
+    relation group @group
+    relation state @state
+    relation owner @user
+    relation guardian @user
+
+    attribute age integer
+
+    // Permissions for accessing patient data.
+    permission parent_access = state.check_age(age)
+    permission edit = owner or group.edit or primary_doctor or consultant
+    permission view = edit or group.view or guardian
+}
+
+entity medical_record {
+    // Each medical record pertains to a patient and a doctor.
+    relation patient @patient
+    relation doctor @doctor
+
+    // Permissions for medical record access.
+    action view = doctor.patient or patient or patient.guardian
+    action create = doctor.patient
+    action update = doctor.patient
+    action delete = doctor.patient
+}
+
+entity hospital {
+    // Hospitals can have doctors, patients, and groups.
+    relation doctor @doctor
+    relation patient @patient
+    relation group @group
+
+    // Actions for managing hospital processes.
+    action admit_patient = doctor
+    action discharge_patient = doctor
+    action view_patient_records = doctor or patient.guardian or group.view
+}
+
+entity appointment {
+    // Appointments link a patient with a doctor.
+    relation doctor @doctor
+    relation patient @patient
+
+    // Patients or doctors can manage appointments.
+    action create = patient or doctor
+    action update = patient or doctor.patient
+    action delete = doctor.patient
+}
+
+entity claims {
+    // Claims link a patient with a group and can involve multiple entities.
+    relation group @group
+    relation patient @patient
+
+    action edit = patient.edit or group.edit
+    action view = edit or patient.view or group.view
+    action parent_access = patient.parent_access
+}
+```
+
+Here’s a breakdown of the combined schema, explaining each part and how it functions according to the Permify Schema Language:
+
+### 1. `entity user {}`
+
+- **Entity**: Represents a user in the system.
+- **Explanation**: This entity is a placeholder for individual users. In other relationships, users are assigned roles or permissions based on their connections to other entities.
+
+### 2. `entity doctor { ... }`
+
+- **Relations**:
+  - `relation patient @patient`: Doctors can be associated with multiple patients.
+  - `relation group @group`: Doctors can also be linked to groups (e.g., medical teams or departments).
+- **Explanation**: The `doctor` entity models a healthcare professional who can have multiple patients assigned to them and can belong to groups. Relationships help manage permissions for accessing patient-related data or participating in group-based activities.
+
+### 3. `entity partner { ... }`
+
+- **Relations**:
+  - `relation admin @user`: The admin of the partner is a user.
+  - `relation member @user`: Members of the partner are also users.
+- **Permissions**:
+  - `permission edit = admin`: Users who are admins can edit.
+  - `permission view = edit or member`: Members can view, and admins have inherited view access from the edit permission.
+- **Explanation**: This entity represents a partner organization, with roles for admin and member users. It defines permissions for actions like editing or viewing the partner data based on user roles.
+
+### 4. `entity group { ... }`
+
+- **Relations**:
+  - `relation partner @partner`: A group is associated with a partner.
+  - `relation doctor @doctor`: Groups can include doctors.
+- **Permissions**:
+  - `permission edit = partner.edit or doctor`: If a partner has edit access, or if a doctor is linked, then the group can be edited.
+  - `permission view = edit or partner.view`: The view permission is granted if a user has edit access or if the partner can view.
+- **Explanation**: Groups are collections that can include doctors and be tied to partners. This entity manages permissions for actions within the group, such as editing or viewing.
+
+### 5. `entity state { ... }`
+
+- **Attributes**:
+  - `attribute age_limit integer`: The state entity has an `age_limit` attribute of type integer.
+- **Rules**:
+  - `rule check_age(age integer) { this.age_limit > age }`: This rule checks if the state's age limit is greater than a specified age.
+- **Explanation**: This entity allows defining conditions or rules based on age, which can be used in permissions for entities like patients.
+
+### 6. `entity patient { ... }`
+
+- **Relations**:
+  - `relation primary_doctor @doctor`: A patient has a primary doctor.
+  - `relation consultant @doctor`: A patient can have consultant doctors.
+  - `relation group @group`: Patients can be linked to groups (e.g., departments).
+  - `relation state @state`: Patients have a state, potentially linked to age-based permissions.
+  - `relation owner @user`: An owner (usually a guardian or caregiver) is associated with the patient.
+  - `relation guardian @user`: A guardian can also be linked to a patient.
+- **Attributes**:
+  - `attribute age integer`: Represents the patient's age.
+- **Permissions**:
+  - `permission parent_access = state.check_age(age)`: The permission for parent access is granted if the state’s `check_age` rule is met.
+  - `permission edit = owner or group.edit or primary_doctor or consultant`: Editing permissions are granted to the owner, group members with edit rights, or the doctors.
+  - `permission view = edit or group.view or guardian`: View permissions extend to anyone who can edit, group members who can view, or the guardian.
+- **Explanation**: This entity models patients and defines relationships with doctors, groups, and guardians. Permissions are fine-grained, involving rules based on age and relationships with other entities.
+
+### 7. `entity medical_record { ... }`
+
+- **Relations**:
+  - `relation patient @patient`: Links the medical record to a patient.
+  - `relation doctor @doctor`: Associates the medical record with a doctor.
+- **Actions**:
+  - `action view = doctor.patient or patient or patient.guardian`: The record can be viewed by doctors associated with the patient, the patient themselves, or their guardian.
+  - `action create = doctor.patient`: Only doctors who are associated with the patient can create the record.
+  - `action update = doctor.patient`: Updating the record is limited to the patient’s doctor.
+  - `action delete = doctor.patient`: Deleting the record is also restricted to the doctor.
+- **Explanation**: This entity models medical records and enforces strict access control based on the doctor-patient relationship, with different permissions for viewing, creating, updating, and deleting records.
+
+### 8. `entity hospital { ... }`
+
+- **Relations**:
+  - `relation doctor @doctor`: Doctors associated with the hospital.
+  - `relation patient @patient`: Patients associated with the hospital.
+  - `relation group @group`: Groups linked to the hospital (e.g., medical departments).
+- **Actions**:
+  - `action admit_patient = doctor`: Doctors can admit patients.
+  - `action discharge_patient = doctor`: Doctors can discharge patients.
+  - `action view_patient_records = doctor or patient.guardian or group.view`: Allows doctors, patient guardians, or group members with view access to see patient records.
+- **Explanation**: This entity represents hospitals, with relationships to doctors, patients, and groups. The actions define what activities doctors can perform, such as admitting or discharging patients.
+
+### 9. `entity appointment { ... }`
+
+- **Relations**:
+  - `relation doctor @doctor`: Associates the appointment with a doctor.
+  - `relation patient @patient`: Associates the appointment with a patient.
+- **Actions**:
+  - `action create = patient or doctor`: Both patients and doctors can create appointments.
+  - `action update = patient or doctor.patient`: Either the patient or their associated doctor can update the appointment.
+  - `action delete = doctor.patient`: Only doctors associated with the patient can delete the appointment.
+- **Explanation**: The `appointment` entity handles scheduling activities, linking patients with doctors and defining who can create, update, or delete appointments.
+
+### 10. `entity claims { ... }`
+
+- **Relations**:
+  - `relation group @group`: Claims can be linked to a group.
+  - `relation patient @patient`: Claims can be associated with a patient.
+- **Actions**:
+  - `action edit = patient.edit or group.edit`: Claims can be edited by those with patient edit permissions or group edit permissions.
+  - `action view = edit or patient.view or group.view`: View permissions are granted to those who can edit or have patient or group view permissions.
+  - `action parent_access = patient.parent_access`: Parent access to claims follows the parent access permissions for the patient.
+- **Explanation**: This entity models claims related to patients and groups, defining how these claims can be accessed or modified.
