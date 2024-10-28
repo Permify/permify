@@ -8,7 +8,7 @@ import (
 )
 
 // NewGCP creates a new Google Cloud tracer with optional headers for credentials and project ID.
-func NewGCP(url string, insecure bool, headers map[string]string) (sdktrace.SpanExporter, error) {
+func NewGCP(headers map[string]string) (sdktrace.SpanExporter, error) {
 
 	if credentials, exists := headers["google-application-credentials"]; exists && credentials != "" {
 		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentials)

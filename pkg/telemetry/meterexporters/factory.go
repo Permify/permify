@@ -11,6 +11,8 @@ func ExporterFactory(name, endpoint string, insecure bool, urlpath string, heade
 	switch name {
 	case "otlp", "otlp-http", "otlp-grpc":
 		return NewOTLP(endpoint, insecure, urlpath, headers, protocol)
+	case "gcp":
+		return NewGCP(headers)
 	default:
 		return nil, fmt.Errorf("%s meter exporter is unsupported", name)
 	}
