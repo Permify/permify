@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/agoda-com/opentelemetry-go/otelslog"
 	slogmulti "github.com/samber/slog-multi"
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
@@ -40,7 +39,6 @@ import (
 	pkgcache "github.com/Permify/permify/pkg/cache"
 	"github.com/Permify/permify/pkg/cache/ristretto"
 	"github.com/Permify/permify/pkg/telemetry"
-	"github.com/Permify/permify/pkg/telemetry/logexporters"
 	"github.com/Permify/permify/pkg/telemetry/meterexporters"
 	"github.com/Permify/permify/pkg/telemetry/tracerexporters"
 )
@@ -215,35 +213,27 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				headers[h[0]] = h[1]
 			}
 
-			exporter, err := logexporters.ExporterFactory(
+			customHandler, err := HandlerFactory(
 				cfg.Log.Exporter,
 				cfg.Log.Endpoint,
 				cfg.Log.Insecure,
 				cfg.Log.URLPath,
 				headers,
 				cfg.Log.Protocol,
+				getLogLevel(cfg.Log.Level),
 			)
+
 			if err != nil {
-				return errors.New("invalid logger exporter")
+				slog.Error("invalid logger exporter", slog.Any("error", err))
+				logger = slog.New(handler)
+			} else {
+				logger = slog.New(
+					slogmulti.Fanout(
+						customHandler,
+						handler,
+					),
+				)
 			}
-			lp := telemetry.NewLog(exporter)
-
-			otelHandler := otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
-
-			defer func() {
-				if err = lp.Shutdown(ctx); err != nil {
-					slog.Error(err.Error())
-				}
-			}()
-
-			logger = slog.New(
-				slogmulti.Fanout(
-					otelHandler,
-					handler,
-				),
-			)
 		} else {
 			logger = slog.New(handler)
 		}
