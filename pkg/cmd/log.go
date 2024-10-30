@@ -7,14 +7,15 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/Permify/permify/pkg/telemetry"
-	"github.com/Permify/permify/pkg/telemetry/logexporters"
 	"github.com/Permify/sloggcp"
 	"github.com/agoda-com/opentelemetry-go/otelslog"
+
+	"github.com/Permify/permify/pkg/telemetry"
+	"github.com/Permify/permify/pkg/telemetry/logexporters"
 )
 
 // HandlerFactory - Create log handler according to given params
-func HandlerFactory(name string, endpoint string, insecure bool, urlpath string, headers map[string]string, protocol string, level slog.Leveler) (slog.Handler, error) {
+func HandlerFactory(name, endpoint string, insecure bool, urlpath string, headers map[string]string, protocol string, level slog.Leveler) (slog.Handler, error) {
 	switch name {
 	case "otlp", "otlp-http", "otlp-grpc":
 		return NewOTLPHandler(endpoint, insecure, urlpath, headers, protocol, level.Level())
@@ -53,7 +54,9 @@ func NewGCPHandler(headers map[string]string, level slog.Leveler) (slog.Handler,
 
 	// Set credentials for Google Cloud access
 	if creds != "" {
-		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", creds)
+		if err := os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", creds); err != nil {
+			return nil, err
+		}
 	}
 
 	// Initialize GCP-specific log handler
