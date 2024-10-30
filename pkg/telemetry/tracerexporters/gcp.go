@@ -9,9 +9,10 @@ import (
 
 // NewGCP creates a new Google Cloud tracer with optional headers for credentials and project ID.
 func NewGCP(headers map[string]string) (sdktrace.SpanExporter, error) {
-
 	if credentials, exists := headers["google-application-credentials"]; exists && credentials != "" {
-		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentials)
+		if err := os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentials); err != nil {
+			return nil, err
+		}
 	}
 
 	if projectID, exists := headers["google-cloud-project"]; exists && projectID != "" {
