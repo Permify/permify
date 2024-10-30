@@ -13,7 +13,7 @@ import (
 	"github.com/agoda-com/opentelemetry-go/otelslog"
 )
 
-// ExporterFactory - Create log handler according to given params
+// HandlerFactory - Create log handler according to given params
 func HandlerFactory(name string, endpoint string, insecure bool, urlpath string, headers map[string]string, protocol string, level slog.Leveler) (slog.Handler, error) {
 	switch name {
 	case "otlp", "otlp-http", "otlp-grpc":
@@ -44,8 +44,8 @@ func NewOTLPHandler(endpoint string, insecure bool, urlPath string, headers map[
 
 func NewGCPHandler(headers map[string]string, level slog.Leveler) (slog.Handler, error) {
 	// Retrieve Google Cloud credentials from headers
-	creds := headers["GOOGLE_APPLICATION_CREDENTIALS"]
-	projectId := headers["GOOGLE_CLOUD_PROJECT"]
+	creds := headers["google-application-credentials"]
+	projectId := headers["google-cloud-project"]
 
 	if projectId == "" {
 		return nil, errors.New("missing GOOGLE_CLOUD_PROJECT in headers")
@@ -61,6 +61,5 @@ func NewGCPHandler(headers map[string]string, level slog.Leveler) (slog.Handler,
 	gcpHandler := sloggcp.NewGoogleCloudSlogHandler(context.Background(), projectId, logName, &slog.HandlerOptions{
 		Level: level,
 	})
-
 	return gcpHandler, nil
 }
