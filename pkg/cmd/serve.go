@@ -349,7 +349,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				headers,
 				cfg.Meter.Protocol,
 			)
-
 			if err != nil {
 				slog.Error(err.Error())
 			}

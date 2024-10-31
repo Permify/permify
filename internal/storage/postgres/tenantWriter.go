@@ -110,7 +110,6 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 	var name string
 	var createdAt time.Time
 	err = br.QueryRow().Scan(&name, &createdAt)
-
 	if err != nil {
 		if totalDeleted > 0 {
 			name = fmt.Sprintf("Affected rows: %d", totalDeleted)

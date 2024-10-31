@@ -248,7 +248,6 @@ func createPools(ctx context.Context, wConfig, rConfig *pgxpool.Config) (*pgxpoo
 		}
 		return nil
 	}, retryPolicy)
-
 	// Handle errors from pinging
 	if err != nil {
 		writePool.Close()

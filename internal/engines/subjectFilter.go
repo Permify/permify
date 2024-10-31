@@ -248,7 +248,6 @@ func (engine *SubjectFilter) subjectFilterDirectAttribute(
 		// storageContext.NewContextualAttributes creates a new instance of ContextualAttributes based on the attributes
 		// retrieved from the request context.
 		val, err = storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QuerySingleAttribute(filter)
-
 		// An error occurred while querying the single attribute, so we return a denied response with empty metadata
 		// and the error.
 		if err != nil {
