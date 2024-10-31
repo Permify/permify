@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
 icon: 'cube'
-title: 'Permify Cloud: End to End Example'
+title: 'End to End Example'
 mode: wide
 ---
 
@@ -58,11 +58,12 @@ By using these configuration you can set up clients via our SDKs.
 <Tabs>
 <Tab title="Java">
 ```java
-// Rest SDK for Java
 import org.permify.ApiClient;
+import org.permify.api.TenancyApi;
+import org.permify.model.TenantListRequest;
 
 ApiClient apiClient = new ApiClient();
-apiClient.setBasePath("<your-permify-host>");
+apiClient.setBasePath("<your-permify-endpoint:3476>");
 apiClient.addDefaultHeader("Authorization", "Bearer <your-permify-api-key>");
 ```
 </Tab>
@@ -72,11 +73,14 @@ apiClient.addDefaultHeader("Authorization", "Bearer <your-permify-api-key>");
 ```python
 # Rest SDK for Python
 import permify
+
 configuration = permify.Configuration(
-    host = "<your-permify-host>",
-    api_key= "<your-permify-api-key>"
+    host = "<your-permify-endpoint>:3476"
 )
-api_client = permify.ApiClient(configuration)
+
+api_client = permify.ApiClient(configuration, 
+                       header_name="Authorization", 
+                       header_value="Bearer <your-permify-api-key>")
 ```
 </Tab>
 
@@ -85,7 +89,7 @@ api_client = permify.ApiClient(configuration)
 ```javascript
 // Rest SDK for Javascript
 const permify = require('permify-javascript');
-const apiClient = new permify.ApiClient("<your-permify-host>");
+const apiClient = new permify.ApiClient("<your-permify-endpoint>:3476");
 apiClient.defaultHeaders = {'Authorization': "Bearer <your-permify-api-key>"};
 ```
 </Tab>
@@ -95,7 +99,7 @@ apiClient.defaultHeaders = {'Authorization': "Bearer <your-permify-api-key>"};
 ```typescript
 // Rest SDK for Typescript
 import * as permify from 'permify-typescript';
-const apiClient = new permify.ApiClient("<your-permify-host>");
+const apiClient = new permify.ApiClient("<your-permify-endpoint:3476>");
 apiClient.defaultHeaders = {'Authorization': "Bearer <your-permify-api-key>"};
 ```
 </Tab>
@@ -107,7 +111,7 @@ const permify = require("@permify/permify-node");
 
 const interceptor = permify.grpc.newAccessTokenInterceptor("<your-permify-api-key>");
 const client = permify.grpc.newClient({
-    endpoint: "<your-permify-host>",
+    endpoint: "<your-permify-endpoint:3478>",
     cert: undefined,
     pk: undefined,
     certChain: undefined,
@@ -116,6 +120,140 @@ const client = permify.grpc.newClient({
 ```
 </Tab>
 </Tabs>
+
+Let's try validating our connection by sending a **List Tenants API** request.
+
+<Tabs>
+<Tab title="Java">
+```java
+// Rest SDK for Java
+import org.permify.ApiClient;
+import org.permify.api.TenancyApi;
+import org.permify.model.TenantListRequest;
+
+ApiClient apiClient = new ApiClient();
+apiClient.setBasePath("<your-permify-endpoint:3476>");
+apiClient.addDefaultHeader("Authorization", "Bearer <your-permify-api-key>");
+
+TenancyApi tenancyApi = new TenancyApi(apiClient); // previously created apiClient
+try {
+  TenantListRequest req = new TenantListRequest();
+  req.setPageSize((long) 20);
+  tenancyApi.tenantsList(req);
+
+} catch (Exception e) {
+    System.out.println("Error occurred: " + e.getMessage());
+}
+```
+</Tab>
+
+<Tab title="Python">
+
+```python
+# Rest SDK for Python
+import permify
+
+configuration = permify.Configuration(
+    host = "<your-permify-endpoint>:3476"
+)
+
+api_client = permify.ApiClient(configuration, 
+                       header_name="Authorization", 
+                       header_value="Bearer <your-permify-api-key>")
+
+api_instance = permify.TenancyApi(api_client)
+body = permify.TenantListRequest(page_size=20)
+try:
+    response = api_instance.tenants_list(body)
+    pprint(response.continuous_token)
+except ApiException as e:
+    print("Exception when listing tenants: %s\n" % e)
+```
+</Tab>
+
+<Tab title="Javascript">
+
+```javascript
+// Rest SDK for Javascript
+const permify = require('permify-javascript');
+const apiClient = new permify.ApiClient("<your-permify-endpoint>:3476");
+apiClient.defaultHeaders = {'Authorization': "Bearer <your-permify-api-key>"};
+const api = permify.TenancyApi(apiClient)
+const body = {
+    pageSize: 20
+};
+try {
+    api.tenantsList(body, (error, data, response) => {
+        if (error) {
+            // handle the error
+        }
+        // handle the response
+    });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch REST errors here.
+}
+```
+</Tab>
+
+<Tab title="Typescript">
+
+```typescript
+// Rest SDK for Typescript
+import * as permify from 'permify-typescript';
+const apiClient = new permify.ApiClient("<your-permify-endpoint:3476>");
+apiClient.defaultHeaders = {'Authorization': "Bearer <your-permify-api-key>"};
+apiClient.tenancy.list({
+    pageSize: 20
+}).then((response) => {
+    console.log(response);
+    // handle response
+})
+const api = permify.TenancyApi(apiClient)
+const body = {
+    pageSize: 20
+};
+try {
+    api.tenantsList(body, (error, data, response) => {
+        if (error) {
+            // handle the error
+        }
+        // handle the response
+    });
+} catch (error) {
+    // This block will only handle synchronous errors, 
+    // so you generally wouldn't catch REST errors here.
+}
+```
+</Tab>
+
+<Tab title="Node">
+```javascript
+// gRPC SDK for Node
+const permify = require("@permify/permify-node");
+
+const interceptor = permify.grpc.newAccessTokenInterceptor("<your-permify-api-key>");
+const client = permify.grpc.newClient({
+    endpoint: "<your-permify-endpoint:3478>",
+    cert: undefined,
+    pk: undefined,
+    certChain: undefined,
+    insecure: false
+}, interceptor);
+
+client.tenancy.list({
+    pageSize: 20
+}).then((response) => {
+    console.log(response);
+    // handle response
+});
+```
+</Tab>
+</Tabs>
+
+Here is an example Python List Tenant request that shows a successful List Tenants response.
+
+![tenant-list-response](https://github.com/user-attachments/assets/f63d271b-9582-45fd-94dd-20130efdef26)
 
 Lets move forward with defining our authorization model into Permify Cloud!
 
@@ -310,6 +448,10 @@ try {
 </Tab>
 </Tabs>
 
+Here you can observe your configured and deployed schema history in the **Schema Section**.
+
+![schema-section](https://github.com/user-attachments/assets/4fa825fe-0f61-4345-8ee8-5ee984ce0e2a)
+
 We defined our model to Permify Cloud, lets add some permissions and send example API check request in our application.
 
 ## Add Permissions & Store Authorization Data
@@ -499,6 +641,9 @@ try {
 </Tab>
 </Tabs>
 
+On **Data Section**, you will see the data you have inserted to Permify:
+
+![data-section](https://github.com/user-attachments/assets/2d6a00bf-826f-4121-bdd7-7e25aeb6017c)
 
 ## Perform Access Check
 
@@ -524,8 +669,8 @@ public static void main(String[] args) {
 
       // Create the entity for the organization
       Entity entity = new Entity();
-      entity.setId("organization1");
-      entity.setType("organization");
+      entity.setId("repository1");
+      entity.setType("repository");
 
       // Create the subject for the user
       Subject subject = new Subject();
@@ -551,11 +696,11 @@ public static void main(String[] args) {
 ```python
 # Rest SDK for Python
 api_instance = permify.PermissionApi(api_client)
-metadata = permify.PermissionCheckRequestMetadata()
-body = permify.CheckBody(metadata=metadata, entity=permify.Entity("organization", "organization1"), permission="edit", subject=permify.Subject("user", "user1"))
+metadata = permify.PermissionCheckRequestMetadata(depth=20)
+body = permify.CheckBody(metadata=metadata, entity=permify.Entity(id="repository1", type="repository"), permission="edit", subject=permify.Subject(id="user1", type="user"))
 try:
     response = api_instance.permissions_check("t1", body)
-    pprint(response.can)
+    pprint(response.to_dict())
 except ApiException as e:
     print("Exception when checking permission: %s\n" % e)
 ```
@@ -574,8 +719,8 @@ const body = {
         depth: 20
     },
     entity: {
-        type: "organization",
-        id: "organization1"
+        type: "repository",
+        id: "repository1"
     },
     permission: "edit",
     subject: {
@@ -606,8 +751,8 @@ const body = {
         depth: 20
     },
     entity: {
-        type: "organization",
-        id: "organization1"
+        type: "repository",
+        id: "repository1"
     },
     permission: "edit",
     subject: {
@@ -626,7 +771,6 @@ try {
 </Tab>
 
 <Tab title="Node">
-
 ```javascript
 // gRPC SDK for Node
 const body = {
@@ -637,8 +781,8 @@ const body = {
         depth: 20
     },
     entity: {
-        type: "organization",
-        id: "organization1"
+        type: "repository",
+        id: "repository1"
     },
     permission: "edit",
     subject: {
@@ -662,3 +806,7 @@ try {
 ```
 </Tab>
 </Tabs>
+
+Below is an example of an implemented Python access check request and response
+
+![python-check](https://github.com/user-attachments/assets/494b13a6-8f6c-4b3a-a0cb-01e5c045e5b7)
