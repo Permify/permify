@@ -9,6 +9,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/jsonpb"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
@@ -29,7 +30,7 @@ func NewBundleWriter(database *db.Postgres) *BundleWriter {
 }
 
 func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (names []string, err error) {
-	ctx, span := tracer.Start(ctx, "bundle-writer.write-bundle")
+	ctx, span := internal.Tracer.Start(ctx, "bundle-writer.write-bundle")
 	defer span.End()
 
 	slog.DebugContext(ctx, "writing bundles to the database", slog.Any("number_of_bundles", len(bundles)))
@@ -72,7 +73,7 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 }
 
 func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err error) {
-	ctx, span := tracer.Start(ctx, "bundle-writer.delete-bundle")
+	ctx, span := internal.Tracer.Start(ctx, "bundle-writer.delete-bundle")
 	defer span.End()
 
 	slog.DebugContext(ctx, "deleting bundle", slog.Any("bundle", name))

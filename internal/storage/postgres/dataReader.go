@@ -13,6 +13,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
 	"github.com/Permify/permify/internal/storage/postgres/types"
@@ -42,7 +43,7 @@ func NewDataReader(database *db.Postgres) *DataReader {
 // QueryRelationships reads relation tuples from the storage based on the given filter.
 func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.CursorPagination) (it *database.TupleIterator, err error) {
 	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-relationships")
+	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-relationships")
 	defer span.End()
 
 	slog.DebugContext(ctx, "querying relationships for tenant_id", slog.String("tenant_id", tenantID))
@@ -113,7 +114,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 // ReadRelationships reads relation tuples from the storage based on the given filter and pagination.
 func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
 	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.read-relationships")
+	ctx, span := internal.Tracer.Start(ctx, "data-reader.read-relationships")
 	defer span.End()
 
 	slog.DebugContext(ctx, "reading relationships for tenant_id", slog.String("tenant_id", tenantID))
@@ -200,7 +201,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 // QuerySingleAttribute retrieves a single attribute from the storage based on the given filter.
 func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string) (attribute *base.Attribute, err error) {
 	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-single-attribute")
+	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-single-attribute")
 	defer span.End()
 
 	slog.DebugContext(ctx, "querying single attribute for tenant_id", slog.String("tenant_id", tenantID))
@@ -260,7 +261,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 // QueryAttributes reads multiple attributes from the storage based on the given filter.
 func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string, pagination database.CursorPagination) (it *database.AttributeIterator, err error) {
 	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-attributes")
+	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-attributes")
 	defer span.End()
 
 	slog.DebugContext(ctx, "querying Attributes for tenant_id", slog.String("tenant_id", tenantID))
@@ -345,7 +346,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 // ReadAttributes reads multiple attributes from the storage based on the given filter and pagination.
 func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter *base.AttributeFilter, snap string, pagination database.Pagination) (collection *database.AttributeCollection, ct database.EncodedContinuousToken, err error) {
 	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.read-attributes")
+	ctx, span := internal.Tracer.Start(ctx, "data-reader.read-attributes")
 	defer span.End()
 
 	slog.DebugContext(ctx, "reading attributes for tenant_id", slog.String("tenant_id", tenantID))
@@ -446,7 +447,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 // QueryUniqueSubjectReferences reads unique subject references from the storage based on the given filter and pagination.
 func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID string, subjectReference *base.RelationReference, excluded []string, snap string, pagination database.Pagination) (ids []string, ct database.EncodedContinuousToken, err error) {
 	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.query-unique-subject-reference")
+	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-unique-subject-reference")
 	defer span.End()
 
 	slog.DebugContext(ctx, "querying unique subject references for tenant_id", slog.String("tenant_id", tenantID))
@@ -547,7 +548,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 // HeadSnapshot retrieves the latest snapshot token associated with the tenant.
 func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error) {
 	// Start a new trace span and end it when the function exits.
-	ctx, span := tracer.Start(ctx, "data-reader.head-snapshot")
+	ctx, span := internal.Tracer.Start(ctx, "data-reader.head-snapshot")
 	defer span.End()
 
 	slog.DebugContext(ctx, "getting head snapshot for tenant_id", slog.String("tenant_id", tenantID))

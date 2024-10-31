@@ -14,6 +14,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -36,7 +37,7 @@ func NewTenantWriter(database *db.Postgres) *TenantWriter {
 
 // CreateTenant - Creates a new Tenant
 func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (result *base.Tenant, err error) {
-	ctx, span := tracer.Start(ctx, "tenant-writer.create-tenant")
+	ctx, span := internal.Tracer.Start(ctx, "tenant-writer.create-tenant")
 	defer span.End()
 
 	slog.DebugContext(ctx, "creating new tenant", slog.Any("id", id), slog.Any("name", name))
@@ -64,7 +65,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 
 // DeleteTenant - Deletes a Tenant
 func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (result *base.Tenant, err error) {
-	ctx, span := tracer.Start(ctx, "tenant-writer.delete-tenant")
+	ctx, span := internal.Tracer.Start(ctx, "tenant-writer.delete-tenant")
 	defer span.End()
 
 	slog.DebugContext(ctx, "deleting tenant", slog.Any("tenant_id", tenantID))

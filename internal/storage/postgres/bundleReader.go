@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"go.opentelemetry.io/otel/codes"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -30,7 +31,7 @@ func NewBundleReader(database *db.Postgres) *BundleReader {
 }
 
 func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle *base.DataBundle, err error) {
-	ctx, span := tracer.Start(ctx, "bundle-reader.read-bundle")
+	ctx, span := internal.Tracer.Start(ctx, "bundle-reader.read-bundle")
 	defer span.End()
 
 	slog.DebugContext(ctx, "reading bundle", slog.Any("tenant_id", tenantID), slog.Any("name", name))

@@ -21,7 +21,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -36,11 +35,6 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
 	health "google.golang.org/grpc/health/grpc_health_v1"
-)
-
-var (
-	tracer = otel.Tracer("servers")
-	meter  = otel.Meter("servers")
 )
 
 // Container is a struct that holds the invoker and various storage

@@ -5,22 +5,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
 	api "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
-)
-
-var (
-	tracer = otel.Tracer("invoke")
-	meter  = otel.Meter("invoke")
 )
 
 // Invoker is an interface that groups multiple permission-related interfaces.
@@ -103,14 +98,14 @@ func NewDirectInvoker(
 		ec:                                 ec,
 		lo:                                 lo,
 		sp:                                 sp,
-		checkCounter:                       telemetry.NewCounter(meter, "check_count", "Number of permission checks performed"),
-		lookupEntityCounter:                telemetry.NewCounter(meter, "lookup_entity_count", "Number of permission lookup entity performed"),
-		lookupSubjectCounter:               telemetry.NewCounter(meter, "lookup_subject_count", "Number of permission lookup subject performed"),
-		subjectPermissionCounter:           telemetry.NewCounter(meter, "subject_permission_count", "Number of subject permission performed"),
-		checkDurationHistogram:             telemetry.NewHistogram(meter, "check_duration", "microseconds", "Duration of checks in microseconds"),
-		lookupEntityDurationHistogram:      telemetry.NewHistogram(meter, "lookup_entity_duration", "microseconds", "Duration of lookup entity duration in microseconds"),
-		lookupSubjectDurationHistogram:     telemetry.NewHistogram(meter, "lookup_subject_duration", "microseconds", "Duration of lookup subject duration in microseconds"),
-		subjectPermissionDurationHistogram: telemetry.NewHistogram(meter, "subject_permission_duration", "microseconds", "Duration of subject permission duration in microseconds"),
+		checkCounter:                       telemetry.NewCounter(internal.Meter, "check_count", "Number of permission checks performed"),
+		lookupEntityCounter:                telemetry.NewCounter(internal.Meter, "lookup_entity_count", "Number of permission lookup entity performed"),
+		lookupSubjectCounter:               telemetry.NewCounter(internal.Meter, "lookup_subject_count", "Number of permission lookup subject performed"),
+		subjectPermissionCounter:           telemetry.NewCounter(internal.Meter, "subject_permission_count", "Number of subject permission performed"),
+		checkDurationHistogram:             telemetry.NewHistogram(internal.Meter, "check_duration", "microseconds", "Duration of checks in microseconds"),
+		lookupEntityDurationHistogram:      telemetry.NewHistogram(internal.Meter, "lookup_entity_duration", "microseconds", "Duration of lookup entity duration in microseconds"),
+		lookupSubjectDurationHistogram:     telemetry.NewHistogram(internal.Meter, "lookup_subject_duration", "microseconds", "Duration of lookup subject duration in microseconds"),
+		subjectPermissionDurationHistogram: telemetry.NewHistogram(internal.Meter, "subject_permission_duration", "microseconds", "Duration of subject permission duration in microseconds"),
 	}
 }
 
@@ -118,7 +113,7 @@ func NewDirectInvoker(
 // It calls the Run method of the CheckEngine with the provided context and PermissionCheckRequest,
 // and returns a PermissionCheckResponse and an error if any.
 func (invoker *DirectInvoker) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-	ctx, span := tracer.Start(ctx, "check", trace.WithAttributes(
+	ctx, span := internal.Tracer.Start(ctx, "check", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -208,7 +203,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 // It calls the Run method of the ExpandEngine with the provided context and PermissionExpandRequest,
 // and returns a PermissionExpandResponse and an error if any.
 func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.PermissionExpandRequest) (response *base.PermissionExpandResponse, err error) {
-	ctx, span := tracer.Start(ctx, "expand", trace.WithAttributes(
+	ctx, span := internal.Tracer.Start(ctx, "expand", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -242,7 +237,7 @@ func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.Permissi
 // It calls the Run method of the LookupEntityEngine with the provided context and PermissionLookupEntityRequest,
 // and returns a PermissionLookupEntityResponse and an error if any.
 func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
-	ctx, span := tracer.Start(ctx, "lookup-entity", trace.WithAttributes(
+	ctx, span := internal.Tracer.Start(ctx, "lookup-entity", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -289,7 +284,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 // It calls the Stream method of the LookupEntityEngine with the provided context, PermissionLookupEntityRequest, and Permission_LookupEntityStreamServer,
 // and returns an error if any.
 func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
-	ctx, span := tracer.Start(ctx, "lookup-entity-stream", trace.WithAttributes(
+	ctx, span := internal.Tracer.Start(ctx, "lookup-entity-stream", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.GetEntityType())},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -335,7 +330,7 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 // LookupSubject is a method of the DirectInvoker structure. It handles the task of looking up subjects
 // and returning the results in a response.
 func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.PermissionLookupSubjectRequest) (response *base.PermissionLookupSubjectResponse, err error) {
-	ctx, span := tracer.Start(ctx, "lookup-subject", trace.WithAttributes(
+	ctx, span := internal.Tracer.Start(ctx, "lookup-subject", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
 		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
@@ -389,7 +384,7 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 // SubjectPermission is a method of the DirectInvoker structure. It handles the task of subject's permissions
 // and returning the results in a response.
 func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *base.PermissionSubjectPermissionRequest) (response *base.PermissionSubjectPermissionResponse, err error) {
-	ctx, span := tracer.Start(ctx, "subject-permission", trace.WithAttributes(
+	ctx, span := internal.Tracer.Start(ctx, "subject-permission", trace.WithAttributes(
 		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
 		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},

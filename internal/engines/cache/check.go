@@ -5,22 +5,17 @@ import (
 	"encoding/hex"
 	"time"
 
-	"go.opentelemetry.io/otel"
 	api "go.opentelemetry.io/otel/metric"
 
 	"github.com/cespare/xxhash/v2"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/cache"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/telemetry"
-)
-
-var (
-	tracer = otel.Tracer("check-cache")
-	meter  = otel.Meter("check-cache")
 )
 
 // CheckEngineWithCache is a struct that holds an instance of a cache.Cache for managing engine cache.
@@ -46,8 +41,8 @@ func NewCheckEngineWithCache(
 		schemaReader:              schemaReader,
 		checker:                   checker,
 		cache:                     cache,
-		cacheCounter:              telemetry.NewCounter(meter, "cache_check_count", "Number of permission cached checks performed"),
-		cacheHitDurationHistogram: telemetry.NewHistogram(meter, "cache_hit_duration", "microseconds", "Duration of cache hits in microseconds"),
+		cacheCounter:              telemetry.NewCounter(internal.Meter, "cache_check_count", "Number of permission cached checks performed"),
+		cacheHitDurationHistogram: telemetry.NewHistogram(internal.Meter, "cache_hit_duration", "microseconds", "Duration of cache hits in microseconds"),
 	}
 }
 
@@ -72,7 +67,7 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 
 	// If a cached result is found, handle exclusion and return the result.
 	if found {
-		ctx, span := tracer.Start(ctx, "hit")
+		ctx, span := internal.Tracer.Start(ctx, "hit")
 		defer span.End()
 		start := time.Now()
 

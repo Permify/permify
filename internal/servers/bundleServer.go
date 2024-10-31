@@ -7,6 +7,7 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -32,7 +33,7 @@ func NewBundleServer(
 
 // Write handles the writing of bundles.
 func (r *BundleServer) Write(ctx context.Context, request *v1.BundleWriteRequest) (*v1.BundleWriteResponse, error) {
-	ctx, span := tracer.Start(ctx, "bundle.write")
+	ctx, span := internal.Tracer.Start(ctx, "bundle.write")
 	defer span.End()
 
 	v := request.Validate()
@@ -73,7 +74,7 @@ func (r *BundleServer) Write(ctx context.Context, request *v1.BundleWriteRequest
 
 // Read handles the reading of bundles.
 func (r *BundleServer) Read(ctx context.Context, request *v1.BundleReadRequest) (*v1.BundleReadResponse, error) {
-	ctx, span := tracer.Start(ctx, "bundle.read")
+	ctx, span := internal.Tracer.Start(ctx, "bundle.read")
 	defer span.End()
 
 	v := request.Validate()
@@ -96,7 +97,7 @@ func (r *BundleServer) Read(ctx context.Context, request *v1.BundleReadRequest) 
 
 // Delete handles the deletion of bundles.
 func (r *BundleServer) Delete(ctx context.Context, request *v1.BundleDeleteRequest) (*v1.BundleDeleteResponse, error) {
-	ctx, span := tracer.Start(ctx, "bundle.delete")
+	ctx, span := internal.Tracer.Start(ctx, "bundle.delete")
 	defer span.End()
 
 	v := request.Validate()

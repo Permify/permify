@@ -11,6 +11,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
 	"github.com/Permify/permify/internal/storage/postgres/types"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
@@ -46,7 +47,7 @@ func (w *DataWriter) Write(
 	attributeCollection *database.AttributeCollection,
 ) (token token.EncodedSnapToken, err error) {
 	// Start a new tracing span for this operation.
-	ctx, span := tracer.Start(ctx, "data-writer.write")
+	ctx, span := internal.Tracer.Start(ctx, "data-writer.write")
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of a data write operation.
@@ -91,7 +92,7 @@ func (w *DataWriter) Delete(
 	attributeFilter *base.AttributeFilter,
 ) (token.EncodedSnapToken, error) {
 	// Start a new tracing span for this delete operation.
-	ctx, span := tracer.Start(ctx, "data-writer.delete")
+	ctx, span := internal.Tracer.Start(ctx, "data-writer.delete")
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of a data deletion operation.
@@ -131,7 +132,7 @@ func (w *DataWriter) RunBundle(
 	b *base.DataBundle,
 ) (token.EncodedSnapToken, error) {
 	// Start a new tracing span for this operation.
-	ctx, span := tracer.Start(ctx, "data-writer.run-bundle")
+	ctx, span := internal.Tracer.Start(ctx, "data-writer.run-bundle")
 	defer span.End() // Ensure that the span is ended when the function returns.
 
 	// Log the start of running a bundle operation.
