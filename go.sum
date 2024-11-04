@@ -26,8 +26,8 @@ github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161/go.mod h1:xomTg6
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.49.0 h1:o90wcURuxekmXrtxmYWTyNla0+ZEHhud6DI1ZTxd1vI=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.49.0/go.mod h1:6fTWu4m3jocfUZLYF5KsZC1TUfRvEjs7lM4crme/irw=
-github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.24.3 h1:0t8v1hFl4bfMxvAyeD+Nay9YeVTffUMf3U5LM/0dTIM=
-github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.24.3/go.mod h1:r8vUXZXWrNOUb+fF1iy1/KiK1lfR4bl4ebk6kOfPpY0=
+github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.25.0 h1:4PoDbd/9/06IpwLGxSfvfNoEr9urvfkrN6mmJangGCg=
+github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.25.0/go.mod h1:EycllQ1gupHbjqbcmfCr/H6FKSGSmEUONJ2ivb86qeY=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/cloudmock v0.49.0 h1:jJKWl98inONJAr/IZrdFQUWcwUO95DLY1XMD1ZIut+g=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/cloudmock v0.49.0/go.mod h1:l2fIqmwB+FKSfvn3bAD/0i+AXAxhIZjTK2svT/mgUXs=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.49.0 h1:GYUJLfvd++4DMuMhCFLgLXvFwofIxh/qOwoGuS/LTew=
