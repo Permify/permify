@@ -56,7 +56,7 @@ It works in run time and can respond to any type of access control checks (can u
 
 ## Permify Cloud vs Self-hosted?
 
-Permify is [open-source authorization service](https://permify.co/) and we have a free and self-hosted solution called **Permify Community Edition (CE)**. Here are the differences between Permifty managed hosting in the cloud and the Premify CE:
+Permify is [open-source authorization service](https://permify.co/) and we have a free and self-hosted solution called **Permify Community Edition (CE)**. Here are the differences between Permify managed hosting in the cloud and the Permify CE:
 
 |  | Permify Cloud  | Permify Community Edition |
 | ------------- | ------------- | ------------- |
