@@ -3,6 +3,7 @@ package servers
 import (
 	"google.golang.org/grpc/status"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -27,7 +28,7 @@ func NewWatchServer(
 // Watch function sets up a stream for the client to receive changes.
 func (r *WatchServer) Watch(request *v1.WatchRequest, server v1.Watch_WatchServer) error {
 	// Start a new context and span for tracing.
-	ctx, span := tracer.Start(server.Context(), "watch.watch")
+	ctx, span := internal.Tracer.Start(server.Context(), "watch.watch")
 	defer span.End() // Ensure the span ends when the function returns.
 
 	// Validate the incoming request.

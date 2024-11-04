@@ -10,6 +10,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/rs/xid"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
@@ -35,7 +36,7 @@ func NewSchemaReader(database *db.Postgres) *SchemaReader {
 
 // ReadSchema returns the schema definition for a specific tenant and version as a structured object.
 func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
-	ctx, span := tracer.Start(ctx, "schema-reader.read-schema")
+	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
 
 	slog.DebugContext(ctx, "reading schema", slog.Any("tenant_id", tenantID), slog.Any("version", version))
@@ -84,7 +85,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 
 // ReadSchemaString returns the schema definition for a specific tenant and version as a string.
 func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error) {
-	ctx, span := tracer.Start(ctx, "schema-reader.read-schema-string")
+	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-schema-string")
 	defer span.End()
 
 	slog.DebugContext(ctx, "reading schema", slog.Any("tenant_id", tenantID), slog.Any("version", version))
@@ -127,7 +128,7 @@ func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version s
 
 // ReadEntityDefinition - Reads entity config from the repository.
 func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name, version string) (definition *base.EntityDefinition, v string, err error) {
-	ctx, span := tracer.Start(ctx, "schema-reader.read-entity-definition")
+	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-entity-definition")
 	defer span.End()
 
 	slog.DebugContext(ctx, "reading entity definition", slog.Any("tenant_id", tenantID), slog.Any("version", version))
@@ -168,7 +169,7 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name,
 
 // ReadRuleDefinition - Reads rule config from the repository.
 func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, version string) (definition *base.RuleDefinition, v string, err error) {
-	ctx, span := tracer.Start(ctx, "schema-reader.read-rule-definition")
+	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-rule-definition")
 	defer span.End()
 
 	slog.DebugContext(ctx, "reading rule definition", slog.Any("tenant_id", tenantID), slog.Any("name", name), slog.Any("version", version))
@@ -211,7 +212,7 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 
 // HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
-	ctx, span := tracer.Start(ctx, "schema-reader.head-version")
+	ctx, span := internal.Tracer.Start(ctx, "schema-reader.head-version")
 	defer span.End()
 
 	slog.DebugContext(ctx, "finding the latest version fo the schema for", slog.String("tenant_id", tenantID))
@@ -243,7 +244,7 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 
 // ListSchemas - List all Schemas
 func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
-	ctx, span := tracer.Start(ctx, "tenant-reader.list-tenants")
+	ctx, span := internal.Tracer.Start(ctx, "tenant-reader.list-tenants")
 	defer span.End()
 
 	slog.DebugContext(ctx, "listing schemas with pagination", slog.Any("pagination", pagination))

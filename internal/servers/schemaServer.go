@@ -12,6 +12,7 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"golang.org/x/net/context"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/dsl/compiler"
@@ -36,15 +37,15 @@ func NewSchemaServer(sw storage.SchemaWriter, sr storage.SchemaReader) *SchemaSe
 	return &SchemaServer{
 		sw:                   sw,
 		sr:                   sr,
-		writeSchemaHistogram: telemetry.NewHistogram(meter, "write_schema", "microseconds", "Duration of writing schema in microseconds"),
-		readSchemaHistogram:  telemetry.NewHistogram(meter, "read_schema", "microseconds", "Duration of reading schema in microseconds"),
-		listSchemaHistogram:  telemetry.NewHistogram(meter, "list_schema", "microseconds", "Duration of listing schema in microseconds"),
+		writeSchemaHistogram: telemetry.NewHistogram(internal.Meter, "write_schema", "microseconds", "Duration of writing schema in microseconds"),
+		readSchemaHistogram:  telemetry.NewHistogram(internal.Meter, "read_schema", "microseconds", "Duration of reading schema in microseconds"),
+		listSchemaHistogram:  telemetry.NewHistogram(internal.Meter, "list_schema", "microseconds", "Duration of listing schema in microseconds"),
 	}
 }
 
 // Write - Configure new Permify Schema to Permify
 func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest) (*v1.SchemaWriteResponse, error) {
-	ctx, span := tracer.Start(ctx, "schemas.write")
+	ctx, span := internal.Tracer.Start(ctx, "schemas.write")
 	defer span.End()
 	start := time.Now()
 
@@ -93,7 +94,7 @@ func (r *SchemaServer) Write(ctx context.Context, request *v1.SchemaWriteRequest
 // PartialWrite applies incremental updates to the schema of a specific tenant based on the provided request.
 func (r *SchemaServer) PartialWrite(ctx context.Context, request *v1.SchemaPartialWriteRequest) (*v1.SchemaPartialWriteResponse, error) {
 	// Start a new tracing span for monitoring and observability.
-	ctx, span := tracer.Start(ctx, "schemas.partial-write")
+	ctx, span := internal.Tracer.Start(ctx, "schemas.partial-write")
 	defer span.End() // Ensure the span is closed at the end of the function.
 
 	// Retrieve or default the schema version from the request.
@@ -203,7 +204,7 @@ func (r *SchemaServer) PartialWrite(ctx context.Context, request *v1.SchemaParti
 
 // Read - Read created Schema
 func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) (*v1.SchemaReadResponse, error) {
-	ctx, span := tracer.Start(ctx, "schemas.read")
+	ctx, span := internal.Tracer.Start(ctx, "schemas.read")
 	defer span.End()
 	start := time.Now()
 
@@ -234,7 +235,7 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 
 // List - List Schemas
 func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) (*v1.SchemaListResponse, error) {
-	ctx, span := tracer.Start(ctx, "schemas.list")
+	ctx, span := internal.Tracer.Start(ctx, "schemas.list")
 	defer span.End()
 	start := time.Now()
 

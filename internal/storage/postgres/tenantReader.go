@@ -8,6 +8,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
@@ -31,7 +32,7 @@ func NewTenantReader(database *db.Postgres) *TenantReader {
 
 // ListTenants - Lists all Tenants
 func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagination) (tenants []*base.Tenant, ct database.EncodedContinuousToken, err error) {
-	ctx, span := tracer.Start(ctx, "tenant-reader.list-tenants")
+	ctx, span := internal.Tracer.Start(ctx, "tenant-reader.list-tenants")
 	defer span.End()
 
 	slog.DebugContext(ctx, "listing tenants with pagination", slog.Any("pagination", pagination))

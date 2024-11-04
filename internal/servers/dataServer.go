@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/status"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/attribute"
@@ -47,19 +48,19 @@ func NewDataServer(
 		dw:                           dw,
 		br:                           br,
 		sr:                           sr,
-		writeDataHistogram:           telemetry.NewHistogram(meter, "write_data", "microseconds", "Duration of writing data in microseconds"),
-		deleteDataHistogram:          telemetry.NewHistogram(meter, "delete_data", "microseconds", "Duration of deleting data in microseconds"),
-		readAttributesHistogram:      telemetry.NewHistogram(meter, "read_attributes", "microseconds", "Duration of reading attributes in microseconds"),
-		readRelationshipsHistogram:   telemetry.NewHistogram(meter, "read_relationships", "microseconds", "Duration of reading relationships in microseconds"),
-		writeRelationshipsHistogram:  telemetry.NewHistogram(meter, "write_relationships", "microseconds", "Duration of writing relationships in microseconds"),
-		deleteRelationshipsHistogram: telemetry.NewHistogram(meter, "delete_relationships", "microseconds", "Duration of deleting relationships in microseconds"),
-		runBundleHistogram:           telemetry.NewHistogram(meter, "delete_relationships", "run_bundle", "Duration of running bunble in microseconds"),
+		writeDataHistogram:           telemetry.NewHistogram(internal.Meter, "write_data", "microseconds", "Duration of writing data in microseconds"),
+		deleteDataHistogram:          telemetry.NewHistogram(internal.Meter, "delete_data", "microseconds", "Duration of deleting data in microseconds"),
+		readAttributesHistogram:      telemetry.NewHistogram(internal.Meter, "read_attributes", "microseconds", "Duration of reading attributes in microseconds"),
+		readRelationshipsHistogram:   telemetry.NewHistogram(internal.Meter, "read_relationships", "microseconds", "Duration of reading relationships in microseconds"),
+		writeRelationshipsHistogram:  telemetry.NewHistogram(internal.Meter, "write_relationships", "microseconds", "Duration of writing relationships in microseconds"),
+		deleteRelationshipsHistogram: telemetry.NewHistogram(internal.Meter, "delete_relationships", "microseconds", "Duration of deleting relationships in microseconds"),
+		runBundleHistogram:           telemetry.NewHistogram(internal.Meter, "delete_relationships", "run_bundle", "Duration of running bunble in microseconds"),
 	}
 }
 
 // ReadRelationships - Allows directly querying the stored engines data to display and filter stored relational tuples
 func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.RelationshipReadRequest) (*v1.RelationshipReadResponse, error) {
-	ctx, span := tracer.Start(ctx, "data.read.relationships")
+	ctx, span := internal.Tracer.Start(ctx, "data.read.relationships")
 	defer span.End()
 	start := time.Now()
 
@@ -110,7 +111,7 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 
 // ReadAttributes - Allows directly querying the stored engines data to display and filter stored attribute tuples
 func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeReadRequest) (*v1.AttributeReadResponse, error) {
-	ctx, span := tracer.Start(ctx, "data.read.attributes")
+	ctx, span := internal.Tracer.Start(ctx, "data.read.attributes")
 	defer span.End()
 	start := time.Now()
 
@@ -161,7 +162,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 
 // Write - Write relationships and attributes to writeDB
 func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*v1.DataWriteResponse, error) {
-	ctx, span := tracer.Start(ctx, "data.write")
+	ctx, span := internal.Tracer.Start(ctx, "data.write")
 	defer span.End()
 	start := time.Now()
 
@@ -260,7 +261,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 
 // WriteRelationships - Write relation tuples to writeDB
 func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.RelationshipWriteRequest) (*v1.RelationshipWriteResponse, error) {
-	ctx, span := tracer.Start(ctx, "relationships.write")
+	ctx, span := internal.Tracer.Start(ctx, "relationships.write")
 	defer span.End()
 	start := time.Now()
 
@@ -329,7 +330,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 
 // Delete - Delete relationships and attributes from writeDB
 func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) (*v1.DataDeleteResponse, error) {
-	ctx, span := tracer.Start(ctx, "data.delete")
+	ctx, span := internal.Tracer.Start(ctx, "data.delete")
 	defer span.End()
 	start := time.Now()
 
@@ -361,7 +362,7 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 
 // DeleteRelationships - Delete relationships from writeDB
 func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.RelationshipDeleteRequest) (*v1.RelationshipDeleteResponse, error) {
-	ctx, span := tracer.Start(ctx, "relationships.delete")
+	ctx, span := internal.Tracer.Start(ctx, "relationships.delete")
 	defer span.End()
 	start := time.Now()
 
@@ -393,7 +394,7 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 
 // RunBundle executes a bundle and returns its snapshot token.
 func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest) (*v1.BundleRunResponse, error) {
-	ctx, span := tracer.Start(ctx, "bundle.run")
+	ctx, span := internal.Tracer.Start(ctx, "bundle.run")
 	defer span.End()
 	start := time.Now()
 

@@ -487,7 +487,6 @@ func (engine *ExpandEngine) expandDirectAttribute(
 
 		// Attempt to get the attribute using the defined filter.
 		val, err = storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QuerySingleAttribute(filter)
-
 		// If there's an error in getting the attribute, send a failure response through the channel and return from the function.
 		if err != nil {
 			expandChan <- expandFailResponse(err)

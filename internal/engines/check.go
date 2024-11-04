@@ -276,7 +276,6 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
 		var rit *database.TupleIterator
 		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
-
 		// If there's an error in querying, return a denied permission response along with the error.
 		if err != nil {
 			return denied(emptyResponseMetadata()), err
@@ -466,7 +465,6 @@ func (engine *CheckEngine) checkDirectAttribute(
 		// storageContext.NewContextualAttributes creates a new instance of ContextualAttributes based on the attributes
 		// retrieved from the request context.
 		val, err = storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QuerySingleAttribute(filter)
-
 		// An error occurred while querying the single attribute, so we return a denied response with empty metadata
 		// and the error.
 		if err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	db "github.com/Permify/permify/pkg/database/postgres"
@@ -29,7 +30,7 @@ func NewSchemaWriter(database *db.Postgres) *SchemaWriter {
 
 // WriteSchema writes a schema to the database
 func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.SchemaDefinition) (err error) {
-	ctx, span := tracer.Start(ctx, "schema-writer.write-schema")
+	ctx, span := internal.Tracer.Start(ctx, "schema-writer.write-schema")
 	defer span.End()
 
 	slog.DebugContext(ctx, "writing schemas to the database", slog.Any("number_of_schemas", len(schemas)))

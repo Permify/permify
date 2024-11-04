@@ -7,6 +7,7 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -30,7 +31,7 @@ func NewTenancyServer(tr storage.TenantReader, tw storage.TenantWriter) *Tenancy
 
 // Create - Create new Tenant
 func (t *TenancyServer) Create(ctx context.Context, request *v1.TenantCreateRequest) (*v1.TenantCreateResponse, error) {
-	ctx, span := tracer.Start(ctx, "tenant.create")
+	ctx, span := internal.Tracer.Start(ctx, "tenant.create")
 	defer span.End()
 
 	tenant, err := t.tw.CreateTenant(ctx, request.GetId(), request.GetName())
@@ -48,7 +49,7 @@ func (t *TenancyServer) Create(ctx context.Context, request *v1.TenantCreateRequ
 
 // Delete - Delete a Tenant
 func (t *TenancyServer) Delete(ctx context.Context, request *v1.TenantDeleteRequest) (*v1.TenantDeleteResponse, error) {
-	ctx, span := tracer.Start(ctx, "tenant.delete")
+	ctx, span := internal.Tracer.Start(ctx, "tenant.delete")
 	defer span.End()
 
 	tenant, err := t.tw.DeleteTenant(ctx, request.GetId())
@@ -66,7 +67,7 @@ func (t *TenancyServer) Delete(ctx context.Context, request *v1.TenantDeleteRequ
 
 // List - List Tenants
 func (t *TenancyServer) List(ctx context.Context, request *v1.TenantListRequest) (*v1.TenantListResponse, error) {
-	ctx, span := tracer.Start(ctx, "tenant.list")
+	ctx, span := internal.Tracer.Start(ctx, "tenant.list")
 	defer span.End()
 
 	tenants, ct, err := t.tr.ListTenants(ctx, database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken())))

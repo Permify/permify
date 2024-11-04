@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/status"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/invoke"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -27,7 +28,7 @@ func NewPermissionServer(i invoke.Invoker) *PermissionServer {
 
 // Check - Performs Authorization Check
 func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionCheckRequest) (*v1.PermissionCheckResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.check")
+	ctx, span := internal.Tracer.Start(ctx, "permissions.check")
 	defer span.End()
 
 	v := request.Validate()
@@ -48,7 +49,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 
 // Expand - Get schema actions in a tree structure
 func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.expand")
+	ctx, span := internal.Tracer.Start(ctx, "permissions.expand")
 	defer span.End()
 
 	v := request.Validate()
@@ -69,7 +70,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 
 // LookupEntity -
 func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.PermissionLookupEntityRequest) (*v1.PermissionLookupEntityResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookup-entity")
+	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-entity")
 	defer span.End()
 
 	v := request.Validate()
@@ -90,7 +91,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 
 // LookupEntityStream -
 func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntityRequest, server v1.Permission_LookupEntityStreamServer) error {
-	ctx, span := tracer.Start(server.Context(), "permissions.lookup-entity-stream")
+	ctx, span := internal.Tracer.Start(server.Context(), "permissions.lookup-entity-stream")
 	defer span.End()
 
 	v := request.Validate()
@@ -111,7 +112,7 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 
 // LookupSubject -
 func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.PermissionLookupSubjectRequest) (*v1.PermissionLookupSubjectResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.lookup-subject")
+	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-subject")
 	defer span.End()
 
 	v := request.Validate()
@@ -132,7 +133,7 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 
 // SubjectPermission -
 func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.PermissionSubjectPermissionRequest) (*v1.PermissionSubjectPermissionResponse, error) {
-	ctx, span := tracer.Start(ctx, "permissions.subject-permission")
+	ctx, span := internal.Tracer.Start(ctx, "permissions.subject-permission")
 	defer span.End()
 
 	v := request.Validate()
