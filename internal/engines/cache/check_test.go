@@ -41,7 +41,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache, nil, nil}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create a new PermissionCheckRequest and PermissionCheckResponse
 			checkReq := &base.PermissionCheckRequest{
@@ -91,7 +91,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache, nil, nil}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create a new PermissionCheckRequest and PermissionCheckResponse
 			checkReq := &base.PermissionCheckRequest{
@@ -141,7 +141,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache, nil, nil}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create a new PermissionCheckRequest and PermissionCheckResponse
 			checkReq := &base.PermissionCheckRequest{
@@ -285,7 +285,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache, nil, nil}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create a new PermissionCheckRequest
 			checkReq := &base.PermissionCheckRequest{
@@ -320,7 +320,7 @@ var _ = Describe("cache", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Initialize a new EngineKeys struct with a new cache.Cache instance
-			engineKeys := CheckEngineWithCache{nil, nil, cache, nil, nil}
+			engineKeys := CheckEngineWithCache{nil, nil, cache, nil}
 
 			// Create some new PermissionCheckRequests and PermissionCheckResponses
 			checkReq1 := &base.PermissionCheckRequest{

@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"encoding/hex"
-	"time"
 
 	api "go.opentelemetry.io/otel/metric"
 
@@ -26,8 +25,7 @@ type CheckEngineWithCache struct {
 	cache        cache.Cache
 
 	// Metrics
-	cacheCounter              api.Int64Counter
-	cacheHitDurationHistogram api.Int64Histogram
+	cacheHitHistogram api.Int64Histogram
 }
 
 // NewCheckEngineWithCache creates a new instance of EngineKeyManager by initializing an EngineKeys
@@ -38,11 +36,10 @@ func NewCheckEngineWithCache(
 	cache cache.Cache,
 ) invoke.Check {
 	return &CheckEngineWithCache{
-		schemaReader:              schemaReader,
-		checker:                   checker,
-		cache:                     cache,
-		cacheCounter:              telemetry.NewCounter(internal.Meter, "cache_check_count", "Number of permission cached checks performed"),
-		cacheHitDurationHistogram: telemetry.NewHistogram(internal.Meter, "cache_hit_duration", "microseconds", "Duration of cache hits in microseconds"),
+		schemaReader:      schemaReader,
+		checker:           checker,
+		cache:             cache,
+		cacheHitHistogram: telemetry.NewHistogram(internal.Meter, "cache_hit", "amount", "Number of cache hits"),
 	}
 }
 
@@ -67,15 +64,8 @@ func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.Permissi
 
 	// If a cached result is found, handle exclusion and return the result.
 	if found {
-		ctx, span := internal.Tracer.Start(ctx, "hit")
-		defer span.End()
-		start := time.Now()
-
-		// Increase the check count in the metrics.
-		c.cacheCounter.Add(ctx, 1)
-
-		duration := time.Now().Sub(start)
-		c.cacheHitDurationHistogram.Record(ctx, duration.Microseconds())
+		// Increase the hit count in the metrics.
+		c.cacheHitHistogram.Record(ctx, 1)
 
 		// If the request doesn't have the exclusion flag set, return the cached result.
 		return &base.PermissionCheckResponse{
