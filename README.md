@@ -54,6 +54,22 @@ It works in run time and can respond to any type of access control checks (can u
 [our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
 [SDK samples]: https://github.com/Permify/permify/tree/master/sdk
 
+## Permify Cloud vs Self-hosted?
+
+Permify is [open-source authorization service](https://permify.co/) and we have a free and self-hosted solution called **Permify Community Edition (CE)**. Here are the differences between Permifty managed hosting in the cloud and the Premify CE:
+
+|  | Permify Cloud  | Permify Community Edition |
+| ------------- | ------------- | ------------- |
+| **Infrastructure management** | Easy and convenient. It takes minutes to start permissions systems deployed on secure Permify infrastructure with a high availability, backups, security and maintenance all done for you by us. We manage everything so you don’t have to worry about anything and can focus on your core development. | You do it all yourself. You need to get a server and you need to manage your infrastructure. You are responsible for installation, maintenance, upgrades, server capacity, uptime, backup, security, stability, consistency, latency and so on.|
+| **Release schedule** | Continuously developed and improved with new features and updates multiple times per week. | It's a long-term release published four times per year, so the latest features and improvements won’t be immediately available.|
+| **Premium features** | All features available as listed in [our pricing plans](https://permify.co/pricing/). | Selected premium features, such as observability dashboards and data synchronization are not available as we aim to maintain a protective barrier around our cloud offering.|
+| **Server location** | All visitor data is processed on secure servers within the US and EUR. You can select your preferred region, supported by **AWS**, **GCP**, or **Azure**, for deploying authorization services. We also provide **SLAs** to ensure availability and latency. We also provide **disaster recovery zones** are strategically located to replicate data across regions, ensuring rapid recovery and continuous service during any incident. | You have full control and can host your instance on any server in any country of your choice. This includes hosting on personal servers or with cloud providers. |
+| **Data privacy** | Permify Cloud is **SOC2 and GDPR compliant**, ensuring adherence to stringent data protection standards. You can check out our [Trust Center](https://trust.permify.co/) for comprehensive insights into our data management, security measures, and compliance practices. | Data privacy management is your responsibility. While you have full control over your data, it is up to you to implement and maintain necessary compliance measures, such as GDPR or SOC 2, as well as other security protocols. |
+| **Premium support** | Real support delivered by real human beings who build and maintain Permify. | Premium support is not included. CE is community supported only.|
+| **Costs** | There’s a cost associated with providing an authorization service, so we base our pricing on the number of monthly active users you have. Your payments fund the further development of Permify. | You need to pay for your server, CDN, backups, and other costs associated with running the infrastructure you need. |
+
+Interested in trying out Permify Cloud? Our team is happy to help. [Schedule a quick demo](https://permify.co/book-demo/) session with our experts.
+
 ### QuickStart
 
 You can quickly start Permify on your local with running the docker command below:
@@ -85,7 +101,7 @@ Permify is a [Cloud Native Computing Foundation](https://www.cncf.io/) member an
 
 Your feedback helps shape the future of Permify, and we'd love to hear from you!
 
-Share your use case, get the latest product updates, receive immediate assistance from our team, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
+Share your use case, get the latest product updates, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
 
 <a href="https://discord.gg/n6KfzYxhPp" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord" /></a>&nbsp;
 
