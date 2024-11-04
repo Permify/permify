@@ -3,10 +3,10 @@ package invoke
 import (
 	"context"
 	"sync/atomic"
-	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
 	api "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 
@@ -68,16 +68,10 @@ type DirectInvoker struct {
 	// LookupSubject
 	sp SubjectPermission
 
-	// Metrics
-	checkCounter             api.Int64Counter
-	lookupEntityCounter      api.Int64Counter
-	lookupSubjectCounter     api.Int64Counter
-	subjectPermissionCounter api.Int64Counter
-
-	checkDurationHistogram             api.Int64Histogram
-	lookupEntityDurationHistogram      api.Int64Histogram
-	lookupSubjectDurationHistogram     api.Int64Histogram
-	subjectPermissionDurationHistogram api.Int64Histogram
+	checkHistogram             api.Int64Histogram
+	lookupEntityHistogram      api.Int64Histogram
+	lookupSubjectHistogram     api.Int64Histogram
+	subjectPermissionHistogram api.Int64Histogram
 }
 
 // NewDirectInvoker is a constructor for DirectInvoker.
@@ -92,20 +86,17 @@ func NewDirectInvoker(
 	sp SubjectPermission,
 ) *DirectInvoker {
 	return &DirectInvoker{
-		schemaReader:                       schemaReader,
-		dataReader:                         dataReader,
-		cc:                                 cc,
-		ec:                                 ec,
-		lo:                                 lo,
-		sp:                                 sp,
-		checkCounter:                       telemetry.NewCounter(internal.Meter, "check_count", "Number of permission checks performed"),
-		lookupEntityCounter:                telemetry.NewCounter(internal.Meter, "lookup_entity_count", "Number of permission lookup entity performed"),
-		lookupSubjectCounter:               telemetry.NewCounter(internal.Meter, "lookup_subject_count", "Number of permission lookup subject performed"),
-		subjectPermissionCounter:           telemetry.NewCounter(internal.Meter, "subject_permission_count", "Number of subject permission performed"),
-		checkDurationHistogram:             telemetry.NewHistogram(internal.Meter, "check_duration", "microseconds", "Duration of checks in microseconds"),
-		lookupEntityDurationHistogram:      telemetry.NewHistogram(internal.Meter, "lookup_entity_duration", "microseconds", "Duration of lookup entity duration in microseconds"),
-		lookupSubjectDurationHistogram:     telemetry.NewHistogram(internal.Meter, "lookup_subject_duration", "microseconds", "Duration of lookup subject duration in microseconds"),
-		subjectPermissionDurationHistogram: telemetry.NewHistogram(internal.Meter, "subject_permission_duration", "microseconds", "Duration of subject permission duration in microseconds"),
+		schemaReader:   schemaReader,
+		dataReader:     dataReader,
+		cc:             cc,
+		ec:             ec,
+		lo:             lo,
+		sp:             sp,
+		checkHistogram: telemetry.NewHistogram(internal.Meter, "check", "amount", "Number of checks"),
+
+		lookupEntityHistogram:      telemetry.NewHistogram(internal.Meter, "lookup_entity", "amount", "Number of lookup entity"),
+		lookupSubjectHistogram:     telemetry.NewHistogram(internal.Meter, "lookup_subject", "amount", "Number of lookup subject"),
+		subjectPermissionHistogram: telemetry.NewHistogram(internal.Meter, "subject_permission", "amount", "Number of subject permission"),
 	}
 }
 
@@ -120,8 +111,13 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
-
-	start := time.Now()
+	invoker.checkHistogram.Record(ctx, 1,
+		metric.WithAttributeSet(
+			attribute.NewSet(
+				attribute.KeyValue{Key: "subject_id", Value: attribute.StringValue(request.GetSubject().GetId())},
+				attribute.KeyValue{Key: "subject_type", Value: attribute.StringValue(request.GetSubject().GetType())},
+			)),
+	)
 
 	// Validate the depth of the request.
 	err = checkDepth(request)
@@ -186,14 +182,9 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 			},
 		}, err
 	}
-	duration := time.Since(start)
-	invoker.checkDurationHistogram.Record(ctx, duration.Microseconds())
 
 	// increaseCheckCount increments the CheckCount value in the response metadata by 1.
 	atomic.AddInt32(&response.GetMetadata().CheckCount, +1)
-
-	// Increase the check count in the metrics.
-	invoker.checkCounter.Add(ctx, 1)
 
 	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
 	return
@@ -245,8 +236,6 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 	))
 	defer span.End()
 
-	start := time.Now()
-
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
 		var st token.SnapToken
@@ -271,11 +260,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 
 	resp, err := invoker.lo.LookupEntity(ctx, request)
 
-	duration := time.Since(start)
-	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
-
-	// Increase the lookup entity count in the metrics.
-	invoker.lookupEntityCounter.Add(ctx, 1)
+	invoker.lookupEntityHistogram.Record(ctx, 1)
 
 	return resp, err
 }
@@ -291,8 +276,6 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
-
-	start := time.Now()
 
 	// Set SnapToken if not provided
 	if request.GetMetadata().GetSnapToken() == "" { // Check if the request has a SnapToken.
@@ -318,11 +301,7 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 
 	resp := invoker.lo.LookupEntityStream(ctx, request, server)
 
-	duration := time.Since(start)
-	invoker.lookupEntityDurationHistogram.Record(ctx, duration.Microseconds())
-
-	// Increase the lookup entity count in the metrics.
-	invoker.lookupEntityCounter.Add(ctx, 1)
+	invoker.lookupEntityHistogram.Record(ctx, 1)
 
 	return resp
 }
@@ -337,8 +316,6 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 		attribute.KeyValue{Key: "subject_reference", Value: attribute.StringValue(tuple.ReferenceToString(request.GetSubjectReference()))},
 	))
 	defer span.End()
-
-	start := time.Now()
 
 	// Check if the request has a SnapToken. If not, a SnapToken is set.
 	if request.GetMetadata().GetSnapToken() == "" {
@@ -370,11 +347,7 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 
 	resp, err := invoker.lo.LookupSubject(ctx, request)
 
-	duration := time.Now().Sub(start)
-	invoker.lookupSubjectDurationHistogram.Record(ctx, duration.Microseconds())
-
-	// Increase the lookup subject count in the metrics.
-	invoker.lookupSubjectCounter.Add(ctx, 1)
+	invoker.lookupSubjectHistogram.Record(ctx, 1)
 
 	// Call the LookupSubject function of the ls field in the invoker, pass the context and request,
 	// and return its response and error
@@ -390,8 +363,6 @@ func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *ba
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
-
-	start := time.Now()
 
 	// Check if the request has a SnapToken. If not, a SnapToken is set.
 	if request.GetMetadata().GetSnapToken() == "" {
@@ -422,11 +393,7 @@ func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *ba
 	}
 	resp, err := invoker.sp.SubjectPermission(ctx, request)
 
-	duration := time.Now().Sub(start)
-	invoker.subjectPermissionDurationHistogram.Record(ctx, duration.Microseconds())
-
-	// Increase the subject permission count in the metrics.
-	invoker.subjectPermissionCounter.Add(ctx, 1)
+	invoker.subjectPermissionHistogram.Record(ctx, 1)
 
 	// Call the SubjectPermission function of the ls field in the invoker, pass the context and request,
 	// and return its response and error

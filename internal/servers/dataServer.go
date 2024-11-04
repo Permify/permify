@@ -2,7 +2,6 @@ package servers
 
 import (
 	"log/slog"
-	"time"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
 	api "go.opentelemetry.io/otel/metric"
@@ -48,13 +47,13 @@ func NewDataServer(
 		dw:                           dw,
 		br:                           br,
 		sr:                           sr,
-		writeDataHistogram:           telemetry.NewHistogram(internal.Meter, "write_data", "microseconds", "Duration of writing data in microseconds"),
-		deleteDataHistogram:          telemetry.NewHistogram(internal.Meter, "delete_data", "microseconds", "Duration of deleting data in microseconds"),
-		readAttributesHistogram:      telemetry.NewHistogram(internal.Meter, "read_attributes", "microseconds", "Duration of reading attributes in microseconds"),
-		readRelationshipsHistogram:   telemetry.NewHistogram(internal.Meter, "read_relationships", "microseconds", "Duration of reading relationships in microseconds"),
-		writeRelationshipsHistogram:  telemetry.NewHistogram(internal.Meter, "write_relationships", "microseconds", "Duration of writing relationships in microseconds"),
-		deleteRelationshipsHistogram: telemetry.NewHistogram(internal.Meter, "delete_relationships", "microseconds", "Duration of deleting relationships in microseconds"),
-		runBundleHistogram:           telemetry.NewHistogram(internal.Meter, "delete_relationships", "run_bundle", "Duration of running bunble in microseconds"),
+		writeDataHistogram:           telemetry.NewHistogram(internal.Meter, "write_data", "amount", "Number of writing data"),
+		deleteDataHistogram:          telemetry.NewHistogram(internal.Meter, "delete_data", "amount", "Number of deleting data"),
+		readAttributesHistogram:      telemetry.NewHistogram(internal.Meter, "read_attributes", "amount", "Number of reading attributes"),
+		readRelationshipsHistogram:   telemetry.NewHistogram(internal.Meter, "read_relationships", "amount", "Number of reading relationships"),
+		writeRelationshipsHistogram:  telemetry.NewHistogram(internal.Meter, "write_relationships", "amount", "Number of writing relationships"),
+		deleteRelationshipsHistogram: telemetry.NewHistogram(internal.Meter, "delete_relationships", "amount", "Number of deleting relationships"),
+		runBundleHistogram:           telemetry.NewHistogram(internal.Meter, "run_bundle", "amount", "Number of running bunble"),
 	}
 }
 
@@ -62,7 +61,6 @@ func NewDataServer(
 func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.RelationshipReadRequest) (*v1.RelationshipReadResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "data.read.relationships")
 	defer span.End()
-	start := time.Now()
 
 	size := request.GetPageSize()
 	if size == 0 {
@@ -100,8 +98,7 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Since(start)
-	r.readRelationshipsHistogram.Record(ctx, duration.Microseconds())
+	r.readRelationshipsHistogram.Record(ctx, 1)
 
 	return &v1.RelationshipReadResponse{
 		Tuples:          collection.GetTuples(),
@@ -113,7 +110,6 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeReadRequest) (*v1.AttributeReadResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "data.read.attributes")
 	defer span.End()
-	start := time.Now()
 
 	size := request.GetPageSize()
 	if size == 0 {
@@ -151,8 +147,7 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Since(start)
-	r.readAttributesHistogram.Record(ctx, duration.Microseconds())
+	r.readAttributesHistogram.Record(ctx, 1)
 
 	return &v1.AttributeReadResponse{
 		Attributes:      collection.GetAttributes(),
@@ -164,7 +159,6 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*v1.DataWriteResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "data.write")
 	defer span.End()
-	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -251,8 +245,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Since(start)
-	r.writeDataHistogram.Record(ctx, duration.Microseconds())
+	r.writeDataHistogram.Record(ctx, 1)
 
 	return &v1.DataWriteResponse{
 		SnapToken: snap.String(),
@@ -263,7 +256,6 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.RelationshipWriteRequest) (*v1.RelationshipWriteResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "relationships.write")
 	defer span.End()
-	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -320,8 +312,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Now().Sub(start)
-	r.writeRelationshipsHistogram.Record(ctx, duration.Microseconds())
+	r.writeRelationshipsHistogram.Record(ctx, 1)
 
 	return &v1.RelationshipWriteResponse{
 		SnapToken: snap.String(),
@@ -332,7 +323,6 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) (*v1.DataDeleteResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "data.delete")
 	defer span.End()
-	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -352,8 +342,7 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Now().Sub(start)
-	r.deleteDataHistogram.Record(ctx, duration.Microseconds())
+	r.deleteDataHistogram.Record(ctx, 1)
 
 	return &v1.DataDeleteResponse{
 		SnapToken: snap.String(),
@@ -364,7 +353,6 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.RelationshipDeleteRequest) (*v1.RelationshipDeleteResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "relationships.delete")
 	defer span.End()
-	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -384,8 +372,7 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Now().Sub(start)
-	r.deleteRelationshipsHistogram.Record(ctx, duration.Microseconds())
+	r.deleteRelationshipsHistogram.Record(ctx, 1)
 
 	return &v1.RelationshipDeleteResponse{
 		SnapToken: snap.String(),
@@ -396,7 +383,6 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest) (*v1.BundleRunResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "bundle.run")
 	defer span.End()
-	start := time.Now()
 
 	v := request.Validate()
 	if v != nil {
@@ -424,8 +410,7 @@ func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	duration := time.Now().Sub(start)
-	r.runBundleHistogram.Record(ctx, duration.Microseconds())
+	r.runBundleHistogram.Record(ctx, 1)
 
 	return &v1.BundleRunResponse{
 		SnapToken: snap.String(),
