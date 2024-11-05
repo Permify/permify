@@ -10,6 +10,7 @@ import (
 	"github.com/Permify/sloggcp"
 	"github.com/agoda-com/opentelemetry-go/otelslog"
 
+	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/pkg/telemetry"
 	"github.com/Permify/permify/pkg/telemetry/logexporters"
 )
@@ -60,7 +61,7 @@ func NewGCPHandler(headers map[string]string, level slog.Leveler) (slog.Handler,
 	}
 
 	// Initialize GCP-specific log handler
-	logName := "permify"
+	logName := internal.Identifier
 	gcpHandler := sloggcp.NewGoogleCloudSlogHandler(context.Background(), projectId, logName, &slog.HandlerOptions{
 		Level: level,
 	})
