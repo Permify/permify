@@ -242,7 +242,7 @@
     {
       "group": "Getting Started",
       "pages": [
-        "getting-started/end-to-end-example",
+        "getting-started/quickstart",
         "getting-started/modeling",
         "getting-started/sync-data",
         "getting-started/enforcement",
