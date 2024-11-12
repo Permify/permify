@@ -195,7 +195,7 @@ Lets get back to our example and perform an example access check via [Check API]
 [Check API]: ../../../api-reference/permission/check-api
 [Permify Schema]: ../getting-started/modeling
 
-***Can the user 45 view files on organization 1 ?***
+***Can the user 1 view files on organization 1 ?***
 
 **POST** `/v1/tenants/{tenant_id}/permissions/check`
 
@@ -224,7 +224,7 @@ Lets get back to our example and perform an example access check via [Check API]
   "permission": "view_files",
   "subject": {
     "type": "user",
-    "id": "45",
+    "id": "1",
     "relation": ""
   },
 }
