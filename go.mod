@@ -42,7 +42,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.34.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.57.0
-	go.opentelemetry.io/contrib/instrumentation/host v0.56.0
+	go.opentelemetry.io/contrib/instrumentation/host v0.57.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.56.0
 	go.opentelemetry.io/otel v1.32.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
@@ -79,7 +79,7 @@ require (
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/ebitengine/purego v0.8.0 // indirect
+	github.com/ebitengine/purego v0.8.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
@@ -100,7 +100,7 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/samber/lo v1.47.0 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
-	github.com/shirou/gopsutil/v4 v4.24.9 // indirect
+	github.com/shirou/gopsutil/v4 v4.24.10 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
