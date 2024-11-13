@@ -1,7 +1,8 @@
 module main
 
-go 1.22.6
-toolchain go1.22.9
+go 1.22.7
+
+toolchain go1.23.0
 
 require (
 	buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.35.1-20241104072135-1eeab2d91c14.1
