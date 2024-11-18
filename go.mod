@@ -10,7 +10,7 @@ require (
 	github.com/dgraph-io/ristretto v1.0.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/envoyproxy/protoc-gen-validate v1.1.0
-	github.com/exaring/otelpgx v0.6.2
+	github.com/exaring/otelpgx v0.7.0
 	github.com/fatih/color v1.18.0
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/golang-jwt/jwt/v4 v4.5.1
