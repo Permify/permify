@@ -31,7 +31,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.21.0
 	github.com/onsi/gomega v1.35.1
 	github.com/pkg/errors v0.9.1
-	github.com/pressly/goose/v3 v3.22.1
+	github.com/pressly/goose/v3 v3.23.0
 	github.com/rs/cors v1.11.1
 	github.com/rs/xid v1.6.0
 	github.com/sercand/kuberesolver/v5 v5.1.1
