@@ -19,7 +19,7 @@ require (
 	github.com/gookit/color v1.5.4
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-retryablehttp v0.7.7
@@ -59,7 +59,7 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/net v0.31.0
 	golang.org/x/sync v0.9.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20241104194629-dd2ea8efbc28
+	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697
 	google.golang.org/grpc v1.68.0
 	google.golang.org/protobuf v1.35.2
 	gopkg.in/yaml.v3 v3.0.1
@@ -104,7 +104,7 @@ require (
 	github.com/shirou/gopsutil/v4 v4.24.10 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
-	golang.org/x/oauth2 v0.23.0 // indirect
+	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	google.golang.org/api v0.203.0 // indirect
 	google.golang.org/genproto v0.0.0-20241021214115-324edc3d5d38 // indirect
@@ -190,6 +190,6 @@ require (
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241104194629-dd2ea8efbc28 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
