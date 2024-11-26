@@ -20,4 +20,4 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
     - name: Check spelling
-      uses: crate-ci/typos@b74202f74b4346efdbce7801d187ec57b266bac8 # master
+      uses: crate-ci/typos@78d6d2274460eb93ea511a10ce9f67d72f014f35 # master
