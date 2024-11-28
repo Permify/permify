@@ -48,7 +48,7 @@
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>
-            <version>1.68.1</version> <!-- Ensure this matches the version of grpc you are using -->
+            <version>1.68.2</version> <!-- Ensure this matches the version of grpc you are using -->
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
