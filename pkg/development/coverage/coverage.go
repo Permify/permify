@@ -118,11 +118,6 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 			}
 		}
 
-		entityCoverageInfo.CoverageRelationshipsPercent = calculateCoveragePercent(
-			ref.Relationships,
-			entityCoverageInfo.UncoveredRelationships,
-		)
-
 		// Calculate attributes coverage
 		at := attributes(ref.EntityName, shape.Attributes)
 
@@ -132,13 +127,37 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 			}
 		}
 
-		entityCoverageInfo.CoverageAttributesPercent = calculateCoveragePercent(
-			ref.Attributes,
-			entityCoverageInfo.UncoveredAttributes,
-		)
-
-		// Calculate assertions coverage for each scenario
+		// Calculate relationships, attributes and assertions coverage for each scenario
 		for _, s := range shape.Scenarios {
+
+			// Calculate relationships coverage
+			er := relationships(ref.EntityName, shape.Relationships)
+
+			for _, relationship := range ref.Relationships {
+				if !slices.Contains(er, relationship) {
+					entityCoverageInfo.UncoveredRelationships = append(entityCoverageInfo.UncoveredRelationships, relationship)
+				}
+			}
+
+			entityCoverageInfo.CoverageRelationshipsPercent = calculateCoveragePercent(
+				ref.Relationships,
+				entityCoverageInfo.UncoveredRelationships,
+			)
+
+			// Calculate attributes coverage
+			at := attributes(ref.EntityName, s.Attributes)
+
+			for _, attr := range ref.Attributes {
+				if !slices.Contains(at, attr) {
+					entityCoverageInfo.UncoveredAttributes = append(entityCoverageInfo.UncoveredAttributes, attr)
+				}
+			}
+
+			entityCoverageInfo.CoverageAttributesPercent = calculateCoveragePercent(
+				ref.Attributes,
+				entityCoverageInfo.UncoveredAttributes,
+			)
+
 			ca := assertions(ref.EntityName, s.Checks, s.EntityFilters)
 
 			for _, assertion := range ref.Assertions {
