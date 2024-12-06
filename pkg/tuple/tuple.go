@@ -3,9 +3,8 @@ package tuple
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
-
-	"golang.org/x/exp/slices"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )

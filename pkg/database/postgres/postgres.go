@@ -3,14 +3,13 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
 
 	"github.com/exaring/otelpgx"
-
-	"golang.org/x/exp/slog"
 
 	"github.com/jackc/pgx/v5"
 

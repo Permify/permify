@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"math/rand/v2"
 	"strings"
 	"time"
 
 	"go.opentelemetry.io/otel/codes"
-	"golang.org/x/exp/rand"
 
 	"go.opentelemetry.io/otel/trace"
 

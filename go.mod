@@ -56,7 +56,6 @@ require (
 	go.opentelemetry.io/otel/sdk v1.32.0
 	go.opentelemetry.io/otel/sdk/metric v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
-	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/net v0.31.0
 	golang.org/x/sync v0.9.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697
@@ -104,6 +103,7 @@ require (
 	github.com/shirou/gopsutil/v4 v4.24.10 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	google.golang.org/api v0.203.0 // indirect

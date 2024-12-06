@@ -2,8 +2,7 @@ package coverage
 
 import (
 	"fmt"
-
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/development/file"

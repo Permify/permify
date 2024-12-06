@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 
 	"github.com/google/cel-go/cel"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
