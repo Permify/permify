@@ -1,9 +1,8 @@
 package context
 
 import (
+	"slices"
 	"sort"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/Permify/permify/internal/storage/context/utils"
 	"github.com/Permify/permify/pkg/database"

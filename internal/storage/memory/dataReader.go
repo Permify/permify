@@ -3,11 +3,10 @@ package memory
 import (
 	"context"
 	"errors"
+	"slices"
 	"sort"
 	"strconv"
 	"time"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/go-memdb"
 

@@ -1,9 +1,8 @@
 package context
 
 import (
+	"slices"
 	"testing"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
