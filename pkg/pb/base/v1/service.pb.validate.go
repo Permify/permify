@@ -5235,17 +5235,6 @@ func (m *DataWriteRequest) validate(all bool) error {
 		}
 	}
 
-	if len(m.GetTuples()) > 100 {
-		err := DataWriteRequestValidationError{
-			field:  "Tuples",
-			reason: "value must contain no more than 100 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	for idx, item := range m.GetTuples() {
 		_, _ = idx, item
 
@@ -5289,17 +5278,6 @@ func (m *DataWriteRequest) validate(all bool) error {
 			}
 		}
 
-	}
-
-	if len(m.GetAttributes()) > 100 {
-		err := DataWriteRequestValidationError{
-			field:  "Attributes",
-			reason: "value must contain no more than 100 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	for idx, item := range m.GetAttributes() {
@@ -5719,10 +5697,10 @@ func (m *RelationshipWriteRequest) validate(all bool) error {
 		}
 	}
 
-	if l := len(m.GetTuples()); l < 1 || l > 100 {
+	if len(m.GetTuples()) < 1 {
 		err := RelationshipWriteRequestValidationError{
 			field:  "Tuples",
-			reason: "value must contain between 1 and 100 items, inclusive",
+			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err
