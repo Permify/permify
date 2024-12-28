@@ -1,8 +1,13 @@
 
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Permify/permify/raw/master/assets/logo-permify-dark.png">
+    <img alt="Permify logo" src="https://github.com/Permify/permify/raw/master/assets/logo-permify-light.png" width="40%">
+  </picture>
 <h1 align="center">
-    <img src="https://raw.githubusercontent.com/Permify/permify/master/assets/permify-logo.svg" alt="Permify logo" width="336px" /><br />
-    Permify - Open Source Fine-Grained Authorization
+   Permify - Open Source Fine-Grained Authorization
 </h1>
+</div>
 <p align="center">
     Implement fine-grained, scalable and extensible access controls within minutes to days instead of months. <br>
     Inspired by Google’s consistent, global authorization system, <a href="https://permify.co/post/google-zanzibar-in-a-nutshell/" target="_blank">Zanzibar</a>
