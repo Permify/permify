@@ -2,11 +2,12 @@ package utils
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"log/slog"
 	"math"
-	"math/rand/v2"
 	"strings"
 	"time"
 
@@ -155,12 +156,30 @@ func IsSerializationRelatedError(err error) bool {
 // WaitWithBackoff implements an exponential backoff strategy with jitter for retries.
 // It waits for a calculated duration or until the context is cancelled, whichever comes first.
 func WaitWithBackoff(ctx context.Context, tenantID string, retries int) {
+	// Calculate the base backoff
 	backoff := time.Duration(math.Min(float64(20*time.Millisecond)*math.Pow(2, float64(retries)), float64(1*time.Second)))
-	jitter := time.Duration(rand.Float64() * float64(backoff) * 0.5)
+
+	// Generate jitter using crypto/rand
+	jitter := time.Duration(secureRandomFloat64() * float64(backoff) * 0.5)
 	nextBackoff := backoff + jitter
-	slog.WarnContext(ctx, "waiting before retry", slog.String("tenant_id", tenantID), slog.Int64("backoff_duration", nextBackoff.Milliseconds()))
+
+	// Log the retry wait
+	slog.WarnContext(ctx, "waiting before retry",
+		slog.String("tenant_id", tenantID),
+		slog.Int64("backoff_duration", nextBackoff.Milliseconds()))
+
+	// Wait or exit on context cancellation
 	select {
 	case <-time.After(nextBackoff):
 	case <-ctx.Done():
 	}
+}
+
+// secureRandomFloat64 generates a float64 value in the range [0, 1) using crypto/rand.
+func secureRandomFloat64() float64 {
+	var b [8]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return 0 // Default to 0 jitter on error
+	}
+	return float64(binary.BigEndian.Uint64(b[:])) / (1 << 64)
 }
