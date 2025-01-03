@@ -37,6 +37,7 @@ type (
 	HTTP struct {
 		Enabled            bool      `mapstructure:"enabled"`              // Whether the HTTP server is enabled
 		Port               string    `mapstructure:"port"`                 // Port for the HTTP server
+		ExposeOpenAPI			 bool 		 `mapstructure:"expose_openapi"` // expose OpenAPI configuration
 		TLSConfig          TLSConfig `mapstructure:"tls"`                  // TLS configuration for the HTTP server
 		CORSAllowedOrigins []string  `mapstructure:"cors_allowed_origins"` // List of allowed origins for CORS
 		CORSAllowedHeaders []string  `mapstructure:"cors_allowed_headers"` // List of allowed headers for CORS
@@ -276,6 +277,7 @@ func DefaultConfig() *Config {
 			HTTP: HTTP{
 				Enabled: true,
 				Port:    "3476",
+				ExposeOpenAPI: false,
 				TLSConfig: TLSConfig{
 					Enabled: false,
 				},
