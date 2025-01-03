@@ -42,7 +42,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.34.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.57.0
-	go.opentelemetry.io/contrib/instrumentation/host v0.57.0
+	go.opentelemetry.io/contrib/instrumentation/host v0.58.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.57.0
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
@@ -100,7 +100,7 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/samber/lo v1.47.0 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
-	github.com/shirou/gopsutil/v4 v4.24.10 // indirect
+	github.com/shirou/gopsutil/v4 v4.24.11 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
