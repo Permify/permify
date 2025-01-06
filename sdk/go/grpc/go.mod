@@ -5,7 +5,7 @@ go 1.22.7
 toolchain go1.23.0
 
 require (
-	buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.1-20241104072135-1eeab2d91c14.1
+	buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.1-20250103171309-3777a088d912.1
 	github.com/Permify/permify-go v0.4.9
 	google.golang.org/grpc v1.69.2
 )
