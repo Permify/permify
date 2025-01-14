@@ -46,17 +46,10 @@ func (t *Compiler) Compile() ([]*base.EntityDefinition, []*base.RuleDefinition, 
 
 	// Loop through each statement in the schema.
 	for _, statement := range t.schema.Statements {
-		switch statement.(type) {
+		switch v := statement.(type) {
 		case *ast.EntityStatement:
-			// Check if the statement is an EntityStatement.
-			entityStatement, ok := statement.(*ast.EntityStatement)
-			if !ok {
-				// If the statement is not an EntityStatement, return a compile error.
-				return nil, nil, compileError(entityStatement.Entity.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
-			}
-
 			// Compile the EntityStatement into an EntityDefinition.
-			entityDef, err := t.compileEntity(entityStatement)
+			entityDef, err := t.compileEntity(v)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -64,15 +57,8 @@ func (t *Compiler) Compile() ([]*base.EntityDefinition, []*base.RuleDefinition, 
 			// Append the EntityDefinition to the slice of entity definitions.
 			entities = append(entities, entityDef)
 		case *ast.RuleStatement:
-			// Check if the statement is a RuleStatement.
-			ruleStatement, ok := statement.(*ast.RuleStatement)
-			if !ok {
-				// If the statement is not a RuleStatement, return a compile error.
-				return nil, nil, compileError(ruleStatement.Rule.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
-			}
-
 			// Compile the RuleStatement into a RuleDefinition.
-			ruleDef, err := t.compileRule(ruleStatement)
+			ruleDef, err := t.compileRule(v)
 			if err != nil {
 				return nil, nil, err
 			}
