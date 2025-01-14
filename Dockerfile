@@ -1,4 +1,4 @@
-FROM golang:1.23.4-alpine3.20@sha256:2314d93ea3899b8118d11ec70714e96c4bb2d52ff46ee919622269a5c6207077 as permify-builder
+FROM golang:1.23.4-alpine3.20@sha256:6a84ccdb73e005d0ee7bfff6066f230612ca9dff3e88e31bfc752523c3a271f8 as permify-builder
 WORKDIR /go/src/app
 RUN apk update && apk add --no-cache git
 COPY . .
