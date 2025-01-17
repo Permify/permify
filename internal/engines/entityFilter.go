@@ -160,14 +160,7 @@ func (engine *EntityFilter) attributeEntrance(
 		pagination database.CursorPagination
 	)
 
-	// Determine the pagination settings based on the entity type in the request.
-	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
-	// Otherwise, use the default pagination settings.
-	if request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() {
-		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-	} else {
-		pagination = database.NewCursorPagination()
-	}
+	pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
 
 	// Query the relationships using the specified pagination settings.
 	// The context tuples are filtered based on the provided filter.
