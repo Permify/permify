@@ -124,6 +124,10 @@ func (engine *EntityFilter) attributeEntrance(
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
+	if request.GetEntrance().GetType() != entrance.TargetEntrance.GetType() {
+		return nil
+	}
+
 	if !visits.AddEA(entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue()) { // If the entity and relation has already been visited.
 		return nil
 	}
