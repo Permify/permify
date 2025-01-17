@@ -3060,6 +3060,149 @@ var _ = Describe("lookup-entity-engine", func() {
 		})
 	})
 
+	PropagationAcrossEntitiesEntityFilter := `
+entity user {}
+
+entity aaa {
+    relation role__admin @user
+    permission ccc__read = role__admin
+}
+
+entity bbb {
+    relation resource__aaa @aaa
+    relation role__admin @user
+    attribute attr__is_public boolean
+    permission ccc__read = role__admin or attr__is_public
+
+}
+
+entity ccc {
+    relation resource__aaa @aaa
+    relation resource__bbb @bbb
+    permission ccc__read = resource__aaa.ccc__read or resource__bbb.ccc__read
+}`
+
+	Context("Propagation Across Entities: Entity Filter", func() {
+		It("Drive Sample: Case 1", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(PropagationAcrossEntitiesEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			type filter struct {
+				entityType string
+				subject    string
+				assertions map[string][]string
+			}
+
+			tests := struct {
+				relationships []string
+				attributes    []string
+				filters       []filter
+			}{
+				relationships: []string{
+					"aaa:a1#role__admin@user:u1",
+					"bbb:b1#resource__aaa@aaa:a1",
+					"ccc:c1#resource__aaa@aaa:a1",
+					"ccc:c1#resource__bbb@bbb:b1",
+				},
+				attributes: []string{
+					"bbb:b1$attr__is_public|boolean:true",
+				},
+				filters: []filter{
+					{
+						entityType: "ccc",
+						subject:    "user:u1",
+						assertions: map[string][]string{
+							"ccc__read": {"c1"},
+						},
+					},
+				},
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+
+			for _, relationship := range tests.relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attributes []*base.Attribute
+
+			for _, attr := range tests.attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for _, filter := range tests.filters {
+				ear, err := tuple.EAR(filter.subject)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				subject := &base.Subject{
+					Type:     ear.GetEntity().GetType(),
+					Id:       ear.GetEntity().GetId(),
+					Relation: ear.GetRelation(),
+				}
+
+				for permission, res := range filter.assertions {
+					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+						TenantId:   "t1",
+						EntityType: filter.entityType,
+						Subject:    subject,
+						Permission: permission,
+						Metadata: &base.PermissionLookupEntityRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         100,
+						},
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(response.GetEntityIds()).Should(Equal(res))
+				}
+			}
+		})
+	})
+
 	driveSchemaSubjectFilter := `
 	entity user {}
 	

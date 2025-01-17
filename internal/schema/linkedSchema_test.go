@@ -1181,5 +1181,73 @@ var _ = Describe("linked schema", func() {
 				},
 			}))
 		})
+
+		It("Case 23", func() {
+			sch, err := parser.NewParser(`
+				entity user {}
+				
+				entity aaa {
+					relation role__admin @user
+					permission ccc__read = role__admin
+				}
+				
+				entity bbb {
+					relation resource__aaa @aaa
+					relation role__admin @user
+					attribute attr__is_public boolean
+					permission ccc__read = role__admin or attr__is_public
+				
+				}
+				
+				entity ccc {
+					relation resource__aaa @aaa
+					relation resource__bbb @bbb
+					permission ccc__read = resource__aaa.ccc__read or resource__bbb.ccc__read
+				}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "ccc",
+				Value: "ccc__read",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "aaa",
+						Value: "role__admin",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: RelationLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "bbb",
+						Value: "role__admin",
+					},
+					TupleSetRelation: "",
+				},
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "bbb",
+						Value: "attr__is_public",
+					},
+					TupleSetRelation: "",
+				},
+			}))
+		})
 	})
 })
