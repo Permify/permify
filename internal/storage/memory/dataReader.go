@@ -83,18 +83,29 @@ func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filt
 	})
 
 	var tuples []*base.Tuple
+	count := uint32(0)
+	limit := pagination.Limit()
+
 	for _, t := range tup {
+		// Skip tuples below the lower bound
 		switch pagination.Sort() {
 		case "entity_id":
-			if t.EntityID >= lowerBound {
-				tuples = append(tuples, t.ToTuple())
+			if t.EntityID < lowerBound {
+				continue
 			}
 		case "subject_id":
-			if t.SubjectID >= lowerBound {
-				tuples = append(tuples, t.ToTuple())
+			if t.SubjectID < lowerBound {
+				continue
 			}
-		default:
-			tuples = append(tuples, t.ToTuple())
+		}
+
+		// Add tuple to result set
+		tuples = append(tuples, t.ToTuple())
+
+		// Enforce the limit if it's set
+		count++
+		if limit > 0 && count >= limit {
+			break
 		}
 	}
 
@@ -222,7 +233,7 @@ func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter 
 		attr = append(attr, t)
 	}
 
-	// Sort tuples based on the provided order field
+	// Sort attributes based on the provided order field
 	sort.Slice(attr, func(i, j int) bool {
 		switch pagination.Sort() {
 		case "entity_id":
@@ -233,14 +244,25 @@ func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter 
 	})
 
 	var attrs []*base.Attribute
+	count := uint32(0)
+	limit := pagination.Limit()
+
 	for _, t := range attr {
+		// Skip attributes below the lower bound
 		switch pagination.Sort() {
 		case "entity_id":
-			if t.EntityID >= lowerBound {
-				attrs = append(attrs, t.ToAttribute())
+			if t.EntityID < lowerBound {
+				continue
 			}
-		default:
-			attrs = append(attrs, t.ToAttribute())
+		}
+
+		// Add attribute to result set
+		attrs = append(attrs, t.ToAttribute())
+
+		// Enforce the limit if it's set
+		count++
+		if limit > 0 && count >= limit {
+			break
 		}
 	}
 

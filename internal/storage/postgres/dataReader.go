@@ -74,6 +74,12 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		builder = builder.OrderBy(pagination.Sort())
 	}
 
+	// Apply limit if specified in pagination
+	limit := pagination.Limit()
+	if limit > 0 {
+		builder = builder.Limit(uint64(limit))
+	}
+
 	// Generate the SQL query and arguments.
 	var query string
 	query, args, err = builder.ToSql()
@@ -273,7 +279,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	// Build the relationships query based on the provided filter and snapshot value.
+	// Build the attributes query based on the provided filter and snapshot value.
 	var args []interface{}
 	builder := r.database.Builder.Select("entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
@@ -290,6 +296,12 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 
 	if pagination.Sort() != "" {
 		builder = builder.OrderBy(pagination.Sort())
+	}
+
+	// Apply limit if specified in pagination
+	limit := pagination.Limit()
+	if limit > 0 {
+		builder = builder.Limit(uint64(limit))
 	}
 
 	// Generate the SQL query and arguments.
@@ -309,7 +321,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	}
 	defer rows.Close()
 
-	// Process the result rows and store the relationships in a TupleCollection.
+	// Process the result rows and store the attributes in an AttributeCollection.
 	collection := database.NewAttributeCollection()
 	for rows.Next() {
 		rt := storage.Attribute{}
@@ -339,7 +351,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 
 	slog.DebugContext(ctx, "successfully retrieved attributes tuples from the database")
 
-	// Return a TupleIterator created from the TupleCollection.
+	// Return an AttributeIterator created from the AttributeCollection.
 	return collection.CreateAttributeIterator(), nil
 }
 

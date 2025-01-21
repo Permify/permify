@@ -52,6 +52,7 @@ type CursorPaginationOption func(*CursorPagination)
 type CursorPagination struct {
 	cursor string
 	sort   string
+	limit  uint32
 }
 
 // NewCursorPagination -
@@ -80,6 +81,13 @@ func Sort(sort string) CursorPaginationOption {
 	}
 }
 
+// Limit -
+func Limit(limit uint32) CursorPaginationOption {
+	return func(c *CursorPagination) {
+		c.limit = limit
+	}
+}
+
 // Cursor -
 func (p CursorPagination) Cursor() string {
 	return p.cursor
@@ -88,4 +96,9 @@ func (p CursorPagination) Cursor() string {
 // Sort -
 func (p CursorPagination) Sort() string {
 	return p.sort
+}
+
+// Limit -
+func (p CursorPagination) Limit() uint32 {
+	return p.limit
 }
