@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useRef} from "react";
 import {Button, Table, Input, Form, Space, Select} from "antd";
-import {DeleteOutlined, MenuOutlined} from "@ant-design/icons";
+import {CloseOutlined, DeleteOutlined, MenuOutlined} from "@ant-design/icons";
 import {useShapeStore} from "@state/shape";
 import {RelationshipObjectToKey, StringRelationshipsToObjects} from "@utility/helpers/common";
 import {nanoid} from "nanoid";
@@ -148,10 +148,9 @@ function Relationships() {
             render: (_, record) => {
                 const editable = isEditing(record);
                 return editable ? (
-                    <span className="flex flex-col" style={{ width: "fit-content" }}>
+                    <span className="flex flex-row items-center gap-2" style={{width: "fit-content"}}>
                         <Button type="primary" onClick={() => save(record.key)}>Save</Button>
-                        <Button className="text-white" type="link"
-                                onClick={() => cancel(record.key)}>Cancel</Button>
+                        <Button className="text-white ml-4" type="link" icon={<CloseOutlined/>} onClick={() => cancel(record.key)}/>
                     </span>
                 ) : (
                     <Space size="middle">
@@ -250,7 +249,7 @@ function Relationships() {
     // Populate the data source when the component is mounted
     useEffect(() => {
         setDataSource(StringRelationshipsToObjects(relationships))
-    }, []);
+    }, [relationships]);
 
     // Scroll to the latest data row after adding a new relationship
     useEffect(() => {

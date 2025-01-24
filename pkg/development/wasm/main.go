@@ -21,6 +21,9 @@ var dev *development.Development
 func run() js.Func {
 	// Returns a new JavaScript function that wraps the Go function.
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		// Create a new development container.
+		dev = development.NewContainer()
+
 		// Create an empty map to hold the JSON content.
 		var t interface{}
 
