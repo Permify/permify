@@ -6,7 +6,7 @@ import {put} from '@vercel/blob';
 import yaml from "js-yaml";
 import {useShapeStore} from "@state/shape";
 import Share from "@layout/components/Modals/Share";
-import toast, { Toaster } from 'react-hot-toast';
+import toast, {Toaster} from 'react-hot-toast';
 
 const {Option, OptGroup} = Select;
 const {Content} = Layout;
@@ -62,6 +62,9 @@ const MainLayout = ({children, ...rest}) => {
             put("s.yaml", file, {access: 'public', token: process.env.REACT_APP_BLOB_READ_WRITE_TOKEN}).then((result) => {
                 let fileName = result.url.split('/').pop();
                 setId(fileName.replace('.yaml', ''))
+            }).catch((error) => {
+                console.error('Upload error:', error);
+                toast.error('Failed to share. Please try again.');
             }).then(() => {
                 toggleShareModalVisibility()
             });
@@ -75,7 +78,7 @@ const MainLayout = ({children, ...rest}) => {
                     scenarios: scenarios,
                 });
 
-                const blob = new Blob([yamlString], { type: 'text/x-yaml' });
+                const blob = new Blob([yamlString], {type: 'text/x-yaml'});
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
 
@@ -90,16 +93,16 @@ const MainLayout = ({children, ...rest}) => {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
 
-                toast.success('Export successful! 🎉', { style: {borderRadius: '2px'} });
+                toast.success('Export successful! 🎉', {style: {borderRadius: '2px'}});
             } catch (err) {
                 console.error('Export failed:', err);
-                toast.error('Export failed. Please try again.', { style: {borderRadius: '2px'} });
+                toast.error('Export failed. Please try again.', {style: {borderRadius: '2px'}});
             }
         }
         const imp = (event) => {
             const file = event.target.files[0];
             if (!file) {
-                toast.error('No file selected.', { style: {borderRadius: '2px'} });
+                toast.error('No file selected.', {style: {borderRadius: '2px'}});
                 return;
             }
 
@@ -111,7 +114,7 @@ const MainLayout = ({children, ...rest}) => {
 
                     // Check if the schema exists
                     if (!result?.schema) {
-                        toast.error('Missing schema in the YAML file.', { style: {borderRadius: '2px'} });
+                        toast.error('Missing schema in the YAML file.', {style: {borderRadius: '2px'}});
                         return;
                     }
 
@@ -121,10 +124,10 @@ const MainLayout = ({children, ...rest}) => {
                     setAttributes(result.attributes ?? []);
                     setScenarios(result.scenarios ?? []);
 
-                    toast.success('File imported successfully! 🎉', { style: {borderRadius: '2px'} });
+                    toast.success('File imported successfully! 🎉', {style: {borderRadius: '2px'}});
                 } catch (err) {
                     console.error('Error parsing YAML file:', err);
-                    toast.error('Failed to import shape: Invalid YAML format.', { style: {borderRadius: '2px'} });
+                    toast.error('Failed to import shape: Invalid YAML format.', {style: {borderRadius: '2px'}});
                 }
             };
             reader.readAsText(file);
@@ -144,7 +147,7 @@ const MainLayout = ({children, ...rest}) => {
         return (
             <Layout className="App h-screen flex flex-col">
 
-                <Toaster position="top-right" reverseOrder={false} />
+                <Toaster position="top-right" reverseOrder={false}/>
 
                 <Share visible={shareModalVisibility} toggle={toggleShareModalVisibility} id={id}></Share>
 
