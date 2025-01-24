@@ -50,7 +50,7 @@
     "react": "^17.0.2",
     "react-color": "^2.19.3",
     "react-copy-to-clipboard": "^5.1.0",
-    "react-dom": "^17.0.2",
+    "react-dom": "^19.0.0",
     "react-graph-vis": "^1.0.7",
     "react-hot-toast": "^2.1.0",
     "react-infinite-scroll-component": "^6.1.0",
