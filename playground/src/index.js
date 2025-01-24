@@ -1,17 +1,21 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import './_assets/less/index.less';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import {LoadWasm} from './wasm';
+import { LoadWasm } from './wasm';
 
-ReactDOM.render(
+const rootElement = document.getElementById('root');
+
+// Use createRoot instead of render
+const root = ReactDOM.createRoot(rootElement);
+
+root.render(
     <React.StrictMode>
         <LoadWasm>
-            <App/>
+            <App />
         </LoadWasm>
-    </React.StrictMode>,
-    document.getElementById('root')
+    </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function
