@@ -106,6 +106,18 @@ const MainLayout = ({children, ...rest}) => {
                 return;
             }
 
+            // Validate file type
+            if (!file.name.endsWith('.yaml') && !file.name.endsWith('.yml')) {
+                toast.error('Invalid file type. Please select a YAML file.', {style: {borderRadius: '2px'}});
+                return;
+            }
+
+            // Validate file size (e.g., 10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('File size too large. Please select a smaller file.', {style: {borderRadius: '2px'}});
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
