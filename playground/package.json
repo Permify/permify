@@ -63,7 +63,7 @@
     "react-wasm": "^1.0.1",
     "typescript": "^5.0.3",
     "use-as-bind": "^0.1.0",
-    "uuid": "^9.0.0",
+    "uuid": "^11.0.5",
     "web-vitals": "^4.2.4",
     "webpack": "^5.88.2",
     "worker-loader": "^3.0.8",
