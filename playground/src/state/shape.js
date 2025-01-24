@@ -44,6 +44,14 @@ export const useShapeStore = create((set, get) => ({
         set({scenarios: scenarios});
     },
 
+    setRelationships: (relationships) => {
+        set({relationships: relationships});
+    },
+
+    setAttributes: (attributes) => {
+        set({attributes: attributes});
+    },
+
     removeRelationship: (relationship) => {
         set((state) => ({
             relationships: state.relationships.filter(rid => rid !== relationship)
@@ -189,8 +197,8 @@ export const useShapeStore = create((set, get) => ({
             const result = yaml.load(response.data, null);
 
             get().setSchema(result.schema ?? ``);
-            get().addRelationships(result.relationships ?? []);
-            get().addAttributes(result.attributes ?? []);
+            get().setRelationships(result.relationships ?? []);
+            get().setAttributes(result.attributes ?? []);
             get().setScenarios(result.scenarios ?? []);
 
         } catch (error) {

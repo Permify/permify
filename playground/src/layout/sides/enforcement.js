@@ -21,7 +21,7 @@ function Enforcement() {
 
     useEffect(() => {
         setYamlData(dump(scenarios))
-    }, []);
+    }, [scenarios]);
 
     return (
         <>

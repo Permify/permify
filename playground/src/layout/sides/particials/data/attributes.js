@@ -1,13 +1,9 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Button, Form, Input, Select, Space, Table} from "antd";
-import {DeleteOutlined, MenuOutlined} from "@ant-design/icons";
+import {CloseOutlined, DeleteOutlined, MenuOutlined} from "@ant-design/icons";
 import {useShapeStore} from "@state/shape";
 import {arrayMove, SortableContext, useSortable, verticalListSortingStrategy} from "@dnd-kit/sortable";
-import {
-    AttributeEntityToKey,
-    AttributeObjectToKey,
-    StringAttributesToObjects,
-} from "@utility/helpers/common";
+import {AttributeEntityToKey, AttributeObjectToKey, StringAttributesToObjects,} from "@utility/helpers/common";
 import {DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import {nanoid} from "nanoid";
 
@@ -134,10 +130,9 @@ function Attributes() {
             render: (_, record) => {
                 const editable = isEditing(record);
                 return editable ? (
-                    <span className="flex flex-col" style={{ width: "fit-content" }}>
+                    <span className="flex flex-row items-center gap-2" style={{width: "fit-content"}}>
                         <Button type="primary" onClick={() => save(record.key)}>Save</Button>
-                        <Button className="text-white" type="link"
-                                onClick={() => cancel(record.key)}>Cancel</Button>
+                        <Button className="text-white ml-4" type="link" icon={<CloseOutlined/>} onClick={() => cancel(record.key)}/>
                     </span>
                 ) : (
                     <Space size="middle">
@@ -235,7 +230,7 @@ function Attributes() {
 
     useEffect(() => {
         setDataSource(StringAttributesToObjects(attributes))
-    }, []);
+    }, [attributes]);
 
     // Scroll to the latest data row after adding a new attribute
     useEffect(() => {
@@ -268,7 +263,7 @@ function Attributes() {
         setEditingKeys(prevKeys => [...prevKeys, newRow.key]);
     };
 
-    const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
+    const EditableCell = ({editing, dataIndex, title, inputType, record, index, children, ...restProps}) => {
         let inputElement;
         if (editing) {
             switch (dataIndex) {
@@ -328,7 +323,7 @@ function Attributes() {
                 <td {...restProps}>
                     <Form.Item
                         name={`${dataIndex}_${record.key}`}
-                        style={{ margin: 0 }}
+                        style={{margin: 0}}
                         rules={[
                             {
                                 required: true,
