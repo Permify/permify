@@ -185,9 +185,13 @@ type (
 	}
 
 	Distributed struct {
-		Enabled bool   `mapstructure:"enabled"`
-		Address string `mapstructure:"address"`
-		Port    string `mapstructure:"port"`
+		Enabled           bool    `mapstructure:"enabled"`
+		Address           string  `mapstructure:"address"`
+		Port              string  `mapstructure:"port"`
+		PartitionCount    int     `mapstructure:"partition_count"`
+		ReplicationFactor int     `mapstructure:"replication_factor"`
+		Load              float64 `mapstructure:"load"`
+		PickerWidth       int     `mapstructure:"picker_width"`
 	}
 )
 

@@ -2,77 +2,104 @@ package balancer
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/binary"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
 	"google.golang.org/grpc/balancer"
+
+	"github.com/Permify/permify/pkg/consistent"
 )
 
-var _ = Describe("ConsistentHashPicker", func() {
+type mockConnection struct {
+	id string
+}
+
+type testMember struct {
+	name string
+	conn *mockConnection
+}
+
+func (m testMember) String() string {
+	return m.name
+}
+
+func (m testMember) Connection() *mockConnection {
+	return m.conn
+}
+
+var _ = Describe("Picker and Consistent Hashing", func() {
 	var (
-		testSubConns = map[string]balancer.SubConn{
-			"addr1": nil, // Normally, you would use mock SubConn objects. For simplicity, we use nil here.
-			"addr2": nil,
-		}
-		picker *ConsistentHashPicker
+		c           *consistent.Consistent
+		testMembers []testMember
+		hasher      func(data []byte) uint64
 	)
 
+	// Custom hasher using SHA-256 for consistent hashing
+	hasher = func(data []byte) uint64 {
+		hash := sha256.Sum256(data)
+		return binary.BigEndian.Uint64(hash[:8]) // Use the first 8 bytes as the hash
+	}
+
 	BeforeEach(func() {
-		picker = NewConsistentHashPicker(testSubConns)
+		// Initialize consistent hashing with a valid hasher
+		c = consistent.New(consistent.Config{
+			Hasher:            hasher,
+			PartitionCount:    100,
+			ReplicationFactor: 2,
+			Load:              1.5,
+		})
+
+		// Add test members to the consistent hash ring
+		testMembers = []testMember{
+			{name: "member1", conn: &mockConnection{id: "conn1"}},
+			{name: "member2", conn: &mockConnection{id: "conn2"}},
+			{name: "member3", conn: &mockConnection{id: "conn3"}},
+		}
+		for _, m := range testMembers {
+			c.Add(m)
+		}
 	})
 
-	Describe("Initialization", func() {
-		It("should initialize with provided subConns", func() {
-			Expect(picker.subConns).To(Equal(testSubConns))
-			Expect(picker.hashRing).ShouldNot(BeNil())
-		})
-	})
+	Describe("Picker Logic", func() {
+		var (
+			p       *picker
+			testCtx context.Context
+		)
 
-	Describe("Pick", func() {
-		var pickInfo balancer.PickInfo
-
-		Context("with custom key in context", func() {
-			BeforeEach(func() {
-				pickInfo = balancer.PickInfo{
-					Ctx: context.WithValue(context.Background(), Key, "customKey"),
-				}
-			})
-
-			It("should return an ErrNoSubConnAvailable error", func() {
-				_, err := picker.Pick(pickInfo)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("no SubConn is available"))
-			})
+		BeforeEach(func() {
+			// Initialize picker with consistent hashing and a width of 2
+			p = &picker{
+				consistent: c,
+				width:      2,
+			}
+			// Set up context with a valid key
+			testCtx = context.WithValue(context.Background(), Key, []byte("test-key"))
 		})
 
-		Context("without custom key in context", func() {
-			BeforeEach(func() {
-				pickInfo = balancer.PickInfo{
-					FullMethodName: "testMethod",
-					Ctx:            context.Background(),
-				}
-			})
-
-			It("should return an ErrNoSubConnAvailable error", func() {
-				_, err := picker.Pick(pickInfo)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("no SubConn is available"))
-			})
+		It("should pick a member successfully", func() {
+			// Mock picker behavior
+			members, err := c.ClosestN([]byte("test-key"), 2)
+			Expect(err).To(BeNil())
+			Expect(len(members)).To(BeNumerically(">", 0))
+			Expect(members[0].String()).To(Equal("member1"))
 		})
 
-		Context("with unavailable SubConn", func() {
-			BeforeEach(func() {
-				picker.subConns = make(map[string]balancer.SubConn) // Empty the subConns map
-				pickInfo = balancer.PickInfo{
-					Ctx: context.WithValue(context.Background(), Key, "unavailableKey"),
-				}
-			})
+		It("should return an error if the context key is missing", func() {
+			result, err := p.Pick(balancer.PickInfo{Ctx: context.Background()})
+			Expect(err).To(MatchError("context key missing"))
+			Expect(result.SubConn).To(BeNil())
+		})
 
-			It("should return an ErrNoSubConnAvailable error", func() {
-				_, err := picker.Pick(pickInfo)
-				Expect(err).To(Equal(balancer.ErrNoSubConnAvailable))
-			})
+		It("should return an error if no members are available", func() {
+			// Remove all members
+			for _, m := range testMembers {
+				c.Remove(m.String())
+			}
+			result, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
+			Expect(err).To(MatchError("failed to get closest members: not enough members to satisfy the request"))
+			Expect(result.SubConn).To(BeNil())
 		})
 	})
 })

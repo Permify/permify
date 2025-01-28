@@ -2,12 +2,10 @@ package balancer
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"time"
 
-	"github.com/cespare/xxhash/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -16,14 +14,9 @@ import (
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage"
-
 	"github.com/Permify/permify/pkg/balancer"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
-
-var grpcServicePolicy = fmt.Sprintf(`{
-		"loadBalancingPolicy": "%s"
-	}`, balancer.Policy)
 
 // Balancer is a wrapper around the balancer hash implementation that
 type Balancer struct {
@@ -52,7 +45,7 @@ func NewCheckEngineWithBalancer(
 	)
 
 	// Set up TLS credentials if paths are provided
-	if srv.TLSConfig.CertPath != "" && srv.TLSConfig.KeyPath != "" {
+	if srv.TLSConfig.Enabled && srv.TLSConfig.CertPath != "" && srv.TLSConfig.KeyPath != "" {
 		isSecure = true
 		creds, err = credentials.NewClientTLSFromFile(srv.TLSConfig.CertPath, srv.TLSConfig.KeyPath)
 		if err != nil {
@@ -62,10 +55,22 @@ func NewCheckEngineWithBalancer(
 		creds = insecure.NewCredentials()
 	}
 
+	bc := &balancer.Config{
+		PartitionCount:    dst.PartitionCount,
+		ReplicationFactor: dst.ReplicationFactor,
+		Load:              dst.Load,
+		PickerWidth:       dst.PickerWidth,
+	}
+
+	bcjson, err := bc.ServiceConfigJSON()
+	if err != nil {
+		return nil, err
+	}
+
 	// Append common options
 	options = append(
 		options,
-		grpc.WithDefaultServiceConfig(grpcServicePolicy),
+		grpc.WithDefaultServiceConfig(bcjson),
 		grpc.WithTransportCredentials(creds),
 	)
 
@@ -82,7 +87,7 @@ func NewCheckEngineWithBalancer(
 		}
 	}
 
-	conn, err := grpc.Dial(dst.Address, options...)
+	conn, err := grpc.NewClient(dst.Address, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,29 +117,12 @@ func (c *Balancer) Check(ctx context.Context, request *base.PermissionCheckReque
 
 	isRelational := engines.IsRelational(en, request.GetPermission())
 
-	// Create a new xxhash instance.
-	h := xxhash.New()
-
-	// Generate a unique key for the request based on its relational state.
-	// This key helps in distributing the request.
-	_, err = h.Write([]byte(engines.GenerateKey(request, isRelational)))
-	if err != nil {
-		slog.ErrorContext(ctx, err.Error())
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_CHECK_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, err
-	}
-	k := hex.EncodeToString(h.Sum(nil))
-
 	// Add a timeout of 2 seconds to the context and also set the generated key as a value.
-	withTimeout, cancel := context.WithTimeout(context.WithValue(ctx, balancer.Key, k), 4*time.Second)
+	withTimeout, cancel := context.WithTimeout(context.WithValue(ctx, balancer.Key, []byte(engines.GenerateKey(request, isRelational))), 4*time.Second)
 	defer cancel()
 
 	// Logging the intention to forward the request to the underlying client.
-	slog.DebugContext(ctx, "Forwarding request with key to the underlying client", slog.String("key", k))
+	slog.InfoContext(ctx, "Forwarding request with key to the underlying client")
 
 	// Perform the actual permission check by making a call to the underlying client.
 	response, err := c.client.Check(withTimeout, request)
