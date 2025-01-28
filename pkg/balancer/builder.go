@@ -38,16 +38,16 @@ func (c *Config) ServiceConfigJSON() (string, error) {
 	}
 
 	// Apply default values for zero fields.
-	if c.PartitionCount == 0 {
+	if c.PartitionCount <= 0 {
 		c.PartitionCount = consistent.DefaultPartitionCount
 	}
-	if c.ReplicationFactor == 0 {
+	if c.ReplicationFactor <= 0 {
 		c.ReplicationFactor = consistent.DefaultReplicationFactor
 	}
-	if c.Load == 0 {
+	if c.Load <= 1.0 {
 		c.Load = consistent.DefaultLoad
 	}
-	if c.PickerWidth == 0 {
+	if c.PickerWidth < 1 {
 		c.PickerWidth = consistent.DefaultPickerWidth
 	}
 
@@ -128,16 +128,16 @@ func (b *builder) ParseConfig(rm json.RawMessage) (serviceconfig.LoadBalancingCo
 	)
 
 	// Set default values for configuration if not provided.
-	if cfg.PartitionCount == 0 {
+	if cfg.PartitionCount <= 0 {
 		cfg.PartitionCount = consistent.DefaultPartitionCount
 	}
-	if cfg.ReplicationFactor == 0 {
+	if cfg.ReplicationFactor <= 0 {
 		cfg.ReplicationFactor = consistent.DefaultReplicationFactor
 	}
-	if cfg.Load == 0 {
+	if cfg.Load <= 1.0 {
 		cfg.Load = consistent.DefaultLoad
 	}
-	if cfg.PickerWidth == 0 {
+	if cfg.PickerWidth < 1 {
 		cfg.PickerWidth = consistent.DefaultPickerWidth
 	}
 
