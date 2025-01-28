@@ -134,6 +134,10 @@ func NewServeCommand() *cobra.Command {
 	f.Bool("distributed-enabled", conf.Distributed.Enabled, "enable distributed")
 	f.String("distributed-address", conf.Distributed.Address, "distributed address")
 	f.String("distributed-port", conf.Distributed.Port, "distributed port")
+	f.Int("distributed-partition-count", conf.Distributed.PartitionCount, "number of partitions for distributed hashing")
+	f.Int("distributed-replication-factor", conf.Distributed.ReplicationFactor, "number of replicas for distributed hashing")
+	f.Float64("distributed-load", conf.Distributed.Load, "load factor for distributed hashing")
+	f.Int("distributed-picker-width", conf.Distributed.PickerWidth, "picker width for distributed hashing")
 
 	// SilenceUsage is set to true to suppress usage when an error occurs
 	command.SilenceUsage = true
@@ -450,11 +454,11 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			checker = cache.NewCheckEngineWithCache(
-				checker,
-				schemaReader,
-				engineKeyCache,
-			)
+			//checker = cache.NewCheckEngineWithCache(
+			//	checker,
+			//	schemaReader,
+			//	engineKeyCache,
+			//)
 		} else {
 			checker = cache.NewCheckEngineWithCache(
 				checkEngine,

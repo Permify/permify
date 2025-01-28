@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 
+	"github.com/cespare/xxhash/v2"
+
 	"github.com/sercand/kuberesolver/v5"
 	"google.golang.org/grpc/balancer"
 
@@ -12,7 +14,7 @@ import (
 
 func main() {
 	kuberesolver.RegisterInCluster()
-	balancer.Register(consistentbalancer.NewConsistentHashBalancerBuilder())
+	balancer.Register(consistentbalancer.NewBuilder(xxhash.Sum64))
 
 	root := cmd.NewRootCommand()
 

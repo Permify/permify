@@ -563,4 +563,32 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 	if err = viper.BindEnv("distributed.port", "PERMIFY_DISTRIBUTED_PORT"); err != nil {
 		panic(err)
 	}
+
+	if err = viper.BindPFlag("distributed.partition_count", flags.Lookup("distributed-partition-count")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.partition_count", "PERMIFY_DISTRIBUTED_PARTITION_COUNT"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("distributed.replication_factor", flags.Lookup("distributed-replication-factor")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.replication_factor", "PERMIFY_DISTRIBUTED_REPLICATION_FACTOR"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("distributed.load", flags.Lookup("distributed-load")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.load", "PERMIFY_DISTRIBUTED_LOAD"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("distributed.picker_width", flags.Lookup("distributed-picker-width")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("distributed.picker_width", "PERMIFY_DISTRIBUTED_PICKER_WIDTH"); err != nil {
+		panic(err)
+	}
 }
