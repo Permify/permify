@@ -435,16 +435,21 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Declare a variable `checker` of type `invoke.Check`.
 		var checker invoke.Check
 
+		checker = cache.NewCheckEngineWithCache(
+			checkEngine,
+			schemaReader,
+			engineKeyCache,
+		)
+
 		// Create the checker either with load balancing or caching capabilities.
 		if cfg.Distributed.Enabled {
-
 			if cfg.Authn.Enabled && cfg.Authn.Method == "oidc" {
 				return errors.New("OIDC authentication method cannot be used in distributed mode. Please check your configuration")
 			}
 
 			checker, err = balancer.NewCheckEngineWithBalancer(
 				ctx,
-				checkEngine,
+				checker,
 				schemaReader,
 				&cfg.Distributed,
 				&cfg.Server.GRPC,
@@ -454,17 +459,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			//checker = cache.NewCheckEngineWithCache(
-			//	checker,
-			//	schemaReader,
-			//	engineKeyCache,
-			//)
-		} else {
-			checker = cache.NewCheckEngineWithCache(
-				checkEngine,
-				schemaReader,
-				engineKeyCache,
-			)
 		}
 
 		// Create a localChecker which directly checks without considering distributed setup.
