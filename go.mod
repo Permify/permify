@@ -112,7 +112,7 @@ require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.50.0
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.25.0
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.26.0
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/agoda-com/opentelemetry-go/otelslog v0.2.0
 	github.com/agoda-com/opentelemetry-logs-go v0.5.1
