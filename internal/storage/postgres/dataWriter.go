@@ -34,7 +34,7 @@ type DataWriter struct {
 func NewDataWriter(database *db.Postgres) *DataWriter {
 	return &DataWriter{
 		database:  database,
-		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadWrite},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadWrite},
 	}
 }
 
@@ -194,10 +194,6 @@ func (w *DataWriter) write(
 	batch := &pgx.Batch{}
 
 	if len(tupleCollection.GetTuples()) > 0 {
-		err = w.batchUpdateRelationships(batch, xid, tenantID, buildDeleteClausesForRelationships(tupleCollection))
-		if err != nil {
-			return nil, err
-		}
 		err = w.batchInsertRelationships(batch, xid, tenantID, tupleCollection)
 		if err != nil {
 			return nil, err
@@ -390,11 +386,6 @@ func (w *DataWriter) runOperation(
 ) (err error) {
 	slog.Debug("processing bundles queries")
 	if len(tb.Write.GetTuples()) > 0 {
-		deleteClauses := buildDeleteClausesForRelationships(&tb.Write)
-		err = w.batchUpdateRelationships(batch, xid, tenantID, deleteClauses)
-		if err != nil {
-			return err
-		}
 		err = w.batchInsertRelationships(batch, xid, tenantID, &tb.Write)
 		if err != nil {
 			return err
@@ -443,7 +434,7 @@ func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid types.XID8, 
 			srelation = ""
 		}
 		batch.Queue(
-			"INSERT INTO relation_tuples (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+			"INSERT INTO relation_tuples (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT ON CONSTRAINT uq_relation_tuple_not_expired DO NOTHING",
 			t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID,
 		)
 	}
