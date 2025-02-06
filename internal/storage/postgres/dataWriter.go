@@ -34,7 +34,7 @@ type DataWriter struct {
 func NewDataWriter(database *db.Postgres) *DataWriter {
 	return &DataWriter{
 		database:  database,
-		txOptions: pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadWrite},
+		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadWrite},
 	}
 }
 
