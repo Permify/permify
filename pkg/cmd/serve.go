@@ -217,7 +217,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				headers[h[0]] = h[1]
 			}
 
-			customHandler, err := HandlerFactory(
+			customHandler, err := telemetry.HandlerFactory(
 				cfg.Log.Exporter,
 				cfg.Log.Endpoint,
 				cfg.Log.Insecure,
