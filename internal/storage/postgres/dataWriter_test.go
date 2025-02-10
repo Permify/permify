@@ -487,6 +487,7 @@ var _ = Describe("DataWriter", func() {
 					Relation: "",
 				},
 			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(colT1.GetTuples())).Should(Equal(2))
 
 			colA2, _, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
@@ -496,6 +497,7 @@ var _ = Describe("DataWriter", func() {
 				},
 				Attributes: []string{},
 			}, token1.String(), database.NewPagination(database.Size(10), database.Token("")))
+			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(colA2.GetAttributes())).Should(Equal(1))
 		})
 	})

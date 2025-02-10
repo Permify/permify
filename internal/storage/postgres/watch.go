@@ -5,12 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/golang/protobuf/jsonpb"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -331,8 +330,7 @@ func (w *Watch) getChanges(ctx context.Context, value types.XID8, tenantID strin
 
 		// Unmarshal the JSON data from `valueStr` into `rt.Value`.
 		rt.Value = &anypb.Any{}
-		unmarshaler := &jsonpb.Unmarshaler{}
-		err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
+		err = protojson.Unmarshal([]byte(valueStr), rt.Value)
 		if err != nil {
 			slog.ErrorContext(ctx, "failed to unmarshal attribute value", slog.Any("error", err))
 			return nil, err

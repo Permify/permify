@@ -98,7 +98,7 @@ func (engine *EntityFilter) EntityFilter(
 				return err
 			}
 		case schema.AttributeLinkedEntrance: // If the linked entrance is a computed user set entrance.
-			err = engine.attributeEntrance(cont, request, entrance, visits, g, publisher) // Call the tuple to user set entrance method.
+			err = engine.attributeEntrance(cont, request, entrance, visits, publisher) // Call the tuple to user set entrance method.
 			if err != nil {
 				return err
 			}
@@ -121,7 +121,6 @@ func (engine *EntityFilter) attributeEntrance(
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	entrance *schema.LinkedEntrance, // A linked entrance.
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
 	if request.GetEntrance().GetType() != entrance.TargetEntrance.GetType() {

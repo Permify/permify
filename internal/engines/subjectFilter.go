@@ -337,7 +337,7 @@ func (engine *SubjectFilter) subjectFilterDirectCall(
 				attributes = append(attributes, attrName)
 			default:
 				// Return an error for any unsupported argument types.
-				return subjectFilterEmpty(), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
+				return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 		}
 

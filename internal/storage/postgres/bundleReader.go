@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/golang/protobuf/jsonpb"
 	"go.opentelemetry.io/otel/codes"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
@@ -48,8 +47,7 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 
 	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
 
-	var row pgx.Row
-	row = b.database.ReadPool.QueryRow(ctx, query, args...)
+	row := b.database.ReadPool.QueryRow(ctx, query, args...)
 
 	var jsonData string
 	err = row.Scan(&jsonData)
@@ -60,9 +58,8 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	m := jsonpb.Unmarshaler{}
 	bundle = &base.DataBundle{}
-	err = m.Unmarshal(strings.NewReader(jsonData), bundle)
+	err = protojson.Unmarshal([]byte(jsonData), bundle)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

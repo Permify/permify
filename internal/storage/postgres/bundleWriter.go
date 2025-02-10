@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/golang/protobuf/jsonpb"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
@@ -43,11 +43,11 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 
 		names = append(names, bundle.Name)
 
-		m := jsonpb.Marshaler{}
-		jsonStr, err := m.MarshalToString(bundle.DataBundle)
+		jsonBytes, err := protojson.Marshal(bundle.DataBundle)
 		if err != nil {
 			return names, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
 		}
+		jsonStr := string(jsonBytes)
 
 		insertBuilder = insertBuilder.Values(bundle.Name, jsonStr, bundle.TenantID)
 	}

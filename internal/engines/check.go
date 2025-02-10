@@ -561,7 +561,7 @@ func (engine *CheckEngine) checkDirectCall(
 				attributes = append(attributes, attrName)
 			default:
 				// Return an error for any unsupported argument types.
-				return denied(emptyResponseMetadata()), fmt.Errorf(base.ErrorCode_ERROR_CODE_INTERNAL.String())
+				return denied(emptyResponseMetadata()), errors.New(base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 		}
 

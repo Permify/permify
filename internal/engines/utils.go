@@ -82,7 +82,6 @@ type CheckResponse struct {
 // VisitsMap - a thread-safe map of ENR records.
 type VisitsMap struct {
 	er        sync.Map
-	ea        sync.Map
 	published sync.Map
 }
 
