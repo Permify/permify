@@ -8,8 +8,8 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/jackc/pgx/v5/pgconn"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
@@ -486,15 +486,16 @@ func buildDeleteClausesForRelationships(tupleCollection *database.TupleCollectio
 
 // batchInsertAttributes function for batch inserting attributes
 func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid types.XID8, tenantID string, attributeCollection *database.AttributeCollection) error {
-	m := jsonpb.Marshaler{}
 	aiter := attributeCollection.CreateAttributeIterator()
 	for aiter.HasNext() {
 		a := aiter.GetNext()
 
-		jsonStr, err := m.MarshalToString(a.GetValue())
+		jsonBytes, err := protojson.Marshal(a.GetValue())
 		if err != nil {
 			return err
 		}
+
+		jsonStr := string(jsonBytes)
 
 		batch.Queue(
 			"INSERT INTO attributes (entity_type, entity_id, attribute, value, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6)",

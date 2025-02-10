@@ -5,12 +5,11 @@ import (
 	"errors"
 	"log/slog"
 	"strconv"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/golang/protobuf/jsonpb"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/Permify/permify/internal"
@@ -253,8 +252,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 
 	// Unmarshal the JSON data from `valueStr` into `rt.Value`.
 	rt.Value = &anypb.Any{}
-	unmarshaler := &jsonpb.Unmarshaler{}
-	err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
+	err = protojson.Unmarshal([]byte(valueStr), rt.Value)
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
@@ -337,8 +335,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 
 		// Unmarshal the JSON data from `valueStr` into `rt.Value`.
 		rt.Value = &anypb.Any{}
-		unmarshaler := &jsonpb.Unmarshaler{}
-		err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
+		err = protojson.Unmarshal([]byte(valueStr), rt.Value)
 		if err != nil {
 			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
@@ -433,8 +430,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 
 		// Unmarshal the JSON data from `valueStr` into `rt.Value`.
 		rt.Value = &anypb.Any{}
-		unmarshaler := &jsonpb.Unmarshaler{}
-		err = unmarshaler.Unmarshal(strings.NewReader(valueStr), rt.Value)
+		err = protojson.Unmarshal([]byte(valueStr), rt.Value)
 		if err != nil {
 			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 		}
