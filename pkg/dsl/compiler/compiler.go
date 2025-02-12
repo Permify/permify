@@ -89,7 +89,7 @@ func (t *Compiler) compileEntity(sc *ast.EntityStatement) (*base.EntityDefinitio
 		// Cast the relation statement
 		st, okRs := rs.(*ast.RelationStatement)
 		if !okRs {
-			return nil, compileError(st.Relation.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(token.PositionInfo{}, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
 		// Initialize the relation definition
@@ -114,7 +114,7 @@ func (t *Compiler) compileEntity(sc *ast.EntityStatement) (*base.EntityDefinitio
 	for _, as := range sc.AttributeStatements {
 		st, okAs := as.(*ast.AttributeStatement)
 		if !okAs {
-			return nil, compileError(st.Attribute.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(token.PositionInfo{}, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
 		typ, err := getArgumentTypeIfExist(st.AttributeType)
@@ -136,7 +136,7 @@ func (t *Compiler) compileEntity(sc *ast.EntityStatement) (*base.EntityDefinitio
 		// Cast the permission statement
 		st, okAs := ps.(*ast.PermissionStatement)
 		if !okAs {
-			return nil, compileError(st.Permission.PositionInfo, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
+			return nil, compileError(token.PositionInfo{}, base.ErrorCode_ERROR_CODE_SCHEMA_COMPILE.String())
 		}
 
 		// Compile the child expression
