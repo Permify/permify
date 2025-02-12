@@ -166,14 +166,14 @@ func migrateStatus() func(cmd *cobra.Command, args []string) error {
 func getFlags(cmd *cobra.Command, flags []string) (map[string]string, error) {
 	resp := make(map[string]string, len(flags))
 
-	var multiErr *multierror.Error
+	// Initialize multiErr
+	multiErr := &multierror.Error{}
 
 	for i := range flags {
 		value, err := cmd.Flags().GetString(flags[i])
 		if err != nil {
 			multiErr.Errors = append(multiErr.Errors, err)
 		}
-
 		resp[flags[i]] = value
 	}
 

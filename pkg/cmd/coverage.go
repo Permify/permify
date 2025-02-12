@@ -51,10 +51,6 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 		coverageAttributes := viper.GetInt("coverage-attributes")
 		coverageAssertions := viper.GetInt("coverage-assertions")
 
-		if err != nil {
-			return err
-		}
-
 		// create a new decoder from the url
 		decoder, err := file.NewDecoderFromURL(u)
 		if err != nil {

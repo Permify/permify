@@ -331,7 +331,7 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 
 	err := validation.ValidateFilters(request.GetTupleFilter(), request.GetAttributeFilter())
 	if err != nil {
-		return nil, status.Error(GetStatus(v), v.Error())
+		return nil, status.Error(GetStatus(v), err.Error())
 	}
 
 	snap, err := r.dw.Delete(ctx, request.GetTenantId(), request.GetTupleFilter(), request.GetAttributeFilter())
@@ -361,7 +361,7 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 
 	err := validation.ValidateTupleFilter(request.GetFilter())
 	if err != nil {
-		return nil, status.Error(GetStatus(v), v.Error())
+		return nil, status.Error(GetStatus(v), err.Error())
 	}
 
 	snap, err := r.dw.Delete(ctx, request.GetTenantId(), request.GetFilter(), &v1.AttributeFilter{})

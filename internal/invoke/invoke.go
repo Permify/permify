@@ -7,7 +7,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/metric"
-	api "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/Permify/permify/internal"
@@ -68,10 +67,10 @@ type DirectInvoker struct {
 	// LookupSubject
 	sp SubjectPermission
 
-	checkHistogram             api.Int64Histogram
-	lookupEntityHistogram      api.Int64Histogram
-	lookupSubjectHistogram     api.Int64Histogram
-	subjectPermissionHistogram api.Int64Histogram
+	checkHistogram             metric.Int64Histogram
+	lookupEntityHistogram      metric.Int64Histogram
+	lookupSubjectHistogram     metric.Int64Histogram
+	subjectPermissionHistogram metric.Int64Histogram
 }
 
 // NewDirectInvoker is a constructor for DirectInvoker.

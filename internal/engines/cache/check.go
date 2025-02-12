@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 
-	api "go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/cespare/xxhash/v2"
 
@@ -25,7 +25,7 @@ type CheckEngineWithCache struct {
 	cache        cache.Cache
 
 	// Metrics
-	cacheHitHistogram api.Int64Histogram
+	cacheHitHistogram metric.Int64Histogram
 }
 
 // NewCheckEngineWithCache creates a new instance of EngineKeyManager by initializing an EngineKeys

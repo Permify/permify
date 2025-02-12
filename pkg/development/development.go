@@ -453,14 +453,6 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 		// Each SubjectFilter in the current scenario is processed
 		for _, filter := range scenario.SubjectFilters {
 			subjectReference := tuple.RelationReference(filter.SubjectReference)
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: err.Error(),
-				})
-				continue
-			}
 
 			cont, err := Context(filter.Context)
 			if err != nil {

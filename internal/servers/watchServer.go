@@ -68,7 +68,7 @@ func (r *WatchServer) Watch(request *v1.WatchRequest, server v1.Watch_WatchServe
 	for err := range errs {
 		// If an error occurs, convert it to a status error and return it.
 		// This ends the Watch function, which in turn closes the changes channel and ends the above goroutine.
-		return status.Errorf(GetStatus(err), err.Error())
+		return status.Error(GetStatus(err), err.Error())
 	}
 
 	// At this point, the errs channel has been closed, indicating that no more errors will be coming in.
