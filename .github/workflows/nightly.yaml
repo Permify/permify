@@ -43,7 +43,7 @@ jobs:
         uses: goreleaser/goreleaser-action@9ed2f89a662bf1735a48bc8557fd212fa902bebf # v6.1.0
         with:
           distribution: goreleaser-pro
-          version: latest
+          version: ~> v2
           args: release -f nightly.goreleaser.yml --clean --nightly
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
