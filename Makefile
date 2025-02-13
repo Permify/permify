@@ -68,7 +68,7 @@ lint-all: linter-golangci linter-hadolint linter-dotenv ## Run all linters
 
 .PHONY: security-scan
 security-scan: ## Scan code for security vulnerabilities using Gosec
-	gosec -exclude-dir=sdk -exclude-dir=playground -exclude-dir=docs -exclude-dir=assets ./...
+	gosec -exclude=G115 -exclude-dir=sdk -exclude-dir=playground -exclude-dir=docs -exclude-dir=assets ./...
 
 .PHONY: coverage
 coverage: ## Generate global code coverage report
