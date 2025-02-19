@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/pprof"
+	"os"
 	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
@@ -299,23 +300,46 @@ func (s *Container) Run(
 			}),
 		}
 
-		mux := runtime.NewServeMux(muxOpts...)
+		// Create the gRPC gateway mux
+    grpcMux := runtime.NewServeMux(muxOpts...)
 
-		if err = grpcV1.RegisterPermissionHandler(ctx, mux, conn); err != nil {
-			return err
+		handlers := []func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error{
+			grpcV1.RegisterPermissionHandler,
+			grpcV1.RegisterSchemaHandler,
+			grpcV1.RegisterDataHandler,
+			grpcV1.RegisterBundleHandler,
+			grpcV1.RegisterTenancyHandler,
 		}
-		if err = grpcV1.RegisterSchemaHandler(ctx, mux, conn); err != nil {
-			return err
+		
+		for _, handler := range handlers {
+			if err = handler(ctx, grpcMux, conn); err != nil {
+				return fmt.Errorf("failed to register handler: %w", err)
+			}
 		}
-		if err = grpcV1.RegisterDataHandler(ctx, mux, conn); err != nil {
-			return err
+
+		// Create a new http.ServeMux for serving your OpenAPI file and gRPC gateway
+    httpMux := http.NewServeMux()
+		const openAPIPath = "./docs/api-reference/openapi.json"
+
+		if srv.HTTP.ExposeOpenAPI {
+			httpMux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodGet {
+					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("Cache-Control", "public, max-age=3600")
+				if _, err := os.Stat(openAPIPath); os.IsNotExist(err) {
+						http.Error(w, "OpenAPI specification not found", http.StatusNotFound)
+						return
+				}
+				
+				http.ServeFile(w, r, openAPIPath)
+			})
 		}
-		if err = grpcV1.RegisterBundleHandler(ctx, mux, conn); err != nil {
-			return err
-		}
-		if err = grpcV1.RegisterTenancyHandler(ctx, mux, conn); err != nil {
-			return err
-		}
+
+    // Handle all gRPC gateway routes
+    httpMux.Handle("/", grpcMux)
 
 		httpServer = &http.Server{
 			Addr: ":" + srv.HTTP.Port,
@@ -327,7 +351,7 @@ func (s *Container) Run(
 					http.MethodGet, http.MethodPost,
 					http.MethodHead, http.MethodPatch, http.MethodDelete, http.MethodPut,
 				},
-			}).Handler(mux),
+			}).Handler(httpMux),
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 
