@@ -21,6 +21,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -317,17 +318,23 @@ func (s *Container) Run(
 			return err
 		}
 
+		corsHandler := cors.New(cors.Options{
+			AllowCredentials: true,
+			AllowedOrigins:   srv.HTTP.CORSAllowedOrigins,
+			AllowedHeaders:   srv.HTTP.CORSAllowedHeaders,
+			AllowedMethods: []string{
+				http.MethodGet, http.MethodPost,
+				http.MethodHead, http.MethodPatch, http.MethodDelete, http.MethodPut,
+			},
+		}).Handler(mux)
+
+		otelHandler := otelhttp.NewHandler(corsHandler, "server",
+			otelhttp.WithServerName("permify"),
+		)
+
 		httpServer = &http.Server{
-			Addr: ":" + srv.HTTP.Port,
-			Handler: cors.New(cors.Options{
-				AllowCredentials: true,
-				AllowedOrigins:   srv.HTTP.CORSAllowedOrigins,
-				AllowedHeaders:   srv.HTTP.CORSAllowedHeaders,
-				AllowedMethods: []string{
-					http.MethodGet, http.MethodPost,
-					http.MethodHead, http.MethodPatch, http.MethodDelete, http.MethodPut,
-				},
-			}).Handler(mux),
+			Addr:              ":" + srv.HTTP.Port,
+			Handler:           otelHandler,
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 
