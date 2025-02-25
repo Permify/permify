@@ -45,9 +45,9 @@ func NewCheckEngineWithBalancer(
 	)
 
 	// Set up TLS credentials if paths are provided
-	if srv.TLSConfig.Enabled && srv.TLSConfig.CertPath != "" && srv.TLSConfig.KeyPath != "" {
+	if srv.TLSConfig.Enabled && srv.TLSConfig.CertPath != "" {
 		isSecure = true
-		creds, err = credentials.NewClientTLSFromFile(srv.TLSConfig.CertPath, srv.TLSConfig.KeyPath)
+		creds, err = credentials.NewClientTLSFromFile(srv.TLSConfig.CertPath, "")
 		if err != nil {
 			return nil, fmt.Errorf("could not load TLS certificate: %s", err)
 		}
