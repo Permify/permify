@@ -33,6 +33,7 @@ func NewCheckEngineWithBalancer(
 	ctx context.Context,
 	checker invoke.Check,
 	schemaReader storage.SchemaReader,
+	no string,
 	dst *config.Distributed,
 	srv *config.GRPC,
 	authn *config.Authn,
@@ -47,7 +48,7 @@ func NewCheckEngineWithBalancer(
 	// Set up TLS credentials if paths are provided
 	if srv.TLSConfig.Enabled && srv.TLSConfig.CertPath != "" {
 		isSecure = true
-		creds, err = credentials.NewClientTLSFromFile(srv.TLSConfig.CertPath, "")
+		creds, err = credentials.NewClientTLSFromFile(srv.TLSConfig.CertPath, no)
 		if err != nil {
 			return nil, fmt.Errorf("could not load TLS certificate: %s", err)
 		}

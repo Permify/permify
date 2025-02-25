@@ -451,6 +451,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				ctx,
 				checker,
 				schemaReader,
+				cfg.NameOverride,
 				&cfg.Distributed,
 				&cfg.Server.GRPC,
 				&cfg.Authn,
