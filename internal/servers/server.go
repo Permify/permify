@@ -298,6 +298,22 @@ func (s *Container) Run(
 					},
 				},
 			}),
+			runtime.WithMiddlewares(func(next runtime.HandlerFunc) runtime.HandlerFunc {
+				type key struct{}
+
+				otelHandler := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					pathParams := r.Context().Value(key{}).(map[string]string)
+					next(w, r, pathParams)
+				}), "server",
+					otelhttp.WithServerName("permify"),
+					otelhttp.WithSpanNameFormatter(httpNameFormatter),
+				)
+
+				return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+					r = r.WithContext(context.WithValue(r.Context(), key{}, pathParams))
+					otelHandler.ServeHTTP(w, r)
+				}
+			}),
 		}
 
 		mux := runtime.NewServeMux(muxOpts...)
@@ -328,16 +344,9 @@ func (s *Container) Run(
 			},
 		}).Handler(mux)
 
-		otelHandler := otelhttp.NewHandler(corsHandler, "server",
-			otelhttp.WithServerName("permify"),
-			otelhttp.WithSpanNameFormatter(func(_ string, req *http.Request) string {
-				return req.Method + " " + req.URL.Path
-			}),
-		)
-
 		httpServer = &http.Server{
 			Addr:              ":" + srv.HTTP.Port,
-			Handler:           otelHandler,
+			Handler:           corsHandler,
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 
@@ -386,4 +395,13 @@ func InterceptorLogger(l *slog.Logger) logging.Logger {
 	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
 		l.Log(ctx, slog.Level(lvl), msg, fields...)
 	})
+}
+
+func httpNameFormatter(_ string, req *http.Request) string {
+	pp, ok := runtime.HTTPPattern(req.Context())
+	path := "<not found>"
+	if ok {
+		path = pp.String()
+	}
+	return req.Method + " " + path
 }
