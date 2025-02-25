@@ -330,6 +330,9 @@ func (s *Container) Run(
 
 		otelHandler := otelhttp.NewHandler(corsHandler, "server",
 			otelhttp.WithServerName("permify"),
+			otelhttp.WithSpanNameFormatter(func(_ string, req *http.Request) string {
+				return req.Method + " " + req.URL.Path
+			}),
 		)
 
 		httpServer = &http.Server{
