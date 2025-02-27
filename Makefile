@@ -9,17 +9,17 @@ GO_PACKAGES := $(shell find ./cmd ./pkg ./internal -name '*_test.go' | xargs -n1
 help: ## Display this help screen
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+.PHONY: compose-up
 compose-up: ### Run docker-compose
 	docker-compose up --build
-.PHONY: compose-up
 
+.PHONY: compose-up-integration-test
 compose-up-integration-test: ### Run docker-compose with integration test
 	docker-compose up --build --abort-on-container-exit --exit-code-from integration
-.PHONY: compose-up-integration-test
 
+.PHONY: compose-down
 compose-down: ### Down docker-compose
 	docker-compose down --remove-orphans
-.PHONY: compose-down
 
 .PHONY: download
 download:
@@ -70,6 +70,11 @@ lint-all: linter-golangci linter-hadolint linter-dotenv ## Run all linters
 security-scan: ## Scan code for security vulnerabilities using Gosec
 	gosec -exclude=G115 -exclude-dir=sdk -exclude-dir=playground -exclude-dir=docs -exclude-dir=assets ./...
 
+.PHONY: trivy-scan
+trivy-scan: ## Scan Docker image for vulnerabilities using Trivy
+	docker build -t permify-image .
+	trivy image --format json --output trivy-report.json --scanners vuln permify-image
+
 .PHONY: coverage
 coverage: ## Generate global code coverage report
 	go test -coverprofile=covprofile ./cmd/... ./internal/... ./pkg/...
@@ -80,7 +85,8 @@ clean: ## Remove temporary and generated files
 	rm -f ./permify
 	rm -f ./pkg/development/wasm/main.wasm
 	rm -f ./pkg/development/wasm/play.wasm
-	rm -f covprofile coverage.html
+	rm -f covprofile coverage.html trivy-report.json
+	docker rmi -f permify-image || true
 
 .PHONY: wasm-build
 wasm-build: ## Build wasm & place it in playground
@@ -88,7 +94,7 @@ wasm-build: ## Build wasm & place it in playground
 	cp ./pkg/development/wasm/play.wasm ./playground/public/play.wasm
 
 .PHONY: release
-release: format test security-scan clean ## Prepare for release
+release: format test security-scan trivy-scan clean ## Prepare for release
 
 # Serve
 
