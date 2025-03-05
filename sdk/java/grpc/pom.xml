@@ -53,7 +53,7 @@
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-core</artifactId>
-            <version>1.70.0</version>
+            <version>1.71.0</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
