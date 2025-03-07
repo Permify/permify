@@ -27,7 +27,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/juju/ratelimit v1.0.2
 	github.com/lestrrat-go/jwx v1.2.30
-	github.com/onsi/ginkgo/v2 v2.22.2
+	github.com/onsi/ginkgo/v2 v2.23.0
 	github.com/onsi/gomega v1.36.2
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.24.1
@@ -186,7 +186,7 @@ require (
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	golang.org/x/tools v0.28.0 // indirect
+	golang.org/x/tools v0.30.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
