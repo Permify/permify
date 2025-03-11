@@ -18,7 +18,7 @@ type Balancer struct {
 	state connectivity.State
 
 	// The ClientConn to communicate with the gRPC client.
-	clientConn balancer.ClientConn
+	clientConn ClientConnWrapper
 
 	// Current picker used to select SubConns for requests.
 	picker balancer.Picker

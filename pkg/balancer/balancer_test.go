@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	estats "google.golang.org/grpc/experimental/stats"
+
 	"github.com/cespare/xxhash/v2"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/connectivity"
@@ -25,6 +27,10 @@ func TestBalancer(t *testing.T) {
 type mockClientConn struct {
 	updateState balancer.State
 	newSubConn  balancer.SubConn
+}
+
+func (m *mockClientConn) MetricsRecorder() estats.MetricsRecorder {
+	return nil
 }
 
 func (m *mockClientConn) UpdateState(state balancer.State) {
