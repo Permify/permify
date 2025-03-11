@@ -100,6 +100,24 @@ You can test your connection with creating a GET request,
 localhost:3476/healthz
 ```
 
+## 🚀 Performance
+
+We conducted a load test on **Permify** using **1000 VUs (Virtual Users)** and **10,000 RPS (Requests per Second)**. The results demonstrate strong performance and reliability under heavy load, with **0% request failures and consistently low latency**.  
+
+| **Metric**                     | **Value / Stats**                                                              |
+|-------------------------------|--------------------------------------------------------------------------------|
+| **Total Checks**              | ✅ 100.00% (75,369 out of 75,369)                                               |
+| **Data Received**             | 15 MB (145 kB/s)                                                               |
+| **Data Sent**                 | 21 MB (203 kB/s)                                                               |
+| **Dropped Iterations**        | 271,664 (2,688.45/s)                                                           |
+| **HTTP Request Duration**     | avg = 10.14ms · p(90) = 14.3ms · p(95) = 26.34ms · max = 295.29ms              |
+| **HTTP Request Waiting Time** | avg = 9.96ms · p(90) = 14.1ms · p(95) = 26.17ms · max = 295.21ms              |
+| **HTTP Request Failed**       | ❌ 0.00% (0 out of 75,369)                                                      |
+| **Total HTTP Requests**       | 75,369 (745.87/s)                                                              |
+| **Virtual Users (VUs)**       | 46 avg (min = 13, max = 1000)                                                  |
+
+📄 **[Full Performance Test Report →](/docs/performance-test/README.md)**
+
 ## Community ♥️
 
 Permify is a [Cloud Native Computing Foundation](https://www.cncf.io/) member and a community-driven project supported by companies worldwide, from startups to Fortune 500 enterprises.
