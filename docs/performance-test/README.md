@@ -21,7 +21,7 @@ For guideline purposes we perform load test on **Permify** with 1000 VU and 1000
 
 Below is the schema we use for our load tests:
 
-```ruby
+```
 entity user {
     relation self @user
     relation follower @user
@@ -49,7 +49,7 @@ entity interaction {
 
 ## 3. K6 Test Script
 Below is the k6test.js script used to measure load on Permify by performing both write and check requests:
-```ruby
+```javascript
 import http from 'k6/http';
 import {check, sleep} from 'k6';
 
