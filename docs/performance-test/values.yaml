@@ -1,0 +1,124 @@
+image:
+  repository: "ghcr.io/permify/permify"
+  tag: "v1.3.0"
+
+service:
+  type: "LoadBalancer"
+  annotations: {}
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: "300m"
+    memory: "600Mi"
+  requests:
+    cpu: "150m"
+    memory: "300Mi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 5
+  maxReplicas: 15
+
+extraVolumes:
+  - name: "tls-certs"
+    secret:
+      secretName: "my-app-tls"
+
+extraVolumeMounts:
+  - name: "tls-certs"
+    mountPath: "/etc/tls"
+    readOnly: true
+
+customReadinessProbe:
+  exec:
+    command:
+      - "grpc_health_probe"
+      - "-addr=127.0.0.1:3478"
+      - "-tls"
+      - "-tls-no-verify"
+
+customLivenessProbe:
+  exec:
+    command:
+      - "grpc_health_probe"
+      - "-addr=127.0.0.1:3478"
+      - "-tls"
+      - "-tls-no-verify"
+
+customStartupProbe:
+  exec:
+    command:
+      - "grpc_health_probe"
+      - "-addr=127.0.0.1:3478"
+      - "-tls"
+      - "-tls-no-verify"
+
+app:
+  account_id: "myAccountID"
+  server:
+    rate_limit: 10000
+    name_override: "my-permify.permify.co"
+    http:
+      enabled: true
+      port: 3476
+      tls:
+        enabled: true
+        certPath: "/etc/tls/tls.crt"
+        keyPath: "/etc/tls/tls.key"
+    grpc:
+      port: 3478
+      tls:
+        enabled: true
+        certPath: "/etc/tls/tls.crt"
+        keyPath: "/etc/tls/tls.key"
+
+  service:
+    circuit_breaker: false
+    schema:
+      cache:
+        number_of_counters: 1000
+        max_cost: "24MiB"
+    permission:
+      concurrency_limit: 1000
+      cache:
+        number_of_counters: 10000
+        max_cost: "256MiB"
+
+  profiler:
+    enabled: false
+
+  authn:
+    enabled: true
+    method: "preshared"
+    oidc:
+      issuer: ""
+      audience: ""
+    preshared:
+      keys:
+        - "<your-preshared-key>"
+
+  database:
+    engine: "postgres"
+    writer:
+      uri: "postgresql://postgres:<password>@pgcat:6432/permify?sslmode=disable"
+    reader:
+      uri: "postgresql://postgres:<password>@pgcat:6432/permify?sslmode=disable"
+    auto_migrate: true
+    max_open_connections: 1
+    max_idle_connections: 1
+    max_connection_lifetime: "300s"
+    max_connection_idle_time: "60s"
+    garbage_collection:
+      enabled: true
+      interval: "7200s"
+      window: "7200s"
+      timeout: "5m"
+    max_data_per_write: 10000
+
+  distributed:
+    enabled: true
+    address: "<your-domain>:5053"
+    port: 5053
