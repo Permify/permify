@@ -158,23 +158,23 @@ export default function () {
 
 ### Read Test Results
 
-| **Metric**                  | **Value/Stats**                                                                                                          |
-|-----------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| **checks**                  | 100.00% (75369 out of 75369)                                                                                             |
-| **data_received**           | 15 MB (145 kB/s)                                                                                                         |
-| **data_sent**               | 21 MB (203 kB/s)                                                                                                         |
-| **dropped_iterations**      | 271664 (2688.447952/s)                                                                                                   |
-| **http_req_blocked**        | avg=78.61µs min=208ns med=537ns max=45.53ms p(90)=775ns p(95)=885ns                                                       |
-| **http_req_connecting**     | avg=16.27µs min=0s med=0s max=15.27ms p(90)=0s p(95)=0s                                                                   |
-| **http_req_duration**       | avg=10.14ms min=1.61ms med=7.44ms max=295.29ms p(90)=14.3ms p(95)=26.34ms                                                 |
-| **{ expected_response:true }** | avg=10.14ms min=1.61ms med=7.44ms max=295.29ms p(90)=14.3ms p(95)=26.34ms                                             |
-| **http_req_failed**         | 0.00% (0 out of 75369)                                                                                                   |
-| **http_req_receiving**      | avg=94.63µs min=15.55µs med=70.42µs max=37.13ms p(90)=168.34µs p(95)=234.35µs                                             |
-| **http_req_sending**        | avg=86.07µs min=25.5µs med=69.44µs max=10.25ms p(90)=121.44µs p(95)=171.32µs                                              |
-| **http_req_tls_handshaking**| avg=59.38µs min=0s med=0s max=44.21ms p(90)=0s p(95)=0s                                                                   |
-| **http_req_waiting**        | avg=9.96ms min=1.41ms med=7.27ms max=295.21ms p(90)=14.1ms p(95)=26.17ms                                                 |
-| **http_reqs**               | 75369 (745.86855/s)                                                                                                      |
-| **iteration_duration**      | avg=1.01s min=1s med=1s max=1.29s p(90)=1.01s p(95)=1.02s                                                                 |
-| **iterations**              | 75369 (745.86855/s)                                                                                                      |
-| **vus**                     | 46 (min=13, max=1000)                                                                                                    |
-| **vus_max**                 | 1000 (min=50, max=1000)                                                                                                  |
+| **Metric**                     | **Value/Stats**                                                               |
+|--------------------------------|-------------------------------------------------------------------------------|
+| **checks**                     | 100.00% (75369 out of 75369)                                                  |
+| **data_received**              | 15 MB (145 kB/s)                                                              |
+| **data_sent**                  | 21 MB (203 kB/s)                                                              |
+| **dropped_iterations**         | 271664 (2688.447952/s)                                                        |
+| **http_req_blocked**           | avg=78.61µs min=208ns med=537ns max=45.53ms p(90)=775ns p(95)=885ns           |
+| **http_req_connecting**        | avg=16.27µs min=0s med=0s max=15.27ms p(90)=0s p(95)=0s                       |
+| **http_req_duration**          | avg=10.14ms min=1.61ms med=7.44ms max=295.29ms p(90)=14.3ms p(95)=26.34ms     |
+| **{ expected_response:true }** | avg=10.14ms min=1.61ms med=7.44ms max=295.29ms p(90)=14.3ms p(95)=26.34ms     |
+| **http_req_failed**            | 0.00% (0 out of 75369)                                                        |
+| **http_req_receiving**         | avg=94.63µs min=15.55µs med=70.42µs max=37.13ms p(90)=168.34µs p(95)=234.35µs |
+| **http_req_sending**           | avg=86.07µs min=25.5µs med=69.44µs max=10.25ms p(90)=121.44µs p(95)=171.32µs  |
+| **http_req_tls_handshaking**   | avg=59.38µs min=0s med=0s max=44.21ms p(90)=0s p(95)=0s                       |
+| **http_req_waiting**           | avg=9.96ms min=1.41ms med=7.27ms max=295.21ms p(90)=14.1ms p(95)=26.17ms      |
+| **http_reqs**                  | 75369 (745.86855/s)                                                           |
+| **iteration_duration**         | avg=1.01s min=1s med=1s max=1.29s p(90)=1.01s p(95)=1.02s                     |
+| **iterations**                 | 75369 (745.86855/s)                                                           |
+| **vus**                        | 46 (min=13, max=1000)                                                         |
+| **vus_max**                    | 1000 (min=50, max=1000)                                                       |
