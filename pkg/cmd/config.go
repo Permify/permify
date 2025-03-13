@@ -47,7 +47,7 @@ func NewConfigCommand() *cobra.Command {
 	f.String("log-exporter", conf.Log.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("log-endpoint", conf.Log.Endpoint, "export uri for logs")
 	f.Bool("log-insecure", conf.Log.Insecure, "use https or http for logs")
-	f.String("log-urlpath", conf.Log.URLPath, "allow to set url path for otlp exporter")
+	f.String("log-urlpath", conf.Log.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("log-headers", conf.Log.Headers, "allows setting custom headers for the log exporter in key-value pairs")
 	f.String("log-protocol", conf.Log.Protocol, "allows setting the communication protocol for the log exporter, with options http or grpc")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
@@ -64,14 +64,14 @@ func NewConfigCommand() *cobra.Command {
 	f.String("tracer-exporter", conf.Tracer.Exporter, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
 	f.String("tracer-endpoint", conf.Tracer.Endpoint, "export uri for tracing data")
 	f.Bool("tracer-insecure", conf.Tracer.Insecure, "use https or http for tracer data, only used for otlp exporter or signoz")
-	f.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
+	f.String("tracer-urlpath", conf.Tracer.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("tracer-headers", conf.Tracer.Headers, "allows setting custom headers for the tracer exporter in key-value pairs")
 	f.String("tracer-protocol", conf.Tracer.Protocol, "allows setting the communication protocol for the tracer exporter, with options http or grpc")
 	f.Bool("meter-enabled", conf.Meter.Enabled, "switch option for metric")
 	f.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
 	f.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
-	f.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
+	f.String("meter-urlpath", conf.Meter.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
 	f.Int("meter-interval", conf.Meter.Interval, "allows to set metrics to be pushed in certain time interval")
 	f.String("meter-protocol", conf.Meter.Protocol, "allows setting the communication protocol for the meter exporter, with options http or grpc")
@@ -166,7 +166,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"logger.exporter", cfg.Log.Exporter, getKeyOrigin(cmd, "log-exporter", "PERMIFY_LOG_EXPORTER")},
 			[]string{"logger.endpoint", HideSecret(cfg.Log.Exporter), getKeyOrigin(cmd, "log-endpoint", "PERMIFY_LOG_ENDPOINT")},
 			[]string{"logger.insecure", fmt.Sprintf("%v", cfg.Log.Insecure), getKeyOrigin(cmd, "log-insecure", "PERMIFY_LOG_INSECURE")},
-			[]string{"logger.urlpath", cfg.Log.URLPath, getKeyOrigin(cmd, "log-urlpath", "PERMIFY_LOG_URL_PATH")},
+			[]string{"logger.urlpath", cfg.Log.Urlpath, getKeyOrigin(cmd, "log-urlpath", "PERMIFY_LOG_URL_PATH")},
 			[]string{"logger.headers", fmt.Sprintf("%v", cfg.Log.Headers), getKeyOrigin(cmd, "log-headers", "PERMIFY_LOG_HEADERS")},
 			[]string{"logger.protocol", cfg.Log.Protocol, getKeyOrigin(cmd, "log-protocol", "PERMIFY_LOG_PROTOCOL")},
 			// AUTHN
@@ -185,7 +185,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"tracer.exporter", cfg.Tracer.Exporter, getKeyOrigin(cmd, "tracer-exporter", "PERMIFY_TRACER_EXPORTER")},
 			[]string{"tracer.endpoint", HideSecret(cfg.Tracer.Exporter), getKeyOrigin(cmd, "tracer-endpoint", "PERMIFY_TRACER_ENDPOINT")},
 			[]string{"tracer.insecure", fmt.Sprintf("%v", cfg.Tracer.Insecure), getKeyOrigin(cmd, "tracer-insecure", "PERMIFY_TRACER_INSECURE")},
-			[]string{"tracer.urlpath", cfg.Tracer.URLPath, getKeyOrigin(cmd, "tracer-urlpath", "PERMIFY_TRACER_URL_PATH")},
+			[]string{"tracer.urlpath", cfg.Tracer.Urlpath, getKeyOrigin(cmd, "tracer-urlpath", "PERMIFY_TRACER_URL_PATH")},
 			[]string{"tracer.headers", fmt.Sprintf("%v", cfg.Tracer.Headers), getKeyOrigin(cmd, "tracer-headers", "PERMIFY_TRACER_HEADERS")},
 			[]string{"tracer.protocol", cfg.Tracer.Protocol, getKeyOrigin(cmd, "tracer-protocol", "PERMIFY_TRACER_PROTOCOL")},
 			// METER
@@ -193,7 +193,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"meter.exporter", cfg.Meter.Exporter, getKeyOrigin(cmd, "meter-exporter", "PERMIFY_METER_EXPORTER")},
 			[]string{"meter.endpoint", HideSecret(cfg.Meter.Exporter), getKeyOrigin(cmd, "meter-endpoint", "PERMIFY_METER_ENDPOINT")},
 			[]string{"meter.insecure", fmt.Sprintf("%v", cfg.Meter.Insecure), getKeyOrigin(cmd, "meter-insecure", "PERMIFY_METER_INSECURE")},
-			[]string{"meter.urlpath", cfg.Meter.URLPath, getKeyOrigin(cmd, "meter-urlpath", "PERMIFY_METER_URL_PATH")},
+			[]string{"meter.urlpath", cfg.Meter.Urlpath, getKeyOrigin(cmd, "meter-urlpath", "PERMIFY_METER_URL_PATH")},
 			[]string{"meter.headers", fmt.Sprintf("%v", cfg.Meter.Headers), getKeyOrigin(cmd, "meter-headers", "PERMIFY_METER_HEADERS")},
 			[]string{"meter.protocol", cfg.Meter.Protocol, getKeyOrigin(cmd, "meter-protocol", "PERMIFY_METER_PROTOCOL")},
 			[]string{"meter.interval", fmt.Sprintf("%v", cfg.Meter.Interval), getKeyOrigin(cmd, "meter-interval", "PERMIFY_METER_INTERVAL")},

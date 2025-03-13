@@ -79,7 +79,7 @@ func NewServeCommand() *cobra.Command {
 	f.String("log-exporter", conf.Log.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("log-endpoint", conf.Log.Endpoint, "export uri for logs")
 	f.Bool("log-insecure", conf.Log.Insecure, "use https or http for logs")
-	f.String("log-urlpath", conf.Log.URLPath, "allow to set url path for otlp exporter")
+	f.String("log-urlpath", conf.Log.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("log-headers", conf.Log.Headers, "allows setting custom headers for the log exporter in key-value pairs")
 	f.String("log-protocol", conf.Log.Protocol, "allows setting the communication protocol for the log exporter, with options http or grpc")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
@@ -96,14 +96,14 @@ func NewServeCommand() *cobra.Command {
 	f.String("tracer-exporter", conf.Tracer.Exporter, "can be; jaeger, signoz, zipkin or otlp. (integrated tracing tools)")
 	f.String("tracer-endpoint", conf.Tracer.Endpoint, "export uri for tracing data")
 	f.Bool("tracer-insecure", conf.Tracer.Insecure, "use https or http for tracer data, only used for otlp exporter or signoz")
-	f.String("tracer-urlpath", conf.Tracer.URLPath, "allow to set url path for otlp exporter")
+	f.String("tracer-urlpath", conf.Tracer.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("tracer-headers", conf.Tracer.Headers, "allows setting custom headers for the tracer exporter in key-value pairs")
 	f.String("tracer-protocol", conf.Tracer.Protocol, "allows setting the communication protocol for the tracer exporter, with options http or grpc")
 	f.Bool("meter-enabled", conf.Meter.Enabled, "switch option for metric")
 	f.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
 	f.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
-	f.String("meter-urlpath", conf.Meter.URLPath, "allow to set url path for otlp exporter")
+	f.String("meter-urlpath", conf.Meter.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
 	f.Int("meter-interval", conf.Meter.Interval, "allows to set metrics to be pushed in certain time interval")
 	f.String("meter-protocol", conf.Meter.Protocol, "allows setting the communication protocol for the meter exporter, with options http or grpc")
@@ -221,7 +221,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Log.Exporter,
 				cfg.Log.Endpoint,
 				cfg.Log.Insecure,
-				cfg.Log.URLPath,
+				cfg.Log.Urlpath,
 				headers,
 				cfg.Log.Protocol,
 				getLogLevel(cfg.Log.Level),
@@ -297,7 +297,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Tracer.Exporter,
 				cfg.Tracer.Endpoint,
 				cfg.Tracer.Insecure,
-				cfg.Tracer.URLPath,
+				cfg.Tracer.Urlpath,
 				headers,
 				cfg.Tracer.Protocol,
 			)
@@ -349,7 +349,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				cfg.Meter.Exporter,
 				cfg.Meter.Endpoint,
 				cfg.Meter.Insecure,
-				cfg.Meter.URLPath,
+				cfg.Meter.Urlpath,
 				headers,
 				cfg.Meter.Protocol,
 			)
