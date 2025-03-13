@@ -93,7 +93,7 @@ type (
 		Exporter string   `mapstructure:"exporter"` // Exporter for log data
 		Endpoint string   `mapstructure:"endpoint"` // Endpoint for the log exporter
 		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
-		URLPath  string   `mapstructure:"path"`     // Path for the log exporter, if not defined /v1/logs will be used
+		Urlpath  string   `mapstructure:"urlpath"`  // Path for the log exporter, if not defined /v1/logs will be used
 		Headers  []string `mapstructure:"headers"`
 		Protocol string   `mapstructure:"protocol"` // Protocol for the log exporter, e.g., http, grpc
 	}
@@ -104,7 +104,7 @@ type (
 		Exporter string   `mapstructure:"exporter"` // Exporter for tracing data
 		Endpoint string   `mapstructure:"endpoint"` // Endpoint for the tracing exporter
 		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
-		URLPath  string   `mapstructure:"path"`     // Path for the tracing exporter, if not defined /v1/trace will be used
+		Urlpath  string   `mapstructure:"urlpath"`  // Path for the tracing exporter, if not defined /v1/trace will be used
 		Headers  []string `mapstructure:"headers"`
 		Protocol string   `mapstructure:"protocol"` // Protocol for the tracing exporter, e.g., http, grpc
 	}
@@ -115,7 +115,7 @@ type (
 		Exporter string   `mapstructure:"exporter"` // Exporter for metrics data
 		Endpoint string   `mapstructure:"endpoint"` // Endpoint for the metrics exporter
 		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
-		URLPath  string   `mapstructure:"path"`     // Path for the metrics exporter, if not defined /v1/metrics will be used
+		Urlpath  string   `mapstructure:"urlpath"`  // Path for the metrics exporter, if not defined /v1/metrics will be used
 		Headers  []string `mapstructure:"headers"`
 		Interval int      `mapstructure:"interval"`
 		Protocol string   `mapstructure:"protocol"` // Protocol for the metrics exporter, e.g., http, grpc
