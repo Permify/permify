@@ -94,7 +94,8 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
-	github.com/moby/sys/user v0.1.0 // indirect
+	github.com/moby/sys/user v0.3.0 // indirect
+	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/samber/lo v1.49.1 // indirect
@@ -117,7 +118,7 @@ require (
 	github.com/agoda-com/opentelemetry-logs-go v0.6.0
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/containerd/containerd v1.7.18 // indirect
+	github.com/containerd/containerd v1.7.27 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpuguy83/dockercfg v0.3.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
