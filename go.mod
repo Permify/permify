@@ -27,7 +27,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/juju/ratelimit v1.0.2
 	github.com/lestrrat-go/jwx v1.2.30
-	github.com/onsi/ginkgo/v2 v2.23.0
+	github.com/onsi/ginkgo/v2 v2.23.1
 	github.com/onsi/gomega v1.36.2
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.24.1
