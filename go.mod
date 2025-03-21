@@ -13,7 +13,7 @@ require (
 	github.com/exaring/otelpgx v0.9.0
 	github.com/fatih/color v1.18.0
 	github.com/go-jose/go-jose/v3 v3.0.4
-	github.com/golang-jwt/jwt/v4 v4.5.1
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/cel-go v0.24.1
 	github.com/gookit/color v1.5.4
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
