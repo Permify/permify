@@ -235,6 +235,85 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			// Start log output for checks
 			color.Notice.Println("  checks:")
 
+			//Iterate over all the scenarios specific relationships
+			var createdLocalRelationshipsTups []*base.Tuple
+			for _, t := range scenario.Relationships {
+				// Convert each relationship to a Tuple
+				var tup *base.Tuple
+				tup, err = tuple.Tuple(t)
+				// If an error occurs during the conversion, add the error message to the list and continue to the next iteration
+				if err != nil {
+					list.Add(err.Error())
+					continue
+				}
+
+				// Retrieve the entity definition associated with the tuple's entity type
+				definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+				// If an error occurs while reading the entity definition, return the error
+				if err != nil {
+					return err
+				}
+
+				// Validate the tuple using the entity definition
+				err = serverValidation.ValidateTuple(definition, tup)
+				// If an error occurs during validation, return the error
+				if err != nil {
+					return err
+				}
+
+				// Write the validated tuple to the database
+				_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
+				// If an error occurs while writing to the database, add an error message to the list, log the error and continue to the next iteration
+				if err != nil {
+					list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
+					color.Danger.Println(fmt.Sprintf("fail: %s failed %s", t, validationError(err.Error())))
+					continue
+				}
+
+				createdLocalRelationshipsTups = append(createdLocalRelationshipsTups, tup)
+				// If the tuple was successfully written to the database, log a success message
+				color.Success.Println(fmt.Sprintf("  scenario relationship success: %s ", t))
+			}
+
+			//Iterate over all the scenarios specific relationship
+			var createdScenarioAttributes []*base.Attribute
+			for _, a := range s.Attributes {
+				// Convert each attribute to an Attribute
+				var attr *base.Attribute
+				attr, err = attribute.Attribute(a)
+				// If an error occurs during the conversion, add the error message to the list and continue to the next iteration
+				if err != nil {
+					list.Add(err.Error())
+					continue
+				}
+
+				// Retrieve the entity definition associated with the attribute's entity type
+				definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+				// If an error occurs while reading the entity definition, return the error
+				if err != nil {
+					return err
+				}
+
+				// Validate the attribute using the entity definition
+				err = serverValidation.ValidateAttribute(definition, attr)
+				// If an error occurs during validation, return the error
+				if err != nil {
+					return err
+				}
+
+				// Write the validated attribute to the database
+				_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
+				// If an error occurs while writing to the database, add an error message to the list, log the error and continue to the next iteration
+				if err != nil {
+					list.Add(fmt.Sprintf("%s failed %s", a, err.Error()))
+					color.Danger.Println(fmt.Sprintf("fail: %s failed %s", a, validationError(err.Error())))
+					continue
+				}
+
+				createdScenarioAttributes = append(createdScenarioAttributes, attr)
+				// If the attribute was successfully written to the database, log a success message
+				color.Success.Println(fmt.Sprintf("  scenario attribute success: %s ", a))
+			}
 			// Iterate over all checks in the scenario
 			for _, check := range scenario.Checks {
 				// Extract entity from the check
@@ -437,6 +516,46 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetSubjectIds())
 						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetSubjectIds()))
 					}
+				}
+			}
+
+			// Once scenarios are tested delete created local scenario specific relationships
+			for _, t := range createdLocalRelationshipsTups {
+				// Write the relationship to the database
+				_, err = dev.Container.DW.Delete(ctx, "t1", &base.TupleFilter{
+					Entity: &base.EntityFilter{
+						Type: t.GetEntity().Type,
+						Ids:  []string{t.Entity.Id},
+					},
+					Relation: t.GetRelation(),
+				},
+					&base.AttributeFilter{},
+				)
+				// Continue to the next relationship if an error occurred
+				if err != nil {
+					// If an error occurs, add it to the list and continue to the next filter.
+					list.Add(err.Error())
+					continue
+				}
+			}
+
+			// Once scenarios are tested delete created local scenario specific attributes
+			for _, a := range createdScenarioAttributes {
+				// Write the relationship to the database
+				_, err = dev.Container.DW.Delete(ctx, "t1", &base.TupleFilter{},
+					&base.AttributeFilter{
+						Entity: &base.EntityFilter{
+							Type: a.GetEntity().Type,
+							Ids:  []string{a.Entity.Id},
+						},
+						Attributes: []string{a.GetAttribute()},
+					},
+				)
+				// Continue to the next relationship if an error occurred
+				if err != nil {
+					// If an error occurs, add it to the list and continue to the next filter.
+					list.Add(err.Error())
+					continue
 				}
 			}
 		}
