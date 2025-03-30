@@ -64,9 +64,10 @@ func NewParser(str string) (p *Parser) {
 		references: ast.NewReferences(), // initialize an empty map for relational references
 	}
 
-	// register prefix parsing functions for token types IDENT and NOT
+	// register prefix parsing functions for token types IDENT and NIL
 	p.prefixParseFns = make(map[token.Type]prefixParseFn)  // initialize an empty map for prefix parsing functions
 	p.registerPrefix(token.IDENT, p.parseIdentifierOrCall) // associate the parseIdentifier function with the IDENT token type
+	p.registerPrefix(token.NIL, p.parseIdentifierOrCall)
 
 	// register infix parsing functions for token types AND, OR, NOT
 	p.infixParseFunc = make(map[token.Type]infixParseFn) // initialize an empty map for infix parsing functions
