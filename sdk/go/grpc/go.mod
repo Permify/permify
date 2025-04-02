@@ -5,7 +5,7 @@ go 1.24
 require (
 	buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.6-20250313072736-92bacc2b9af3.1
 	github.com/Permify/permify-go v0.4.9
-	google.golang.org/grpc v1.71.0
+	google.golang.org/grpc v1.71.1
 )
 
 require (
