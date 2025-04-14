@@ -420,5 +420,10 @@
     "twitter": "https://twitter.com/getPermify",
     "github": "https://github.com/Permify/permify",
     "linkedin": "https://www.linkedin.com/company/permifyco"
-  }
+  },
+  "scripts": [
+    {
+      "src": "/gurubase.js"
+    }
+  ]
 }
