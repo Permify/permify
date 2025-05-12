@@ -261,13 +261,7 @@ func renderConfigTable(data [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
 
 	// Set the headers of the table. Each header cell is a column title.
-	table.SetHeader([]string{"Key", "Value", "Source"})
-
-	// Align the columns of the table: left-aligned for keys, centered for values and sources.
-	table.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT, tablewriter.ALIGN_CENTER, tablewriter.ALIGN_CENTER})
-
-	// Set the center separator character for the table, which appears between columns.
-	table.SetCenterSeparator("|")
+	table.Header([]string{"Key", "Value", "Source"})
 
 	// Loop through the data and add each row to the table.
 	for _, v := range data {
