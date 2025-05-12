@@ -265,11 +265,15 @@ func renderConfigTable(data [][]string) {
 
 	// Loop through the data and add each row to the table.
 	for _, v := range data {
-		table.Append(v)
+		if err := table.Append(v); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to append row to table: %v\n", err)
+		}
 	}
 
 	// Render the table to standard output, displaying it to the user.
-	table.Render()
+	if err := table.Render(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to render table: %v\n", err)
+	}
 }
 
 // HideSecret replaces all but the first and last characters of a string with asterisks
