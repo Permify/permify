@@ -261,21 +261,19 @@ func renderConfigTable(data [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
 
 	// Set the headers of the table. Each header cell is a column title.
-	table.SetHeader([]string{"Key", "Value", "Source"})
-
-	// Align the columns of the table: left-aligned for keys, centered for values and sources.
-	table.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT, tablewriter.ALIGN_CENTER, tablewriter.ALIGN_CENTER})
-
-	// Set the center separator character for the table, which appears between columns.
-	table.SetCenterSeparator("|")
+	table.Header([]string{"Key", "Value", "Source"})
 
 	// Loop through the data and add each row to the table.
 	for _, v := range data {
-		table.Append(v)
+		if err := table.Append(v); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to append row to table: %v\n", err)
+		}
 	}
 
 	// Render the table to standard output, displaying it to the user.
-	table.Render()
+	if err := table.Render(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to render table: %v\n", err)
+	}
 }
 
 // HideSecret replaces all but the first and last characters of a string with asterisks
