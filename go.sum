@@ -325,8 +325,8 @@ github.com/olekukonko/errors v0.0.0-20250405072817-4e6d85265da6 h1:r3FaAI0NZK3hS
 github.com/olekukonko/errors v0.0.0-20250405072817-4e6d85265da6/go.mod h1:ppzxA5jBKcO1vIpCXQ9ZqgDh8iwODz6OXIGKU8r5m4Y=
 github.com/olekukonko/ll v0.0.6-0.20250511102614-9564773e9d27 h1:LgDwLQDELPB6wMOx1x4DSXnH2pjQNDKFgqv2inJuiAU=
 github.com/olekukonko/ll v0.0.6-0.20250511102614-9564773e9d27/go.mod h1:En+sEW0JNETl26+K8eZ6/W4UQ7CYSrrgg/EdIYT2H8g=
-github.com/olekukonko/tablewriter v1.0.2 h1:nxz/j28kPYQUuc4veIv3Ymmef7gHKn8rhr42aauENnk=
-github.com/olekukonko/tablewriter v1.0.2/go.mod h1:eUa4ArVhHJYomS27xrJB/GyLtnzKKVkZeLM6/MNO+pA=
+github.com/olekukonko/tablewriter v1.0.4 h1:Lnz32TW+q/MQhA4qwhIyLA+j5hZ3dcNpZrcpPC+4iaM=
+github.com/olekukonko/tablewriter v1.0.4/go.mod h1:eUa4ArVhHJYomS27xrJB/GyLtnzKKVkZeLM6/MNO+pA=
 github.com/onsi/ginkgo/v2 v2.23.4 h1:ktYTpKJAVZnDT4VjxSbiBenUjmlL/5QkBEocaWXiQus=
 github.com/onsi/ginkgo/v2 v2.23.4/go.mod h1:Bt66ApGPBFzHyR+JO10Zbt0Gsp4uWxu5mIOTusL46e8=
 github.com/onsi/gomega v1.37.0 h1:CdEG8g0S133B4OswTDC/5XPSzE1OeP29QOioj2PID2Y=
