@@ -2,6 +2,9 @@
 
 We have added sample usages for various SDKs in different languages.
 
+### Go
+- **[Golang gRPC](https://github.com/Permify/permify/tree/master/sdk/go/grpc)**
+
 ### Python
 - **[Python gRPC](https://github.com/Permify/permify/tree/master/sdk/python/grpc)**
 - **[Python REST](https://github.com/Permify/permify/tree/master/sdk/python/rest)**
