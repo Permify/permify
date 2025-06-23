@@ -381,10 +381,12 @@ github.com/rs/zerolog v1.15.0/go.mod h1:xYTKnLHcpfU2225ny5qZjxnj9NvkumZYjJHlAThC
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sagikazarmark/locafero v0.7.0 h1:5MqpDsTGNDhY8sGp0Aowyf0qKsPrhewaLSsFaodPcyo=
 github.com/sagikazarmark/locafero v0.7.0/go.mod h1:2za3Cg5rMaTMoG/2Ulr9AwtFaIppKXTRYnozin4aB5k=
-github.com/samber/lo v1.49.1 h1:4BIFyVfuQSEpluc7Fua+j1NolZHiEHEpaSEKdsH0tew=
-github.com/samber/lo v1.49.1/go.mod h1:dO6KHFzUKXgP8LDhU0oI8d2hekjXnGOu0DB8Jecxd6o=
-github.com/samber/slog-multi v1.4.0 h1:pwlPMIE7PrbTHQyKWDU+RIoxP1+HKTNOujk3/kdkbdg=
-github.com/samber/slog-multi v1.4.0/go.mod h1:FsQ4Uv2L+E/8TZt+/BVgYZ1LoDWCbfCU21wVIoMMrO8=
+github.com/samber/lo v1.51.0 h1:kysRYLbHy/MB7kQZf5DSN50JHmMsNEdeY24VzJFu7wI=
+github.com/samber/lo v1.51.0/go.mod h1:4+MXEGsJzbKGaUEQFKBq2xtfuznW9oz/WrgyzMzRoM0=
+github.com/samber/slog-common v0.19.0 h1:fNcZb8B2uOLooeYwFpAlKjkQTUafdjfqKcwcC89G9YI=
+github.com/samber/slog-common v0.19.0/go.mod h1:dTz+YOU76aH007YUU0DffsXNsGFQRQllPQh9XyNoA3M=
+github.com/samber/slog-multi v1.4.1 h1:OVBxOKcorBcGQVKjwlraA41JKWwHQyB/3KfzL3IJAYg=
+github.com/samber/slog-multi v1.4.1/go.mod h1:im2Zi3mH/ivSY5XDj6LFcKToRIWPw1OcjSVSdXt+2d0=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
 github.com/sercand/kuberesolver/v5 v5.1.1 h1:CYH+d67G0sGBj7q5wLK61yzqJJ8gLLC8aeprPTHb6yY=
 github.com/sercand/kuberesolver/v5 v5.1.1/go.mod h1:Fs1KbKhVRnB2aDWN12NjKCB+RgYMWZJ294T3BtmVCpQ=
