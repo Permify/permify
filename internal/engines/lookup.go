@@ -2,6 +2,7 @@ package engines
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"sort"
 	"strings"
@@ -71,8 +72,18 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		ct = token
 	}
 
+	// Create configuration for BulkChecker
+	config := BulkCheckerConfig{
+		ConcurrencyLimit: engine.concurrencyLimit,
+		BufferSize:       1000,
+	}
+
 	// Create and start BulkChecker. It performs permission checks in parallel.
-	checker := NewBulkChecker(ctx, engine.checkEngine, BULK_ENTITY, callback, engine.concurrencyLimit)
+	checker, err := NewBulkChecker(ctx, engine.checkEngine, BulkCheckerTypeEntity, callback, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create bulk checker: %w", err)
+	}
+	defer checker.Close()
 
 	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
 	publisher := NewBulkEntityPublisher(ctx, request, checker)
@@ -142,8 +153,18 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 		}
 	}
 
+	// Create configuration for BulkChecker
+	config := BulkCheckerConfig{
+		ConcurrencyLimit: engine.concurrencyLimit,
+		BufferSize:       1000,
+	}
+
 	// Create and start BulkChecker. It performs permission checks concurrently.
-	checker := NewBulkChecker(ctx, engine.checkEngine, BULK_ENTITY, callback, engine.concurrencyLimit)
+	checker, err := NewBulkChecker(ctx, engine.checkEngine, BulkCheckerTypeEntity, callback, config)
+	if err != nil {
+		return fmt.Errorf("failed to create bulk checker: %w", err)
+	}
+	defer checker.Close()
 
 	// Create and start BulkPublisher. It receives entities and passes them to BulkChecker.
 	publisher := NewBulkEntityPublisher(ctx, request, checker)

@@ -259,7 +259,6 @@ func (s *Container) Run(
 	if srv.HTTP.Enabled {
 		options := []grpc.DialOption{
 			grpc.WithBlock(),
-			grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 		}
 		if srv.GRPC.TLSConfig.Enabled {
 			c, err := credentials.NewClientTLSFromFile(srv.GRPC.TLSConfig.CertPath, srv.NameOverride)

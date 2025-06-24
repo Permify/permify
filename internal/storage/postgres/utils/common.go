@@ -104,6 +104,26 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 	return deleteBuilder.Where(expiredZeroExpr).Where(beforeExpr)
 }
 
+// GenerateGCQueryForTenant generates a Squirrel DELETE query builder for tenant-aware garbage collection.
+// It constructs a query to delete expired records from the specified table for a specific tenant
+// based on the provided value, which represents a transaction ID.
+func GenerateGCQueryForTenant(table string, tenantID string, value uint64) squirrel.DeleteBuilder {
+	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
+	valStr := fmt.Sprintf("'%v'::xid8", value)
+
+	// Create a Squirrel DELETE builder for the specified table.
+	deleteBuilder := squirrel.Delete(table)
+
+	// Create an expression to check if 'expired_tx_id' is not equal to '0' (not expired).
+	expiredZeroExpr := squirrel.Expr("expired_tx_id <> '0'::xid8")
+
+	// Create an expression to check if 'expired_tx_id' is less than the provided value (before the cutoff).
+	beforeExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id < %s", valStr))
+
+	// Add the WHERE clauses to the DELETE query builder to filter and delete expired data for the specific tenant.
+	return deleteBuilder.Where(squirrel.Eq{"tenant_id": tenantID}).Where(expiredZeroExpr).Where(beforeExpr)
+}
+
 // HandleError records an error in the given span, logs the error, and returns a standardized error.
 // This function is used for consistent error handling across different parts of the application.
 func HandleError(ctx context.Context, span trace.Span, err error, errorCode base.ErrorCode) error {

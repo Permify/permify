@@ -202,6 +202,152 @@ var _ = Describe("GarbageCollector", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(checkRes4.Can).Should(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
 		})
+
+		It("should perform tenant-aware garbage collection correctly", func() {
+			// Step 1: Create two tenants
+			tenantA := "tenant-a"
+			tenantB := "tenant-b"
+
+			_, err := tenantWriter.CreateTenant(ctx, tenantA, "Tenant A")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = tenantWriter.CreateTenant(ctx, tenantB, "Tenant B")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Step 2: Create schema for both tenants
+			conf, _, err := newSchema(tenantA, "entity user {}\n\nentity organisation {\n    relation member @user\n    permission is_member = member\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, _, err = newSchema(tenantB, "entity user {}\n\nentity organisation {\n    relation member @user\n    permission is_member = member\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Step 3: Insert data for both tenants
+			tupA, err := tuple.Tuple("organisation:1#member@user:user-a")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tupB, err := tuple.Tuple("organisation:1#member@user:user-b")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = dataWriter.Write(ctx, tenantA, database.NewTupleCollection(tupA), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = dataWriter.Write(ctx, tenantB, database.NewTupleCollection(tupB), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Step 4: Verify both tenants can access their data
+			checkEngine := engines.NewCheckEngine(schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				nil,
+				nil,
+			)
+			checkEngine.SetInvoker(invoker)
+
+			// Check tenant A
+			checkResA, err := invoker.Check(ctx, &base.PermissionCheckRequest{
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     "",
+					SchemaVersion: "",
+					Depth:         20,
+				},
+				TenantId: tenantA,
+				Entity: &base.Entity{
+					Type: "organisation",
+					Id:   "1",
+				},
+				Permission: "is_member",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "user-a",
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(checkResA.Can).Should(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
+
+			// Check tenant B
+			checkResB, err := invoker.Check(ctx, &base.PermissionCheckRequest{
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     "",
+					SchemaVersion: "",
+					Depth:         20,
+				},
+				TenantId: tenantB,
+				Entity: &base.Entity{
+					Type: "organisation",
+					Id:   "1",
+				},
+				Permission: "is_member",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "user-b",
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(checkResB.Can).Should(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
+
+			// Step 5: Delete data for tenant A only
+			_, err = dataWriter.Delete(ctx, tenantA, &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organisation",
+					Ids:  []string{"1"},
+				},
+			}, &base.AttributeFilter{})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Step 6: Run garbage collection
+			time.Sleep(5 * time.Second) // Pause for 5 seconds
+			err = garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Step 7: Verify tenant A's permission is denied (data was deleted)
+			checkResA2, err := invoker.Check(ctx, &base.PermissionCheckRequest{
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     "",
+					SchemaVersion: "",
+					Depth:         20,
+				},
+				TenantId: tenantA,
+				Entity: &base.Entity{
+					Type: "organisation",
+					Id:   "1",
+				},
+				Permission: "is_member",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "user-a",
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(checkResA2.Can).Should(Equal(base.CheckResult_CHECK_RESULT_DENIED))
+
+			// Step 8: Verify tenant B's permission is still allowed (data was not affected by GC)
+			checkResB2, err := invoker.Check(ctx, &base.PermissionCheckRequest{
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     "",
+					SchemaVersion: "",
+					Depth:         20,
+				},
+				TenantId: tenantB,
+				Entity: &base.Entity{
+					Type: "organisation",
+					Id:   "1",
+				},
+				Permission: "is_member",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "user-b",
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(checkResB2.Can).Should(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
+		})
 	})
 })
 
