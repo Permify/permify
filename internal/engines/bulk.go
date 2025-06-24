@@ -2,6 +2,7 @@ package engines
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -16,334 +17,596 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// BulkCheckerType defines the type of bulk checking operation.
+// This enum determines how requests are sorted and processed.
 type BulkCheckerType string
 
 const (
-	BULK_SUBJECT BulkCheckerType = "subject"
-	BULK_ENTITY  BulkCheckerType = "entity"
+	// BulkCheckerTypeSubject indicates that requests should be sorted and processed by subject ID
+	BulkCheckerTypeSubject BulkCheckerType = "subject"
+	// BulkCheckerTypeEntity indicates that requests should be sorted and processed by entity ID
+	BulkCheckerTypeEntity BulkCheckerType = "entity"
 )
 
-// BulkCheckerRequest is a struct for a permission check request and the channel to send the result.
+// BulkCheckerRequest represents a permission check request with optional pre-computed result.
+// This struct encapsulates both the permission check request and an optional pre-determined result,
+// allowing for optimization when results are already known (e.g., from caching).
 type BulkCheckerRequest struct {
+	// Request contains the actual permission check request
 	Request *base.PermissionCheckRequest
-	Result  base.CheckResult
+	// Result holds a pre-computed result if available, otherwise CHECK_RESULT_UNSPECIFIED
+	Result base.CheckResult
 }
 
-// BulkChecker is a struct for checking permissions in bulk.
-// It processes permission check requests concurrently and maintains a sorted list of these requests.
+// BulkCheckerConfig holds configuration parameters for the BulkChecker.
+// This struct allows for fine-tuning the behavior and performance characteristics
+// of the bulk permission checking system.
+type BulkCheckerConfig struct {
+	// ConcurrencyLimit defines the maximum number of concurrent permission checks
+	// that can be processed simultaneously. Higher values increase throughput
+	// but may consume more system resources.
+	ConcurrencyLimit int
+	// BufferSize defines the size of the internal request buffer.
+	// This should be set based on expected request volume to avoid blocking.
+	BufferSize int
+}
+
+// DefaultBulkCheckerConfig returns a sensible default configuration
+// that balances performance and resource usage for most use cases.
+func DefaultBulkCheckerConfig() BulkCheckerConfig {
+	return BulkCheckerConfig{
+		ConcurrencyLimit: 10,   // Moderate concurrency for most workloads
+		BufferSize:       1000, // Buffer for 1000 requests
+	}
+}
+
+// BulkChecker handles concurrent permission checks with ordered result processing.
+// This struct implements a high-performance bulk permission checking system that:
+// - Collects permission check requests asynchronously
+// - Processes them concurrently with controlled parallelism
+// - Maintains strict ordering of results based on request sorting
+// - Provides efficient resource management and error handling
 type BulkChecker struct {
-	// typ defines the type of bulk checking being performed.
-	// It distinguishes between different modes of operation within the BulkChecker,
-	// such as whether the check is focused on entities, subjects, or another criterion.
+	// typ determines the sorting strategy and processing behavior
 	typ BulkCheckerType
-
+	// checker is the underlying permission checking engine
 	checker invoke.Check
-	// RequestChan is the input queue for permission check requests.
-	// Incoming requests are received on this channel and processed by the BulkChecker.
-	RequestChan chan BulkCheckerRequest
-
-	// ctx is the context used to manage goroutines and handle cancellation.
-	// It allows for graceful shutdown of all goroutines when the context is canceled.
+	// config holds the operational configuration
+	config BulkCheckerConfig
+	// ctx provides context for cancellation and timeout management
 	ctx context.Context
+	// cancel allows for graceful shutdown of all operations
+	cancel context.CancelFunc
 
-	// g is an errgroup used for managing multiple goroutines.
-	// It allows BulkChecker to wait for all goroutines to finish and to capture any errors they may return.
-	g *errgroup.Group
+	// Request handling components
+	// requestChan is the input channel for receiving permission check requests
+	requestChan chan BulkCheckerRequest
+	// requests stores all collected requests before processing
+	requests []BulkCheckerRequest
+	// requestsMu provides thread-safe access to the requests slice
+	requestsMu sync.RWMutex
 
-	// concurrencyLimit is the maximum number of concurrent permission checks that can be processed at one time.
-	// It controls the level of parallelism within the BulkChecker.
-	concurrencyLimit int
+	// Execution state management
+	// executionState tracks the progress and results of request processing
+	executionState *executionState
+	// collectionDone signals when request collection has completed
+	collectionDone chan struct{}
 
-	// callback is a function that handles the result of each permission check.
-	// It is called with the entity ID and the result of the permission check (e.g., allowed or denied).
-	callback func(entityID, ct string)
-
-	// sortedList is a slice that stores BulkCheckerRequest objects.
-	// This list is maintained in a sorted order based on some criteria, such as the entity ID.
-	list []BulkCheckerRequest
-
-	// mu is a mutex used for thread-safe access to the sortedList.
-	// It ensures that only one goroutine can modify the sortedList at a time, preventing data races.
-	mu sync.Mutex
-
-	// wg is a WaitGroup used to coordinate the completion of request collection.
-	// It ensures that all requests are collected and processed before ExecuteRequests begins execution.
-	// The WaitGroup helps to synchronize the collection of requests with the execution of those requests,
-	// preventing race conditions where the execution starts before all requests are collected.
-	wg *sync.WaitGroup
+	// Callback for processing results
+	// callback is invoked for each successful permission check with the entity/subject ID and continuous token
+	callback func(entityID, continuousToken string)
 }
 
-// NewBulkChecker creates a new BulkChecker instance.
-// ctx: context for managing goroutines and cancellation
-// engine: the CheckEngine to use for permission checks
-// callback: a callback function that handles the result of each permission check
-// concurrencyLimit: the maximum number of concurrent permission checks
-func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID, ct string), concurrencyLimit int) *BulkChecker {
-	bc := &BulkChecker{
-		RequestChan:      make(chan BulkCheckerRequest),
-		checker:          checker,
-		g:                &errgroup.Group{},
-		concurrencyLimit: concurrencyLimit,
-		ctx:              ctx,
-		callback:         callback,
-		typ:              typ,
-		wg:               &sync.WaitGroup{},
+// executionState manages the execution of requests and maintains processing order.
+// This struct ensures that results are processed in the correct sequence
+// even when requests complete out of order due to concurrent processing.
+type executionState struct {
+	// mu protects access to the execution state
+	mu sync.Mutex
+	// results stores the results of all requests in their original order
+	results []base.CheckResult
+	// processedIndex tracks the next result to be processed in order
+	processedIndex int
+	// successCount tracks the number of successful permission checks
+	successCount int64
+	// limit defines the maximum number of successful results to process
+	limit int64
+}
+
+// NewBulkChecker creates a new BulkChecker instance with comprehensive validation and error handling.
+// This constructor ensures that all dependencies are properly initialized and validates
+// configuration parameters to prevent runtime errors.
+//
+// Parameters:
+//   - ctx: Context for managing the lifecycle of the BulkChecker
+//   - checker: The permission checking engine to use for actual permission checks
+//   - typ: The type of bulk checking operation (entity or subject)
+//   - callback: Function called for each successful permission check
+//   - config: Configuration parameters for tuning performance and behavior
+//
+// Returns:
+//   - *BulkChecker: The initialized BulkChecker instance
+//   - error: Any error that occurred during initialization
+func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID, ct string), config BulkCheckerConfig) (*BulkChecker, error) {
+	// Validate all required parameters
+	if ctx == nil {
+		return nil, fmt.Errorf("context cannot be nil")
+	}
+	if checker == nil {
+		return nil, fmt.Errorf("checker cannot be nil")
+	}
+	if callback == nil {
+		return nil, fmt.Errorf("callback cannot be nil")
 	}
 
-	// Start processing requests in a separate goroutine
-	// Use a WaitGroup to ensure all requests are collected before proceeding
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done() // Signal that the request collection is finished
-		bc.CollectAndSortRequests()
-	}()
+	// Apply default values for invalid configuration
+	if config.ConcurrencyLimit <= 0 {
+		config.ConcurrencyLimit = DefaultBulkCheckerConfig().ConcurrencyLimit
+	}
+	if config.BufferSize <= 0 {
+		config.BufferSize = DefaultBulkCheckerConfig().BufferSize
+	}
 
-	bc.wg = &wg // Store the WaitGroup for future use
+	// Create a cancellable context for the BulkChecker
+	ctx, cancel := context.WithCancel(ctx)
 
-	return bc
+	// Initialize the BulkChecker with all components
+	bc := &BulkChecker{
+		typ:            typ,
+		checker:        checker,
+		config:         config,
+		ctx:            ctx,
+		cancel:         cancel,
+		requestChan:    make(chan BulkCheckerRequest, config.BufferSize),
+		requests:       make([]BulkCheckerRequest, 0, config.BufferSize),
+		callback:       callback,
+		collectionDone: make(chan struct{}),
+	}
+
+	// Start the background request collection goroutine
+	go bc.collectRequests()
+
+	return bc, nil
 }
 
-// CollectAndSortRequests processes incoming requests and maintains a sorted list.
-func (bc *BulkChecker) CollectAndSortRequests() {
+// collectRequests safely collects requests until the channel is closed.
+// This method runs in a separate goroutine and continuously processes
+// incoming requests until either the channel is closed or the context is cancelled.
+// It ensures thread-safe addition of requests to the internal collection.
+func (bc *BulkChecker) collectRequests() {
+	// Signal completion when this goroutine exits
+	defer close(bc.collectionDone)
+
 	for {
 		select {
-		case req, ok := <-bc.RequestChan:
+		case req, ok := <-bc.requestChan:
 			if !ok {
-				// Channel closed, process remaining requests
+				// Channel closed, stop collecting
 				return
 			}
-
-			bc.mu.Lock()
-			bc.list = append(bc.list, req)
-			// Optionally, you could sort here or later in ExecuteRequests
-			bc.mu.Unlock()
-
+			bc.addRequest(req)
 		case <-bc.ctx.Done():
+			// Context cancelled, stop collecting
 			return
 		}
 	}
 }
 
-// prepareRequestList sorts and prepares a copy of the request list.
-func (bc *BulkChecker) prepareRequestList() []BulkCheckerRequest {
-	bc.mu.Lock()
-	defer bc.mu.Unlock()
-
-	bc.sortRequests()                                 // Sort requests based on ID
-	return append([]BulkCheckerRequest{}, bc.list...) // Return a copy of the list to avoid modifying the original
+// addRequest safely adds a request to the internal list.
+// This method uses a mutex to ensure thread-safe access to the requests slice,
+// preventing race conditions when multiple goroutines are adding requests.
+func (bc *BulkChecker) addRequest(req BulkCheckerRequest) {
+	bc.requestsMu.Lock()
+	defer bc.requestsMu.Unlock()
+	bc.requests = append(bc.requests, req)
 }
 
-// StopCollectingRequests Signal to stop collecting requests and close the channel
+// StopCollectingRequests safely stops request collection and waits for completion.
+// This method closes the input channel and waits for the collection goroutine
+// to finish processing any remaining requests. This ensures that no requests
+// are lost during shutdown.
 func (bc *BulkChecker) StopCollectingRequests() {
-	bc.mu.Lock()
-	defer bc.mu.Unlock()
-	// Close the channel to signal no more requests will be sent
-	close(bc.RequestChan)
+	close(bc.requestChan)
+	<-bc.collectionDone // Wait for collection to complete
 }
 
-// sortRequests sorts the sortedList based on the type (entity or subject).
-func (bc *BulkChecker) sortRequests() {
-	if bc.typ == BULK_ENTITY {
-		sort.Slice(bc.list, func(i, j int) bool {
-			return bc.list[i].Request.GetEntity().GetId() < bc.list[j].Request.GetEntity().GetId()
+// getSortedRequests returns a sorted copy of requests based on the checker type.
+// This method creates a copy of the requests to avoid modifying the original
+// collection and sorts them according to the BulkCheckerType (entity ID or subject ID).
+// The sorting ensures consistent and predictable result ordering.
+func (bc *BulkChecker) getSortedRequests() []BulkCheckerRequest {
+	bc.requestsMu.RLock()
+	defer bc.requestsMu.RUnlock()
+
+	// Create a copy to avoid modifying the original
+	requests := make([]BulkCheckerRequest, len(bc.requests))
+	copy(requests, bc.requests)
+
+	// Sort the copy based on the checker type
+	bc.sortRequests(requests)
+	return requests
+}
+
+// sortRequests sorts requests based on the checker type.
+// This method implements different sorting strategies:
+// - For entity-based checks: sorts by entity ID
+// - For subject-based checks: sorts by subject ID
+// The sorting ensures that results are processed in a consistent order.
+func (bc *BulkChecker) sortRequests(requests []BulkCheckerRequest) {
+	switch bc.typ {
+	case BulkCheckerTypeEntity:
+		sort.Slice(requests, func(i, j int) bool {
+			return requests[i].Request.GetEntity().GetId() < requests[j].Request.GetEntity().GetId()
 		})
-	} else if bc.typ == BULK_SUBJECT {
-		sort.Slice(bc.list, func(i, j int) bool {
-			return bc.list[i].Request.GetSubject().GetId() < bc.list[j].Request.GetSubject().GetId()
+	case BulkCheckerTypeSubject:
+		sort.Slice(requests, func(i, j int) bool {
+			return requests[i].Request.GetSubject().GetId() < requests[j].Request.GetSubject().GetId()
 		})
 	}
 }
 
-// ExecuteRequests begins processing permission check requests from the sorted list.
+// ExecuteRequests processes requests concurrently with comprehensive error handling and resource management.
+// This method is the main entry point for bulk permission checking. It:
+// 1. Stops collecting new requests
+// 2. Sorts all collected requests
+// 3. Processes them concurrently with controlled parallelism
+// 4. Maintains strict ordering of results
+// 5. Handles errors gracefully and manages resources properly
+//
+// Parameters:
+//   - size: The maximum number of successful results to process
+//
+// Returns:
+//   - error: Any error that occurred during processing (context cancellation is not considered an error)
 func (bc *BulkChecker) ExecuteRequests(size uint32) error {
-	// Stop collecting new requests and close the RequestChan to ensure no more requests are added
+	if size == 0 {
+		return fmt.Errorf("size must be greater than 0")
+	}
+
+	// Stop collecting new requests and wait for collection to complete
 	bc.StopCollectingRequests()
 
-	// Wait for request collection to complete before proceeding
-	bc.wg.Wait()
+	// Get sorted requests for processing
+	requests := bc.getSortedRequests()
+	if len(requests) == 0 {
+		return nil // No requests to process
+	}
 
-	// Create a context with cancellation that will be used to stop further processing
-	ctx, cancel := context.WithCancel(bc.ctx)
-	defer cancel() // Ensure the context is canceled when done
+	// Initialize execution state for tracking progress
+	bc.executionState = &executionState{
+		results: make([]base.CheckResult, len(requests)),
+		limit:   int64(size),
+	}
 
-	// Track the number of successful permission checks
-	successCount := int64(0)
-	// Semaphore to control the maximum number of concurrent permission checks
-	sem := semaphore.NewWeighted(int64(bc.concurrencyLimit))
-	var mu sync.Mutex
+	// Create execution context with cancellation for graceful shutdown
+	execCtx, execCancel := context.WithCancel(bc.ctx)
+	defer execCancel()
 
-	// Sort and copy the list of requests
-	listCopy := bc.prepareRequestList()
+	// Create semaphore to control concurrency
+	sem := semaphore.NewWeighted(int64(bc.config.ConcurrencyLimit))
 
-	// Pre-allocate a slice to store the results of the permission checks
-	results := make([]base.CheckResult, len(listCopy))
-	// Track the index of the last processed request to ensure results are processed in order
-	processedIndex := 0
+	// Create error group for managing goroutines and error propagation
+	g, ctx := errgroup.WithContext(execCtx)
 
-	// Loop through each request in the copied list
-	for i, currentRequest := range listCopy {
-		// If we've reached the success limit, stop processing further requests
-		if atomic.LoadInt64(&successCount) >= int64(size) {
-			cancel() // Cancel the context to stop further goroutines
+	// Process requests concurrently
+	for i, req := range requests {
+		// Check if we've reached the success limit
+		if atomic.LoadInt64(&bc.executionState.successCount) >= int64(size) {
 			break
 		}
 
 		index := i
-		req := currentRequest
+		request := req
 
-		// Use errgroup to manage the goroutines, which allows for error handling and synchronization
-		bc.g.Go(func() error {
-			// Check if the context has been canceled, and return without error if so
-			if err := ctx.Err(); err == context.Canceled {
-				return nil // Gracefully exit the goroutine if context is canceled
-			}
-
-			// Acquire a slot in the semaphore to control concurrency
-			if err := sem.Acquire(ctx, 1); err != nil {
-				// Return nil instead of error if the context was canceled during semaphore acquisition
-				if IsContextRelatedError(ctx, err) {
-					return nil
-				}
-				return err // Return an error if semaphore acquisition fails for other reasons
-			}
-			defer sem.Release(1) // Ensure the semaphore slot is released after processing
-
-			var result base.CheckResult
-			if req.Result == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
-				// Perform the permission check if the result is not already specified
-				cr, err := bc.checker.Check(ctx, req.Request)
-				if err != nil {
-					// Handle context cancellation error here
-					if IsContextRelatedError(ctx, err) {
-						return nil // Ignore the cancellation error
-					}
-					return err // Return the actual error if it's not due to cancellation
-				}
-				result = cr.GetCan() // Get the result from the check
-			} else {
-				// Use the already specified result
-				result = req.Result
-			}
-
-			// Lock the mutex to safely update shared resources
-			mu.Lock()
-			results[index] = result // Store the result in the pre-allocated slice
-
-			// Process the results in order, starting from the current processed index
-			for processedIndex < len(listCopy) && results[processedIndex] != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
-				// If the result at the processed index is allowed, call the callback function
-				if results[processedIndex] == base.CheckResult_CHECK_RESULT_ALLOWED {
-					if atomic.AddInt64(&successCount, 1) <= int64(size) {
-						ct := ""
-						if processedIndex+1 < len(listCopy) {
-							// If there is a next item, create a continuous token with the next ID
-							if bc.typ == BULK_ENTITY {
-								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetEntity().GetId()).Encode().String()
-							} else if bc.typ == BULK_SUBJECT {
-								ct = utils.NewContinuousToken(listCopy[processedIndex+1].Request.GetSubject().GetId()).Encode().String()
-							}
-						}
-						// Depending on the type of check (entity or subject), call the appropriate callback
-						if bc.typ == BULK_ENTITY {
-							bc.callback(listCopy[processedIndex].Request.GetEntity().GetId(), ct)
-						} else if bc.typ == BULK_SUBJECT {
-							bc.callback(listCopy[processedIndex].Request.GetSubject().GetId(), ct)
-						}
-					}
-				}
-				processedIndex++ // Move to the next index for processing
-			}
-			mu.Unlock() // Unlock the mutex after updating the results and processed index
-
-			// If the success limit has been reached, cancel the context to stop further processing
-			if atomic.LoadInt64(&successCount) >= int64(size) {
-				cancel()
-			}
-
-			return nil // Return nil to indicate successful processing
+		// Launch goroutine for each request
+		g.Go(func() error {
+			return bc.processRequest(ctx, sem, index, request)
 		})
 	}
 
-	// Wait for all goroutines to complete and check for any errors
-	if err := bc.g.Wait(); err != nil {
-		// Ignore context cancellation as an error
-		if IsContextRelatedError(ctx, err) {
-			return nil
+	// Wait for all goroutines to complete and handle any errors
+	if err := g.Wait(); err != nil {
+		if isContextError(err) {
+			return nil // Context cancellation is not an error
 		}
-		return err // Return other errors if any goroutine returned an error
+		return fmt.Errorf("bulk execution failed: %w", err)
 	}
 
-	return nil // Return nil if all processing completed successfully
+	return nil
 }
 
-// BulkEntityPublisher is a struct for streaming permission check results.
+// processRequest handles a single request with comprehensive error handling.
+// This method is executed in a separate goroutine for each request and:
+// 1. Acquires a semaphore slot to control concurrency
+// 2. Performs the permission check or uses pre-computed result
+// 3. Processes the result in the correct order
+// 4. Handles context cancellation and other errors gracefully
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeout
+//   - sem: Semaphore for concurrency control
+//   - index: The index of this request in the sorted list
+//   - req: The permission check request to process
+//
+// Returns:
+//   - error: Any error that occurred during processing
+func (bc *BulkChecker) processRequest(ctx context.Context, sem *semaphore.Weighted, index int, req BulkCheckerRequest) error {
+	// Check context before acquiring semaphore
+	if err := ctx.Err(); err != nil {
+		return nil
+	}
+
+	// Acquire semaphore slot to control concurrency
+	if err := sem.Acquire(ctx, 1); err != nil {
+		if isContextError(err) {
+			return nil
+		}
+		return fmt.Errorf("failed to acquire semaphore: %w", err)
+	}
+	defer sem.Release(1)
+
+	// Determine the result for this request
+	result, err := bc.getRequestResult(ctx, req)
+	if err != nil {
+		if isContextError(err) {
+			return nil
+		}
+		return fmt.Errorf("failed to get request result: %w", err)
+	}
+
+	// Process the result in the correct order
+	return bc.processResult(index, result)
+}
+
+// getRequestResult determines the result for a request.
+// This method either uses a pre-computed result if available,
+// or performs the actual permission check using the underlying checker.
+//
+// Parameters:
+//   - ctx: Context for the permission check
+//   - req: The request to get the result for
+//
+// Returns:
+//   - base.CheckResult: The result of the permission check
+//   - error: Any error that occurred during the check
+func (bc *BulkChecker) getRequestResult(ctx context.Context, req BulkCheckerRequest) (base.CheckResult, error) {
+	// Use pre-computed result if available
+	if req.Result != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+		return req.Result, nil
+	}
+
+	// Perform the actual permission check
+	response, err := bc.checker.Check(ctx, req.Request)
+	if err != nil {
+		return base.CheckResult_CHECK_RESULT_UNSPECIFIED, err
+	}
+
+	return response.GetCan(), nil
+}
+
+// processResult processes a single result with thread-safe state updates.
+// This method ensures that results are processed in the correct order
+// even when requests complete out of order due to concurrent processing.
+// It maintains the execution state and calls the callback for successful results.
+//
+// Parameters:
+//   - index: The index of the result in the sorted list
+//   - result: The result of the permission check
+//
+// Returns:
+//   - error: Any error that occurred during processing
+func (bc *BulkChecker) processResult(index int, result base.CheckResult) error {
+	bc.executionState.mu.Lock()
+	defer bc.executionState.mu.Unlock()
+
+	// Store the result at the correct index
+	bc.executionState.results[index] = result
+
+	// Process results in order, starting from the current processed index
+	for bc.executionState.processedIndex < len(bc.executionState.results) {
+		currentResult := bc.executionState.results[bc.executionState.processedIndex]
+		if currentResult == base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+			break // Wait for this result to be computed
+		}
+
+		// Process successful results
+		if currentResult == base.CheckResult_CHECK_RESULT_ALLOWED {
+			// Check if we've reached the success limit
+			if atomic.LoadInt64(&bc.executionState.successCount) >= bc.executionState.limit {
+				return nil
+			}
+
+			// Increment success count and call callback
+			atomic.AddInt64(&bc.executionState.successCount, 1)
+			bc.callbackWithToken(bc.executionState.processedIndex)
+		}
+
+		// Move to the next result
+		bc.executionState.processedIndex++
+	}
+
+	return nil
+}
+
+// callbackWithToken calls the callback with the appropriate entity/subject ID and continuous token.
+// This method retrieves the correct request from the sorted list and generates
+// the appropriate continuous token for pagination support.
+//
+// Parameters:
+//   - index: The index of the result in the sorted list
+func (bc *BulkChecker) callbackWithToken(index int) {
+	requests := bc.getSortedRequests()
+
+	// Validate index bounds
+	if index >= len(requests) {
+		return
+	}
+
+	var id string
+	var ct string
+
+	// Extract ID and generate continuous token based on checker type
+	switch bc.typ {
+	case BulkCheckerTypeEntity:
+		id = requests[index].Request.GetEntity().GetId()
+		if index+1 < len(requests) {
+			ct = utils.NewContinuousToken(requests[index+1].Request.GetEntity().GetId()).Encode().String()
+		}
+	case BulkCheckerTypeSubject:
+		id = requests[index].Request.GetSubject().GetId()
+		if index+1 < len(requests) {
+			ct = utils.NewContinuousToken(requests[index+1].Request.GetSubject().GetId()).Encode().String()
+		}
+	}
+
+	// Call the user-provided callback
+	bc.callback(id, ct)
+}
+
+// Close properly cleans up resources and cancels all operations.
+// This method should be called when the BulkChecker is no longer needed
+// to ensure proper resource cleanup and prevent goroutine leaks.
+//
+// Returns:
+//   - error: Any error that occurred during cleanup
+func (bc *BulkChecker) Close() error {
+	bc.cancel()
+	return nil
+}
+
+// BulkEntityPublisher handles entity-based permission check publishing.
+// This struct provides a convenient interface for publishing entity permission
+// check requests to a BulkChecker instance.
 type BulkEntityPublisher struct {
+	// bulkChecker is the target BulkChecker for publishing requests
 	bulkChecker *BulkChecker
-
+	// request contains the base lookup request parameters
 	request *base.PermissionLookupEntityRequest
-	// context to manage goroutines and cancellation
-	ctx context.Context
 }
 
-// NewBulkEntityPublisher creates a new BulkStreamer instance.
+// NewBulkEntityPublisher creates a new BulkEntityPublisher instance.
+// This constructor initializes a publisher for entity-based permission checks.
+//
+// Parameters:
+//   - ctx: Context for the publisher (currently unused but kept for API consistency)
+//   - request: The base lookup request containing common parameters
+//   - bulkChecker: The BulkChecker instance to publish to
+//
+// Returns:
+//   - *BulkEntityPublisher: The initialized publisher instance
 func NewBulkEntityPublisher(ctx context.Context, request *base.PermissionLookupEntityRequest, bulkChecker *BulkChecker) *BulkEntityPublisher {
 	return &BulkEntityPublisher{
 		bulkChecker: bulkChecker,
 		request:     request,
-		ctx:         ctx,
 	}
 }
 
-// Publish publishes a permission check request to the BulkChecker.
-func (s *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
-	s.bulkChecker.RequestChan <- BulkCheckerRequest{
+// Publish sends an entity permission check request to the bulk checker.
+// This method creates a permission check request from the provided parameters
+// and sends it to the BulkChecker for processing. It handles context cancellation
+// gracefully by dropping requests when the context is done.
+//
+// Parameters:
+//   - entity: The entity to check permissions for
+//   - metadata: Metadata for the permission check request
+//   - context: Additional context for the permission check
+//   - result: Optional pre-computed result
+func (p *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
+	select {
+	case p.bulkChecker.requestChan <- BulkCheckerRequest{
 		Request: &base.PermissionCheckRequest{
-			TenantId:   s.request.GetTenantId(),
+			TenantId:   p.request.GetTenantId(),
 			Metadata:   metadata,
 			Entity:     entity,
-			Permission: s.request.GetPermission(),
-			Subject:    s.request.GetSubject(),
+			Permission: p.request.GetPermission(),
+			Subject:    p.request.GetSubject(),
 			Context:    context,
 		},
 		Result: result,
+	}:
+	case <-p.bulkChecker.ctx.Done():
+		// Context cancelled, drop the request
 	}
 }
 
-// BulkSubjectPublisher is a struct for streaming permission check results.
+// BulkSubjectPublisher handles subject-based permission check publishing.
+// This struct provides a convenient interface for publishing subject permission
+// check requests to a BulkChecker instance.
 type BulkSubjectPublisher struct {
+	// bulkChecker is the target BulkChecker for publishing requests
 	bulkChecker *BulkChecker
-
+	// request contains the base lookup request parameters
 	request *base.PermissionLookupSubjectRequest
-	// context to manage goroutines and cancellation
-	ctx context.Context
 }
 
-// NewBulkSubjectPublisher creates a new BulkStreamer instance.
+// NewBulkSubjectPublisher creates a new BulkSubjectPublisher instance.
+// This constructor initializes a publisher for subject-based permission checks.
+//
+// Parameters:
+//   - ctx: Context for the publisher (currently unused but kept for API consistency)
+//   - request: The base lookup request containing common parameters
+//   - bulkChecker: The BulkChecker instance to publish to
+//
+// Returns:
+//   - *BulkSubjectPublisher: The initialized publisher instance
 func NewBulkSubjectPublisher(ctx context.Context, request *base.PermissionLookupSubjectRequest, bulkChecker *BulkChecker) *BulkSubjectPublisher {
 	return &BulkSubjectPublisher{
 		bulkChecker: bulkChecker,
 		request:     request,
-		ctx:         ctx,
 	}
 }
 
-// Publish publishes a permission check request to the BulkChecker.
-func (s *BulkSubjectPublisher) Publish(subject *base.Subject, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
-	s.bulkChecker.RequestChan <- BulkCheckerRequest{
+// Publish sends a subject permission check request to the bulk checker.
+// This method creates a permission check request from the provided parameters
+// and sends it to the BulkChecker for processing. It handles context cancellation
+// gracefully by dropping requests when the context is done.
+//
+// Parameters:
+//   - subject: The subject to check permissions for
+//   - metadata: Metadata for the permission check request
+//   - context: Additional context for the permission check
+//   - result: Optional pre-computed result
+func (p *BulkSubjectPublisher) Publish(subject *base.Subject, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
+	select {
+	case p.bulkChecker.requestChan <- BulkCheckerRequest{
 		Request: &base.PermissionCheckRequest{
-			TenantId:   s.request.GetTenantId(),
+			TenantId:   p.request.GetTenantId(),
 			Metadata:   metadata,
-			Entity:     s.request.GetEntity(),
-			Permission: s.request.GetPermission(),
+			Entity:     p.request.GetEntity(),
+			Permission: p.request.GetPermission(),
 			Subject:    subject,
 			Context:    context,
 		},
 		Result: result,
+	}:
+	case <-p.bulkChecker.ctx.Done():
+		// Context cancelled, drop the request
 	}
 }
 
-// IsContextRelatedError checks if the error is due to context cancellation, deadline exceedance, or closed connection
+// isContextError checks if an error is related to context cancellation or timeout.
+// This helper function centralizes the logic for identifying context-related errors
+// that should not be treated as actual errors in the bulk processing system.
+//
+// Parameters:
+//   - err: The error to check
+//
+// Returns:
+//   - bool: True if the error is context-related, false otherwise
+func isContextError(err error) bool {
+	return errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
+}
+
+// IsContextRelatedError is a legacy function maintained for backward compatibility.
+// This function provides the same functionality as isContextError but with
+// the original signature to maintain compatibility with existing code.
+//
+// Parameters:
+//   - ctx: Context (unused, kept for compatibility)
+//   - err: The error to check
+//
+// Returns:
+//   - bool: True if the error is context-related, false otherwise
 func IsContextRelatedError(ctx context.Context, err error) bool {
-	return errors.Is(ctx.Err(), context.Canceled) || errors.Is(ctx.Err(), context.DeadlineExceeded)
+	return isContextError(err)
 }

@@ -9,14 +9,14 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
     title: "Permify API";
     description: "Permify is an open source authorization service for creating fine-grained and scalable authorization systems.";
-    version: "v1.4.0";
+    version: "v1.4.1";
     contact: {
       name: "API Support";
       url: "https://github.com/Permify/permify/issues";
       email: "hello@permify.co";
     };
     license: {
-      name: "Apache-2.0 license";
+      name: "AGPL-3.0 license";
       url: "https://github.com/Permify/permify/blob/master/LICENSE";
     }
   };

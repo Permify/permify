@@ -33,5 +33,15 @@ var _ = Describe("Common", func() {
 			expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> '0'::xid8 AND expired_tx_id < '100'::xid8"
 			Expect(expectedSQL).Should(Equal(sql))
 		})
+
+		It("Case 2 - Tenant Aware", func() {
+			query := utils.GenerateGCQueryForTenant("relation_tuples", "tenant1", 100)
+			sql, args, err := query.ToSql()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = ? AND expired_tx_id <> '0'::xid8 AND expired_tx_id < '100'::xid8"
+			Expect(expectedSQL).Should(Equal(sql))
+			Expect(args).Should(Equal([]interface{}{"tenant1"}))
+		})
 	})
 })
