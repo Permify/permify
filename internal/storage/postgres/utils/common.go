@@ -107,7 +107,7 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 // GenerateGCQueryForTenant generates a Squirrel DELETE query builder for tenant-aware garbage collection.
 // It constructs a query to delete expired records from the specified table for a specific tenant
 // based on the provided value, which represents a transaction ID.
-func GenerateGCQueryForTenant(table string, tenantID string, value uint64) squirrel.DeleteBuilder {
+func GenerateGCQueryForTenant(table, tenantID string, value uint64) squirrel.DeleteBuilder {
 	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
 	valStr := fmt.Sprintf("'%v'::xid8", value)
 
