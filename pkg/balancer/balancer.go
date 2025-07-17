@@ -248,3 +248,16 @@ func (b *Balancer) UpdateSubConnState(sc balancer.SubConn, state balancer.SubCon
 }
 
 func (b *Balancer) Close() {}
+
+// ExitIdle instructs the LB policy to reconnect to backends / exit the
+// IDLE state, if appropriate and possible. Note that SubConns that enter
+// the IDLE state will not reconnect until SubConn.Connect is called.
+func (b *Balancer) ExitIdle() {
+	// For this consistent hashing balancer, we can attempt to reconnect
+	// idle SubConns by calling Connect() on them
+	for sc, state := range b.subConnStates {
+		if state == connectivity.Idle {
+			sc.Connect()
+		}
+	}
+}
