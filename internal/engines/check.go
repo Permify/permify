@@ -223,7 +223,7 @@ func (engine *CheckEngine) setChild(
 	combiner CheckCombiner,
 ) CheckFunction {
 	// Create a slice to store the CheckFunctions
-	var functions []CheckFunction
+	functions := make([]CheckFunction, 0, len(children))
 	// Loop over each child node
 	for _, child := range children {
 		// Switch on the type of the child node
@@ -286,7 +286,7 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 		it := database.NewUniqueTupleIterator(rit, cti)
 
 		// Define a slice of CheckFunctions to hold the check functions for each subject.
-		var checkFunctions []CheckFunction
+		checkFunctions := make([]CheckFunction, 0, 4)
 		// Iterate over all tuples returned by the iterator.
 		for it.HasNext() {
 			// Get the next tuple's subject.
@@ -366,7 +366,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 		it := database.NewUniqueTupleIterator(rit, cti)
 
 		// Define a slice of CheckFunctions to hold the check functions for each subject.
-		var checkFunctions []CheckFunction
+		checkFunctions := make([]CheckFunction, 0, 4)
 		// Iterate over all tuples returned by the iterator.
 		for it.HasNext() {
 			// Get the next tuple's subject.
@@ -541,8 +541,8 @@ func (engine *CheckEngine) checkDirectCall(
 		}
 
 		// Initialize an arguments map to hold argument values.
-		arguments := map[string]interface{}{
-			"context": map[string]interface{}{
+		arguments := map[string]any{
+			"context": map[string]any{
 				"data": request.GetContext().GetData().AsMap(),
 			},
 		}
@@ -626,7 +626,7 @@ func (engine *CheckEngine) checkDirectCall(
 			return allowed(emptyResponseMetadata()), nil
 		}
 
-		return denied(emptyResponseMetadata()), err
+		return denied(emptyResponseMetadata()), nil
 	}
 }
 
@@ -660,7 +660,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 	}()
 
 	// Iterate over the results of the CheckFunctions
-	for i := 0; i < len(functions); i++ {
+	for range len(functions) {
 		select {
 		// If a result is received
 		case d := <-decisionChan:
@@ -711,7 +711,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 	}()
 
 	// Iterate over the results of the CheckFunctions
-	for i := 0; i < len(functions); i++ {
+	for range len(functions) {
 		select {
 		// If a result is received
 		case d := <-decisionChan:
@@ -794,7 +794,7 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 	}
 
 	// Process the results from the remaining functions
-	for i := 0; i < len(functions)-1; i++ {
+	for range len(functions) - 1 {
 		select {
 		case d := <-decisionChan:
 			responseMetadata = joinResponseMetas(responseMetadata, d.resp.Metadata)
