@@ -18,7 +18,6 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-
 var _ = Describe("goroutine-leak-tests", func() {
 	Context("Goroutine Leak Tests", func() {
 		It("Should not leak goroutines during concurrent checks", func() {
@@ -103,12 +102,12 @@ var _ = Describe("goroutine-leak-tests", func() {
 			for i := 0; i < numChecks; i++ {
 				go func(idx int) {
 					defer func() { done <- struct{}{} }()
-					
+
 					// Alternate between different repositories and users
 					repoId := (idx % 2) + 1
 					userId := (idx % 3) + 1
 					permission := permissions[idx%3]
-					
+
 					entity, err := tuple.E(fmt.Sprintf("repository:%d", repoId))
 					Expect(err).ShouldNot(HaveOccurred())
 
@@ -161,7 +160,7 @@ var _ = Describe("goroutine-leak-tests", func() {
 
 			// Check for significant goroutine leaks
 			// Allow for minimal variance in goroutine count for background goroutines
-			Expect(finalCount).Should(BeNumerically("<=", initialCount+5), 
+			Expect(finalCount).Should(BeNumerically("<=", initialCount+5),
 				"Potential goroutine leak detected: initial=%d, final=%d, increase=%d",
 				initialCount, finalCount, finalCount-initialCount)
 		})
@@ -234,7 +233,7 @@ var _ = Describe("goroutine-leak-tests", func() {
 
 			// Create a context that will be cancelled quickly
 			ctx, cancel := context.WithCancel(context.Background())
-			
+
 			// Cancel the context immediately
 			cancel()
 
@@ -348,7 +347,7 @@ var _ = Describe("goroutine-leak-tests", func() {
 							Depth:         20,
 						},
 					})
-					
+
 					if err != nil {
 						errors <- err
 					} else {
