@@ -1,0 +1,29 @@
+name: Container Security Scan
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  container-security-scan:
+    name: Scan Container for Vulnerabilities
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Build Docker image for scanning
+        run: |
+          docker build -t ghcr.io/permify/permify:scan-${{ github.sha }} .
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'ghcr.io/permify/permify:scan-${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'

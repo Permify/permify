@@ -1,23 +1,23 @@
 ---
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/"
+  - package-ecosystem: gomod
+    directory: /
     schedule:
-      interval: "monthly"
-  - package-ecosystem: "docker"
-    directory: "/"
+      interval: monthly
+  - package-ecosystem: docker
+    directory: /
     schedule:
-      interval: "monthly"  
-  - package-ecosystem: "npm"
-    directory: "/playground"
+      interval: monthly
+  - package-ecosystem: npm
+    directory: /playground
     schedule:
-      interval: "monthly"  
+      interval: monthly
     open-pull-requests-limit: 5
-  - package-ecosystem: "npm"
-    directory: "/docs"
+  - package-ecosystem: npm
+    directory: /docs
     schedule:
-      interval: "monthly"
+      interval: monthly
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
