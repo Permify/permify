@@ -28,7 +28,7 @@ require (
 	github.com/juju/ratelimit v1.0.2
 	github.com/lestrrat-go/jwx v1.2.31
 	github.com/onsi/ginkgo/v2 v2.23.4
-	github.com/onsi/gomega v1.37.0
+	github.com/onsi/gomega v1.38.0
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/rs/cors v1.11.1
