@@ -8,15 +8,6 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
-        env:
-            GITHUB_TOKEN: ${{ secrets.SDK_GH_TOKEN }}
-            ORG_NAME: Permify
-            SWAGGER_PATH: docs/api-reference/openapiv2/apidocs.swagger.json
-
-        strategy:
-            matrix:
-                language: [python]
-
         steps:
             - name: Harden Runner
               uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
@@ -26,21 +17,18 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-            - name: Generate Python Client
-              uses: openapi-generators/openapitools-generator-action@cf6587e7cc576c2bd7071b2ad6b30f6f8e54ef00 # v1
+            - name: Invoke generator workflow Permify/permify-java repo
+              uses: benc-uk/workflow-dispatch@v1
               with:
-                  generator: ${{ matrix.language }}
-                  openapi-file: ${SWAGGER_PATH}
-                  command-args: -o permify-client --git-user-id ${ORG_NAME} --git-repo-id permify-${{ matrix.language }} --package-name permify --global-property apis,models
-
-            - name: Push SDK to GitHub
-              run: |
-                  git config --global user.name 'GitHub Actions Bot'
-                  git config --global user.email '<>'
-                  git clone https://${GITHUB_TOKEN}@github.com/${ORG_NAME}/permify-${{ matrix.language }}.git temp
-                  cp -r permify-client/* temp/
-                  cd temp
-                  git add .
-                  git diff-index --quiet HEAD || git commit -m "Update ${{ matrix.language }} SDK from OpenAPI changes"
-                  git push https://${GITHUB_TOKEN}@github.com/${ORG_NAME}/permify-${{ matrix.language }}.git main --force
-                  rm -rf permify-client
+                workflow: generator.yml
+                repo: Permify/permify-java
+                ref: master
+                token: "${{ secrets.SDK_GH_TOKEN }}"
+        
+            - name: Invoke generator workflow Permify/permify-python repo
+              uses: benc-uk/workflow-dispatch@v1
+              with:
+                workflow: generator.yml
+                repo: Permify/permify-python
+                ref: main
+                token: "${{ secrets.SDK_GH_TOKEN }}"
