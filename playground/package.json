@@ -97,6 +97,8 @@
     ]
   },
   "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "case-sensitive-paths-webpack-plugin": "^2.4.0",
     "craco-alias": "^3.0.1",
     "dotenv": "^17.0.0",
