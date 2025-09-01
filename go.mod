@@ -30,7 +30,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.25.2
 	github.com/onsi/gomega v1.38.2
 	github.com/pkg/errors v0.9.1
-	github.com/pressly/goose/v3 v3.24.3
+	github.com/pressly/goose/v3 v3.25.0
 	github.com/rs/cors v1.11.1
 	github.com/rs/xid v1.6.0
 	github.com/sercand/kuberesolver/v5 v5.1.1
@@ -55,7 +55,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.38.0
 	go.opentelemetry.io/otel/sdk/metric v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
-	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
+	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b
 	golang.org/x/net v0.43.0
 	golang.org/x/sync v0.16.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250825161204-c5933d9347a5
