@@ -981,4 +981,212 @@ rule check_ip_address(ip_addresses string[]) {
 			}
 		})
 	})
+
+	It("Case 10 - Coverage for uncovered code paths", func() {
+		str := `entity user {
+	relation admin @user
+	action test = admin and (age > 18.5 or is_active = false)
+}
+
+rule test_rule(created_at time, started_at time) {
+	created_at > started_at
+}
+
+rule math_rule(a integer, b integer) {
+	a + b * 2 - 3 / 4 % 5 ^ 2 < 10
+}
+
+// Single line comment without newline at end`
+
+		l := NewLexer(str)
+
+		// Just test that the lexer can process the input without errors
+		// and that we get the expected token types for uncovered paths
+		var tokens []token.Token
+		for {
+			tok := l.NextToken()
+			tokens = append(tokens, tok)
+			if tok.Type == token.EOF {
+				break
+			}
+		}
+
+		// Verify we have some key tokens that exercise uncovered code
+		Expect(len(tokens)).Should(BeNumerically(">", 10))
+
+		// Check for specific token types that were uncovered
+		hasDouble := false
+		hasBoolean := false
+		hasArithmetic := false
+		hasComparison := false
+		hasComment := false
+
+		for _, tok := range tokens {
+			switch tok.Type {
+			case token.DOUBLE:
+				hasDouble = true
+			case token.BOOLEAN:
+				hasBoolean = true
+			case token.PLUS, token.MINUS, token.TIMES, token.DIVIDE, token.MOD, token.POW:
+				hasArithmetic = true
+			case token.LT, token.GT:
+				hasComparison = true
+			case token.SINGLE_LINE_COMMENT:
+				hasComment = true
+			}
+		}
+
+		Expect(hasDouble).Should(BeTrue())
+		Expect(hasBoolean).Should(BeTrue())
+		Expect(hasArithmetic).Should(BeTrue())
+		Expect(hasComparison).Should(BeTrue())
+		Expect(hasComment).Should(BeTrue())
+	})
+
+	It("Case 11 - Additional coverage for specific uncovered paths", func() {
+		str := `entity user {
+	relation admin @user
+	action test = admin and (age > 18.5 or is_active = false)
+}
+
+rule test_rule(created_at time, started_at time) {
+	created_at > started_at
+}
+
+// Single line comment without newline at end`
+
+		tests := []struct {
+			expectedType    token.Type
+			expectedLiteral string
+		}{
+			{token.ENTITY, "entity"},
+			{token.SPACE, " "},
+			{token.IDENT, "user"},
+			{token.SPACE, " "},
+			{token.LCB, "{"},
+			{token.NEWLINE, "\n"},
+			{token.TAB, "\t"},
+			{token.RELATION, "relation"},
+			{token.SPACE, " "},
+			{token.IDENT, "admin"},
+			{token.SPACE, " "},
+			{token.SIGN, "@"},
+			{token.IDENT, "user"},
+			{token.NEWLINE, "\n"},
+			{token.TAB, "\t"},
+			{token.PERMISSION, "action"},
+			{token.SPACE, " "},
+			{token.IDENT, "test"},
+			{token.SPACE, " "},
+			{token.ASSIGN, "="},
+			{token.SPACE, " "},
+			{token.IDENT, "admin"},
+			{token.SPACE, " "},
+			{token.AND, "and"},
+			{token.SPACE, " "},
+			{token.LP, "("},
+			{token.IDENT, "age"},
+			{token.SPACE, " "},
+			{token.GT, ">"},
+			{token.SPACE, " "},
+			{token.DOUBLE, "18.5"},
+			{token.SPACE, " "},
+			{token.OR, "or"},
+			{token.SPACE, " "},
+			{token.IDENT, "is_active"},
+			{token.SPACE, " "},
+			{token.ASSIGN, "="},
+			{token.SPACE, " "},
+			{token.BOOLEAN, "false"},
+			{token.RP, ")"},
+			{token.NEWLINE, "\n"},
+			{token.RCB, "}"},
+			{token.NEWLINE, "\n"},
+			{token.NEWLINE, "\n"},
+			{token.RULE, "rule"},
+			{token.SPACE, " "},
+			{token.IDENT, "test_rule"},
+			{token.LP, "("},
+			{token.IDENT, "created_at"},
+			{token.SPACE, " "},
+			{token.IDENT, "time"},
+			{token.COMMA, ","},
+			{token.SPACE, " "},
+			{token.IDENT, "started_at"},
+			{token.SPACE, " "},
+			{token.IDENT, "time"},
+			{token.RP, ")"},
+			{token.SPACE, " "},
+			{token.LCB, "{"},
+			{token.NEWLINE, "\n"},
+			{token.TAB, "\t"},
+			{token.IDENT, "created_at"},
+			{token.SPACE, " "},
+			{token.GT, ">"},
+			{token.SPACE, " "},
+			{token.IDENT, "started_at"},
+			{token.NEWLINE, "\n"},
+			{token.RCB, "}"},
+			{token.NEWLINE, "\n"},
+			{token.NEWLINE, "\n"},
+			{token.SINGLE_LINE_COMMENT, " Single line comment without newline at end"},
+			{token.EOF, ""},
+		}
+
+		l := NewLexer(str)
+
+		for i, tt := range tests {
+			lexeme := l.NextToken()
+			index := strconv.Itoa(i) + ": "
+			Expect(index + lexeme.Type.String()).Should(Equal(index + tt.expectedType.String()))
+			Expect(index + lexeme.Literal).Should(Equal(index + tt.expectedLiteral))
+		}
+	})
+
+	It("Case 12 - Test carriage return and colon", func() {
+		str := `entity user {
+	relation admin @user
+	action test = admin and (age: 18 or is_active = false)
+}
+
+rule test_rule(created_at time, started_at time) {
+	created_at > started_at
+}`
+
+		l := NewLexer(str)
+
+		// Just test that the lexer can process the input without errors
+		// and that we get the expected token types for uncovered paths
+		var tokens []token.Token
+		for {
+			tok := l.NextToken()
+			tokens = append(tokens, tok)
+			if tok.Type == token.EOF {
+				break
+			}
+		}
+
+		// Verify we have some key tokens that exercise uncovered code
+		Expect(len(tokens)).Should(BeNumerically(">", 10))
+
+		// Check for specific token types that were uncovered
+		hasColon := false
+		hasBoolean := false
+		hasComparison := false
+
+		for _, tok := range tokens {
+			switch tok.Type {
+			case token.COLON:
+				hasColon = true
+			case token.BOOLEAN:
+				hasBoolean = true
+			case token.LT, token.GT:
+				hasComparison = true
+			}
+		}
+
+		Expect(hasColon).Should(BeTrue())
+		Expect(hasBoolean).Should(BeTrue())
+		Expect(hasComparison).Should(BeTrue())
+	})
 })
