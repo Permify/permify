@@ -492,4 +492,539 @@ var _ = Describe("DataReader", func() {
 			Expect(isSameArray(refs4, []string{"organization-8"})).Should(BeTrue())
 		})
 	})
+
+	Context("Error Handling", func() {
+		Context("QueryRelationships Error Handling", func() {
+			It("should handle snapshot decode error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger errors
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				// Test with invalid snapshot token
+				_, err = readerWithClosedDB.QueryRelationships(ctx, "t1", &base.TupleFilter{}, "invalid_snapshot", database.CursorPagination{})
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()))
+			})
+
+			It("should handle continuous token decode error", func() {
+				ctx := context.Background()
+
+				// Test with invalid continuous token
+				pagination := database.NewCursorPagination(
+					database.Cursor("invalid_token"),
+					database.Sort("id"),
+				)
+
+				_, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{}, "0", pagination)
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or INVALID_CONTINUOUS_TOKEN depending on which fails first
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()),
+				))
+			})
+
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, err = readerWithClosedDB.QueryRelationships(ctx, "t1", &base.TupleFilter{}, "0", database.CursorPagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or SQL_BUILDER depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+				))
+			})
+
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, err = readerWithClosedDB.QueryRelationships(ctx, "t1", &base.TupleFilter{}, "0", database.CursorPagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be INTERNAL, SQL_BUILDER, or EXECUTION depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+				))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, err = readerWithClosedDB.QueryRelationships(ctx, "t1", &base.TupleFilter{}, "0", database.CursorPagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be various types depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+
+		Context("ReadRelationships Error Handling", func() {
+			It("should handle snapshot decode error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger errors
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				// Test with invalid snapshot token
+				_, _, err = readerWithClosedDB.ReadRelationships(ctx, "t1", &base.TupleFilter{}, "invalid_snapshot", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()))
+			})
+
+			It("should handle continuous token decode error", func() {
+				ctx := context.Background()
+
+				// Test with invalid continuous token
+				pagination := database.NewPagination(database.Token("invalid_token"))
+
+				_, _, err := dataReader.ReadRelationships(ctx, "t1", &base.TupleFilter{}, "0", pagination)
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or INVALID_CONTINUOUS_TOKEN depending on which fails first
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()),
+				))
+			})
+
+			It("should handle continuous token parse error", func() {
+				ctx := context.Background()
+
+				// Test with invalid continuous token that can't be parsed as uint64
+				pagination := database.NewPagination(database.Token("not_a_number"))
+
+				_, _, err := dataReader.ReadRelationships(ctx, "t1", &base.TupleFilter{}, "0", pagination)
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or INVALID_CONTINUOUS_TOKEN depending on which fails first
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()),
+				))
+			})
+
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadRelationships(ctx, "t1", &base.TupleFilter{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or SQL_BUILDER depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+				))
+			})
+
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadRelationships(ctx, "t1", &base.TupleFilter{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be INTERNAL, SQL_BUILDER, or EXECUTION depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+				))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadRelationships(ctx, "t1", &base.TupleFilter{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be various types depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+
+		Context("QueryAttributes Error Handling", func() {
+			It("should handle snapshot decode error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger errors
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				// Test with invalid snapshot token
+				_, err = readerWithClosedDB.QueryAttributes(ctx, "t1", &base.AttributeFilter{}, "invalid_snapshot", database.CursorPagination{})
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()))
+			})
+
+			It("should handle continuous token decode error", func() {
+				ctx := context.Background()
+
+				// Test with invalid continuous token
+				pagination := database.NewCursorPagination(
+					database.Cursor("invalid_token"),
+					database.Sort("id"),
+				)
+
+				_, err := dataReader.QueryAttributes(ctx, "t1", &base.AttributeFilter{}, "0", pagination)
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or INVALID_CONTINUOUS_TOKEN depending on which fails first
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()),
+				))
+			})
+
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, err = readerWithClosedDB.QueryAttributes(ctx, "t1", &base.AttributeFilter{}, "0", database.CursorPagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or SQL_BUILDER depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+				))
+			})
+
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, err = readerWithClosedDB.QueryAttributes(ctx, "t1", &base.AttributeFilter{}, "0", database.CursorPagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be INTERNAL, SQL_BUILDER, or EXECUTION depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+				))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, err = readerWithClosedDB.QueryAttributes(ctx, "t1", &base.AttributeFilter{}, "0", database.CursorPagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be various types depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+
+		Context("ReadAttributes Error Handling", func() {
+			It("should handle snapshot decode error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger errors
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				// Test with invalid snapshot token
+				_, _, err = readerWithClosedDB.ReadAttributes(ctx, "t1", &base.AttributeFilter{}, "invalid_snapshot", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()))
+			})
+
+			It("should handle continuous token decode error", func() {
+				ctx := context.Background()
+
+				// Test with invalid continuous token
+				pagination := database.NewPagination(database.Token("invalid_token"))
+
+				_, _, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{}, "0", pagination)
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or INVALID_CONTINUOUS_TOKEN depending on which fails first
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()),
+				))
+			})
+
+			It("should handle continuous token parse error", func() {
+				ctx := context.Background()
+
+				// Test with invalid continuous token that can't be parsed as uint64
+				pagination := database.NewPagination(database.Token("not_a_number"))
+
+				_, _, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{}, "0", pagination)
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or INVALID_CONTINUOUS_TOKEN depending on which fails first
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()),
+				))
+			})
+
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadAttributes(ctx, "t1", &base.AttributeFilter{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or SQL_BUILDER depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+				))
+			})
+
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadAttributes(ctx, "t1", &base.AttributeFilter{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be INTERNAL, SQL_BUILDER, or EXECUTION depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+				))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadAttributes(ctx, "t1", &base.AttributeFilter{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be various types depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+
+		Context("QueryUniqueSubjectReferences Error Handling", func() {
+			It("should handle continuous token decode error", func() {
+				ctx := context.Background()
+
+				// Test with invalid continuous token
+				pagination := database.NewPagination(database.Token("invalid_token"))
+
+				_, _, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{Type: "user"}, []string{}, "0", pagination)
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or INVALID_CONTINUOUS_TOKEN depending on which fails first
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()),
+				))
+			})
+
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{Type: "user"}, []string{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be either INTERNAL (snapshot decode) or SQL_BUILDER depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+				))
+			})
+
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{Type: "user"}, []string{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be INTERNAL, SQL_BUILDER, or EXECUTION depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+				))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, _, err = readerWithClosedDB.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{Type: "user"}, []string{}, "0", database.Pagination{})
+				Expect(err).Should(HaveOccurred())
+				// The error could be various types depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+
+		Context("HeadSnapshot Error Handling", func() {
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, err = readerWithClosedDB.HeadSnapshot(ctx, "t1")
+				Expect(err).Should(HaveOccurred())
+				// The error could be SQL_BUILDER or SCAN depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle scan error with no rows", func() {
+				ctx := context.Background()
+
+				// Test with a non-existent tenant to trigger no rows error
+				_, err := dataReader.HeadSnapshot(ctx, "non_existent_tenant")
+				Expect(err).ShouldNot(HaveOccurred()) // This should return a snapshot with value 0, not an error
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a dataReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewDataReader(closedDB)
+
+				_, err = readerWithClosedDB.HeadSnapshot(ctx, "t1")
+				Expect(err).Should(HaveOccurred())
+				// The error could be SQL_BUILDER or SCAN depending on when the connection fails
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+	})
 })

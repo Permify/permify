@@ -229,33 +229,3 @@ func (gc *GC) deleteTransactionsForTenant(ctx context.Context, tenantID string, 
 	_, err = gc.database.WritePool.Exec(ctx, query, args...)
 	return err
 }
-
-// Legacy methods for backward compatibility - these are now deprecated and will be removed in future versions
-
-// getLastTransactionID retrieves the last transaction ID from the transactions table that occurred before the provided timestamp.
-// DEPRECATED: Use getLastTransactionIDForTenant instead for tenant-aware garbage collection.
-func (gc *GC) getLastTransactionID(ctx context.Context, before time.Time) (uint64, error) {
-	builder := gc.database.Builder.
-		Select("id").
-		From(postgres.TransactionsTable).
-		Where(squirrel.Lt{"timestamp": before}).
-		OrderBy("id DESC").
-		Limit(1)
-
-	tquery, targs, terr := builder.ToSql()
-	if terr != nil {
-		return 0, terr
-	}
-
-	var lastTransactionID uint64
-	row := gc.database.WritePool.QueryRow(ctx, tquery, targs...)
-	err := row.Scan(&lastTransactionID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return 0, nil
-		}
-		return 0, err
-	}
-
-	return lastTransactionID, nil
-}

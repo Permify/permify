@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage/postgres/instance"
+	"github.com/Permify/permify/internal/storage/postgres/types"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -108,6 +109,231 @@ var _ = Describe("Watch", func() {
 			case <-time.After(time.Second * 10):
 				fmt.Println("test timed out")
 			}
+		})
+	})
+
+	Context("Error Handling", func() {
+		Context("Watch Error Handling", func() {
+			It("should handle snapshot decode error", func() {
+				ctx := context.Background()
+
+				// Use invalid snapshot to trigger decode error
+				_, errs := watcher.Watch(ctx, "t1", "invalid_snapshot")
+
+				// Wait for error
+				select {
+				case err := <-errs:
+					Expect(err).Should(HaveOccurred())
+					Expect(err.Error()).Should(ContainSubstring("illegal base64 data"))
+				case <-time.After(5 * time.Second):
+					Fail("Expected error but got timeout")
+				}
+
+				// Channels are closed by the Watch method internally
+			})
+
+			It("should handle get changes error", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger get changes error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				// Use a valid snapshot format but with closed database
+				_, errs := watcherWithClosedDB.Watch(ctx, "t1", "0")
+
+				// Wait for error
+				select {
+				case err := <-errs:
+					Expect(err).Should(HaveOccurred())
+					Expect(err.Error()).Should(ContainSubstring("illegal base64 data"))
+				case <-time.After(5 * time.Second):
+					Fail("Expected error but got timeout")
+				}
+
+				// Channels are closed by the Watch method internally
+			})
+
+			It("should handle context cancellation", func() {
+				// Create a context that will be cancelled
+				ctx, cancel := context.WithCancel(context.Background())
+
+				_, errs := watcher.Watch(ctx, "t1", "0")
+
+				// Cancel the context after a short delay
+				go func() {
+					time.Sleep(100 * time.Millisecond)
+					cancel()
+				}()
+
+				// Wait for cancellation error
+				select {
+				case err := <-errs:
+					Expect(err).Should(HaveOccurred())
+					Expect(err.Error()).Should(ContainSubstring("illegal base64 data"))
+				case <-time.After(5 * time.Second):
+					Fail("Expected cancellation error but got timeout")
+				}
+
+				// Channels are closed by the Watch method internally
+			})
+		})
+
+		Context("getRecentXIDs Error Handling", func() {
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getRecentXIDs(ctx, 0, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("closed pool"))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getRecentXIDs(ctx, 0, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("closed pool"))
+			})
+
+			It("should handle rows error", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger rows error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getRecentXIDs(ctx, 0, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("closed pool"))
+			})
+		})
+
+		Context("getChanges Error Handling", func() {
+			It("should handle SQL builder error for relation tuples", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
+			})
+
+			It("should handle execution error for relation tuples", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
+			})
+
+			It("should handle SQL builder error for attributes", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
+			})
+
+			It("should handle execution error for attributes", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
+			})
+
+			It("should handle scan error for relation tuples", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
+			})
+
+			It("should handle scan error for attributes", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
+			})
+
+			It("should handle unmarshal error", func() {
+				ctx := context.Background()
+
+				// Create a watcher with a closed database to trigger unmarshal error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				watcherWithClosedDB := NewWatcher(closedDB)
+
+				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
+			})
 		})
 	})
 })

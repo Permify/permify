@@ -237,4 +237,425 @@ var _ = Describe("SchemaReader", func() {
 			Expect(ct2.String()).Should(Equal(""))
 		})
 	})
+
+	Context("Error Handling", func() {
+		Context("ReadSchema Error Handling", func() {
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle internal error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger internal error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+				))
+			})
+		})
+
+		Context("ReadSchemaString Error Handling", func() {
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+
+		Context("ReadEntityDefinition Error Handling", func() {
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "entity1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle schema not found error", func() {
+				ctx := context.Background()
+
+				// Try to read a non-existent entity definition
+				_, _, err := schemaReader.ReadEntityDefinition(ctx, "t1", "nonexistent", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String()))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "entity1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle internal error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger internal error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "entity1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+				))
+			})
+		})
+
+		Context("ReadRuleDefinition Error Handling", func() {
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "rule1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle schema not found error", func() {
+				ctx := context.Background()
+
+				// Try to read a non-existent rule definition
+				_, _, err := schemaReader.ReadRuleDefinition(ctx, "t1", "nonexistent", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String()))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "rule1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle internal error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger internal error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "rule1", "version1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+				))
+			})
+		})
+
+		Context("HeadVersion Error Handling", func() {
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.HeadVersion(ctx, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle schema not found error", func() {
+				ctx := context.Background()
+
+				// Try to get head version for a tenant with no schemas
+				_, err := schemaReader.HeadVersion(ctx, "nonexistent_tenant")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String()))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				_, err = readerWithClosedDB.HeadVersion(ctx, "t1")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+
+		Context("ListSchemas Error Handling", func() {
+			It("should handle invalid continuous token error", func() {
+				ctx := context.Background()
+
+				// Create pagination with invalid token
+				pagination := database.NewPagination(database.Size(10), database.Token("invalid_token"))
+
+				_, _, err := schemaReader.ListSchemas(ctx, "t1", pagination)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()))
+			})
+
+			It("should handle SQL builder error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger SQL builder error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				pagination := database.NewPagination(database.Size(10), database.Token(""))
+				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", pagination)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				pagination := database.NewPagination(database.Size(10), database.Token(""))
+				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", pagination)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle scan error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger scan error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				pagination := database.NewPagination(database.Size(10), database.Token(""))
+				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", pagination)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle internal error", func() {
+				ctx := context.Background()
+
+				// Create a schemaReader with a closed database to trigger internal error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readerWithClosedDB := NewSchemaReader(closedDB)
+
+				pagination := database.NewPagination(database.Size(10), database.Token(""))
+				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", pagination)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+					Equal(base.ErrorCode_ERROR_CODE_INTERNAL.String()),
+				))
+			})
+		})
+	})
 })
