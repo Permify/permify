@@ -35,7 +35,7 @@ require (
 	github.com/rs/xid v1.6.0
 	github.com/sercand/kuberesolver/v5 v5.1.1
 	github.com/sony/gobreaker v1.0.0
-	github.com/spf13/cobra v1.9.1
+	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.38.0
