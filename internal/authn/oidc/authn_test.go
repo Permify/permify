@@ -867,6 +867,8 @@ var _ = Describe("authn-oidc", func() {
 					if hj, ok := w.(http.Hijacker); ok {
 						conn, _, _ := hj.Hijack()
 						conn.Close()
+					} else {
+						Skip("ResponseWriter does not support Hijacker; skipping read-error simulation")
 					}
 					return
 				}
