@@ -17,6 +17,34 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
+// Mock implementations for testing
+
+type mockSchemaReader struct{}
+
+func (m *mockSchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (*base.SchemaDefinition, error) {
+	return nil, fmt.Errorf("mock schema reader error")
+}
+
+func (m *mockSchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) ([]string, error) {
+	return nil, fmt.Errorf("mock schema reader error")
+}
+
+func (m *mockSchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (*base.EntityDefinition, string, error) {
+	return nil, "", fmt.Errorf("mock schema reader error")
+}
+
+func (m *mockSchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (*base.RuleDefinition, string, error) {
+	return nil, "", fmt.Errorf("mock schema reader error")
+}
+
+func (m *mockSchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, error) {
+	return "", fmt.Errorf("mock schema reader error")
+}
+
+func (m *mockSchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) ([]*base.SchemaList, database.EncodedContinuousToken, error) {
+	return nil, nil, fmt.Errorf("mock schema reader error")
+}
+
 var _ = Describe("lookup-entity-engine", func() {
 	// DRIVE SAMPLE
 
@@ -4894,6 +4922,183 @@ entity group_perms {
 					Expect(ids).Should(Equal(res))
 				}
 			}
+		})
+	})
+
+	Context("Error Handling", func() {
+		It("should handle NewBulkChecker errors in LookupEntity", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+
+			// Create engine with nil checker to trigger NewBulkChecker error
+			engine := NewLookupEngine(nil, schemaReader, dataReader)
+
+			request := &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "user",
+				Permission: "read",
+				Subject:    &base.Subject{Type: "user", Id: "user1"},
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+				},
+			}
+
+			// This should trigger the NewBulkChecker error (line 84)
+			_, err = engine.LookupEntity(context.Background(), request)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("failed to create bulk checker"))
+		})
+
+		It("should handle readSchema errors in LookupEntity", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Use mock schema reader to trigger readSchema error
+			schemaReader := &mockSchemaReader{}
+			dataReader := factories.DataReaderFactory(db)
+
+			mockCheckEngine := &mockCheckEngine{}
+			engine := NewLookupEngine(mockCheckEngine, schemaReader, dataReader)
+
+			request := &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "user",
+				Permission: "read",
+				Subject:    &base.Subject{Type: "user", Id: "user1"},
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+				},
+			}
+
+			// This should trigger the readSchema error (line 95)
+			_, err = engine.LookupEntity(context.Background(), request)
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should handle NewBulkChecker errors in LookupEntityStream", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+
+			// Create engine with nil checker to trigger NewBulkChecker error
+			engine := NewLookupEngine(nil, schemaReader, dataReader)
+
+			request := &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "user",
+				Permission: "read",
+				Subject:    &base.Subject{Type: "user", Id: "user1"},
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+				},
+			}
+
+			// This should trigger the NewBulkChecker error (line 165)
+			err = engine.LookupEntityStream(context.Background(), request, nil)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("failed to create bulk checker"))
+		})
+
+		It("should handle readSchema errors in LookupEntityStream", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Use mock schema reader to trigger readSchema error
+			schemaReader := &mockSchemaReader{}
+			dataReader := factories.DataReaderFactory(db)
+
+			mockCheckEngine := &mockCheckEngine{}
+			engine := NewLookupEngine(mockCheckEngine, schemaReader, dataReader)
+
+			request := &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "user",
+				Permission: "read",
+				Subject:    &base.Subject{Type: "user", Id: "user1"},
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+				},
+			}
+
+			// This should trigger the readSchema error (line 176)
+			err = engine.LookupEntityStream(context.Background(), request, nil)
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should handle readSchema errors in LookupSubject", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Use mock schema reader to trigger readSchema error
+			schemaReader := &mockSchemaReader{}
+			dataReader := factories.DataReaderFactory(db)
+
+			mockCheckEngine := &mockCheckEngine{}
+			engine := NewLookupEngine(mockCheckEngine, schemaReader, dataReader)
+
+			request := &base.PermissionLookupSubjectRequest{
+				TenantId:         "t1",
+				SubjectReference: tuple.RelationReference("user"),
+				Entity:           &base.Entity{Type: "user", Id: "user1"},
+				Permission:       "read",
+				Metadata: &base.PermissionLookupSubjectRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+				},
+			}
+
+			// This should trigger the readSchema error (line 223)
+			_, err = engine.LookupSubject(context.Background(), request)
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should handle readSchema errors in readSchema function", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Use mock schema reader to trigger readSchema error
+			schemaReader := &mockSchemaReader{}
+			dataReader := factories.DataReaderFactory(db)
+
+			mockCheckEngine := &mockCheckEngine{}
+			engine := NewLookupEngine(mockCheckEngine, schemaReader, dataReader)
+
+			// This should trigger the readSchema error (line 304)
+			_, err = engine.readSchema(context.Background(), "t1", "")
+			Expect(err).Should(HaveOccurred())
 		})
 	})
 })

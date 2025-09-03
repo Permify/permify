@@ -177,9 +177,7 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 	// Convert the builder to a SQL query and arguments.
 	query, args, err := builder.ToSql()
 	if err != nil {
-
 		slog.ErrorContext(ctx, "error while building sql query", slog.Any("error", err))
-
 		return nil, err
 	}
 
@@ -208,9 +206,7 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 	// Check for errors that could have occurred during iteration.
 	err = rows.Err()
 	if err != nil {
-
 		slog.ErrorContext(ctx, "failed to iterate over rows", slog.Any("error", err))
-
 		return nil, err
 	}
 

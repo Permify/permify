@@ -72,4 +72,143 @@ var _ = Describe("TenantWriter", func() {
 			Expect(tenant.Name).Should(Equal("test name 1"))
 		})
 	})
+
+	Context("Error Handling", func() {
+		Context("CreateTenant Error Handling", func() {
+			It("should handle execution error", func() {
+				ctx := context.Background()
+
+				// Create a tenantWriter with a closed database to trigger execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(closedDB)
+
+				_, err = writerWithClosedDB.CreateTenant(ctx, "test_id", "test_name")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+
+		Context("DeleteTenant Error Handling", func() {
+			It("should handle transaction begin error", func() {
+				ctx := context.Background()
+
+				// Create a tenantWriter with a closed database to trigger transaction begin error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(closedDB)
+
+				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle batch execution error", func() {
+				ctx := context.Background()
+
+				// Create a tenantWriter with a closed database to trigger batch execution error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(closedDB)
+
+				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle commit error after batch execution", func() {
+				ctx := context.Background()
+
+				// Create a tenantWriter with a closed database to trigger commit error after batch execution
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(closedDB)
+
+				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle query row error", func() {
+				ctx := context.Background()
+
+				// Create a tenantWriter with a closed database to trigger query row error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(closedDB)
+
+				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle batch close error", func() {
+				ctx := context.Background()
+
+				// Create a tenantWriter with a closed database to trigger batch close error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(closedDB)
+
+				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle final commit error", func() {
+				ctx := context.Background()
+
+				// Create a tenantWriter with a closed database to trigger final commit error
+				closedDB := db.(*PQDatabase.Postgres)
+				err := closedDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(closedDB)
+
+				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+		})
+	})
 })

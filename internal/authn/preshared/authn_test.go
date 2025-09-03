@@ -34,6 +34,26 @@ var _ = Describe("KeyAuthn", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
+	Describe("NewKeyAuthn", func() {
+		Context("with empty keys", func() {
+			It("should return an error", func() {
+				emptyConfig := config.Preshared{Keys: []string{}}
+				_, err := NewKeyAuthn(context.Background(), emptyConfig)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("pre shared key authn must have at least one key"))
+			})
+		})
+
+		Context("with nil keys", func() {
+			It("should return an error", func() {
+				nilConfig := config.Preshared{Keys: nil}
+				_, err := NewKeyAuthn(context.Background(), nilConfig)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("pre shared key authn must have at least one key"))
+			})
+		})
+	})
+
 	Describe("Authenticate", func() {
 		Context("with valid Bearer token", func() {
 			BeforeEach(func() {
