@@ -3565,8 +3565,8 @@ message TenantDeleteRequest {
 
 // TenantDeleteResponse is the message returned from the request to delete a tenant.
 message TenantDeleteResponse {
-  // tenant is the tenant information that was deleted.
-  Tenant tenant = 1 [json_name = "tenant"];
+  // tenant_id is the tenant id that was deleted.
+  string tenant_id = 1 [json_name = "tenant_id"];
 }
 
 // TenantListRequest is the message used for the request to list all tenants.

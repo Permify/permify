@@ -251,7 +251,7 @@ type TenantWriter interface {
 	// CreateTenant writes tenant to the storage.
 	CreateTenant(ctx context.Context, id, name string) (tenant *base.Tenant, err error)
 	// DeleteTenant deletes tenant from the storage.
-	DeleteTenant(ctx context.Context, tenantID string) (tenant *base.Tenant, err error)
+	DeleteTenant(ctx context.Context, tenantID string) (err error)
 }
 
 type NoopTenantWriter struct{}
@@ -264,6 +264,6 @@ func (n *NoopTenantWriter) CreateTenant(_ context.Context, _, _ string) (*base.T
 	return &base.Tenant{}, nil
 }
 
-func (n *NoopTenantWriter) DeleteTenant(_ context.Context, _ string) (*base.Tenant, error) {
-	return &base.Tenant{}, nil
+func (n *NoopTenantWriter) DeleteTenant(_ context.Context, _ string) error {
+	return nil
 }

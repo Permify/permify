@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/Permify/permify/internal/storage"
@@ -41,9 +40,15 @@ func (w *TenantWriter) CreateTenant(_ context.Context, id, name string) (result 
 }
 
 // DeleteTenant -
-func (w *TenantWriter) DeleteTenant(_ context.Context, tenantID string) (result *base.Tenant, err error) {
+func (w *TenantWriter) DeleteTenant(_ context.Context, tenantID string) (err error) {
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
+
+	// Check if tenant exists first
+	raw, err := txn.First(constants.TenantsTable, "id", tenantID)
+	if err != nil || raw == nil {
+		return errors.New(base.ErrorCode_ERROR_CODE_NOT_FOUND.String())
+	}
 
 	// Define a slice of tables to delete associated records
 	tables := []string{
@@ -54,36 +59,20 @@ func (w *TenantWriter) DeleteTenant(_ context.Context, tenantID string) (result 
 	}
 
 	// Iterate through each table and delete records associated with the tenant
-	totalDeleted := 0
 	for _, table := range tables {
 		if _, err := txn.First(table, "tenant_id", tenantID); err == nil {
-			numDeleted, deleteErr := txn.DeleteAll(table, "tenant_id", tenantID)
+			_, deleteErr := txn.DeleteAll(table, "tenant_id", tenantID)
 			if deleteErr != nil {
-				return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
+				return errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 			}
-			totalDeleted += numDeleted
 		}
 	}
 
-	// Retrieve the tenant first
-	raw, err := txn.First(constants.TenantsTable, "id", tenantID)
-	if err != nil {
-		if totalDeleted > 0 {
-			raw = storage.Tenant{
-				ID:        tenantID,
-				Name:      fmt.Sprintf("Affected rows: %d", totalDeleted),
-				CreatedAt: time.Now(),
-			}
-		} else {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-		}
-	} else {
-		// Finally, delete the tenant record
-		if _, err = txn.DeleteAll(constants.TenantsTable, "id", tenantID); err != nil {
-			return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-		}
+	// Finally, delete the tenant record
+	if _, err = txn.DeleteAll(constants.TenantsTable, "id", tenantID); err != nil {
+		return errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	txn.Commit()
-	return raw.(storage.Tenant).ToTenant(), nil
+	return nil
 }

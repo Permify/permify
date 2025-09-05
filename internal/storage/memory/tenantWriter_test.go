@@ -50,11 +50,8 @@ var _ = Describe("TenantWriter", func() {
 			Expect(tenant.Id).Should(Equal("test_id_1"))
 			Expect(tenant.Name).Should(Equal("test name 1"))
 
-			tenant, err = tenantWriter.DeleteTenant(ctx, "test_id_1")
+			err = tenantWriter.DeleteTenant(ctx, "test_id_1")
 			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(tenant.Id).Should(Equal("test_id_1"))
-			Expect(tenant.Name).Should(Equal("test name 1"))
 		})
 	})
 
@@ -85,23 +82,18 @@ var _ = Describe("TenantWriter", func() {
 			// The delete error is hard to trigger in normal operation since the memory
 			// database should handle deletes properly. This test verifies the error
 			// handling exists in the code.
-			deletedTenant, err := tenantWriter.DeleteTenant(ctx, "test_id_3")
+			err = tenantWriter.DeleteTenant(ctx, "test_id_3")
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(deletedTenant.Id).Should(Equal("test_id_3"))
 		})
 
 		It("should handle no affected rows in DeleteTenant", func() {
 			ctx := context.Background()
 
 			// Try to delete a non-existent tenant
-			// This should trigger the "no affected rows" error path
-			// The current implementation has a bug where it panics instead of returning an error
-			// when trying to delete a non-existent tenant with no affected rows
-			Expect(func() {
-				_, err := tenantWriter.DeleteTenant(ctx, "non-existent-tenant")
-				// This should either return an error or panic due to the bug
-				_ = err
-			}).Should(Panic())
+			// This should trigger the "not found" error path
+			err := tenantWriter.DeleteTenant(ctx, "non-existent-tenant")
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("ERROR_CODE_NOT_FOUND"))
 		})
 
 		It("should handle final delete error in DeleteTenant", func() {
@@ -115,9 +107,8 @@ var _ = Describe("TenantWriter", func() {
 			// The final delete error is hard to trigger in normal operation since the
 			// memory database should handle deletes properly. This test verifies the
 			// error handling exists in the code.
-			deletedTenant, err := tenantWriter.DeleteTenant(ctx, "test_id_4")
+			err = tenantWriter.DeleteTenant(ctx, "test_id_4")
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(deletedTenant.Id).Should(Equal("test_id_4"))
 		})
 
 		It("should handle tenant with associated data in DeleteTenant", func() {
@@ -130,9 +121,8 @@ var _ = Describe("TenantWriter", func() {
 
 			// Create some associated data (this would normally be done by other writers)
 			// For this test, we'll just verify the deletion works
-			deletedTenant, err := tenantWriter.DeleteTenant(ctx, "test_id_5")
+			err = tenantWriter.DeleteTenant(ctx, "test_id_5")
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(deletedTenant.Id).Should(Equal("test_id_5"))
 		})
 
 		It("should handle duplicate tenant creation", func() {
@@ -179,9 +169,8 @@ var _ = Describe("TenantWriter", func() {
 			Expect(tenant.Name).Should(Equal(specialName))
 
 			// Delete the tenant
-			deletedTenant, err := tenantWriter.DeleteTenant(ctx, specialID)
+			err = tenantWriter.DeleteTenant(ctx, specialID)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(deletedTenant.Id).Should(Equal(specialID))
 		})
 	})
 })

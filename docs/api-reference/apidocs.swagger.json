@@ -3231,9 +3231,9 @@
     "TenantDeleteResponse": {
       "type": "object",
       "properties": {
-        "tenant": {
-          "$ref": "#/definitions/Tenant",
-          "description": "tenant is the tenant information that was deleted."
+        "tenant_id": {
+          "type": "string",
+          "description": "tenant_id is the tenant id that was deleted."
         }
       },
       "description": "TenantDeleteResponse is the message returned from the request to delete a tenant."
