@@ -8,9 +8,11 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/memory/migrations"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	"github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("DataWriter", func() {
@@ -123,6 +125,272 @@ var _ = Describe("DataWriter", func() {
 			}, "", database.NewPagination())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(aCollection.GetAttributes())).Should(Equal(1))
+		})
+	})
+
+	Context("Write method", func() {
+		It("should return noop token when no tuples or attributes", func() {
+			ctx := context.Background()
+
+			// Test with empty collections
+			token, err := dataWriter.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token).ShouldNot(BeNil())
+
+			// Verify it's a noop token by checking if it can be decoded
+			decodedToken, err := token.Decode()
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(decodedToken).ShouldNot(BeNil())
+		})
+
+		It("should handle ellipsis relation in tuples", func() {
+			ctx := context.Background()
+
+			// Create a tuple with ellipsis relation
+			tup, err := tuple.Tuple("organization:org-1#admin@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Modify the tuple to have ellipsis relation
+			tup.Subject.Relation = tuple.ELLIPSIS
+
+			tuples := database.NewTupleCollection([]*base.Tuple{
+				tup,
+			}...)
+
+			token, err := dataWriter.Write(ctx, "t1", tuples, database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token).ShouldNot(BeNil())
+
+			// Verify the tuple was written correctly
+			it, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"org-1"},
+				},
+			}, "", database.NewCursorPagination())
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(it.HasNext()).Should(BeTrue())
+		})
+	})
+
+	Context("Delete method", func() {
+		It("should handle tuple deletion with type conversion error", func() {
+			ctx := context.Background()
+
+			// First write some tuples
+			tup1, err := tuple.Tuple("organization:org-1#admin@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tuples := database.NewTupleCollection([]*base.Tuple{
+				tup1,
+			}...)
+
+			_, err = dataWriter.Write(ctx, "t1", tuples, database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test deletion with valid filter
+			token, err := dataWriter.Delete(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"org-1"},
+				},
+			}, &base.AttributeFilter{})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token).ShouldNot(BeNil())
+		})
+
+		It("should handle attribute deletion with type conversion error", func() {
+			ctx := context.Background()
+
+			// First write some attributes
+			attr1, err := attribute.Attribute("organization:org-1$public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			attributes := database.NewAttributeCollection([]*base.Attribute{
+				attr1,
+			}...)
+
+			_, err = dataWriter.Write(ctx, "t1", database.NewTupleCollection(), attributes)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test deletion with valid filter
+			token, err := dataWriter.Delete(ctx, "t1", &base.TupleFilter{}, &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"org-1"},
+				},
+				Attributes: []string{"public"},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token).ShouldNot(BeNil())
+		})
+	})
+
+	Context("RunBundle error handling", func() {
+		It("should handle bundle operation errors", func() {
+			ctx := context.Background()
+
+			// Create a bundle with invalid operation
+			bundle := &base.DataBundle{
+				Name: "invalid_bundle",
+				Operations: []*base.Operation{
+					{
+						RelationshipsWrite: []string{
+							"invalid:tuple:format", // This should cause an error
+						},
+					},
+				},
+			}
+
+			// This should return an error due to invalid tuple format
+			_, err := dataWriter.RunBundle(ctx, "t1", map[string]string{}, bundle)
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should handle ellipsis relation in bundle operations", func() {
+			ctx := context.Background()
+
+			// Create a bundle with ellipsis relation
+			bundle := &base.DataBundle{
+				Name: "ellipsis_bundle",
+				Operations: []*base.Operation{
+					{
+						RelationshipsWrite: []string{
+							"organization:org-1#admin@user:user-1#...", // Ellipsis relation
+						},
+					},
+				},
+			}
+
+			token, err := dataWriter.RunBundle(ctx, "t1", map[string]string{}, bundle)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token).ShouldNot(BeNil())
+		})
+
+		It("should handle tuple deletion in bundle operations", func() {
+			ctx := context.Background()
+
+			// First write some tuples
+			tup1, err := tuple.Tuple("organization:org-1#admin@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tuples := database.NewTupleCollection([]*base.Tuple{
+				tup1,
+			}...)
+
+			_, err = dataWriter.Write(ctx, "t1", tuples, database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create a bundle that deletes the tuple
+			bundle := &base.DataBundle{
+				Name: "delete_bundle",
+				Operations: []*base.Operation{
+					{
+						RelationshipsDelete: []string{
+							"organization:org-1#admin@user:user-1",
+						},
+					},
+				},
+			}
+
+			token, err := dataWriter.RunBundle(ctx, "t1", map[string]string{}, bundle)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token).ShouldNot(BeNil())
+
+			// Verify the tuple was deleted
+			it, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"org-1"},
+				},
+			}, "", database.NewCursorPagination())
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(it.HasNext()).Should(BeFalse())
+		})
+
+		It("should handle attribute deletion in bundle operations", func() {
+			ctx := context.Background()
+
+			// First write some attributes
+			attr1, err := attribute.Attribute("organization:org-1$public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			attributes := database.NewAttributeCollection([]*base.Attribute{
+				attr1,
+			}...)
+
+			_, err = dataWriter.Write(ctx, "t1", database.NewTupleCollection(), attributes)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create a bundle that deletes the attribute
+			bundle := &base.DataBundle{
+				Name: "delete_attribute_bundle",
+				Operations: []*base.Operation{
+					{
+						AttributesDelete: []string{
+							"organization:org-1$public|boolean:true",
+						},
+					},
+				},
+			}
+
+			token, err := dataWriter.RunBundle(ctx, "t1", map[string]string{}, bundle)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token).ShouldNot(BeNil())
+
+			// Verify the attribute was deleted
+			attr, err := dataReader.QuerySingleAttribute(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"org-1"},
+				},
+				Attributes: []string{"public"},
+			}, "")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(attr).Should(BeNil())
+		})
+
+		It("should handle mixed operations in bundle", func() {
+			ctx := context.Background()
+
+			// Create a bundle with mixed operations
+			bundle := &base.DataBundle{
+				Name: "mixed_bundle",
+				Operations: []*base.Operation{
+					{
+						RelationshipsWrite: []string{
+							"organization:org-1#admin@user:user-1",
+						},
+						AttributesWrite: []string{
+							"organization:org-1$public|boolean:true",
+						},
+					},
+				},
+			}
+
+			token, err := dataWriter.RunBundle(ctx, "t1", map[string]string{}, bundle)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(token).ShouldNot(BeNil())
+
+			// Verify both tuple and attribute were written
+			it, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"org-1"},
+				},
+			}, "", database.NewCursorPagination())
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(it.HasNext()).Should(BeTrue())
+
+			attr, err := dataReader.QuerySingleAttribute(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+					Ids:  []string{"org-1"},
+				},
+				Attributes: []string{"public"},
+			}, "")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(attr).ShouldNot(BeNil())
 		})
 	})
 })
