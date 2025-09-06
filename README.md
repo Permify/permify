@@ -28,8 +28,7 @@
     <a href="https://scrutinizer-ci.com/g/Permify/permify/?branch=master" target="_blank"><img src="https://img.shields.io/scrutinizer/quality/g/Permify/permify/master?style=for-the-badge" alt="Scrutinizer code quality (GitHub/Bitbucket)" /></a>&nbsp;
     <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>&nbsp;
     <a href="https://gurubase.io/g/permify" target="_blank"><img src="https://img.shields.io/badge/Gurubase-Ask%20AI-006BFF?style=for-the-badge" alt="Gurubase - Ask AI" /></a>
-    
-</p>        
+</p>
 
 ![permify-centralized](https://github.com/user-attachments/assets/124eaa43-5d33-423d-a258-5d6f4afbc774)
 
@@ -41,7 +40,7 @@ Our service makes authorization more secure and adaptable to changing needs, all
 
 It works in run time and can respond to any type of access control checks (can user X view document Y?, which posts can members of team Y edit?, etc.) from any of your apps and services in tens of milliseconds.
 
-### With Permify, you can:
+### With Permify, you can
 
 🧪 **Centralize & Standardize Your Authorization**: Abstract your authorization logic from your codebase and application logic to easily reason, test, and debug your authorization. Behave your authorization as a sole entity and move faster with in your core development.
 
@@ -51,7 +50,7 @@ It works in run time and can respond to any type of access control checks (can u
 
 🚀 **Scale Your Authorization As You Wish:** Achieve lightning-fast response times down to 10ms for access checks with a proven infrastructure inspired by Google Zanzibar.
 
-## Getting Started 
+## Getting Started
 
 - Follow a guide to model your authorization using [Permify's Authorization Language].
 - See our [Playground], build your authorization logic and test it with sample data.
@@ -89,10 +88,11 @@ You can quickly start Permify on your local with running the docker command belo
 docker run -p 3476:3476 -p 3478:3478 ghcr.io/permify/permify serve
 ```
 
-This will start Permify with the default configuration options: 
-* Port 3476 is used to serve the REST API.
-* Port 3478 is used to serve the GRPC Service.
-* Authorization data stored in memory.
+This will start Permify with the default configuration options:
+
+- Port 3476 is used to serve the REST API.
+- Port 3478 is used to serve the GRPC Service.
+- Authorization data stored in memory.
 
 See [all of the options] that you can use to set up and deploy Permify in your servers.
 
@@ -132,7 +132,7 @@ Your feedback helps shape the future of Permify, and we'd love to hear from you!
 
 Share your use case, get the latest product updates, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
 
-<a href="https://discord.gg/n6KfzYxhPp" target="_blank"><img src="https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge" alt="Join Our Discord" /></a>&nbsp;
+[![Join Our Discord!](https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge)](https://discord.gg/n6KfzYxhPp)&nbsp;
 
 ## Contributing
 
@@ -140,11 +140,12 @@ The open source community thrives on contributions, offering an incredible space
 
 Here are the ways to contribute to Permify:
 
-* **Contribute to codebase:** We're collaboratively working with our community to make Permify the best it can be! You can develop new features, fix existing issues or make third-party integrations/packages. 
-* **Improve documentation:** Alongside our codebase, documentation one of the most significant part in our open-source journey. We're trying to give the best DX possible to explain ourselves and Permify. And you can help on that with importing resources or adding new ones.
-* **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
+- **Contribute to codebase:** We're collaboratively working with our community to make Permify the best it can be! You can develop new features, fix existing issues or make third-party integrations/packages.
+- **Improve documentation:** Alongside our codebase, documentation one of the most significant part in our open-source journey. We're trying to give the best DX possible to explain ourselves and Permify. And you can help on that with importing resources or adding new ones.
+- **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
 
-### Bounties 
+### Bounties
+
 [![Open Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fpermify%2Fbounties%3Fstatus%3Dopen&style=for-the-badge)](https://console.algora.io/org/permify/bounties?status=open)
 
 We have a list of [issues](https://github.com/Permify/permify/labels/%F0%9F%92%8E%20Bounty) where you can contribute and gain bounty award! Bounties will be awarded for fixing issues via accepted Pull Requests (PR).
@@ -153,26 +154,16 @@ Before start please see our [contributing guide](https://github.com/Permify/perm
 
 ## Roadmap
 
-You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/projects/1)!
+You can find [Permify's Public Roadmap](https://github.com/orgs/Permify/projects/1)!
 
 ## Contributors ♥️
 
-<a href="https://github.com/permify/Permify/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=permify/Permify&anon=1" />
-</a>
+[![Contributors](https://contrib.rocks/image?repo=permify/Permify&anon=1)](https://github.com/permify/Permify/graphs/contributors)
 
 ## Communication Channels
 
 If you like Permify, please consider giving us a :star:
 
-<p align="left">
-<a href="https://discord.gg/n6KfzYxhPp">
- <img height="70px" width="70px" alt="permify | Discord" src="https://user-images.githubusercontent.com/39353278/187209316-3d01a799-c51b-4eaa-8f52-168047078a14.png" />
-</a>
-<a href="https://twitter.com/GetPermify">
-  <img height="70px" width="70px" alt="permify | Twitter" src="https://user-images.githubusercontent.com/39353278/187209323-23f14261-d406-420d-80eb-1aa707a71043.png"/>
-</a>
-<a href="https://www.linkedin.com/company/permifyco">
-  <img height="70px" width="70px" alt="permify | Linkedin" src="https://user-images.githubusercontent.com/39353278/187209321-03293a24-6f63-4321-b362-b0fc89fdd879.png" />
-</a>
-</p>
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/n6KfzYxhPp)&nbsp;&nbsp;
+[![X (Twitter)](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/GetPermify)&nbsp;&nbsp;
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/permifyco)
