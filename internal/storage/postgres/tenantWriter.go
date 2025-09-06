@@ -64,7 +64,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 }
 
 // DeleteTenant - Deletes a Tenant
-func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (result *base.Tenant, err error) {
+func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (err error) {
 	ctx, span := internal.Tracer.Start(ctx, "tenant-writer.delete-tenant")
 	defer span.End()
 
@@ -72,14 +72,23 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 
 	tx, err := w.database.WritePool.Begin(ctx)
 	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 	defer tx.Rollback(ctx)
 
+	// Check if tenant exists first
+	var exists bool
+	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM "+TenantsTable+" WHERE id = $1)", tenantID).Scan(&exists)
+	if err != nil {
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	}
+	if !exists {
+		return utils.HandleError(ctx, span, errors.New("tenant not found"), base.ErrorCode_ERROR_CODE_NOT_FOUND)
+	}
+
 	// Prepare batch operations for deleting tenant-related records from multiple tables
-	tables := []string{"bundles", "relation_tuples", "attributes", "schema_definitions", "transactions"}
+	tables := []string{BundlesTable, RelationTuplesTable, AttributesTable, SchemaDefinitionTable, TransactionsTable}
 	batch := &pgx.Batch{}
-	var totalDeleted int64
 	for _, table := range tables {
 		query := fmt.Sprintf(utils.DeleteAllByTenantTemplate, table)
 		batch.Queue(query, tenantID)
@@ -89,49 +98,40 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (resul
 	// Execute the batch of delete queries
 	br := tx.SendBatch(ctx, batch)
 
-	for i := 0; i < len(tables); i++ {
-		tag, err := br.Exec()
+	for range tables {
+		_, err := br.Exec()
 		if err != nil {
-			err = br.Close()
-			if err != nil {
-				return nil, err
+			originalErr := err
+			closeErr := br.Close()
+			if closeErr != nil {
+				return closeErr
 			}
-			err = tx.Commit(ctx)
-			if err != nil {
-				return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-			}
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
-		} else {
-			totalDeleted += tag.RowsAffected()
+			// Don't commit on error, let defer tx.Rollback() handle it
+			return utils.HandleError(ctx, span, originalErr, base.ErrorCode_ERROR_CODE_EXECUTION)
 		}
 	}
 
-	// Retrieve the tenant details after deletion
-	var name string
-	var createdAt time.Time
-	err = br.QueryRow().Scan(&name, &createdAt)
+	// Execute the tenant deletion
+	_, err = br.Exec()
 	if err != nil {
-		if totalDeleted > 0 {
-			name = fmt.Sprintf("Affected rows: %d", totalDeleted)
-		} else {
-			return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		originalErr := err
+		closeErr := br.Close()
+		if closeErr != nil {
+			return closeErr
 		}
+		// Don't commit on error, let defer tx.Rollback() handle it
+		return utils.HandleError(ctx, span, originalErr, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	err = br.Close()
 	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	// Return the deleted tenant information
-	return &base.Tenant{
-		Id:        tenantID,
-		Name:      name,
-		CreatedAt: timestamppb.New(createdAt),
-	}, nil
+	return nil
 }

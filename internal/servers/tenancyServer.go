@@ -52,7 +52,8 @@ func (t *TenancyServer) Delete(ctx context.Context, request *v1.TenantDeleteRequ
 	ctx, span := internal.Tracer.Start(ctx, "tenant.delete")
 	defer span.End()
 
-	tenant, err := t.tw.DeleteTenant(ctx, request.GetId())
+	id := request.GetId()
+	err := t.tw.DeleteTenant(ctx, id)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -61,7 +62,7 @@ func (t *TenancyServer) Delete(ctx context.Context, request *v1.TenantDeleteRequ
 	}
 
 	return &v1.TenantDeleteResponse{
-		Tenant: tenant,
+		TenantId: id,
 	}, nil
 }
 

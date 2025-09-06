@@ -3,18 +3,12 @@ package oidc
 import (
 	"bytes"
 	"log/slog"
-	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-func TestSlogAdapter(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "SlogAdapter suite")
-}
-
-var _ = Describe("SlogAdapter", func() {
+var _ = Describe("slog-adapter", func() {
 	var (
 		buffer  *bytes.Buffer
 		logger  *slog.Logger

@@ -183,9 +183,10 @@ func (r *DataReader) QuerySingleAttribute(_ context.Context, tenantID string, fi
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	// Filter the result iterator and add the attributes to the collection.
+	// Filter the result iterator and get the first attribute.
 	fit := memdb.NewFilterIterator(result, utils.FilterAttributesQuery(tenantID, filter))
-	for obj := fit.Next(); obj != nil; {
+	obj := fit.Next()
+	if obj != nil {
 		t, ok := obj.(storage.Attribute)
 		if !ok {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())

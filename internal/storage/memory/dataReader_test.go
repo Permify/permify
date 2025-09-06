@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -396,6 +397,298 @@ var _ = Describe("DataReader", func() {
 			Expect(ct4.String()).Should(Equal(""))
 
 			Expect(isSameArray(refs4, []string{"organization-8"})).Should(BeTrue())
+		})
+	})
+
+	Context("Error handling and edge cases", func() {
+		It("should handle invalid cursor in QueryRelationships", func() {
+			ctx := context.Background()
+
+			// Test with invalid cursor
+			_, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewCursorPagination(database.Cursor("invalid-cursor")))
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should handle different sorting options in QueryRelationships", func() {
+			ctx := context.Background()
+
+			tup1, err := tuple.Tuple("organization:org-a#admin@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup2, err := tuple.Tuple("organization:org-b#admin@user:user-2")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tuples := database.NewTupleCollection([]*base.Tuple{
+				tup1,
+				tup2,
+			}...)
+
+			_, err = dataWriter.Write(ctx, "t1", tuples, database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test entity_id sorting
+			it1, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewCursorPagination(database.Sort("entity_id")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(it1.HasNext()).Should(BeTrue())
+
+			// Test subject_id sorting
+			it2, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewCursorPagination(database.Sort("subject_id")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(it2.HasNext()).Should(BeTrue())
+
+			// Test invalid sorting (should not sort)
+			it3, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewCursorPagination(database.Sort("invalid_sort")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(it3.HasNext()).Should(BeTrue())
+		})
+
+		It("should handle limit in QueryRelationships", func() {
+			ctx := context.Background()
+
+			// Create multiple tuples
+			var tuples []*base.Tuple
+			for i := 1; i <= 5; i++ {
+				tup, err := tuple.Tuple(fmt.Sprintf("organization:org-%d#admin@user:user-%d", i, i))
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, tup)
+			}
+
+			_, err := dataWriter.Write(ctx, "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test with limit
+			it, err := dataReader.QueryRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewCursorPagination(database.Limit(3)))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			count := 0
+			for it.HasNext() {
+				it.GetNext()
+				count++
+			}
+			Expect(count).Should(Equal(3))
+		})
+
+		It("should handle invalid token in ReadRelationships", func() {
+			ctx := context.Background()
+
+			// Test with invalid token
+			_, _, err := dataReader.ReadRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "invalid-token", database.NewPagination(database.Size(10), database.Token("invalid-token")))
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should handle different sorting options in QueryAttributes", func() {
+			ctx := context.Background()
+
+			attr1, err := attribute.Attribute("organization:org-a$public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			attr2, err := attribute.Attribute("organization:org-b$public|boolean:false")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			attributes := database.NewAttributeCollection([]*base.Attribute{
+				attr1,
+				attr2,
+			}...)
+
+			_, err = dataWriter.Write(ctx, "t1", database.NewTupleCollection(), attributes)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test entity_id sorting
+			it1, err := dataReader.QueryAttributes(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewCursorPagination(database.Sort("entity_id")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(it1.HasNext()).Should(BeTrue())
+
+			// Test invalid sorting (should not sort)
+			it2, err := dataReader.QueryAttributes(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewCursorPagination(database.Sort("invalid_sort")))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(it2.HasNext()).Should(BeTrue())
+		})
+
+		It("should handle limit in QueryAttributes", func() {
+			ctx := context.Background()
+
+			// Create multiple attributes
+			var attributes []*base.Attribute
+			for i := 1; i <= 5; i++ {
+				attr, err := attribute.Attribute(fmt.Sprintf("organization:org-%d$attr%d|boolean:true", i, i))
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, attr)
+			}
+
+			_, err := dataWriter.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test with limit
+			it, err := dataReader.QueryAttributes(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewCursorPagination(database.Limit(3)))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			count := 0
+			for it.HasNext() {
+				it.GetNext()
+				count++
+			}
+			Expect(count).Should(Equal(3))
+		})
+
+		It("should handle excluded subjects in QueryUniqueSubjectReferences", func() {
+			ctx := context.Background()
+
+			tup1, err := tuple.Tuple("organization:org-1#admin@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup2, err := tuple.Tuple("organization:org-2#admin@user:user-2")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup3, err := tuple.Tuple("organization:org-3#admin@user:user-3")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tuples := database.NewTupleCollection([]*base.Tuple{
+				tup1,
+				tup2,
+				tup3,
+			}...)
+
+			_, err = dataWriter.Write(ctx, "t1", tuples, database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test with excluded subjects
+			refs, _, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{
+				Type:     "user",
+				Relation: "",
+			}, []string{"user-2"}, "", database.NewPagination())
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(len(refs)).Should(Equal(2))
+			Expect(isSameArray(refs, []string{"user-1", "user-3"})).Should(BeTrue())
+		})
+
+		It("should handle pagination with page size in QueryUniqueSubjectReferences", func() {
+			ctx := context.Background()
+
+			// Create multiple tuples with different subjects
+			var tuples []*base.Tuple
+			for i := 1; i <= 10; i++ {
+				tup, err := tuple.Tuple(fmt.Sprintf("organization:org-%d#admin@user:user-%d", i, i))
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, tup)
+			}
+
+			_, err := dataWriter.Write(ctx, "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test with page size
+			refs, ct, err := dataReader.QueryUniqueSubjectReferences(ctx, "t1", &base.RelationReference{
+				Type:     "user",
+				Relation: "",
+			}, []string{}, "", database.NewPagination(database.Size(3)))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(len(refs)).Should(Equal(3))
+			Expect(ct.String()).ShouldNot(Equal(""))
+		})
+
+		It("should handle HeadSnapshot", func() {
+			ctx := context.Background()
+
+			snapshot, err := dataReader.HeadSnapshot(ctx, "t1")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(snapshot).ShouldNot(BeNil())
+		})
+
+		It("should handle invalid token in ReadAttributes", func() {
+			ctx := context.Background()
+
+			// Test with invalid token
+			_, _, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "invalid-token", database.NewPagination(database.Size(10), database.Token("invalid-token")))
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should handle pagination with page size in ReadRelationships", func() {
+			ctx := context.Background()
+
+			// Create multiple tuples
+			var tuples []*base.Tuple
+			for i := 1; i <= 10; i++ {
+				tup, err := tuple.Tuple(fmt.Sprintf("organization:org-%d#admin@user:user-%d", i, i))
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, tup)
+			}
+
+			_, err := dataWriter.Write(ctx, "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test with page size
+			col, ct, err := dataReader.ReadRelationships(ctx, "t1", &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewPagination(database.Size(3)))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(len(col.GetTuples())).Should(Equal(3))
+			Expect(ct.String()).ShouldNot(Equal(""))
+		})
+
+		It("should handle pagination with page size in ReadAttributes", func() {
+			ctx := context.Background()
+
+			// Create multiple attributes
+			var attributes []*base.Attribute
+			for i := 1; i <= 10; i++ {
+				attr, err := attribute.Attribute(fmt.Sprintf("organization:org-%d$attr%d|boolean:true", i, i))
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, attr)
+			}
+
+			_, err := dataWriter.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Test with page size
+			col, ct, err := dataReader.ReadAttributes(ctx, "t1", &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organization",
+				},
+			}, "", database.NewPagination(database.Size(3)))
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(len(col.GetAttributes())).Should(Equal(3))
+			Expect(ct.String()).ShouldNot(Equal(""))
 		})
 	})
 })

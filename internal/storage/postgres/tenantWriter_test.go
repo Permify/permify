@@ -65,11 +65,8 @@ var _ = Describe("TenantWriter", func() {
 			Expect(tenant.Id).Should(Equal("test_id_1"))
 			Expect(tenant.Name).Should(Equal("test name 1"))
 
-			tenant, err = tenantWriter.DeleteTenant(ctx, "test_id_1")
+			err = tenantWriter.DeleteTenant(ctx, "test_id_1")
 			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(tenant.Id).Should(Equal("test_id_1"))
-			Expect(tenant.Name).Should(Equal("test name 1"))
 		})
 	})
 
@@ -106,7 +103,7 @@ var _ = Describe("TenantWriter", func() {
 
 				writerWithClosedDB := NewTenantWriter(closedDB)
 
-				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
@@ -125,7 +122,7 @@ var _ = Describe("TenantWriter", func() {
 
 				writerWithClosedDB := NewTenantWriter(closedDB)
 
-				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
@@ -144,7 +141,7 @@ var _ = Describe("TenantWriter", func() {
 
 				writerWithClosedDB := NewTenantWriter(closedDB)
 
-				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
@@ -163,7 +160,7 @@ var _ = Describe("TenantWriter", func() {
 
 				writerWithClosedDB := NewTenantWriter(closedDB)
 
-				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
@@ -182,7 +179,7 @@ var _ = Describe("TenantWriter", func() {
 
 				writerWithClosedDB := NewTenantWriter(closedDB)
 
-				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
@@ -201,7 +198,7 @@ var _ = Describe("TenantWriter", func() {
 
 				writerWithClosedDB := NewTenantWriter(closedDB)
 
-				_, err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
