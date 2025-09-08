@@ -14,12 +14,6 @@ type pgSnapshot struct {
 	pgtype.Value
 }
 
-// SnapshotCodec handles encoding/decoding of PostgreSQL snapshot values
-type SnapshotCodec struct{}
-
-// Uint64Codec handles encoding/decoding of PostgreSQL xid8 values
-type Uint64Codec struct{}
-
 // Set sets the XID8 value from various input types
 func (x *XID8) Set(src interface{}) error {
 	return (*pguint64)(x).Set(src)
@@ -63,14 +57,4 @@ func (x *XID8) Scan(src interface{}) error {
 // Value implements the database/sql/driver Valuer interface
 func (x XID8) Value() (driver.Value, error) {
 	return (pguint64)(x).Value()
-}
-
-// FormatCode returns the format code for snapshot values
-func (c SnapshotCodec) FormatCode() int16 {
-	return pgtype.BinaryFormatCode
-}
-
-// FormatCode returns the format code for xid8 values
-func (c Uint64Codec) FormatCode() int16 {
-	return pgtype.BinaryFormatCode
 }

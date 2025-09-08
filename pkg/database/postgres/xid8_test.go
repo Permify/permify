@@ -136,19 +136,3 @@ var _ = Describe("XID8", func() {
 		})
 	})
 })
-
-var _ = Describe("Codecs", func() {
-	Context("SnapshotCodec", func() {
-		It("Case 1: FormatCode", func() {
-			codec := SnapshotCodec{}
-			Expect(codec.FormatCode()).Should(Equal(int16(pgtype.BinaryFormatCode)))
-		})
-	})
-
-	Context("Uint64Codec", func() {
-		It("Case 1: FormatCode", func() {
-			codec := Uint64Codec{}
-			Expect(codec.FormatCode()).Should(Equal(int16(pgtype.BinaryFormatCode)))
-		})
-	})
-})
