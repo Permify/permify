@@ -320,7 +320,6 @@
         "operations/bundle",
         "operations/cache",
         "operations/contextual-tuples",
-        "operations/repair",
         "operations/tracing",
         "operations/snap-tokens"
       ]
@@ -355,7 +354,8 @@
     {
       "group": "Migration",
       "pages": [
-        "migration/v1.0-v1.1"
+        "migration/v1.0-v1.1",
+        "migration/repair"
       ]
     },
     {
