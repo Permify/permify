@@ -124,13 +124,6 @@ failed to advance XID counter: permission denied
 - Ensure database user has sufficient privileges
 - User needs ability to execute `pg_current_xact_id()` and transaction operations
 
-**Type Mismatch Error**
-```
-COALESCE types xid8 and integer cannot be matched
-```
-- This indicates a PostgreSQL version compatibility issue
-- Ensure you're using a compatible PostgreSQL version
-
 ### Best Practices
 
 - Always run with `--dry-run` first in production
