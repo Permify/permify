@@ -109,33 +109,24 @@ func (p *Postgres) Repair(ctx context.Context, config *RepairConfig) (*RepairRes
 	return result, nil
 }
 
-
 // getCurrentPostgreSQLXID gets the current PostgreSQL transaction ID
 func (p *Postgres) getCurrentPostgreSQLXID(ctx context.Context) (uint64, error) {
-	var currentXID uint64
-	query := "SELECT pg_current_xact_id()::text::integer"
-	err := p.ReadPool.QueryRow(ctx, query).Scan(&currentXID)
-	return currentXID, err
+	var x int64
+	query := "SELECT (pg_current_xact_id()::text)::bigint"
+	if err := p.ReadPool.QueryRow(ctx, query).Scan(&x); err != nil {
+		return 0, err
+	}
+	return uint64(x), nil
 }
 
 // getMaxReferencedXID gets the maximum transaction ID referenced in the transactions table
 func (p *Postgres) getMaxReferencedXID(ctx context.Context) (uint64, error) {
-	query := "SELECT MAX(id)::text::integer FROM transactions"
-
-	var maxReferencedXID uint64
-	err := p.ReadPool.QueryRow(ctx, query).Scan(&maxReferencedXID)
-	return maxReferencedXID, err
-}
-
-// queryLoopXactID performs pg_current_xact_id() in a server-side loop
-// to increment the transaction ID counter
-func queryLoopXactID(batchSize int) string {
-	return fmt.Sprintf(`DO $$
-BEGIN
-  FOR i IN 1..%d LOOP
-    PERFORM pg_current_xact_id(); ROLLBACK;
-  END LOOP;
-END $$;`, batchSize)
+	query := "SELECT (MAX(id)::text)::bigint FROM transactions"
+	var x int64
+	if err := p.ReadPool.QueryRow(ctx, query).Scan(&x); err != nil {
+		return 0, err
+	}
+	return uint64(x), nil
 }
 
 // advanceXIDCounterByDelta advances the PostgreSQL XID counter by specified delta
@@ -143,41 +134,54 @@ func (p *Postgres) advanceXIDCounterByDelta(ctx context.Context, counterDelta in
 	if counterDelta <= 0 {
 		return nil
 	}
+	slog.InfoContext(ctx, "Advancing transaction ID counter by delta", slog.Int("counter_delta", counterDelta))
 
-	slog.InfoContext(ctx, "Advancing transaction ID counter by delta",
-		slog.Int("counter_delta", counterDelta))
-
-	// Use batch size for XID advancement
 	batchSize := config.BatchSize
 	if batchSize <= 0 {
-		batchSize = 1000 // Default batch size if not specified or invalid
+		batchSize = 1000
 	}
 
-	// Process in batches for performance
+	conn, err := p.WritePool.Acquire(ctx)
+	if err != nil {
+		return fmt.Errorf("acquire connection: %w", err)
+	}
+	defer conn.Release()
+
 	remaining := counterDelta
 	for remaining > 0 {
-		currentBatchSize := remaining
-		if currentBatchSize > batchSize {
-			currentBatchSize = batchSize
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		currentBatch := remaining
+		if currentBatch > batchSize {
+			currentBatch = batchSize
 		}
 
-		query := queryLoopXactID(currentBatchSize)
-		_, err := p.WritePool.Exec(ctx, query)
-		if err != nil {
-			return fmt.Errorf("failed to advance XID counter (batch %d): %w", currentBatchSize, err)
+		for i := 0; i < currentBatch; i++ {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			tx, err := conn.Begin(ctx)
+			if err != nil {
+				return fmt.Errorf("begin tx: %w", err)
+			}
+			if _, err := tx.Exec(ctx, "SELECT pg_current_xact_id()"); err != nil {
+				_ = tx.Rollback(ctx)
+				return fmt.Errorf("advance xid (iter %d): %w", i+1, err)
+			}
+			// Rolling back is fine — XID assignment happens on first reference.
+			if err := tx.Rollback(ctx); err != nil {
+				return fmt.Errorf("rollback tx: %w", err)
+			}
 		}
 
-		remaining -= currentBatchSize
-
+		remaining -= currentBatch
 		if config.Verbose {
 			slog.InfoContext(ctx, "Advanced XID counter batch",
-				slog.Int("batch_size", currentBatchSize),
+				slog.Int("batch_size", currentBatch),
 				slog.Int("remaining", remaining))
 		}
 	}
-
-	slog.InfoContext(ctx, "Transaction ID counter advancement completed",
-		slog.Int("total_advanced", counterDelta))
-
+	slog.InfoContext(ctx, "Transaction ID counter advancement completed", slog.Int("total_advanced", counterDelta))
 	return nil
 }

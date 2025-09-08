@@ -61,7 +61,9 @@ Use --dry-run to see what would be changed without making actual modifications.`
 	cmd.PersistentFlags().Int(repairRetries, 3, "maximum number of retries")
 
 	// Mark required flags
-	cmd.MarkPersistentFlagRequired(repairDatabaseURI)
+	if err := cmd.MarkPersistentFlagRequired(repairDatabaseURI); err != nil {
+		panic(fmt.Sprintf("failed to mark flag as required: %v", err))
+	}
 
 	return cmd
 }

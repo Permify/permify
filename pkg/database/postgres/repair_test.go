@@ -1,16 +1,9 @@
 package postgres
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
-
-func TestRepair(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Repair Suite")
-}
 
 var _ = Describe("RepairConfig", func() {
 	Context("DefaultRepairConfig", func() {
@@ -48,46 +41,6 @@ var _ = Describe("RepairResult", func() {
 			Expect(result.CreatedTxIdFixed).To(Equal(1500))
 			Expect(result.Errors).To(HaveLen(0))
 			Expect(result.Duration).To(Equal("2.5s"))
-		})
-	})
-})
-
-var _ = Describe("queryLoopXactID", func() {
-	Context("queryLoopXactID function", func() {
-		It("should generate correct SQL for batch size 1", func() {
-			expected := `DO $$
-BEGIN
-  FOR i IN 1..1 LOOP
-    PERFORM pg_current_xact_id(); ROLLBACK;
-  END LOOP;
-END $$;`
-
-			result := queryLoopXactID(1)
-			Expect(result).To(Equal(expected))
-		})
-
-		It("should generate correct SQL for batch size 1000", func() {
-			expected := `DO $$
-BEGIN
-  FOR i IN 1..1000 LOOP
-    PERFORM pg_current_xact_id(); ROLLBACK;
-  END LOOP;
-END $$;`
-
-			result := queryLoopXactID(1000)
-			Expect(result).To(Equal(expected))
-		})
-
-		It("should handle zero batch size", func() {
-			expected := `DO $$
-BEGIN
-  FOR i IN 1..0 LOOP
-    PERFORM pg_current_xact_id(); ROLLBACK;
-  END LOOP;
-END $$;`
-
-			result := queryLoopXactID(0)
-			Expect(result).To(Equal(expected))
 		})
 	})
 })
@@ -133,7 +86,7 @@ var _ = Describe("RepairConfig validation", func() {
 
 		It("should have reasonable default values", func() {
 			config := DefaultRepairConfig()
-			
+
 			Expect(config.BatchSize).To(Equal(1000))
 			Expect(config.MaxRetries).To(Equal(3))
 			Expect(config.RetryDelay).To(Equal(100))
@@ -170,52 +123,16 @@ var _ = Describe("Repair function edge cases", func() {
 	})
 })
 
-var _ = Describe("SQL query generation", func() {
-	Context("SQL query validation", func() {
-		It("should generate valid transaction ID advancement query", func() {
-			query := queryLoopXactID(100)
-
-			Expect(query).To(ContainSubstring("DO $$"))
-			Expect(query).To(ContainSubstring("FOR i IN 1..100 LOOP"))
-			Expect(query).To(ContainSubstring("PERFORM pg_current_xact_id()"))
-			Expect(query).To(ContainSubstring("ROLLBACK"))
-			Expect(query).To(ContainSubstring("END $$"))
-		})
-
-		It("should handle various batch sizes for transaction ID advancement", func() {
-			// Test with various batch sizes matching typical workloads
-			for _, size := range []int{1, 10, 100, 1000, 10000} {
-				query := queryLoopXactID(size)
-				Expect(query).To(ContainSubstring("FOR i IN 1.."))
-				Expect(query).To(ContainSubstring("PERFORM pg_current_xact_id()"))
-				Expect(query).To(ContainSubstring("ROLLBACK"))
-			}
-		})
-
-		It("should generate correct query structure", func() {
-			query := queryLoopXactID(50)
-			
-			// Should follow the correct pattern
-			Expect(query).To(ContainSubstring("DO $$"))
-			Expect(query).To(ContainSubstring("BEGIN"))
-			Expect(query).To(ContainSubstring("FOR i IN 1..50 LOOP"))
-			Expect(query).To(ContainSubstring("PERFORM pg_current_xact_id(); ROLLBACK;"))
-			Expect(query).To(ContainSubstring("END LOOP;"))
-			Expect(query).To(ContainSubstring("END $$;"))
-		})
-	})
-})
-
 var _ = Describe("BatchSize validation", func() {
 	Context("BatchSize handling", func() {
 		It("should use default when BatchSize is zero", func() {
 			// This simulates the validation logic in Repair function
 			config := &RepairConfig{
-				BatchSize: 0,
-				MaxRetries:   3,
-				RetryDelay:   100,
-				DryRun:       false,
-				Verbose:      true,
+				BatchSize:  0,
+				MaxRetries: 3,
+				RetryDelay: 100,
+				DryRun:     false,
+				Verbose:    true,
 			}
 
 			// Simulate validation logic
@@ -228,11 +145,11 @@ var _ = Describe("BatchSize validation", func() {
 
 		It("should use default when BatchSize is negative", func() {
 			config := &RepairConfig{
-				BatchSize: -500,
-				MaxRetries:   3,
-				RetryDelay:   100,
-				DryRun:       false,
-				Verbose:      true,
+				BatchSize:  -500,
+				MaxRetries: 3,
+				RetryDelay: 100,
+				DryRun:     false,
+				Verbose:    true,
 			}
 
 			// Simulate validation logic
@@ -245,11 +162,11 @@ var _ = Describe("BatchSize validation", func() {
 
 		It("should preserve valid BatchSize values", func() {
 			config := &RepairConfig{
-				BatchSize: 500,
-				MaxRetries:   3,
-				RetryDelay:   100,
-				DryRun:       false,
-				Verbose:      true,
+				BatchSize:  500,
+				MaxRetries: 3,
+				RetryDelay: 100,
+				DryRun:     false,
+				Verbose:    true,
 			}
 
 			// Simulate validation logic
@@ -263,7 +180,7 @@ var _ = Describe("BatchSize validation", func() {
 		It("should handle advanceXIDCounterByDelta batch size validation", func() {
 			// This tests the validation logic in advanceXIDCounterByDelta
 			xidbatchSize := 0
-			
+
 			// Simulate the validation logic
 			batchSize := xidbatchSize
 			if batchSize <= 0 {
@@ -309,7 +226,7 @@ var _ = Describe("Transaction ID Counter Repair workflow", func() {
 			// Test transaction ID advancement configuration
 			Expect(config.BatchSize).To(Equal(1000))
 			Expect(config.BatchSize).To(BeNumerically(">", 0))
-			
+
 			// Test general configuration
 			Expect(config.MaxRetries).To(Equal(3))
 		})
@@ -325,7 +242,7 @@ var _ = Describe("Transaction ID Counter Repair workflow", func() {
 			// Transaction ID advancement should be configurable
 			Expect(config.BatchSize).To(Equal(500))
 			Expect(config.BatchSize).To(BeNumerically(">", 0))
-			
+
 			// Should support dry run for transaction ID operations
 			Expect(config.DryRun).To(BeTrue())
 		})
@@ -338,7 +255,7 @@ var _ = Describe("Transaction ID Counter Repair workflow", func() {
 			maxReferenced := uint64(125000)
 			current := uint64(124000)
 			buffer := uint64(1000)
-			
+
 			expectedDelta := int(maxReferenced - current + buffer)
 			Expect(expectedDelta).To(Equal(2000))
 			Expect(expectedDelta).To(BeNumerically(">", 0))
@@ -351,10 +268,10 @@ var _ = Describe("Transaction ID Counter Repair workflow", func() {
 			// counterDelta = 124000 - 125000 = -1000 (negative)
 			maxReferenced := uint64(124000)
 			current := uint64(125000)
-			
+
 			needsAdvancement := maxReferenced > current
 			Expect(needsAdvancement).To(BeFalse())
-			
+
 			// Simulate counterDelta check logic
 			counterDelta := int(maxReferenced) - int(current)
 			Expect(counterDelta).To(BeNumerically("<", 0))
@@ -363,14 +280,14 @@ var _ = Describe("Transaction ID Counter Repair workflow", func() {
 		It("should focus on transactions table only", func() {
 			// This test ensures we're following the correct approach
 			// Only look at transactions table, not data tables
-			
+
 			// We should be querying: SELECT max(id) FROM transactions
 			// Not complex queries involving relation_tuples or attributes
-			
+
 			// Test that we're using simple approach
 			config := DefaultRepairConfig()
 			Expect(config).NotTo(BeNil())
-			
+
 			// The repair should focus on transaction ID counter only
 			Expect(config.BatchSize).To(BeNumerically(">", 0))
 		})
@@ -381,20 +298,20 @@ var _ = Describe("Transaction ID Counter Repair workflow", func() {
 			// 2. Get max referenced ID: SELECT max(xid)::text::integer FROM transactions
 			// 3. Calculate delta: referencedMaximumID - currentMaximumID
 			// 4. If delta > 0, advance counter in batches
-			
+
 			currentTxID := uint64(100000)
 			referencedMaxTxID := uint64(102500)
-			
+
 			// Calculate delta
 			counterDelta := int(referencedMaxTxID - currentTxID)
 			Expect(counterDelta).To(Equal(2500))
 			Expect(counterDelta).To(BeNumerically(">", 0))
-			
+
 			// Test batch processing
 			batchSize := 1000
 			remainingDelta := counterDelta
 			batches := 0
-			
+
 			for remainingDelta > 0 {
 				currentBatch := remainingDelta
 				if currentBatch > batchSize {
@@ -403,26 +320,26 @@ var _ = Describe("Transaction ID Counter Repair workflow", func() {
 				remainingDelta -= currentBatch
 				batches++
 			}
-			
+
 			// Should process in 3 batches: 1000, 1000, 500
 			Expect(batches).To(Equal(3))
 		})
 
 		It("should handle edge cases", func() {
 			// Test edge cases:
-			
+
 			// Case 1: counterDelta < 0 (no advancement needed)
 			currentTxID := uint64(105000)
 			referencedMaxTxID := uint64(104000)
 			counterDelta := int(referencedMaxTxID) - int(currentTxID)
 			Expect(counterDelta).To(BeNumerically("<", 0))
-			
+
 			// Case 2: counterDelta = 0 (no advancement needed)
 			currentTxID = uint64(104000)
 			referencedMaxTxID = uint64(104000)
 			counterDelta = int(referencedMaxTxID) - int(currentTxID)
 			Expect(counterDelta).To(Equal(0))
-			
+
 			// Case 3: Small delta (single batch)
 			currentTxID = uint64(104000)
 			referencedMaxTxID = uint64(104500)
