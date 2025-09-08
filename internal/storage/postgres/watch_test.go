@@ -10,9 +10,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage/postgres/instance"
-	"github.com/Permify/permify/internal/storage/postgres/types"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/database/postgres"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/tuple"
@@ -240,7 +240,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, postgres.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -255,7 +255,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, postgres.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -270,7 +270,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, postgres.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -285,7 +285,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, postgres.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -300,7 +300,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, postgres.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -315,7 +315,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, postgres.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -330,7 +330,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, postgres.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})

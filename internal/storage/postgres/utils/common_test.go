@@ -28,7 +28,7 @@ var _ = Describe("Common", func() {
 			sql, _, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			expectedSQL := "SELECT column FROM table WHERE (pg_visible_in_snapshot(created_tx_id, (select snapshot from transactions where id = '42'::xid8)) = true OR created_tx_id = '42'::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, (select snapshot from transactions where id = '42'::xid8)) = false OR expired_tx_id = '0'::xid8) AND expired_tx_id <> '42'::xid8)"
+			expectedSQL := "SELECT column FROM table WHERE (pg_visible_in_snapshot(created_tx_id, (select snapshot from transactions where id = '42'::xid8)) = true OR created_tx_id = '42'::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, (select snapshot from transactions where id = '42'::xid8)) = false OR expired_tx_id = '9223372036854775807'::xid8) AND expired_tx_id <> '42'::xid8)"
 			Expect(sql).Should(Equal(expectedSQL))
 		})
 	})
@@ -39,7 +39,7 @@ var _ = Describe("Common", func() {
 			sql, _, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> '0'::xid8 AND expired_tx_id < '100'::xid8"
+			expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> '9223372036854775807'::xid8 AND expired_tx_id < '100'::xid8"
 			Expect(expectedSQL).Should(Equal(sql))
 		})
 
@@ -48,7 +48,7 @@ var _ = Describe("Common", func() {
 			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = ? AND expired_tx_id <> '0'::xid8 AND expired_tx_id < '100'::xid8"
+			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = ? AND expired_tx_id <> '9223372036854775807'::xid8 AND expired_tx_id < '100'::xid8"
 			Expect(expectedSQL).Should(Equal(sql))
 			Expect(args).Should(Equal([]interface{}{"tenant1"}))
 		})

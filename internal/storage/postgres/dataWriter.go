@@ -13,11 +13,11 @@ import (
 
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
-	"github.com/Permify/permify/internal/storage/postgres/types"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/bundle"
 	"github.com/Permify/permify/pkg/database"
+	"github.com/Permify/permify/pkg/database/postgres"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
@@ -181,7 +181,7 @@ func (w *DataWriter) write(
 		_ = tx.Rollback(ctx)
 	}()
 
-	var xid types.XID8
+	var xid postgres.XID8
 	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
 		return nil, err
@@ -255,7 +255,7 @@ func (w *DataWriter) delete(
 		_ = tx.Rollback(ctx)
 	}()
 
-	var xid types.XID8
+	var xid postgres.XID8
 	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
 		return nil, err
@@ -266,7 +266,7 @@ func (w *DataWriter) delete(
 	slog.DebugContext(ctx, "processing tuple and executing update query")
 
 	if !validation.IsTupleFilterEmpty(tupleFilter) {
-		tbuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID})
+		tbuilder := w.database.Builder.Update(RelationTuplesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": utils.ActiveRecordTxnID, "tenant_id": tenantID})
 		tbuilder = utils.TuplesFilterQueryForUpdateBuilder(tbuilder, tupleFilter)
 
 		var tquery string
@@ -286,7 +286,7 @@ func (w *DataWriter) delete(
 	slog.DebugContext(ctx, "processing attribute and executing update query")
 
 	if !validation.IsAttributeFilterEmpty(attributeFilter) {
-		abuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID})
+		abuilder := w.database.Builder.Update(AttributesTable).Set("expired_tx_id", xid).Where(squirrel.Eq{"expired_tx_id": utils.ActiveRecordTxnID, "tenant_id": tenantID})
 		abuilder = utils.AttributesFilterQueryForUpdateBuilder(abuilder, attributeFilter)
 
 		var aquery string
@@ -330,7 +330,7 @@ func (w *DataWriter) runBundle(
 		_ = tx.Rollback(ctx)
 	}()
 
-	var xid types.XID8
+	var xid postgres.XID8
 	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
 		return nil, err
@@ -379,7 +379,7 @@ func (w *DataWriter) runBundle(
 // runOperation processes and executes database operations defined in TupleBundle and AttributeBundle within a given transaction.
 func (w *DataWriter) runOperation(
 	batch *pgx.Batch,
-	xid types.XID8,
+	xid postgres.XID8,
 	tenantID string,
 	tb database.TupleBundle,
 	ab database.AttributeBundle,
@@ -425,7 +425,7 @@ func (w *DataWriter) runOperation(
 }
 
 // batchInsertTuples function for batch inserting tuples
-func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid types.XID8, tenantID string, tupleCollection *database.TupleCollection) error {
+func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid postgres.XID8, tenantID string, tupleCollection *database.TupleCollection) error {
 	titer := tupleCollection.CreateTupleIterator()
 	for titer.HasNext() {
 		t := titer.GetNext()
@@ -442,11 +442,11 @@ func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid types.XID8, 
 }
 
 // batchUpdateTuples function for batch updating tuples
-func (w *DataWriter) batchUpdateRelationships(batch *pgx.Batch, xid types.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
+func (w *DataWriter) batchUpdateRelationships(batch *pgx.Batch, xid postgres.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
 	for _, condition := range deleteClauses {
 		query, args, err := w.database.Builder.Update(RelationTuplesTable).
 			Set("expired_tx_id", xid).
-			Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID}).
+			Where(squirrel.Eq{"expired_tx_id": utils.ActiveRecordTxnID, "tenant_id": tenantID}).
 			Where(condition).
 			ToSql()
 		if err != nil {
@@ -485,7 +485,7 @@ func buildDeleteClausesForRelationships(tupleCollection *database.TupleCollectio
 }
 
 // batchInsertAttributes function for batch inserting attributes
-func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid types.XID8, tenantID string, attributeCollection *database.AttributeCollection) error {
+func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid postgres.XID8, tenantID string, attributeCollection *database.AttributeCollection) error {
 	aiter := attributeCollection.CreateAttributeIterator()
 	for aiter.HasNext() {
 		a := aiter.GetNext()
@@ -506,11 +506,11 @@ func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid types.XID8, ten
 }
 
 // batchUpdateAttributes function for batch updating attributes
-func (w *DataWriter) batchUpdateAttributes(batch *pgx.Batch, xid types.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
+func (w *DataWriter) batchUpdateAttributes(batch *pgx.Batch, xid postgres.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
 	for _, condition := range deleteClauses {
 		query, args, err := w.database.Builder.Update(AttributesTable).
 			Set("expired_tx_id", xid).
-			Where(squirrel.Eq{"expired_tx_id": "0", "tenant_id": tenantID}).
+			Where(squirrel.Eq{"expired_tx_id": utils.ActiveRecordTxnID, "tenant_id": tenantID}).
 			Where(condition).
 			ToSql()
 		if err != nil {

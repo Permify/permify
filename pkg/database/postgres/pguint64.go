@@ -1,4 +1,4 @@
-package types
+package postgres
 
 import (
 	"database/sql/driver"
@@ -11,11 +11,13 @@ import (
 	"github.com/jackc/pgtype"
 )
 
+// pguint64 represents a PostgreSQL uint64 type
 type pguint64 struct {
 	Uint   uint64
 	Status pgtype.Status
 }
 
+// Set sets the pguint64 value from various input types
 func (p *pguint64) Set(src interface{}) error {
 	switch value := src.(type) {
 	case int64:
@@ -39,6 +41,7 @@ func (p *pguint64) Set(src interface{}) error {
 	return nil
 }
 
+// Get returns the underlying value
 func (p pguint64) Get() interface{} {
 	switch p.Status {
 	case pgtype.Present:
@@ -50,6 +53,7 @@ func (p pguint64) Get() interface{} {
 	}
 }
 
+// AssignTo assigns the value to the destination
 func (p *pguint64) AssignTo(dst interface{}) error {
 	switch v := dst.(type) {
 	case *uint64:
@@ -70,6 +74,7 @@ func (p *pguint64) AssignTo(dst interface{}) error {
 	return nil
 }
 
+// DecodeText decodes text format
 func (p *pguint64) DecodeText(ci *pgtype.ConnInfo, src []byte) error {
 	if src == nil {
 		*p = pguint64{Status: pgtype.Null}
@@ -85,6 +90,7 @@ func (p *pguint64) DecodeText(ci *pgtype.ConnInfo, src []byte) error {
 	return nil
 }
 
+// DecodeBinary decodes binary format
 func (p *pguint64) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
 	if src == nil {
 		*p = pguint64{Status: pgtype.Null}
@@ -100,6 +106,7 @@ func (p *pguint64) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
 	return nil
 }
 
+// EncodeText encodes to text format
 func (p pguint64) EncodeText(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
 	switch p.Status {
 	case pgtype.Null:
@@ -111,6 +118,7 @@ func (p pguint64) EncodeText(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
 	return append(buf, strconv.FormatUint(p.Uint, 10)...), nil
 }
 
+// EncodeBinary encodes to binary format
 func (p pguint64) EncodeBinary(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
 	switch p.Status {
 	case pgtype.Null:
@@ -122,7 +130,7 @@ func (p pguint64) EncodeBinary(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) 
 	return pgio.AppendUint64(buf, p.Uint), nil
 }
 
-// Scan implements the database/sql Scanner interface.
+// Scan implements the database/sql Scanner interface
 func (p *pguint64) Scan(src interface{}) error {
 	if src == nil {
 		*p = pguint64{Status: pgtype.Null}
@@ -150,7 +158,7 @@ func (p *pguint64) Scan(src interface{}) error {
 	return fmt.Errorf("cannot scan %T", src)
 }
 
-// Value implements the database/sql/driver Valuer interface.
+// Value implements the database/sql/driver Valuer interface
 func (p pguint64) Value() (driver.Value, error) {
 	switch p.Status {
 	case pgtype.Present:
