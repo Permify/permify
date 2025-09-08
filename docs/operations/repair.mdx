@@ -1,0 +1,140 @@
+---
+title: "Database Repair"
+description: "Repair PostgreSQL XID counter to prevent wraparound issues"
+---
+
+# Database Repair
+
+The `permify repair datastore` command helps prevent PostgreSQL XID wraparound issues by safely advancing the transaction ID counter. This is essential after database migrations or when dealing with XID-related problems.
+
+## Overview
+
+XID (Transaction ID) wraparound is a PostgreSQL issue that occurs when the database's transaction counter approaches its maximum value. This command provides a safe solution by:
+
+- Analyzing maximum referenced XIDs in transactions table
+- Advancing PostgreSQL's XID counter to stay ahead of referenced XIDs
+- Using safe batch processing to avoid performance impact
+
+**Important**: This approach does NOT modify existing data, only advances the XID counter.
+
+## Usage
+
+```bash
+permify repair datastore [flags]
+```
+
+## Required Flags
+
+| Flag | Description | Example |
+|------|-------------|---------|
+| `--database-uri` | Database connection URI | `postgres://user:pass@localhost:5432/permify` |
+
+## Optional Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--database-engine` | `postgres` | Database engine (only postgres supported) |
+| `--batch-size` | `1000` | Batch size for XID advancement |
+| `--dry-run` | `false` | Perform a dry run without making changes |
+| `--verbose` | `true` | Enable verbose logging |
+| `--retries` | `3` | Maximum number of retries |
+
+## Examples
+
+### Basic Usage
+
+```bash
+permify repair datastore \
+  --database-uri "postgres://user:pass@localhost:5432/permify"
+```
+
+### Dry Run
+
+Test what would be changed without making actual modifications:
+
+```bash
+permify repair datastore \
+  --database-uri "postgres://user:pass@localhost:5432/permify" \
+  --dry-run
+```
+
+### Custom Batch Size
+
+Use a smaller batch size for production environments:
+
+```bash
+permify repair datastore \
+  --database-uri "postgres://user:pass@localhost:5432/permify" \
+  --batch-size 500
+```
+
+## How It Works
+
+1. **Current XID Check**: Gets the current PostgreSQL transaction ID using `pg_current_xact_id()`
+2. **Reference Analysis**: Finds the maximum transaction ID referenced in the transactions table
+3. **Gap Calculation**: Calculates the difference and adds a safety buffer
+4. **Batch Processing**: Advances the XID counter in configurable batches to minimize performance impact
+
+## When to Use
+
+- After database migrations
+- When PostgreSQL warns about XID wraparound
+- As a preventive measure in high-transaction environments
+- When encountering XID-related errors
+
+## Safety Features
+
+- **Dry Run Mode**: Test changes before applying them
+- **Batch Processing**: Avoids overwhelming the database
+- **Retry Logic**: Handles temporary failures gracefully
+- **Verbose Logging**: Provides detailed progress information
+- **Data Preservation**: Never modifies existing application data
+
+## Output Example
+
+```
+INFO Starting PostgreSQL XID counter repair database_uri=postgres://*** batch_size=1000 dry_run=false max_retries=3
+INFO Starting PostgreSQL transaction ID counter repair dry_run=false batch_size=1000
+INFO Current PostgreSQL transaction ID current_xid=99902
+INFO Maximum referenced transaction ID max_referenced_xid=125000
+INFO Advancing transaction ID counter by delta counter_delta=26098
+INFO Advanced XID counter batch batch_size=1000 remaining=25098
+INFO Advanced XID counter batch batch_size=1000 remaining=24098
+...
+INFO Transaction ID counter advancement completed total_advanced=26098
+INFO Repair completed successfully duration=2.3s created_tx_id_fixed=26098 errors=0
+INFO XID counter repair completed successfully! Advanced XID counter to prevent wraparound issues.
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Connection Error**
+```
+failed to create PostgreSQL instance: connection failed
+```
+- Verify database URI is correct
+- Ensure PostgreSQL is running and accessible
+
+**Permission Error**
+```
+failed to advance XID counter: permission denied
+```
+- Ensure database user has sufficient privileges
+- User needs ability to execute `pg_current_xact_id()` and transaction operations
+
+**Type Mismatch Error**
+```
+COALESCE types xid8 and integer cannot be matched
+```
+- This indicates a PostgreSQL version compatibility issue
+- Ensure you're using a compatible PostgreSQL version
+
+### Best Practices
+
+- Always run with `--dry-run` first in production
+- Use appropriate `--batch-size` for your environment
+- Monitor PostgreSQL logs during execution
+- Schedule regular maintenance to prevent XID buildup
+- Keep database backups before running repair operations

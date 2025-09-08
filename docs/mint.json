@@ -320,6 +320,7 @@
         "operations/bundle",
         "operations/cache",
         "operations/contextual-tuples",
+        "operations/repair",
         "operations/tracing",
         "operations/snap-tokens"
       ]
