@@ -152,10 +152,7 @@ func (p *Postgres) advanceXIDCounterByDelta(ctx context.Context, counterDelta in
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		currentBatch := remaining
-		if currentBatch > batchSize {
-			currentBatch = batchSize
-		}
+		currentBatch := min(remaining, batchSize)
 
 		for i := 0; i < currentBatch; i++ {
 			if err := ctx.Err(); err != nil {
