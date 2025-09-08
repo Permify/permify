@@ -17,7 +17,6 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
-	"github.com/Permify/permify/pkg/database/postgres"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -159,7 +158,7 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 // Returns:
 //   - A slice of XID8 identifiers.
 //   - An error if the query fails to execute, or other error occurs during its execution.
-func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string) ([]postgres.XID8, error) {
+func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string) ([]db.XID8, error) {
 	// Convert the value to a string formatted as a Postgresql XID8 type.
 	valStr := fmt.Sprintf("'%v'::xid8", value)
 
@@ -192,9 +191,9 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 	defer rows.Close()
 
 	// Loop through the rows and append XID8 values to the results.
-	var xids []postgres.XID8
+	var xids []db.XID8
 	for rows.Next() {
-		var xid postgres.XID8
+		var xid db.XID8
 		err := rows.Scan(&xid)
 		if err != nil {
 			slog.ErrorContext(ctx, "error while scanning row", slog.Any("error", err))
@@ -222,7 +221,7 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 //
 // This method returns a TupleChanges instance that encapsulates the changes in the relation tuples within the specified
 // transaction, or an error if something went wrong during execution.
-func (w *Watch) getChanges(ctx context.Context, value postgres.XID8, tenantID string) (*base.DataChanges, error) {
+func (w *Watch) getChanges(ctx context.Context, value db.XID8, tenantID string) (*base.DataChanges, error) {
 	// Initialize a new TupleChanges instance.
 	changes := &base.DataChanges{}
 
@@ -284,7 +283,7 @@ func (w *Watch) getChanges(ctx context.Context, value postgres.XID8, tenantID st
 
 	// Iterate through the result rows.
 	for trows.Next() {
-		var expiredXID postgres.XID8
+		var expiredXID db.XID8
 
 		rt := storage.RelationTuple{}
 		// Scan the result row into a RelationTuple instance.
@@ -311,7 +310,7 @@ func (w *Watch) getChanges(ctx context.Context, value postgres.XID8, tenantID st
 
 	// Iterate through the result rows.
 	for arows.Next() {
-		var expiredXID postgres.XID8
+		var expiredXID db.XID8
 
 		rt := storage.Attribute{}
 

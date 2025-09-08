@@ -17,7 +17,6 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres/snapshot"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/database/postgres"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
@@ -561,7 +560,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 
 	slog.DebugContext(ctx, "getting head snapshot for tenant_id", slog.String("tenant_id", tenantID))
 
-	var xid postgres.XID8
+	var xid db.XID8
 
 	// Build the query to find the highest transaction ID associated with the tenant.
 	builder := r.database.Builder.Select("id").From(TransactionsTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("id DESC").Limit(1)
@@ -578,7 +577,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	if err != nil {
 		// If no rows are found, return a snapshot token with a value of 0.
 		if errors.Is(err, pgx.ErrNoRows) {
-			return snapshot.Token{Value: postgres.XID8{Uint: 0}}, nil
+			return snapshot.Token{Value: db.XID8{Uint: 0}}, nil
 		}
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}

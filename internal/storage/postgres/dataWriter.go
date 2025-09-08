@@ -17,7 +17,6 @@ import (
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/bundle"
 	"github.com/Permify/permify/pkg/database"
-	"github.com/Permify/permify/pkg/database/postgres"
 	db "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
@@ -181,7 +180,7 @@ func (w *DataWriter) write(
 		_ = tx.Rollback(ctx)
 	}()
 
-	var xid postgres.XID8
+	var xid db.XID8
 	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
 		return nil, err
@@ -255,7 +254,7 @@ func (w *DataWriter) delete(
 		_ = tx.Rollback(ctx)
 	}()
 
-	var xid postgres.XID8
+	var xid db.XID8
 	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
 		return nil, err
@@ -330,7 +329,7 @@ func (w *DataWriter) runBundle(
 		_ = tx.Rollback(ctx)
 	}()
 
-	var xid postgres.XID8
+	var xid db.XID8
 	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
 	if err != nil {
 		return nil, err
@@ -379,7 +378,7 @@ func (w *DataWriter) runBundle(
 // runOperation processes and executes database operations defined in TupleBundle and AttributeBundle within a given transaction.
 func (w *DataWriter) runOperation(
 	batch *pgx.Batch,
-	xid postgres.XID8,
+	xid db.XID8,
 	tenantID string,
 	tb database.TupleBundle,
 	ab database.AttributeBundle,
@@ -425,7 +424,7 @@ func (w *DataWriter) runOperation(
 }
 
 // batchInsertTuples function for batch inserting tuples
-func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid postgres.XID8, tenantID string, tupleCollection *database.TupleCollection) error {
+func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid db.XID8, tenantID string, tupleCollection *database.TupleCollection) error {
 	titer := tupleCollection.CreateTupleIterator()
 	for titer.HasNext() {
 		t := titer.GetNext()
@@ -442,7 +441,7 @@ func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid postgres.XID
 }
 
 // batchUpdateTuples function for batch updating tuples
-func (w *DataWriter) batchUpdateRelationships(batch *pgx.Batch, xid postgres.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
+func (w *DataWriter) batchUpdateRelationships(batch *pgx.Batch, xid db.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
 	for _, condition := range deleteClauses {
 		query, args, err := w.database.Builder.Update(RelationTuplesTable).
 			Set("expired_tx_id", xid).
@@ -485,7 +484,7 @@ func buildDeleteClausesForRelationships(tupleCollection *database.TupleCollectio
 }
 
 // batchInsertAttributes function for batch inserting attributes
-func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid postgres.XID8, tenantID string, attributeCollection *database.AttributeCollection) error {
+func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid db.XID8, tenantID string, attributeCollection *database.AttributeCollection) error {
 	aiter := attributeCollection.CreateAttributeIterator()
 	for aiter.HasNext() {
 		a := aiter.GetNext()
@@ -506,7 +505,7 @@ func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid postgres.XID8, 
 }
 
 // batchUpdateAttributes function for batch updating attributes
-func (w *DataWriter) batchUpdateAttributes(batch *pgx.Batch, xid postgres.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
+func (w *DataWriter) batchUpdateAttributes(batch *pgx.Batch, xid db.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
 	for _, condition := range deleteClauses {
 		query, args, err := w.database.Builder.Update(AttributesTable).
 			Set("expired_tx_id", xid).

@@ -110,7 +110,7 @@ var _ = Describe("Postgres", func() {
 		})
 
 		Context("IsReady", func() {
-			It("Case 1: Should return false with nil read pool", func() {
+			It("Case 1: Should panic with nil read pool", func() {
 				ctx := context.Background()
 				// pg.ReadPool is nil, so this will panic
 				Expect(func() {
