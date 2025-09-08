@@ -39,6 +39,9 @@ func main() {
 	config := cmd.NewConfigCommand()
 	root.AddCommand(config)
 
+	repair := cmd.NewRepairCommand()
+	root.AddCommand(repair)
+
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}

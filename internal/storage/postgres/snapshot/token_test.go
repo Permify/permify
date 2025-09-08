@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/storage/postgres/types"
+	"github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/token"
 )
 
@@ -25,12 +25,12 @@ var _ = Describe("token", func() {
 				target   token.SnapToken
 				expected string
 			}{
-				{NewToken(types.XID8{Uint: 4, Status: pgtype.Present}), "BAAAAAAAAAA="},
-				{NewToken(types.XID8{Uint: 12, Status: pgtype.Present}), "DAAAAAAAAAA="},
-				{NewToken(types.XID8{Uint: 43242, Status: pgtype.Present}), "6qgAAAAAAAA="},
-				{NewToken(types.XID8{Uint: 54342345, Status: pgtype.Present}), "yTI9AwAAAAA="},
-				{NewToken(types.XID8{Uint: 87648723472386, Status: pgtype.Present}), "AhAHT7dPAAA="},
-				{NewToken(types.XID8{Uint: 2349875239487420823, Status: pgtype.Present}), "lzkihBRvnCA="},
+				{NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}), "BAAAAAAAAAA="},
+				{NewToken(postgres.XID8{Uint: 12, Status: pgtype.Present}), "DAAAAAAAAAA="},
+				{NewToken(postgres.XID8{Uint: 43242, Status: pgtype.Present}), "6qgAAAAAAAA="},
+				{NewToken(postgres.XID8{Uint: 54342345, Status: pgtype.Present}), "yTI9AwAAAAA="},
+				{NewToken(postgres.XID8{Uint: 87648723472386, Status: pgtype.Present}), "AhAHT7dPAAA="},
+				{NewToken(postgres.XID8{Uint: 2349875239487420823, Status: pgtype.Present}), "lzkihBRvnCA="},
 			}
 
 			for _, tt := range tests {
@@ -43,7 +43,7 @@ var _ = Describe("token", func() {
 				target   token.SnapToken
 				expected string
 			}{
-				{NewToken(types.XID8{Uint: 4, Status: pgtype.Present}), " BAAAAAAAAAA="},
+				{NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}), " BAAAAAAAAAA="},
 			}
 
 			for _, tt := range tests {
@@ -56,7 +56,7 @@ var _ = Describe("token", func() {
 				token  token.SnapToken
 				target token.SnapToken
 			}{
-				{NewToken(types.XID8{Uint: 4, Status: pgtype.Present}), NewToken(types.XID8{Uint: 4, Status: pgtype.Present})},
+				{NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}), NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present})},
 			}
 
 			for _, tt := range tests {
@@ -70,8 +70,8 @@ var _ = Describe("token", func() {
 				target token.SnapToken
 			}{
 				{
-					NewToken(types.XID8{Uint: 6, Status: pgtype.Present}),
-					NewToken(types.XID8{Uint: 4, Status: pgtype.Present}),
+					NewToken(postgres.XID8{Uint: 6, Status: pgtype.Present}),
+					NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}),
 				},
 			}
 
@@ -86,8 +86,8 @@ var _ = Describe("token", func() {
 				target token.SnapToken
 			}{
 				{
-					NewToken(types.XID8{Uint: 4, Status: pgtype.Present}),
-					NewToken(types.XID8{Uint: 6, Status: pgtype.Present}),
+					NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}),
+					NewToken(postgres.XID8{Uint: 6, Status: pgtype.Present}),
 				},
 			}
 
@@ -103,12 +103,12 @@ var _ = Describe("token", func() {
 				target   token.EncodedSnapToken
 				expected token.SnapToken
 			}{
-				{EncodedToken{Value: "BAAAAAAAAAA="}, NewToken(types.XID8{Uint: 4, Status: pgtype.Present})},
-				{EncodedToken{Value: "DAAAAAAAAAA="}, NewToken(types.XID8{Uint: 12, Status: pgtype.Present})},
-				{EncodedToken{Value: "6qgAAAAAAAA="}, NewToken(types.XID8{Uint: 43242, Status: pgtype.Present})},
-				{EncodedToken{Value: "yTI9AwAAAAA="}, NewToken(types.XID8{Uint: 54342345, Status: pgtype.Present})},
-				{EncodedToken{Value: "AhAHT7dPAAA="}, NewToken(types.XID8{Uint: 87648723472386, Status: pgtype.Present})},
-				{EncodedToken{Value: "lzkihBRvnCA="}, NewToken(types.XID8{Uint: 2349875239487420823, Status: pgtype.Present})},
+				{EncodedToken{Value: "BAAAAAAAAAA="}, NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present})},
+				{EncodedToken{Value: "DAAAAAAAAAA="}, NewToken(postgres.XID8{Uint: 12, Status: pgtype.Present})},
+				{EncodedToken{Value: "6qgAAAAAAAA="}, NewToken(postgres.XID8{Uint: 43242, Status: pgtype.Present})},
+				{EncodedToken{Value: "yTI9AwAAAAA="}, NewToken(postgres.XID8{Uint: 54342345, Status: pgtype.Present})},
+				{EncodedToken{Value: "AhAHT7dPAAA="}, NewToken(postgres.XID8{Uint: 87648723472386, Status: pgtype.Present})},
+				{EncodedToken{Value: "lzkihBRvnCA="}, NewToken(postgres.XID8{Uint: 2349875239487420823, Status: pgtype.Present})},
 			}
 
 			for _, tt := range tests {
@@ -123,7 +123,7 @@ var _ = Describe("token", func() {
 				target   token.EncodedSnapToken
 				expected token.SnapToken
 			}{
-				{EncodedToken{Value: "BAAAaAAAAAA="}, Token{Value: types.XID8{Uint: 4, Status: pgtype.Present}}},
+				{EncodedToken{Value: "BAAAaAAAAAA="}, Token{Value: postgres.XID8{Uint: 4, Status: pgtype.Present}}},
 			}
 
 			for _, tt := range tests {

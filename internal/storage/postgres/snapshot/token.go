@@ -6,14 +6,14 @@ import (
 
 	"github.com/jackc/pgtype"
 
-	"github.com/Permify/permify/internal/storage/postgres/types"
+	"github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/token"
 )
 
 type (
 	// Token - Structure for Token
 	Token struct {
-		Value types.XID8
+		Value postgres.XID8
 	}
 	// EncodedToken - Structure for EncodedToken
 	EncodedToken struct {
@@ -22,7 +22,7 @@ type (
 )
 
 // NewToken - Creates a new snapshot token
-func NewToken(value types.XID8) token.SnapToken {
+func NewToken(value postgres.XID8) token.SnapToken {
 	return Token{
 		Value: value,
 	}
@@ -62,7 +62,7 @@ func (t EncodedToken) Decode() (token.SnapToken, error) {
 		return nil, err
 	}
 	return Token{
-		Value: types.XID8{
+		Value: postgres.XID8{
 			Uint:   binary.LittleEndian.Uint64(b),
 			Status: pgtype.Present,
 		},

@@ -5,9 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"log/slog"
-	"math"
 	"strings"
 	"time"
 
@@ -25,32 +23,33 @@ const (
 	InsertTenantTemplate      = `INSERT INTO tenants (id, name) VALUES ($1, $2) RETURNING created_at`
 	DeleteTenantTemplate      = `DELETE FROM tenants WHERE id = $1 RETURNING name, created_at`
 	DeleteAllByTenantTemplate = `DELETE FROM %s WHERE tenant_id = $1`
+
+	// ActiveRecordTxnID represents the maximum XID8 value used for active records
+	// to avoid XID wraparound issues (instead of using 0)
+	ActiveRecordTxnID = uint64(9223372036854775807)
+	MaxXID8Value      = "'9223372036854775807'::xid8"
 )
 
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
-// The query checks if transactions are visible in a snapshot associated with the provided value.
+// Optimized version with parameterized queries for security.
 func SnapshotQuery(sl squirrel.SelectBuilder, value uint64) squirrel.SelectBuilder {
-	// Convert the value to a string once to reduce redundant calls to fmt.Sprintf.
-	valStr := fmt.Sprintf("'%v'::xid8", value)
-
 	// Create a subquery for the snapshot associated with the provided value.
-	snapshotQuery := fmt.Sprintf("(select snapshot from transactions where id = %s)", valStr)
+	snapshotQuery := "(select snapshot from transactions where id = ?::xid8)"
 
-	// Create an expression to check if a transaction with a specific created_tx_id is visible in the snapshot.
-	visibilityExpr := squirrel.Expr(fmt.Sprintf("pg_visible_in_snapshot(created_tx_id, %s) = true", snapshotQuery))
-	// Create an expression to check if the created_tx_id is equal to the provided value.
-	createdExpr := squirrel.Expr(fmt.Sprintf("created_tx_id = %s", valStr))
-	// Use OR condition for the created expressions.
-	createdWhere := squirrel.Or{visibilityExpr, createdExpr}
+	// Records that were created and are visible in the snapshot
+	createdWhere := squirrel.Or{
+		squirrel.Expr("pg_visible_in_snapshot(created_tx_id, ?) = true", squirrel.Expr(snapshotQuery, value)),
+		squirrel.Expr("created_tx_id = ?::xid8", value), // Include current transaction
+	}
 
-	// Create an expression to check if a transaction with a specific expired_tx_id is not visible in the snapshot.
-	expiredVisibilityExpr := squirrel.Expr(fmt.Sprintf("pg_visible_in_snapshot(expired_tx_id, %s) = false", snapshotQuery))
-	// Create an expression to check if the expired_tx_id is equal to zero.
-	expiredZeroExpr := squirrel.Expr("expired_tx_id = '0'::xid8")
-	// Create an expression to check if the expired_tx_id is not equal to the provided value.
-	expiredNotExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id <> %s", valStr))
-	// Use AND condition for the expired expressions, checking both visibility and non-equality with value.
-	expiredWhere := squirrel.And{squirrel.Or{expiredVisibilityExpr, expiredZeroExpr}, expiredNotExpr}
+	// Records that are still active (not expired) at snapshot time
+	expiredWhere := squirrel.And{
+		squirrel.Or{
+			squirrel.Expr("pg_visible_in_snapshot(expired_tx_id, ?) = false", squirrel.Expr(snapshotQuery, value)),
+			squirrel.Expr("expired_tx_id = ?::xid8", ActiveRecordTxnID), // Never expired
+		},
+		squirrel.Expr("expired_tx_id <> ?::xid8", value), // Not expired by current transaction
+	}
 
 	// Add the created and expired conditions to the SELECT query.
 	return sl.Where(createdWhere).Where(expiredWhere)
@@ -60,40 +59,34 @@ func SnapshotQuery(sl squirrel.SelectBuilder, value uint64) squirrel.SelectBuild
 // It constructs a query to delete expired records from the specified table
 // based on the provided value, which represents a transaction ID.
 func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
-	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
-	valStr := fmt.Sprintf("'%v'::xid8", value)
-
 	// Create a Squirrel DELETE builder for the specified table.
 	deleteBuilder := squirrel.Delete(table)
 
-	// Create an expression to check if 'expired_tx_id' is not equal to '0' (not expired).
-	expiredZeroExpr := squirrel.Expr("expired_tx_id <> '0'::xid8")
+	// Create an expression to check if 'expired_tx_id' is not equal to ActiveRecordTxnID (expired records).
+	expiredNotActiveExpr := squirrel.Expr("expired_tx_id <> ?::xid8", ActiveRecordTxnID)
 
 	// Create an expression to check if 'expired_tx_id' is less than the provided value (before the cutoff).
-	beforeExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id < %s", valStr))
+	beforeExpr := squirrel.Expr("expired_tx_id < ?::xid8", value)
 
 	// Add the WHERE clauses to the DELETE query builder to filter and delete expired data.
-	return deleteBuilder.Where(expiredZeroExpr).Where(beforeExpr)
+	return deleteBuilder.Where(expiredNotActiveExpr).Where(beforeExpr)
 }
 
 // GenerateGCQueryForTenant generates a Squirrel DELETE query builder for tenant-aware garbage collection.
 // It constructs a query to delete expired records from the specified table for a specific tenant
 // based on the provided value, which represents a transaction ID.
 func GenerateGCQueryForTenant(table, tenantID string, value uint64) squirrel.DeleteBuilder {
-	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
-	valStr := fmt.Sprintf("'%v'::xid8", value)
-
 	// Create a Squirrel DELETE builder for the specified table.
 	deleteBuilder := squirrel.Delete(table)
 
-	// Create an expression to check if 'expired_tx_id' is not equal to '0' (not expired).
-	expiredZeroExpr := squirrel.Expr("expired_tx_id <> '0'::xid8")
+	// Create an expression to check if 'expired_tx_id' is not equal to ActiveRecordTxnID (expired records).
+	expiredNotActiveExpr := squirrel.Expr("expired_tx_id <> ?::xid8", ActiveRecordTxnID)
 
 	// Create an expression to check if 'expired_tx_id' is less than the provided value (before the cutoff).
-	beforeExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id < %s", valStr))
+	beforeExpr := squirrel.Expr("expired_tx_id < ?::xid8", value)
 
 	// Add the WHERE clauses to the DELETE query builder to filter and delete expired data for the specific tenant.
-	return deleteBuilder.Where(squirrel.Eq{"tenant_id": tenantID}).Where(expiredZeroExpr).Where(beforeExpr)
+	return deleteBuilder.Where(squirrel.Eq{"tenant_id": tenantID}).Where(expiredNotActiveExpr).Where(beforeExpr)
 }
 
 // HandleError records an error in the given span, logs the error, and returns a standardized error.
@@ -148,12 +141,22 @@ func IsSerializationRelatedError(err error) bool {
 // WaitWithBackoff implements an exponential backoff strategy with jitter for retries.
 // It waits for a calculated duration or until the context is cancelled, whichever comes first.
 func WaitWithBackoff(ctx context.Context, tenantID string, retries int) {
-	// Calculate the base backoff
-	backoff := time.Duration(math.Min(float64(20*time.Millisecond)*math.Pow(2, float64(retries)), float64(1*time.Second)))
+	// Calculate the base backoff with bit shifting for better performance
+	baseBackoff := 20 * time.Millisecond
+	if retries > 0 {
+		// Use bit shifting instead of math.Pow for better performance
+		shift := min(retries, 5) // Cap at 2^5 = 32, so max backoff is 640ms
+		baseBackoff = baseBackoff << shift
+	}
+
+	// Cap at 1 second
+	if baseBackoff > time.Second {
+		baseBackoff = time.Second
+	}
 
 	// Generate jitter using crypto/rand
-	jitter := time.Duration(secureRandomFloat64() * float64(backoff) * 0.5)
-	nextBackoff := backoff + jitter
+	jitter := time.Duration(secureRandomFloat64() * float64(baseBackoff) * 0.5)
+	nextBackoff := baseBackoff + jitter
 
 	// Log the retry wait
 	slog.WarnContext(ctx, "waiting before retry",
@@ -168,10 +171,13 @@ func WaitWithBackoff(ctx context.Context, tenantID string, retries int) {
 }
 
 // secureRandomFloat64 generates a float64 value in the range [0, 1) using crypto/rand.
+// Optimized version with better error handling and performance.
 func secureRandomFloat64() float64 {
 	var b [8]byte
 	if _, err := rand.Read(b[:]); err != nil {
-		return 0 // Default to 0 jitter on error
+		// Use a fallback random value instead of 0 to maintain jitter
+		return 0.5 // Middle value for consistent jitter behavior
 	}
-	return float64(binary.BigEndian.Uint64(b[:])) / (1 << 64)
+	// Use bit shifting instead of division for better performance
+	return float64(binary.BigEndian.Uint64(b[:])) / (1 << 63) / 2.0
 }

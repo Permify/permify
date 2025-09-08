@@ -10,7 +10,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage/postgres/instance"
-	"github.com/Permify/permify/internal/storage/postgres/types"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -240,7 +239,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, PQDatabase.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -255,7 +254,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, PQDatabase.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -270,7 +269,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, PQDatabase.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -285,7 +284,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, PQDatabase.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -300,7 +299,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, PQDatabase.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -315,7 +314,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, PQDatabase.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
@@ -330,7 +329,7 @@ var _ = Describe("Watch", func() {
 
 				watcherWithClosedDB := NewWatcher(closedDB)
 
-				_, err = watcherWithClosedDB.getChanges(ctx, types.XID8{Uint: 1}, "t1")
+				_, err = watcherWithClosedDB.getChanges(ctx, PQDatabase.XID8{Uint: 1}, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("encode text status undefined status"))
 			})
