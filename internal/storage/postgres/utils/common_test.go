@@ -25,22 +25,24 @@ var _ = Describe("Common", func() {
 			revision := uint64(42)
 
 			query := utils.SnapshotQuery(sl, revision)
-			sql, _, err := query.ToSql()
+			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			expectedSQL := "SELECT column FROM table WHERE (pg_visible_in_snapshot(created_tx_id, (select snapshot from transactions where id = '42'::xid8)) = true OR created_tx_id = '42'::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, (select snapshot from transactions where id = '42'::xid8)) = false OR expired_tx_id = '9223372036854775807'::xid8) AND expired_tx_id <> '42'::xid8)"
+			expectedSQL := "SELECT column FROM table WHERE (pg_visible_in_snapshot(created_tx_id, (select snapshot from transactions where id = ?::xid8)) = true OR created_tx_id = ?::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, (select snapshot from transactions where id = ?::xid8)) = false OR expired_tx_id = ?::xid8) AND expired_tx_id <> ?::xid8)"
 			Expect(sql).Should(Equal(expectedSQL))
+			Expect(args).Should(Equal([]interface{}{revision, revision, revision, utils.ActiveRecordTxnID, revision}))
 		})
 	})
 
 	Context("TestGarbageCollectQuery", func() {
 		It("Case 1", func() {
 			query := utils.GenerateGCQuery("relation_tuples", 100)
-			sql, _, err := query.ToSql()
+			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> '9223372036854775807'::xid8 AND expired_tx_id < '100'::xid8"
+			expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> ?::xid8 AND expired_tx_id < ?::xid8"
 			Expect(expectedSQL).Should(Equal(sql))
+			Expect(args).Should(Equal([]interface{}{utils.ActiveRecordTxnID, uint64(100)}))
 		})
 
 		It("Case 2 - Tenant Aware", func() {
@@ -48,9 +50,9 @@ var _ = Describe("Common", func() {
 			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = ? AND expired_tx_id <> '9223372036854775807'::xid8 AND expired_tx_id < '100'::xid8"
+			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = ? AND expired_tx_id <> ?::xid8 AND expired_tx_id < ?::xid8"
 			Expect(expectedSQL).Should(Equal(sql))
-			Expect(args).Should(Equal([]interface{}{"tenant1"}))
+			Expect(args).Should(Equal([]interface{}{"tenant1", utils.ActiveRecordTxnID, uint64(100)}))
 		})
 	})
 

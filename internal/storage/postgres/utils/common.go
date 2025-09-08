@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"log/slog"
 	"strings"
 	"time"
@@ -32,27 +31,24 @@ const (
 )
 
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
-// Optimized version with consistent string formatting and reduced allocations.
+// Optimized version with parameterized queries for security.
 func SnapshotQuery(sl squirrel.SelectBuilder, value uint64) squirrel.SelectBuilder {
-	// Convert the value to a string once to reduce redundant calls to fmt.Sprintf.
-	valStr := fmt.Sprintf("'%v'::xid8", value)
-
 	// Create a subquery for the snapshot associated with the provided value.
-	snapshotQuery := fmt.Sprintf("(select snapshot from transactions where id = %s)", valStr)
+	snapshotQuery := "(select snapshot from transactions where id = ?::xid8)"
 
 	// Records that were created and are visible in the snapshot
 	createdWhere := squirrel.Or{
-		squirrel.Expr(fmt.Sprintf("pg_visible_in_snapshot(created_tx_id, %s) = true", snapshotQuery)),
-		squirrel.Expr(fmt.Sprintf("created_tx_id = %s", valStr)), // Include current transaction
+		squirrel.Expr("pg_visible_in_snapshot(created_tx_id, ?) = true", squirrel.Expr(snapshotQuery, value)),
+		squirrel.Expr("created_tx_id = ?::xid8", value), // Include current transaction
 	}
 
 	// Records that are still active (not expired) at snapshot time
 	expiredWhere := squirrel.And{
 		squirrel.Or{
-			squirrel.Expr(fmt.Sprintf("pg_visible_in_snapshot(expired_tx_id, %s) = false", snapshotQuery)),
-			squirrel.Expr(fmt.Sprintf("expired_tx_id = %s", MaxXID8Value)), // Never expired
+			squirrel.Expr("pg_visible_in_snapshot(expired_tx_id, ?) = false", squirrel.Expr(snapshotQuery, value)),
+			squirrel.Expr("expired_tx_id = ?::xid8", ActiveRecordTxnID), // Never expired
 		},
-		squirrel.Expr(fmt.Sprintf("expired_tx_id <> %s", valStr)), // Not expired by current transaction
+		squirrel.Expr("expired_tx_id <> ?::xid8", value), // Not expired by current transaction
 	}
 
 	// Add the created and expired conditions to the SELECT query.
@@ -63,17 +59,14 @@ func SnapshotQuery(sl squirrel.SelectBuilder, value uint64) squirrel.SelectBuild
 // It constructs a query to delete expired records from the specified table
 // based on the provided value, which represents a transaction ID.
 func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
-	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
-	valStr := fmt.Sprintf("'%v'::xid8", value)
-
 	// Create a Squirrel DELETE builder for the specified table.
 	deleteBuilder := squirrel.Delete(table)
 
 	// Create an expression to check if 'expired_tx_id' is not equal to ActiveRecordTxnID (expired records).
-	expiredNotActiveExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id <> %s", MaxXID8Value))
+	expiredNotActiveExpr := squirrel.Expr("expired_tx_id <> ?::xid8", ActiveRecordTxnID)
 
 	// Create an expression to check if 'expired_tx_id' is less than the provided value (before the cutoff).
-	beforeExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id < %s", valStr))
+	beforeExpr := squirrel.Expr("expired_tx_id < ?::xid8", value)
 
 	// Add the WHERE clauses to the DELETE query builder to filter and delete expired data.
 	return deleteBuilder.Where(expiredNotActiveExpr).Where(beforeExpr)
@@ -83,17 +76,14 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 // It constructs a query to delete expired records from the specified table for a specific tenant
 // based on the provided value, which represents a transaction ID.
 func GenerateGCQueryForTenant(table, tenantID string, value uint64) squirrel.DeleteBuilder {
-	// Convert the provided value into a string format suitable for our SQL query, formatted as a transaction ID.
-	valStr := fmt.Sprintf("'%v'::xid8", value)
-
 	// Create a Squirrel DELETE builder for the specified table.
 	deleteBuilder := squirrel.Delete(table)
 
 	// Create an expression to check if 'expired_tx_id' is not equal to ActiveRecordTxnID (expired records).
-	expiredNotActiveExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id <> %s", MaxXID8Value))
+	expiredNotActiveExpr := squirrel.Expr("expired_tx_id <> ?::xid8", ActiveRecordTxnID)
 
 	// Create an expression to check if 'expired_tx_id' is less than the provided value (before the cutoff).
-	beforeExpr := squirrel.Expr(fmt.Sprintf("expired_tx_id < %s", valStr))
+	beforeExpr := squirrel.Expr("expired_tx_id < ?::xid8", value)
 
 	// Add the WHERE clauses to the DELETE query builder to filter and delete expired data for the specific tenant.
 	return deleteBuilder.Where(squirrel.Eq{"tenant_id": tenantID}).Where(expiredNotActiveExpr).Where(beforeExpr)
