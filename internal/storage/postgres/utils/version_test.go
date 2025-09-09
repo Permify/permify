@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/storage/postgres/instance"
 	"github.com/Permify/permify/internal/storage/postgres/utils"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/testinstance"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -24,7 +24,7 @@ var _ = Describe("Version", func() {
 				version = "14"
 			}
 
-			database := instance.PostgresDB(version)
+			database := testinstance.PostgresDB(version)
 			db = database.(*PQDatabase.Postgres)
 			writePool = db.WritePool
 		})
@@ -100,7 +100,7 @@ var _ = Describe("Version", func() {
 				}
 
 				// Create a new database instance for this version
-				database := instance.PostgresDB(pgVersion)
+				database := testinstance.PostgresDB(pgVersion)
 				testDB := database.(*PQDatabase.Postgres)
 				testPool := testDB.WritePool
 
@@ -136,7 +136,7 @@ var _ = Describe("Version", func() {
 				version = "14"
 			}
 
-			database := instance.PostgresDB(version)
+			database := testinstance.PostgresDB(version)
 			db := database.(*PQDatabase.Postgres)
 			writePool := db.WritePool
 

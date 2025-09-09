@@ -8,11 +8,11 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/storage/postgres/instance"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/testinstance"
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -29,7 +29,7 @@ var _ = Describe("DataReader", func() {
 			version = "14"
 		}
 
-		db = instance.PostgresDB(version)
+		db = testinstance.PostgresDB(version)
 		dataWriter = NewDataWriter(db.(*PQDatabase.Postgres))
 		dataReader = NewDataReader(db.(*PQDatabase.Postgres))
 	})

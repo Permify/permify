@@ -62,7 +62,7 @@ func (p *Postgres) Repair(ctx context.Context, config *RepairConfig) (*RepairRes
 		slog.Int("batch_size", config.BatchSize))
 
 	// Step 1: Get current PostgreSQL XID
-	currentXID, err := p.getCurrentPostgreSQLXID(ctx)
+	currentXID, err := p.getCurrentPostgreXID(ctx)
 	if err != nil {
 		return result, fmt.Errorf("failed to get current PostgreSQL XID: %w", err)
 	}
@@ -110,9 +110,9 @@ func (p *Postgres) Repair(ctx context.Context, config *RepairConfig) (*RepairRes
 }
 
 // getCurrentPostgreSQLXID gets the current PostgreSQL transaction ID
-func (p *Postgres) getCurrentPostgreSQLXID(ctx context.Context) (uint64, error) {
+func (p *Postgres) getCurrentPostgreXID(ctx context.Context) (uint64, error) {
 	var x int64
-	query := "SELECT (pg_current_xact_id()::text)::bigint"
+	query := "SELECT COALESCE(pg_current_xact_id()::text, '0')::bigint"
 	if err := p.ReadPool.QueryRow(ctx, query).Scan(&x); err != nil {
 		return 0, err
 	}
@@ -121,7 +121,7 @@ func (p *Postgres) getCurrentPostgreSQLXID(ctx context.Context) (uint64, error) 
 
 // getMaxReferencedXID gets the maximum transaction ID referenced in the transactions table
 func (p *Postgres) getMaxReferencedXID(ctx context.Context) (uint64, error) {
-	query := "SELECT (MAX(id)::text)::bigint FROM transactions"
+	query := "SELECT COALESCE(MAX(id)::text, '0')::bigint FROM transactions"
 	var x int64
 	if err := p.ReadPool.QueryRow(ctx, query).Scan(&x); err != nil {
 		return 0, err

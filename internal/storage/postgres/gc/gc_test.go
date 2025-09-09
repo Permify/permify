@@ -15,12 +15,12 @@ import (
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres"
-	"github.com/Permify/permify/internal/storage/postgres/instance"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/testinstance"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
@@ -46,7 +46,7 @@ var _ = Describe("GarbageCollector", func() {
 			version = "14"
 		}
 
-		db = instance.PostgresDB(version)
+		db = testinstance.PostgresDB(version)
 		garbageCollector = NewGC(
 			db.(*PQDatabase.Postgres),
 			Window(5*time.Second),
@@ -365,213 +365,9 @@ var _ = Describe("GarbageCollector", func() {
 			Expect(err).Should(Equal(context.Canceled))
 		})
 
-		It("should handle database time query error", func() {
+		It("should handle database connection errors", func() {
 			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle query error in getAllTenants", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle execution error in getAllTenants", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle scan error in getAllTenants", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle rows error in getAllTenants", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle query error in getLastTransactionIDForTenant", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle scan error in getLastTransactionIDForTenant", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle query error in deleteRecordsForTenant", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle query error in deleteTransactionsForTenant", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle execution error in deleteTransactionsForTenant", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle error propagation in runForTenant", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle error propagation in deleteRecordsForTenant", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
-				Window(5*time.Second),
-			)
-
-			// Try to run garbage collection with closed database
-			err = badGC.Run()
-
-			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should handle error propagation in deleteTransactionsForTenant", func() {
-			// Create a garbage collector with a closed database connection
-			closedDB := instance.PostgresDB("14")
+			closedDB := testinstance.PostgresDB("14")
 			err := closedDB.Close()
 			Expect(err).ShouldNot(HaveOccurred())
 
