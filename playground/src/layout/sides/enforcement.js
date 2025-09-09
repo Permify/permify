@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import YamlEditor from "@pkg/Editor/yaml";
+import YamlEditor from "@pkg/editor/yaml";
 import "allotment/dist/style.css";
 import {useShapeStore} from "@state/shape";
 import yaml, {dump} from 'js-yaml';
