@@ -1,6 +1,6 @@
 import React from 'react'
 import {Alert} from "antd";
-import V from "@pkg/visualizer";
+import V from "@pkg/visualizer/index";
 import {useShapeStore} from "@state/shape";
 
 function Visualizer() {
