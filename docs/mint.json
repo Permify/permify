@@ -2,8 +2,8 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Permify Docs",
   "logo": {
-    "dark": "https://github.com/Permify/permify/raw/master/assets/logo-permify-dark.png",
-    "light": "https://github.com/Permify/permify/raw/master/assets/logo-permify-light.png"
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
   },
   "favicon": "/favicon.svg",
   "colors": {
