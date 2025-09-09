@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/storage/postgres/instance"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	"github.com/Permify/permify/pkg/testinstance"
 )
 
 var _ = Describe("TenantReader", func() {
@@ -24,7 +24,7 @@ var _ = Describe("TenantReader", func() {
 			version = "14"
 		}
 
-		db = instance.PostgresDB(version)
+		db = testinstance.PostgresDB(version)
 		tenantWriter = NewTenantWriter(db.(*PQDatabase.Postgres))
 		tenantReader = NewTenantReader(db.(*PQDatabase.Postgres))
 	})

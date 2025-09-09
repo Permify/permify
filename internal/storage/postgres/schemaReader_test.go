@@ -11,10 +11,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/internal/storage/postgres/instance"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/testinstance"
 )
 
 var _ = Describe("SchemaReader", func() {
@@ -29,7 +29,7 @@ var _ = Describe("SchemaReader", func() {
 			version = "14"
 		}
 
-		db = instance.PostgresDB(version)
+		db = testinstance.PostgresDB(version)
 		schemaWriter = NewSchemaWriter(db.(*PQDatabase.Postgres))
 		schemaReader = NewSchemaReader(db.(*PQDatabase.Postgres))
 	})

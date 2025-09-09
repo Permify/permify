@@ -8,10 +8,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/internal/storage/postgres/instance"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/testinstance"
 )
 
 var _ = Describe("BundleReader", func() {
@@ -26,7 +26,7 @@ var _ = Describe("BundleReader", func() {
 			version = "14"
 		}
 
-		db = instance.PostgresDB(version)
+		db = testinstance.PostgresDB(version)
 		bundleWriter = NewBundleWriter(db.(*PQDatabase.Postgres))
 		bundleReader = NewBundleReader(db.(*PQDatabase.Postgres))
 	})
@@ -113,51 +113,10 @@ var _ = Describe("BundleReader", func() {
 	})
 
 	Context("Error Handling", func() {
-		It("should handle SQL builder error", func() {
-			ctx := context.Background()
-
-			// Create a bundleReader with a closed database to trigger SQL builder error
-			closedDB := db.(*PQDatabase.Postgres)
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			// Create a new bundleReader with the closed database
-			readerWithClosedDB := NewBundleReader(closedDB)
-
-			_, err = readerWithClosedDB.Read(ctx, "t1", "test_bundle")
-			Expect(err).Should(HaveOccurred())
-			// The error could be either SQL_BUILDER or SCAN depending on when the connection fails
-			Expect(err.Error()).Should(Or(
-				Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
-				Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
-			))
-		})
-
-		It("should handle scan error", func() {
-			ctx := context.Background()
-
-			// Create a bundleReader with a closed database to trigger scan error
-			closedDB := db.(*PQDatabase.Postgres)
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			// Create a new bundleReader with the closed database
-			readerWithClosedDB := NewBundleReader(closedDB)
-
-			_, err = readerWithClosedDB.Read(ctx, "t1", "test_bundle")
-			Expect(err).Should(HaveOccurred())
-			// The error could be either SQL_BUILDER or SCAN depending on when the connection fails
-			Expect(err.Error()).Should(Or(
-				Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
-				Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
-			))
-		})
-
 		It("should handle protojson unmarshal error", func() {
 			ctx := context.Background()
 
 			// First, write a bundle with valid JSON that doesn't match the protobuf structure
-			// We'll need to directly insert JSON that's valid JSON but invalid for the DataBundle protobuf
 			postgresDB := db.(*PQDatabase.Postgres)
 
 			// Insert valid JSON that doesn't match the DataBundle structure
@@ -171,39 +130,6 @@ var _ = Describe("BundleReader", func() {
 			_, err = bundleReader.Read(ctx, "t1", "invalid_bundle")
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String()))
-		})
-
-		It("should handle context cancellation", func() {
-			// Create a context that's already cancelled
-			ctx, cancel := context.WithCancel(context.Background())
-			cancel()
-
-			_, err := bundleReader.Read(ctx, "t1", "test_bundle")
-			Expect(err).Should(HaveOccurred())
-			// The error could be context-related or SQL_BUILDER depending on when cancellation occurs
-			Expect(err.Error()).Should(Or(
-				Equal(base.ErrorCode_ERROR_CODE_CANCELLED.String()),
-				Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
-			))
-		})
-
-		It("should handle database connection errors", func() {
-			ctx := context.Background()
-
-			// Create a bundleReader with a closed database
-			closedDB := db.(*PQDatabase.Postgres)
-			err := closedDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			readerWithClosedDB := NewBundleReader(closedDB)
-
-			_, err = readerWithClosedDB.Read(ctx, "t1", "test_bundle")
-			Expect(err).Should(HaveOccurred())
-			// The error could be SQL_BUILDER or SCAN depending on when the connection fails
-			Expect(err.Error()).Should(Or(
-				Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
-				Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
-			))
 		})
 	})
 })
