@@ -1,6 +1,6 @@
-import React, {useEffect, useRef, useState} from "react";
-import {Button, Form, Input, Select, Space, Table} from "antd";
-import {CloseOutlined, DeleteOutlined, MenuOutlined} from "@ant-design/icons";
+import React, {useEffect, useRef, useState, useMemo, useCallback} from "react";
+import {Button, Form, Input, Select, Space, Table, message} from "antd";
+import {CloseOutlined, DeleteOutlined, MenuOutlined, EditOutlined} from "@ant-design/icons";
 import {useShapeStore} from "@state/shape";
 import {arrayMove, SortableContext, useSortable, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import {AttributeEntityToKey, AttributeObjectToKey, StringAttributesToObjects,} from "@utility/helpers/common";
@@ -15,6 +15,7 @@ function Attributes() {
 
     const [form] = Form.useForm();
     const [dataSource, setDataSource] = useState([]);
+    const [errorMessage, setErrorMessage] = useState('');
     const tableBodyRef = useRef(null);
 
     const {
@@ -36,22 +37,25 @@ function Attributes() {
     const isEditing = (record) => editingKeys.includes(record.key);
 
     // Cancel the current editing process
-    const cancel = (key) => {
+    const cancel = useCallback((key) => {
         const newData = dataSource.filter(item => !(item.isNew && item.key === key));
         setDataSource(newData);
         setEditingKeys(prevKeys => prevKeys.filter(k => k !== key));
-    };
+        setErrorMessage('');
+    }, [dataSource]);
 
     // Remove a specific attribute from the data source
-    const remove = (attribute) => {
+    const remove = useCallback((attribute) => {
         const updatedDataSource = dataSource.filter(item => item.key !== attribute.key);
         setDataSource(updatedDataSource);
-        removeAttribute(attribute.key)
-    }
+        removeAttribute(attribute.key);
+        setErrorMessage('');
+    }, [dataSource, removeAttribute]);
 
     // Save the current edits
-    const save = async (key) => {
+    const save = useCallback(async (key) => {
         try {
+            setErrorMessage('');
             const currentRowValues = await form.validateFields([
                 `entityType_${key}`,
                 `entityID_${key}`,
@@ -62,6 +66,7 @@ function Attributes() {
 
             const newData = [...dataSource];
             const index = newData.findIndex((item) => key === item.key);
+            const originalItem = newData[index];
 
             const updatedRow = Object.keys(currentRowValues).reduce((acc, currKey) => {
                 const newKey = currKey.split('_')[0];
@@ -69,57 +74,99 @@ function Attributes() {
                 return acc;
             }, {});
 
-            let updatedKey = AttributeObjectToKey(updatedRow);
+            const updatedKey = AttributeObjectToKey(updatedRow);
             updatedRow.key = updatedKey;
 
-            // Check if the updated key exists in the data source
-            if (newData.some(item => AttributeEntityToKey(item) === AttributeEntityToKey(updatedRow))) {
-                console.log('This key already exists:', updatedRow.key);
-                return; // If the key exists, we exit the function early
+            // Check if the updated key exists in the data source (excluding current item)
+            const existingItem = newData.find(item => AttributeEntityToKey(item) === AttributeEntityToKey(updatedRow) && item.key !== key);
+            if (existingItem) {
+                const errorMsg = 'This attribute already exists. Please check your input.';
+                setErrorMessage(errorMsg);
+                message.error(errorMsg);
+                return;
             }
 
             if (index > -1) {
+                const isNewItem = originalItem.isNew;
                 newData[index] = {...newData[index], ...updatedRow, isNew: false};
                 setDataSource(newData);
                 setEditingKeys(prevKeys => prevKeys.filter(k => k !== key));
                 form.resetFields();
-                addAttributes([updatedKey]);
+                
+                if (isNewItem) {
+                    // Add new attribute
+                    addAttributes([updatedKey]);
+                } else {
+                    // Update existing attribute
+                    removeAttribute(key);
+                    addAttributes([updatedKey]);
+                }
+                
+                message.success(isNewItem ? 'Attribute added successfully' : 'Attribute updated successfully');
             }
         } catch (errInfo) {
-            console.log('Validate Failed:', errInfo);
+            const errorMsg = 'Validation failed. Please check all required fields.';
+            setErrorMessage(errorMsg);
+            message.error(errorMsg);
         }
-    };
+    }, [dataSource, form, addAttributes, removeAttribute]);
 
-    const columns = [
+    // Edit an existing attribute
+    const editRow = useCallback((record) => {
+        setEditingKeys(prevKeys => [...prevKeys, record.key]);
+        
+        // Populate form fields with existing data
+        form.setFieldsValue({
+            [`entityType_${record.key}`]: record.entityType,
+            [`entityID_${record.key}`]: record.entityID,
+            [`attribute_${record.key}`]: record.attribute,
+            [`type_${record.key}`]: record.type,
+            [`value_${record.key}`]: record.value,
+        });
+        
+        // Set selected values for dropdowns
+        setSelectedEntityTypes(prev => ({
+            ...prev,
+            [record.key]: record.entityType
+        }));
+        setSelectedAttributes(prev => ({
+            ...prev,
+            [record.key]: record.attribute
+        }));
+        
+        setErrorMessage('');
+    }, [form]);
+
+    const columns = useMemo(() => [
         {
             key: 'sort',
         },
         {
-            title: "Entity Type",
+            title: 'Entity Type',
             dataIndex: 'entityType',
             key: 'entityType',
             editable: true,
         },
         {
-            title: "Entity ID",
+            title: 'Entity ID',
             dataIndex: 'entityID',
             key: 'entityID',
             editable: true,
         },
         {
-            title: "Attribute",
+            title: 'Attribute',
             dataIndex: 'attribute',
             key: 'attribute',
             editable: true,
         },
         {
-            title: "Type",
+            title: 'Type',
             key: 'type',
             dataIndex: 'type',
             editable: true,
         },
         {
-            title: "Value",
+            title: 'Value',
             key: 'value',
             dataIndex: 'value',
             editable: true,
@@ -127,24 +174,26 @@ function Attributes() {
         {
             title: '',
             dataIndex: 'operation',
+            align: 'right',
             render: (_, record) => {
                 const editable = isEditing(record);
                 return editable ? (
-                    <span className="flex flex-row items-center gap-2" style={{width: "fit-content"}}>
-                        <Button type="primary" onClick={() => save(record.key)}>Save</Button>
-                        <Button className="text-white ml-4" type="link" icon={<CloseOutlined/>} onClick={() => cancel(record.key)}/>
+                    <span className="flex flex-row items-center gap-2" style={{width: 'fit-content', marginLeft: 'auto'}}>
+                        <Button type="primary" onClick={() => save(record.key)} aria-label="Save attribute">Save</Button>
+                        <Button className="text-white ml-4" type="link" icon={<CloseOutlined/>} onClick={() => cancel(record.key)} aria-label="Cancel editing"/>
                     </span>
                 ) : (
-                    <Space size="middle">
-                        <Button type="text" danger icon={<DeleteOutlined onClick={() => remove(record)}/>}/>
+                    <Space size="small">
+                        <Button type="text" icon={<EditOutlined/>} onClick={() => editRow(record)} aria-label="Edit attribute"/>
+                        <Button type="text" danger icon={<DeleteOutlined/>} onClick={() => remove(record)} aria-label="Delete attribute"/>
                     </Space>
                 );
             },
         },
-    ];
+    ], [isEditing, save, cancel, remove, editRow]);
 
     // Merge columns with editing logic
-    const mergedColumns = columns.map((col) => {
+    const mergedColumns = useMemo(() => columns.map((col) => {
         if (!col.editable) {
             return col;
         }
@@ -159,10 +208,10 @@ function Attributes() {
                 editing: isEditing(record),
             }),
         };
-    });
+    }), [columns, isEditing]);
 
     // Handle the end of the drag-and-drop event
-    const onDragEnd = ({active, over}) => {
+    const onDragEnd = useCallback(({active, over}) => {
         if (active.id !== over?.id) {
             setDataSource((previous) => {
                 const activeIndex = previous.findIndex((i) => i.key === active.id);
@@ -170,10 +219,10 @@ function Attributes() {
                 return arrayMove(previous, activeIndex, overIndex);
             });
         }
-    };
+    }, []);
 
     // A table row component for drag-and-drop functionality
-    const Row = ({children, ...props}) => {
+    const Row = useCallback(({children, ...props}) => {
         const {
             attributes,
             listeners,
@@ -206,7 +255,7 @@ function Attributes() {
 
         return (
             <tr {...props} ref={setNodeRef} className={attributeError ? 'error-row' : ''}
-                style={style} {...attributes}>
+                style={style} {...attributes} role="row" aria-label={`Attribute row ${props['data-row-key']}`}>
                 {React.Children.map(children, (child) => {
                     if (child.key === 'sort') {
                         return React.cloneElement(child, {
@@ -218,6 +267,8 @@ function Attributes() {
                                         cursor: 'move',
                                     }}
                                     {...listeners}
+                                    aria-label="Drag to reorder attribute"
+                                    tabIndex={0}
                                 />
                             ),
                         });
@@ -226,7 +277,7 @@ function Attributes() {
                 })}
             </tr>
         );
-    };
+    }, []);
 
     useEffect(() => {
         setDataSource(StringAttributesToObjects(attributes))
@@ -249,19 +300,21 @@ function Attributes() {
     );
 
     // Add a new attribute row for editing
-    const addRow = () => {
+    const addRow = useCallback(() => {
         const newRow = {
             key: nanoid(),
-            entityType: "",
-            entityID: "",
-            attribute: "",
-            type: "",
-            value: "",
+            entityType: '',
+            entityID: '',
+            attribute: '',
+            type: '',
+            value: '',
             isNew: true,
         };
         setDataSource((prevData) => [...prevData, newRow]);
         setEditingKeys(prevKeys => [...prevKeys, newRow.key]);
-    };
+        setErrorMessage('');
+    }, []);
+
 
     const EditableCell = ({editing, dataIndex, title, inputType, record, index, children, ...restProps}) => {
         let inputElement;
@@ -345,15 +398,14 @@ function Attributes() {
     };
 
     // Handlers to set selected entity types, attributes, and subject types when they are changed
-
-    const handleEntityTypeChange = (value, rowKey) => {
+    const handleEntityTypeChange = useCallback((value, rowKey) => {
         setSelectedEntityTypes(prev => ({
             ...prev,
             [rowKey]: value
         }));
-    };
+    }, []);
 
-    const handleAttributeChange = (value, rowKey) => {
+    const handleAttributeChange = useCallback((value, rowKey) => {
         try {
             // Update selectedAttributes state
             if (value) {
@@ -381,31 +433,36 @@ function Attributes() {
             }
 
         } catch (error) {
-            console.error("Error handling attribute change:", error);
+            console.error('Error handling attribute change:', error);
         }
-    };
+    }, [selectedEntityTypes, form, getTypeValueBasedOnAttribute]);
 
     // Utility functions to get options for attribute, subject type, and subject attribute
-    function safelyGetOptions(entityType, selectorFunction, mapFunction) {
+    const safelyGetOptions = useCallback((entityType, selectorFunction, mapFunction) => {
         if (!entityType) return [];
 
         const results = selectorFunction(entityType);
         if (!results || !results.length) return [];
 
         return results.map(mapFunction);
-    }
+    }, []);
 
-    function getAttributeOptionsForRow(rowKey) {
+    const getAttributeOptionsForRow = useCallback((rowKey) => {
         const entityType = selectedEntityTypes[rowKey];
         return safelyGetOptions(entityType, getAttributes, attribute => (
             <Option key={attribute} value={attribute}>
                 {attribute}
             </Option>
         ));
-    }
+    }, [selectedEntityTypes, safelyGetOptions, getAttributes]);
 
     return (
         <div style={{height: '100vh'}} ref={tableBodyRef}>
+            {errorMessage && (
+                <div style={{color: 'red', marginBottom: '10px', padding: '8px', backgroundColor: '#fff2f0', border: '1px solid #ffccc7', borderRadius: '4px'}}>
+                    {errorMessage}
+                </div>
+            )}
             <DndContext sensors={sensors} onDragEnd={onDragEnd}>
                 <SortableContext
                     items={dataSource.map((i) => i.key.toString())}
@@ -426,12 +483,13 @@ function Attributes() {
                                 pagination={false}
                                 footer={() => (
                                     <div style={{textAlign: 'left'}}>
-                                        <Button type="primary" onClick={addRow}>
+                                        <Button type="primary" onClick={addRow} aria-label="Add new attribute">
                                             Add Attribute
                                         </Button>
                                     </div>
                                 )}
                                 scroll={{y: 'calc(100vh - 270px)'}}
+                                aria-label="Attributes table"
                             />
                         </AttributeErrorContext.Provider>
                     </Form>

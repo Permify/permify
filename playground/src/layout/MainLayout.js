@@ -5,7 +5,7 @@ import {ExportOutlined, GithubOutlined, ShareAltOutlined, UploadOutlined} from "
 import {put} from '@vercel/blob';
 import yaml from "js-yaml";
 import {useShapeStore} from "@state/shape";
-import Share from "@layout/components/Modals/Share";
+import Share from "@layout/components/modals/Share";
 import toast, {Toaster} from 'react-hot-toast';
 
 const {Option, OptGroup} = Select;

@@ -1,6 +1,6 @@
-import React, {useEffect, useState, useRef} from "react";
-import {Button, Table, Input, Form, Space, Select} from "antd";
-import {CloseOutlined, DeleteOutlined, MenuOutlined} from "@ant-design/icons";
+import React, {useEffect, useState, useRef, useMemo, useCallback} from "react";
+import {Button, Table, Input, Form, Space, Select, message} from "antd";
+import {CloseOutlined, DeleteOutlined, MenuOutlined, EditOutlined} from "@ant-design/icons";
 import {useShapeStore} from "@state/shape";
 import {RelationshipObjectToKey, StringRelationshipsToObjects} from "@utility/helpers/common";
 import {nanoid} from "nanoid";
@@ -21,6 +21,7 @@ function Relationships() {
     // React hooks for state management and refs
     const [form] = Form.useForm();
     const [dataSource, setDataSource] = useState([]);
+    const [errorMessage, setErrorMessage] = useState('');
     const tableBodyRef = useRef(null);
 
     // Custom hooks for shape store interactions
@@ -46,22 +47,25 @@ function Relationships() {
     const isEditing = (record) => editingKeys.includes(record.key);
 
     // Cancel the current editing process
-    const cancel = (key) => {
+    const cancel = useCallback((key) => {
         const newData = dataSource.filter(item => !(item.isNew && item.key === key));
         setDataSource(newData);
         setEditingKeys(prevKeys => prevKeys.filter(k => k !== key));
-    };
+        setErrorMessage('');
+    }, [dataSource]);
 
     // Remove a specific relationship from the data source
-    const remove = (relationship) => {
+    const remove = useCallback((relationship) => {
         const updatedDataSource = dataSource.filter(item => item.key !== relationship.key);
         setDataSource(updatedDataSource);
-        removeRelationship(relationship.key)
-    }
+        removeRelationship(relationship.key);
+        setErrorMessage('');
+    }, [dataSource, removeRelationship]);
 
     // Save the current edits
-    const save = async (key) => {
+    const save = useCallback(async (key) => {
         try {
+            setErrorMessage('');
             const currentRowValues = await form.validateFields([
                 `entityType_${key}`,
                 `entityID_${key}`,
@@ -73,6 +77,7 @@ function Relationships() {
 
             const newData = [...dataSource];
             const index = newData.findIndex((item) => key === item.key);
+            const originalItem = newData[index];
 
             const updatedRow = Object.keys(currentRowValues).reduce((acc, currKey) => {
                 const newKey = currKey.split('_')[0];
@@ -80,64 +85,111 @@ function Relationships() {
                 return acc;
             }, {});
 
-            let updatedKey = RelationshipObjectToKey(updatedRow);
+            const updatedKey = RelationshipObjectToKey(updatedRow);
             updatedRow.key = updatedKey;
 
-            // Check if the updated key exists in the data source
-            if (newData.some(item => item.key === updatedRow.key)) {
-                console.log('This key already exists:', updatedRow.key);
-                return; // If the key exists, we exit the function early
+            // Check if the updated key exists in the data source (excluding current item)
+            const existingItem = newData.find(item => item.key === updatedRow.key && item.key !== key);
+            if (existingItem) {
+                const errorMsg = 'This relationship already exists. Please check your input.';
+                setErrorMessage(errorMsg);
+                message.error(errorMsg);
+                return;
             }
 
             if (index > -1) {
+                const isNewItem = originalItem.isNew;
                 newData[index] = {...newData[index], ...updatedRow, isNew: false};
                 setDataSource(newData);
                 setEditingKeys(prevKeys => prevKeys.filter(k => k !== key));
                 form.resetFields();
-                addRelationships([updatedKey]);
+                
+                if (isNewItem) {
+                    // Add new relationship
+                    addRelationships([updatedKey]);
+                } else {
+                    // Update existing relationship
+                    removeRelationship(key);
+                    addRelationships([updatedKey]);
+                }
+                
+                message.success(isNewItem ? 'Relationship added successfully' : 'Relationship updated successfully');
             }
         } catch (errInfo) {
-            console.log('Validate Failed:', errInfo);
+            const errorMsg = 'Validation failed. Please check all required fields.';
+            setErrorMessage(errorMsg);
+            message.error(errorMsg);
         }
-    };
+    }, [dataSource, form, addRelationships, removeRelationship]);
+
+    // Edit an existing relationship
+    const editRow = useCallback((record) => {
+        setEditingKeys(prevKeys => [...prevKeys, record.key]);
+        
+        // Populate form fields with existing data
+        form.setFieldsValue({
+            [`entityType_${record.key}`]: record.entityType,
+            [`entityID_${record.key}`]: record.entityID,
+            [`relation_${record.key}`]: record.relation,
+            [`subjectType_${record.key}`]: record.subjectType,
+            [`subjectID_${record.key}`]: record.subjectID,
+            [`subjectRelation_${record.key}`]: record.subjectRelation,
+        });
+        
+        // Set selected values for dropdowns
+        setSelectedEntityTypes(prev => ({
+            ...prev,
+            [record.key]: record.entityType
+        }));
+        setSelectedRelations(prev => ({
+            ...prev,
+            [record.key]: record.relation
+        }));
+        setSelectedSubjectTypes(prev => ({
+            ...prev,
+            [record.key]: record.subjectType
+        }));
+        
+        setErrorMessage('');
+    }, [form]);
 
     // Column configurations for the table
-    const columns = [
+    const columns = useMemo(() => [
         {
             key: 'sort',
         },
         {
-            title: "Entity Type",
+            title: 'Entity Type',
             dataIndex: 'entityType',
             key: 'entityType',
             editable: true,
         },
         {
-            title: "Entity ID",
+            title: 'Entity ID',
             dataIndex: 'entityID',
             key: 'entityID',
             editable: true,
         },
         {
-            title: "Relation",
+            title: 'Relation',
             dataIndex: 'relation',
             key: 'relation',
             editable: true,
         },
         {
-            title: "Subject Type",
+            title: 'Subject Type',
             key: 'subjectType',
             dataIndex: 'subjectType',
             editable: true,
         },
         {
-            title: "Subject ID",
+            title: 'Subject ID',
             key: 'subjectID',
             dataIndex: 'subjectID',
             editable: true,
         },
         {
-            title: "Subject Relation",
+            title: 'Subject Relation',
             key: 'subjectRelation',
             dataIndex: 'subjectRelation',
             editable: true,
@@ -145,24 +197,26 @@ function Relationships() {
         {
             title: '',
             dataIndex: 'operation',
+            align: 'right',
             render: (_, record) => {
                 const editable = isEditing(record);
                 return editable ? (
-                    <span className="flex flex-row items-center gap-2" style={{width: "fit-content"}}>
-                        <Button type="primary" onClick={() => save(record.key)}>Save</Button>
-                        <Button className="text-white ml-4" type="link" icon={<CloseOutlined/>} onClick={() => cancel(record.key)}/>
+                    <span className="flex flex-row items-center gap-2" style={{width: 'fit-content', marginLeft: 'auto'}}>
+                        <Button type="primary" onClick={() => save(record.key)} aria-label="Save relationship">Save</Button>
+                        <Button className="text-white ml-4" type="link" icon={<CloseOutlined/>} onClick={() => cancel(record.key)} aria-label="Cancel editing"/>
                     </span>
                 ) : (
-                    <Space size="middle">
-                        <Button type="text" danger icon={<DeleteOutlined onClick={() => remove(record)}/>}/>
+                    <Space size="small">
+                        <Button type="text" icon={<EditOutlined/>} onClick={() => editRow(record)} aria-label="Edit relationship"/>
+                        <Button type="text" danger icon={<DeleteOutlined/>} onClick={() => remove(record)} aria-label="Delete relationship"/>
                     </Space>
                 );
             },
         },
-    ];
+    ], [isEditing, save, cancel, remove, editRow]);
 
     // Merge columns with editing logic
-    const mergedColumns = columns.map((col) => {
+    const mergedColumns = useMemo(() => columns.map((col) => {
         if (!col.editable) {
             return col;
         }
@@ -177,10 +231,10 @@ function Relationships() {
                 editing: isEditing(record),
             }),
         };
-    });
+    }), [columns, isEditing]);
 
     // Handle the end of the drag-and-drop event
-    const onDragEnd = ({active, over}) => {
+    const onDragEnd = useCallback(({active, over}) => {
         if (active.id !== over?.id) {
             setDataSource((previous) => {
                 const activeIndex = previous.findIndex((i) => i.key === active.id);
@@ -188,10 +242,10 @@ function Relationships() {
                 return arrayMove(previous, activeIndex, overIndex);
             });
         }
-    };
+    }, []);
 
     // A table row component for drag-and-drop functionality
-    const Row = ({children, ...props}) => {
+    const Row = useCallback(({children, ...props}) => {
         const {
             attributes,
             listeners,
@@ -224,7 +278,7 @@ function Relationships() {
 
         return (
             <tr {...props} ref={setNodeRef} className={relationshipError ? 'error-row' : ''}
-                style={style} {...attributes}>
+                style={style} {...attributes} role="row" aria-label={`Relationship row ${props['data-row-key']}`}>
                 {React.Children.map(children, (child) => {
                     if (child.key === 'sort') {
                         return React.cloneElement(child, {
@@ -236,6 +290,8 @@ function Relationships() {
                                         cursor: 'move',
                                     }}
                                     {...listeners}
+                                    aria-label="Drag to reorder relationship"
+                                    tabIndex={0}
                                 />
                             ),
                         });
@@ -244,7 +300,7 @@ function Relationships() {
                 })}
             </tr>
         );
-    };
+    }, []);
 
     // Populate the data source when the component is mounted
     useEffect(() => {
@@ -268,20 +324,22 @@ function Relationships() {
     );
 
     // Add a new relationship row for editing
-    const addRow = () => {
+    const addRow = useCallback(() => {
         const newRow = {
             key: nanoid(),
-            entityType: "",
-            entityID: "",
-            relation: "",
-            subjectType: "",
-            subjectID: "",
-            subjectRelation: "",
+            entityType: '',
+            entityID: '',
+            relation: '',
+            subjectType: '',
+            subjectID: '',
+            subjectRelation: '',
             isNew: true,
         };
         setDataSource((prevData) => [...prevData, newRow]);
         setEditingKeys(prevKeys => [...prevKeys, newRow.key]);
-    };
+        setErrorMessage('');
+    }, []);
+
 
     // A cell component for editing
     const EditableCell = ({editing, dataIndex, title, inputType, record, index, children, ...restProps}) => {
@@ -386,48 +444,47 @@ function Relationships() {
     };
 
     // Handlers to set selected entity types, relations, and subject types when they are changed
-
-    const handleEntityTypeChange = (value, rowKey) => {
+    const handleEntityTypeChange = useCallback((value, rowKey) => {
         setSelectedEntityTypes(prev => ({
             ...prev,
             [rowKey]: value
         }));
-    };
+    }, []);
 
-    const handleRelationChange = (value, rowKey) => {
+    const handleRelationChange = useCallback((value, rowKey) => {
         setSelectedRelations(prev => ({
             ...prev,
             [rowKey]: value
         }));
-    };
+    }, []);
 
-    const handleSubjectTypeChange = (value, rowKey) => {
+    const handleSubjectTypeChange = useCallback((value, rowKey) => {
         setSelectedSubjectTypes(prev => ({
             ...prev,
             [rowKey]: value
         }));
-    };
+    }, []);
 
     // Utility functions to get options for relation, subject type, and subject relation
-    function safelyGetOptions(entityType, selectorFunction, mapFunction) {
+    const safelyGetOptions = useCallback((entityType, selectorFunction, mapFunction) => {
         if (!entityType) return [];
 
         const results = selectorFunction(entityType);
         if (!results || !results.length) return [];
 
         return results.map(mapFunction);
-    }
+    }, []);
 
-    function getRelationOptionsForRow(rowKey) {
+    const getRelationOptionsForRow = useCallback((rowKey) => {
         const entityType = selectedEntityTypes[rowKey];
         return safelyGetOptions(entityType, getRelations, relation => (
             <Option key={relation} value={relation}>
                 {relation}
             </Option>
         ));
-    }
+    }, [selectedEntityTypes, safelyGetOptions, getRelations]);
 
-    function getSubjectTypeOptionsForRow(rowKey) {
+    const getSubjectTypeOptionsForRow = useCallback((rowKey) => {
         const entityType = selectedEntityTypes[rowKey];
         const relation = selectedRelations[rowKey];
 
@@ -439,9 +496,9 @@ function Relationships() {
                 {type}
             </Option>
         ));
-    }
+    }, [selectedEntityTypes, selectedRelations, safelyGetOptions, getSubjectTypes]);
 
-    function getSubjectRelationOptionsForRow(rowKey) {
+    const getSubjectRelationOptionsForRow = useCallback((rowKey) => {
         const entityType = selectedEntityTypes[rowKey];
         const relation = selectedRelations[rowKey];
         const subjectType = selectedSubjectTypes[rowKey];
@@ -454,11 +511,16 @@ function Relationships() {
                 {type}
             </Option>
         ));
-    }
+    }, [selectedEntityTypes, selectedRelations, selectedSubjectTypes, safelyGetOptions, getSubjectRelations]);
 
     // The main render method
     return (
         <div style={{height: '100vh'}} ref={tableBodyRef}>
+            {errorMessage && (
+                <div style={{color: 'red', marginBottom: '10px', padding: '8px', backgroundColor: '#fff2f0', border: '1px solid #ffccc7', borderRadius: '4px'}}>
+                    {errorMessage}
+                </div>
+            )}
             <DndContext sensors={sensors} onDragEnd={onDragEnd}>
                 <SortableContext
                     items={dataSource.map((i) => i.key.toString())}
@@ -479,12 +541,13 @@ function Relationships() {
                                 pagination={false}
                                 footer={() => (
                                     <div style={{textAlign: 'left'}}>
-                                        <Button type="primary" onClick={addRow}>
+                                        <Button type="primary" onClick={addRow} aria-label="Add new relationship">
                                             Add Relationship
                                         </Button>
                                     </div>
                                 )}
                                 scroll={{y: 'calc(100vh - 270px)'}}
+                                aria-label="Relationships table"
                             />
                         </RelationshipErrorContext.Provider>
                     </Form>
