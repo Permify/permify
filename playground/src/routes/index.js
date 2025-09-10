@@ -1,8 +1,8 @@
 import React, {Suspense} from "react"
 import {BrowserRouter, Route, Routes} from "react-router-dom"
-import Play from "@views/Play";
-import P404 from "@views/404";
-import {ContextLayout} from "@utility/context/layout";
+import Play from "@pages/play";
+import NotFound from "@pages/not-found";
+import {ContextLayout} from "@context/layout";
 import {Skeleton} from "antd";
 
 export default function AppRouter() {
@@ -22,7 +22,7 @@ export default function AppRouter() {
                                 return (
                                     <LayoutTag>
                                         <Suspense fallback={<Skeleton active/>}>
-                                            <P404/>
+                                            <NotFound/>
                                         </Suspense>
                                     </LayoutTag>
                                 )
