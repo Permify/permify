@@ -1,8 +1,8 @@
 import React, {Suspense, useEffect, useState} from 'react'
 import {useLocation} from "react-router-dom";
 import {Skeleton} from "antd";
-import {ContextLayout} from "@utility/context/Layout";
-import Output from "@layout/sides/output";
+import {ContextLayout} from "@context/layout";
+import Output from "@features/output/output";
 import {useShapeStore} from "@state/shape";
 
 function Play() {

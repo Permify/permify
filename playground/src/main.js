@@ -1,11 +1,10 @@
-import React from "react";
-import AppRouter from "@router/router";
-import {Layout} from "@utility/context/Layout"
+import AppRouter from "@routes";
+import {Layout} from "@context/layout"
 import {ConfigProvider, theme} from 'antd';
 import {Analytics} from '@vercel/analytics/react';
 import {SpeedInsights} from "@vercel/speed-insights/react"
 
-function App() {
+function Main() {
     return (
         <ConfigProvider
             theme={{
@@ -31,4 +30,4 @@ function App() {
     );
 }
 
-export default App
+export default Main

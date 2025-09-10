@@ -24,8 +24,11 @@
     "paths": {
       "@utility": ["./utility"],
       "@layout": ["./layout"],
-      "@router": ["./router"],
-      "@views": ["./views"],
+      "@components": ["./components"],
+      "@context": ["./context"],
+      "@features": ["./features"],
+      "@routes": ["./routes"],
+      "@pages": ["./pages"],
       "@state": ["./state"],
       "@services": ["./services"],
       "@pkg": ["./pkg"]

@@ -12,7 +12,7 @@ function NewScenario(props) {
             const values = await form.validateFields();
 
             // Add the new scenario
-            const newScenario = {
+            const new-scenario = {
                 name: values.name,
                 description: values.description,
                 checks: [
@@ -28,7 +28,7 @@ function NewScenario(props) {
             };
 
             // Update the state
-            setScenarios([...scenarios, newScenario]);
+            setScenarios([...scenarios, new-scenario]);
 
             // Reset form fields and close the modal
             form.resetFields();

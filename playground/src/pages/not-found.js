@@ -1,7 +1,7 @@
 import React from 'react'
 import {toAbsoluteUrl} from "@utility/helpers/asset";
 
-function P404() {
+function NotFound() {
     return (
         <div className="center-of-screen">
             <img alt="404 svg" src={toAbsoluteUrl("/media/svg/bg/404.svg")}/>
@@ -13,4 +13,4 @@ function P404() {
     );
 }
 
-export default P404;
+export default NotFound;
