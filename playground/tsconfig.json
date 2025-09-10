@@ -31,7 +31,7 @@
       "@pages": ["./pages"],
       "@state": ["./state"],
       "@services": ["./services"],
-      "@pkg": ["./pkg"]
+      "@lib": ["./lib"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],

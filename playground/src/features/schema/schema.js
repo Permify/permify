@@ -1,5 +1,5 @@
 import React from 'react'
-import PermEditor from "@pkg/editor/perm";
+import PermEditor from "@lib/editor/perm";
 import {useShapeStore} from "@state/shape";
 
 function Schema() {
