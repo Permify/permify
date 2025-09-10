@@ -12,6 +12,7 @@ const widgetSettings = {
   };
   
   // Load the GuruBase widget
+  /*
   const guruScript = document.createElement("script");
   guruScript.src = "https://widget.gurubase.io/widget.latest.min.js";
   guruScript.defer = true;
@@ -51,3 +52,4 @@ const widgetSettings = {
     setTimeout(() => clearInterval(initWidget), 20000);
   });
   document.body.appendChild(guruScript);
+  */
