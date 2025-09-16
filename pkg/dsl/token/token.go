@@ -76,6 +76,7 @@ const (
 	INTEGER = "INTEGER"
 	DOUBLE  = "DOUBLE"
 	BOOLEAN = "BOOLEAN"
+	NIL     = "NIL"
 
 	/*
 		Symbols

@@ -147,8 +147,12 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		if isLetter(l.ch) {
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexIdent()
-			if tok.Literal == "true" || tok.Literal == "false" {
+			switch tok.Literal {
+			case "true", "false":
 				tok.Type = token.BOOLEAN
+				return
+			case "nil":
+				tok.Type = token.NIL
 				return
 			}
 			tok.Type = token.LookupKeywords(tok.Literal)
