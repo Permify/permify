@@ -138,4 +138,28 @@ func TestCursorPagination(t *testing.T) {
 	if p.Cursor() != "my-cursor" {
 		t.Errorf("Expected token of 'my-cursor', but got '%s'", p.Cursor())
 	}
+
+	// Test limit
+	p = NewCursorPagination(Limit(100))
+	if p.Limit() != 100 {
+		t.Errorf("Expected limit of 100, but got %d", p.Limit())
+	}
+
+	// Test default limit
+	p = NewCursorPagination()
+	if p.Limit() != 0 {
+		t.Errorf("Expected default limit of 0, but got %d", p.Limit())
+	}
+
+	// Test multiple options together
+	p = NewCursorPagination(Sort("entity_id"), Cursor("my-cursor"), Limit(50))
+	if p.Sort() != "entity_id" {
+		t.Errorf("Expected sort entity_id, but got %s", p.Sort())
+	}
+	if p.Cursor() != "my-cursor" {
+		t.Errorf("Expected cursor of 'my-cursor', but got '%s'", p.Cursor())
+	}
+	if p.Limit() != 50 {
+		t.Errorf("Expected limit of 50, but got %d", p.Limit())
+	}
 }
