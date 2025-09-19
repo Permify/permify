@@ -440,3 +440,77 @@ func TestEntityIterator(t *testing.T) {
 		t.Error("Expected false for HasNext(), but got true")
 	}
 }
+
+func TestNewSubjectIterator(t *testing.T) {
+	// Create some subjects
+	subject1 := &base.Subject{Type: "user", Id: "u1"}
+	subject2 := &base.Subject{Type: "user", Id: "u2"}
+
+	// Test NewSubjectIterator constructor
+	iterator := NewSubjectIterator([]*base.Subject{subject1, subject2})
+	assert.NotNil(t, iterator)
+	assert.Equal(t, 0, iterator.index)
+	assert.Equal(t, 2, len(iterator.subjects))
+	assert.Equal(t, subject1, iterator.subjects[0])
+	assert.Equal(t, subject2, iterator.subjects[1])
+}
+
+func TestNewEntityIterator(t *testing.T) {
+	// Create some entities
+	entity1 := &base.Entity{Type: "user", Id: "u1"}
+	entity2 := &base.Entity{Type: "user", Id: "u2"}
+
+	// Test NewEntityIterator constructor
+	iterator := NewEntityIterator([]*base.Entity{entity1, entity2})
+	assert.NotNil(t, iterator)
+	assert.Equal(t, 0, iterator.index)
+	assert.Equal(t, 2, len(iterator.entities))
+	assert.Equal(t, entity1, iterator.entities[0])
+	assert.Equal(t, entity2, iterator.entities[1])
+}
+
+func TestGetNextReturnsNil(t *testing.T) {
+	// Test TupleIterator GetNext returns nil when no more items
+	tupleIterator := NewTupleIterator()
+	assert.False(t, tupleIterator.HasNext())
+	assert.Nil(t, tupleIterator.GetNext())
+
+	// Test SubjectIterator GetNext returns nil when no more items
+	subjectIterator := NewSubjectIterator([]*base.Subject{})
+	assert.False(t, subjectIterator.HasNext())
+	assert.Nil(t, subjectIterator.GetNext())
+
+	// Test EntityIterator GetNext returns nil when no more items
+	entityIterator := NewEntityIterator([]*base.Entity{})
+	assert.False(t, entityIterator.HasNext())
+	assert.Nil(t, entityIterator.GetNext())
+
+	// Test AttributeIterator GetNext returns nil when no more items
+	attrIterator := NewAttributeIterator()
+	assert.False(t, attrIterator.HasNext())
+	assert.Nil(t, attrIterator.GetNext())
+}
+
+func TestUniqueIteratorsGetNextEmpty(t *testing.T) {
+	// Test UniqueTupleIterator GetNext returns empty tuple when no more items
+	tupleIter1 := NewTupleIterator()
+	tupleIter2 := NewTupleIterator()
+	uniqueTupleIter := NewUniqueTupleIterator(tupleIter1, tupleIter2)
+
+	assert.False(t, uniqueTupleIter.HasNext())
+	tuple, found := uniqueTupleIter.GetNext()
+	assert.False(t, found)
+	assert.NotNil(t, tuple)
+	assert.Equal(t, &base.Tuple{}, tuple)
+
+	// Test UniqueAttributeIterator GetNext returns empty attribute when no more items
+	attrIter1 := NewAttributeIterator()
+	attrIter2 := NewAttributeIterator()
+	uniqueAttrIter := NewUniqueAttributeIterator(attrIter1, attrIter2)
+
+	assert.False(t, uniqueAttrIter.HasNext())
+	attr, found := uniqueAttrIter.GetNext()
+	assert.False(t, found)
+	assert.NotNil(t, attr)
+	assert.Equal(t, &base.Attribute{}, attr)
+}
