@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -151,6 +152,97 @@ var _ = Describe("Postgres", func() {
 					Expect(planCacheModes).Should(HaveKey(mode))
 				}
 			})
+		})
+	})
+
+	Context("Options", func() {
+		It("Case 1: MaxDataPerWrite should set maxDataPerWrite", func() {
+			pg := &Postgres{}
+			option := MaxDataPerWrite(500)
+			option(pg)
+			Expect(pg.maxDataPerWrite).Should(Equal(500))
+		})
+
+		It("Case 2: WatchBufferSize should set watchBufferSize", func() {
+			pg := &Postgres{}
+			option := WatchBufferSize(200)
+			option(pg)
+			Expect(pg.watchBufferSize).Should(Equal(200))
+		})
+
+		It("Case 3: MaxRetries should set maxRetries", func() {
+			pg := &Postgres{}
+			option := MaxRetries(5)
+			option(pg)
+			Expect(pg.maxRetries).Should(Equal(5))
+		})
+	})
+})
+
+// MockPQDatabase tests
+func TestMockPQDatabase(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "mock-postgres-suite")
+}
+
+var _ = Describe("MockPQDatabase", func() {
+	var mockDB *MockPQDatabase
+
+	BeforeEach(func() {
+		mockDB = &MockPQDatabase{}
+	})
+
+	Context("GetEngineType", func() {
+		It("Case 1: Should return mocked engine type", func() {
+			mockDB.On("GetEngineType").Return("postgres")
+
+			result := mockDB.GetEngineType()
+			Expect(result).Should(Equal("postgres"))
+			mockDB.AssertExpectations(GinkgoT())
+		})
+	})
+
+	Context("Close", func() {
+		It("Case 1: Should return mocked error", func() {
+			mockDB.On("Close").Return(nil)
+
+			err := mockDB.Close()
+			Expect(err).ShouldNot(HaveOccurred())
+			mockDB.AssertExpectations(GinkgoT())
+		})
+
+		It("Case 2: Should return mocked error when close fails", func() {
+			expectedError := errors.New("connection error")
+			mockDB.On("Close").Return(expectedError)
+
+			err := mockDB.Close()
+			Expect(err).Should(HaveOccurred())
+			Expect(err).Should(Equal(expectedError))
+			mockDB.AssertExpectations(GinkgoT())
+		})
+	})
+
+	Context("IsReady", func() {
+		It("Case 1: Should return mocked ready state", func() {
+			ctx := context.Background()
+			mockDB.On("IsReady", ctx).Return(true, nil)
+
+			ready, err := mockDB.IsReady(ctx)
+			Expect(ready).Should(BeTrue())
+			Expect(err).ShouldNot(HaveOccurred())
+			mockDB.AssertExpectations(GinkgoT())
+		})
+
+		It("Case 2: Should return mocked not ready state with error", func() {
+			ctx := context.Background()
+			expectedError := errors.New("database not ready")
+			mockDB.On("IsReady", ctx).Return(false, expectedError)
+
+			ready, err := mockDB.IsReady(ctx)
+			Expect(ready).Should(BeFalse())
+			Expect(err).Should(HaveOccurred())
+			Expect(err).Should(Equal(expectedError))
+			mockDB.AssertExpectations(GinkgoT())
 		})
 	})
 })
