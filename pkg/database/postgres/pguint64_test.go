@@ -168,4 +168,84 @@ var _ = Describe("pguint64", func() {
 			Expect(err.Error()).Should(ContainSubstring("undefined status"))
 		})
 	})
+
+	Context("AssignTo", func() {
+		It("Case 1: Success with *uint64", func() {
+			p := pguint64{Uint: 12345, Status: pgtype.Present}
+			var target uint64
+			err := p.AssignTo(&target)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(target).Should(Equal(uint64(12345)))
+		})
+
+		It("Case 2: Success with **uint64", func() {
+			p := pguint64{Uint: 12345, Status: pgtype.Present}
+			var target *uint64
+			err := p.AssignTo(&target)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(*target).Should(Equal(uint64(12345)))
+		})
+
+		It("Case 3: Success with **uint64 and null status", func() {
+			p := pguint64{Status: pgtype.Null}
+			var target *uint64
+			err := p.AssignTo(&target)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(target).Should(BeNil())
+		})
+
+		It("Case 4: Error with null status and *uint64", func() {
+			p := pguint64{Status: pgtype.Null}
+			var target uint64
+			err := p.AssignTo(&target)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("cannot assign"))
+		})
+
+		It("Case 5: Success with unsupported target type (no error)", func() {
+			p := pguint64{Uint: 12345, Status: pgtype.Present}
+			var target string
+			err := p.AssignTo(&target)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+	})
+
+	Context("DecodeBinary", func() {
+		It("Case 1: Null input", func() {
+			var p pguint64
+			err := p.DecodeBinary(nil, nil)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(p.Status).Should(Equal(pgtype.Null))
+		})
+
+		It("Case 2: Invalid input size", func() {
+			var p pguint64
+			err := p.DecodeBinary(nil, []byte{0x01, 0x02})
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("invalid length"))
+		})
+	})
+
+	Context("EncodeBinary", func() {
+		It("Case 1: Present status", func() {
+			p := pguint64{Uint: 12345, Status: pgtype.Present}
+			result, err := p.EncodeBinary(nil, nil)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(result).Should(Equal([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x39}))
+		})
+
+		It("Case 2: Null status", func() {
+			p := pguint64{Status: pgtype.Null}
+			result, err := p.EncodeBinary(nil, nil)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(result).Should(BeNil())
+		})
+
+		It("Case 3: Undefined status", func() {
+			p := pguint64{Status: pgtype.Undefined}
+			_, err := p.EncodeBinary(nil, nil)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("undefined status"))
+		})
+	})
 })
