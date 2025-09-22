@@ -3,7 +3,6 @@ package oidc
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -59,7 +58,7 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	oidcConf, err := fetchOIDCConfiguration(client.StandardClient(), strings.TrimSuffix(conf.Issuer, "/")+"/.well-known/openid-configuration")
 	if err != nil {
 		// If there is an error fetching the OIDC configuration, return nil and the error.
-		return nil, fmt.Errorf("failed to fetch OIDC configuration: %w", err)
+		return nil, fmt.Errorf("%s: failed to fetch OIDC configuration: %w", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String(), err)
 	}
 
 	// Set up automatic refresh of the JSON Web Key Set (JWKS) to ensure the public keys are always up-to-date.
@@ -69,17 +68,17 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	// Validate and set backoffInterval, backoffMaxRetries, and backoffFrequency
 	backoffInterval := conf.BackoffInterval
 	if backoffInterval <= 0 {
-		return nil, errors.New("invalid or missing backoffInterval")
+		return nil, fmt.Errorf("%s: invalid or missing backoffInterval", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 
 	backoffMaxRetries := conf.BackoffMaxRetries
 	if backoffMaxRetries <= 0 {
-		return nil, errors.New("invalid or missing backoffMaxRetries")
+		return nil, fmt.Errorf("%s: invalid or missing backoffMaxRetries", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 
 	backoffFrequency := conf.BackoffFrequency
 	if backoffFrequency <= 0 {
-		return nil, errors.New("invalid or missing backoffFrequency")
+		return nil, fmt.Errorf("%s: invalid or missing backoffFrequency", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 
 	// Initialize the Authn struct with the OIDC configuration details and other relevant settings.
@@ -103,7 +102,7 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	_, err = oidc.jwksSet.Fetch(ctx, oidc.JwksURI)
 	if err != nil {
 		// If there is an error fetching the JWKS, return nil and the error.
-		return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
+		return nil, fmt.Errorf("%s: failed to fetch JWKS: %w", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String(), err)
 	}
 
 	// Return the initialized OIDC authentication object and no error.
@@ -113,13 +112,14 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 // Authenticate validates the JWT token found in the authorization header of the incoming request.
 // It uses the OIDC configuration to validate the token against the issuer's public keys.
 func (oidc *Authn) Authenticate(requestContext context.Context) error {
+
 	// Extract the authorization header from the metadata of the incoming gRPC request.
 	authHeader, err := grpcauth.AuthFromMD(requestContext, "Bearer")
 	if err != nil {
-		// Log the error if the authorization header is missing or does not start with "Bearer"
-		slog.Error("failed to extract authorization header from gRPC request", "error", err)
-		// Return an error indicating the missing or incorrect bearer token
-		return errors.New(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String())
+		formattedErr := fmt.Errorf("%s: failed to extract authorization header from gRPC request: %w",
+			base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String(), err)
+		slog.Error(formattedErr.Error())
+		return formattedErr
 	}
 
 	// Log the successful extraction of the authorization header for debugging purposes.
@@ -134,32 +134,33 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 		if keyID, ok := token.Header["kid"].(string); ok {
 			return oidc.getKeyWithRetry(requestContext, keyID)
 		}
-		slog.Error("jwt does not contain a key ID")
-		// If the JWT does not contain a key ID, return an error.
-		return nil, errors.New("kid must be specified in the token header")
+		formattedErr := fmt.Errorf("%s: jwt does not contain a key ID", base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
+		slog.Error(formattedErr.Error())
+		return nil, formattedErr
 	})
 	if err != nil {
 		// Log that the token parsing or validation failed
-		slog.Error("token parsing or validation failed", "error", err)
 		// If token parsing or validation fails, return an error indicating the token is invalid.
-		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
+		formattedErr := fmt.Errorf("%s: token parsing or validation failed: %w", base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String(), err)
+		slog.Error(formattedErr.Error())
+		return formattedErr
 	}
 
 	// Ensure the token is valid.
 	if !parsedToken.Valid {
 		// Log that the parsed token was not valid
-		slog.Warn("parsed token is invalid")
-		// Return an error indicating the invalid token
-		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
+		formattedErr := fmt.Errorf("%s: parsed token is invalid", base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String())
+		slog.Warn(formattedErr.Error())
+		return formattedErr
 	}
 
 	// Extract the claims from the token.
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
 		// Log that the claims were in an incorrect format
-		slog.Warn("token claims are in an incorrect format")
-		// Return an error
-		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_CLAIMS.String())
+		formattedErr := fmt.Errorf("%s: token claims are in an incorrect format", base.ErrorCode_ERROR_CODE_INVALID_CLAIMS.String())
+		slog.Warn(formattedErr.Error())
+		return formattedErr
 	}
 
 	slog.Debug("extracted token claims", "claims", claims)
@@ -167,17 +168,17 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 	// Verify the issuer of the token matches the expected issuer.
 	if ok := claims.VerifyIssuer(oidc.IssuerURL, true); !ok {
 		// Log that the issuer did not match the expected issuer
-		slog.Warn("token issuer is invalid", "expected", oidc.IssuerURL, "actual", claims["iss"])
-		// Return an error
-		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_ISSUER.String())
+		formattedErr := fmt.Errorf("%s: token issuer is invalid expected: %s actual: %s", base.ErrorCode_ERROR_CODE_INVALID_ISSUER.String(), oidc.IssuerURL, claims["iss"])
+		slog.Warn(formattedErr.Error())
+		return formattedErr
 	}
 
 	// Verify the audience of the token matches the expected audience.
 	if ok := claims.VerifyAudience(oidc.Audience, true); !ok {
 		// Log that the audience did not match the expected audience
-		slog.Warn("token audience is invalid", "expected", oidc.Audience, "actual", claims["aud"])
-		// Return an error
-		return errors.New(base.ErrorCode_ERROR_CODE_INVALID_AUDIENCE.String())
+		formattedErr := fmt.Errorf("%s: token audience is invalid expected: %s actual: %s", base.ErrorCode_ERROR_CODE_INVALID_AUDIENCE.String(), oidc.Audience, claims["aud"])
+		slog.Warn(formattedErr.Error())
+		return formattedErr
 	}
 
 	// Log that the token's issuer and audience were successfully validated
@@ -225,7 +226,7 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 
 		// Log the failure and return an error if keyID is not found
 		slog.Error("failed to fetch key during backoff period", "keyID", keyID, "error", err)
-		return nil, errors.New("too many attempts, backoff in effect")
+		return nil, fmt.Errorf("%s: too many attempts, backoff in effect", base.ErrorCode_ERROR_CODE_INVALID_KEY.String())
 	}
 	oidc.mu.Unlock()
 
@@ -249,7 +250,7 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 		if oidc.globalRetryCount > oidc.backoffMaxRetries {
 			slog.Error("key ID not found in JWKS due to global retries", "keyID", keyID, "globalRetryCount", oidc.globalRetryCount)
 			oidc.mu.Unlock()
-			return nil, errors.New("too many attempts, backoff in effect due to global retry count")
+			return nil, fmt.Errorf("%s: too many attempts, backoff in effect due to global retry count", base.ErrorCode_ERROR_CODE_INVALID_KEY.String())
 		}
 		oidc.mu.Unlock()
 		if retries > 0 {
@@ -259,7 +260,7 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 				slog.Info("waiting before retrying", "keyID", keyID, "retries", retries)
 			case <-ctx.Done():
 				slog.Error("context cancelled during retry", "keyID", keyID)
-				return nil, ctx.Err()
+				return nil, fmt.Errorf("%s: context cancelled during retry", base.ErrorCode_ERROR_CODE_INVALID_KEY.String())
 			}
 		}
 
@@ -279,7 +280,7 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 		if _, refreshErr := oidc.jwksSet.Refresh(ctx, oidc.JwksURI); refreshErr != nil {
 			oidc.mu.Unlock()
 			slog.Error("failed to refresh JWKS", "error", refreshErr)
-			return nil, refreshErr
+			return nil, fmt.Errorf("%s: failed to refresh JWKS: %w", base.ErrorCode_ERROR_CODE_INVALID_KEY.String(), refreshErr)
 		}
 		// Unlock needs to follow Refresh to ensure that concurrent requests don't make duplicate calls to Refresh
 		oidc.mu.Unlock()
@@ -294,7 +295,7 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 	oidc.mu.Unlock()
 
 	slog.Error("key ID not found in JWKS after retries", "keyID", keyID)
-	return nil, errors.New("key ID not found in JWKS after retries")
+	return nil, fmt.Errorf("%s: key ID not found in JWKS after retries", base.ErrorCode_ERROR_CODE_INVALID_KEY.String())
 }
 
 // fetchKey attempts to fetch the JWKS and retrieve the key for the given keyID.
@@ -307,7 +308,7 @@ func (oidc *Authn) fetchKey(ctx context.Context, keyID string) (interface{}, err
 	if err != nil {
 		// Log an error and return if fetching fails.
 		slog.Error("failed to fetch JWKS", "uri", oidc.JwksURI, "error", err)
-		return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
+		return nil, fmt.Errorf("%s: failed to fetch JWKS: %w", base.ErrorCode_ERROR_CODE_INVALID_KEY.String(), err)
 	}
 
 	// Log a successful fetch of the JWKS.
@@ -319,7 +320,7 @@ func (oidc *Authn) fetchKey(ctx context.Context, keyID string) (interface{}, err
 		// Convert the key to a usable format.
 		if err := key.Raw(&k); err != nil {
 			slog.ErrorContext(ctx, "failed to get raw public key", "kid", keyID, "error", err)
-			return nil, fmt.Errorf("failed to get raw public key: %w", err)
+			return nil, fmt.Errorf("%s: failed to get raw public key: %w", base.ErrorCode_ERROR_CODE_INVALID_KEY.String(), err)
 		}
 		// Log a successful retrieval of the raw public key.
 		slog.DebugContext(ctx, "successfully obtained raw public key", "key", k)
@@ -327,7 +328,7 @@ func (oidc *Authn) fetchKey(ctx context.Context, keyID string) (interface{}, err
 	}
 	// Log an error if the key ID is not found in the JWKS.
 	slog.ErrorContext(ctx, "key ID not found in JWKS", "kid", keyID)
-	return nil, fmt.Errorf("kid %s not found", keyID)
+	return nil, fmt.Errorf("%s: kid %s not found", base.ErrorCode_ERROR_CODE_INVALID_KEY.String(), keyID)
 }
 
 // Config holds OpenID Connect (OIDC) configuration details.
@@ -346,14 +347,14 @@ func fetchOIDCConfiguration(client *http.Client, url string) (*Config, error) {
 	body, err := doHTTPRequest(client, url)
 	if err != nil {
 		// If there is an error in fetching the configuration (network error, bad response, etc.), return nil and the error.
-		return nil, err
+		return nil, fmt.Errorf("%s: failed to fetch OIDC configuration: %w", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String(), err)
 	}
 
 	// Parse the JSON response body into an OIDC Config struct.
 	// This involves unmarshalling the JSON into a struct that matches the expected fields of the OIDC configuration.
 	oidcConfig, err := parseOIDCConfiguration(body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: failed to parse OIDC configuration: %w", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String(), err)
 	}
 
 	// Return the parsed OIDC configuration and nil as the error (indicating success).
@@ -369,7 +370,7 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		slog.Error("failed to create HTTP request", "url", url, "error", err)
-		return nil, fmt.Errorf("failed to create HTTP request for OIDC configuration: %s", err)
+		return nil, fmt.Errorf("%s: failed to create HTTP request for OIDC configuration: %w", base.ErrorCode_ERROR_CODE_NETWORK_ERROR.String(), err)
 	}
 
 	// Log the execution of the HTTP request
@@ -380,7 +381,7 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	if err != nil {
 		// Log the error if executing the HTTP request fails
 		slog.Error("failed to execute HTTP request", "url", url, "error", err)
-		return nil, fmt.Errorf("failed to execute HTTP request for OIDC configuration: %s", err)
+		return nil, fmt.Errorf("%s: failed to execute HTTP request for OIDC configuration: %w", base.ErrorCode_ERROR_CODE_NETWORK_ERROR.String(), err)
 	}
 
 	// Log the HTTP status code of the response
@@ -392,7 +393,7 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	// Check if the HTTP status code indicates success.
 	if res.StatusCode != http.StatusOK {
 		slog.Warn("received unexpected status code", "status_code", res.StatusCode, "url", url)
-		return nil, fmt.Errorf("received unexpected status code (%d) while fetching OIDC configuration", res.StatusCode)
+		return nil, fmt.Errorf("%s: received unexpected status code (%d) while fetching OIDC configuration", base.ErrorCode_ERROR_CODE_NETWORK_ERROR.String(), res.StatusCode)
 	}
 
 	// Log the attempt to read the response body
@@ -402,7 +403,7 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		slog.Error("failed to read response body", "url", url, "error", err)
-		return nil, fmt.Errorf("failed to read response body from OIDC configuration request: %s", err)
+		return nil, fmt.Errorf("%s: failed to read response body from OIDC configuration request: %w", base.ErrorCode_ERROR_CODE_NETWORK_ERROR.String(), err)
 	}
 
 	// Log the successful retrieval of the response body
@@ -418,19 +419,19 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	// Attempt to unmarshal the JSON body into the oidcConfig struct.
 	if err := json.Unmarshal(body, &oidcConfig); err != nil {
 		slog.Error("failed to unmarshal OIDC configuration", "error", err)
-		return nil, fmt.Errorf("failed to decode OIDC configuration: %s", err)
+		return nil, fmt.Errorf("%s: failed to decode OIDC configuration: %w", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String(), err)
 	}
 	// Log the successful decoding of OIDC configuration
 	slog.Debug("successfully decoded OIDC configuration")
 
 	if oidcConfig.Issuer == "" {
 		slog.Warn("missing issuer value in OIDC configuration")
-		return nil, errors.New("issuer value is required but missing in OIDC configuration")
+		return nil, fmt.Errorf("%s: issuer value is required but missing in OIDC configuration", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 
 	if oidcConfig.JWKsURI == "" {
 		slog.Warn("missing JWKsURI value in OIDC configuration")
-		return nil, errors.New("JWKsURI value is required but missing in OIDC configuration")
+		return nil, fmt.Errorf("%s: JWKsURI value is required but missing in OIDC configuration", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 
 	// Log the successful parsing of the OIDC configuration
