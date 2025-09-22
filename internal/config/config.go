@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/spf13/viper"
 )
 
@@ -216,7 +217,7 @@ func NewConfig() (*Config, error) {
 		// Check if the error is because of the config file not being found
 		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok {
 			// If it's not a "file not found" error, return the error with a message
-			return nil, fmt.Errorf("failed to load server config: %w", err)
+			return nil, fmt.Errorf("%s: failed to load server config: %w", base.ErrorCode_ERROR_CODE_CONFIG_FILE_NOT_FOUND.String(), err)
 		}
 		// If it's a "file not found" error, the code will continue and use the default config
 	}
@@ -224,7 +225,8 @@ func NewConfig() (*Config, error) {
 	// Unmarshal the configuration data into the Config struct
 	if err = viper.Unmarshal(cfg); err != nil {
 		// If there's an error during unmarshalling, return the error with a message
-		return nil, fmt.Errorf("failed to unmarshal server config: %w", err)
+		// TODO: Add error code for config unmarshaling failures - consider ERROR_CODE_CONFIG_VALIDATION_FAILED or new error code
+		return nil, fmt.Errorf("%s: failed to unmarshal server config: %w", base.ErrorCode_ERROR_CODE_CONFIG_VALIDATION_FAILED.String(), err)
 	}
 
 	// Return the populated Config object
@@ -252,11 +254,11 @@ func NewConfigWithFile(dir string) (*Config, error) {
 		// Check if the error is because of the config file not being found
 		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok {
 			// If it's not a "file not found" error, return the error with a message
-			return nil, fmt.Errorf("failed to load server config: %w", err)
+			return nil, fmt.Errorf("%s: failed to load server config: %w", base.ErrorCode_ERROR_CODE_CONFIG_FILE_NOT_FOUND.String(), err)
 		}
 		if ok := errors.As(err, &viper.ConfigMarshalError{}); !ok {
 			// If it's not a "file not found" error, return the error with a message
-			return nil, fmt.Errorf("failed to load server config: %w", err)
+			return nil, fmt.Errorf("%s: failed to load server config: %w", base.ErrorCode_ERROR_CODE_CONFIG_VALIDATION_FAILED.String(), err)
 		}
 		// If it's a "file not found" error, the code will continue and use the default config
 	}
@@ -264,7 +266,8 @@ func NewConfigWithFile(dir string) (*Config, error) {
 	// Unmarshal the configuration data into the Config struct
 	if err = viper.Unmarshal(cfg); err != nil {
 		// If there's an error during unmarshalling, return the error with a message
-		return nil, fmt.Errorf("failed to unmarshal server config: %w", err)
+		// TODO: Add error code for config unmarshaling failures - consider ERROR_CODE_CONFIG_VALIDATION_FAILED or new error code
+		return nil, fmt.Errorf("%s: failed to unmarshal server config: %w", base.ErrorCode_ERROR_CODE_CONFIG_VALIDATION_FAILED.String(), err)
 	}
 
 	// Return the populated Config object
@@ -372,7 +375,7 @@ func DefaultConfig() *Config {
 func isYAML(file string) error {
 	ext := filepath.Ext(file)
 	if ext != ".yaml" {
-		return errors.New("file is not yaml")
+		return fmt.Errorf("%s: file is not yaml", base.ErrorCode_ERROR_CODE_CONFIG_VALIDATION_FAILED.String())
 	}
 	return nil
 }
