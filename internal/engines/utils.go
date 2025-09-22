@@ -284,7 +284,7 @@ func ConvertToAnyPB(value interface{}) (*anypb.Any, error) {
 		anyValue, err = anypb.New(&base.StringArrayValue{Data: v})
 	default:
 		// In case of an unsupported or unknown type, we return an error.
-		return nil, errors.New("unknown type")
+		return nil, fmt.Errorf("%s: unknown type", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 
 	// If there was an error during the conversion, return the error.

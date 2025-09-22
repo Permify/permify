@@ -2,7 +2,7 @@ package engines
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"slices"
 	"sync"
 
@@ -145,7 +145,7 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 
 		// If the context is done (i.e., canceled or deadline exceeded), we return an empty response and an error.
 		case <-ctx.Done():
-			return emptyResp, errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
+			return emptyResp, fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 

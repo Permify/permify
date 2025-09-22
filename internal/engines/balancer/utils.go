@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Permify/permify/internal/config"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
 // secureTokenCredentials represents a map used for storing secure tokens.
@@ -44,9 +45,9 @@ func setupAuthn(_ context.Context, authn *config.Authn) (string, error) {
 	case "preshared":
 		token = authn.Preshared.Keys[0]
 	case "oidc":
-		return "", fmt.Errorf("unsupported authentication method: '%s'", authn.Method)
+		return "", fmt.Errorf("%s: unsupported authentication method: '%s'", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String(), authn.Method)
 	default:
-		return "", fmt.Errorf("unknown authentication method: '%s'", authn.Method)
+		return "", fmt.Errorf("%s: unknown authentication method: '%s'", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String(), authn.Method)
 	}
 
 	return token, nil

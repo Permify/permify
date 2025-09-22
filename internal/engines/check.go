@@ -2,7 +2,6 @@ package engines
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
@@ -154,7 +153,7 @@ func (engine *CheckEngine) check(
 
 	// If the CheckFunction is still undefined after the switch, return a CheckFunction that always fails with an error indicating an undefined child kind.
 	if fn == nil {
-		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
+		return checkFail(fmt.Errorf("%s: undefined child kind", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 	}
 
 	// Otherwise, return a CheckFunction that checks a union of CheckFunctions with a concurrency limit.
@@ -182,7 +181,7 @@ func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.Permi
 		return engine.setChild(ctx, request, rewrite.GetChildren(), checkExclusion)
 	// In case of an undefined child type, return a CheckFunction that always fails.
 	default:
-		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+		return checkFail(fmt.Errorf("%s: undefined child type", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -209,7 +208,7 @@ func (engine *CheckEngine) checkLeaf(request *base.PermissionCheckRequest, leaf 
 		return engine.checkCall(request, op.Call)
 	// In case of an undefined type, return a CheckFunction that always fails.
 	default:
-		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+		return checkFail(fmt.Errorf("%s: undefined child type", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -236,7 +235,7 @@ func (engine *CheckEngine) setChild(
 			functions = append(functions, engine.checkLeaf(request, child.GetLeaf()))
 		// In case of an undefined type, return a CheckFunction that always fails
 		default:
-			return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+			return checkFail(fmt.Errorf("%s: undefined child type", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 		}
 	}
 
@@ -561,7 +560,7 @@ func (engine *CheckEngine) checkDirectCall(
 				attributes = append(attributes, attrName)
 			default:
 				// Return an error for any unsupported argument types.
-				return denied(emptyResponseMetadata()), errors.New(base.ErrorCode_ERROR_CODE_INTERNAL.String())
+				return denied(emptyResponseMetadata()), fmt.Errorf("%s: unsupported argument type", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 		}
 
@@ -612,13 +611,13 @@ func (engine *CheckEngine) checkDirectCall(
 		// Evaluate the rule expression with the provided arguments.
 		out, _, err := prg.Eval(arguments)
 		if err != nil {
-			return denied(emptyResponseMetadata()), fmt.Errorf("failed to evaluate expression: %w", err)
+			return denied(emptyResponseMetadata()), fmt.Errorf("%s: failed to evaluate expression: %w", base.ErrorCode_ERROR_CODE_INTERNAL.String(), err)
 		}
 
 		// Ensure the result of evaluation is boolean and decide on permission.
 		result, ok := out.Value().(bool)
 		if !ok {
-			return denied(emptyResponseMetadata()), fmt.Errorf("expected boolean result, but got %T", out.Value())
+			return denied(emptyResponseMetadata()), fmt.Errorf("%s: expected boolean result, but got %T", base.ErrorCode_ERROR_CODE_INTERNAL.String(), out.Value())
 		}
 
 		// If the result of the CEL evaluation is true, return an "allowed" response, otherwise return a "denied" response
@@ -676,7 +675,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 			}
 		// If the context is done, deny the permission and return a cancellation error
 		case <-ctx.Done():
-			return denied(responseMetadata), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
+			return denied(responseMetadata), fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
@@ -727,7 +726,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 			}
 		// If the context is done, deny the permission and return a cancellation error
 		case <-ctx.Done():
-			return denied(responseMetadata), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
+			return denied(responseMetadata), fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
@@ -742,7 +741,7 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 
 	// Check if there are at least 2 functions, otherwise return an error indicating that exclusion requires more than one function
 	if len(functions) <= 1 {
-		return denied(responseMetadata), errors.New(base.ErrorCode_ERROR_CODE_EXCLUSION_REQUIRES_MORE_THAN_ONE_FUNCTION.String())
+		return denied(responseMetadata), fmt.Errorf("%s: exclusion requires more than one function", base.ErrorCode_ERROR_CODE_EXCLUSION_REQUIRES_MORE_THAN_ONE_FUNCTION.String())
 	}
 
 	// Initialize channels to handle the result of the first function and the remaining functions separately
@@ -790,7 +789,7 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 		}
 
 	case <-ctx.Done():
-		return denied(responseMetadata), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
+		return denied(responseMetadata), fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String())
 	}
 
 	// Process the results from the remaining functions
@@ -808,7 +807,7 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 			}
 
 		case <-ctx.Done():
-			return denied(responseMetadata), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
+			return denied(responseMetadata), fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 

@@ -2,7 +2,7 @@ package engines
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"golang.org/x/sync/errgroup"
 
@@ -108,7 +108,7 @@ func (engine *EntityFilter) EntityFilter(
 				return err
 			}
 		default:
-			return errors.New("unknown linked entrance type") // Return an error if the linked entrance is of an unknown type.
+			return fmt.Errorf("%s: unknown linked entrance type", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String()) // Return an error if the linked entrance is of an unknown type.
 		}
 	}
 

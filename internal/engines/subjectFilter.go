@@ -122,7 +122,7 @@ func (engine *SubjectFilter) subjectFilter(
 
 	// If we could not prepare a SubjectFilterFunction, we return a function that always fails with an error indicating undefined child kind.
 	if fn == nil {
-		return subjectFilterFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
+		return subjectFilterFail(fmt.Errorf("%s: undefined child kind", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 	}
 
 	// Finally, we return a function that combines results from the prepared function.
@@ -159,7 +159,7 @@ func (engine *SubjectFilter) subjectFilterRewrite(
 		// implement exclusion
 		return engine.setChild(ctx, request, rewrite.GetChildren(), subjectFilterExclusion)
 	default:
-		return subjectFilterFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+		return subjectFilterFail(fmt.Errorf("%s: undefined child type", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -187,7 +187,7 @@ func (engine *SubjectFilter) subjectFilterLeaf(
 		return engine.subjectFilterCall(request, op.Call)
 	// If the leaf type is not recognized, we return a function that always fails with an error indicating undefined child type.
 	default:
-		return subjectFilterFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+		return subjectFilterFail(fmt.Errorf("%s: undefined child type", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -337,7 +337,7 @@ func (engine *SubjectFilter) subjectFilterDirectCall(
 				attributes = append(attributes, attrName)
 			default:
 				// Return an error for any unsupported argument types.
-				return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_INTERNAL.String())
+				return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 		}
 
@@ -353,12 +353,12 @@ func (engine *SubjectFilter) subjectFilterDirectCall(
 
 			ait, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 			if err != nil {
-				return subjectFilterEmpty(), err
+				return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 
 			cta, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, database.NewCursorPagination())
 			if err != nil {
-				return subjectFilterEmpty(), err
+				return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 
 			// Combine attributes from different sources ensuring uniqueness.
@@ -375,26 +375,26 @@ func (engine *SubjectFilter) subjectFilterDirectCall(
 		// Prepare the CEL environment with the argument values.
 		env, err := utils.ArgumentsAsCelEnv(ru.Arguments)
 		if err != nil {
-			return subjectFilterEmpty(), err
+			return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 		}
 
 		// Compile the rule expression into an executable form.
 		exp := cel.CheckedExprToAst(ru.Expression)
 		prg, err := env.Program(exp)
 		if err != nil {
-			return subjectFilterEmpty(), err
+			return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 		}
 
 		// Evaluate the rule expression with the provided arguments.
 		out, _, err := prg.Eval(arguments)
 		if err != nil {
-			return subjectFilterEmpty(), fmt.Errorf("failed to evaluate expression: %w", err)
+			return subjectFilterEmpty(), fmt.Errorf("%s: failed to evaluate expression: %w", base.ErrorCode_ERROR_CODE_INTERNAL.String(), err)
 		}
 
 		// Ensure the result of evaluation is boolean and decide on permission.
 		result, ok := out.Value().(bool)
 		if !ok {
-			return subjectFilterEmpty(), fmt.Errorf("expected boolean result, but got %T", out.Value())
+			return subjectFilterEmpty(), fmt.Errorf("%s: expected boolean result, but got %T", base.ErrorCode_ERROR_CODE_INTERNAL.String(), out.Value())
 		}
 
 		// If the result of the CEL evaluation is true, return an "allowed" response, otherwise return a "denied" response
@@ -402,7 +402,7 @@ func (engine *SubjectFilter) subjectFilterDirectCall(
 			return []string{ALL}, nil
 		}
 
-		return subjectFilterEmpty(), err
+		return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 	}
 }
 
@@ -429,7 +429,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		var cti *database.TupleIterator
 		cti, err = storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 		if err != nil {
-			return subjectFilterEmpty(), err
+			return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 		}
 
 		// Query the relationships for the entity in the request.
@@ -437,7 +437,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 		var rit *database.TupleIterator
 		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination(database.Cursor(request.GetContinuousToken()), database.Sort("subject_id")))
 		if err != nil {
-			return subjectFilterEmpty(), err
+			return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 		}
 
 		// Create a new UniqueTupleIterator from the two TupleIterators.
@@ -500,7 +500,7 @@ func (engine *SubjectFilter) subjectFilterDirectRelation(
 				ContinuousToken:  request.GetContinuousToken(),
 			})
 			if err != nil {
-				return subjectFilterEmpty(), err
+				return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 
 			// Add the subject ids from the response to the final response.
@@ -534,7 +534,7 @@ func (engine *SubjectFilter) setChild(
 			functions = append(functions, engine.subjectFilterLeaf(request, child.GetLeaf()))
 		default:
 			// If child type is not recognised, return a failed lookup function with error
-			return subjectFilterFail(errors.New("set child error"))
+			return subjectFilterFail(fmt.Errorf("%s: set child error", base.ErrorCode_ERROR_CODE_INTERNAL.String()))
 		}
 	}
 
@@ -606,7 +606,7 @@ func (engine *SubjectFilter) subjectFilterTupleToUserSet(
 		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, database.NewCursorPagination())
 		if err != nil {
 			// If an error occurs during querying, an empty response with the error is returned.
-			return subjectFilterEmpty(), err
+			return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 		}
 
 		// Query the relationships for the entity in the request.
@@ -615,7 +615,7 @@ func (engine *SubjectFilter) subjectFilterTupleToUserSet(
 		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		if err != nil {
 			// If an error occurs during querying, an empty response with the error is returned.
-			return subjectFilterEmpty(), err
+			return subjectFilterEmpty(), fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String())
 		}
 
 		// Create a new UniqueTupleIterator from the two TupleIterators.
@@ -711,7 +711,7 @@ func subjectFilterUnion(ctx context.Context, functions []SubjectFilterFunction, 
 				}
 			}
 		case <-ctx.Done():
-			return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
+			return subjectFilterEmpty(), fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 
@@ -786,7 +786,7 @@ func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFun
 				commonIds = intersect(commonIds, d.resp)
 			}
 		case <-ctx.Done():
-			return subjectFilterEmpty(), errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String())
+			return subjectFilterEmpty(), fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String())
 		}
 	}
 

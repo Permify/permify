@@ -130,13 +130,13 @@ type executionState struct {
 func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerType, callback func(entityID, ct string), config BulkCheckerConfig) (*BulkChecker, error) {
 	// Validate all required parameters
 	if ctx == nil {
-		return nil, fmt.Errorf("context cannot be nil")
+		return nil, fmt.Errorf("%s: context cannot be nil", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 	if checker == nil {
-		return nil, fmt.Errorf("checker cannot be nil")
+		return nil, fmt.Errorf("%s: checker cannot be nil", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 	if callback == nil {
-		return nil, fmt.Errorf("callback cannot be nil")
+		return nil, fmt.Errorf("%s: callback cannot be nil", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 
 	// Apply default values for invalid configuration
@@ -260,7 +260,7 @@ func (bc *BulkChecker) sortRequests(requests []BulkCheckerRequest) {
 //   - error: Any error that occurred during processing (context cancellation is not considered an error)
 func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 	if size == 0 {
-		return fmt.Errorf("size must be greater than 0")
+		return fmt.Errorf("%s: size must be greater than 0", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 
 	// Stop collecting new requests and wait for collection to complete
@@ -309,7 +309,7 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error {
 		if isContextError(err) {
 			return nil // Context cancellation is not an error
 		}
-		return fmt.Errorf("bulk execution failed: %w", err)
+		return fmt.Errorf("%s: bulk execution failed: %w", base.ErrorCode_ERROR_CODE_INTERNAL.String(), err)
 	}
 
 	return nil
@@ -341,7 +341,7 @@ func (bc *BulkChecker) processRequest(ctx context.Context, sem *semaphore.Weight
 		if isContextError(err) {
 			return nil
 		}
-		return fmt.Errorf("failed to acquire semaphore: %w", err)
+		return fmt.Errorf("%s: failed to acquire semaphore: %w", base.ErrorCode_ERROR_CODE_INTERNAL.String(), err)
 	}
 	defer sem.Release(1)
 
@@ -351,7 +351,7 @@ func (bc *BulkChecker) processRequest(ctx context.Context, sem *semaphore.Weight
 		if isContextError(err) {
 			return nil
 		}
-		return fmt.Errorf("failed to get request result: %w", err)
+		return fmt.Errorf("%s: failed to get request result: %w", base.ErrorCode_ERROR_CODE_INTERNAL.String(), err)
 	}
 
 	// Process the result in the correct order

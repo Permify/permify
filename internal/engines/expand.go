@@ -2,7 +2,7 @@ package engines
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -115,7 +115,7 @@ func (engine *ExpandEngine) expand(ctx context.Context, request *base.Permission
 
 	if fn == nil {
 		// If no expand function was set, return an ExpandResponse with an error.
-		return ExpandResponse{Err: errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String())}
+		return ExpandResponse{Err: fmt.Errorf("%s: undefined child kind", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String())}
 	}
 
 	// Execute the expand function with the root context.
@@ -142,7 +142,7 @@ func (engine *ExpandEngine) expandRewrite(ctx context.Context, request *base.Per
 
 	// If the operation is not any of the defined types, return an error.
 	default:
-		return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+		return expandFail(fmt.Errorf("%s: undefined child type", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -174,7 +174,7 @@ func (engine *ExpandEngine) expandLeaf(
 
 	// If the leaf type is none of the above, an error is returned.
 	default:
-		return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+		return expandFail(fmt.Errorf("%s: undefined child type", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
 	}
 }
 
@@ -205,7 +205,7 @@ func (engine *ExpandEngine) setChild(
 
 		// If the child type is not recognized, return an error.
 		default:
-			return expandFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
+			return expandFail(fmt.Errorf("%s: undefined child kind", base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_KIND.String()))
 		}
 	}
 
@@ -594,7 +594,7 @@ func (engine *ExpandEngine) expandDirectCall(
 				// Get the empty value for the attribute type.
 				emptyValue, err := getEmptyProtoValueForType(ru.GetArguments()[attrName])
 				if err != nil {
-					expandChan <- expandFailResponse(errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String()))
+					expandChan <- expandFailResponse(fmt.Errorf("%s: type conversation", base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String()))
 					return
 				}
 
@@ -605,7 +605,7 @@ func (engine *ExpandEngine) expandDirectCall(
 				attributes = append(attributes, attrName)
 			default:
 				// If the argument type is unknown, send a failure response and return from the function.
-				expandChan <- expandFailResponse(errors.New(base.ErrorCode_ERROR_CODE_INTERNAL.String()))
+				expandChan <- expandFailResponse(fmt.Errorf("%s: internal", base.ErrorCode_ERROR_CODE_INTERNAL.String()))
 				return
 			}
 		}
@@ -761,7 +761,7 @@ func expandOperation(
 			children = append(children, resp.Response.GetTree())
 		case <-ctx.Done():
 			// If the context is cancelled, return an error response.
-			return expandFailResponse(errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String()))
+			return expandFailResponse(fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String()))
 		}
 	}
 
@@ -807,7 +807,7 @@ func expandRoot(ctx context.Context, fn ExpandFunction) ExpandResponse {
 		}
 		return expandFailResponse(result.Err)
 	case <-ctx.Done():
-		return expandFailResponse(errors.New(base.ErrorCode_ERROR_CODE_CANCELLED.String()))
+		return expandFailResponse(fmt.Errorf("%s: context done", base.ErrorCode_ERROR_CODE_CANCELLED.String()))
 	}
 }
 

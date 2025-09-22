@@ -81,7 +81,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	// Create and start BulkChecker. It performs permission checks in parallel.
 	checker, err := NewBulkChecker(ctx, engine.checkEngine, BulkCheckerTypeEntity, callback, config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create bulk checker: %w", err)
+		return nil, fmt.Errorf("%s: failed to create bulk checker: %w", base.ErrorCode_ERROR_CODE_INTERNAL.String(), err)
 	}
 	defer checker.Close()
 
@@ -162,7 +162,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	// Create and start BulkChecker. It performs permission checks concurrently.
 	checker, err := NewBulkChecker(ctx, engine.checkEngine, BulkCheckerTypeEntity, callback, config)
 	if err != nil {
-		return fmt.Errorf("failed to create bulk checker: %w", err)
+		return fmt.Errorf("%s: failed to create bulk checker: %w", base.ErrorCode_ERROR_CODE_INTERNAL.String(), err)
 	}
 	defer checker.Close()
 
