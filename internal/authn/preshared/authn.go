@@ -2,12 +2,9 @@ package preshared
 
 import (
 	"context"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"fmt"
 
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
-	"github.com/pkg/errors"
 
 	"github.com/Permify/permify/internal/config"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -21,7 +18,7 @@ type KeyAuthn struct {
 // NewKeyAuthn - Create New Authenticated Keys
 func NewKeyAuthn(_ context.Context, cfg config.Preshared) (*KeyAuthn, error) {
 	if len(cfg.Keys) < 1 {
-		return nil, errors.New("pre shared key authn must have at least one key")
+		return nil, fmt.Errorf("%s: pre shared key authn must have at least one key", base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 	}
 	mapKeys := make(map[string]struct{})
 	for _, k := range cfg.Keys {
@@ -36,10 +33,10 @@ func NewKeyAuthn(_ context.Context, cfg config.Preshared) (*KeyAuthn, error) {
 func (a *KeyAuthn) Authenticate(ctx context.Context) error {
 	key, err := grpcAuth.AuthFromMD(ctx, "Bearer")
 	if err != nil {
-		return errors.New(base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String())
+		return fmt.Errorf("%s: failed to extract authorization header from gRPC request: %w", base.ErrorCode_ERROR_CODE_MISSING_BEARER_TOKEN.String(), err)
 	}
 	if _, found := a.keys[key]; found {
 		return nil
 	}
-	return status.Error(codes.Unauthenticated, base.ErrorCode_ERROR_CODE_INVALID_KEY.String())
+	return fmt.Errorf("%s: invalid preshared key provided", base.ErrorCode_ERROR_CODE_UNAUTHENTICATED.String())
 }
