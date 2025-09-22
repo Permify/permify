@@ -29,6 +29,18 @@ func GetStatus(err error) codes.Code {
 		return codes.NotFound
 	case code > 4999 && code < 5999:
 		return codes.Internal
+	case code > 5999 && code < 6999:
+		// Network and timeout errors
+		return codes.Unavailable
+	case code > 6999 && code < 7999:
+		// Resource errors
+		return codes.ResourceExhausted
+	case code > 7999 && code < 8999:
+		// Database errors
+		return codes.Internal
+	case code > 8999 && code < 9999:
+		// Configuration errors
+		return codes.FailedPrecondition
 	default:
 		return codes.Internal
 	}
