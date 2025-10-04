@@ -12,7 +12,7 @@
     "monaco-editor": "^0.53.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "scheduler": "^0.23.2",
+    "scheduler": "^0.27.0",
     "state-local": "^1.0.7"
   },
   "scripts": {
