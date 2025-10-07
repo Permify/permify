@@ -1,28 +1,30 @@
-package cmd
+package cmd // Command package
+// Configuration inspection command implementation
+import ( // Package imports
+	"fmt"     // Formatting utilities
+	"os"      // OS utilities
+	"strings" // String manipulation
 
-import (
-	"fmt"
-	"os"
-	"strings"
+	// External dependencies
+	"github.com/gookit/color"           // Terminal colors
+	"github.com/olekukonko/tablewriter" // Table rendering
+	"github.com/spf13/cobra"            // Cobra CLI framework
+	"github.com/spf13/viper"            // Configuration management
 
-	"github.com/gookit/color"
-	"github.com/olekukonko/tablewriter"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	"github.com/Permify/permify/internal/config"
-	"github.com/Permify/permify/pkg/cmd/flags"
-)
-
-func NewConfigCommand() *cobra.Command {
-	command := &cobra.Command{
-		Use:   "config",
+	// Internal packages
+	"github.com/Permify/permify/internal/config" // Internal config
+	"github.com/Permify/permify/pkg/cmd/flags"   // Command flags
+) // End of imports
+// NewConfigCommand creates the config inspection command
+func NewConfigCommand() *cobra.Command { // Create config command
+	command := &cobra.Command{ // Command configuration
+		Use:   "config", // Command name
 		Short: "inspect permify configuration and environment variables",
 		RunE:  conf(),
 		Args:  cobra.NoArgs,
-	}
-
-	conf := config.DefaultConfig()
+	} // End of command config
+	// Setup configuration flags
+	conf := config.DefaultConfig() // Get default configuration
 	f := command.Flags()
 	f.StringP("config", "c", "", "config file (default is $HOME/.permify.yaml)")
 	f.Bool("http-enabled", conf.Server.HTTP.Enabled, "switch option for HTTP server")
@@ -73,7 +75,7 @@ func NewConfigCommand() *cobra.Command {
 	f.Bool("meter-insecure", conf.Meter.Insecure, "use https or http for metric data")
 	f.String("meter-urlpath", conf.Meter.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
-	f.Int("meter-interval", conf.Meter.Interval, "allows to set metrics to be pushed in certain time interval")
+	f.Int("meter-interval", conf.Meter.Interval, "allows to set metrics to be pushed in certain time interval") // Metric push interval
 	f.String("meter-protocol", conf.Meter.Protocol, "allows setting the communication protocol for the meter exporter, with options http or grpc")
 	f.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	f.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
@@ -110,11 +112,11 @@ func NewConfigCommand() *cobra.Command {
 	command.PreRun = func(cmd *cobra.Command, args []string) {
 		flags.RegisterServeFlags(f)
 	}
-
-	return command
-}
-
-func conf() func(cmd *cobra.Command, args []string) error {
+	// Return configured command
+	return command // Return config command
+} // End of NewConfigCommand
+// Config execution function
+func conf() func(cmd *cobra.Command, args []string) error { // Return config handler
 	return func(cmd *cobra.Command, args []string) error {
 		var cfg *config.Config
 		var err error
@@ -124,7 +126,7 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return fmt.Errorf("failed to create new config: %w", err)
 			}
-
+			// Unmarshal configuration from file
 			if err = viper.Unmarshal(cfg); err != nil {
 				return fmt.Errorf("failed to unmarshal config: %w", err)
 			}
@@ -134,13 +136,13 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return fmt.Errorf("failed to create new config: %w", err)
 			}
-
+			// Unmarshal configuration from environment
 			if err = viper.Unmarshal(cfg); err != nil {
 				return fmt.Errorf("failed to unmarshal config: %w", err)
 			}
-		}
-
-		var data [][]string
+		} // End of config loading
+		// Prepare table data
+		var data [][]string // Table rows
 
 		data = append(data,
 			[]string{"account_id", cfg.AccountID, getKeyOrigin(cmd, "account-id", "PERMIFY_ACCOUNT_ID")},
@@ -228,11 +230,11 @@ func conf() func(cmd *cobra.Command, args []string) error {
 			[]string{"distributed.port", cfg.Distributed.Port, getKeyOrigin(cmd, "distributed-port", "PERMIFY_DISTRIBUTED_PORT")},
 		)
 
-		renderConfigTable(data)
-		return nil
-	}
-}
-
+		renderConfigTable(data) // Display configuration table
+		return nil              // Success
+	} // End of handler function
+} // End of conf
+// Helper functions for configuration inspection
 // getKeyOrigin determines the source of a configuration value.
 // It checks whether a value was set via a command-line flag, an environment variable, or defaults to file.
 func getKeyOrigin(cmd *cobra.Command, flagKey, envKey string) string {
@@ -240,51 +242,51 @@ func getKeyOrigin(cmd *cobra.Command, flagKey, envKey string) string {
 	if cmd.Flags().Changed(flagKey) {
 		// If the flag was set, return "FLAG" with light green color.
 		return color.FgLightGreen.Render("FLAG")
-	}
-
+	} // End of flag check
+	// Check environment variable
 	// Check if the environment variable (specified by envKey) exists.
 	_, exists := os.LookupEnv(envKey)
 	if exists {
 		// If the environment variable exists, return "ENV" with light blue color.
 		return color.FgLightBlue.Render("ENV")
-	}
-
+	} // End of env check
+	// Default to file
 	// If neither the command-line flag nor the environment variable was set,
 	// assume the value came from a configuration file.
-	return color.FgYellow.Render("FILE")
-}
-
+	return color.FgYellow.Render("FILE") // Return file source
+} // End of getKeyOrigin
+// Table rendering function
 // renderConfigTable displays configuration data in a formatted table on the console.
 // It takes a 2D slice of strings where each inner slice represents a row in the table.
-func renderConfigTable(data [][]string) {
+func renderConfigTable(data [][]string) { // Display config table
 	// Create a new table writer object, writing to standard output.
-	table := tablewriter.NewWriter(os.Stdout)
+	table := tablewriter.NewWriter(os.Stdout) // Create table writer
 
 	// Set the headers of the table. Each header cell is a column title.
 	table.Header([]string{"Key", "Value", "Source"})
 
 	// Loop through the data and add each row to the table.
-	for _, v := range data {
+	for _, v := range data { // Iterate rows
 		if err := table.Append(v); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to append row to table: %v\n", err)
 		}
-	}
-
+	} // End of row iteration
+	// Render table to output
 	// Render the table to standard output, displaying it to the user.
 	if err := table.Render(); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to render table: %v\n", err)
 	}
-}
-
+} // End of renderConfigTable
+// Secret masking functions
 // HideSecret replaces all but the first and last characters of a string with asterisks
 func HideSecret(secret string) string {
 	if len(secret) <= 2 {
 		// If the secret is too short, just return asterisks
 		return strings.Repeat("*", len(secret))
-	}
+	} // End of short secret check
 	// Keep first and last character visible; replace the rest with asterisks
-	return string(secret[0]) + strings.Repeat("*", len(secret)-2) + string(secret[len(secret)-1])
-}
+	return string(secret[0]) + strings.Repeat("*", len(secret)-2) + string(secret[len(secret)-1]) // Masked secret
+} // End of HideSecret
 
 // HideSecrets obscures each string in a given list.
 func HideSecrets(secrets ...string) (rv []string) {

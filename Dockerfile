@@ -17,5 +17,5 @@ FROM cgr.dev/chainguard/static:latest@sha256:b2e1c3d3627093e54f6805823e73edd17ab
 COPY --from=health-probe-builder /go/bin/grpc-health-probe /usr/local/bin/grpc_health_probe
 COPY --from=permify-builder /go/src/app/permify /usr/local/bin/permify
 ENV PATH="$PATH:/usr/local/bin"
-ENTRYPOINT ["permify"]
-CMD ["serve"]
+ENTRYPOINT ["permify"] # Entrypoint for the container
+CMD ["serve"] # Default command to start the server

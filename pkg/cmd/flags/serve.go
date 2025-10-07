@@ -138,13 +138,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
-	if err = viper.BindPFlag("logger.output", flags.Lookup("log-output")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("logger.output", "PERMIFY_LOG_OUTPUT"); err != nil {
-		panic(err)
-	}
-
+	if err = viper.BindPFlag("logger.output", flags.Lookup("log-output")); err != nil { // Bind log output flag
+		panic(err) // Fatal error
+	} // Output flag bound
+	if err = viper.BindEnv("logger.output", "PERMIFY_LOG_OUTPUT"); err != nil { // Bind log output env
+		panic(err) // Fatal error
+	} // Log output bound
+	// Log enabled flag
 	if err = viper.BindPFlag("logger.enabled", flags.Lookup("log-enabled")); err != nil {
 		panic(err)
 	}
@@ -194,7 +194,7 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
-	// AUTHN
+	// AUTHN - Authentication configuration flags
 	if err = viper.BindPFlag("authn.enabled", flags.Lookup("authn-enabled")); err != nil {
 		panic(err)
 	}
@@ -216,20 +216,20 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
-	if err = viper.BindPFlag("authn.oidc.issuer", flags.Lookup("authn-oidc-issuer")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("authn.oidc.issuer", "PERMIFY_AUTHN_OIDC_ISSUER"); err != nil {
-		panic(err)
-	}
-
+	if err = viper.BindPFlag("authn.oidc.issuer", flags.Lookup("authn-oidc-issuer")); err != nil { // OIDC issuer
+		panic(err) // Fatal if binding fails
+	} // Issuer flag bound
+	if err = viper.BindEnv("authn.oidc.issuer", "PERMIFY_AUTHN_OIDC_ISSUER"); err != nil { // OIDC issuer env
+		panic(err) // Fatal if binding fails
+	} // OIDC issuer bound
+	// OIDC audience configuration
 	if err = viper.BindPFlag("authn.oidc.audience", flags.Lookup("authn-oidc-audience")); err != nil {
-		panic(err)
-	}
+		panic(err) // Fatal if binding fails
+	} // Audience flag bound
 	if err = viper.BindEnv("authn.oidc.audience", "PERMIFY_AUTHN_OIDC_AUDIENCE"); err != nil {
-		panic(err)
-	}
-
+		panic(err) // Fatal if binding fails
+	} // OIDC audience bound
+	// OIDC refresh interval
 	if err = viper.BindPFlag("authn.oidc.refresh_interval", flags.Lookup("authn-oidc-refresh-interval")); err != nil {
 		panic(err)
 	}
@@ -287,19 +287,19 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
-	if err = viper.BindPFlag("tracer.insecure", flags.Lookup("tracer-insecure")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("tracer.insecure", "PERMIFY_TRACER_INSECURE"); err != nil {
-		panic(err)
-	}
-
-	if err = viper.BindPFlag("tracer.urlpath", flags.Lookup("tracer-urlpath")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("tracer.urlpath", "PERMIFY_TRACER_URL_PATH"); err != nil {
-		panic(err)
-	}
+	if err = viper.BindPFlag("tracer.insecure", flags.Lookup("tracer-insecure")); err != nil { // Tracer insecure flag
+		panic(err) // Fatal error
+	} // Insecure flag bound
+	if err = viper.BindEnv("tracer.insecure", "PERMIFY_TRACER_INSECURE"); err != nil { // Tracer insecure env
+		panic(err) // Fatal error
+	} // Tracer insecure bound
+	// Tracer URL path configuration
+	if err = viper.BindPFlag("tracer.urlpath", flags.Lookup("tracer-urlpath")); err != nil { // Tracer URL path
+		panic(err) // Fatal error
+	} // URL path flag bound
+	if err = viper.BindEnv("tracer.urlpath", "PERMIFY_TRACER_URL_PATH"); err != nil { // Tracer URL path env
+		panic(err) // Fatal error
+	} // Tracer URL path bound
 
 	if err = viper.BindPFlag("tracer.headers", flags.Lookup("tracer-headers")); err != nil {
 		panic(err)
@@ -336,21 +336,21 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 	if err = viper.BindEnv("meter.endpoint", "PERMIFY_METER_ENDPOINT"); err != nil {
 		panic(err)
 	}
-
-	if err = viper.BindPFlag("meter.insecure", flags.Lookup("meter-insecure")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("meter.insecure", "PERMIFY_METER_INSECURE"); err != nil {
-		panic(err)
-	}
-
-	if err = viper.BindPFlag("meter.urlpath", flags.Lookup("meter-urlpath")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("meter.urlpath", "PERMIFY_METER_URL_PATH"); err != nil {
-		panic(err)
-	}
-
+	// Meter insecure connection flag
+	if err = viper.BindPFlag("meter.insecure", flags.Lookup("meter-insecure")); err != nil { // Meter insecure flag
+		panic(err) // Fatal error
+	} // Insecure flag bound
+	if err = viper.BindEnv("meter.insecure", "PERMIFY_METER_INSECURE"); err != nil { // Meter insecure env
+		panic(err) // Fatal error
+	} // Meter insecure bound
+	// Meter URL path configuration
+	if err = viper.BindPFlag("meter.urlpath", flags.Lookup("meter-urlpath")); err != nil { // Meter URL path
+		panic(err) // Fatal error
+	} // URL path flag bound
+	if err = viper.BindEnv("meter.urlpath", "PERMIFY_METER_URL_PATH"); err != nil { // Meter URL path env
+		panic(err) // Fatal error
+	} // Meter URL path bound
+	// Meter headers configuration
 	if err = viper.BindPFlag("meter.headers", flags.Lookup("meter-headers")); err != nil {
 		panic(err)
 	}
@@ -400,14 +400,14 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 	if err = viper.BindEnv("service.schema.cache.max_cost", "PERMIFY_SERVICE_SCHEMA_CACHE_MAX_COST"); err != nil {
 		panic(err)
 	}
-
-	if err = viper.BindPFlag("service.permission.bulk_limit", flags.Lookup("service-permission-bulk-limit")); err != nil {
-		panic(err)
-	}
-	if err = viper.BindEnv("service.permission.bulk_limit", "PERMIFY_SERVICE_PERMISSION_BULK_LIMIT"); err != nil {
-		panic(err)
-	}
-
+	// Permission service configuration
+	if err = viper.BindPFlag("service.permission.bulk_limit", flags.Lookup("service-permission-bulk-limit")); err != nil { // Bulk limit flag
+		panic(err) // Fatal error
+	} // Bulk limit flag bound
+	if err = viper.BindEnv("service.permission.bulk_limit", "PERMIFY_SERVICE_PERMISSION_BULK_LIMIT"); err != nil { // Bulk limit env
+		panic(err) // Fatal error
+	} // Bulk limit bound
+	// Concurrency limit configuration
 	if err = viper.BindPFlag("service.permission.concurrency_limit", flags.Lookup("service-permission-concurrency-limit")); err != nil {
 		panic(err)
 	}

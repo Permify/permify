@@ -26,8 +26,8 @@
     <a href="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge" alt="Permify Commit Activity" /></a>&nbsp;
     <a href="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" alt="GitHub Workflow Status" /></a>&nbsp;
     <a href="https://scrutinizer-ci.com/g/Permify/permify/?branch=master" target="_blank"><img src="https://img.shields.io/scrutinizer/quality/g/Permify/permify/master?style=for-the-badge" alt="Scrutinizer code quality (GitHub/Bitbucket)" /></a>&nbsp;
-    <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>&nbsp;
-    <a href="https://gurubase.io/g/permify" target="_blank"><img src="https://img.shields.io/badge/Gurubase-Ask%20AI-006BFF?style=for-the-badge" alt="Gurubase - Ask AI" /></a>
+    <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>&nbsp; <!-- Code coverage -->
+    <a href="https://gurubase.io/g/permify" target="_blank"><img src="https://img.shields.io/badge/Gurubase-Ask%20AI-006BFF?style=for-the-badge" alt="Gurubase - Ask AI" /></a> <!-- AI assistant -->
 </p>
 
 ![permify-centralized](https://github.com/user-attachments/assets/124eaa43-5d33-423d-a258-5d6f4afbc774)
@@ -56,13 +56,13 @@ It works in run time and can respond to any type of access control checks (can u
 - See our [Playground], build your authorization logic and test it with sample data.
 - Explore overview of [Permify API] and learn how to interact with it.
 - See [our article] to examine [Google Zanzibar](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/41f08f03da59f5518802898f68730e247e23c331.pdf) in a nutshell.
-- Explore our [SDK samples] for hands-on examples.
+- Explore our [SDK samples] for hands-on examples. <!-- SDK integration samples -->
 
 [Permify's Authorization Language]: https://docs.permify.co/getting-started/modeling
 [playground]: https://play.permify.co/
 [Permify API]: https://docs.permify.co/api-reference
 [our article]: https://permify.co/post/google-zanzibar-in-a-nutshell
-[SDK samples]: https://github.com/Permify/permify/tree/master/sdk
+[SDK samples]: https://github.com/Permify/permify/tree/master/sdk <!-- SDK repository link -->
 
 ## Permify Cloud vs Self-hosted?
 

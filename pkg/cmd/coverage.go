@@ -1,19 +1,21 @@
-package cmd
+package cmd // Command package
 
-import (
-	"fmt"
-	"net/url"
-	"os"
+import ( // Package imports
+	"fmt"     // Formatting utilities
+	"net/url" // URL parsing
+	"os"      // OS utilities
 
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	// External dependencies
+	"github.com/gookit/color" // Terminal colors
+	"github.com/spf13/cobra"  // Cobra CLI framework
+	"github.com/spf13/viper"  // Configuration management
 
-	"github.com/Permify/permify/pkg/cmd/flags"
-	cov "github.com/Permify/permify/pkg/development/coverage"
-	"github.com/Permify/permify/pkg/development/file"
-	"github.com/Permify/permify/pkg/schema"
-)
+	// Internal dependencies
+	"github.com/Permify/permify/pkg/cmd/flags"                // Command flags
+	cov "github.com/Permify/permify/pkg/development/coverage" // Coverage package
+	"github.com/Permify/permify/pkg/development/file"         // File handling
+	"github.com/Permify/permify/pkg/schema"                   // Schema package
+) // End of imports
 
 // NewCoverageCommand - creates a new coverage command
 func NewCoverageCommand() *cobra.Command {
@@ -45,12 +47,11 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-
-		// get min coverage from viper
-		coverageRelationships := viper.GetInt("coverage-relationships")
+		// Retrieve minimum coverage thresholds from configuration
+		coverageRelationships := viper.GetInt("coverage-relationships") // Min relationships coverage
 		coverageAttributes := viper.GetInt("coverage-attributes")
-		coverageAssertions := viper.GetInt("coverage-assertions")
-
+		coverageAssertions := viper.GetInt("coverage-assertions") // Min assertions coverage
+		// Create decoder from URL
 		// create a new decoder from the url
 		decoder, err := file.NewDecoderFromURL(u)
 		if err != nil {
@@ -73,35 +74,33 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 		}
 
 		s.Schema = loaded
-
-		color.Notice.Println("initiating validation... 🚀")
-		validator := validate()
-		err = validator(cmd, args)
-		if err != nil {
-			color.Danger.Println("failed to validate given file\n")
-			color.Danger.Println("FAILED")
-			return err
-		}
-
+		// Validate schema before coverage analysis
+		color.Notice.Println("initiating validation... 🚀") // Start validation
+		validator := validate()                            // Get validator function
+		err = validator(cmd, args)                         // Run validation
+		if err != nil {                                    // Check validation result
+			color.Danger.Println("failed to validate given file\n") // Validation failed
+			color.Danger.Println("FAILED")                          // Print failure
+			return err                                              // Return validation error
+		} // End validation check
+		// Run coverage analysis
 		color.Notice.Println("initiating coverage analysis... 🚀")
 
 		schemaCoverageInfo := cov.Run(*s)
-
-		DisplayCoverageInfo(schemaCoverageInfo)
-
-		if schemaCoverageInfo.TotalAssertionsCoverage < coverageAssertions {
-			color.Danger.Printf("assertions coverage < %d%%\n", coverageAssertions)
-			// print FAILED with color danger
-			color.Danger.Println("FAILED")
-			os.Exit(1)
-		}
-
-		if schemaCoverageInfo.TotalRelationshipsCoverage < coverageRelationships {
-			color.Danger.Printf("relationships coverage < %d%%\n", coverageRelationships)
-			// print FAILED with color danger
-			color.Danger.Println("FAILED")
-			os.Exit(1)
-		}
+		// Display coverage results
+		DisplayCoverageInfo(schemaCoverageInfo) // Show coverage information
+		// Check assertions coverage threshold
+		if schemaCoverageInfo.TotalAssertionsCoverage < coverageAssertions { // Assertions below threshold
+			color.Danger.Printf("assertions coverage < %d%%\n", coverageAssertions) // Print error
+			color.Danger.Println("FAILED")                                          // Print failure status
+			os.Exit(1)                                                              // Exit with error code
+		} // End assertions check
+		// Check relationships coverage threshold
+		if schemaCoverageInfo.TotalRelationshipsCoverage < coverageRelationships { // Relationships below threshold
+			color.Danger.Printf("relationships coverage < %d%%\n", coverageRelationships) // Print error
+			color.Danger.Println("FAILED")                                                // Print failure status
+			os.Exit(1)                                                                    // Exit with error code
+		} // End relationships check
 
 		if schemaCoverageInfo.TotalAttributesCoverage < coverageAttributes {
 			color.Danger.Printf("attributes coverage < %d%%\n", coverageAttributes)

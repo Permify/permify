@@ -11,7 +11,7 @@ help: ## Display this help screen
 
 .PHONY: compose-up
 compose-up: ### Run docker-compose
-	docker-compose up --build
+	docker-compose up --build # Build and start containers
 
 .PHONY: compose-up-integration-test
 compose-up-integration-test: ### Run docker-compose with integration test
@@ -89,9 +89,9 @@ clean: ## Remove temporary and generated files
 	docker rmi -f permify-image || true
 
 .PHONY: wasm-build
-wasm-build: ## Build wasm & place it in playground
+wasm-build: ## Build wasm & place it in playground # WebAssembly build target
 	cd ./pkg/development/wasm && GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o main.wasm && wasm-opt main.wasm --enable-bulk-memory -Oz -o play.wasm
-	cp ./pkg/development/wasm/play.wasm ./playground/public/play.wasm
+	cp ./pkg/development/wasm/play.wasm ./playground/public/play.wasm # Copy to playground
 
 .PHONY: release
 release: format test security-scan trivy-scan clean ## Prepare for release

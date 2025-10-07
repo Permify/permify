@@ -3,7 +3,7 @@ package engines
 import (
 	"context"
 	"errors"
-	"slices"
+	"slices" // Slice utilities
 	"sync"
 
 	"github.com/Permify/permify/internal/invoke"
