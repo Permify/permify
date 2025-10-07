@@ -100,7 +100,7 @@ See [all of the options] that you can use to set up and deploy Permify in your s
 
 #### Test your connection
 
-You can test your connection with creating a GET request,
+To verify that Permify is running correctly, make a GET request to the health check endpoint:
 
 ```shell
 localhost:3476/healthz
