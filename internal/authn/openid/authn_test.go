@@ -75,7 +75,7 @@ var _ = Describe("authn-oidc", func() {
 
 				// create signed token from oidc provider
 				unsignedToken := createUnsignedToken(claims, tt.method)
-				unsignedToken.Header["kid"] = fakeOidcProvider.keyIds[tt.method]
+				unsignedToken.Header["kid"] = fakeOidcProvider.signingKeyMap[tt.method]
 				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
 				Expect(err).To(BeNil())
 
@@ -166,7 +166,7 @@ var _ = Describe("authn-oidc", func() {
 
 				// create signed token from oidc server with overridden claims
 				unsignedToken := createUnsignedToken(claims, jwt.SigningMethodRS256)
-				unsignedToken.Header["kid"] = fakeOidcProvider.keyIds[jwt.SigningMethodRS256]
+				unsignedToken.Header["kid"] = fakeOidcProvider.signingKeyMap[jwt.SigningMethodRS256]
 				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
 				Expect(err).To(BeNil())
 
@@ -212,7 +212,7 @@ var _ = Describe("authn-oidc", func() {
 				{
 					"With right keyid using RS256 it should pass",
 					jwt.SigningMethodRS256,
-					true, fakeOidcProvider.keyIds[jwt.SigningMethodRS256],
+					true, fakeOidcProvider.signingKeyMap[jwt.SigningMethodRS256],
 					false,
 					1 * time.Second,
 				},
