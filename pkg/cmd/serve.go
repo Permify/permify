@@ -21,7 +21,7 @@ import (
 	"github.com/Permify/permify/internal/engines/cache"
 	"github.com/Permify/permify/internal/invoke"
 	cacheDecorator "github.com/Permify/permify/internal/storage/decorators/cache"
-	cbDecorator "github.com/Permify/permify/internal/storage/decorators/circuitBreaker"
+	cbDecorator "github.com/Permify/permify/internal/storage/decorators/circuitbreaker"
 	sfDecorator "github.com/Permify/permify/internal/storage/decorators/singleflight"
 	"github.com/Permify/permify/internal/storage/postgres/gc"
 	"github.com/Permify/permify/pkg/cmd/flags"

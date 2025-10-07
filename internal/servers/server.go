@@ -28,7 +28,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/Permify/permify/internal/authn/oidc"
+	oidc "github.com/Permify/permify/internal/authn/openid"
 	"github.com/Permify/permify/internal/authn/preshared"
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/invoke"

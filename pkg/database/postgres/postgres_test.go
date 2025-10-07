@@ -179,12 +179,6 @@ var _ = Describe("Postgres", func() {
 	})
 })
 
-// MockPQDatabase tests
-func TestMockPQDatabase(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "mock-postgres-suite")
-}
-
 var _ = Describe("MockPQDatabase", func() {
 	var mockDB *MockPQDatabase
 
