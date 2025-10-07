@@ -56,18 +56,18 @@ func Attribute(attribute string) (*base.Attribute, error) {
 	case "boolean":
 		boolVal, err := strconv.ParseBool(v[1])
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse boolean: %w", err)
+			return nil, fmt.Errorf("failed to parse boolean value: %w", err)
 		}
 		wrapped = &base.BooleanValue{Data: boolVal}
 	case "boolean[]":
 		val := strings.Split(v[1], ",")
 		ba := make([]bool, len(val))
-		for i, value := range val {
+		for i, value := range val { // Parse each boolean
 			boolVal, err := strconv.ParseBool(value)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse boolean: %w", err)
+				return nil, fmt.Errorf("failed to parse boolean array element: %w", err)
 			}
-			ba[i] = boolVal
+			ba[i] = boolVal // Store parsed value
 		}
 		wrapped = &base.BooleanArrayValue{Data: ba}
 	case "string":
@@ -78,18 +78,18 @@ func Attribute(attribute string) (*base.Attribute, error) {
 	case "double":
 		doubleVal, err := strconv.ParseFloat(v[1], 64)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse float: %w", err)
+			return nil, fmt.Errorf("failed to parse float value: %w", err)
 		}
 		wrapped = &base.DoubleValue{Data: doubleVal}
 	case "double[]":
 		val := strings.Split(v[1], ",")
 		da := make([]float64, len(val))
-		for i, value := range val {
+		for i, value := range val { // Parse each double
 			doubleVal, err := strconv.ParseFloat(value, 64)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse float: %v", err)
 			}
-			da[i] = doubleVal
+			da[i] = doubleVal // Store parsed value
 		}
 		wrapped = &base.DoubleArrayValue{Data: da}
 	case "integer":
@@ -101,12 +101,12 @@ func Attribute(attribute string) (*base.Attribute, error) {
 	case "integer[]":
 		val := strings.Split(v[1], ",")
 		ia := make([]int32, len(val))
-		for i, value := range val {
+		for i, value := range val { // Parse each integer
 			intVal, err := strconv.ParseInt(value, 10, 32)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse integer: %v", err)
 			}
-			ia[i] = int32(intVal)
+			ia[i] = int32(intVal) // Store parsed value
 		}
 		wrapped = &base.IntegerArrayValue{Data: ia}
 	default:
@@ -234,7 +234,7 @@ func AnyToString(any *anypb.Any) string {
 		if err := any.UnmarshalTo(stringVal); err != nil {
 			return "undefined"
 		}
-		str = strings.Join(stringVal.GetData(), ",")
+		str = strings.Join(stringVal.GetData(), ",") // Join string array
 	case "type.googleapis.com/base.v1.DoubleValue":
 		doubleVal := &base.DoubleValue{}
 		if err := any.UnmarshalTo(doubleVal); err != nil {

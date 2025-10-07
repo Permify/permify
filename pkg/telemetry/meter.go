@@ -73,7 +73,7 @@ func NewCounter(meter omt.Meter, name, description string) omt.Int64Counter {
 		omt.WithDescription(description),
 	)
 	if err != nil {
-		slog.Error("failed to create counter", slog.String("error", err.Error()))
+		slog.Error("failed to create request counter", slog.String("error", err.Error()))
 		panic(err)
 	}
 
@@ -87,7 +87,7 @@ func NewHistogram(meter omt.Meter, name, unit, description string) omt.Int64Hist
 		omt.WithDescription(description),
 	)
 	if err != nil {
-		slog.Error("failed to create histogram: ", slog.String("error", err.Error()))
+		slog.Error("failed to create request histogram", slog.String("error", err.Error()))
 		panic(err)
 	}
 

@@ -14,7 +14,7 @@ on:
   push:
     branches: [ "master" ]
   workflow_dispatch:
-
+# Permissions configuration
 # Declare default permissions as read only.
 permissions: read-all
 

@@ -1,19 +1,17 @@
-package schema
-
+package schema // Schema package tests
 import (
-	"strings"
+	"strings" // Test dependencies
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-)
-
-var _ = Describe("Loader", func() {
+	. "github.com/onsi/ginkgo/v2" // BDD test framework
+	. "github.com/onsi/gomega"    // Matcher library
+	// String utilities
+)                                   // End imports
+var _ = Describe("Loader", func() { // Loader test suite
 	Context("LoadSchema function", func() {
-		It("should load schema from URL", func() {
+		It("should load schema from URL", func() { // Test URL loading
 			loader := NewSchemaLoader()
 			schema, err := loader.LoadSchema("https://gist.githubusercontent.com/neo773/d50f089c141bf61776c22157413ddbac/raw/ed2eb12108e49fce11be27d0387b8b01912b9d98/gistfile1.txt")
 			Expect(err).ShouldNot(HaveOccurred())
-
 			expectedSchema := `
 			entity userhttp {}
 
@@ -40,11 +38,10 @@ var _ = Describe("Loader", func() {
 			Expect(strings.Join(strings.Fields(schema), "")).To(Equal(strings.Join(strings.Fields(expectedSchema), "")))
 		})
 
-		It("should load schema from file", func() {
+		It("should load schema from file", func() { // Test file loading
 			loader := NewSchemaLoader()
 			schema, err := loader.LoadSchema("./schema.txt")
 			Expect(err).ShouldNot(HaveOccurred())
-
 			expectedSchema := `
 			entity userfs {}
 
@@ -71,7 +68,7 @@ var _ = Describe("Loader", func() {
 			Expect(strings.Join(strings.Fields(schema), "")).To(Equal(strings.Join(strings.Fields(expectedSchema), "")))
 		})
 
-		It("should load inline schema", func() {
+		It("should load inline schema", func() { // Test inline loading
 			loader := NewSchemaLoader()
 			schema, err := loader.LoadSchema(`entity userinline {}
 
@@ -96,7 +93,6 @@ var _ = Describe("Loader", func() {
 		   }`)
 
 			Expect(err).ShouldNot(HaveOccurred())
-
 			expectedSchema := `
 			entity userinline {}
 
@@ -123,14 +119,13 @@ var _ = Describe("Loader", func() {
 			Expect(strings.Join(strings.Fields(schema), "")).To(Equal(strings.Join(strings.Fields(expectedSchema), "")))
 		})
 
-		It("should return error for empty schema", func() {
+		It("should return error for empty schema", func() { // Test empty schema
 			loader := NewSchemaLoader()
 			_, err := loader.LoadSchema("")
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(Equal("schema is empty"))
-		})
-
-		It("should return error for invalid URL scheme", func() {
+		}) // End test
+		It("should return error for invalid URL scheme", func() { // Test invalid URL
 			loader := NewSchemaLoader()
 			_, err := loader.LoadSchema("ftp://example.com/schema.txt")
 			Expect(err).Should(HaveOccurred())

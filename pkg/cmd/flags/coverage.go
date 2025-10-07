@@ -1,11 +1,11 @@
 package flags // Command flags package
-
+// Coverage flags for command-line interface
 // Coverage flag registration utilities
 import ( // Package imports
 	"github.com/spf13/pflag" // Flag definitions
 	"github.com/spf13/viper" // Configuration binding
 ) // End of imports
-
+// RegisterCoverageFlags function
 // RegisterCoverageFlags binds coverage-related flags to viper configuration
 func RegisterCoverageFlags(flags *pflag.FlagSet) { // Register coverage flags
 	if err := viper.BindPFlag("coverage-relationships", flags.Lookup("coverage-relationships")); err != nil { // Bind relationships flag

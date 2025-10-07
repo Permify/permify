@@ -9,7 +9,7 @@ import (
 
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/internal/storage/memory/constants"
+	"github.com/Permify/permify/internal/storage/memory/constants" // Memory storage constants
 	"github.com/Permify/permify/internal/storage/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
@@ -33,7 +33,7 @@ func (r *SchemaReader) ReadSchema(_ context.Context, tenantID, version string) (
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
-	it, err = txn.Get(constants.SchemaDefinitionsTable, "version", tenantID, version)
+	it, err = txn.Get(constants.SchemaDefinitionsTable, "version", tenantID, version) // Query schema by version
 	if err != nil {
 		return sch, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -73,7 +73,7 @@ func (r *SchemaReader) ReadEntityDefinition(_ context.Context, tenantID, entityN
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(constants.SchemaDefinitionsTable, "id", tenantID, entityName, version)
+	raw, err = txn.First(constants.SchemaDefinitionsTable, "id", tenantID, entityName, version) // Query entity definition
 	if err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -100,7 +100,7 @@ func (r *SchemaReader) ReadRuleDefinition(_ context.Context, tenantID, ruleName,
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(constants.SchemaDefinitionsTable, "id", tenantID, ruleName, version)
+	raw, err = txn.First(constants.SchemaDefinitionsTable, "id", tenantID, ruleName, version) // Query rule definition
 	if err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}

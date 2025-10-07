@@ -7,7 +7,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/propagation" // Trace context propagation
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
@@ -36,7 +36,7 @@ func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
 		)),
 	)
 	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.TraceContext{})
-
+	otel.SetTextMapPropagator(propagation.TraceContext{}) // Set trace context propagator
+	// Return shutdown function
 	return tp.Shutdown
 }

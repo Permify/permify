@@ -7,7 +7,7 @@ import ( // Package imports
 	// Internal dependencies
 	"github.com/Permify/permify/internal" // Internal version info
 ) // End of imports
-
+// Version command implementation
 // Version command function
 // NewVersionCommand creates a new version command for displaying Permify version
 // Returns a cobra command that displays the Permify version information

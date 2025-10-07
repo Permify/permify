@@ -3,7 +3,7 @@ package tuple
 import (
 	"errors"
 	"fmt"
-	"slices"
+	"slices" // Slice operations
 	"strings"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"

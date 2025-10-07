@@ -258,13 +258,12 @@ func (bc *BulkChecker) sortRequests(requests []BulkCheckerRequest) {
 //
 // Returns:
 //   - error: Any error that occurred during processing (context cancellation is not considered an error)
-func (bc *BulkChecker) ExecuteRequests(size uint32) error {
+func (bc *BulkChecker) ExecuteRequests(size uint32) error { // Main execution entry point
 	if size == 0 {
 		return fmt.Errorf("size must be greater than 0")
 	}
-
 	// Stop collecting new requests and wait for collection to complete
-	bc.StopCollectingRequests()
+	bc.StopCollectingRequests() // Ensure no new requests are added
 
 	// Get sorted requests for processing
 	requests := bc.getSortedRequests()

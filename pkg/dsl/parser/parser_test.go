@@ -1,24 +1,20 @@
-package parser
+package parser // Parser package tests
+import (       // Test imports
+	"testing" // Testing framework
 
-import (
-	"testing"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
-	"github.com/Permify/permify/pkg/dsl/ast"
-)
-
-// TestParser -
+	"github.com/Permify/permify/pkg/dsl/ast" // AST types
+	. "github.com/onsi/ginkgo/v2"            // BDD framework
+	. "github.com/onsi/gomega"               // Matchers
+) // End imports
+// TestParser - Parser test suite entry point
 func TestParser(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "parser-suite")
-}
-
-var _ = Describe("parser", func() {
+}                                   // End TestParser
+var _ = Describe("parser", func() { // Parser test suite
 	Context("Statement", func() {
-		It("Case 1 - Repository with parent and owner relations and read action", func() {
-			pr := NewParser(`
+		It("Case // Test case 1 - Repository with parent and owner relations and read action", func() {
+			pr := NewParser(` // Create parser
 			entity repository {
 		
 			relation parent @organization
@@ -56,10 +52,9 @@ var _ = Describe("parser", func() {
 			Expect(es.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
-		})
-
-		It("Case 2 - Repository with parent and owner relations and read action", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 2 - Repository with parent and owner relations and read action", func() {
+			pr := NewParser(` // Create parser
 			entity repository {
 				relation parent   @organization
 				relation owner  @user
@@ -95,10 +90,9 @@ var _ = Describe("parser", func() {
 			Expect(es.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
 			Expect(es.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
-		})
-
-		It("Case 3 - Organization with owner relation and delete action", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 3 - Organization with owner relation and delete action", func() {
+			pr := NewParser(` // Create parser
 			entity organization {
 				relation owner @user
 				action delete = owner
@@ -123,9 +117,8 @@ var _ = Describe("parser", func() {
 			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
 
 			Expect(es.Expression.(*ast.Identifier).String()).Should(Equal("owner"))
-		})
-
-		It("Case 4: Organization with owner relation and delete action", func() {
+		}) // End test case
+		It("Case // Test case 4: Organization with owner relation and delete action", func() {
 			pr := NewParser("entity organization {\n\nrelation owner @user\n\naction delete = owner\n\n\n}\n\n")
 			schema, err := pr.Parse()
 			Expect(err).ShouldNot(HaveOccurred())
@@ -147,10 +140,9 @@ var _ = Describe("parser", func() {
 			es := a1.ExpressionStatement.(*ast.ExpressionStatement)
 
 			Expect(es.Expression.(*ast.Identifier).String()).Should(Equal("owner"))
-		})
-
-		It("Case 5 - Repository view and read actions with ownership and parent organization", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 5 - Repository view and read actions with ownership and parent organization", func() {
+			pr := NewParser(` // Create parser
 			entity repository {
 		
 				relation parent  @organization
@@ -159,12 +151,10 @@ var _ = Describe("parser", func() {
 				action view = owner
 				action read = view and (parent.admin and parent.member)
 			}
-			`)
-
-			schema, err := pr.Parse()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			st := schema.Statements[0].(*ast.EntityStatement)
+			`) // End schema definition
+			schema, err := pr.Parse()                         // Parse schema
+			Expect(err).ShouldNot(HaveOccurred())             // No error expected
+			st := schema.Statements[0].(*ast.EntityStatement) // Get statement
 
 			Expect(st.Name.Literal).Should(Equal("repository"))
 
@@ -196,10 +186,9 @@ var _ = Describe("parser", func() {
 			Expect(es2.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("view"))
 			Expect(es2.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(es2.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
-		})
-
-		It("Case 6 - Complex organization and repository permissions", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 6 - Complex organization and repository permissions", func() {
+			pr := NewParser(` // Create parser
 			entity user {}
 
 			entity organization {
@@ -290,10 +279,9 @@ var _ = Describe("parser", func() {
 
 			Expect(res2.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
 			Expect(res2.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.create_repository"))
-		})
-
-		It("Case 7 - Multiple actions", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 7 - Multiple actions", func() {
+			pr := NewParser(` // Create parser
 		entity user {}
 
 		entity organization {
@@ -343,10 +331,9 @@ var _ = Describe("parser", func() {
 			tes1 := tperm1.ExpressionStatement.(*ast.ExpressionStatement)
 			Expect(tes1.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("leader"))
 			Expect(tes1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.manage_team"))
-		})
-
-		It("Case 8 - Complex nested expressions", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 8 - Complex nested expressions", func() {
+			pr := NewParser(` // Create parser
 	entity user {}
 
 	entity organization {
@@ -400,10 +387,9 @@ var _ = Describe("parser", func() {
 			Expect(tes1.Expression.(*ast.InfixExpression).Left.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.manage_organization"))
 			Expect(tes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("member"))
 			Expect(tes1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.manage_organization"))
-		})
-
-		It("Case 9 - More complex nested expressions", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 9 - More complex nested expressions", func() {
+			pr := NewParser(` // Create parser
 	entity user {}
 
 	entity organization {
@@ -461,10 +447,9 @@ var _ = Describe("parser", func() {
 			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(eps1.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
-		})
-
-		It("Case 10 - Duplicate entity", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 10 - Duplicate entity", func() {
+			pr := NewParser(` // Create parser
         entity user {}
         entity user {}
     `)
@@ -476,10 +461,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("3:23:duplication found for user"))
-		})
-
-		It("Case 11 - Duplicate Relation", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 11 - Duplicate Relation", func() {
+			pr := NewParser(` // Create parser
 				entity organization {
 					relation member @user
 					relation member @user
@@ -492,10 +476,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("5:2:duplication found for organization#member"))
-		})
-
-		It("Case 12 - Duplicate action", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 12 - Duplicate action", func() {
+			pr := NewParser(` // Create parser
 			entity organization {
 				relation admin @user
 				action delete = admin
@@ -509,10 +492,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("5:25:duplication found for organization#delete"))
-		})
-
-		It("Case 13 - Attribute", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 13 - Attribute", func() {
+			pr := NewParser(` // Create parser
 			entity repository {
 		
 				relation parent  @organization
@@ -523,12 +505,10 @@ var _ = Describe("parser", func() {
 				action view = owner
 				action read = view and (parent.admin and parent.member)
 			}
-			`)
-
-			schema, err := pr.Parse()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			st := schema.Statements[0].(*ast.EntityStatement)
+			`) // End schema definition
+			schema, err := pr.Parse()                         // Parse schema
+			Expect(err).ShouldNot(HaveOccurred())             // No error expected
+			st := schema.Statements[0].(*ast.EntityStatement) // Get statement
 
 			Expect(st.Name.Literal).Should(Equal("repository"))
 
@@ -564,10 +544,9 @@ var _ = Describe("parser", func() {
 			Expect(es2.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("view"))
 			Expect(es2.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(es2.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
-		})
-
-		It("Case 14 - Rule", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 14 - Rule", func() {
+			pr := NewParser(` // Create parser
 			entity account {
     			relation owner @user
     			attribute balance float
@@ -578,12 +557,10 @@ var _ = Describe("parser", func() {
 			rule check_balance(amount float, balance float) {
 				balance >= amount && amount <= 5000
 			}
-			`)
-
-			schema, err := pr.Parse()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			st := schema.Statements[0].(*ast.EntityStatement)
+			`) // End schema definition
+			schema, err := pr.Parse()                         // Parse schema
+			Expect(err).ShouldNot(HaveOccurred())             // No error expected
+			st := schema.Statements[0].(*ast.EntityStatement) // Get statement
 
 			Expect(st.Name.Literal).Should(Equal("account"))
 
@@ -610,10 +587,9 @@ var _ = Describe("parser", func() {
 
 			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
 			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
-		})
-
-		It("Case 15 - Array", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 15 - Array", func() {
+			pr := NewParser(` // Create parser
 				entity organization {
 					
 					relation admin @user
@@ -626,12 +602,10 @@ var _ = Describe("parser", func() {
 				rule check_location(current_location string, location string[]) {
 					current_location in location
 				}
-			`)
-
-			schema, err := pr.Parse()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			st := schema.Statements[0].(*ast.EntityStatement)
+			`) // End schema definition
+			schema, err := pr.Parse()                         // Parse schema
+			Expect(err).ShouldNot(HaveOccurred())             // No error expected
+			st := schema.Statements[0].(*ast.EntityStatement) // Get statement
 
 			Expect(st.Name.Literal).Should(Equal("organization"))
 
@@ -658,10 +632,9 @@ var _ = Describe("parser", func() {
 
 			Expect(rs1.Name.Literal).Should(Equal("check_location"))
 			Expect(rs1.Expression).Should(Equal("\ncurrent_location in location\n\t\t\t"))
-		})
-
-		It("Case 16", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 16", func() {
+			pr := NewParser(` // Create parser
 			entity & {
 			`)
 
@@ -672,10 +645,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("2:13:expected next token to be IDENT, got AMPERSAND instead"))
-		})
-
-		It("Case 17", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 17", func() {
+			pr := NewParser(` // Create parser
 			entity asd 
 			`)
 
@@ -686,10 +658,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("3:2:expected next token to be LCB, got NEWLINE instead"))
-		})
-
-		It("Case 18", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 18", func() {
+			pr := NewParser(` // Create parser
 			entity asd {
 			`)
 
@@ -700,10 +671,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("3:7:expected token to be RCB, got EOF instead"))
-		})
-
-		It("Case 19", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 19", func() {
+			pr := NewParser(` // Create parser
 			entity asd {
 
 				attribute 987d bool				
@@ -717,10 +687,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("4:19:expected next token to be IDENT, got INTEGER instead"))
-		})
-
-		It("Case 20", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 20", func() {
+			pr := NewParser(` // Create parser
 			entity asd {
 
 				relation user user				
@@ -734,10 +703,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("4:24:expected next token to be SIGN, got IDENT instead"))
-		})
-
-		It("Case 21", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 21", func() {
+			pr := NewParser(` // Create parser
 			entity asd {
 
 				relation user @
@@ -752,10 +720,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("5:2:expected next token to be IDENT, got NEWLINE instead"))
-		})
-
-		It("Case 22", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 22", func() {
+			pr := NewParser(` // Create parser
 			entity asd {
 
 				relation admin @user
@@ -770,9 +737,8 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("6:18:expected next token to be IDENT, got ASSIGN instead"))
-		})
-
-		It("Case 23", func() {
+		}) // End test case
+		It("Case // Test case 23", func() {
 			p := NewParser(`
 				entity repository {
 					
@@ -848,10 +814,9 @@ var _ = Describe("parser", func() {
 			Expect(es.Expression.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("owner"))
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
-		})
-
-		It("Case 24 - Multi-line Permission Expression w/ Rule", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 24 - Multi-line Permission Expression w/ Rule", func() {
+			pr := NewParser(` // Create parser
 			entity account {
     			relation owner @user
     			attribute balance float
@@ -863,12 +828,10 @@ var _ = Describe("parser", func() {
 			rule check_balance(amount float, balance float) {
 				balance >= amount && amount <= 5000
 			}
-			`)
-
-			schema, err := pr.Parse()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			st := schema.Statements[0].(*ast.EntityStatement)
+			`) // End schema definition
+			schema, err := pr.Parse()                         // Parse schema
+			Expect(err).ShouldNot(HaveOccurred())             // No error expected
+			st := schema.Statements[0].(*ast.EntityStatement) // Get statement
 
 			Expect(st.Name.Literal).Should(Equal("account"))
 
@@ -895,10 +858,9 @@ var _ = Describe("parser", func() {
 
 			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
 			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
-		})
-
-		It("Case 25 - Multi-line Permission Expression w/ Rule", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 25 - Multi-line Permission Expression w/ Rule", func() {
+			pr := NewParser(` // Create parser
 			entity account {
     			relation owner @user
     			attribute balance float
@@ -910,12 +872,10 @@ var _ = Describe("parser", func() {
 			rule check_balance(amount float, balance float) {
 				balance >= amount && amount <= 5000
 			}
-			`)
-
-			schema, err := pr.Parse()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			st := schema.Statements[0].(*ast.EntityStatement)
+			`) // End schema definition
+			schema, err := pr.Parse()                         // Parse schema
+			Expect(err).ShouldNot(HaveOccurred())             // No error expected
+			st := schema.Statements[0].(*ast.EntityStatement) // Get statement
 
 			Expect(st.Name.Literal).Should(Equal("account"))
 
@@ -942,10 +902,9 @@ var _ = Describe("parser", func() {
 
 			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
 			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
-		})
-
-		It("Case 26 - Multi-line Permission Expression w/ Rule - should fail", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 26 - Multi-line Permission Expression w/ Rule - should fail", func() {
+			pr := NewParser(` // Create parser
 			entity account {
     			relation owner @user
     			attribute balance float
@@ -967,10 +926,9 @@ var _ = Describe("parser", func() {
 
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("8:2:expected token to be RELATION, PERMISSION, ATTRIBUTE, got IDENT instead"))
-		})
-
-		It("Case 27 - Multi-line Permission Complex Expression w/ Rule", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 27 - Multi-line Permission Complex Expression w/ Rule", func() {
+			pr := NewParser(` // Create parser
 entity report {
     relation parent @organization
     relation team @team
@@ -1006,10 +964,9 @@ rule confidentiality_level_low(confidentiality_level double) {
 
 			_, err := pr.Parse()
 			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		It("Case 28 - Multi-line Permission Expression w/ Rule", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 28 - Multi-line Permission Expression w/ Rule", func() {
+			pr := NewParser(` // Create parser
 			entity account {
     			relation owner @user
     			relation admin @user
@@ -1021,10 +978,9 @@ rule confidentiality_level_low(confidentiality_level double) {
 
 			_, err := pr.Parse()
 			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		It("Case 29 - Multi-line Permission Expression w/ Rule - should fail", func() {
-			pr := NewParser(`
+		}) // End test case
+		It("Case // Test case 29 - Multi-line Permission Expression w/ Rule - should fail", func() {
+			pr := NewParser(` // Create parser
 			entity account {
     			relation owner @user
     			relation admin @user
@@ -1041,5 +997,5 @@ rule confidentiality_level_low(confidentiality_level double) {
 			// Ensure the error message contains the expected string
 			Expect(err.Error()).Should(ContainSubstring("7:15:expected token to be RELATION, PERMISSION, ATTRIBUTE, got OR instead"))
 		})
-	})
-})
+	}) // End context
+}) // End describe

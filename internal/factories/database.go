@@ -5,7 +5,7 @@ import (
 
 	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/storage/memory/migrations"
-	"github.com/Permify/permify/internal/storage/postgres/utils"
+	"github.com/Permify/permify/internal/storage/postgres/utils" // Postgres utilities
 	"github.com/Permify/permify/pkg/database"
 	IMDatabase "github.com/Permify/permify/pkg/database/memory"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
@@ -60,13 +60,13 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 				return nil, err
 			}
 		}
-
-		// check postgres version
+		// Verify postgres version compatibility
+		// Check postgres version compatibility with the database
 		_, err = utils.EnsureDBVersion(db.(*PQDatabase.Postgres).ReadPool)
-		if err != nil {
-			return nil, err
-		}
-
+		if err != nil { // Version check failed
+			return nil, err // Return version error
+		} // End of version check
+		// Return database instance
 		return
 	case database.MEMORY.String():
 		db, err = IMDatabase.New(migrations.Schema)

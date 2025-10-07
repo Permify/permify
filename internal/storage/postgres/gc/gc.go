@@ -53,7 +53,7 @@ func (gc *GC) Start(ctx context.Context) error {
 		select {
 		case <-ticker.C: // Periodically trigger garbage collection.
 			if err := gc.Run(); err != nil {
-				slog.Error("Garbage collection failed:", slog.Any("error", err))
+				slog.Error("Garbage collection failed with error", slog.Any("error", err))
 				continue
 			} else {
 				slog.Info("Garbage collection completed successfully")
@@ -73,7 +73,7 @@ func (gc *GC) Run() error {
 	var dbNow time.Time
 	err := gc.database.WritePool.QueryRow(ctx, "SELECT NOW() AT TIME ZONE 'UTC'").Scan(&dbNow)
 	if err != nil {
-		slog.Error("Failed to get current time from the database:", slog.Any("error", err))
+		slog.Error("Failed to get current time from database", slog.Any("error", err))
 		return err
 	}
 

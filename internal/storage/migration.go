@@ -10,7 +10,7 @@ import (
 	"github.com/pressly/goose/v3"
 
 	"github.com/Permify/permify/internal/config"
-	"github.com/Permify/permify/internal/storage/postgres/utils"
+	"github.com/Permify/permify/internal/storage/postgres/utils" // Postgres utilities
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
@@ -45,13 +45,12 @@ func Migrate(conf config.Database) (err error) {
 
 		// Ensure database connection is closed when function returns
 		defer closeDB(db)
-
-		// check postgres version
+		// Verify postgres version compatibility
+		// Check postgres version compatibility with the database
 		_, err = utils.EnsureDBVersion(db.ReadPool)
-		if err != nil {
-			return err
-		}
-
+		if err != nil { // Version check failed
+			return err // Return version error
+		} // End of version check
 		// Set table name for migrations
 		goose.SetTableName(migrationsTable)
 

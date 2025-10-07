@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"context"
-	"log/slog"
+	"log/slog" // structured logging
 
 	"github.com/jackc/pgx/v5"
 
@@ -31,12 +31,9 @@ func NewSchemaWriter(database *db.Postgres) *SchemaWriter {
 // WriteSchema writes a schema to the database
 func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.SchemaDefinition) (err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-writer.write-schema")
-	defer span.End()
-
+	defer span.End() // end tracing span
 	slog.DebugContext(ctx, "writing schemas to the database", slog.Any("number_of_schemas", len(schemas)))
-
-	insertBuilder := w.database.Builder.Insert(SchemaDefinitionTable).Columns("name, serialized_definition, version, tenant_id")
-
+	insertBuilder := w.database.Builder.Insert(SchemaDefinitionTable).Columns("name, serialized_definition, version, tenant_id") // create insert builder
 	for _, schema := range schemas {
 		insertBuilder = insertBuilder.Values(schema.Name, schema.SerializedDefinition, schema.Version, schema.TenantID)
 	}
@@ -48,15 +45,12 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.Schema
 	if err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
-
 	slog.DebugContext(ctx, "executing sql insert query", slog.Any("query", query), slog.Any("arguments", args))
-
-	_, err = w.database.WritePool.Exec(ctx, query, args...)
+	_, err = w.database.WritePool.Exec(ctx, query, args...) // execute insert
 	if err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.DebugContext(ctx, "successfully wrote schemas to the database", slog.Any("number_of_schemas", len(schemas)))
-
-	return nil
+	return nil // success
 }

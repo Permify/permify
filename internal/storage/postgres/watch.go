@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
+	"log/slog" // Structured logging
 	"time"
 
+	// External dependencies
 	"github.com/jackc/pgx/v5"
 
 	"google.golang.org/protobuf/encoding/protojson"
@@ -53,16 +54,16 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 	sleepDuration := defaultSleepDuration
 
 	slog.DebugContext(ctx, "watching for changes in the database", slog.Any("tenant_id", tenantID), slog.Any("snapshot", snap))
-
+	// Decode snapshot token
 	// Decode the snapshot value.
 	// The snapshot value represents a point in the history of the database.
 	st, err := snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
 		// If there is an error in decoding the snapshot, send the error and return.
 		errs <- err
-
+		// Log decode error
 		slog.Error("failed to decode snapshot", slog.Any("error", err))
-
+		// Return channels
 		return changes, errs
 	}
 
@@ -81,9 +82,8 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 			recentIDs, err := w.getRecentXIDs(ctx, cr, tenantID)
 			if err != nil {
 				// If there is an error in getting recent transaction IDs, send the error and return.
-
+				// Log transaction error
 				slog.Error("error getting recent transaction", slog.Any("error", err))
-
 				errs <- err
 				return
 			}
@@ -142,7 +142,7 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 	}()
 
 	slog.DebugContext(ctx, "watch started successfully")
-
+	// Return watch channels
 	// Return the channels that the caller will listen to for changes and errors.
 	return changes, errs
 }
@@ -181,7 +181,7 @@ func (w *Watch) getRecentXIDs(ctx context.Context, value uint64, tenantID string
 	}
 
 	slog.DebugContext(ctx, "executing SQL query to get recent transaction", slog.Any("query", query), slog.Any("arguments", args))
-
+	// Execute transaction query
 	// Execute the SQL query.
 	rows, err := w.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
@@ -226,7 +226,7 @@ func (w *Watch) getChanges(ctx context.Context, value db.XID8, tenantID string) 
 	changes := &base.DataChanges{}
 
 	slog.DebugContext(ctx, "retrieving changes for transaction", slog.Any("id", value), slog.Any("tenant_id", tenantID))
-
+	// Build relation tuples query
 	// Construct the SQL SELECT statement for retrieving the changes from the RelationTuplesTable.
 	tbuilder := w.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation, expired_tx_id").
 		From(RelationTuplesTable).
@@ -243,7 +243,7 @@ func (w *Watch) getChanges(ctx context.Context, value db.XID8, tenantID string) 
 	}
 
 	slog.DebugContext(ctx, "executing sql query for relation tuples", slog.Any("query", tquery), slog.Any("arguments", targs))
-
+	// Execute tuples query
 	// Execute the SQL query and retrieve the result rows.
 	var trows pgx.Rows
 	trows, err = w.database.ReadPool.Query(ctx, tquery, targs...)
@@ -268,7 +268,7 @@ func (w *Watch) getChanges(ctx context.Context, value db.XID8, tenantID string) 
 	}
 
 	slog.DebugContext(ctx, "executing sql query for attributes", slog.Any("query", aquery), slog.Any("arguments", aargs))
-
+	// Execute attributes query
 	var arows pgx.Rows
 	arows, err = w.database.ReadPool.Query(ctx, aquery, aargs...)
 	if err != nil {
@@ -347,7 +347,7 @@ func (w *Watch) getChanges(ctx context.Context, value db.XID8, tenantID string) 
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved changes for transaction", slog.Any("id", value))
-
+	// Return changes result
 	// Return the changes and no error.
 	return changes, nil
 }

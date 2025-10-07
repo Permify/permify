@@ -1,16 +1,16 @@
 package migrations
 
 import (
-	"github.com/hashicorp/go-memdb"
-
+	"github.com/hashicorp/go-memdb" // In-memory database
+	// Internal imports
 	"github.com/Permify/permify/internal/storage/memory/constants"
 )
 
 // Schema - Database schema for memory db
 var Schema = &memdb.DBSchema{
 	Tables: map[string]*memdb.TableSchema{
-		constants.SchemaDefinitionsTable: {
-			Name: constants.SchemaDefinitionsTable,
+		constants.SchemaDefinitionsTable: { // Schema definitions table
+			Name: constants.SchemaDefinitionsTable, // Table name
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -44,8 +44,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		constants.AttributesTable: {
-			Name: constants.AttributesTable,
+		constants.AttributesTable: { // Attributes table
+			Name: constants.AttributesTable, // Table name
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -82,8 +82,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		constants.RelationTuplesTable: {
-			Name: constants.RelationTuplesTable,
+		constants.RelationTuplesTable: { // Relation tuples table
+			Name: constants.RelationTuplesTable, // Table name
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -148,8 +148,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		constants.TenantsTable: {
-			Name: constants.TenantsTable,
+		constants.TenantsTable: { // Tenants table
+			Name: constants.TenantsTable, // Table name
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -162,20 +162,20 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		constants.BundlesTable: {
-			Name: constants.BundlesTable,
-			Indexes: map[string]*memdb.IndexSchema{
-				"id": {
-					Name:   "id",
-					Unique: true,
-					Indexer: &memdb.CompoundIndex{
+		constants.BundlesTable: { // Bundles table
+			Name: constants.BundlesTable, // Table name
+			Indexes: map[string]*memdb.IndexSchema{ // Index schemas
+				"id": { // ID index
+					Name:   "id", // Index name
+					Unique: true, // Unique constraint
+					Indexer: &memdb.CompoundIndex{ // Compound index
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "TenantID"},
 							&memdb.StringFieldIndex{Field: "Name"},
 						},
-					},
-				},
-			},
-		},
-	},
-}
+					}, // End of compound index
+				}, // End of ID index
+			}, // End of indexes
+		}, // End of bundles table
+	}, // End of tables
+} // End of schema

@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"context"
-	"log/slog"
+	"log/slog" // Structured logging
 
+	// External dependencies
 	"github.com/jackc/pgx/v5"
 
 	"github.com/Masterminds/squirrel"
@@ -36,7 +37,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	defer span.End()
 
 	slog.DebugContext(ctx, "listing tenants with pagination", slog.Any("pagination", pagination))
-
+	// Build SQL query
 	builder := r.database.Builder.Select("id, name, created_at").From(TenantsTable)
 	if pagination.Token() != "" {
 		var t database.ContinuousToken
@@ -58,7 +59,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	}
 
 	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
-
+	// Execute query
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
@@ -82,7 +83,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	}
 
 	slog.DebugContext(ctx, "successfully listed tenants", slog.Any("number_of_tenants", len(tenants)))
-
+	// Check pagination
 	if len(tenants) > int(pagination.PageSize()) {
 		return tenants[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil
 	}

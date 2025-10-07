@@ -41,7 +41,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 	defer span.End()
 
 	slog.DebugContext(ctx, "creating new tenant", slog.Any("id", id), slog.Any("name", name))
-
+	// Insert tenant into database
 	var createdAt time.Time
 	err = w.database.WritePool.QueryRow(ctx, utils.InsertTenantTemplate, id, name).Scan(&createdAt)
 	if err != nil {
@@ -55,7 +55,7 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 	}
 
 	slog.DebugContext(ctx, "successfully created Tenant", slog.Any("id", id), slog.Any("name", name), slog.Any("created_at", createdAt))
-
+	// Return tenant object
 	return &base.Tenant{
 		Id:        id,
 		Name:      name,
@@ -69,7 +69,7 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (err e
 	defer span.End()
 
 	slog.DebugContext(ctx, "deleting tenant", slog.Any("tenant_id", tenantID))
-
+	// Begin transaction for deletion
 	tx, err := w.database.WritePool.Begin(ctx)
 	if err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
