@@ -21,7 +21,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp" // HTTP telemetry
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -35,7 +35,7 @@ import (
 	"github.com/Permify/permify/internal/middleware"
 	"github.com/Permify/permify/internal/storage"
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
-	health "google.golang.org/grpc/health/grpc_health_v1"
+	health "google.golang.org/grpc/health/grpc_health_v1" // gRPC health check
 )
 
 // Container is a struct that holds the invoker and various storage
@@ -139,16 +139,16 @@ func (s *Container) Run(
 			}
 			unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.AuthFunc(authenticator)))
 			streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.AuthFunc(authenticator)))
-		case "oidc":
-			var authenticator *oidc.Authn
-			authenticator, err = oidc.NewOidcAuthn(ctx, authentication.Oidc)
-			if err != nil {
-				return err
-			}
+		case "oidc": // OpenID Connect authentication
+			var authenticator *oidc.Authn                                    // OIDC authenticator
+			authenticator, err = oidc.NewOidcAuthn(ctx, authentication.Oidc) // Create OIDC authenticator
+			if err != nil {                                                  // Check for errors
+				return err // Return error
+			} // OIDC authenticator created
 			unaryInterceptors = append(unaryInterceptors, grpcAuth.UnaryServerInterceptor(middleware.AuthFunc(authenticator)))
 			streamingInterceptors = append(streamingInterceptors, grpcAuth.StreamServerInterceptor(middleware.AuthFunc(authenticator)))
-		default:
-			return fmt.Errorf("unknown authentication method: '%s'", authentication.Method)
+		default: // Unknown authentication method
+			return fmt.Errorf("unknown authentication method: '%s'", authentication.Method) // Return error
 		}
 	}
 
@@ -179,7 +179,7 @@ func (s *Container) Run(
 	grpcV1.RegisterWatchServer(grpcServer, NewWatchServer(s.W, s.DR))
 
 	// Register health check and reflection services for gRPC.
-	health.RegisterHealthServer(grpcServer, NewHealthServer())
+	health.RegisterHealthServer(grpcServer, NewHealthServer()) // Register health server
 	reflection.Register(grpcServer)
 
 	// Create another gRPC server, presumably for invoking permissions.
@@ -187,7 +187,7 @@ func (s *Container) Run(
 	grpcV1.RegisterPermissionServer(invokeServer, NewPermissionServer(localInvoker))
 
 	// Register health check and reflection services for the invokeServer.
-	health.RegisterHealthServer(invokeServer, NewHealthServer())
+	health.RegisterHealthServer(invokeServer, NewHealthServer()) // Register health server for invoker
 	reflection.Register(invokeServer)
 
 	// If profiling is enabled, set up the profiler using the net/http package.
@@ -217,8 +217,8 @@ func (s *Container) Run(
 			// Start the profiler server.
 			if err := pprofserver.ListenAndServe(); err != nil {
 				// Check if the error was due to the server being closed, and log it.
-				if errors.Is(err, http.ErrServerClosed) {
-					slog.Error("failed to start profiler", slog.Any("error", err))
+				if errors.Is(err, http.ErrServerClosed) { // Server closed error
+					slog.Error("failed to start profiler", slog.Any("error", err)) // Log profiler error
 				}
 			}
 		}()
@@ -238,14 +238,14 @@ func (s *Container) Run(
 
 	// Start the gRPC server.
 	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			slog.Error("failed to start grpc server", slog.Any("error", err))
+		if err := grpcServer.Serve(lis); err != nil { // gRPC server error
+			slog.Error("failed to start grpc server", slog.Any("error", err)) // Log gRPC error
 		}
 	}()
 
 	go func() {
-		if err := invokeServer.Serve(invokeLis); err != nil {
-			slog.Error("failed to start invoke grpc server", slog.Any("error", err))
+		if err := invokeServer.Serve(invokeLis); err != nil { // Invoker server error
+			slog.Error("failed to start invoke grpc server", slog.Any("error", err)) // Log invoker error
 		}
 	}()
 
@@ -278,14 +278,14 @@ func (s *Container) Run(
 			return err
 		}
 		defer func() {
-			if err = conn.Close(); err != nil {
-				slog.Error("Failed to close gRPC connection", slog.Any("error", err))
+			if err = conn.Close(); err != nil { // Connection close error
+				slog.Error("Failed to close gRPC connection", slog.Any("error", err)) // Log close error
 			}
 		}()
 
-		healthClient := health.NewHealthClient(conn)
+		healthClient := health.NewHealthClient(conn) // Create health client
 		muxOpts := []runtime.ServeMuxOption{
-			runtime.WithHealthzEndpoint(healthClient),
+			runtime.WithHealthzEndpoint(healthClient), // Add health endpoint
 			runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
 				Marshaler: &runtime.JSONPb{
 					MarshalOptions: protojson.MarshalOptions{
@@ -297,22 +297,22 @@ func (s *Container) Run(
 					},
 				},
 			}),
-			runtime.WithMiddlewares(func(next runtime.HandlerFunc) runtime.HandlerFunc {
-				type key struct{}
+			runtime.WithMiddlewares(func(next runtime.HandlerFunc) runtime.HandlerFunc { // OpenTelemetry middleware
+				type key struct{} // Context key type
 
-				otelHandler := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					pathParams := r.Context().Value(key{}).(map[string]string)
-					next(w, r, pathParams)
-				}), "server",
-					otelhttp.WithServerName("permify"),
-					otelhttp.WithSpanNameFormatter(httpNameFormatter),
-				)
+				otelHandler := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { // HTTP handler with telemetry
+					pathParams := r.Context().Value(key{}).(map[string]string) // Get path params
+					next(w, r, pathParams)                                     // Call next handler
+				}), "server", // Server name
+					otelhttp.WithServerName("permify"),                // Set server name
+					otelhttp.WithSpanNameFormatter(httpNameFormatter), // Format span name
+				) // OpenTelemetry handler created
 
-				return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-					r = r.WithContext(context.WithValue(r.Context(), key{}, pathParams))
-					otelHandler.ServeHTTP(w, r)
-				}
-			}),
+				return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) { // Middleware handler
+					r = r.WithContext(context.WithValue(r.Context(), key{}, pathParams)) // Add path params to context
+					otelHandler.ServeHTTP(w, r)                                          // Serve with telemetry
+				} // Return middleware handler
+			}), // Middleware registered
 		}
 
 		mux := runtime.NewServeMux(muxOpts...)
@@ -333,19 +333,19 @@ func (s *Container) Run(
 			return err
 		}
 
-		corsHandler := cors.New(cors.Options{
-			AllowCredentials: true,
-			AllowedOrigins:   srv.HTTP.CORSAllowedOrigins,
-			AllowedHeaders:   srv.HTTP.CORSAllowedHeaders,
-			AllowedMethods: []string{
-				http.MethodGet, http.MethodPost,
-				http.MethodHead, http.MethodPatch, http.MethodDelete, http.MethodPut,
-			},
-		}).Handler(mux)
+		corsHandler := cors.New(cors.Options{ // CORS configuration
+			AllowCredentials: true,                        // Allow credentials
+			AllowedOrigins:   srv.HTTP.CORSAllowedOrigins, // Allowed origins
+			AllowedHeaders:   srv.HTTP.CORSAllowedHeaders, // Allowed headers
+			AllowedMethods: []string{ // Allowed HTTP methods
+				http.MethodGet, http.MethodPost, // GET and POST
+				http.MethodHead, http.MethodPatch, http.MethodDelete, http.MethodPut, // Other methods
+			}, // Methods configured
+		}).Handler(mux) // CORS handler created
 
-		httpServer = &http.Server{
-			Addr:              ":" + srv.HTTP.Port,
-			Handler:           corsHandler,
+		httpServer = &http.Server{ // HTTP server configuration
+			Addr:              ":" + srv.HTTP.Port, // Server address
+			Handler:           corsHandler,         // CORS handler
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 
@@ -394,13 +394,13 @@ func InterceptorLogger(l *slog.Logger) logging.Logger {
 	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
 		l.Log(ctx, slog.Level(lvl), msg, fields...)
 	})
-}
+} // End of InterceptorLogger
 
-func httpNameFormatter(_ string, req *http.Request) string {
-	pp, ok := runtime.HTTPPattern(req.Context())
-	path := "<not found>"
-	if ok {
-		path = pp.String()
-	}
-	return req.Method + " " + path
-}
+func httpNameFormatter(_ string, req *http.Request) string { // Format HTTP span name
+	pp, ok := runtime.HTTPPattern(req.Context()) // Get HTTP pattern
+	path := "<not found>"                        // Default path
+	if ok {                                      // Pattern found
+		path = pp.String() // Get path string
+	} // Path determined
+	return req.Method + " " + path // Return formatted name
+} // End of httpNameFormatter

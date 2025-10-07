@@ -11,7 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	slogmulti "github.com/samber/slog-multi"
+	// External dependencies
+	slogmulti "github.com/samber/slog-multi" // Multi-handler logger
 	"github.com/sony/gobreaker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -25,8 +26,9 @@ import (
 	sfDecorator "github.com/Permify/permify/internal/storage/decorators/singleflight"
 	"github.com/Permify/permify/internal/storage/postgres/gc"
 	"github.com/Permify/permify/pkg/cmd/flags"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
+	PQDatabase "github.com/Permify/permify/pkg/database/postgres" // PostgreSQL database
 
+	// OpenTelemetry
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
 
@@ -75,7 +77,7 @@ func NewServeCommand() *cobra.Command {
 	f.String("profiler-port", conf.Profiler.Port, "profiler port address")
 	f.String("log-level", conf.Log.Level, "set log verbosity ('info', 'debug', 'error', 'warning')")
 	f.String("log-output", conf.Log.Output, "logger output valid values json, text")
-	f.Bool("log-enabled", conf.Log.Enabled, "logger exporter enabled")
+	f.Bool("log-enabled", conf.Log.Enabled, "logger exporter enabled") // Log exporter toggle
 	f.String("log-exporter", conf.Log.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("log-endpoint", conf.Log.Endpoint, "export uri for logs")
 	f.Bool("log-insecure", conf.Log.Insecure, "use https or http for logs")
@@ -138,10 +140,9 @@ func NewServeCommand() *cobra.Command {
 	f.Int("distributed-replication-factor", conf.Distributed.ReplicationFactor, "number of replicas for distributed hashing")
 	f.Float64("distributed-load", conf.Distributed.Load, "load factor for distributed hashing")
 	f.Int("distributed-picker-width", conf.Distributed.PickerWidth, "picker width for distributed hashing")
-
-	// SilenceUsage is set to true to suppress usage when an error occurs
-	command.SilenceUsage = true
-
+	// Silence usage on error
+	command.SilenceUsage = true // Suppress usage on errors
+	// Register flags
 	command.PreRun = func(cmd *cobra.Command, args []string) {
 		flags.RegisterServeFlags(f)
 	}
@@ -156,28 +157,29 @@ func NewServeCommand() *cobra.Command {
 // It returns an error if there is an issue with any of the components or if any goroutine fails.
 func serve() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		var cfg *config.Config
-		var err error
-		cfgFile := viper.GetString("config.file")
-		if cfgFile != "" {
-			cfg, err = config.NewConfigWithFile(cfgFile)
-			if err != nil {
-				return fmt.Errorf("failed to create new config: %w", err)
-			}
-
-			if err = viper.Unmarshal(cfg); err != nil {
-				return fmt.Errorf("failed to unmarshal config: %w", err)
-			}
-		} else {
-			// Load configuration
-			cfg, err = config.NewConfig()
-			if err != nil {
-				return fmt.Errorf("failed to create new config: %w", err)
-			}
-
-			if err = viper.Unmarshal(cfg); err != nil {
-				return fmt.Errorf("failed to unmarshal config: %w", err)
-			}
+		// Load configuration
+		var cfg *config.Config                    // Configuration object
+		var err error                             // Error handling
+		cfgFile := viper.GetString("config.file") // Get config file path
+		if cfgFile != "" {                        // Config file provided
+			cfg, err = config.NewConfigWithFile(cfgFile) // Load from file
+			if err != nil {                              // Check for errors
+				return fmt.Errorf("failed to create new config: %w", err) // Return config error
+			} // Config created
+			// Unmarshal config from file
+			if err = viper.Unmarshal(cfg); err != nil { // Parse config
+				return fmt.Errorf("failed to unmarshal config: %w", err) // Return parse error
+			} // Config parsed
+		} else { // No config file
+			// Load configuration from environment
+			cfg, err = config.NewConfig() // Create default config
+			if err != nil {               // Check for errors
+				return fmt.Errorf("failed to create new config: %w", err) // Return config error
+			} // Config created
+			// Unmarshal config from environment
+			if err = viper.Unmarshal(cfg); err != nil { // Parse config
+				return fmt.Errorf("failed to unmarshal config: %w", err) // Return parse error
+			} // Config parsed
 		}
 
 		// Print banner and initialize logger
@@ -190,60 +192,60 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		internal.Identifier = cfg.AccountID
 
 		var logger *slog.Logger
-		var handler slog.Handler
-
-		switch cfg.Log.Output {
-		case "json":
-			handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
-		case "text":
-			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
-		default:
-			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-				Level: getLogLevel(cfg.Log.Level),
-			})
-		}
-
-		if cfg.Log.Enabled {
-			headers := map[string]string{}
-			for _, header := range cfg.Log.Headers {
-				h := strings.Split(header, ":")
-				if len(h) != 2 {
-					return errors.New("invalid header format; expected 'key:value'")
-				}
-				headers[h[0]] = h[1]
+		var handler slog.Handler // Log handler
+		// Setup log handler based on output format
+		switch cfg.Log.Output { // Determine output format
+		case "json": // JSON output
+			handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{ // JSON handler
+				Level: getLogLevel(cfg.Log.Level), // Set log level
+			}) // JSON handler created
+		case "text": // Text output
+			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ // Text handler
+				Level: getLogLevel(cfg.Log.Level), // Set log level
+			}) // Text handler created
+		default: // Default to text
+			handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ // Default text handler
+				Level: getLogLevel(cfg.Log.Level), // Set log level
+			}) // Default handler created
+		} // End of handler selection
+		// Configure custom log exporter if enabled
+		if cfg.Log.Enabled { // Log exporter enabled
+			headers := map[string]string{}           // Prepare headers
+			for _, header := range cfg.Log.Headers { // Parse headers
+				h := strings.Split(header, ":") // Split header
+				if len(h) != 2 {                // Validate header format
+					return errors.New("invalid header format; expected 'key:value'") // Return error
+				} // Header valid
+				headers[h[0]] = h[1] // Store header
+			} // End of header parsing
+			// Create custom log handler
+			customHandler, err := telemetry.HandlerFactory( // Create handler
+				cfg.Log.Exporter,           // Exporter type
+				cfg.Log.Endpoint,           // Export endpoint
+				cfg.Log.Insecure,           // Use insecure connection
+				cfg.Log.Urlpath,            // URL path
+				headers,                    // Custom headers
+				cfg.Log.Protocol,           // Protocol type
+				getLogLevel(cfg.Log.Level), // Log level
+			) // Handler factory called
+			// Setup logger with handlers
+			if err != nil { // Handler creation failed
+				slog.Error("invalid logger exporter", slog.Any("error", err)) // Log error
+				logger = slog.New(handler)                                    // Use default handler
+			} else { // Handler created successfully
+				logger = slog.New( // Multi-handler logger
+					slogmulti.Fanout( // Fan out to multiple handlers
+						customHandler, // Custom handler
+						handler,       // Default handler
+					), // Combined handlers
+				) // Logger created
 			}
-
-			customHandler, err := telemetry.HandlerFactory(
-				cfg.Log.Exporter,
-				cfg.Log.Endpoint,
-				cfg.Log.Insecure,
-				cfg.Log.Urlpath,
-				headers,
-				cfg.Log.Protocol,
-				getLogLevel(cfg.Log.Level),
-			)
-
-			if err != nil {
-				slog.Error("invalid logger exporter", slog.Any("error", err))
-				logger = slog.New(handler)
-			} else {
-				logger = slog.New(
-					slogmulti.Fanout(
-						customHandler,
-						handler,
-					),
-				)
-			}
-		} else {
-			logger = slog.New(handler)
+		} else { // Log exporter disabled
+			logger = slog.New(handler) // Use default handler
 		}
-
-		slog.SetDefault(logger)
-
+		// Set default logger
+		slog.SetDefault(logger) // Set global logger
+		// Check account ID
 		if internal.Identifier == "" {
 			message := "Account ID is not set. Please fill in the Account ID for better support. Get your Account ID from https://permify.co/account"
 			slog.Error(message)
@@ -264,7 +266,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		if cfg.Database.AutoMigrate {
 			err = storage.Migrate(cfg.Database)
 			if err != nil {
-				slog.Error("failed to migrate database", slog.Any("error", err))
+				slog.Error("failed to migrate database", slog.Any("error", err)) // Log migration error
 				return err
 			}
 		}
@@ -272,12 +274,12 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Initialize database
 		db, err := factories.DatabaseFactory(cfg.Database)
 		if err != nil {
-			slog.Error("failed to initialize database", slog.Any("error", err))
+			slog.Error("failed to initialize database", slog.Any("error", err)) // Log database init error
 			return err
 		}
 		defer func() {
 			if err = db.Close(); err != nil {
-				slog.Error("failed to close database", slog.Any("error", err))
+				slog.Error("failed to close database", slog.Any("error", err)) // Log close error
 			}
 		}()
 
@@ -291,21 +293,21 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				}
 				headers[h[0]] = h[1]
 			}
-
-			var exporter trace.SpanExporter
-			exporter, err = tracerexporters.ExporterFactory(
-				cfg.Tracer.Exporter,
-				cfg.Tracer.Endpoint,
-				cfg.Tracer.Insecure,
-				cfg.Tracer.Urlpath,
-				headers,
-				cfg.Tracer.Protocol,
-			)
+			// Create tracer exporter
+			var exporter trace.SpanExporter                  // Tracer exporter
+			exporter, err = tracerexporters.ExporterFactory( // Create exporter
+				cfg.Tracer.Exporter, // Exporter type
+				cfg.Tracer.Endpoint, // Export endpoint
+				cfg.Tracer.Insecure, // Use insecure connection
+				cfg.Tracer.Urlpath,  // URL path
+				headers,             // Custom headers
+				cfg.Tracer.Protocol, // Protocol type
+			) // Tracer exporter created
 			if err != nil {
 				slog.Error(err.Error())
 			}
-
-			shutdown := telemetry.NewTracer(exporter)
+			// Initialize tracer
+			shutdown := telemetry.NewTracer(exporter) // Create tracer
 
 			defer func() {
 				if err = shutdown(ctx); err != nil {
@@ -313,26 +315,25 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				}
 			}()
 		}
-
-		// Garbage collection
+		// Setup garbage collection
 		if cfg.Database.GarbageCollection.Timeout > 0 && cfg.Database.GarbageCollection.Enabled && cfg.Database.Engine != "memory" {
 			slog.Info("🗑️ starting database garbage collection...")
-
+			// Create garbage collector
 			garbageCollector := gc.NewGC(
 				db.(*PQDatabase.Postgres),
 				gc.Interval(cfg.Database.GarbageCollection.Interval),
 				gc.Window(cfg.Database.GarbageCollection.Window),
 				gc.Timeout(cfg.Database.GarbageCollection.Timeout),
 			)
-
+			// Start garbage collector in background
 			go func() {
 				err = garbageCollector.Start(ctx)
 				if err != nil {
 					slog.Error(err.Error())
 				}
-			}()
-		}
-
+			}() // Garbage collector started
+		} // End of garbage collection setup
+		// Setup metrics
 		// Meter
 		if cfg.Meter.Enabled {
 			headers := map[string]string{}
@@ -343,27 +344,27 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				}
 				headers[h[0]] = h[1]
 			}
-
-			var exporter metric.Exporter
-			exporter, err = meterexporters.ExporterFactory(
-				cfg.Meter.Exporter,
-				cfg.Meter.Endpoint,
-				cfg.Meter.Insecure,
-				cfg.Meter.Urlpath,
-				headers,
-				cfg.Meter.Protocol,
-			)
+			// Create meter exporter
+			var exporter metric.Exporter                    // Meter exporter
+			exporter, err = meterexporters.ExporterFactory( // Create exporter
+				cfg.Meter.Exporter, // Exporter type
+				cfg.Meter.Endpoint, // Export endpoint
+				cfg.Meter.Insecure, // Use insecure connection
+				cfg.Meter.Urlpath,  // URL path
+				headers,            // Custom headers
+				cfg.Meter.Protocol, // Protocol type
+			) // Meter exporter created
 			if err != nil {
 				slog.Error(err.Error())
 			}
-
-			shutdown := telemetry.NewMeter(exporter, time.Duration(cfg.Meter.Interval)*time.Second)
-
-			defer func() {
-				if err = shutdown(ctx); err != nil {
-					slog.Error(err.Error())
-				}
-			}()
+			// Initialize meter
+			shutdown := telemetry.NewMeter(exporter, time.Duration(cfg.Meter.Interval)*time.Second) // Create meter
+			// Cleanup on exit
+			defer func() { // Shutdown function
+				if err = shutdown(ctx); err != nil { // Shutdown meter
+					slog.Error(err.Error()) // Log shutdown error
+				} // Meter shut down
+			}() // Meter cleanup registered
 		}
 
 		// schema cache

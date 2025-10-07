@@ -46,10 +46,10 @@ func (t *Compiler) Compile() ([]*base.EntityDefinition, []*base.RuleDefinition, 
 
 	// Loop through each statement in the schema.
 	for _, statement := range t.schema.Statements {
-		switch v := statement.(type) {
+		switch v := statement.(type) { // Check statement type
 		case *ast.EntityStatement:
 			// Compile the EntityStatement into an EntityDefinition.
-			entityDef, err := t.compileEntity(v)
+			entityDef, err := t.compileEntity(v) // Compile entity
 			if err != nil {
 				return nil, nil, err
 			}
@@ -58,7 +58,7 @@ func (t *Compiler) Compile() ([]*base.EntityDefinition, []*base.RuleDefinition, 
 			entities = append(entities, entityDef)
 		case *ast.RuleStatement:
 			// Compile the RuleStatement into a RuleDefinition.
-			ruleDef, err := t.compileRule(v)
+			ruleDef, err := t.compileRule(v) // Compile rule
 			if err != nil {
 				return nil, nil, err
 			}

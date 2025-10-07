@@ -66,10 +66,10 @@ type (
 	// Preshared contains configuration for preshared key authentication.
 	Preshared struct {
 		Keys []string `mapstructure:"keys"` // List of preshared keys
-	}
-
+	} // End of Preshared
+	// OIDC configuration structure
 	// Oidc contains configuration for OIDC authentication.
-	Oidc struct {
+	Oidc struct { // OIDC authentication config
 		Issuer            string        `mapstructure:"issuer"`   // OIDC issuer URL
 		Audience          string        `mapstructure:"audience"` // OIDC client ID
 		RefreshInterval   time.Duration `mapstructure:"refresh_interval"`
@@ -95,7 +95,7 @@ type (
 		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
 		Urlpath  string   `mapstructure:"urlpath"`  // Path for the log exporter, if not defined /v1/logs will be used
 		Headers  []string `mapstructure:"headers"`
-		Protocol string   `mapstructure:"protocol"` // Protocol for the log exporter, e.g., http, grpc
+		Protocol string   `mapstructure:"protocol"` // Protocol for the log exporter, http or grpc
 	}
 
 	// Tracer contains configuration for distributed tracing.
@@ -106,7 +106,7 @@ type (
 		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
 		Urlpath  string   `mapstructure:"urlpath"`  // Path for the tracing exporter, if not defined /v1/trace will be used
 		Headers  []string `mapstructure:"headers"`
-		Protocol string   `mapstructure:"protocol"` // Protocol for the tracing exporter, e.g., http, grpc
+		Protocol string   `mapstructure:"protocol"` // Protocol for the tracing exporter, http or grpc
 	}
 
 	// Meter contains configuration for metrics collection and reporting.
@@ -118,7 +118,7 @@ type (
 		Urlpath  string   `mapstructure:"urlpath"`  // Path for the metrics exporter, if not defined /v1/metrics will be used
 		Headers  []string `mapstructure:"headers"`
 		Interval int      `mapstructure:"interval"`
-		Protocol string   `mapstructure:"protocol"` // Protocol for the metrics exporter, e.g., http, grpc
+		Protocol string   `mapstructure:"protocol"` // Protocol for the metrics exporter, http or grpc
 	}
 
 	// Service contains configuration for various service-level features.
@@ -250,7 +250,7 @@ func NewConfigWithFile(dir string) (*Config, error) {
 	// If there's an error during reading the config file
 	if err != nil {
 		// Check if the error is because of the config file not being found
-		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok {
+		if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); !ok { // Not a file not found error
 			// If it's not a "file not found" error, return the error with a message
 			return nil, fmt.Errorf("failed to load server config: %w", err)
 		}
@@ -348,16 +348,16 @@ func DefaultConfig() *Config {
 				BackoffInterval:   12 * time.Second,
 			},
 		},
-		Database: Database{
-			Engine:                "memory",
-			AutoMigrate:           true,
-			MaxOpenConnections:    20,
-			MaxIdleConnections:    1,
-			MaxConnectionLifetime: time.Second * 300,
-			MaxConnectionIdleTime: time.Second * 60,
-			MaxDataPerWrite:       1000,
-			MaxRetries:            10,
-			WatchBufferSize:       100,
+		Database: Database{ // Database configuration
+			Engine:                "memory",          // In-memory database
+			AutoMigrate:           true,              // Auto migrate enabled
+			MaxOpenConnections:    20,                // Max open connections
+			MaxIdleConnections:    1,                 // Max idle connections
+			MaxConnectionLifetime: time.Second * 300, // Connection lifetime
+			MaxConnectionIdleTime: time.Second * 60,  // Connection idle time
+			MaxDataPerWrite:       1000,              // Max data per write
+			MaxRetries:            10,                // Max retries
+			WatchBufferSize:       100,               // Watch buffer size
 			GarbageCollection: GarbageCollection{
 				Enabled: false,
 			},
@@ -371,7 +371,7 @@ func DefaultConfig() *Config {
 
 func isYAML(file string) error {
 	ext := filepath.Ext(file)
-	if ext != ".yaml" {
+	if ext != ".yaml" { // Check file extension
 		return errors.New("file is not yaml")
 	}
 	return nil

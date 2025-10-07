@@ -1,5 +1,6 @@
 ARG BASE=cgr.dev/chainguard/static:latest
 
+# Build stage for gRPC health probe
 FROM golang:1.25.1-alpine3.22@sha256:b6ed3fd0452c0e9bcdef5597f29cc1418f61672e9d3a2f55bf02e7222c014abd AS health-probe-builder
 WORKDIR /go/src/app
 RUN apk update && apk add --no-cache git
@@ -13,4 +14,4 @@ FROM $BASE
 COPY --from=health-probe-builder /go/bin/grpc-health-probe /usr/local/bin/grpc_health_probe
 COPY permify /usr/local/bin/permify
 ENTRYPOINT ["permify"]
-CMD ["serve"]
+CMD ["serve"] # Default command to start the server

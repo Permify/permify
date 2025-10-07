@@ -18,7 +18,7 @@ plugins:
     out: pkg/pb
     opt:
       - paths=source_relative
-  - plugin: buf.build/bufbuild/validate-go:v1.0.0
+  - plugin: buf.build/bufbuild/validate-go:v1.0.0 # Validation plugin
     out: pkg/pb
     opt:
       - paths=source_relative
@@ -37,4 +37,4 @@ plugins:
     opt:
       - omit_enum_default_value=true
       - openapi_naming_strategy=simple
-      - allow_merge=true
+      - allow_merge=true # Merge OpenAPI definitions

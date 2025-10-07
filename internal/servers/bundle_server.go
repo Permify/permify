@@ -38,14 +38,14 @@ func (r *BundleServer) Write(ctx context.Context, request *v1.BundleWriteRequest
 
 	v := request.Validate()
 	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error())
+		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
 
 	for _, bundle := range request.GetBundles() {
 		for _, operation := range bundle.GetOperations() {
 			err := validation.ValidateBundleOperation(operation)
 			if err != nil {
-				return nil, status.Error(GetStatus(err), err.Error())
+				return nil, status.Error(GetStatus(err), err.Error()) // Return operation validation error
 			}
 		}
 	}
@@ -79,7 +79,7 @@ func (r *BundleServer) Read(ctx context.Context, request *v1.BundleReadRequest) 
 
 	v := request.Validate()
 	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error())
+		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
 
 	bundle, err := r.br.Read(ctx, request.GetTenantId(), request.GetName())
@@ -102,7 +102,7 @@ func (r *BundleServer) Delete(ctx context.Context, request *v1.BundleDeleteReque
 
 	v := request.Validate()
 	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error())
+		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
 
 	err := r.bw.Delete(ctx, request.GetTenantId(), request.GetName())

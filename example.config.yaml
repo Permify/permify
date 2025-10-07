@@ -22,7 +22,7 @@ server:
 # The logger section sets the logging level for the service.
 logger:
   level: info
-  file: ""
+  file: "" # Log file path (empty for stdout)
 
 # The profiler section enables or disables the pprof profiler and
 # sets the port number for the profiler endpoint.
@@ -68,7 +68,7 @@ service:
     cache:
       number_of_counters: 10_000
       max_cost: 10MiB
-  data:
+  data: # Data service configuration
 
 # The database section specifies the database engine and connection settings,
 # including the URI for the database, whether or not to auto-migrate the database,

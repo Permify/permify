@@ -23,7 +23,7 @@ import (
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
-	"github.com/Permify/permify/pkg/schema"
+	"github.com/Permify/permify/pkg/schema" // Schema loading package
 	"github.com/Permify/permify/pkg/token"
 	"github.com/Permify/permify/pkg/tuple"
 )
@@ -98,13 +98,13 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 		// if debug is true, print schema is creating with color blue
 		color.Notice.Println("schema is creating... 🚀")
-
-		loader := schema.NewSchemaLoader()
-		loaded, err := loader.LoadSchema(s.Schema)
-		if err != nil {
-			return err
-		}
-
+		// Load and parse schema
+		loader := schema.NewSchemaLoader()         // Create schema loader
+		loaded, err := loader.LoadSchema(s.Schema) // Load schema content
+		if err != nil {                            // Check for loading errors
+			return err // Return error if loading fails
+		} // Schema loaded successfully
+		// Parse loaded schema
 		sch, err := parser.NewParser(loaded).Parse()
 		if err != nil {
 			return err
