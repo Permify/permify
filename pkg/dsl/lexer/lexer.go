@@ -122,18 +122,18 @@ func (l *Lexer) NextToken() (tok token.Token) {
 	case 0:
 		tok = token.Token{PositionInfo: positionInfo(l.linePosition, l.columnPosition), Type: token.EOF, Literal: ""}
 	case '/':
-		switch l.peekChar() {
-		case '/':
+		switch l.peekChar() { // Check next character after slash
+		case '/': // Single-line comment
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexSingleLineComment()
 			tok.Type = token.SINGLE_LINE_COMMENT
 			return
-		case '*':
+		case '*': // Multi-line comment
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexMultiLineComment()
 			tok.Type = token.MULTI_LINE_COMMENT
 			return
-		default:
+		default: // Division operator
 			tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.DIVIDE, l.ch)
 		}
 	case '"':

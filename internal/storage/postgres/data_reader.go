@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
-	"log/slog"
+	"log/slog" // Structured logging
 	"strconv"
 
 	"github.com/jackc/pgx/v5"
@@ -43,9 +43,9 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	// Start a new trace span and end it when the function exits.
 	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-relationships")
 	defer span.End()
-
+	// Log query operation
 	slog.DebugContext(ctx, "querying relationships for tenant_id", slog.String("tenant_id", tenantID))
-
+	// Decode snapshot token
 	// Decode the snapshot value.
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
@@ -86,7 +86,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	}
 
 	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
+	// Execute query
 	// Execute the SQL query and retrieve the result rows.
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
@@ -110,7 +110,6 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved relation tuples from the database")
-
 	// Return a TupleIterator created from the TupleCollection.
 	return collection.CreateTupleIterator(), nil
 }
@@ -120,9 +119,9 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	// Start a new trace span and end it when the function exits.
 	ctx, span := internal.Tracer.Start(ctx, "data-reader.read-relationships")
 	defer span.End()
-
+	// Log read operation
 	slog.DebugContext(ctx, "reading relationships for tenant_id", slog.String("tenant_id", tenantID))
-
+	// Decode snapshot token
 	// Decode the snapshot value.
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
@@ -163,9 +162,9 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
-
+	// Log generated query
 	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
+	// Execute query
 	// Execute the query and retrieve the rows.
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
@@ -193,7 +192,6 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	}
 
 	slog.DebugContext(ctx, "successfully read relation tuples from database")
-
 	// Return the results and encoded continuous token for pagination.
 	if pagination.PageSize() != 0 && len(tuples) > int(pagination.PageSize()) {
 		return database.NewTupleCollection(tuples[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
@@ -231,7 +229,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	}
 
 	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
+	// Execute query
 	row := r.database.ReadPool.QueryRow(ctx, query, args...)
 
 	rt := storage.Attribute{}
@@ -257,7 +255,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved Single attribute from the database")
-
+	// Return attribute
 	return rt.ToAttribute(), nil
 }
 
@@ -266,9 +264,9 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	// Start a new trace span and end it when the function exits.
 	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-attributes")
 	defer span.End()
-
+	// Log query operation
 	slog.DebugContext(ctx, "querying Attributes for tenant_id", slog.String("tenant_id", tenantID))
-
+	// Decode snapshot token
 	// Decode the snapshot value.
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
@@ -307,9 +305,8 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
-
+	// Log generated query
 	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
 	// Execute the SQL query and retrieve the result rows.
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
@@ -346,7 +343,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved attributes tuples from the database")
-
+	// Return iterator
 	// Return an AttributeIterator created from the AttributeCollection.
 	return collection.CreateAttributeIterator(), nil
 }
@@ -356,16 +353,16 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	// Start a new trace span and end it when the function exits.
 	ctx, span := internal.Tracer.Start(ctx, "data-reader.read-attributes")
 	defer span.End()
-
+	// Log read operation
 	slog.DebugContext(ctx, "reading attributes for tenant_id", slog.String("tenant_id", tenantID))
-
+	// Decode snapshot token
 	// Decode the snapshot value.
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
 	if err != nil {
 		return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
-
+	// Build SQL query
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
@@ -399,9 +396,9 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
-
+	// Log generated query
 	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
+	// Execute query
 	// Execute the query and retrieve the rows.
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
@@ -442,7 +439,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	}
 
 	slog.DebugContext(ctx, "successfully read attributes from the database")
-
+	// Return results
 	// Return the results and encoded continuous token for pagination.
 	if len(attributes) > int(pagination.PageSize()) {
 		return database.NewAttributeCollection(attributes[:pagination.PageSize()]...), utils.NewContinuousToken(strconv.FormatUint(lastID, 10)).Encode(), nil
@@ -456,9 +453,9 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	// Start a new trace span and end it when the function exits.
 	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-unique-subject-reference")
 	defer span.End()
-
+	// Log query operation
 	slog.DebugContext(ctx, "querying unique subject references for tenant_id", slog.String("tenant_id", tenantID))
-
+	// Decode snapshot token
 	// Decode the snapshot value.
 	var st token.SnapToken
 	st, err = snapshot.EncodedToken{Value: snap}.Decode()
@@ -512,9 +509,9 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
-
+	// Log generated query
 	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
-
+	// Execute query
 	// Execute the query and retrieve the rows.
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
@@ -543,7 +540,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved unique subject references from the database")
-
+	// Return results
 	// Return the results and encoded continuous token for pagination.
 	if pagination.PageSize() != 0 && len(subjectIDs) > int(pagination.PageSize()) {
 		return subjectIDs[:pagination.PageSize()], utils.NewContinuousToken(lastID).Encode(), nil
@@ -557,9 +554,9 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	// Start a new trace span and end it when the function exits.
 	ctx, span := internal.Tracer.Start(ctx, "data-reader.head-snapshot")
 	defer span.End()
-
+	// Log snapshot operation
 	slog.DebugContext(ctx, "getting head snapshot for tenant_id", slog.String("tenant_id", tenantID))
-
+	// Declare transaction ID variable
 	var xid db.XID8
 
 	// Build the query to find the highest transaction ID associated with the tenant.
@@ -583,7 +580,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved latest snapshot token")
-
+	// Return snapshot token
 	// Return the latest snapshot token associated with the tenant.
 	return snapshot.Token{Value: xid}, nil
 }

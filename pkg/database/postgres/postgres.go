@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"log/slog"
+	"log/slog" // Structured logging
 	"strings"
 	"time"
 

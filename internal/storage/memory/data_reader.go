@@ -3,7 +3,7 @@ package memory
 import (
 	"context"
 	"errors"
-	"slices"
+	"slices" // Slice operations
 	"sort"
 	"strconv"
 	"time"
@@ -134,7 +134,7 @@ func (r *DataReader) ReadRelationships(_ context.Context, tenantID string, filte
 
 	// Get the result iterator using lower bound.
 	var result memdb.ResultIterator
-	result, err = txn.LowerBound(constants.RelationTuplesTable, index, args...)
+	result, err = txn.LowerBound(constants.RelationTuplesTable, index, args...) // Query with lower bound
 	if err != nil {
 		return nil, database.NewNoopContinuousToken().Encode(), errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -178,7 +178,7 @@ func (r *DataReader) QuerySingleAttribute(_ context.Context, tenantID string, fi
 
 	// Get the result iterator based on the index and arguments.
 	var result memdb.ResultIterator
-	result, err = txn.Get(constants.AttributesTable, index, args...)
+	result, err = txn.Get(constants.AttributesTable, index, args...) // Query attributes table
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
@@ -218,7 +218,7 @@ func (r *DataReader) QueryAttributes(_ context.Context, tenantID string, filter 
 
 	// Get the result iterator based on the index and arguments.
 	var result memdb.ResultIterator
-	result, err = txn.Get(constants.AttributesTable, index, args...)
+	result, err = txn.Get(constants.AttributesTable, index, args...) // Query attributes table
 	if err != nil {
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}

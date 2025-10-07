@@ -1,7 +1,7 @@
 package context
 
 import (
-	"slices"
+	"slices" // Slice operations
 	"sort"
 
 	"github.com/Permify/permify/internal/storage/context/utils"

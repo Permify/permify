@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/internal/storage/memory/constants"
+	"github.com/Permify/permify/internal/storage/memory/constants" // Memory storage constants
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -32,7 +32,7 @@ func (w *TenantWriter) CreateTenant(_ context.Context, id, name string) (result 
 	}
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
-	if err = txn.Insert(constants.TenantsTable, tenant); err != nil {
+	if err = txn.Insert(constants.TenantsTable, tenant); err != nil { // Insert tenant record
 		return nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	txn.Commit()

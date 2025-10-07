@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/internal/storage/memory/constants"
+	"github.com/Permify/permify/internal/storage/memory/constants" // Memory storage constants
 	"github.com/Permify/permify/internal/storage/memory/utils"
 	"github.com/Permify/permify/pkg/database"
 	db "github.com/Permify/permify/pkg/database/memory"
@@ -42,7 +42,7 @@ func (r *TenantReader) ListTenants(_ context.Context, pagination database.Pagina
 	}
 
 	var result memdb.ResultIterator
-	result, err = txn.LowerBound(constants.TenantsTable, "id", lowerBound)
+	result, err = txn.LowerBound(constants.TenantsTable, "id", lowerBound) // Query tenants with lower bound
 	if err != nil {
 		return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}

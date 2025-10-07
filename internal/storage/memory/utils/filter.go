@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"slices"
-
+	"slices" // Slice operations
+	// External imports
 	"github.com/hashicorp/go-memdb"
 
 	"github.com/Permify/permify/internal/storage"

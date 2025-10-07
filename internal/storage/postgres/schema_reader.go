@@ -3,11 +3,10 @@ package postgres
 import (
 	"context"
 	"errors"
-	"log/slog"
-
-	"github.com/jackc/pgx/v5"
+	"log/slog" // structured logging
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
 	"github.com/rs/xid"
 
 	"github.com/Permify/permify/internal"
@@ -38,9 +37,7 @@ func NewSchemaReader(database *db.Postgres) *SchemaReader {
 func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
-
 	slog.DebugContext(ctx, "reading schema", slog.Any("tenant_id", tenantID), slog.Any("version", version))
-
 	builder := r.database.Builder.Select("name, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
 
 	var query string
@@ -52,7 +49,6 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 	}
 
 	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
-
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
@@ -74,8 +70,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved", slog.Any("schema definitions", len(definitions)))
-
-	sch, err = schema.NewSchemaFromStringDefinitions(false, definitions...)
+	sch, err = schema.NewSchemaFromStringDefinitions(false, definitions...) // parse schema
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
@@ -87,9 +82,7 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-schema-string")
 	defer span.End()
-
 	slog.DebugContext(ctx, "reading schema", slog.Any("tenant_id", tenantID), slog.Any("version", version))
-
 	builder := r.database.Builder.Select("name, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
 
 	var query string
@@ -101,7 +94,6 @@ func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version s
 	}
 
 	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
-
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
@@ -122,17 +114,14 @@ func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version s
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved", slog.Any("schema definitions", len(definitions)))
-
 	return definitions, err
 }
 
 // ReadEntityDefinition - Reads entity config from the repository.
 func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name, version string) (definition *base.EntityDefinition, v string, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-entity-definition")
-	defer span.End()
-
+	defer span.End() // close span
 	slog.DebugContext(ctx, "reading entity definition", slog.Any("tenant_id", tenantID), slog.Any("version", version))
-
 	builder := r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
 
 	var query string
@@ -163,17 +152,14 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name,
 	definition, err = schema.GetEntityByName(sch, name)
 
 	slog.DebugContext(ctx, "successfully retrieved", slog.Any("schema definition", definition))
-
 	return definition, def.Version, err
 }
 
 // ReadRuleDefinition - Reads rule config from the repository.
 func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, version string) (definition *base.RuleDefinition, v string, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-rule-definition")
-	defer span.End()
-
+	defer span.End() // close span
 	slog.DebugContext(ctx, "reading rule definition", slog.Any("tenant_id", tenantID), slog.Any("name", name), slog.Any("version", version))
-
 	builder := r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
 
 	var query string
@@ -270,7 +256,6 @@ func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, paginat
 	}
 
 	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
-
 	var rows pgx.Rows
 	rows, err = r.database.ReadPool.Query(ctx, query, args...)
 	if err != nil {
