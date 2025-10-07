@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"fmt" // formatting package for error messages
 	"io"
 	"log/slog"
-	"net/http"
+	"net/http" // HTTP client and server implementations
 	"strings"
 	"sync"
 	"time"
@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/internal/config" // internal configuration
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -45,7 +45,7 @@ type Authn struct {
 	globalRetryCount int
 	globalFirstSeen  time.Time
 	retriedKeys      map[string]bool
-	mutex            sync.Mutex
+	mutex            sync.Mutex // protects concurrent access to retry state
 }
 
 // NewOidcAuthn initializes a new instance of the Authn struct with OpenID Connect (OIDC) configuration.
@@ -100,8 +100,7 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	}
 
 	// Attempt to fetch the JWKS immediately to ensure it's available and valid.
-	_, err = oidc.jwksSet.Fetch(ctx, oidc.JwksURI)
-	if err != nil {
+	if _, err := oidc.jwksSet.Fetch(ctx, oidc.JwksURI); err != nil {
 		// If there is an error fetching the JWKS, return nil and the error.
 		return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
 	}
@@ -112,10 +111,10 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 
 // Authenticate validates the JWT token found in the authorization header of the incoming request.
 // It uses the OIDC configuration to validate the token against the issuer's public keys.
-func (oidc *Authn) Authenticate(requestContext context.Context) error {
+func (oidc *Authn) Authenticate(ctx context.Context) error {
 	// Extract the authorization header from the metadata of the incoming gRPC request.
-	authHeader, err := grpcauth.AuthFromMD(requestContext, "Bearer")
-	if err != nil {
+	authHeader, err := grpcauth.AuthFromMD(ctx, "Bearer")
+	if err != nil { // Check for authentication errors
 		// Log the error if the authorization header is missing or does not start with "Bearer"
 		slog.Error("failed to extract authorization header from gRPC request", "error", err)
 		// Return an error indicating the missing or incorrect bearer token
@@ -131,14 +130,15 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 		slog.Info("starting JWT parsing and validation.")
 
 		// Retrieve the key ID from the JWT header and find the corresponding key in the JWKS.
-		if keyID, ok := token.Header["kid"].(string); ok {
-			return oidc.getKeyWithRetry(requestContext, keyID)
+		keyID, ok := token.Header["kid"].(string)
+		if ok {
+			return oidc.getKeyWithRetry(ctx, keyID)
 		}
 		slog.Error("jwt does not contain a key ID")
 		// If the JWT does not contain a key ID, return an error.
 		return nil, errors.New("kid must be specified in the token header")
 	})
-	if err != nil {
+	if err != nil { // Check for parsing errors
 		// Log that the token parsing or validation failed
 		slog.Error("token parsing or validation failed", "error", err)
 		// If token parsing or validation fails, return an error indicating the token is invalid.
@@ -188,8 +188,12 @@ func (oidc *Authn) Authenticate(requestContext context.Context) error {
 }
 
 // getKeyWithRetry attempts to retrieve the key for the given keyID with retries using a custom backoff strategy.
-func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface{}, error) {
-	var rawKey interface{}
+// This function uses a global backoff strategy to prevent excessive retries across concurrent requests.
+func (oidc *Authn) getKeyWithRetry(
+	ctx context.Context,
+	keyID string,
+) (interface{}, error) {
+	var raw interface{}
 	var err error
 
 	oidc.mutex.Lock()
@@ -207,20 +211,20 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 		oidc.mutex.Unlock()
 
 		// Try to fetch the keyID once
-		rawKey, err = oidc.fetchKey(ctx, keyID)
-		if err == nil {
+		raw, err = oidc.fetchKey(ctx, keyID)
+		if err == nil { // Successfully fetched the key
 			oidc.mutex.Lock()
-			if _, ok := oidc.retriedKeys[keyID]; ok {
+			if _, wasRetried := oidc.retriedKeys[keyID]; wasRetried {
 				// Reset global backoff state if a valid key is found and that key had been retried.
-				// Use case would be someone trying to exploit with bad KeyIDs, and along comes a valid KeyID
+				// Use case: prevents bad keyIDs from blocking valid keyIDs
 				// The valid KeyID should not reset the counters for a bad key
 				slog.Info("valid key found during backoff period, resetting state", "keyID", keyID)
-				oidc.globalRetryCount = 0
-				oidc.globalFirstSeen = time.Time{}
-				oidc.retriedKeys = make(map[string]bool)
+				oidc.globalRetryCount = 0                // Reset retry counter
+				oidc.globalFirstSeen = time.Time{}       // Reset timestamp
+				oidc.retriedKeys = make(map[string]bool) // Clear retried keys
 			}
-			oidc.mutex.Unlock()
-			return rawKey, nil
+			oidc.mutex.Unlock() // Release the lock
+			return raw, nil
 		}
 
 		// Log the failure and return an error if keyID is not found
@@ -232,27 +236,27 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 	// Retry mechanism
 	retries := 0
 	for retries <= oidc.backoffMaxRetries {
-		rawKey, err = oidc.fetchKey(ctx, keyID)
-		if err == nil {
-			if retries != 0 {
+		raw, err = oidc.fetchKey(ctx, keyID)
+		if err == nil { // Key successfully retrieved
+			if retries != 0 { // Reset state if retry was successful
 				oidc.mutex.Lock()
-				oidc.globalRetryCount = 0
-				oidc.globalFirstSeen = time.Time{}
-				oidc.retriedKeys = make(map[string]bool)
+				oidc.globalRetryCount = 0                // Reset global counter
+				oidc.globalFirstSeen = time.Time{}       // Reset first seen time
+				oidc.retriedKeys = make(map[string]bool) // Clear retry tracking
 				oidc.mutex.Unlock()
 			}
-			return rawKey, nil
+			return raw, nil // Return the successfully fetched key
 		}
 		oidc.mutex.Lock()
-		snapshotRetryCount := oidc.globalRetryCount
+		snapshotCount := oidc.globalRetryCount
 		oidc.retriedKeys[keyID] = true
-		if oidc.globalRetryCount > oidc.backoffMaxRetries {
+		if oidc.globalRetryCount > oidc.backoffMaxRetries { // Check if max retries exceeded
 			slog.Error("key ID not found in JWKS due to global retries", "keyID", keyID, "globalRetryCount", oidc.globalRetryCount)
-			oidc.mutex.Unlock()
+			oidc.mutex.Unlock() // Unlock before returning
 			return nil, errors.New("too many attempts, backoff in effect due to global retry count")
 		}
-		oidc.mutex.Unlock()
-		if retries > 0 {
+		oidc.mutex.Unlock() // Release mutex
+		if retries > 0 {    // Wait before retry
 			select {
 			case <-time.After(oidc.backoffFrequency):
 				// Log the wait before retrying
@@ -264,25 +268,25 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 		}
 
 		oidc.mutex.Lock()
-		if oidc.globalRetryCount > snapshotRetryCount {
+		if oidc.globalRetryCount > snapshotCount { // Another goroutine already refreshed
 			// Concurrent requests in retry loop at same time, another concurrent request already refreshed the JWKS
-			retries++
+			retries++ // Increment local attempt counter
 			slog.Warn("another concurrent request already refreshed the JWKS")
-			oidc.mutex.Unlock()
+			oidc.mutex.Unlock() // Unlock and continue
 			continue
 		}
 
-		oidc.globalRetryCount++
+		oidc.globalRetryCount++ // Increment the global retry counter
 		slog.Warn("retrying to fetch JWKS due to error", "keyID", keyID, "retries", retries, "error", err)
-		retries++
+		retries++ // Increment retry counter
 
-		if _, refreshErr := oidc.jwksSet.Refresh(ctx, oidc.JwksURI); refreshErr != nil {
+		if _, err := oidc.jwksSet.Refresh(ctx, oidc.JwksURI); err != nil {
 			oidc.mutex.Unlock()
-			slog.Error("failed to refresh JWKS", "error", refreshErr)
-			return nil, refreshErr
+			slog.Error("failed to refresh JWKS", "error", err)
+			return nil, err
 		}
 		// Unlock needs to follow Refresh to ensure that concurrent requests don't make duplicate calls to Refresh
-		oidc.mutex.Unlock()
+		oidc.mutex.Unlock() // Release lock after refresh
 	}
 
 	// Mark the global state to prevent further retries for the backoff interval
@@ -298,34 +302,38 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 }
 
 // fetchKey attempts to fetch the JWKS and retrieve the key for the given keyID.
-func (oidc *Authn) fetchKey(ctx context.Context, keyID string) (interface{}, error) {
-	// Log the attempt to find the key.
+// It fetches from the configured JWKS URI and looks up the key by its ID.
+func (oidc *Authn) fetchKey(
+	ctx context.Context,
+	keyID string,
+) (interface{}, error) {
+	// Log the attempt to find the key in JWKS
 	slog.DebugContext(ctx, "attempting to find key in JWKS", "kid", keyID)
 
-	// Fetch the JWKS from the configured URI.
+	// Fetch the JWKS from the configured URI
 	jwks, err := oidc.jwksSet.Fetch(ctx, oidc.JwksURI)
-	if err != nil {
-		// Log an error and return if fetching fails.
+	if err != nil { // Check for fetch errors
+		// Log an error and return if fetching fails
 		slog.Error("failed to fetch JWKS", "uri", oidc.JwksURI, "error", err)
 		return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
 	}
 
-	// Log a successful fetch of the JWKS.
+	// Log a successful fetch of the JWKS
 	slog.InfoContext(ctx, "successfully fetched JWKS")
 
-	// Attempt to find the key in the fetched JWKS using the key ID.
+	// Attempt to find the key in the fetched JWKS using the key ID
 	if key, found := jwks.LookupKeyID(keyID); found {
-		var k interface{}
-		// Convert the key to a usable format.
+		var k interface{} // Variable to hold the raw key
+		// Convert the key to a usable format
 		if err := key.Raw(&k); err != nil {
 			slog.ErrorContext(ctx, "failed to get raw public key", "kid", keyID, "error", err)
 			return nil, fmt.Errorf("failed to get raw public key: %w", err)
 		}
-		// Log a successful retrieval of the raw public key.
+		// Log a successful retrieval of the raw public key
 		slog.DebugContext(ctx, "successfully obtained raw public key", "key", k)
-		return k, nil // Return the public key for JWT signature verification.
+		return k, nil // Return the public key for JWT signature verification
 	}
-	// Log an error if the key ID is not found in the JWKS.
+	// Log an error if the key ID is not found in the JWKS
 	slog.ErrorContext(ctx, "key ID not found in JWKS", "kid", keyID)
 	return nil, fmt.Errorf("kid %s not found", keyID)
 }
@@ -361,6 +369,7 @@ func fetchOIDCConfiguration(client *http.Client, url string) (*Config, error) {
 }
 
 // doHTTPRequest makes an HTTP GET request to the specified URL and returns the response body.
+// It handles HTTP errors and logs the request execution process.
 func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	// Log the attempt to create a new HTTP GET request
 	slog.Debug("creating new HTTP GET request", "url", url)
@@ -413,6 +422,7 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 }
 
 // parseOIDCConfiguration decodes the OIDC configuration from the given JSON body.
+// It validates that required fields like Issuer and JWKsURI are present.
 func parseOIDCConfiguration(body []byte) (*Config, error) {
 	var oidcConfig Config
 	// Attempt to unmarshal the JSON body into the oidcConfig struct.
