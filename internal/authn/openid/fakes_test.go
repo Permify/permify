@@ -24,7 +24,7 @@ type fakeOidcProvider struct {
 	JWKSPath     string
 
 	algorithms         []string
-	keyIds             map[jwt.SigningMethod]string
+	signingKeyMap      map[jwt.SigningMethod]string
 	jwks               []jose.JSONWebKey
 	rsaPrivateKey      *rsa.PrivateKey
 	rsaPrivateKeyForPS *rsa.PrivateKey
@@ -58,13 +58,13 @@ func newFakeOidcProvider(config ProviderConfig) (*fakeOidcProvider, error) {
 	}
 	hmacKey := []byte("hmackeysecret")
 
-	keyIds := map[jwt.SigningMethod]string{
+	signingKeyMap := map[jwt.SigningMethod]string{
 		jwt.SigningMethodRS256: "rs256keyid",
 	}
 	jwks := []jose.JSONWebKey{
 		{
 			Key:       rsaPrivateKey.Public(),
-			KeyID:     keyIds[jwt.SigningMethodRS256],
+			KeyID:     signingKeyMap[jwt.SigningMethodRS256],
 			Algorithm: "RS256",
 			Use:       "sig",
 		},
@@ -82,7 +82,7 @@ func newFakeOidcProvider(config ProviderConfig) (*fakeOidcProvider, error) {
 		hmacKey:            hmacKey,
 		jwks:               jwks,
 		ecdsaPrivateKey:    ecdsaPrivateKey,
-		keyIds:             keyIds,
+		signingKeyMap:      signingKeyMap,
 		mu:                 sync.RWMutex{},
 	}, nil
 }
@@ -133,9 +133,9 @@ func (s *fakeOidcProvider) responseJWKS(w http.ResponseWriter) {
 
 func httpJSON(w http.ResponseWriter, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	e := json.NewEncoder(w)
-	e.SetIndent("", "  ")
-	if err := e.Encode(v); err != nil {
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(v); err != nil {
 		httpError(w, http.StatusInternalServerError)
 	}
 }
@@ -148,7 +148,7 @@ func (s *fakeOidcProvider) UpdateKeyID(method jwt.SigningMethod, newKeyID string
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.keyIds[method] = newKeyID
+	s.signingKeyMap[method] = newKeyID
 	for i, key := range s.jwks {
 		if key.Algorithm == method.Alg() {
 			s.jwks[i].KeyID = newKeyID
@@ -184,13 +184,13 @@ func createUnsignedToken(regClaims jwt.RegisteredClaims, method jwt.SigningMetho
 }
 
 func fakeHttpServer(url string, handler http.HandlerFunc) (*httptest.Server, error) {
-	l, err := net.Listen("tcp", url)
+	listener, err := net.Listen("tcp", url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start listener: %w", err)
 	}
-	ts := httptest.NewUnstartedServer(handler)
-	_ = ts.Listener.Close()
-	ts.Listener = l
-	ts.Start()
-	return ts, nil
+	testServer := httptest.NewUnstartedServer(handler)
+	_ = testServer.Listener.Close()
+	testServer.Listener = listener
+	testServer.Start()
+	return testServer, nil
 }

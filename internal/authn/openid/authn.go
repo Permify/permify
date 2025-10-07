@@ -41,11 +41,11 @@ type Authn struct {
 
 	backoffFrequency time.Duration
 
-	// Global backoff state
-	globalRetryCount  int
-	globalFirstSeen   time.Time
-	globalRetryKeyIds map[string]bool
-	mu                sync.Mutex
+	// Global backoff state for tracking retry attempts across concurrent requests
+	globalRetryCount int
+	globalFirstSeen  time.Time
+	retriedKeys      map[string]bool
+	mutex            sync.Mutex
 }
 
 // NewOidcAuthn initializes a new instance of the Authn struct with OpenID Connect (OIDC) configuration.
@@ -63,8 +63,8 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 	}
 
 	// Set up automatic refresh of the JSON Web Key Set (JWKS) to ensure the public keys are always up-to-date.
-	ar := jwk.NewAutoRefresh(ctx)                                                                                              // Create a new AutoRefresh instance for the JWKS.
-	ar.Configure(oidcConf.JWKsURI, jwk.WithHTTPClient(client.StandardClient()), jwk.WithRefreshInterval(conf.RefreshInterval)) // Configure the auto-refresh parameters.
+	autoRefresh := jwk.NewAutoRefresh(ctx)                                                                                              // Create a new AutoRefresh instance for the JWKS.
+	autoRefresh.Configure(oidcConf.JWKsURI, jwk.WithHTTPClient(client.StandardClient()), jwk.WithRefreshInterval(conf.RefreshInterval)) // Configure the auto-refresh parameters.
 
 	// Validate and set backoffInterval, backoffMaxRetries, and backoffFrequency
 	backoffInterval := conf.BackoffInterval
@@ -89,14 +89,14 @@ func NewOidcAuthn(ctx context.Context, conf config.Oidc) (*Authn, error) {
 		JwksURI:           oidcConf.JWKsURI,                                       // URL of the JWKS endpoint.
 		validMethods:      conf.ValidMethods,                                      // List of acceptable signing methods for the tokens.
 		jwtParser:         jwt.NewParser(jwt.WithValidMethods(conf.ValidMethods)), // JWT parser configured with the valid signing methods.
-		jwksSet:           ar,                                                     // Set the JWKS auto-refresh instance.
+		jwksSet:           autoRefresh,                                            // Set the JWKS auto-refresh instance.
 		backoffInterval:   backoffInterval,
 		backoffMaxRetries: backoffMaxRetries,
 		backoffFrequency:  backoffFrequency,
 		globalRetryCount:  0,
-		globalRetryKeyIds: make(map[string]bool),
+		retriedKeys:       make(map[string]bool),
 		globalFirstSeen:   time.Time{},
-		mu:                sync.Mutex{},
+		mutex:             sync.Mutex{},
 	}
 
 	// Attempt to fetch the JWKS immediately to ensure it's available and valid.
@@ -192,7 +192,7 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 	var rawKey interface{}
 	var err error
 
-	oidc.mu.Lock()
+	oidc.mutex.Lock()
 	now := time.Now()
 
 	// Reset global state if the interval has passed
@@ -200,26 +200,26 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 		slog.Info("resetting state as interval has passed or first seen is zero", "keyID", keyID)
 		oidc.globalFirstSeen = now
 		oidc.globalRetryCount = 0
-		oidc.globalRetryKeyIds = make(map[string]bool)
+		oidc.retriedKeys = make(map[string]bool)
 	} else if oidc.globalRetryCount >= oidc.backoffMaxRetries {
 		// If max retries reached within the interval, unlock and check keyID once
 		slog.Warn("max retries reached within interval, will check keyID once", "keyID", keyID)
-		oidc.mu.Unlock()
+		oidc.mutex.Unlock()
 
 		// Try to fetch the keyID once
 		rawKey, err = oidc.fetchKey(ctx, keyID)
 		if err == nil {
-			oidc.mu.Lock()
-			if _, ok := oidc.globalRetryKeyIds[keyID]; ok {
+			oidc.mutex.Lock()
+			if _, ok := oidc.retriedKeys[keyID]; ok {
 				// Reset global backoff state if a valid key is found and that key had been retried.
 				// Use case would be someone trying to exploit with bad KeyIDs, and along comes a valid KeyID
 				// The valid KeyID should not reset the counters for a bad key
 				slog.Info("valid key found during backoff period, resetting state", "keyID", keyID)
 				oidc.globalRetryCount = 0
 				oidc.globalFirstSeen = time.Time{}
-				oidc.globalRetryKeyIds = make(map[string]bool)
+				oidc.retriedKeys = make(map[string]bool)
 			}
-			oidc.mu.Unlock()
+			oidc.mutex.Unlock()
 			return rawKey, nil
 		}
 
@@ -227,7 +227,7 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 		slog.Error("failed to fetch key during backoff period", "keyID", keyID, "error", err)
 		return nil, errors.New("too many attempts, backoff in effect")
 	}
-	oidc.mu.Unlock()
+	oidc.mutex.Unlock()
 
 	// Retry mechanism
 	retries := 0
@@ -235,23 +235,23 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 		rawKey, err = oidc.fetchKey(ctx, keyID)
 		if err == nil {
 			if retries != 0 {
-				oidc.mu.Lock()
+				oidc.mutex.Lock()
 				oidc.globalRetryCount = 0
 				oidc.globalFirstSeen = time.Time{}
-				oidc.globalRetryKeyIds = make(map[string]bool)
-				oidc.mu.Unlock()
+				oidc.retriedKeys = make(map[string]bool)
+				oidc.mutex.Unlock()
 			}
 			return rawKey, nil
 		}
-		oidc.mu.Lock()
-		initialGlobalRetryCount := oidc.globalRetryCount
-		oidc.globalRetryKeyIds[keyID] = true
+		oidc.mutex.Lock()
+		snapshotRetryCount := oidc.globalRetryCount
+		oidc.retriedKeys[keyID] = true
 		if oidc.globalRetryCount > oidc.backoffMaxRetries {
 			slog.Error("key ID not found in JWKS due to global retries", "keyID", keyID, "globalRetryCount", oidc.globalRetryCount)
-			oidc.mu.Unlock()
+			oidc.mutex.Unlock()
 			return nil, errors.New("too many attempts, backoff in effect due to global retry count")
 		}
-		oidc.mu.Unlock()
+		oidc.mutex.Unlock()
 		if retries > 0 {
 			select {
 			case <-time.After(oidc.backoffFrequency):
@@ -263,12 +263,12 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 			}
 		}
 
-		oidc.mu.Lock()
-		if oidc.globalRetryCount > initialGlobalRetryCount {
+		oidc.mutex.Lock()
+		if oidc.globalRetryCount > snapshotRetryCount {
 			// Concurrent requests in retry loop at same time, another concurrent request already refreshed the JWKS
 			retries++
 			slog.Warn("another concurrent request already refreshed the JWKS")
-			oidc.mu.Unlock()
+			oidc.mutex.Unlock()
 			continue
 		}
 
@@ -277,21 +277,21 @@ func (oidc *Authn) getKeyWithRetry(ctx context.Context, keyID string) (interface
 		retries++
 
 		if _, refreshErr := oidc.jwksSet.Refresh(ctx, oidc.JwksURI); refreshErr != nil {
-			oidc.mu.Unlock()
+			oidc.mutex.Unlock()
 			slog.Error("failed to refresh JWKS", "error", refreshErr)
 			return nil, refreshErr
 		}
 		// Unlock needs to follow Refresh to ensure that concurrent requests don't make duplicate calls to Refresh
-		oidc.mu.Unlock()
+		oidc.mutex.Unlock()
 	}
 
 	// Mark the global state to prevent further retries for the backoff interval
-	oidc.mu.Lock()
+	oidc.mutex.Lock()
 	if time.Since(oidc.globalFirstSeen) < oidc.backoffInterval {
 		slog.Warn("marking state to prevent further retries", "keyID", keyID)
 		oidc.globalRetryCount = oidc.backoffMaxRetries
 	}
-	oidc.mu.Unlock()
+	oidc.mutex.Unlock()
 
 	slog.Error("key ID not found in JWKS after retries", "keyID", keyID)
 	return nil, errors.New("key ID not found in JWKS after retries")
