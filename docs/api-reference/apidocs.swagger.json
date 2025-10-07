@@ -1641,16 +1641,31 @@
       },
       "description": "Child represents a node in the permission tree."
     },
+    "Component": {
+      "type": "string",
+      "enum": [
+        "COMPONENT_UNSPECIFIED",
+        "COMPONENT_PARSER",
+        "COMPONENT_TYPE_CHECKER",
+        "COMPONENT_RUNTIME"
+      ],
+      "default": "COMPONENT_UNSPECIFIED",
+      "description": "CEL component specifier.\n\n - COMPONENT_UNSPECIFIED: Unspecified, default.\n - COMPONENT_PARSER: Parser. Converts a CEL string to an AST.\n - COMPONENT_TYPE_CHECKER: Type checker. Checks that references in an AST are defined and types\nagree.\n - COMPONENT_RUNTIME: Runtime. Evaluates a parsed and optionally checked CEL AST against a\ncontext."
+    },
     "Comprehension": {
       "type": "object",
       "properties": {
         "iterVar": {
           "type": "string",
-          "description": "The name of the iteration variable."
+          "description": "The name of the first iteration variable.\nWhen the iter_range is a list, this variable is the list element.\nWhen the iter_range is a map, this variable is the map entry key."
+        },
+        "iterVar2": {
+          "type": "string",
+          "description": "The name of the second iteration variable, empty if not set.\nWhen the iter_range is a list, this variable is the integer index.\nWhen the iter_range is a map, this variable is the map entry value.\nThis field is only set for comprehension v2 macros."
         },
         "iterRange": {
           "$ref": "#/definitions/Expr",
-          "description": "The range over which var iterates."
+          "description": "The range over which the comprehension iterates."
         },
         "accuVar": {
           "type": "string",
@@ -1662,18 +1677,18 @@
         },
         "loopCondition": {
           "$ref": "#/definitions/Expr",
-          "description": "An expression which can contain iter_var and accu_var.\n\nReturns false when the result has been computed and may be used as\na hint to short-circuit the remainder of the comprehension."
+          "description": "An expression which can contain iter_var, iter_var2, and accu_var.\n\nReturns false when the result has been computed and may be used as\na hint to short-circuit the remainder of the comprehension."
         },
         "loopStep": {
           "$ref": "#/definitions/Expr",
-          "description": "An expression which can contain iter_var and accu_var.\n\nComputes the next value of accu_var."
+          "description": "An expression which can contain iter_var, iter_var2, and accu_var.\n\nComputes the next value of accu_var."
         },
         "result": {
           "$ref": "#/definitions/Expr",
           "description": "An expression which can contain accu_var.\n\nComputes the result."
         }
       },
-      "description": "A comprehension expression applied to a list or map.\n\nComprehensions are not part of the core syntax, but enabled with macros.\nA macro matches a specific call signature within a parsed AST and replaces\nthe call with an alternate AST block. Macro expansion happens at parse\ntime.\n\nThe following macros are supported within CEL:\n\nAggregate type macros may be applied to all elements in a list or all keys\nin a map:\n\n*  `all`, `exists`, `exists_one` -  test a predicate expression against\n   the inputs and return `true` if the predicate is satisfied for all,\n   any, or only one value `list.all(x, x \u003c 10)`.\n*  `filter` - test a predicate expression against the inputs and return\n   the subset of elements which satisfy the predicate:\n   `payments.filter(p, p \u003e 1000)`.\n*  `map` - apply an expression to all elements in the input and return the\n   output aggregate type: `[1, 2, 3].map(i, i * i)`.\n\nThe `has(m.x)` macro tests whether the property `x` is present in struct\n`m`. The semantics of this macro depend on the type of `m`. For proto2\nmessages `has(m.x)` is defined as 'defined, but not set`. For proto3, the\nmacro tests whether the property is set to its default. For map and struct\ntypes, the macro tests whether the property `x` is defined on `m`."
+      "description": "A comprehension expression applied to a list or map.\n\nComprehensions are not part of the core syntax, but enabled with macros.\nA macro matches a specific call signature within a parsed AST and replaces\nthe call with an alternate AST block. Macro expansion happens at parse\ntime.\n\nThe following macros are supported within CEL:\n\nAggregate type macros may be applied to all elements in a list or all keys\nin a map:\n\n*  `all`, `exists`, `exists_one` -  test a predicate expression against\n   the inputs and return `true` if the predicate is satisfied for all,\n   any, or only one value `list.all(x, x \u003c 10)`.\n*  `filter` - test a predicate expression against the inputs and return\n   the subset of elements which satisfy the predicate:\n   `payments.filter(p, p \u003e 1000)`.\n*  `map` - apply an expression to all elements in the input and return the\n   output aggregate type: `[1, 2, 3].map(i, i * i)`.\n\nThe `has(m.x)` macro tests whether the property `x` is present in struct\n`m`. The semantics of this macro depend on the type of `m`. For proto2\nmessages `has(m.x)` is defined as 'defined, but not set`. For proto3, the\nmacro tests whether the property is set to its default. For map and struct\ntypes, the macro tests whether the property `x` is defined on `m`.\n\nComprehensions for the standard environment macros evaluation can be best\nvisualized as the following pseudocode:\n\n```\nlet `accu_var` = `accu_init`\nfor (let `iter_var` in `iter_range`) {\n  if (!`loop_condition`) {\n    break\n  }\n  `accu_var` = `loop_step`\n}\nreturn `result`\n```\n\nComprehensions for the optional V2 macros which support map-to-map\ntranslation differ slightly from the standard environment macros in that\nthey expose both the key or index in addition to the value for each list\nor map entry:\n\n```\nlet `accu_var` = `accu_init`\nfor (let `iter_var`, `iter_var2` in `iter_range`) {\n  if (!`loop_condition`) {\n    break\n  }\n  `accu_var` = `loop_step`\n}\nreturn `result`\n```"
     },
     "ComputedAttribute": {
       "type": "object",
@@ -1740,7 +1755,7 @@
           "description": "protobuf.Timestamp value.\n\nDeprecated: timestamp is no longer considered a builtin cel type."
         }
       },
-      "description": "Represents a primitive literal.\n\nNamed 'Constant' here for backwards compatibility.\n\nThis is similar as the primitives supported in the well-known type\n`google.protobuf.Value`, but richer so it can represent CEL's full range of\nprimitives.\n\nLists and structs are not included as constants as these aggregate types may\ncontain [Expr][google.api.expr.v1alpha1.Expr] elements which require evaluation and are thus not constant.\n\nExamples of literals include: `\"hello\"`, `b'bytes'`, `1u`, `4.2`, `-2`,\n`true`, `null`."
+      "description": "Represents a primitive literal.\n\nNamed 'Constant' here for backwards compatibility.\n\nThis is similar as the primitives supported in the well-known type\n`google.protobuf.Value`, but richer so it can represent CEL's full range of\nprimitives.\n\nLists and structs are not included as constants as these aggregate types may\ncontain [Expr][google.api.expr.v1alpha1.Expr] elements which require\nevaluation and are thus not constant.\n\nExamples of literals include: `\"hello\"`, `b'bytes'`, `1u`, `4.2`, `-2`,\n`true`, `null`."
     },
     "Context": {
       "type": "object",
@@ -2147,7 +2162,7 @@
           "description": "A comprehension expression."
         }
       },
-      "description": "An abstract representation of a common expression.\n\nExpressions are abstractly represented as a collection of identifiers,\nselect statements, function calls, literals, and comprehensions. All\noperators with the exception of the '.' operator are modelled as function\ncalls. This makes it easy to represent new operators into the existing AST.\n\nAll references within expressions must resolve to a [Decl][google.api.expr.v1alpha1.Decl] provided at\ntype-check for an expression to be valid. A reference may either be a bare\nidentifier `name` or a qualified identifier `google.api.name`. References\nmay either refer to a value or a function declaration.\n\nFor example, the expression `google.api.name.startsWith('expr')` references\nthe declaration `google.api.name` within a [Expr.Select][google.api.expr.v1alpha1.Expr.Select] expression, and\nthe function declaration `startsWith`."
+      "description": "An abstract representation of a common expression.\n\nExpressions are abstractly represented as a collection of identifiers,\nselect statements, function calls, literals, and comprehensions. All\noperators with the exception of the '.' operator are modelled as function\ncalls. This makes it easy to represent new operators into the existing AST.\n\nAll references within expressions must resolve to a\n[Decl][google.api.expr.v1alpha1.Decl] provided at type-check for an\nexpression to be valid. A reference may either be a bare identifier `name` or\na qualified identifier `google.api.name`. References may either refer to a\nvalue or a function declaration.\n\nFor example, the expression `google.api.name.startsWith('expr')` references\nthe declaration `google.api.name` within a\n[Expr.Select][google.api.expr.v1alpha1.Expr.Select] expression, and the\nfunction declaration `startsWith`."
     },
     "Expr.Call": {
       "type": "object",
@@ -2170,6 +2185,27 @@
         }
       },
       "description": "A call expression, including calls to predefined functions and operators.\n\nFor example, `value == 10`, `size(map_value)`."
+    },
+    "Extension": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Identifier for the extension. Example: constant_folding"
+        },
+        "affectedComponents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Component"
+          },
+          "description": "If set, the listed components must understand the extension for the\nexpression to evaluate correctly.\n\nThis field has set semantics, repeated values should be deduplicated."
+        },
+        "version": {
+          "$ref": "#/definitions/Version",
+          "description": "Version info. May be skipped if it isn't meaningful for the extension.\n(for example constant_folding might always be v0.0)."
+        }
+      },
+      "description": "An extension that was requested for the source expression."
     },
     "FunctionType": {
       "type": "object",
@@ -2194,7 +2230,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Required. Holds a single, unqualified identifier, possibly preceded by a\n'.'.\n\nQualified names are represented by the [Expr.Select][google.api.expr.v1alpha1.Expr.Select] expression."
+          "description": "Required. Holds a single, unqualified identifier, possibly preceded by a\n'.'.\n\nQualified names are represented by the\n[Expr.Select][google.api.expr.v1alpha1.Expr.Select] expression."
         }
       },
       "description": "An identifier expression. e.g. `request`."
@@ -3078,6 +3114,14 @@
             "$ref": "#/definitions/Expr"
           },
           "description": "A map from the parse node id where a macro replacement was made to the\ncall `Expr` that resulted in a macro expansion.\n\nFor example, `has(value.field)` is a function call that is replaced by a\n`test_only` field selection in the AST. Likewise, the call\n`list.exists(e, e \u003e 10)` translates to a comprehension expression. The key\nin the map corresponds to the expression id of the expanded macro, and the\nvalue is the call `Expr` that was replaced."
+        },
+        "extensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/Extension"
+          },
+          "description": "A list of tags for extensions that were used while parsing or type checking\nthe source expression. For example, optimizations that require special\nruntime support may be specified.\n\nThese are used to check feature support between components in separate\nimplementations. This can be used to either skip redundant work or\nreport an error if the extension is unsupported."
         }
       },
       "description": "Source information collected at parse time."
@@ -3335,6 +3379,22 @@
           }
         }
       }
+    },
+    "Version": {
+      "type": "object",
+      "properties": {
+        "major": {
+          "type": "string",
+          "format": "int64",
+          "description": "Major version changes indicate different required support level from\nthe required components."
+        },
+        "minor": {
+          "type": "string",
+          "format": "int64",
+          "description": "Minor version changes must not change the observed behavior from\nexisting implementations, but may be provided informationally."
+        }
+      },
+      "title": "Version"
     },
     "WatchBody": {
       "type": "object",

@@ -1,9 +1,9 @@
 version: v1
 name: buf.build/permifyco/permify
 deps:
-  - buf.build/envoyproxy/protoc-gen-validate:6607b10f00ed4a3d98f906807131c44a
-  - buf.build/grpc-ecosystem/grpc-gateway:a1ecdc58eccd49aa8bea2a7a9022dc27
-  - buf.build/googleapis/googleapis:75b4300737fb4efca0831636be94e517
+  - buf.build/envoyproxy/protoc-gen-validate:daf171c6cdb54629b5f51e345a79e4dd
+  - buf.build/grpc-ecosystem/grpc-gateway:4c5ba75caaf84e928b7137ae5c18c26a
+  - buf.build/googleapis/googleapis:61b203b9a9164be9a834f58c37be6f62
 breaking:
   ignore_unstable_packages: true
 lint:
