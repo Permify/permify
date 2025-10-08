@@ -194,11 +194,23 @@ func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int, int) {
 			totalCoveredAssertions += assertionPercent // Add covered assertion
 		} // Assertions processed
 	} // Entities processed
-	// Calculate average coverage percentages for all entities
-	totalRelationshipsCoverage := totalCoveredRelationships / totalRelationships
-	totalAttributesCoverage := totalCoveredAttributes / totalAttributes
-	totalAssertionsCoverage := totalCoveredAssertions / totalAssertions
-	// Return calculated coverage percentages
+	// Calculate average coverage percentages for all entities (guard zero denominators)
+	var totalRelationshipsCoverage, totalAttributesCoverage, totalAssertionsCoverage int
+	if totalRelationships > 0 {
+		totalRelationshipsCoverage = totalCoveredRelationships / totalRelationships
+	} else {
+		totalRelationshipsCoverage = 100
+	}
+	if totalAttributes > 0 {
+		totalAttributesCoverage = totalCoveredAttributes / totalAttributes
+	} else {
+		totalAttributesCoverage = 100
+	}
+	if totalAssertions > 0 {
+		totalAssertionsCoverage = totalCoveredAssertions / totalAssertions
+	} else {
+		totalAssertionsCoverage = 100
+	}
 	return totalRelationshipsCoverage, totalAttributesCoverage, totalAssertionsCoverage // Return totals
 } // End calculateTotalCoverage
 // References - Get references for a given entity

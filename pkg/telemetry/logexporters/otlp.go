@@ -22,6 +22,9 @@ func NewOTLP(endpoint string, insecure bool, urlpath string, headers map[string]
 		if insecure { // Insecure connection requested
 			httpOptions = append(httpOptions, otlplogshttp.WithInsecure()) // Disable TLS
 		} // HTTP security configured
+		if len(headers) > 0 { // Headers provided
+			httpOptions = append(httpOptions, otlplogshttp.WithHeaders(headers)) // Add headers
+		} // Headers configured
 		httpExporter, httpErr := otlplogs.NewExporter(context.Background(), otlplogs.WithClient(
 			otlplogshttp.NewClient(httpOptions...), // Create HTTP client
 		)) // Create HTTP exporter
@@ -36,6 +39,9 @@ func NewOTLP(endpoint string, insecure bool, urlpath string, headers map[string]
 		if insecure { // Insecure connection requested
 			grpcOptions = append(grpcOptions, otlplogsgrpc.WithInsecure()) // Disable TLS for gRPC
 		} // gRPC security configured
+		if len(headers) > 0 { // Headers provided
+			grpcOptions = append(grpcOptions, otlplogsgrpc.WithHeaders(headers)) // Add headers
+		} // Headers configured
 		grpcExporter, grpcErr := otlplogs.NewExporter(context.Background(), otlplogs.WithClient(
 			otlplogsgrpc.NewClient(grpcOptions...), // Create gRPC client
 		)) // Create gRPC exporter
