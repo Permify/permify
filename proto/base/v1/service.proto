@@ -7,9 +7,7 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 import "validate/validate.proto";
 
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
-
 // ** PERMISSION SERVICE **
-
 // Permission service contains methods to interact with permissions.
 service Permission {
   // Check method receives a PermissionCheckRequest and returns a PermissionCheckResponse.
@@ -1681,7 +1679,7 @@ service Schema {
                   key: "label"
                   value: {string_value: "cURL"}
                 }
-                fields: {
+                fields: { // curl example
                   key: "source"
                   value: {string_value:
                       "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/list' \\\n"

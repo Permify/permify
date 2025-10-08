@@ -5,10 +5,13 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.opentelemetry.io/otel/codes"
 
 	"go.opentelemetry.io/otel/trace"
@@ -28,6 +31,9 @@ const (
 	// to avoid XID wraparound issues (instead of using 0)
 	ActiveRecordTxnID = uint64(9223372036854775807)
 	MaxXID8Value      = "'9223372036854775807'::xid8"
+
+	// earliestPostgresVersion represents the earliest supported version of PostgreSQL is 13.8
+	earliestPostgresVersion = 130008 // The earliest supported version of PostgreSQL is 13.8
 )
 
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
@@ -180,4 +186,18 @@ func secureRandomFloat64() float64 {
 	}
 	// Use bit shifting instead of division for better performance
 	return float64(binary.BigEndian.Uint64(b[:])) / (1 << 63) / 2.0
+}
+
+// EnsureDBVersion checks the version of the given database connection
+// and returns an error if the version is not supported.
+func EnsureDBVersion(db *pgxpool.Pool) (version string, err error) {
+	err = db.QueryRow(context.Background(), "SHOW server_version_num;").Scan(&version)
+	if err != nil {
+		return
+	}
+	v, err := strconv.Atoi(version)
+	if v < earliestPostgresVersion {
+		err = fmt.Errorf("unsupported postgres version: %s, expected >= %d", version, earliestPostgresVersion)
+	}
+	return
 }

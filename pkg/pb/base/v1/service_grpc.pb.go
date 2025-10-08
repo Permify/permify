@@ -31,6 +31,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
+// ** PERMISSION SERVICE **
 // Permission service contains methods to interact with permissions.
 type PermissionClient interface {
 	// Check method receives a PermissionCheckRequest and returns a PermissionCheckResponse.
@@ -149,6 +150,7 @@ func (c *permissionClient) SubjectPermission(ctx context.Context, in *Permission
 // All implementations must embed UnimplementedPermissionServer
 // for forward compatibility
 //
+// ** PERMISSION SERVICE **
 // Permission service contains methods to interact with permissions.
 type PermissionServer interface {
 	// Check method receives a PermissionCheckRequest and returns a PermissionCheckResponse.
