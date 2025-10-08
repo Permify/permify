@@ -6,6 +6,7 @@ import (             // OTLP dependencies
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs"              // OTLP logs
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs/otlplogsgrpc" // gRPC client
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs/otlplogshttp" // HTTP client
+	"google.golang.org/grpc/credentials"                                              // gRPC credentials
 ) // End imports
 
 // NewOTLP - Creates new OTLP exporter based on protocol (HTTP or gRPC).
@@ -38,6 +39,8 @@ func NewOTLP(endpoint string, insecure bool, urlpath string, headers map[string]
 		} // Initial gRPC options
 		if insecure { // Insecure connection requested
 			grpcOptions = append(grpcOptions, otlplogsgrpc.WithInsecure()) // Disable TLS for gRPC
+		} else { // Secure mode
+			grpcOptions = append(grpcOptions, otlplogsgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))) // Enable TLS
 		} // gRPC security configured
 		if len(headers) > 0 { // Headers provided
 			grpcOptions = append(grpcOptions, otlplogsgrpc.WithHeaders(headers)) // Add headers
