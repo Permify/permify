@@ -2,12 +2,11 @@ package postgres
 
 import (
 	"context"
-	"log/slog" // Structured logging
-
-	// External dependencies
-	"github.com/jackc/pgx/v5"
+	"log/slog"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
+	// Structured logging
 
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"

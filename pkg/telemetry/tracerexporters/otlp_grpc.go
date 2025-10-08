@@ -1,36 +1,34 @@
-package tracerexporters
+package tracerexporters // OTLP gRPC tracer exporter package
+import (                // gRPC trace dependencies
+	"context" // Context management
 
-import (
-	"context"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc" // gRPC tracer
+	"go.opentelemetry.io/otel/sdk/trace"                              // Trace SDK
+	"google.golang.org/grpc/credentials"                              // TLS credentials
+) // End imports
 
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/sdk/trace"
-	"google.golang.org/grpc/credentials"
-)
-
-// NewOTLPGrpc - Creates new OTLP exporter using GRPC protocol.
-func NewOTLPGrpc(endpoint string, insecure bool, headers map[string]string) (trace.SpanExporter, error) {
-	var exporter trace.SpanExporter
-	var err error
-
-	opts := []otlptracegrpc.Option{
-		otlptracegrpc.WithEndpoint(endpoint),
-	}
-
-	if len(headers) > 0 {
-		opts = append(opts, otlptracegrpc.WithHeaders(headers))
-	}
-
-	if insecure {
-		opts = append(opts, otlptracegrpc.WithInsecure())
-	} else {
-		opts = append(opts, otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")))
-	}
-
-	exporter, err = otlptracegrpc.New(context.Background(), opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return exporter, nil
-}
+// NewOTLPGrpc - Creates new OTLP trace exporter using GRPC protocol.
+func NewOTLPGrpc(
+	endpoint string,
+	insecure bool,
+	headers map[string]string,
+) (trace.SpanExporter, error) { // Create gRPC tracer exporter
+	var spanExporter trace.SpanExporter // Span exporter instance
+	var exportErr error                 // Error holder
+	grpcOpts := []otlptracegrpc.Option{ // Configure gRPC options
+		otlptracegrpc.WithEndpoint(endpoint), // Set endpoint
+	} // Initial options
+	if len(headers) > 0 { // Headers provided
+		grpcOpts = append(grpcOpts, otlptracegrpc.WithHeaders(headers)) // Add headers
+	} // Headers configured
+	if insecure { // Insecure connection mode
+		grpcOpts = append(grpcOpts, otlptracegrpc.WithInsecure()) // Disable TLS
+	} else { // Secure connection mode
+		grpcOpts = append(grpcOpts, otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))) // Enable TLS
+	} // Security configured
+	spanExporter, exportErr = otlptracegrpc.New(context.Background(), grpcOpts...) // Create exporter
+	if exportErr != nil {                                                          // Creation failed
+		return nil, exportErr // Return error
+	} // Exporter created
+	return spanExporter, nil // Return exporter
+} // End NewOTLPGrpc

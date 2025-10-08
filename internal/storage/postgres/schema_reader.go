@@ -133,9 +133,8 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name,
 	}
 
 	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
-
 	var def storage.SchemaDefinition
-	row := r.database.ReadPool.QueryRow(ctx, query, args...)
+	row := r.database.ReadPool.QueryRow(ctx, query, args...) // Execute query
 	if err = row.Scan(&def.Name, &def.SerializedDefinition, &def.Version); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
@@ -149,8 +148,7 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name,
 		return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_INTERNAL)
 	}
 
-	definition, err = schema.GetEntityByName(sch, name)
-
+	definition, err = schema.GetEntityByName(sch, name) // Get entity
 	slog.DebugContext(ctx, "successfully retrieved", slog.Any("schema definition", definition))
 	return definition, def.Version, err
 }
@@ -171,9 +169,8 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 	}
 
 	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
-
 	var def storage.SchemaDefinition
-	row := r.database.ReadPool.QueryRow(ctx, query, args...)
+	row := r.database.ReadPool.QueryRow(ctx, query, args...) // Execute query
 	if err = row.Scan(&def.Name, &def.SerializedDefinition, &def.Version); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
@@ -182,7 +179,6 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 	}
 
 	slog.DebugContext(ctx, "successfully retrieved rule definition for", slog.Any("name", name))
-
 	var sch *base.SchemaDefinition
 	sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
 	if err != nil {
@@ -190,19 +186,15 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 	}
 
 	definition, err = schema.GetRuleByName(sch, name)
-
 	slog.DebugContext(ctx, "successfully created rule definition")
-
-	return definition, def.Version, err
+	return definition, def.Version, err // Return result
 }
 
 // HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.head-version")
-	defer span.End()
-
+	defer span.End() // close span
 	slog.DebugContext(ctx, "finding the latest version fo the schema for", slog.String("tenant_id", tenantID))
-
 	var query string
 	var args []interface{}
 	query, args, err = r.database.Builder.
@@ -211,10 +203,8 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 	if err != nil {
 		return "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
-
 	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
-
-	row := r.database.ReadPool.QueryRow(ctx, query, args...)
+	row := r.database.ReadPool.QueryRow(ctx, query, args...) // Execute query
 	err = row.Scan(&version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -224,8 +214,7 @@ func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (versio
 	}
 
 	slog.DebugContext(ctx, "successfully found the latest schema version", slog.Any("version", version))
-
-	return version, nil
+	return version, nil // Return version
 }
 
 // ListSchemas - List all Schemas

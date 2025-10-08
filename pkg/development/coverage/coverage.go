@@ -1,8 +1,7 @@
-package coverage
-
-import (
-	"fmt"
-	"slices"
+package coverage // Coverage analysis package
+import (         // Package imports
+	"fmt"    // Formatting
+	"slices" // Slice operations
 
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/development/file"
@@ -14,11 +13,11 @@ import (
 
 // SchemaCoverageInfo - Schema coverage info
 type SchemaCoverageInfo struct {
-	EntityCoverageInfo         []EntityCoverageInfo
-	TotalRelationshipsCoverage int
-	TotalAttributesCoverage    int
-	TotalAssertionsCoverage    int
-}
+	EntityCoverageInfo         []EntityCoverageInfo // Entity coverage details
+	TotalRelationshipsCoverage int                  // Total relationships coverage
+	TotalAttributesCoverage    int                  // Total attributes coverage
+	TotalAssertionsCoverage    int                  // Total assertions coverage
+} // End SchemaCoverageInfo
 
 // EntityCoverageInfo - Entity coverage info
 type EntityCoverageInfo struct {
@@ -91,9 +90,9 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 	schemaCoverageInfo := SchemaCoverageInfo{}
 
 	refs := make([]SchemaCoverage, len(definitions))
-	for i, en := range definitions {
-		refs[i] = references(en)
-	}
+	for idx, entityDef := range definitions { // Build entity references
+		refs[idx] = references(entityDef) // Extract references
+	} // References built
 
 	// Iterate through the schema coverage references
 	for _, ref := range refs {
@@ -155,13 +154,12 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		schemaCoverageInfo.EntityCoverageInfo = append(schemaCoverageInfo.EntityCoverageInfo, entityCoverageInfo)
 	}
 
-	// Calculate and assign the total relationships and assertions coverage to the schemaCoverageInfo
-	relationshipsCoverage, attributesCoverage, assertionsCoverage := calculateTotalCoverage(schemaCoverageInfo.EntityCoverageInfo)
-	schemaCoverageInfo.TotalRelationshipsCoverage = relationshipsCoverage
-	schemaCoverageInfo.TotalAttributesCoverage = attributesCoverage
-	schemaCoverageInfo.TotalAssertionsCoverage = assertionsCoverage
-
-	return schemaCoverageInfo
+	// Calculate total coverage for relationships, attributes and assertions
+	relationshipsCoverage, attributesCoverage, assertionsCoverage := calculateTotalCoverage(schemaCoverageInfo.EntityCoverageInfo) // Calculate totals
+	schemaCoverageInfo.TotalRelationshipsCoverage = relationshipsCoverage                                                          // Set total relationships
+	schemaCoverageInfo.TotalAttributesCoverage = attributesCoverage                                                                // Set total attributes
+	schemaCoverageInfo.TotalAssertionsCoverage = assertionsCoverage                                                                // Set total assertions
+	return schemaCoverageInfo                                                                                                      // Return coverage info
 }
 
 // calculateCoveragePercent - Calculate coverage percentage based on total and uncovered elements
@@ -179,36 +177,42 @@ func calculateCoveragePercent(totalElements, uncoveredElements []string) int {
 
 // calculateTotalCoverage - Calculate total relationships and assertions coverage
 func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int, int) {
-	totalRelationships := 0
-	totalCoveredRelationships := 0
-	totalAttributes := 0
-	totalCoveredAttributes := 0
-	totalAssertions := 0
-	totalCoveredAssertions := 0
-
-	// Iterate over each entity in the list
-	for _, entity := range entities {
-		totalRelationships++
-		totalCoveredRelationships += entity.CoverageRelationshipsPercent
-
-		totalAttributes++
-		totalCoveredAttributes += entity.CoverageAttributesPercent
-
-		for _, assertionsPercent := range entity.CoverageAssertionsPercent {
-			totalAssertions++
-			totalCoveredAssertions += assertionsPercent
-		}
+	totalRelationships := 0        // Total relationships counter
+	totalCoveredRelationships := 0 // Covered relationships counter
+	totalAttributes := 0           // Total attributes counter
+	totalCoveredAttributes := 0    // Covered attributes counter
+	totalAssertions := 0           // Total assertions counter
+	totalCoveredAssertions := 0    // Covered assertions counter
+	// Process all entities to calculate coverage
+	for _, entity := range entities { // Process each entity
+		totalRelationships++                                                // Count relationships
+		totalCoveredRelationships += entity.CoverageRelationshipsPercent    // Add covered
+		totalAttributes++                                                   // Count attributes
+		totalCoveredAttributes += entity.CoverageAttributesPercent          // Add covered attributes
+		for _, assertionPercent := range entity.CoverageAssertionsPercent { // Process assertions
+			totalAssertions++                          // Increment assertion count
+			totalCoveredAssertions += assertionPercent // Add covered assertion
+		} // Assertions processed
+	} // Entities processed
+	// Calculate average coverage percentages for all entities (guard zero denominators)
+	var totalRelationshipsCoverage, totalAttributesCoverage, totalAssertionsCoverage int
+	if totalRelationships > 0 {
+		totalRelationshipsCoverage = totalCoveredRelationships / totalRelationships
+	} else {
+		totalRelationshipsCoverage = 100
 	}
-
-	// Calculate the coverage percentages
-	totalRelationshipsCoverage := totalCoveredRelationships / totalRelationships
-	totalAttributesCoverage := totalCoveredAttributes / totalAttributes
-	totalAssertionsCoverage := totalCoveredAssertions / totalAssertions
-
-	// Return the coverage percentages
-	return totalRelationshipsCoverage, totalAttributesCoverage, totalAssertionsCoverage
-}
-
+	if totalAttributes > 0 {
+		totalAttributesCoverage = totalCoveredAttributes / totalAttributes
+	} else {
+		totalAttributesCoverage = 100
+	}
+	if totalAssertions > 0 {
+		totalAssertionsCoverage = totalCoveredAssertions / totalAssertions
+	} else {
+		totalAssertionsCoverage = 100
+	}
+	return totalRelationshipsCoverage, totalAttributesCoverage, totalAssertionsCoverage // Return totals
+} // End calculateTotalCoverage
 // References - Get references for a given entity
 func references(entity *base.EntityDefinition) (coverage SchemaCoverage) {
 	// Set the entity name in the coverage struct
@@ -269,18 +273,18 @@ func relationships(en string, relationships []string) []string {
 // attributes - Get attributes for a given entity
 func attributes(en string, attributes []string) []string {
 	attrs := make([]string, len(attributes))
-	for i, attr := range attributes {
-		a, err := attribute.Attribute(attr)
+	for index, attrStr := range attributes { // Iterate attribute strings
+		a, err := attribute.Attribute(attrStr)
 		if err != nil {
 			return []string{}
 		}
 		if a.GetEntity().GetType() != en {
 			continue
 		}
-		attrs[i] = fmt.Sprintf("%s#%s", a.GetEntity().GetType(), a.GetAttribute())
-	}
-	return attrs
-}
+		attrs[index] = fmt.Sprintf("%s#%s", a.GetEntity().GetType(), a.GetAttribute()) // Format attribute
+	} // End iteration
+	return attrs // Return attributes
+} // End attributes
 
 // assertions - Get assertions for a given entity
 func assertions(en string, checks []file.Check, filters []file.EntityFilter) []string {

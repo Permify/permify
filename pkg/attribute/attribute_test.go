@@ -150,7 +150,7 @@ var _ = Describe("attribute", func() {
 						Attribute: "is_public",
 						Value:     isPublic,
 					},
-					error: errors.New("failed to parse boolean: strconv.ParseBool: parsing \"asa\": invalid syntax"),
+					error: errors.New("failed to parse boolean value: strconv.ParseBool: parsing \"asa\": invalid syntax"),
 				},
 				{
 					target: "organization:1$is_public|boolean[]:asa",
@@ -162,7 +162,7 @@ var _ = Describe("attribute", func() {
 						Attribute: "is_public",
 						Value:     isPublic,
 					},
-					error: errors.New("failed to parse boolean: strconv.ParseBool: parsing \"asa\": invalid syntax"),
+					error: errors.New("failed to parse boolean array element: strconv.ParseBool: parsing \"asa\": invalid syntax"),
 				},
 				{
 					target: "organization:1$balance|double:4eew",
@@ -174,7 +174,7 @@ var _ = Describe("attribute", func() {
 						Attribute: "balance",
 						Value:     doubleValue,
 					},
-					error: errors.New("failed to parse float: strconv.ParseFloat: parsing \"4eew\": invalid syntax"),
+					error: errors.New("failed to parse float value: strconv.ParseFloat: parsing \"4eew\": invalid syntax"),
 				},
 				{
 					target: "organization:1$balance|double[]:4eew",
