@@ -33,8 +33,8 @@ type Parser struct {
 	l *lexer.Lexer
 	// the current token being processed
 	currentToken token.Token
-	// the token before currentToken
-	previousToken token.Token
+	// the previous token (token before currentToken) for lookahead parsing and multi-line expression handling
+	previousToken token.Token // stores last processed token
 	// the next token after currentToken
 	peekToken token.Token
 	// a slice of error messages that are generated during parsing
@@ -84,8 +84,8 @@ func (p *Parser) next() {
 		peek := p.l.NextToken()
 		// if the token is not an ignored token (e.g. whitespace or comments), update the currentToken and peekToken fields and exit the loop
 		if !token.IsIgnores(peek.Type) {
-			// set the previousToken before changing currentToken
-			p.previousToken = p.currentToken
+			// store the current token as previous before advancing
+			p.previousToken = p.currentToken // save current token for lookahead
 			// set the currentToken field to the previous peekToken value
 			p.currentToken = p.peekToken
 			// set the peekToken field to the new peek value
@@ -122,18 +122,15 @@ func (p *Parser) currentTokenIs(tokens ...token.Type) bool {
 	return false
 }
 
-// previousTokenIs checks if the Parser's previousToken type is any of the given types
-func (p *Parser) previousTokenIs(tokens ...token.Type) bool {
-	for _, t := range tokens {
-		if p.previousToken.Type == t {
-			// if a match is found, return true
-			return true
-		}
-	}
-	// if no match is found, return false
-	return false
-}
-
+// previousTokenIs checks if the Parser's previousToken type matches any of the given types
+func (p *Parser) previousTokenIs(tokens ...token.Type) bool { // Check if previous token matches any type
+	for _, tokenType := range tokens { // Iterate through token types
+		if p.previousToken.Type == tokenType { // Check for match
+			return true // Match found
+		} // Continue if no match
+	} // All types checked
+	return false // No match found
+} // End previousTokenIs
 // peekTokenIs checks if the Parser's peekToken is any of the given token types
 func (p *Parser) peekTokenIs(tokens ...token.Type) bool {
 	// iterate through the given token types and check if any of them match the peekToken's type
@@ -605,10 +602,8 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	var err error
 
 	if p.currentTokenIs(token.NEWLINE) && p.previousTokenIs(token.LP, token.AND, token.OR, token.NOT, token.ASSIGN) {
-		// advance to the next token
-		p.next()
-	}
-
+		p.next() // skip newline after operators
+	} // Newline handling complete
 	if p.currentTokenIs(token.LP) {
 		p.next() // Consume the left parenthesis.
 		exp, err = p.parseExpression(LOWEST)

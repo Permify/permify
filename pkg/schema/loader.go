@@ -8,7 +8,6 @@ import (       // Package imports
 	"os"            // File system
 	"path/filepath" // Path utilities
 ) // End imports
-
 // Type defines an enumeration for different schema types.
 type Type int // Schema type enum
 const (       // Schema type constants
@@ -23,7 +22,6 @@ type Loader struct {
 	// These functions are responsible for loading data based on the Type.
 	loaders map[Type]func(string) (string, error)
 } // End Loader struct
-
 // NewSchemaLoader initializes and returns a new Loader instance.
 // It sets up the map of loader functions for each Type.
 func NewSchemaLoader() *Loader {
@@ -35,7 +33,6 @@ func NewSchemaLoader() *Loader {
 		}, // End loaders map
 	} // End return
 } // End NewSchemaLoader
-
 // LoadSchema loads a schema based on its type
 func (s *Loader) LoadSchema(input string) (string, error) {
 	schemaType, err := determineSchemaType(input)
@@ -48,7 +45,6 @@ func (s *Loader) LoadSchema(input string) (string, error) {
 	}
 	return loaderFunc(input) // Execute loader
 } // End LoadSchema
-
 // determineSchemaType determines the type of schema based on the input string
 func determineSchemaType(input string) (Type, error) {
 	if isURL(input) { // Check URL first
@@ -63,7 +59,6 @@ func determineSchemaType(input string) (Type, error) {
 	}
 	return Inline, nil // Default to inline
 } // End determineSchemaType
-
 func isURL(input string) bool { // Check if input is URL
 	parsedURL, err := url.Parse(input)
 	if err != nil {
@@ -72,7 +67,6 @@ func isURL(input string) bool { // Check if input is URL
 	// Check if the URL has a valid scheme and host
 	return parsedURL.Scheme != "" && parsedURL.Host != ""
 } // End isURL
-
 func isFilePath(input string) (bool, error) { // Check if input is file
 	_, err := os.Stat(input) // Get file info
 	if err != nil {
@@ -86,7 +80,6 @@ func isFilePath(input string) (bool, error) { // Check if input is file
 	}
 	return true, nil // File exists
 } // End isFilePath
-
 func loadFromURL(inputURL string) (string, error) { // Load schema from URL
 	// Parse and validate the URL
 	parsedURL, err := url.Parse(inputURL)
@@ -111,7 +104,6 @@ func loadFromURL(inputURL string) (string, error) { // Load schema from URL
 	} // Read succeeded
 	return string(body), nil // Return body
 } // End loadFromURL
-
 func loadFromFile(path string) (string, error) { // Load schema from file
 	// Clean the path
 	cleanPath := filepath.Clean(path)
@@ -125,7 +117,6 @@ func loadFromFile(path string) (string, error) { // Load schema from file
 	} // Read succeeded
 	return string(content), nil // Return content
 } // End loadFromFile
-
 // loadInline is a function that handles inline schema types.
 func loadInline(schema string) (string, error) { // Load inline schema
 	// Add validation if necessary. For example:

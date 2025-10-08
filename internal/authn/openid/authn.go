@@ -11,15 +11,17 @@ import (       // Package imports
 	"sync"
 	"time"
 
+	// JWT package
 	"github.com/golang-jwt/jwt/v4"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/hashicorp/go-retryablehttp"
+	// JWT key sets
 	"github.com/lestrrat-go/jwx/jwk" // JWT key sets
-
 	// Internal packages
 	"github.com/Permify/permify/internal/config"     // internal configuration
 	base "github.com/Permify/permify/pkg/pb/base/v1" // Base protobuf definitions
 ) // End of imports
+
 type Authn struct {
 	// URL of the issuer. This is typically the base URL of the identity provider.
 	IssuerURL string

@@ -6,10 +6,6 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/memory/constants" // Memory storage constants
-
-	// Database section
-	// Database package imports
-	// Database imports
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )

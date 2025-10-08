@@ -4,17 +4,16 @@ import ( // Package imports
 	"fmt"     // Formatting utilities
 	"os"      // OS utilities
 	"strings" // String manipulation
-
 	// External dependencies
 	"github.com/gookit/color"           // Terminal colors
 	"github.com/olekukonko/tablewriter" // Table rendering
 	"github.com/spf13/cobra"            // Cobra CLI framework
 	"github.com/spf13/viper"            // Configuration management
-
 	// Internal packages
 	"github.com/Permify/permify/internal/config" // Internal config
 	"github.com/Permify/permify/pkg/cmd/flags"   // Command flags
 ) // End of imports
+
 // NewConfigCommand creates the config inspection command
 func NewConfigCommand() *cobra.Command { // Create config command
 	command := &cobra.Command{ // Command configuration
