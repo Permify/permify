@@ -35,17 +35,8 @@ linter-hadolint: ### check by hadolint linter
 
 .PHONY: test
 test: ### run tests and gather coverage
-	@rm -f covprofile
-	@echo "mode: atomic" > covprofile
-	@for pkg in $(GO_PACKAGES); do \
-		echo "Running tests in $$pkg"; \
-		go test -race -coverprofile=covprofile.tmp -covermode=atomic -timeout=10m $$pkg; \
-		if [ -f covprofile.tmp ]; then \
-			tail -n +2 covprofile.tmp >> covprofile; \
-			rm covprofile.tmp; \
-		fi; \
-	done
-	@echo "Coverage profile merged into covprofile"
+	@go clean -testcache
+	@go test -race -coverprofile=covprofile -covermode=atomic -timeout=10m $(GO_PACKAGES)
 
 .PHONY: integration-test
 integration-test: ### run integration-test
