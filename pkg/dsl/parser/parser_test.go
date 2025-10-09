@@ -815,117 +815,120 @@ var _ = Describe("parser", func() { // Parser test suite
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Left.(*ast.Identifier).String()).Should(Equal("parent.admin"))
 			Expect(es.Expression.(*ast.InfixExpression).Right.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("parent.member"))
 		}) // End test case
+
 		It("Case // Test case 24 - Multi-line Permission Expression w/ Rule", func() {
 			pr := NewParser(` // Create parser
-			entity account {
-    			relation owner @user
-    			attribute balance float
-
-    			permission withdraw = check_balance(request.amount, balance) and 
-					owner
-			}
-	
-			rule check_balance(amount float, balance float) {
-				balance >= amount && amount <= 5000
-			}
+			entity account { // Account entity with balance attribute
+    			relation owner @user // Account owner relation
+    			attribute balance float // Balance attribute for account
+ // Permission section
+    			permission withdraw = check_balance(request.amount, balance) and  // Check balance rule
+					owner // Owner must approve
+			} // End account entity
+	 // Rule definition section
+			rule check_balance(amount float, balance float) { // Balance check rule validates withdrawal limits
+				(balance >= amount) && (amount <= 5000)
+			} // End rule
 			`) // End schema definition
 			schema, err := pr.Parse()                         // Parse schema
 			Expect(err).ShouldNot(HaveOccurred())             // No error expected
 			st := schema.Statements[0].(*ast.EntityStatement) // Get statement
-
-			Expect(st.Name.Literal).Should(Equal("account"))
-
-			r1 := st.RelationStatements[0].(*ast.RelationStatement)
-			Expect(r1.Name.Literal).Should(Equal("owner"))
-
-			for _, a := range r1.RelationTypes {
-				Expect(a.Type.Literal).Should(Equal("user"))
-			}
-
-			a1 := st.AttributeStatements[0].(*ast.AttributeStatement)
-			Expect(a1.Name.Literal).Should(Equal("balance"))
-			Expect(a1.AttributeType.Type.Literal).Should(Equal("float"))
-
-			p1 := st.PermissionStatements[0].(*ast.PermissionStatement)
-			Expect(p1.Name.Literal).Should(Equal("withdraw"))
-
-			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement)
-
-			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(request.amount, balance)"))
-			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))
-
-			rs1 := schema.Statements[1].(*ast.RuleStatement)
-
-			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
-			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
+			// Verify account entity
+			Expect(st.Name.Literal).Should(Equal("account")) // Check entity name
+			// Verify owner relation
+			r1 := st.RelationStatements[0].(*ast.RelationStatement) // Get first relation
+			Expect(r1.Name.Literal).Should(Equal("owner"))          // Check relation name
+			// Verify relation types
+			for _, a := range r1.RelationTypes { // Iterate relation types
+				Expect(a.Type.Literal).Should(Equal("user")) // Verify user type
+			} // End relation types check
+			// Verify balance attribute
+			a1 := st.AttributeStatements[0].(*ast.AttributeStatement)    // Get first attribute
+			Expect(a1.Name.Literal).Should(Equal("balance"))             // Check attribute name
+			Expect(a1.AttributeType.Type.Literal).Should(Equal("float")) // Verify float type
+			// Verify withdraw permission
+			p1 := st.PermissionStatements[0].(*ast.PermissionStatement) // Get first permission
+			Expect(p1.Name.Literal).Should(Equal("withdraw"))           // Check permission name
+			// Verify permission expression
+			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement) // Get expression statement
+			// Verify expression components
+			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(request.amount, balance)")) // Verify rule call
+			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))                           // Verify owner check
+			// Verify rule statement
+			rs1 := schema.Statements[1].(*ast.RuleStatement) // Get rule statement
+			// Verify rule details
+			Expect(rs1.Name.Literal).Should(Equal("check_balance"))                                 // Check rule name
+			Expect(rs1.Expression).Should(Equal("\n(balance >= amount) && (amount <= 5000)\n\t\t")) // Verify rule expression
 		}) // End test case
+
 		It("Case // Test case 25 - Multi-line Permission Expression w/ Rule", func() {
 			pr := NewParser(` // Create parser
-			entity account {
-    			relation owner @user
-    			attribute balance float
-
-    			permission withdraw = 
-					check_balance(request.amount, balance) and owner
-			}
-	
-			rule check_balance(amount float, balance float) {
-				balance >= amount && amount <= 5000
-			}
+			entity account { // Account entity definition
+    			relation owner @user // Owner relation
+    			attribute balance float // Account balance
+ // Withdraw permission with rule
+    			permission withdraw =  // Multi-line permission
+					check_balance(request.amount, balance) and owner // Balance check and owner validation
+			} // End entity
+	 // Balance validation rule
+			rule check_balance(amount float, balance float) { // Rule definition validates amount limits
+				balance >= amount && amount <= 6000
+			} // End rule
 			`) // End schema definition
 			schema, err := pr.Parse()                         // Parse schema
 			Expect(err).ShouldNot(HaveOccurred())             // No error expected
 			st := schema.Statements[0].(*ast.EntityStatement) // Get statement
-
-			Expect(st.Name.Literal).Should(Equal("account"))
-
-			r1 := st.RelationStatements[0].(*ast.RelationStatement)
-			Expect(r1.Name.Literal).Should(Equal("owner"))
-
-			for _, a := range r1.RelationTypes {
-				Expect(a.Type.Literal).Should(Equal("user"))
-			}
-
-			a1 := st.AttributeStatements[0].(*ast.AttributeStatement)
-			Expect(a1.Name.Literal).Should(Equal("balance"))
-			Expect(a1.AttributeType.Type.Literal).Should(Equal("float"))
-
-			p1 := st.PermissionStatements[0].(*ast.PermissionStatement)
-			Expect(p1.Name.Literal).Should(Equal("withdraw"))
-
-			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement)
-
-			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(request.amount, balance)"))
-			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))
-
-			rs1 := schema.Statements[1].(*ast.RuleStatement)
-
-			Expect(rs1.Name.Literal).Should(Equal("check_balance"))
-			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 5000\n\t\t"))
+			// Test account name
+			Expect(st.Name.Literal).Should(Equal("account")) // Verify entity name
+			// Test owner relation
+			r1 := st.RelationStatements[0].(*ast.RelationStatement) // First relation
+			Expect(r1.Name.Literal).Should(Equal("owner"))          // Verify name
+			// Test relation type
+			for _, a := range r1.RelationTypes { // Check types
+				Expect(a.Type.Literal).Should(Equal("user")) // Must be user
+			} // End type check
+			// Test balance attribute
+			a1 := st.AttributeStatements[0].(*ast.AttributeStatement)    // First attribute
+			Expect(a1.Name.Literal).Should(Equal("balance"))             // Attribute name
+			Expect(a1.AttributeType.Type.Literal).Should(Equal("float")) // Type must be float
+			// Test withdraw permission
+			p1 := st.PermissionStatements[0].(*ast.PermissionStatement) // First permission
+			Expect(p1.Name.Literal).Should(Equal("withdraw"))           // Permission name
+			// Test expression
+			es1 := p1.ExpressionStatement.(*ast.ExpressionStatement) // Expression statement
+			// Test expression parts
+			Expect(es1.Expression.(*ast.InfixExpression).Left.(*ast.Call).String()).Should(Equal("check_balance(request.amount, balance)")) // Rule call
+			Expect(es1.Expression.(*ast.InfixExpression).Right.(*ast.Identifier).String()).Should(Equal("owner"))                           // Owner part
+			// Test rule
+			rs1 := schema.Statements[1].(*ast.RuleStatement) // Rule statement
+			// Test rule properties
+			Expect(rs1.Name.Literal).Should(Equal("check_balance"))                             // Rule name
+			Expect(rs1.Expression).Should(Equal("\nbalance >= amount && amount <= 6000\n\t\t")) // Rule body
 		}) // End test case
+
 		It("Case // Test case 26 - Multi-line Permission Expression w/ Rule - should fail", func() {
 			pr := NewParser(` // Create parser
-			entity account {
-    			relation owner @user
-    			attribute balance float
-
-    			permission withdraw = check_balance(request.amount, balance)
-					owner
-			}
-	
-			rule check_balance(amount float, balance float) {
-				balance >= amount && amount <= 5000
-			}
-			`)
-
-			_, err := pr.Parse()
-			Expect(err).Should(HaveOccurred())
-
+			entity account { // Account entity - error case
+    			relation owner @user // Owner relation
+    			attribute balance float // Balance attribute
+ // Invalid permission - missing operator
+    			permission withdraw = check_balance(request.amount, balance) // Missing AND/OR operator
+					owner // This line will cause parse error
+			} // End entity
+	 // Rule definition
+			rule check_balance(amount float, balance float) { // Balance check validates limits
+				amount <= 5000 && amount <= balance
+			} // End rule
+			`) // End invalid schema
+			// Parse should fail
+			_, err := pr.Parse()               // Attempt parse
+			Expect(err).Should(HaveOccurred()) // Error expected
+			// Verify error
 			// Ensure an error is returned
-			Expect(err).Should(HaveOccurred())
-
+			Expect(err).Should(HaveOccurred()) // Double check error
+			// Check error message
 			// Ensure the error message contains the expected string
-			Expect(err.Error()).Should(ContainSubstring("8:2:expected token to be RELATION, PERMISSION, ATTRIBUTE, got IDENT instead"))
+			Expect(err.Error()).Should(ContainSubstring("8:2:expected token to be RELATION, PERMISSION, ATTRIBUTE, got IDENT instead")) // Verify error text
 		}) // End test case
 		It("Case // Test case 27 - Multi-line Permission Complex Expression w/ Rule", func() {
 			pr := NewParser(` // Create parser
