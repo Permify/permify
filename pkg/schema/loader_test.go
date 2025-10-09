@@ -1,123 +1,36 @@
 package schema // Schema package tests
-import (
-	"strings" // Test dependencies
-
+import (       // Package imports
+	"strings" // String utilities for test assertions
+	// Test frameworks
 	. "github.com/onsi/ginkgo/v2" // BDD test framework
 	. "github.com/onsi/gomega"    // Matcher library
-	// String utilities
 )                                   // End imports
 var _ = Describe("Loader", func() { // Loader test suite
-	Context("LoadSchema function", func() {
+	Context("LoadSchema function", func() { // LoadSchema tests
 		It("should load schema from URL", func() { // Test URL loading
-			loader := NewSchemaLoader()
-			schema, err := loader.LoadSchema("https://gist.githubusercontent.com/neo773/d50f089c141bf61776c22157413ddbac/raw/ed2eb12108e49fce11be27d0387b8b01912b9d98/gistfile1.txt")
-			Expect(err).ShouldNot(HaveOccurred())
-			expectedSchema := `
-			entity userhttp {}
-
-			entity organization {
-		   
-			   relation admin @userhttp
-			   relation member @userhttp
-		   
-			   action create_repository = (admin or member)
-			   action delete = admin
-		   }
-		   
-			entity repository {
-		   
-			   relation owner @userhttp @organization#member
-			   relation parent @organization
-		   
-			   action push = owner
-			   action read = (owner and (parent.admin and parent.member))
-			   action delete = (parent.member and (parent.admin or owner))
-			   action edit = parent.member not owner
-		   }
-			`
-			Expect(strings.Join(strings.Fields(schema), "")).To(Equal(strings.Join(strings.Fields(expectedSchema), "")))
-		})
-
+			schemaLoader := NewSchemaLoader()                                                                                                                                                                                                                                                                                                                                                                                                                                                                   // Create loader instance
+			loadedSchema, loadErr := schemaLoader.LoadSchema("https://gist.githubusercontent.com/neo773/d50f089c141bf61776c22157413ddbac/raw/ed2eb12108e49fce11be27d0387b8b01912b9d98/gistfile1.txt")                                                                                                                                                                                                                                                                                                           // Load from URL
+			Expect(loadErr).ShouldNot(HaveOccurred())                                                                                                                                                                                                                                                                                                                                                                                                                                                           // No error expected
+			expectedSchemaDefinition := "entity userhttp {}\n\nentity organization {\nrelation admin @userhttp\nrelation member @userhttp\naction create_repository = (admin or member)\naction delete = admin\n}\n\nentity repository {\nrelation owner @userhttp @organization#member\nrelation parent @organization\naction push = owner\naction read = (owner and (parent.admin and parent.member))\naction delete = (parent.member and (parent.admin or owner))\naction edit = parent.member not owner\n}" // Expected schema
+			Expect(strings.Join(strings.Fields(loadedSchema), "")).To(Equal(strings.Join(strings.Fields(expectedSchemaDefinition), "")))                                                                                                                                                                                                                                                                                                                                                                        // Compare schemas
+		}) // End URL test
+		// File loading test
 		It("should load schema from file", func() { // Test file loading
-			loader := NewSchemaLoader()
-			schema, err := loader.LoadSchema("./schema.txt")
-			Expect(err).ShouldNot(HaveOccurred())
-			expectedSchema := `
-			entity userfs {}
-
-			entity organization {
-		   
-			   relation admin @userfs
-			   relation member @userfs
-		   
-			   action create_repository = (admin or member)
-			   action delete = admin
-		   }
-		   
-			entity repository {
-		   
-			   relation owner @userfs @organization#member
-			   relation parent @organization
-		   
-			   action push = owner
-			   action read = (owner and (parent.admin and parent.member))
-			   action delete = (parent.member and (parent.admin or owner))
-			   action edit = parent.member not owner
-		   }
-			`
-			Expect(strings.Join(strings.Fields(schema), "")).To(Equal(strings.Join(strings.Fields(expectedSchema), "")))
-		})
-
+			fileLoader := NewSchemaLoader()                                                                                                                                                                                                                                                                                                                                                                                                                                                       // Create file loader
+			fileSchema, fileErr := fileLoader.LoadSchema("./schema.txt")                                                                                                                                                                                                                                                                                                                                                                                                                          // Load from file
+			Expect(fileErr).ShouldNot(HaveOccurred())                                                                                                                                                                                                                                                                                                                                                                                                                                             // No error expected
+			expectedFileSchema := "entity userfs {}\n\nentity organization {\nrelation admin @userfs\nrelation member @userfs\naction create_repository = (admin or member)\naction delete = admin\n}\n\nentity repository {\nrelation owner @userfs @organization#member\nrelation parent @organization\naction push = owner\naction read = (owner and (parent.admin and parent.member))\naction delete = (parent.member and (parent.admin or owner))\naction edit = parent.member not owner\n}" // Expected file schema
+			Expect(strings.Join(strings.Fields(fileSchema), "")).To(Equal(strings.Join(strings.Fields(expectedFileSchema), "")))                                                                                                                                                                                                                                                                                                                                                                  // Compare file schemas
+		}) // End file test
+		// Inline loading test
 		It("should load inline schema", func() { // Test inline loading
-			loader := NewSchemaLoader()
-			schema, err := loader.LoadSchema(`entity userinline {}
-
-			entity organization {
-		   
-			   relation admin @userinline
-			   relation member @userinline
-		   
-			   action create_repository = (admin or member)
-			   action delete = admin
-		   }
-		   
-			entity repository {
-		   
-			   relation owner @userinline @organization#member
-			   relation parent @organization
-		   
-			   action push = owner
-			   action read = (owner and (parent.admin and parent.member))
-			   action delete = (parent.member and (parent.admin or owner))
-			   action edit = parent.member not owner
-		   }`)
-
-			Expect(err).ShouldNot(HaveOccurred())
-			expectedSchema := `
-			entity userinline {}
-
-			entity organization {
-		   
-			   relation admin @userinline
-			   relation member @userinline
-		   
-			   action create_repository = (admin or member)
-			   action delete = admin
-		   }
-		   
-			entity repository {
-		   
-			   relation owner @userinline @organization#member
-			   relation parent @organization
-		   
-			   action push = owner
-			   action read = (owner and (parent.admin and parent.member))
-			   action delete = (parent.member and (parent.admin or owner))
-			   action edit = parent.member not owner
-		   }
-		  `
-			Expect(strings.Join(strings.Fields(schema), "")).To(Equal(strings.Join(strings.Fields(expectedSchema), "")))
-		})
+			inlineLoader := NewSchemaLoader()                                                                                                                                                                                                                                                                                                                                                                                                                                                                       // Create inline loader
+			inlineInput := "entity userinline {}\n\nentity organization {\nrelation admin @userinline\nrelation member @userinline\naction create_repository = (admin or member)\naction delete = admin\n}\n\nentity repository {\nrelation owner @userinline @organization#member\nrelation parent @organization\naction push = owner\naction read = (owner and (parent.admin and parent.member))\naction delete = (parent.member and (parent.admin or owner))\naction edit = parent.member not owner\n}"          // Inline schema input
+			inlineSchema, inlineErr := inlineLoader.LoadSchema(inlineInput)                                                                                                                                                                                                                                                                                                                                                                                                                                         // Load inline schema
+			Expect(inlineErr).ShouldNot(HaveOccurred())                                                                                                                                                                                                                                                                                                                                                                                                                                                             // No error expected
+			expectedInlineSchema := "entity userinline {}\n\nentity organization {\nrelation admin @userinline\nrelation member @userinline\naction create_repository = (admin or member)\naction delete = admin\n}\n\nentity repository {\nrelation owner @userinline @organization#member\nrelation parent @organization\naction push = owner\naction read = (owner and (parent.admin and parent.member))\naction delete = (parent.member and (parent.admin or owner))\naction edit = parent.member not owner\n}" // Expected inline
+			Expect(strings.Join(strings.Fields(inlineSchema), "")).To(Equal(strings.Join(strings.Fields(expectedInlineSchema), "")))                                                                                                                                                                                                                                                                                                                                                                                // Compare inline
+		}) // End inline test
 
 		It("should return error for empty schema", func() { // Test empty schema
 			loader := NewSchemaLoader()
@@ -296,6 +209,6 @@ var _ = Describe("Loader", func() { // Loader test suite
 			result, err := loadInline(schema)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(result).Should(Equal(schema))
-		})
-	})
-})
+		}) // End test case
+	}) // End LoadSchema tests
+}) // End Loader suite
