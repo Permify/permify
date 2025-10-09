@@ -195,10 +195,10 @@ logger:
 	assert.NotNil(t, cfg)                  // Config should not be nil
 	assert.NoError(t, err)                 // No error expected
 	// Verify loaded values
-	assert.Equal(t, true, cfg.Server.Enabled)     // Server enabled
-	assert.Equal(t, "8080", cfg.Server.HTTP.Port) // HTTP port
-	assert.Equal(t, "9090", cfg.GRPC.Port)        // gRPC port
-	assert.Equal(t, "debug", cfg.Log.Level)       // Log level
+	assert.Equal(t, true, cfg.Server.HTTP.Enabled) // Server enabled
+	assert.Equal(t, "8080", cfg.Server.HTTP.Port)  // HTTP port
+	assert.Equal(t, "9090", cfg.Server.GRPC.Port)  // gRPC port
+	assert.Equal(t, "debug", cfg.Log.Level)        // Log level
 } // End of TestNewConfigWithFile
 
 // TestNewConfigWithFile_InvalidConfig tests invalid config handling

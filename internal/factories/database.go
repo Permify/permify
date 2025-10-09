@@ -67,13 +67,13 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 			return nil, err // Return version error
 		} // End of version check
 		// Return database instance
-		return
+		return db, err
 	case database.MEMORY.String():
 		db, err = IMDatabase.New(migrations.Schema)
 		if err != nil {
 			return nil, err
 		}
-		return
+		return db, err
 	default:
 		return nil, fmt.Errorf("%s connection is unsupported", conf.Engine)
 	}

@@ -36,7 +36,7 @@ func (b Builder) SchemaToGraph() (g Graph, err error) {
 		}
 		g.AddNodes(rg.Nodes())
 	}
-	return
+	return g, err
 }
 
 // EntityToGraph takes an entity definition and converts it into a graph
@@ -114,7 +114,7 @@ func (b Builder) EntityToGraph(entity *base.EntityDefinition) (g Graph, err erro
 		g.AddEdge(enNode, reNode)
 	}
 
-	return
+	return g, err
 }
 
 // RuleToGraph converts a RuleDefinition into a graph.
@@ -131,7 +131,7 @@ func (b Builder) RuleToGraph(rule *base.RuleDefinition) (g Graph, err error) {
 	// Add the rule node to the graph
 	g.AddNode(enNode)
 
-	return
+	return g, err
 }
 
 // buildPermissionGraph recursively builds a permission graph.
@@ -233,7 +233,7 @@ func (b Builder) buildPermissionGraph(entity *base.EntityDefinition, from *Node,
 			}
 		}
 	}
-	return
+	return g, err
 }
 
 // AddEdgeFromRelation adds an edge to the graph from the relation information
@@ -263,5 +263,5 @@ func (b Builder) addEdgeFromRelation(from *Node, reference *base.RelationReferen
 			Label: leaf.GetTupleToUserSet().GetComputed().GetRelation(),
 		})
 	}
-	return
+	return g, err
 }

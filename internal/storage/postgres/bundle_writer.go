@@ -40,7 +40,6 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 		Suffix("ON CONFLICT (name, tenant_id) DO UPDATE SET payload = EXCLUDED.payload")
 
 	for _, bundle := range bundles {
-
 		names = append(names, bundle.Name)
 
 		jsonBytes, err := protojson.Marshal(bundle.DataBundle)
@@ -69,7 +68,7 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 
 	slog.DebugContext(ctx, "successfully wrote bundles to the database", slog.Any("number_of_bundles", len(bundles)))
 
-	return
+	return names, err
 }
 
 func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err error) {

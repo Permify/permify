@@ -24,7 +24,7 @@ type Lexer struct {
 func NewLexer(input string) (l *Lexer) {
 	l = &Lexer{input: input, linePosition: 1, columnPosition: 1}
 	l.readChar()
-	return
+	return l
 }
 
 // GetLinePosition - returns the current line position of the Lexer in the input source code.
@@ -127,12 +127,12 @@ func (l *Lexer) NextToken() (tok token.Token) {
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexSingleLineComment()
 			tok.Type = token.SINGLE_LINE_COMMENT
-			return
+			return tok
 		case '*': // Multi-line comment
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 			tok.Literal = l.lexMultiLineComment()
 			tok.Type = token.MULTI_LINE_COMMENT
-			return
+			return tok
 		default: // Division operator
 			tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.DIVIDE, l.ch)
 		}
@@ -141,7 +141,7 @@ func (l *Lexer) NextToken() (tok token.Token) {
 		tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
 		tok.Literal = l.lexString()
 		tok.Type = token.STRING
-		return
+		return tok
 	default:
 		// check if the character is a letter, and if so, lex the identifier and look up the keyword
 		if isLetter(l.ch) {
@@ -149,10 +149,10 @@ func (l *Lexer) NextToken() (tok token.Token) {
 			tok.Literal = l.lexIdent()
 			if tok.Literal == "true" || tok.Literal == "false" {
 				tok.Type = token.BOOLEAN
-				return
+				return tok
 			}
 			tok.Type = token.LookupKeywords(tok.Literal)
-			return
+			return tok
 		} else if isDigit(l.ch) {
 			var isDouble bool
 			tok.PositionInfo = positionInfo(l.linePosition, l.columnPosition)
@@ -162,7 +162,7 @@ func (l *Lexer) NextToken() (tok token.Token) {
 			} else {
 				tok.Type = token.INTEGER
 			}
-			return
+			return tok
 		} else {
 			// if none of the above cases match, create an illegal token with the current character
 			tok = token.New(positionInfo(l.linePosition, l.columnPosition), token.ILLEGAL, l.ch)
@@ -170,7 +170,7 @@ func (l *Lexer) NextToken() (tok token.Token) {
 	}
 	// read the next character and return the token
 	l.readChar()
-	return
+	return tok
 }
 
 // newLine - increments the line position and resets the column position to 1.
@@ -256,7 +256,7 @@ func (l *Lexer) lexMultiLineComment() string {
 	l.readChar()
 	l.readChar()
 	position := l.position
-	for !(l.ch == '*' && l.peekChar() == '/') {
+	for l.ch != '*' || l.peekChar() != '/' {
 		if l.ch == 0 {
 			return l.input[position:l.position]
 		}

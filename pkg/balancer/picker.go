@@ -49,7 +49,7 @@ func (p *picker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	// Retrieve the closest N members
 	members, err := p.consistent.ClosestN(key, p.width)
 	if err != nil {
-		return balancer.PickResult{}, fmt.Errorf("failed to get closest members: %v", err)
+		return balancer.PickResult{}, fmt.Errorf("failed to get closest members: %w", err)
 	}
 	if len(members) == 0 {
 		return balancer.PickResult{}, fmt.Errorf("no available members")

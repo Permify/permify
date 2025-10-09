@@ -9,11 +9,6 @@ import (
 // XID8 represents a PostgreSQL xid8 (64-bit transaction ID) type
 type XID8 pguint64
 
-// pgSnapshot represents a PostgreSQL snapshot type
-type pgSnapshot struct {
-	pgtype.Value
-}
-
 // Set sets the XID8 value from various input types
 func (x *XID8) Set(src interface{}) error {
 	return (*pguint64)(x).Set(src)

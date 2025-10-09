@@ -131,7 +131,7 @@ func SplitRelation(relation string) (a []string) {
 	if len(a) == 1 {
 		a = append(a, "") // if there is only one element in the slice, add an empty string to the end
 	}
-	return
+	return a
 }
 
 // IsRelationComputed checks if a relation is computed or not

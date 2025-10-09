@@ -23,7 +23,6 @@ type Balancer struct {
 	schemaReader storage.SchemaReader
 	checker      invoke.Check
 	client       base.PermissionClient
-	options      []grpc.DialOption
 }
 
 // NewCheckEngineWithBalancer creates a new check engine with a load balancer.
@@ -50,7 +49,7 @@ func NewCheckEngineWithBalancer(
 		isSecure = true
 		creds, err = credentials.NewClientTLSFromFile(srv.TLSConfig.CertPath, no)
 		if err != nil {
-			return nil, fmt.Errorf("could not load TLS certificate: %s", err)
+			return nil, fmt.Errorf("could not load TLS certificate: %w", err)
 		}
 	} else {
 		creds = insecure.NewCredentials()

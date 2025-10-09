@@ -186,7 +186,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 	atomic.AddInt32(&response.GetMetadata().CheckCount, +1)
 
 	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
-	return
+	return response, err
 }
 
 // Expand is a method that implements the Expand interface.

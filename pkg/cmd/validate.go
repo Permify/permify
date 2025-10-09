@@ -55,7 +55,7 @@ func (l *ErrList) Print() {
 	color.Danger.Println("fails:")
 	for _, m := range l.Errors {
 		// print error message with color danger
-		color.Danger.Println(strings.ToLower("fail: " + validationError(strings.Replace(strings.Replace(m, "ERROR_CODE_", "", -1), "_", " ", -1))))
+		color.Danger.Println(strings.ToLower("fail: " + validationError(strings.ReplaceAll(strings.ReplaceAll(m, "ERROR_CODE_", ""), "_", " "))))
 	}
 	// print FAILED with color danger
 	color.Danger.Println("FAILED")
@@ -316,7 +316,6 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 			// Iterate over each entity filter in the scenario.
 			for _, filter := range scenario.EntityFilters {
-
 				// Convert the subject from the filter into a base.Subject.
 				ear, err := tuple.EAR(filter.Subject)
 				if err != nil {
@@ -382,7 +381,6 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 			// Iterate over each subject filter in the scenario.
 			for _, filter := range scenario.SubjectFilters {
-
 				// Convert the subject reference from the filter into a relation reference.
 				subjectReference := tuple.RelationReference(filter.SubjectReference)
 
@@ -463,7 +461,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 
 // validationError - validation error
 func validationError(message string) string {
-	return strings.ToLower(strings.Replace(strings.Replace(message, "ERROR_CODE_", "", -1), "_", " ", -1))
+	return strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(message, "ERROR_CODE_", ""), "_", " "))
 }
 
 // isSameArray - check if two arrays are the same

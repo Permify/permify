@@ -120,7 +120,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 			Key:     "",
 			Message: err.Error(),
 		})
-		return
+		return errors
 	}
 
 	// Unmarshal the YAML data into a file.Shape object
@@ -132,7 +132,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 			Key:     "",
 			Message: err.Error(),
 		})
-		return
+		return errors
 	}
 
 	return c.RunWithShape(ctx, s)
@@ -147,7 +147,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 			Key:     "",
 			Message: err.Error(),
 		})
-		return
+		return errors
 	}
 
 	// Compile the parsed schema
@@ -158,7 +158,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 			Key:     "",
 			Message: err.Error(),
 		})
-		return
+		return errors
 	}
 
 	// Generate a new unique ID for this version of the schema
@@ -183,7 +183,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 			Key:     "",
 			Message: err.Error(),
 		})
-		return
+		return errors
 	}
 
 	// Each item in the Relationships slice is processed individually
@@ -282,7 +282,6 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 
 	// Each item in the Scenarios slice is processed individually
 	for i, scenario := range shape.Scenarios {
-
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
 			entity, err := tuple.E(check.Entity)
@@ -518,7 +517,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 		}
 	}
 
-	return
+	return errors
 }
 
 // Context is a function that takes a file context and returns a base context and an error.

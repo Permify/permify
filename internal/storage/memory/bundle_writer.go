@@ -37,8 +37,8 @@ func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (nam
 }
 
 func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err error) {
-	txn := b.database.DB.Txn(true)                                      // Start write transaction
-	raw, err := txn.First(constants.BundlesTable, "id", tenantID, name) // Find bundle
+	txn := b.database.DB.Txn(true)                                    // Start write transaction
+	raw, _ := txn.First(constants.BundlesTable, "id", tenantID, name) // Find bundle
 	// Check if bundle exists
 	if raw == nil { // Bundle not found
 		return errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String()) // Return error

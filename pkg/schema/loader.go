@@ -7,6 +7,7 @@ import (       // Package imports
 	"net/url"       // URL parsing
 	"os"            // File system
 	"path/filepath" // Path utilities
+	"strings"       // String utilities
 ) // End imports
 // Type defines an enumeration for different schema types.
 type Type int // Schema type enum
@@ -108,7 +109,7 @@ func loadFromFile(path string) (string, error) { // Load schema from file
 	// Clean the path
 	cleanPath := filepath.Clean(path)
 	// Check if the cleaned path is trying to traverse directories
-	if filepath.IsAbs(cleanPath) || filepath.HasPrefix(cleanPath, "..") {
+	if filepath.IsAbs(cleanPath) || strings.HasPrefix(cleanPath, "..") {
 		return "", errors.New("invalid file path")
 	}
 	content, err := os.ReadFile(path) // Read file

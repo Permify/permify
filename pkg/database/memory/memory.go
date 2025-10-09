@@ -32,7 +32,7 @@ func (m *Memory) RelationTupleID() (id uint64) {
 	}
 	id = m.rid
 	m.rid++
-	return
+	return id
 }
 
 func (m *Memory) AttributeID() (id uint64) {
@@ -43,7 +43,7 @@ func (m *Memory) AttributeID() (id uint64) {
 	}
 	id = m.aid
 	m.aid++
-	return
+	return id
 }
 
 // GetEngineType - Gets engine type, returns as string

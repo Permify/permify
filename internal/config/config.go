@@ -13,24 +13,24 @@ import (
 type (
 	// Config is the main configuration structure containing various sections for different aspects of the application.
 	Config struct {
-		AccountID   string                       `mapstructure:"account_id"`
-		Server      `mapstructure:"server"`      // Server configuration for both HTTP and gRPC
-		Log         `mapstructure:"logger"`      // Logging configuration
-		Profiler    `mapstructure:"profiler"`    // Profiler configuration
-		Authn       `mapstructure:"authn"`       // Authentication configuration
-		Tracer      `mapstructure:"tracer"`      // Tracing configuration
-		Meter       `mapstructure:"meter"`       // Metrics configuration
-		Service     `mapstructure:"service"`     // Service configuration
-		Database    `mapstructure:"database"`    // Database configuration
-		Distributed `mapstructure:"distributed"` // Distributed configuration
+		AccountID   string      `mapstructure:"account_id"`
+		Server      Server      `mapstructure:"server"`      // Server configuration for both HTTP and gRPC
+		Log         Log         `mapstructure:"logger"`      // Logging configuration
+		Profiler    Profiler    `mapstructure:"profiler"`    // Profiler configuration
+		Authn       Authn       `mapstructure:"authn"`       // Authentication configuration
+		Tracer      Tracer      `mapstructure:"tracer"`      // Tracing configuration
+		Meter       Meter       `mapstructure:"meter"`       // Metrics configuration
+		Service     Service     `mapstructure:"service"`     // Service configuration
+		Database    Database    `mapstructure:"database"`    // Database configuration
+		Distributed Distributed `mapstructure:"distributed"` // Distributed configuration
 	}
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		HTTP         `mapstructure:"http"` // HTTP server configuration
-		GRPC         `mapstructure:"grpc"` // gRPC server configuration
-		NameOverride string                `mapstructure:"name_override"`
-		RateLimit    int64                 `mapstructure:"rate_limit"` // Rate limit configuration
+		HTTP         HTTP   `mapstructure:"http"` // HTTP server configuration
+		GRPC         GRPC   `mapstructure:"grpc"` // gRPC server configuration
+		NameOverride string `mapstructure:"name_override"`
+		RateLimit    int64  `mapstructure:"rate_limit"` // Rate limit configuration
 	}
 
 	// HTTP contains configuration for the HTTP server.

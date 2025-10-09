@@ -378,7 +378,6 @@ func (r *DataReader) QueryUniqueSubjectReferences(_ context.Context, tenantID st
 			continue
 		}
 		if _, exists := mp[b]; !exists && b >= lowerBound {
-
 			ids = append(ids, b)
 			mp[b] = true
 

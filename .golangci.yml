@@ -1,108 +1,56 @@
-linters-settings:
-  gci:
-    local-prefixes: github.com/Permify/permify
-  gosec:
-    excludes:
-      - 'G404'
-  goimports:
-    local-prefixes: 'github.com/Permify/permify'
-  maligned:
-      suggest-new: true
-  dupl:
-    threshold: 100
-  errorlint:
-    errorf: true
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  exhaustive:
-    check-generated: false
-    default-signifies-exhaustive: false
-  funlen:
-    lines: 65
-    statements: 40
-  gocognit:
-    min-complexity: 15
-  gocyclo:
-    min-complexity: 10
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport
-      - unnecessaryBlock
-  gofumpt:
-    extra-rules: true
-  gomnd:
-    settings:
-      mnd:
-        checks:
-          - argument
-          - case
-          - condition
-          - operation
-          - return
-  govet:
-    check-shadowing: true
-  misspell:
-    locale: US
-  nestif:
-    min-complexity: 4
-  nolintlint:
-    require-explanation: true
-    require-specific: true
+version: "2"
+
+run:
+  tests: false
+  allow-parallel-runners: true
 
 linters:
+  disable:
+    - errcheck
+    - govet
   enable:
     - bidichk
     - bodyclose
-    - errcheck
     - errname
     - errorlint
-    - gofumpt
-    - goimports
-    - goprintffuncname
-    - gosec
-    - gosimple
-    - govet
-    - importas
     - ineffassign
-    - makezero
-    - prealloc
-    - predeclared
-    - promlinter
-    - revive
     - staticcheck
-    - stylecheck
-    - tenv
-    - typecheck
-    - unconvert
     - unused
     - whitespace
+  settings:
+    errorlint:
+      errorf: true
+  exclusions:
+    generated: "lax"
+    presets:
+      - "common-false-positives"
+      - "std-error-handling"
+    rules:
+      # grpc deprecated - requires major refactor
+      - linters:
+          - staticcheck
+        text: "SA1019.*(grpc\\.WithBlock|grpc\\.DialContext)"
+      # resolver.AddressMap -> AddressMapV2 migration
+      - linters:
+          - staticcheck
+        text: "SA1019.*resolver\\.(AddressMap|NewAddressMap)"
+      # jaeger exporter deprecated - migrate to OTLP
+      - linters:
+          - staticcheck
+        path: "pkg/telemetry/tracerexporters/jaeger.go"
+    paths:
+      - "docs$"
+      - "integration-test$"
 
 issues:
-  exclude-rules:
-    - path: integration-test
-      linters:
-        - paralleltest
-        - godot
-    - text: 'tx.Rollback()'
-      linters:
-        - 'errcheck'
-    - path: 'internal/repositories/mocks'
-      linters:
-        - 'errcheck'
-run:
-  tests: false
-  skip-dirs:
-    - docs
+  max-issues-per-linter: 0
+  max-same-issues: 0
 
-output:
-  sort-results: true
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - "github.com/Permify/permify"

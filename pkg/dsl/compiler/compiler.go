@@ -289,7 +289,6 @@ func (t *Compiler) compileRewrite(entityName string, exp *ast.InfixExpression) (
 func (t *Compiler) compileLeaf(entityName string, expression ast.Expression) (*base.Child, error) {
 	// Switch on the type of the expression.
 	switch expression.GetType() {
-
 	// Case when the expression is an Identifier (a variable, a constant, etc.).
 	case ast.IDENTIFIER:
 		// Type assertion to get the underlying Identifier.
@@ -428,7 +427,6 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 
 	// Loop through each argument in the call.
 	for _, argument := range call.Arguments {
-
 		// Check if the argument has no identifiers, which is not allowed.
 		// Return an error if this is the case.
 		if len(argument.Idents) == 0 {
@@ -440,7 +438,6 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 
 		// If the argument has only one identifier, it is a computed attribute.
 		if len(argument.Idents) == 1 {
-
 			// If reference validation is enabled, check if the attribute reference exists and its type matches the rule's argument type.
 			if t.withReferenceValidation {
 				atyp, exist := t.schema.GetReferences().GetAttributeReferenceTypeIfExist(utils.Key(entityName, argument.Idents[0].Literal))
@@ -591,7 +588,7 @@ func (t *Compiler) validateTupleToUserSetReference(entityName string, identifier
 
 // compileError creates an error with the given message and position information.
 func compileError(info token.PositionInfo, message string) error {
-	msg := fmt.Sprintf("%v:%v: %s", info.LinePosition, info.ColumnPosition, strings.ToLower(strings.Replace(strings.Replace(message, "ERROR_CODE_", "", -1), "_", " ", -1)))
+	msg := fmt.Sprintf("%v:%v: %s", info.LinePosition, info.ColumnPosition, strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(message, "ERROR_CODE_", ""), "_", " ")))
 	return errors.New(msg)
 }
 

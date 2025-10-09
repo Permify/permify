@@ -28,6 +28,8 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 
+	health "google.golang.org/grpc/health/grpc_health_v1" // gRPC health check
+
 	oidc "github.com/Permify/permify/internal/authn/openid"
 	"github.com/Permify/permify/internal/authn/preshared"
 	"github.com/Permify/permify/internal/config"
@@ -35,7 +37,6 @@ import (
 	"github.com/Permify/permify/internal/middleware"
 	"github.com/Permify/permify/internal/storage"
 	grpcV1 "github.com/Permify/permify/pkg/pb/base/v1"
-	health "google.golang.org/grpc/health/grpc_health_v1" // gRPC health check
 )
 
 // Container is a struct that holds the invoker and various storage

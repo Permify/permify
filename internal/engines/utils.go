@@ -109,39 +109,6 @@ type SubjectFilterResponse struct {
 	err  error
 }
 
-// getDuplicates is a function that accepts a slice of strings and returns a slice of duplicated strings in the input slice
-func getDuplicates(s []string) []string {
-	// "seen" will keep track of all strings we have encountered in the slice
-	seen := make(map[string]bool)
-
-	// "duplicates" will keep track of all strings that are duplicated in the slice
-	duplicates := make(map[string]bool)
-
-	// Iterate over every string in the input slice
-	for _, str := range s {
-		// If we have seen the string before, then it is a duplicate.
-		// So, we add it to our duplicates map.
-		if _, value := seen[str]; value {
-			duplicates[str] = true
-		} else {
-			// If we haven't seen the string before, add it to the seen map.
-			seen[str] = true
-		}
-	}
-
-	// "duplicatesSlice" will eventually hold our results: all strings that are duplicated in the input slice
-	duplicatesSlice := make([]string, 0, len(duplicates))
-
-	// Now, duplicates map contains all the duplicated strings.
-	// We iterate over it and add each string to our result slice.
-	for str := range duplicates {
-		duplicatesSlice = append(duplicatesSlice, str)
-	}
-
-	// Return the slice that contains all the duplicated strings
-	return duplicatesSlice
-}
-
 // getEmptyValueForType is a helper function that takes a string representation of a type
 // and returns an "empty" value for that type.
 // An empty value is a value that is generally considered a default or initial state for a variable of a given type.

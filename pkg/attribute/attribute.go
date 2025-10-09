@@ -87,7 +87,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		for i, value := range val { // Parse each double
 			doubleVal, err := strconv.ParseFloat(value, 64)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse float: %v", err)
+				return nil, fmt.Errorf("failed to parse float: %w", err)
 			}
 			da[i] = doubleVal // Store parsed value
 		}
@@ -95,7 +95,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 	case "integer":
 		intVal, err := strconv.ParseInt(v[1], 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse integer: %v", err)
+			return nil, fmt.Errorf("failed to parse integer: %w", err)
 		}
 		wrapped = &base.IntegerValue{Data: int32(intVal)}
 	case "integer[]":
@@ -104,7 +104,7 @@ func Attribute(attribute string) (*base.Attribute, error) {
 		for i, value := range val { // Parse each integer
 			intVal, err := strconv.ParseInt(value, 10, 32)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse integer: %v", err)
+				return nil, fmt.Errorf("failed to parse integer: %w", err)
 			}
 			ia[i] = int32(intVal) // Store parsed value
 		}

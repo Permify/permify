@@ -147,8 +147,8 @@ func (r *SchemaReader) ListSchemas(_ context.Context, tenantID string, paginatio
 	}
 	distinctVersions := make(map[string]bool)
 	filterFunc := func(schemaRaw interface{}) bool {
-		schema, ok := schemaRaw.(storage.SchemaDefinition)
-		_, ok = distinctVersions[schema.Version]
+		schema := schemaRaw.(storage.SchemaDefinition)
+		_, ok := distinctVersions[schema.Version]
 		if !ok {
 			distinctVersions[schema.Version] = true
 			return false
