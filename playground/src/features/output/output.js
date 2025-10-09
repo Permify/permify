@@ -1,27 +1,27 @@
-import React, {useState, useRef} from 'react'
-import {Allotment} from 'allotment'
-import "allotment/dist/style.css";
-import Schema from "@features/schema/schema";
-import Visualizer from "@features/schema/visualizer";
-import {Button, Card, Radio} from "antd";
-import {
-    CheckCircleOutlined,
-    CopyOutlined,
-    ExclamationCircleOutlined,
-    ExpandOutlined, FullscreenExitOutlined,
+import React, {useState, useRef} from 'react' // React core imports
+import {Allotment} from 'allotment' // Layout component
+import "allotment/dist/style.css"; // Allotment styles
+import Schema from "@features/schema/schema"; // Schema editor
+import Visualizer from "@features/schema/visualizer"; // Schema visualizer
+import {Button, Card, Radio} from "antd"; // Ant Design components
+import { // Ant Design icons
+    CheckCircleOutlined, // Success icon
+    CopyOutlined, // Copy icon
+    ExclamationCircleOutlined, // Error icon
+    ExpandOutlined, FullscreenExitOutlined, // Expand/collapse icons
 } from "@ant-design/icons";
-import Relationships from "@features/data/relationships";
-import Attributes from "@features/data/attributes";
-import {useShapeStore} from "@state/shape";
-import Enforcement from "@features/enforcement/enforcement";
-import GuidedTour from '@components/guided-tour';
-
-function Output(props) {
-    const refSchemaEditor = useRef(null);
-    const refRelationshipsAndAttributes = useRef(null);
-    const refEnforcement = useRef(null);
-
-    const [dataSelected, setDataSelected] = useState('relationships');
+import Relationships from "@features/data/relationships"; // Relationships component
+import Attributes from "@features/data/attributes"; // Attributes component
+import {useShapeStore} from "@state/shape"; // Shape state management
+import Enforcement from "@features/enforcement/enforcement"; // Enforcement panel
+import GuidedTour from '@components/guided-tour'; // Guided tour component
+3
+function Output(props) { // Main output component
+    const schemaEditorRef = useRef(null); // Schema editor reference
+    const relationshipsAndAttributesRef = useRef(null); // Relationships and attributes reference
+    const enforcementRef = useRef(null); // Enforcement panel reference
+ // Component state
+    const [dataSelected, setDataSelected] = useState('relationships'); // Selected data tab
     const [schemaSelected, setSchemaSelected] = useState('schema');
     const [isOpen, setIsOpen] = useState(false);
 
@@ -99,14 +99,14 @@ function Output(props) {
                         </Card>
                         :
                         <>
-                            <GuidedTour refSchemaEditor={refSchemaEditor}
-                                        refRelationshipsAndAttributes={refRelationshipsAndAttributes}
-                                        refEnforcement={refEnforcement}/>
+                            <GuidedTour refSchemaEditor={schemaEditorRef}
+                                        refRelationshipsAndAttributes={relationshipsAndAttributesRef}
+                                        refEnforcement={enforcementRef}/>
                             <div style={{height: '100vh'}} className="ml-10 mr-10">
                                 <Allotment vertical defaultSizes={[100, 100]}>
                                     <Allotment.Pane snap visible={!isOpen}>
                                         <Allotment>
-                                            <Allotment.Pane snap ref={refSchemaEditor}>
+                                            <Allotment.Pane snap ref={schemaEditorRef}>
                                                 <Card title={
                                                     <Radio.Group defaultValue="schema" buttonStyle="solid"
                                                                  onChange={onSchemaSelectedChange}
@@ -120,7 +120,7 @@ function Output(props) {
                                                     {renderSchemaComponent()}
                                                 </Card>
                                             </Allotment.Pane>
-                                            <Allotment.Pane snap ref={refEnforcement}>
+                                            <Allotment.Pane snap ref={enforcementRef}>
                                                 <Card title="Enforcement" className="ml-10"
                                                       extra={<div style={{display: 'flex', alignItems: 'center'}}>
                                                           <Button
@@ -146,7 +146,7 @@ function Output(props) {
                                                 buttonStyle="solid"
                                                 onChange={onDataSelectedChange}
                                                 value={dataSelected}
-                                                ref={refRelationshipsAndAttributes}
+                                                ref={relationshipsAndAttributesRef}
                                             >
                                                 <Radio.Button value="relationships">Relationships</Radio.Button>
                                                 <Radio.Button value="attributes">Attributes</Radio.Button>

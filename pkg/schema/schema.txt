@@ -1,21 +1,21 @@
-entity userfs {}
-
-entity organization {
-
-  relation admin @userfs
-  relation member @userfs
-
-  action create_repository = (admin or member)
-  action delete = admin
-}
-
-entity repository {
-
-  relation owner @userfs @organization#member
-  relation parent @organization
-
-  action push = owner
-  action read = (owner and (parent.admin and parent.member))
-  action delete = (parent.member and (parent.admin or owner))
-  action edit = parent.member not owner
-}
+entity userfs {} // User entity for file schema tests
+// Organization section
+entity organization { // Organization entity
+ // Relations
+  relation admin @userfs // Admin relation
+  relation member @userfs // Member relation
+ // Actions
+  action create_repository = (admin or member) // Create repository action
+  action delete = admin // Delete action
+} // End organization
+// Repository section
+entity repository { // Repository entity
+ // Relations
+  relation owner @userfs @organization#member // Owner relation
+  relation parent @organization // Parent relation
+ // Actions
+  action push = owner // Push action
+  action read = (owner and (parent.admin and parent.member)) // Read action
+  action delete = (parent.member and (parent.admin or owner)) // Delete action
+  action edit = parent.member not owner // Edit action
+} // End repository
