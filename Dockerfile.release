@@ -14,4 +14,4 @@ FROM $BASE
 COPY --from=health-probe-builder /go/bin/grpc-health-probe /usr/local/bin/grpc_health_probe
 COPY permify /usr/local/bin/permify
 ENTRYPOINT ["permify"]
-CMD ["serve"] # Default command to start the server
+CMD ["serve"]
