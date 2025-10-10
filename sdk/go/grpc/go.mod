@@ -1,6 +1,6 @@
 module main
 
-go 1.24.6
+go 1.25.1
 
 require (
 	buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20250909115910-bf55f1c31821.1
