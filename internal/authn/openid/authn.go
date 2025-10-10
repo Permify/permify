@@ -15,6 +15,7 @@ import (       // Package imports
 	"github.com/golang-jwt/jwt/v4"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/hashicorp/go-retryablehttp"
+
 	// JWT key sets
 	"github.com/lestrrat-go/jwx/jwk" // JWT key sets
 	// Internal packages
@@ -380,7 +381,7 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		slog.Error("failed to create HTTP request", "url", url, "error", err)
-		return nil, fmt.Errorf("failed to create HTTP request for OIDC configuration: %s", err)
+		return nil, fmt.Errorf("failed to create HTTP request for OIDC configuration: %w", err)
 	}
 
 	// Log the execution of the HTTP request
@@ -391,7 +392,7 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	if err != nil {
 		// Log the error if executing the HTTP request fails
 		slog.Error("failed to execute HTTP request", "url", url, "error", err)
-		return nil, fmt.Errorf("failed to execute HTTP request for OIDC configuration: %s", err)
+		return nil, fmt.Errorf("failed to execute HTTP request for OIDC configuration: %w", err)
 	}
 
 	// Log the HTTP status code of the response
@@ -413,7 +414,7 @@ func doHTTPRequest(client *http.Client, url string) ([]byte, error) {
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		slog.Error("failed to read response body", "url", url, "error", err)
-		return nil, fmt.Errorf("failed to read response body from OIDC configuration request: %s", err)
+		return nil, fmt.Errorf("failed to read response body from OIDC configuration request: %w", err)
 	}
 
 	// Log the successful retrieval of the response body
@@ -430,7 +431,7 @@ func parseOIDCConfiguration(body []byte) (*Config, error) {
 	// Attempt to unmarshal the JSON body into the oidcConfig struct.
 	if err := json.Unmarshal(body, &oidcConfig); err != nil {
 		slog.Error("failed to unmarshal OIDC configuration", "error", err)
-		return nil, fmt.Errorf("failed to decode OIDC configuration: %s", err)
+		return nil, fmt.Errorf("failed to decode OIDC configuration: %w", err)
 	}
 	// Log the successful decoding of OIDC configuration
 	slog.Debug("successfully decoded OIDC configuration")

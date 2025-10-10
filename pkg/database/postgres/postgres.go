@@ -194,7 +194,7 @@ func setPlanCacheMode(config *pgx.ConnConfig) {
 	for key, value := range planCacheModes {
 		if strings.Contains(connStr, "plan_cache_mode="+key) {
 			if key == "disable" {
-				delete(config.Config.RuntimeParams, "plan_cache_mode")
+				delete(config.RuntimeParams, "plan_cache_mode")
 				slog.Info("setPlanCacheMode", slog.String("mode", "disabled"))
 				return
 			}
@@ -205,7 +205,7 @@ func setPlanCacheMode(config *pgx.ConnConfig) {
 	}
 
 	// Set the plan cache mode
-	config.Config.RuntimeParams["plan_cache_mode"] = planCacheMode
+	config.RuntimeParams["plan_cache_mode"] = planCacheMode
 	if planCacheMode == defaultMode {
 		slog.Warn("setPlanCacheMode", slog.String("mode", defaultMode))
 	}

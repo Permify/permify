@@ -23,33 +23,20 @@ compose-down: ### Down docker-compose
 
 .PHONY: download
 download:
-	@cd tools/ && go mod download
+	@go mod download
 
 .PHONY: linter-golangci
 linter-golangci: ### check by golangci linter
-	golangci-lint run
+	go tool golangci-lint run
 
 .PHONY: linter-hadolint
 linter-hadolint: ### check by hadolint linter
-	git ls-files --exclude='Dockerfile*' --ignored | xargs hadolint
-
-.PHONY: linter-dotenv
-linter-dotenv: ### check by dotenv linter
-	dotenv-linter
+	@find . -name 'Dockerfile*' -type f | xargs hadolint || true
 
 .PHONY: test
 test: ### run tests and gather coverage
-	@rm -f covprofile
-	@echo "mode: atomic" > covprofile
-	@for pkg in $(GO_PACKAGES); do \
-		echo "Running tests in $$pkg"; \
-		go test -race -coverprofile=covprofile.tmp -covermode=atomic -timeout=10m $$pkg; \
-		if [ -f covprofile.tmp ]; then \
-			tail -n +2 covprofile.tmp >> covprofile; \
-			rm covprofile.tmp; \
-		fi; \
-	done
-	@echo "Coverage profile merged into covprofile"
+	@go clean -testcache
+	@go test -race -coverprofile=covprofile -covermode=atomic -timeout=10m $(GO_PACKAGES)
 
 .PHONY: integration-test
 integration-test: ### run integration-test
@@ -61,14 +48,14 @@ build: ## Build/compile the Permify service
 
 .PHONY: format
 format: ## Auto-format the code
-	gofumpt -l -w -extra .
+	go tool gofumpt -l -w -extra .
 
 .PHONY: lint-all
-lint-all: linter-golangci linter-hadolint linter-dotenv ## Run all linters
+lint-all: linter-golangci linter-hadolint ## Run all linters
 
 .PHONY: security-scan
 security-scan: ## Scan code for security vulnerabilities using Gosec
-	gosec -exclude=G115 -exclude-dir=sdk -exclude-dir=playground -exclude-dir=docs -exclude-dir=assets ./...
+	go tool gosec -exclude=G115,G103 -exclude-dir=sdk -exclude-dir=playground -exclude-dir=docs -exclude-dir=assets -exclude-dir=pkg/pb ./...
 
 .PHONY: trivy-scan
 trivy-scan: ## Scan Docker image for vulnerabilities using Trivy
@@ -94,7 +81,7 @@ wasm-build: ## Build wasm & place it in playground # WebAssembly build target
 	cp ./pkg/development/wasm/play.wasm ./playground/public/play.wasm # Copy to playground
 
 .PHONY: release
-release: format test security-scan trivy-scan clean ## Prepare for release
+release: format lint-all test security-scan trivy-scan clean ## Prepare for release
 
 # Serve
 

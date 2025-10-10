@@ -244,7 +244,7 @@ func references(entity *base.EntityDefinition) (coverage SchemaCoverage) {
 		coverage.Assertions = append(coverage.Assertions, formattedPermission)
 	}
 	// Return the coverage struct
-	return
+	return coverage
 }
 
 // relationships - Get relationships for a given entity

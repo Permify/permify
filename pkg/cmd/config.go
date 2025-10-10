@@ -4,11 +4,13 @@ import ( // Package imports
 	"fmt"     // Formatting utilities
 	"os"      // OS utilities
 	"strings" // String manipulation
+
 	// External dependencies
 	"github.com/gookit/color"           // Terminal colors
 	"github.com/olekukonko/tablewriter" // Table rendering
 	"github.com/spf13/cobra"            // Cobra CLI framework
 	"github.com/spf13/viper"            // Configuration management
+
 	// Internal packages
 	"github.com/Permify/permify/internal/config" // Internal config
 	"github.com/Permify/permify/pkg/cmd/flags"   // Command flags
@@ -293,5 +295,5 @@ func HideSecrets(secrets ...string) (rv []string) {
 	for _, secret := range secrets {
 		rv = append(rv, HideSecret(secret)) // Hide each secret.
 	}
-	return
+	return rv
 }

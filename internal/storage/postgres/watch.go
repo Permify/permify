@@ -115,7 +115,6 @@ func (w *Watch) Watch(ctx context.Context, tenantID, snap string) (<-chan *base.
 			}
 
 			if len(recentIDs) == 0 {
-
 				if sleep == nil {
 					sleep = time.NewTimer(sleepDuration)
 				} else {

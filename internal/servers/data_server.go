@@ -211,7 +211,6 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 	attributesMap := map[string]struct{}{}
 
 	for _, attr := range request.GetAttributes() {
-
 		key := attribute.EntityAndAttributeToString(attr.GetEntity(), attr.GetAttribute())
 
 		if _, ok := attributesMap[key]; ok {
@@ -278,7 +277,6 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 	relationshipsMap := map[string]struct{}{}
 
 	for _, tup := range request.GetTuples() {
-
 		key := tuple.ToString(tup)
 
 		if _, ok := relationshipsMap[key]; ok {

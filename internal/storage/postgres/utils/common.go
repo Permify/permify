@@ -193,11 +193,11 @@ func secureRandomFloat64() float64 {
 func EnsureDBVersion(db *pgxpool.Pool) (version string, err error) {
 	err = db.QueryRow(context.Background(), "SHOW server_version_num;").Scan(&version)
 	if err != nil {
-		return
+		return version, err
 	}
 	v, err := strconv.Atoi(version)
 	if v < earliestPostgresVersion {
 		err = fmt.Errorf("unsupported postgres version: %s, expected >= %d", version, earliestPostgresVersion)
 	}
-	return
+	return version, err
 }

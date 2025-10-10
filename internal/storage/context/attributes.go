@@ -64,7 +64,6 @@ func (c *ContextualAttributes) filterAttributes(filter *base.AttributeFilter, cu
 
 	// Iterate over the tuples
 	for _, attribute := range c.Attributes {
-
 		// Skip tuples that come before the cursor based on the specified order field
 		if cursor != "" && !isAttributeAfterCursor(attribute, cursor, order) {
 			continue

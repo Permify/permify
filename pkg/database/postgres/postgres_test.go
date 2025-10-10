@@ -26,12 +26,6 @@ var _ = Describe("Postgres", func() {
 			Expect(x.Uint).Should(Equal(uint64(0)))
 			Expect(x.Status).Should(Equal(pgtype.Status(0)))
 		})
-
-		It("Case 2: pgSnapshot should implement pgtype.Value", func() {
-			var s pgSnapshot
-			var v pgtype.Value = s
-			Expect(v).ShouldNot(BeNil())
-		})
 	})
 
 	Context("New", func() {

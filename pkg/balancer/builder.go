@@ -15,10 +15,13 @@ import (
 	"github.com/Permify/permify/pkg/consistent"
 )
 
+// contextKey is a custom type for context keys to avoid collisions
+type contextKey string
+
 // Package-level constants for the balancer name and consistent hash key.
 const (
-	Name = "consistenthashing" // Name of the balancer.
-	Key  = "consistenthashkey" // Key for the consistent hash.
+	Name = "consistenthashing"             // Name of the balancer.
+	Key  = contextKey("consistenthashkey") // Key for the consistent hash.
 )
 
 // Config represents the configuration for the consistent hashing balancer.

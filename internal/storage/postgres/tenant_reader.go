@@ -6,6 +6,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+
 	// Structured logging
 
 	"github.com/Permify/permify/internal"

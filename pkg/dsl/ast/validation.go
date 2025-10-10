@@ -48,6 +48,6 @@ func (sch *Schema) validateRelationTypeStatement(ref RelationTypeStatement) erro
 
 // validationError - returns a formatted error message.
 func validationError(info token.PositionInfo, message string) error {
-	msg := fmt.Sprintf("%v:%v: %s", info.LinePosition, info.ColumnPosition, strings.ToLower(strings.Replace(strings.Replace(message, "ERROR_CODE_", "", -1), "_", " ", -1)))
+	msg := fmt.Sprintf("%v:%v: %s", info.LinePosition, info.ColumnPosition, strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(message, "ERROR_CODE_", ""), "_", " ")))
 	return errors.New(msg)
 }

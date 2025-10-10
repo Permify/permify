@@ -155,7 +155,6 @@ func (engine *ExpandEngine) expandLeaf(
 	// The leaf object can have different types, each associated with a different expansion function.
 	// Depending on the type of the leaf, different expansion functions are returned.
 	switch op := leaf.GetType().(type) {
-
 	// If the type of the leaf is TupleToUserSet, the method 'expandTupleToUserSet' is called.
 	case *base.Leaf_TupleToUserSet:
 		return engine.expandTupleToUserSet(request, op.TupleToUserSet)
@@ -194,7 +193,6 @@ func (engine *ExpandEngine) setChild(
 	for _, child := range children {
 		// Based on the type of child, append the appropriate ExpandFunction to the functions array.
 		switch child.GetType().(type) {
-
 		// If the child is a 'rewrite' type, use the 'expandRewrite' function.
 		case *base.Child_Rewrite:
 			functions = append(functions, engine.expandRewrite(ctx, request, child.GetRewrite()))
@@ -471,7 +469,6 @@ func (engine *ExpandEngine) expandDirectAttribute(
 	request *base.PermissionExpandRequest, // the request object containing information necessary for the expansion
 ) ExpandFunction { // returns an ExpandFunction
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) { // defining the returned function
-
 		var err error // variable to store any error occurred during the process
 
 		// Defining a filter to get the attribute based on the entity type and ID and the permission requested.
@@ -566,7 +563,6 @@ func (engine *ExpandEngine) expandDirectCall(
 	request *base.PermissionExpandRequest, // The request object containing information necessary for the expansion.
 ) ExpandFunction { // The function returns an ExpandFunction.
 	return func(ctx context.Context, expandChan chan<- ExpandResponse) { // defining the returned function.
-
 		var err error // variable to store any error occurred during the process.
 
 		var ru *base.RuleDefinition // variable to hold the rule definition.
@@ -679,7 +675,6 @@ func (engine *ExpandEngine) expandComputedAttribute(
 	ca *base.ComputedAttribute, // The computed attribute object that has the name of the attribute to be computed.
 ) ExpandFunction { // The function returns an ExpandFunction.
 	return func(ctx context.Context, resultChan chan<- ExpandResponse) { // defining the returned function.
-
 		// The returned function sends the result of an expansion to the result channel.
 		// The expansion is performed by calling the 'expand' method of the engine with a new PermissionExpandRequest.
 		// The new request is constructed using the tenant ID, entity, computed attribute name, metadata, and context from the original request.
@@ -707,7 +702,6 @@ func expandOperation(
 	functions []ExpandFunction, // A slice of functions that will be used to expand the operation.
 	op base.ExpandTreeNode_Operation, // The operation to be performed.
 ) ExpandResponse { // The function returns an ExpandResponse.
-
 	// Initialize an empty slice of base.Expand type.
 	children := make([]*base.Expand, 0, len(functions))
 
