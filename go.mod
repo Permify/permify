@@ -14,7 +14,7 @@ tool (
 	google.golang.org/protobuf/cmd/protoc-gen-go
 	mvdan.cc/gofumpt
 )
-
+//
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/Permify/sloggcp v0.0.3
@@ -78,7 +78,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	resenje.org/singleflight v0.4.3
 )
-
+//
 require (
 	4d63.com/gocheckcompilerdirectives v1.3.0 // indirect
 	4d63.com/gochecknoglobals v0.2.2 // indirect
@@ -337,7 +337,7 @@ require (
 	mvdan.cc/unparam v0.0.0-20250301125049-0df0534333a4 // indirect
 	pluginrpc.com/pluginrpc v0.5.0 // indirect
 )
-
+//
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect

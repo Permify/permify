@@ -4,7 +4,7 @@ Welcome to Permify contribution guidelines, happy to see you here :blush:
 
 Before participating in the community, we must specify that all of the contributions must follow our [Code of Conduct](https://github.com/Permify/permify/blob/master/CODE_OF_CONDUCT.md). Please read it before you make any contributions. 
 
-If you need any help or want to talk about about a specific issue, you can always reach out to me from my mail:ege@permify.co.
+For questions or assistance regarding any specific issue, feel free to contact me at: ege@permify.co
 
 You're always more than welcome to our other communication channels.
 
