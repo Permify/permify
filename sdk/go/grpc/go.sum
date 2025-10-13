@@ -1,11 +1,11 @@
-buf.build/gen/go/envoyproxy/protoc-gen-validate/protocolbuffers/go v1.36.10-20221025150516-6607b10f00ed.1 h1:QZZDjVhPuc9KiVw6myIgtkYpL9KAF4pDaBIaIKGnBbY=
-buf.build/gen/go/envoyproxy/protoc-gen-validate/protocolbuffers/go v1.36.10-20221025150516-6607b10f00ed.1/go.mod h1:mhVt0ZWII1SD3F6tUan/B7hhUxuTYB0dP1dZo2/SPhw=
-buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.10-20221127060915-a1ecdc58eccd.1 h1:g6zzDYpuQuc3jYxbwfK9MHBDRkAvZA2Q6DtdkLgC+qw=
-buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.10-20221127060915-a1ecdc58eccd.1/go.mod h1:Dkpdum4mgWWBTG5nDVJPCDdaqFh34tucP6RulxhdOjs=
+buf.build/gen/go/envoyproxy/protoc-gen-validate/protocolbuffers/go v1.36.10-20240617172848-daf171c6cdb5.1 h1:tJeM9a/zOhSbUsmQDTLRaN9g92Eh/Nck8r3FaB7ULkc=
+buf.build/gen/go/envoyproxy/protoc-gen-validate/protocolbuffers/go v1.36.10-20240617172848-daf171c6cdb5.1/go.mod h1:mhVt0ZWII1SD3F6tUan/B7hhUxuTYB0dP1dZo2/SPhw=
+buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.10-20241220201140-4c5ba75caaf8.1 h1:wTGP8mCVfUD0L8WSKtEs3g0MtlHszhk7Iic+HLXkq8o=
+buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.10-20241220201140-4c5ba75caaf8.1/go.mod h1:Dkpdum4mgWWBTG5nDVJPCDdaqFh34tucP6RulxhdOjs=
 buf.build/gen/go/permifyco/permify/grpc/go v1.5.1-20240722150440-5ee7aa4c5fb5.1 h1:DSDj0FXKqfw+pNi3xouFc5Ewr5Pz7AJhpNih0nnEsRg=
 buf.build/gen/go/permifyco/permify/grpc/go v1.5.1-20240722150440-5ee7aa4c5fb5.1/go.mod h1:cLym9TbR9HOJOzI97hoD+szCeWqqzlPZdVlDbSXYSLs=
-buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20250909115910-bf55f1c31821.1 h1:TI42torin5jCNwd9r4AFhs6gRknps+6By2HR5DckYoY=
-buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20250909115910-bf55f1c31821.1/go.mod h1:Fi6vqrnn8bTOHUBgUOxMAUf/E+gIbevsIVAr648k9j4=
+buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20251010095909-e243758af2d8.1 h1:u9nyrkt5t7aljOMJlwGLnlEB4+j5atxG+/KNeIqgJZI=
+buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20251010095909-e243758af2d8.1/go.mod h1:rd83ZLYouLoCkkkayczBp+VAoiJbYFBhVJvY3aJCY2g=
 github.com/Permify/permify-go v0.4.9 h1:+BLAlbHR/5ZUZYZGOy7jwbSo5MVdofciK2GV2iiZHXo=
 github.com/Permify/permify-go v0.4.9/go.mod h1:YK3zhtF/ILLoiXcBDv9ct9O8NkX4UsP9YnwfgrPGHyY=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
