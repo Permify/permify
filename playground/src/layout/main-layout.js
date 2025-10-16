@@ -176,7 +176,9 @@ const MainLayout = ({children, ...rest}) => {
                             <div className="logo">
                                 <a href="/">
                                     <img alt="logo"
-                                         src={toAbsoluteUrl("/media/svg/permify.svg")}/>
+                                         src={toAbsoluteUrl("/media/svg/permify.svg")}
+                                         width="132"
+                                         height="34"/>
                                 </a>
                             </div>
                             <div className="ml-12">
