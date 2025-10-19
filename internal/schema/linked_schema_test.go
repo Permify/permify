@@ -1090,6 +1090,12 @@ var _ = Describe("linked schema", func() {
 						Value: "balance",
 					},
 					TupleSetRelation: "",
+					RelationPath: []*base.RelationReference{
+						{
+							Type:     "account",
+							Relation: "parent",
+						},
+					},
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -1178,6 +1184,12 @@ var _ = Describe("linked schema", func() {
 						Value: "balance",
 					},
 					TupleSetRelation: "",
+					RelationPath: []*base.RelationReference{
+						{
+							Type:     "account",
+							Relation: "parent",
+						},
+					},
 				},
 			}))
 		})
@@ -1246,6 +1258,12 @@ var _ = Describe("linked schema", func() {
 						Value: "attr__is_public",
 					},
 					TupleSetRelation: "",
+					RelationPath: []*base.RelationReference{
+						{
+							Type:     "ccc",
+							Relation: "resource__bbb",
+						},
+					},
 				},
 			}))
 		})

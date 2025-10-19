@@ -18,14 +18,14 @@ type EntityFilter struct {
 	// dataReader is responsible for reading relationship information
 	dataReader storage.DataReader
 
-	schema *base.SchemaDefinition
+	graph *schema.LinkedSchemaGraph
 }
 
 // NewEntityFilter creates a new EntityFilter engine
 func NewEntityFilter(dataReader storage.DataReader, sch *base.SchemaDefinition) *EntityFilter {
 	return &EntityFilter{
 		dataReader: dataReader,
-		schema:     sch,
+		graph:      schema.NewLinkedGraph(sch),
 	}
 }
 
@@ -56,9 +56,8 @@ func (engine *EntityFilter) EntityFilter(
 	}
 
 	// Retrieve linked entrances
-	cn := schema.NewLinkedGraph(engine.schema) // Create a new linked graph from the schema definition.
 	var entrances []*schema.LinkedEntrance
-	entrances, err = cn.LinkedEntrances(
+	entrances, err = engine.graph.LinkedEntrances(
 		request.GetEntrance(),
 		&base.Entrance{
 			Type:  request.GetSubject().GetType(),
@@ -123,28 +122,25 @@ func (engine *EntityFilter) attributeEntrance(
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
+	// Check if this is a nested attribute case (different entity types)
 	if request.GetEntrance().GetType() != entrance.TargetEntrance.GetType() {
+		// This is a nested attribute case - use native recursive approach
+		return engine.handleNestedAttribute(ctx, request, entrance, visits, publisher)
+	}
+
+	// Regular case: same entity type, direct attribute access
+	if !visits.AddEA(entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue()) {
 		return nil
 	}
 
-	if !visits.AddEA(entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue()) { // If the entity and relation has already been visited.
-		return nil
-	}
-
-	// Retrieve the scope associated with the target entrance type.
-	// Check if it exists to avoid accessing a nil map entry.
+	// Retrieve the scope associated with the target entrance type
 	scope, exists := request.GetScope()[entrance.TargetEntrance.GetType()]
-
-	// Initialize data as an empty slice of strings.
 	var data []string
-
-	// If the scope exists, assign its Data field to the data slice.
 	if exists {
 		data = scope.GetData()
 	}
 
-	// Define a TupleFilter. This specifies which tuples we're interested in.
-	// We want tuples that match the entity type and ID from the request, and have a specific relation.
+	// Query attributes directly
 	filter := &base.AttributeFilter{
 		Entity: &base.EntityFilter{
 			Type: entrance.TargetEntrance.GetType(),
@@ -153,53 +149,168 @@ func (engine *EntityFilter) attributeEntrance(
 		Attributes: []string{entrance.TargetEntrance.GetValue()},
 	}
 
-	var (
-		cti, rit   *database.AttributeIterator
-		err        error
-		pagination database.CursorPagination
-	)
+	pagination := database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
 
-	pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-
-	// Query the relationships using the specified pagination settings.
-	// The context tuples are filtered based on the provided filter.
-	cti, err = storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, pagination)
+	cti, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, pagination)
 	if err != nil {
 		return err
 	}
 
-	// Query the relationships for the entity in the request.
-	// The results are filtered based on the provided filter and pagination settings.
-	rit, err = engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), pagination)
+	rit, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), pagination)
 	if err != nil {
 		return err
 	}
 
-	// Create a new UniqueTupleIterator from the two TupleIterators.
-	// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
 	it := database.NewUniqueAttributeIterator(rit, cti)
 
-	// Iterate over the relationships.
+	// Publish entities directly for regular case
 	for it.HasNext() {
-		// Get the next attribute's entity.
 		current, ok := it.GetNext()
 		if !ok {
 			break
 		}
 
-		// Extract the entity details.
 		entity := &base.Entity{
-			Type: entrance.TargetEntrance.GetType(), // Example: using the type from a previous variable 'entrance'
+			Type: entrance.TargetEntrance.GetType(),
 			Id:   current.GetEntity().GetId(),
 		}
 
-		// Check if the entity has already been visited to prevent processing it again.
 		if !visits.AddPublished(entity) {
-			continue // Skip this entity if it has already been visited.
+			continue
 		}
 
-		// Publish the entity with its metadata.
 		publisher.Publish(entity, &base.PermissionCheckRequestMetadata{
+			SnapToken:     request.GetMetadata().GetSnapToken(),
+			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+			Depth:         request.GetMetadata().GetDepth(),
+		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+	}
+
+	return nil
+}
+
+// handleNestedAttribute handles nested attribute cases using native recursive approach
+func (engine *EntityFilter) handleNestedAttribute(
+	ctx context.Context,
+	request *base.PermissionEntityFilterRequest,
+	entrance *schema.LinkedEntrance,
+	visits *VisitsMap,
+	publisher *BulkEntityPublisher,
+) error {
+	if !visits.AddEA(entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue()) {
+		return nil
+	}
+
+	// 1. Query attributes of the target type with scope optimization
+	scope, exists := request.GetScope()[entrance.TargetEntrance.GetType()]
+	var data []string
+	if exists {
+		data = scope.GetData()
+	}
+	// For nested case, we still need to respect scope if provided
+
+	filter := &base.AttributeFilter{
+		Entity: &base.EntityFilter{
+			Type: entrance.TargetEntrance.GetType(),
+			Ids:  data, // Use scope data for optimization
+		},
+		Attributes: []string{entrance.TargetEntrance.GetValue()},
+	}
+
+	pagination := database.NewCursorPagination()
+	cti, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, pagination)
+	if err != nil {
+		return err
+	}
+
+	rit, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), pagination)
+	if err != nil {
+		return err
+	}
+
+	it := database.NewUniqueAttributeIterator(rit, cti)
+
+	// 2. Collect all attribute entity IDs first (batch approach)
+	var attributeEntityIds []string
+	sourceType := request.GetEntrance().GetType()
+	targetType := entrance.TargetEntrance.GetType()
+
+	// Use pre-computed relation path if available, otherwise compute dynamically
+	var relationName string
+	if len(entrance.RelationPath) > 0 {
+		relationName = entrance.RelationPath[0].GetRelation()
+	} else {
+		// Fallback: compute relation path dynamically
+		relationPath, err := engine.graph.BuildRelationPath(sourceType, targetType)
+		if err != nil {
+			return err // Cannot determine relation path
+		}
+		entrance.RelationPath = relationPath
+		relationName = relationPath[0].GetRelation()
+	}
+
+	// Collect all entity IDs that have the attribute
+	for it.HasNext() {
+		current, ok := it.GetNext()
+		if !ok {
+			break
+		}
+		attributeEntityIds = append(attributeEntityIds, current.GetEntity().GetId())
+	}
+
+	if len(attributeEntityIds) == 0 {
+		return nil
+	}
+
+	// 3. Single batch query to find all related entities with scope optimization
+	sourceScope, sourceExists := request.GetScope()[sourceType]
+	var sourceData []string
+	if sourceExists {
+		sourceData = sourceScope.GetData()
+	}
+
+	relationFilter := &base.TupleFilter{
+		Entity: &base.EntityFilter{
+			Type: sourceType,
+			Ids:  sourceData, // Use source scope for optimization
+		},
+		Relation: relationName,
+		Subject: &base.SubjectFilter{
+			Type:     targetType,
+			Ids:      attributeEntityIds, // Batch all attribute entity IDs
+			Relation: "",
+		},
+	}
+
+	pagination = database.NewCursorPagination()
+	ctiRelations, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(relationFilter, pagination)
+	if err != nil {
+		return err
+	}
+
+	ritRelations, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), relationFilter, request.GetMetadata().GetSnapToken(), pagination)
+	if err != nil {
+		return err
+	}
+
+	relationIt := database.NewUniqueTupleIterator(ritRelations, ctiRelations)
+	for relationIt.HasNext() {
+		tuple, ok := relationIt.GetNext()
+		if !ok {
+			break
+		}
+
+		relatedEntity := &base.Entity{
+			Type: sourceType,
+			Id:   tuple.GetEntity().GetId(),
+		}
+
+		if !visits.AddPublished(relatedEntity) {
+			continue
+		}
+
+		// BulkEntityPublisher handles bulk processing - just publish entity ID
+		publisher.Publish(relatedEntity, &base.PermissionCheckRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
@@ -407,9 +518,8 @@ func (engine *EntityFilter) lt(
 	var err error
 
 	// Retrieve linked entrances
-	cn := schema.NewLinkedGraph(engine.schema)
 	var entrances []*schema.LinkedEntrance
-	entrances, err = cn.LinkedEntrances(
+	entrances, err = engine.graph.LinkedEntrances(
 		request.GetEntrance(),
 		&base.Entrance{
 			Type:  request.GetSubject().GetType(),

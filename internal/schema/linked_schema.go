@@ -2,19 +2,23 @@ package schema
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/Permify/permify/pkg/dsl/utils"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// RelationMap represents a cached mapping for O(1) relation lookups between entity types.
+// Structure: sourceEntityType -> targetEntityType -> relationName
+type RelationMap map[string]map[string]string
+
 // LinkedSchemaGraph represents a graph of linked schema objects. The schema object contains definitions for entities,
 // relationships, and permissions, and the graph is constructed by linking objects together based on their dependencies. The
 // graph is used by the PermissionEngine to resolve permissions and expand user sets for a given request.
-//
-// Fields:
-//   - schema: pointer to the base.SchemaDefinition that defines the schema objects in the graph
 type LinkedSchemaGraph struct {
-	schema *base.SchemaDefinition
+	schema      *base.SchemaDefinition
+	relationMap RelationMap
+	once        sync.Once
 }
 
 // NewLinkedGraph returns a new instance of LinkedSchemaGraph with the specified base.SchemaDefinition as its schema.
@@ -29,8 +33,26 @@ type LinkedSchemaGraph struct {
 //   - pointer to a new instance of LinkedSchemaGraph with the specified schema object
 func NewLinkedGraph(schema *base.SchemaDefinition) *LinkedSchemaGraph {
 	return &LinkedSchemaGraph{
-		schema: schema,
+		schema:      schema,
+		relationMap: make(RelationMap),
+		once:        sync.Once{},
 	}
+}
+
+// ensureRelationMapInitialized ensures the relation map is initialized exactly once
+func (g *LinkedSchemaGraph) ensureRelationMapInitialized() {
+	g.once.Do(func() {
+		g.relationMap = make(RelationMap)
+
+		for sourceType, entityDef := range g.schema.EntityDefinitions {
+			g.relationMap[sourceType] = make(map[string]string)
+			for relationName, relationDef := range entityDef.Relations {
+				for _, relRef := range relationDef.RelationReferences {
+					g.relationMap[sourceType][relRef.GetType()] = relationName
+				}
+			}
+		}
+	})
 }
 
 // LinkedEntranceKind is a string type that represents the kind of LinkedEntrance object. An LinkedEntrance object defines an entry point
@@ -56,13 +78,14 @@ const (
 //
 // Fields:
 //   - Kind: LinkedEntranceKind representing the type of entry point
-//   - LinkedEntrance: pointer to a base.RelationReference that identifies the entry point in the schema graph
-//   - TupleSetRelation: pointer to a base.RelationReference that specifies the relation to use when expanding user sets
-//     for the entry point
+//   - TargetEntrance: pointer to a base.Entrance that identifies the entry point in the schema graph
+//   - TupleSetRelation: string that specifies the relation to use when expanding user sets for the entry point
+//   - RelationPath: slice of base.RelationReference that represents the path for nested attributes
 type LinkedEntrance struct {
 	Kind             LinkedEntranceKind
 	TargetEntrance   *base.Entrance
 	TupleSetRelation string
+	RelationPath     []*base.RelationReference // Path for nested attributes using protobuf RelationReference
 }
 
 // LinkedEntranceKind returns the kind of the LinkedEntrance object. The kind specifies the type of entry point (e.g. relation,
@@ -243,6 +266,9 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.Entrance, leaf
 			return nil, errors.New("relation definition not found")
 		}
 
+		// Cache computed relation paths to avoid duplicate BuildRelationPath calls
+		relationPathCache := make(map[string][]*base.RelationReference)
+
 		for _, rel := range relations.GetRelationReferences() {
 			if rel.GetType() == source.GetType() && source.GetValue() == computedUserSet {
 				res = append(res, &LinkedEntrance{
@@ -263,6 +289,23 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.Entrance, leaf
 			if err != nil {
 				return nil, err
 			}
+
+			// Populate relation path for nested attributes with caching
+			for _, result := range results {
+				if result.Kind == AttributeLinkedEntrance && target.GetType() != rel.GetType() {
+					cacheKey := target.GetType() + "->" + rel.GetType()
+					if relationPath, exists := relationPathCache[cacheKey]; exists {
+						result.RelationPath = relationPath
+					} else {
+						relationPath, err := g.BuildRelationPath(target.GetType(), rel.GetType())
+						if err == nil {
+							relationPathCache[cacheKey] = relationPath
+							result.RelationPath = relationPath
+						}
+					}
+				}
+			}
+
 			res = append(res, results...)
 		}
 		return res, nil
@@ -358,4 +401,38 @@ func (g *LinkedSchemaGraph) findEntranceRewrite(target, source *base.Entrance, r
 		res = append(res, results...)
 	}
 	return res, nil
+}
+
+// GetInverseRelation finds which relation connects the given entity types.
+// Returns the relation name that connects sourceEntityType to targetEntityType.
+// Uses O(1) cached lookup for optimal performance.
+func (g *LinkedSchemaGraph) GetInverseRelation(sourceEntityType, targetEntityType string) (string, error) {
+	g.ensureRelationMapInitialized()
+
+	sourceRelations, exists := g.relationMap[sourceEntityType]
+	if !exists {
+		return "", errors.New("source entity definition not found")
+	}
+
+	relationName, exists := sourceRelations[targetEntityType]
+	if !exists {
+		return "", errors.New("no relation found connecting source to target entity type")
+	}
+
+	return relationName, nil
+}
+
+// BuildRelationPath builds the relation path for nested attributes
+func (g *LinkedSchemaGraph) BuildRelationPath(sourceEntityType, targetEntityType string) ([]*base.RelationReference, error) {
+	relationName, err := g.GetInverseRelation(sourceEntityType, targetEntityType)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*base.RelationReference{
+		{
+			Type:     sourceEntityType,
+			Relation: relationName,
+		},
+	}, nil
 }
