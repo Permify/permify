@@ -6027,5 +6027,166 @@ entity group_perms {
 				Expect(resp.GetEntityIds()).Should(Equal(tc.expectedDocs), "Test case: %s should return expected docs", tc.name)
 			}
 		})
+
+		It("Should handle multi-hop nested attribute filtering with PathChain", func() {
+			// Test that demonstrates the new multi-hop PathChain functionality
+			// Schema: Employee -> Department -> Company -> Region attributes
+			multiHopSchema := `
+			entity user {}
+
+			entity region {
+				relation admin @user
+				attribute region_name string
+				attribute access_level string
+				permission REGION_ACCESS = check_region_access(region_name, access_level) or admin
+			}
+
+			entity company {
+				relation region @region
+				attribute company_id string
+				permission COMPANY_ACCESS = region.REGION_ACCESS
+			}
+
+			entity department {
+				relation company @company
+				attribute dept_name string
+				permission DEPT_ACCESS = company.COMPANY_ACCESS
+			}
+
+			entity employee {
+				relation department @department
+				attribute employee_id string
+				permission EMPLOYEE_ACCESS = department.DEPT_ACCESS
+			}
+
+			rule check_region_access(region_name string, access_level string) {
+				true
+			}
+
+			rule check_company_access(company_id string) {
+				true
+			}
+			`
+
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(multiHopSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			// Create multi-hop relationships: employee -> department -> company -> region
+			var tuples []*base.Tuple
+			relationships := []string{
+				// User entities with region admin relationships
+				"region:us-east#admin@user:test-user",
+				"region:us-west#admin@user:test-user",
+
+				// Company entities with region relationships
+				"company:acme#region@region:us-east",
+				"company:beta#region@region:us-west",
+
+				// Department entities with company relationships
+				"department:eng#company@company:acme",
+				"department:sales#company@company:beta",
+
+				// Employee entities with department relationships
+				"employee:alice#department@department:eng",
+				"employee:bob#department@department:sales",
+			}
+
+			for _, relationship := range relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			// Create attributes for all levels
+			var attributes []*base.Attribute
+			attributeStrings := []string{
+				// Region attributes (4-hop target)
+				"region:us-east$region_name|string:us-east",
+				"region:us-east$access_level|string:standard",
+				"region:us-west$region_name|string:us-west",
+				"region:us-west$access_level|string:premium",
+
+				// Company attributes (3-hop target)
+				"company:acme$company_id|string:acme-001",
+				"company:beta$company_id|string:beta-002",
+
+				// Department attributes (2-hop target)
+				"department:eng$dept_name|string:engineering",
+				"department:sales$dept_name|string:sales",
+
+				// Employee attributes (1-hop target)
+				"employee:alice$employee_id|string:alice-001",
+				"employee:bob$employee_id|string:bob-002",
+			}
+
+			for _, attr := range attributeStrings {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attributes = append(attributes, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attributes...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			// Test multi-hop nested attribute filtering: user -> region -> company -> department -> employee
+			// This demonstrates proper authorization hierarchy: user has admin access to regions,
+			// and employee access flows through department hierarchy using PathChain
+			resp, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "employee",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "test-user",
+				},
+				Permission: "EMPLOYEE_ACCESS",
+				Context: &base.Context{
+					Tuples:     []*base.Tuple{},
+					Attributes: []*base.Attribute{},
+					Data:       nil,
+				},
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         200, // High depth for multi-hop traversal
+				},
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp).ShouldNot(BeNil())
+			// Should return both employees because the multi-hop path works:
+			// 1. alice -> eng -> acme -> us-east (employee->department->company->region)
+			// 2. bob -> sales -> beta -> us-west (employee->department->company->region)
+			// PathChain will traverse these 3 hops and resolve to region attributes
+			Expect(resp.GetEntityIds()).Should(ContainElements("alice", "bob"))
+		})
 	})
 })

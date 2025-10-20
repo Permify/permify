@@ -1084,15 +1084,17 @@ var _ = Describe("linked schema", func() {
 					TupleSetRelation: "",
 				},
 				{
-					Kind: AttributeLinkedEntrance,
+					Kind: PathChainLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "organization",
 						Value: "balance",
 					},
 					TupleSetRelation: "",
-					Path: &base.RelationReference{
-						Type:     "account",
-						Relation: "parent",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "account",
+							Relation: "parent",
+						},
 					},
 				},
 				{
@@ -1176,15 +1178,17 @@ var _ = Describe("linked schema", func() {
 					TupleSetRelation: "",
 				},
 				{
-					Kind: AttributeLinkedEntrance,
+					Kind: PathChainLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "organization",
 						Value: "balance",
 					},
 					TupleSetRelation: "",
-					Path: &base.RelationReference{
-						Type:     "account",
-						Relation: "parent",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "account",
+							Relation: "parent",
+						},
 					},
 				},
 			}))
@@ -1240,24 +1244,26 @@ var _ = Describe("linked schema", func() {
 					TupleSetRelation: "",
 				},
 				{
+					Kind: PathChainLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "bbb",
+						Value: "attr__is_public",
+					},
+					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "ccc",
+							Relation: "resource__bbb",
+						},
+					},
+				},
+				{
 					Kind: RelationLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "bbb",
 						Value: "role__admin",
 					},
 					TupleSetRelation: "",
-				},
-				{
-					Kind: AttributeLinkedEntrance,
-					TargetEntrance: &base.Entrance{
-						Type:  "bbb",
-						Value: "attr__is_public",
-					},
-					TupleSetRelation: "",
-					Path: &base.RelationReference{
-						Type:     "ccc",
-						Relation: "resource__bbb",
-					},
 				},
 			}))
 		})
@@ -1701,15 +1707,17 @@ var _ = Describe("linked schema", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
-					Kind: AttributeLinkedEntrance,
+					Kind: PathChainLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "task",
 						Value: "priority",
 					},
 					TupleSetRelation: "",
-					Path: &base.RelationReference{
-						Type:     "document",
-						Relation: "task",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "document",
+							Relation: "task",
+						},
 					},
 				},
 			}))
@@ -1775,27 +1783,31 @@ var _ = Describe("linked schema", func() {
 
 			Expect(ent).Should(Equal([]*LinkedEntrance{
 				{
-					Kind: AttributeLinkedEntrance,
-					TargetEntrance: &base.Entrance{
-						Type:  "company",
-						Value: "company_id",
-					},
-					TupleSetRelation: "",
-					Path: &base.RelationReference{
-						Type:     "employee",
-						Relation: "department",
-					},
-				},
-				{
-					Kind: AttributeLinkedEntrance,
+					Kind: PathChainLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "department",
 						Value: "dept_name",
 					},
 					TupleSetRelation: "",
-					Path: &base.RelationReference{
-						Type:     "employee",
-						Relation: "department",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "employee",
+							Relation: "department",
+						},
+					},
+				},
+				{
+					Kind: PathChainLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "company",
+						Value: "company_id",
+					},
+					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "department",
+							Relation: "company",
+						},
 					},
 				},
 				{
@@ -1805,7 +1817,7 @@ var _ = Describe("linked schema", func() {
 						Value: "employee_id",
 					},
 					TupleSetRelation: "",
-					Path:             nil,
+					PathChain:        nil,
 				},
 			}))
 		})
