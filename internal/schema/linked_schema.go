@@ -481,3 +481,19 @@ func (g *LinkedSchemaGraph) BuildRelationPathChain(sourceEntityType, targetEntit
 
 	return nil, errors.New("no path found between entity types")
 }
+
+// GetSubjectRelationForPathWalk determines the correct subject relation for a given path walk
+// This is needed to fix the Subject.Relation field in path chain traversal for complex relations like @group#member
+func (g *LinkedSchemaGraph) GetSubjectRelationForPathWalk(leftEntityType, relationName, rightEntityType string) string {
+	if entityDef, exists := g.schema.EntityDefinitions[leftEntityType]; exists {
+		if relationDef, exists := entityDef.Relations[relationName]; exists {
+			// Look for RelationReference that matches rightEntityType
+			for _, relRef := range relationDef.GetRelationReferences() {
+				if relRef.GetType() == rightEntityType {
+					return relRef.GetRelation()
+				}
+			}
+		}
+	}
+	return ""
+}

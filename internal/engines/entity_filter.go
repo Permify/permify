@@ -509,9 +509,9 @@ func (engine *EntityFilter) pathChainEntrance(
 	currentIds := attributeEntityIds
 
 	for i := len(chain) - 1; i >= 0; i-- {
-		hop := chain[i] // hop.Type == left entity type; hop.Relation relates hop.Type -> currentType
+		walk := chain[i] // walk.Type == left entity type; walk.Relation relates walk.Type -> currentType
 
-		// Apply scope optimization only on the final hop (source type)
+		// Apply scope optimization only on the final walk (source type)
 		var entIds []string
 		if i == 0 {
 			if s, exists := request.GetScope()[sourceType]; exists {
@@ -519,16 +519,19 @@ func (engine *EntityFilter) pathChainEntrance(
 			}
 		}
 
+		// Determine correct subject relation for complex cases like @group#member
+		subjectRelation := engine.graph.GetSubjectRelationForPathWalk(walk.GetType(), walk.GetRelation(), currentType)
+
 		relationFilter := &base.TupleFilter{
 			Entity: &base.EntityFilter{
-				Type: hop.GetType(),
+				Type: walk.GetType(),
 				Ids:  entIds,
 			},
-			Relation: hop.GetRelation(),
+			Relation: walk.GetRelation(),
 			Subject: &base.SubjectFilter{
 				Type:     currentType,
 				Ids:      currentIds,
-				Relation: "",
+				Relation: subjectRelation, // Fixed: Use correct subject relation for complex cases
 			},
 		}
 
@@ -561,11 +564,11 @@ func (engine *EntityFilter) pathChainEntrance(
 		}
 
 		if len(nextIdsSet) == 0 {
-			return nil // No path found through this hop
+			return nil // No path found through this walk
 		}
 
-		// prepare for next hop
-		currentType = hop.GetType()
+		// prepare for next walk
+		currentType = walk.GetType()
 		currentIds = nextIds
 	}
 
