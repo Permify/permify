@@ -10,9 +10,6 @@ import (
 // LinkedSchemaGraph represents a graph of linked schema objects. The schema object contains definitions for entities,
 // relationships, and permissions, and the graph is constructed by linking objects together based on their dependencies. The
 // graph is used by the PermissionEngine to resolve permissions and expand user sets for a given request.
-//
-// Fields:
-//   - schema: pointer to the base.SchemaDefinition that defines the schema objects in the graph
 type LinkedSchemaGraph struct {
 	schema *base.SchemaDefinition
 }
@@ -47,6 +44,7 @@ const (
 	TupleToUserSetLinkedEntrance  LinkedEntranceKind = "tuple_to_user_set"
 	ComputedUserSetLinkedEntrance LinkedEntranceKind = "computed_user_set"
 	AttributeLinkedEntrance       LinkedEntranceKind = "attribute"
+	PathChainLinkedEntrance       LinkedEntranceKind = "path_chain"
 )
 
 // LinkedEntrance represents an entry point into the LinkedSchemaGraph, which is used to resolve permissions and expand user
@@ -56,13 +54,14 @@ const (
 //
 // Fields:
 //   - Kind: LinkedEntranceKind representing the type of entry point
-//   - LinkedEntrance: pointer to a base.RelationReference that identifies the entry point in the schema graph
-//   - TupleSetRelation: pointer to a base.RelationReference that specifies the relation to use when expanding user sets
-//     for the entry point
+//   - TargetEntrance: pointer to a base.Entrance that identifies the entry point in the schema graph
+//   - TupleSetRelation: string that specifies the relation to use when expanding user sets for the entry point
+//   - PathChain: complete chain of relation references for multi-hop nested attributes
 type LinkedEntrance struct {
 	Kind             LinkedEntranceKind
 	TargetEntrance   *base.Entrance
 	TupleSetRelation string
+	PathChain        []*base.RelationReference // Complete chain for multi-hop nested attributes
 }
 
 // LinkedEntranceKind returns the kind of the LinkedEntrance object. The kind specifies the type of entry point (e.g. relation,
@@ -243,6 +242,9 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.Entrance, leaf
 			return nil, errors.New("relation definition not found")
 		}
 
+		// Cache computed relation path chains to avoid duplicate BuildRelationPathChain calls
+		relationPathChainCache := make(map[string][]*base.RelationReference)
+
 		for _, rel := range relations.GetRelationReferences() {
 			if rel.GetType() == source.GetType() && source.GetValue() == computedUserSet {
 				res = append(res, &LinkedEntrance{
@@ -263,7 +265,45 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.Entrance, leaf
 			if err != nil {
 				return nil, err
 			}
-			res = append(res, results...)
+
+			// Handle nested attributes: create PathChainLinkedEntrance for cases with PathChain
+			var filteredResults []*LinkedEntrance
+
+			for _, result := range results {
+				if result.Kind == AttributeLinkedEntrance && target.GetType() != result.TargetEntrance.GetType() {
+					cacheKey := target.GetType() + "->" + result.TargetEntrance.GetType()
+
+					var pathChain []*base.RelationReference
+					var exists bool
+
+					if pathChain, exists = relationPathChainCache[cacheKey]; !exists {
+						var err error
+						pathChain, err = g.BuildRelationPathChain(target.GetType(), result.TargetEntrance.GetType())
+						if err == nil {
+							relationPathChainCache[cacheKey] = pathChain
+						}
+					}
+
+					if len(pathChain) > 0 {
+						// Create PathChainLinkedEntrance for cases with PathChain
+						res = append(res, &LinkedEntrance{
+							Kind:             PathChainLinkedEntrance,
+							TargetEntrance:   result.TargetEntrance,
+							TupleSetRelation: "",
+							PathChain:        pathChain,
+						})
+						// Skip adding AttributeLinkedEntrance for cases with PathChain
+					} else {
+						// No PathChain, keep AttributeLinkedEntrance
+						filteredResults = append(filteredResults, result)
+					}
+				} else {
+					// Non-nested or other types: keep as-is
+					filteredResults = append(filteredResults, result)
+				}
+			}
+
+			res = append(res, filteredResults...)
 		}
 		return res, nil
 	case *base.Leaf_ComputedUserSet:
@@ -358,4 +398,102 @@ func (g *LinkedSchemaGraph) findEntranceRewrite(target, source *base.Entrance, r
 		res = append(res, results...)
 	}
 	return res, nil
+}
+
+// GetInverseRelation finds which relation connects the given entity types.
+// Returns the relation name that connects sourceEntityType to targetEntityType.
+func (g *LinkedSchemaGraph) GetInverseRelation(sourceEntityType, targetEntityType string) (string, error) {
+	entityDef, exists := g.schema.EntityDefinitions[sourceEntityType]
+	if !exists {
+		return "", errors.New("source entity definition not found")
+	}
+
+	for relationName, relationDef := range entityDef.Relations {
+		for _, relRef := range relationDef.RelationReferences {
+			if relRef.GetType() == targetEntityType {
+				return relationName, nil
+			}
+		}
+	}
+
+	return "", errors.New("no relation found connecting source to target entity type")
+}
+
+// BuildRelationPathChain builds the complete relation path chain for multi-hop nested attributes
+func (g *LinkedSchemaGraph) BuildRelationPathChain(sourceEntityType, targetEntityType string) ([]*base.RelationReference, error) {
+	// Try direct relation first
+	relationName, err := g.GetInverseRelation(sourceEntityType, targetEntityType)
+	if err == nil {
+		// Direct relation exists, return single hop
+		return []*base.RelationReference{
+			{
+				Type:     sourceEntityType,
+				Relation: relationName,
+			},
+		}, nil
+	}
+
+	// Use BFS to find multi-hop path
+	visited := make(map[string]bool)
+	queue := []struct {
+		entityType string
+		path       []*base.RelationReference
+	}{{sourceEntityType, []*base.RelationReference{}}}
+
+	visited[sourceEntityType] = true
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		if current.entityType == targetEntityType {
+			return current.path, nil
+		}
+
+		entityDef, exists := g.schema.EntityDefinitions[current.entityType]
+		if !exists {
+			continue
+		}
+
+		// Explore all relations from current entity
+		for relationName, relationDef := range entityDef.Relations {
+			for _, relRef := range relationDef.RelationReferences {
+				nextEntityType := relRef.GetType()
+				if !visited[nextEntityType] {
+					visited[nextEntityType] = true
+
+					// Build new path
+					newPath := make([]*base.RelationReference, len(current.path)+1)
+					copy(newPath, current.path)
+					newPath[len(current.path)] = &base.RelationReference{
+						Type:     current.entityType,
+						Relation: relationName,
+					}
+
+					queue = append(queue, struct {
+						entityType string
+						path       []*base.RelationReference
+					}{nextEntityType, newPath})
+				}
+			}
+		}
+	}
+
+	return nil, errors.New("no path found between entity types")
+}
+
+// GetSubjectRelationForPathWalk determines the correct subject relation for a given path walk
+// This is needed to fix the Subject.Relation field in path chain traversal for complex relations like @group#member
+func (g *LinkedSchemaGraph) GetSubjectRelationForPathWalk(leftEntityType, relationName, rightEntityType string) string {
+	if entityDef, exists := g.schema.EntityDefinitions[leftEntityType]; exists {
+		if relationDef, exists := entityDef.Relations[relationName]; exists {
+			// Look for RelationReference that matches rightEntityType
+			for _, relRef := range relationDef.GetRelationReferences() {
+				if relRef.GetType() == rightEntityType {
+					return relRef.GetRelation()
+				}
+			}
+		}
+	}
+	return ""
 }

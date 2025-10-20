@@ -1084,12 +1084,18 @@ var _ = Describe("linked schema", func() {
 					TupleSetRelation: "",
 				},
 				{
-					Kind: AttributeLinkedEntrance,
+					Kind: PathChainLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "organization",
 						Value: "balance",
 					},
 					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "account",
+							Relation: "parent",
+						},
+					},
 				},
 				{
 					Kind: RelationLinkedEntrance,
@@ -1172,12 +1178,18 @@ var _ = Describe("linked schema", func() {
 					TupleSetRelation: "",
 				},
 				{
-					Kind: AttributeLinkedEntrance,
+					Kind: PathChainLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "organization",
 						Value: "balance",
 					},
 					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "account",
+							Relation: "parent",
+						},
+					},
 				},
 			}))
 		})
@@ -1232,18 +1244,24 @@ var _ = Describe("linked schema", func() {
 					TupleSetRelation: "",
 				},
 				{
+					Kind: PathChainLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "bbb",
+						Value: "attr__is_public",
+					},
+					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "ccc",
+							Relation: "resource__bbb",
+						},
+					},
+				},
+				{
 					Kind: RelationLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "bbb",
 						Value: "role__admin",
-					},
-					TupleSetRelation: "",
-				},
-				{
-					Kind: AttributeLinkedEntrance,
-					TargetEntrance: &base.Entrance{
-						Type:  "bbb",
-						Value: "attr__is_public",
 					},
 					TupleSetRelation: "",
 				},
@@ -1611,6 +1629,197 @@ var _ = Describe("linked schema", func() {
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(Equal("entity definition not found"))
 			Expect(ent).Should(BeNil())
+		})
+
+		It("Case 30: Complex Multi-Level Nested Relations with Multiple Entities", func() {
+			// Test complex scenario with multiple entity types and deep nesting
+			// User -> Group -> Project -> Task -> Document with different permission levels
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity group {
+				relation member @user
+				relation admin @user
+				
+				permission manage = admin or member
+			}
+
+			entity project {
+				relation group @group
+				relation owner @user
+				attribute visibility string
+				
+				permission view = owner or group.manage
+				permission edit = owner or group.admin
+				permission check_visibility = check_project_visibility(visibility)
+			}
+
+			entity task {
+				relation project @project
+				relation assignee @user
+				attribute priority string
+				
+				permission view = assignee or project.view
+				permission complete = assignee or project.edit
+				permission check_priority = check_task_priority(priority)
+			}
+
+			entity document {
+				relation task @task
+				relation creator @user
+				attribute doc_type string
+				
+				permission read = creator or task.view
+				permission modify = creator or task.complete
+				permission check_doc_type = check_document_type(doc_type)
+				permission check_task_priority = task.check_priority
+			}
+
+			rule check_project_visibility(visibility string) {
+				true
+			}
+
+			rule check_task_priority(priority string) {
+				true
+			}
+
+			rule check_document_type(doc_type string) {
+				true
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			// Test nested attribute permission: check_task_priority (document -> task -> priority)
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "document",
+				Value: "check_task_priority",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: PathChainLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "task",
+						Value: "priority",
+					},
+					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "document",
+							Relation: "task",
+						},
+					},
+				},
+			}))
+		})
+
+		It("Case 31: Simple 3-Level Nested Attribute Hierarchy", func() {
+			// Test simple 3-level nested attribute: Company -> Department -> Employee -> Attribute
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity company {
+				relation department @department
+				attribute company_id string
+				
+				permission ACCESS_COMPANY = check_company(company_id)
+			}
+
+			entity department {
+				relation company @company
+				relation employee @employee
+				attribute dept_name string
+				
+				permission ACCESS_DEPT = company.ACCESS_COMPANY and check_department(dept_name)
+			}
+
+			entity employee {
+				relation department @department
+				attribute employee_id string
+				
+				permission ACCESS_EMPLOYEE = department.ACCESS_DEPT and check_employee(employee_id)
+			}
+
+			rule check_company(company_id string) {
+				true
+			}
+
+			rule check_department(dept_name string) {
+				true
+			}
+
+			rule check_employee(employee_id string) {
+				true
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			// Test nested attribute permission: ACCESS_EMPLOYEE (employee -> department -> company -> company attributes)
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "employee",
+				Value: "ACCESS_EMPLOYEE",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: PathChainLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "department",
+						Value: "dept_name",
+					},
+					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "employee",
+							Relation: "department",
+						},
+					},
+				},
+				{
+					Kind: PathChainLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "company",
+						Value: "company_id",
+					},
+					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "department",
+							Relation: "company",
+						},
+					},
+				},
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "employee",
+						Value: "employee_id",
+					},
+					TupleSetRelation: "",
+					PathChain:        nil,
+				},
+			}))
 		})
 	})
 })
