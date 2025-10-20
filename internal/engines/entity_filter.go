@@ -237,16 +237,16 @@ func (engine *EntityFilter) handleNestedAttribute(
 
 	// Use pre-computed relation path if available, otherwise compute dynamically
 	var relationName string
-	if len(entrance.RelationPath) > 0 {
-		relationName = entrance.RelationPath[0].GetRelation()
+	if entrance.Path != nil {
+		relationName = entrance.Path.GetRelation()
 	} else {
 		// Fallback: compute relation path dynamically
 		relationPath, err := engine.graph.BuildRelationPath(sourceType, targetType)
 		if err != nil {
 			return err // Cannot determine relation path
 		}
-		entrance.RelationPath = relationPath
-		relationName = relationPath[0].GetRelation()
+		entrance.Path = relationPath
+		relationName = relationPath.GetRelation()
 	}
 
 	// Collect all entity IDs that have the attribute
