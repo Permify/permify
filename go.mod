@@ -14,6 +14,7 @@ tool (
 	google.golang.org/protobuf/cmd/protoc-gen-go
 	mvdan.cc/gofumpt
 )
+
 //
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -40,7 +41,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/juju/ratelimit v1.0.2
 	github.com/lestrrat-go/jwx v1.2.31
-	github.com/onsi/ginkgo/v2 v2.25.3
+	github.com/onsi/ginkgo/v2 v2.26.0
 	github.com/onsi/gomega v1.38.2
 	github.com/pkg/errors v0.9.1
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10
@@ -78,6 +79,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	resenje.org/singleflight v0.4.3
 )
+
 //
 require (
 	4d63.com/gocheckcompilerdirectives v1.3.0 // indirect
@@ -337,6 +339,7 @@ require (
 	mvdan.cc/unparam v0.0.0-20250301125049-0df0534333a4 // indirect
 	pluginrpc.com/pluginrpc v0.5.0 // indirect
 )
+
 //
 require (
 	dario.cat/mergo v1.0.2 // indirect
