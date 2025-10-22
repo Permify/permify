@@ -13,7 +13,7 @@ RUN git checkout master
 ENV GOTOOLCHAIN=local
 RUN CGO_ENABLED=0 go install -a -tags netgo -ldflags=-w
 
-FROM cgr.dev/chainguard/static:latest@sha256:b2e1c3d3627093e54f6805823e73edd17ab93d6c7202e672988080c863e0412b
+FROM cgr.dev/chainguard/static:latest@sha256:bf076ce7861fe5cd50414b8ef26af247df58af0e256e17a7e4fc5ef2450393f9
 COPY --from=health-probe-builder /go/bin/grpc-health-probe /usr/local/bin/grpc_health_probe
 COPY --from=permify-builder /go/src/app/permify /usr/local/bin/permify
 ENV PATH="$PATH:/usr/local/bin"
