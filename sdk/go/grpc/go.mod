@@ -3,7 +3,7 @@ module main
 go 1.25.1
 
 require (
-	buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20251010095909-e243758af2d8.1
+	buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20251022084910-7f6d21e1e4a9.1
 	github.com/Permify/permify-go v0.4.9
 	google.golang.org/grpc v1.76.0
 )
