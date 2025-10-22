@@ -41,7 +41,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/juju/ratelimit v1.0.2
 	github.com/lestrrat-go/jwx v1.2.31
-	github.com/onsi/ginkgo/v2 v2.25.3
+	github.com/onsi/ginkgo/v2 v2.26.0
 	github.com/onsi/gomega v1.38.2
 	github.com/pkg/errors v0.9.1
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10
