@@ -433,14 +433,11 @@ func (engine *EntityFilter) lt(
 
 // pathChainEntrance handles multi-hop relation chain traversal for nested attributes
 //
-// TODO: This function can be optimized for better performance by implementing smart batching logic:
+// TODO: Optimize performance with smart batching:
 // - Extract unique attributes from path chain entrances to avoid duplicate queries
-// - Implement batch vs individual processing based on scope and attribute count:
-//   - Use batch mode when we have scope (limited entity IDs) or few attributes (<=1)
-//   - Use individual mode when no scope and multiple attributes to avoid loading large result sets
-//   - Refactor into smaller helper functions: extractUniqueAttributes, getScopeIds, shouldUseBatchMode,
-//     processBatchMode, processIndividualMode, queryAttributesBatch, processEntranceWithResults
-//   - Remove debug statements after optimization is tested
+// - Use batch processing when scope limits entity IDs or when attribute count is low (<=1)
+// - Use individual processing when no scope exists and multiple attributes are present
+// - Consider refactoring into helper functions for improved maintainability
 func (engine *EntityFilter) pathChainEntrance(
 	ctx context.Context,
 	request *base.PermissionEntityFilterRequest,
