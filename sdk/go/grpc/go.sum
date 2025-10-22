@@ -4,8 +4,8 @@ buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.10-2024122
 buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.10-20241220201140-4c5ba75caaf8.1/go.mod h1:Dkpdum4mgWWBTG5nDVJPCDdaqFh34tucP6RulxhdOjs=
 buf.build/gen/go/permifyco/permify/grpc/go v1.5.1-20240722150440-5ee7aa4c5fb5.1 h1:DSDj0FXKqfw+pNi3xouFc5Ewr5Pz7AJhpNih0nnEsRg=
 buf.build/gen/go/permifyco/permify/grpc/go v1.5.1-20240722150440-5ee7aa4c5fb5.1/go.mod h1:cLym9TbR9HOJOzI97hoD+szCeWqqzlPZdVlDbSXYSLs=
-buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20251010095909-e243758af2d8.1 h1:u9nyrkt5t7aljOMJlwGLnlEB4+j5atxG+/KNeIqgJZI=
-buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20251010095909-e243758af2d8.1/go.mod h1:rd83ZLYouLoCkkkayczBp+VAoiJbYFBhVJvY3aJCY2g=
+buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20251022084910-7f6d21e1e4a9.1 h1:5qP7hqDqyPRuIkVdrzP6ceKTDYPayb/D/M7OeB4xd94=
+buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.10-20251022084910-7f6d21e1e4a9.1/go.mod h1:rd83ZLYouLoCkkkayczBp+VAoiJbYFBhVJvY3aJCY2g=
 github.com/Permify/permify-go v0.4.9 h1:+BLAlbHR/5ZUZYZGOy7jwbSo5MVdofciK2GV2iiZHXo=
 github.com/Permify/permify-go v0.4.9/go.mod h1:YK3zhtF/ILLoiXcBDv9ct9O8NkX4UsP9YnwfgrPGHyY=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
