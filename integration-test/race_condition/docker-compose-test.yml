@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: pg
+      POSTGRES_PASSWORD: pg
+      POSTGRES_DB: permify
+    ports: [ "5434:5432" ]
+
+  permify:
+    build: ../../
+    environment:
+      PERMIFY_DATABASE_ENGINE: postgres
+      PERMIFY_DATABASE_URI: postgres://pg:pg@postgres:5432/permify?sslmode=disable
+    ports: [ "3477:3476" ]
+    depends_on: [ postgres ]
+    command: ["serve", "--http-enabled", "--log-level=debug"]

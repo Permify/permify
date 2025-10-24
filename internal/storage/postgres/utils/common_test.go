@@ -25,17 +25,47 @@ import (
 
 var _ = Describe("Common", func() {
 	Context("TestSnapshotQuery", func() {
-		It("Case 1", func() {
+		It("Case 1: Legacy mode (empty snapshot)", func() {
 			sl := squirrel.Select("column").From("table")
 			revision := uint64(42)
+			snapshot := ""
 
-			query := utils.SnapshotQuery(sl, revision)
+			query := utils.SnapshotQuery(sl, revision, snapshot)
 			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			expectedSQL := "SELECT column FROM table WHERE (pg_visible_in_snapshot(created_tx_id, (select snapshot from transactions where id = ?::xid8)) = true OR created_tx_id = ?::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, (select snapshot from transactions where id = ?::xid8)) = false OR expired_tx_id = ?::xid8) AND expired_tx_id <> ?::xid8)"
 			Expect(sql).Should(Equal(expectedSQL))
 			Expect(args).Should(Equal([]interface{}{revision, revision, revision, utils.ActiveRecordTxnID, revision}))
+		})
+
+		It("Case 2: New mode with snapshot (xmax == xid)", func() {
+			sl := squirrel.Select("column").From("table")
+			revision := uint64(42)
+			snapshot := "40:42:41" // xmax == xid
+
+			query := utils.SnapshotQuery(sl, revision, snapshot)
+			sql, args, err := query.ToSql()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			expectedSQL := "SELECT column FROM table WHERE (pg_visible_in_snapshot(created_tx_id, ?) = true OR created_tx_id = ?::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, ?) = false OR expired_tx_id = ?::xid8) AND expired_tx_id <> ?::xid8)"
+			Expect(sql).Should(Equal(expectedSQL))
+			Expect(args).Should(Equal([]interface{}{snapshot, revision, snapshot, utils.ActiveRecordTxnID, revision}))
+		})
+
+		It("Case 3: New mode with snapshot (xmax != xid)", func() {
+			sl := squirrel.Select("column").From("table")
+			revision := uint64(35)
+			snapshot := "30:40:35" // xmax > xid, valid case
+
+			query := utils.SnapshotQuery(sl, revision, snapshot)
+			sql, args, err := query.ToSql()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			expectedSnapshot := "30:40:35" // xid already in xip_list, no change needed
+			expectedSQL := "SELECT column FROM table WHERE (pg_visible_in_snapshot(created_tx_id, ?) = true OR created_tx_id = ?::xid8) AND ((pg_visible_in_snapshot(expired_tx_id, ?) = false OR expired_tx_id = ?::xid8) AND expired_tx_id <> ?::xid8)"
+			Expect(sql).Should(Equal(expectedSQL))
+			Expect(args).Should(Equal([]interface{}{expectedSnapshot, revision, expectedSnapshot, utils.ActiveRecordTxnID, revision}))
 		})
 	})
 
