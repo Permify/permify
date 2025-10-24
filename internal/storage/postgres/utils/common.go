@@ -40,7 +40,7 @@ const (
 // If xmax != xid, it adds xid to the xip_list to make the snapshot unique.
 func createFinalSnapshot(snapshotValue string, xid uint64) string {
 	// Parse snapshot: "xmin:xmax:xip_list"
-	parts := strings.Split(snapshotValue, ":")
+	parts := strings.SplitN(strings.TrimSpace(snapshotValue), ":", 3)
 	if len(parts) < 2 {
 		// Invalid snapshot format, return original
 		return snapshotValue
@@ -65,14 +65,18 @@ func createFinalSnapshot(snapshotValue string, xid uint64) string {
 		return snapshotValue
 	}
 
-	// xmax > xid, need to add xid to xip_list for uniqueness
+	// xmax > xid, need to consider adding xid to xip_list for uniqueness
 	xmin := parts[0]
+	// Do not add if xid <= xmin; it would wrongly mark a visible xid as in-progress.
+	if xminVal, err := strconv.ParseUint(xmin, 10, 64); err == nil && xid <= xminVal {
+		return snapshotValue
+	}
 
 	// Check if xip_list exists and is not empty
 	if len(parts) == 3 && parts[2] != "" {
 		// Check if xid is already in xip_list
 		xipList := parts[2]
-		for xip := range strings.SplitSeq(xipList, ",") {
+		for _, xip := range strings.Split(xipList, ",") {
 			if strings.TrimSpace(xip) == fmt.Sprintf("%d", xid) {
 				// xid already in xip_list, return original snapshot
 				return snapshotValue
