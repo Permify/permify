@@ -42,51 +42,56 @@ func createFinalSnapshot(snapshotValue string, xid uint64) string {
 	// Parse snapshot: "xmin:xmax:xip_list"
 	parts := strings.SplitN(strings.TrimSpace(snapshotValue), ":", 3)
 	if len(parts) < 2 {
-		// Invalid snapshot format, return original
 		return snapshotValue
 	}
 
-	// Parse xmax as integer for proper comparison
-	xmaxStr := parts[1]
-	xmax, err := strconv.ParseUint(xmaxStr, 10, 64)
-	if err != nil {
-		// If parsing fails, use original snapshot
-		return snapshotValue
-	}
+	xminStr, xmaxStr := parts[0], parts[1]
 
 	// If xmax == xid, no need to modify snapshot
-	if xmax == xid {
+	if xmaxStr == fmt.Sprintf("%d", xid) {
 		return snapshotValue
 	}
 
-	// If xid > xmax, this is invalid - xid should be visible in snapshot
-	// Return original snapshot to avoid creating invalid format
-	if xid > xmax {
-		return snapshotValue
-	}
-
-	// xmax > xid, need to consider adding xid to xip_list for uniqueness
-	xmin := parts[0]
-	// Do not add if xid <= xmin; it would wrongly mark a visible xid as in-progress.
-	if xminVal, err := strconv.ParseUint(xmin, 10, 64); err == nil && xid <= xminVal {
-		return snapshotValue
-	}
-
-	// Check if xip_list exists and is not empty
+	// Parse existing xip_list
+	var xips []uint64
 	if len(parts) == 3 && parts[2] != "" {
-		// Check if xid is already in xip_list
-		xipList := parts[2]
-		for _, xip := range strings.Split(xipList, ",") {
-			if strings.TrimSpace(xip) == fmt.Sprintf("%d", xid) {
-				// xid already in xip_list, return original snapshot
+		for _, xipStr := range strings.Split(parts[2], ",") {
+			xipStr = strings.TrimSpace(xipStr)
+			if xipStr == "" {
+				continue
+			}
+			xip, err := strconv.ParseUint(xipStr, 10, 64)
+			if err != nil {
 				return snapshotValue
 			}
+			// Check if xid is already in xip_list
+			if xip == xid {
+				return snapshotValue
+			}
+			xips = append(xips, xip)
 		}
-		// xid not in xip_list, append it
-		return fmt.Sprintf("%s:%s:%s,%d", xmin, xmaxStr, parts[2], xid)
-	} else {
-		// xip_list is empty, add xid
-		return fmt.Sprintf("%s:%s:%d", xmin, xmaxStr, xid)
+	}
+
+	// Add xid to the list and sort it
+	xips = append(xips, xid)
+	sortXips(xips)
+
+	// Rebuild xip_list string
+	var xipStrs []string
+	for _, xip := range xips {
+		xipStrs = append(xipStrs, fmt.Sprintf("%d", xip))
+	}
+	return fmt.Sprintf("%s:%s:%s", xminStr, xmaxStr, strings.Join(xipStrs, ","))
+}
+
+// sortXips sorts a slice of xip values in ascending order
+func sortXips(xips []uint64) {
+	for i := 0; i < len(xips)-1; i++ {
+		for j := i + 1; j < len(xips); j++ {
+			if xips[i] > xips[j] {
+				xips[i], xips[j] = xips[j], xips[i]
+			}
+		}
 	}
 }
 
