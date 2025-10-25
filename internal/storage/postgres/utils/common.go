@@ -47,8 +47,23 @@ func createFinalSnapshot(snapshotValue string, xid uint64) string {
 
 	xminStr, xmaxStr := parts[0], parts[1]
 
+	// Parse xmin and xmax for range validation
+	xmin, err := strconv.ParseUint(xminStr, 10, 64)
+	if err != nil {
+		return snapshotValue
+	}
+	xmax, err := strconv.ParseUint(xmaxStr, 10, 64)
+	if err != nil {
+		return snapshotValue
+	}
+
 	// If xmax == xid, no need to modify snapshot
-	if xmaxStr == fmt.Sprintf("%d", xid) {
+	if xmax == xid {
+		return snapshotValue
+	}
+
+	// Validate xid is in valid range [xmin, xmax)
+	if xid < xmin || xid >= xmax {
 		return snapshotValue
 	}
 
