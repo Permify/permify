@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	TransactionTemplate       = `INSERT INTO transactions (tenant_id) VALUES ($1) RETURNING id`
+	TransactionTemplate       = `INSERT INTO transactions (tenant_id) VALUES ($1) RETURNING id, snapshot`
 	InsertTenantTemplate      = `INSERT INTO tenants (id, name) VALUES ($1, $2) RETURNING created_at`
 	DeleteTenantTemplate      = `DELETE FROM tenants WHERE id = $1 RETURNING name, created_at`
 	DeleteAllByTenantTemplate = `DELETE FROM %s WHERE tenant_id = $1`
@@ -36,22 +36,100 @@ const (
 	earliestPostgresVersion = 130008 // The earliest supported version of PostgreSQL is 13.8
 )
 
+// createFinalSnapshot creates a final snapshot string for proper transaction visibility.
+// If xmax != xid, it adds xid to the xip_list to make the snapshot unique.
+func createFinalSnapshot(snapshotValue string, xid uint64) string {
+	// Parse snapshot: "xmin:xmax:xip_list"
+	parts := strings.SplitN(strings.TrimSpace(snapshotValue), ":", 3)
+	if len(parts) < 2 {
+		// Invalid snapshot format, return original
+		return snapshotValue
+	}
+
+	// Parse xmax as integer for proper comparison
+	xmaxStr := parts[1]
+	xmax, err := strconv.ParseUint(xmaxStr, 10, 64)
+	if err != nil {
+		// If parsing fails, use original snapshot
+		return snapshotValue
+	}
+
+	// If xmax == xid, no need to modify snapshot
+	if xmax == xid {
+		return snapshotValue
+	}
+
+	// If xid > xmax, this is invalid - xid should be visible in snapshot
+	// Return original snapshot to avoid creating invalid format
+	if xid > xmax {
+		return snapshotValue
+	}
+
+	// xmax > xid, need to consider adding xid to xip_list for uniqueness
+	xmin := parts[0]
+	// Do not add if xid <= xmin; it would wrongly mark a visible xid as in-progress.
+	if xminVal, err := strconv.ParseUint(xmin, 10, 64); err == nil && xid <= xminVal {
+		return snapshotValue
+	}
+
+	// Check if xip_list exists and is not empty
+	if len(parts) == 3 && parts[2] != "" {
+		// Check if xid is already in xip_list
+		xipList := parts[2]
+		for _, xip := range strings.Split(xipList, ",") {
+			if strings.TrimSpace(xip) == fmt.Sprintf("%d", xid) {
+				// xid already in xip_list, return original snapshot
+				return snapshotValue
+			}
+		}
+		// xid not in xip_list, append it
+		return fmt.Sprintf("%s:%s:%s,%d", xmin, xmaxStr, parts[2], xid)
+	} else {
+		// xip_list is empty, add xid
+		return fmt.Sprintf("%s:%s:%d", xmin, xmaxStr, xid)
+	}
+}
+
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
 // Optimized version with parameterized queries for security.
-func SnapshotQuery(sl squirrel.SelectBuilder, value uint64) squirrel.SelectBuilder {
-	// Create a subquery for the snapshot associated with the provided value.
-	snapshotQuery := "(select snapshot from transactions where id = ?::xid8)"
+func SnapshotQuery(sl squirrel.SelectBuilder, value uint64, snapshotValue string) squirrel.SelectBuilder {
+	// Backward compatibility: if snapshot is empty, use old method
+	if snapshotValue == "" {
+		// Create a subquery for the snapshot associated with the provided value.
+		snapshotQuery := "(select snapshot from transactions where id = ?::xid8)"
+
+		// Records that were created and are visible in the snapshot
+		createdWhere := squirrel.Or{
+			squirrel.Expr("pg_visible_in_snapshot(created_tx_id, ?) = true", squirrel.Expr(snapshotQuery, value)),
+			squirrel.Expr("created_tx_id = ?::xid8", value), // Include current transaction
+		}
+
+		// Records that are still active (not expired) at snapshot time
+		expiredWhere := squirrel.And{
+			squirrel.Or{
+				squirrel.Expr("pg_visible_in_snapshot(expired_tx_id, ?) = false", squirrel.Expr(snapshotQuery, value)),
+				squirrel.Expr("expired_tx_id = ?::xid8", ActiveRecordTxnID), // Never expired
+			},
+			squirrel.Expr("expired_tx_id <> ?::xid8", value), // Not expired by current transaction
+		}
+
+		// Add the created and expired conditions to the SELECT query.
+		return sl.Where(createdWhere).Where(expiredWhere)
+	}
+
+	// Create final snapshot with proper visibility
+	finalSnapshot := createFinalSnapshot(snapshotValue, value)
 
 	// Records that were created and are visible in the snapshot
 	createdWhere := squirrel.Or{
-		squirrel.Expr("pg_visible_in_snapshot(created_tx_id, ?) = true", squirrel.Expr(snapshotQuery, value)),
+		squirrel.Expr("pg_visible_in_snapshot(created_tx_id, ?) = true", finalSnapshot),
 		squirrel.Expr("created_tx_id = ?::xid8", value), // Include current transaction
 	}
 
 	// Records that are still active (not expired) at snapshot time
 	expiredWhere := squirrel.And{
 		squirrel.Or{
-			squirrel.Expr("pg_visible_in_snapshot(expired_tx_id, ?) = false", squirrel.Expr(snapshotQuery, value)),
+			squirrel.Expr("pg_visible_in_snapshot(expired_tx_id, ?) = false", finalSnapshot),
 			squirrel.Expr("expired_tx_id = ?::xid8", ActiveRecordTxnID), // Never expired
 		},
 		squirrel.Expr("expired_tx_id <> ?::xid8", value), // Not expired by current transaction

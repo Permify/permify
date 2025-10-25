@@ -179,9 +179,10 @@ func (w *DataWriter) write(
 	defer func() {
 		_ = tx.Rollback(ctx)
 	}()
-	// Get transaction ID
+	// Get transaction ID and snapshot
 	var xid db.XID8
-	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
+	var snapshotValue string
+	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid, &snapshotValue)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +234,7 @@ func (w *DataWriter) write(
 	// Log success
 	slog.DebugContext(ctx, "data successfully written to the database")
 	// Return snapshot token
-	return snapshot.NewToken(xid).Encode(), nil
+	return snapshot.NewToken(xid, snapshotValue).Encode(), nil
 }
 
 // delete handles the deletion of tuples and attributes from the database based on provided filters.
@@ -253,9 +254,10 @@ func (w *DataWriter) delete(
 	defer func() {
 		_ = tx.Rollback(ctx)
 	}()
-	// Get transaction ID
+	// Get transaction ID and snapshot
 	var xid db.XID8
-	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
+	var snapshotValue string
+	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid, &snapshotValue)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +310,7 @@ func (w *DataWriter) delete(
 
 	slog.DebugContext(ctx, "data successfully deleted from the database")
 	// Return snapshot token
-	return snapshot.NewToken(xid).Encode(), nil
+	return snapshot.NewToken(xid, snapshotValue).Encode(), nil
 } // End Delete
 // Helper functions for RunBundle
 // RunBundle helper function
@@ -330,9 +332,10 @@ func (w *DataWriter) runBundle(
 	defer func() {
 		_ = tx.Rollback(ctx)
 	}()
-	// Get transaction ID
+	// Get transaction ID and snapshot
 	var xid db.XID8
-	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid)
+	var snapshotValue string
+	err = tx.QueryRow(ctx, utils.TransactionTemplate, tenantID).Scan(&xid, &snapshotValue)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +377,7 @@ func (w *DataWriter) runBundle(
 		return nil, err
 	}
 	// Return snapshot token
-	return snapshot.NewToken(xid).Encode(), nil
+	return snapshot.NewToken(xid, snapshotValue).Encode(), nil
 }
 
 // runOperation processes and executes database operations defined in TupleBundle and AttributeBundle within a given transaction.

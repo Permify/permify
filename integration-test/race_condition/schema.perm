@@ -1,0 +1,11 @@
+entity user {}
+
+entity doc {
+    relation can_read @user
+    relation can_comment @user
+    relation can_edit @user
+
+    permission read = can_read
+    permission comment = can_comment
+    permission edit = can_edit
+}

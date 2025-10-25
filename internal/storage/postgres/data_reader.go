@@ -33,8 +33,8 @@ type DataReader struct {
 // It initializes a new DataReader with a given database, a logger, and sets transaction options to be read-only with Repeatable Read isolation level.
 func NewDataReader(database *db.Postgres) *DataReader {
 	return &DataReader{
-		database:  database,                                                             // Set the database to the passed in PostgreSQL instance
-		txOptions: pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadOnly}, // Set the transaction options
+		database:  database,                                                              // Set the database to the passed in PostgreSQL instance
+		txOptions: pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly}, // Set the transaction options
 	}
 }
 
@@ -57,7 +57,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	var args []interface{}
 	builder := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.TuplesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint, st.(snapshot.Token).Snapshot)
 
 	if pagination.Cursor() != "" {
 		var t database.ContinuousToken
@@ -132,7 +132,7 @@ func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, fil
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.Select("id, entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.TuplesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint, st.(snapshot.Token).Snapshot)
 
 	// Apply the pagination token and limit to the query.
 	if pagination.Token() != "" {
@@ -219,7 +219,7 @@ func (r *DataReader) QuerySingleAttribute(ctx context.Context, tenantID string, 
 	var args []interface{}
 	builder := r.database.Builder.Select("entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint, st.(snapshot.Token).Snapshot)
 
 	// Generate the SQL query and arguments.
 	var query string
@@ -278,7 +278,7 @@ func (r *DataReader) QueryAttributes(ctx context.Context, tenantID string, filte
 	var args []interface{}
 	builder := r.database.Builder.Select("entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint, st.(snapshot.Token).Snapshot)
 
 	if pagination.Cursor() != "" {
 		var t database.ContinuousToken
@@ -366,7 +366,7 @@ func (r *DataReader) ReadAttributes(ctx context.Context, tenantID string, filter
 	// Build the relationships query based on the provided filter, snapshot value, and pagination settings.
 	builder := r.database.Builder.Select("id, entity_type, entity_id, attribute, value").From(AttributesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.AttributesFilterQueryForSelectBuilder(builder, filter)
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint, st.(snapshot.Token).Snapshot)
 
 	// Apply the pagination token and limit to the query.
 	if pagination.Token() != "" {
@@ -479,7 +479,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 	})
 
 	// Apply snapshot filter
-	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint)
+	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint, st.(snapshot.Token).Snapshot)
 
 	// Apply exclusion if the list is not empty
 	if len(excluded) > 0 {
@@ -556,11 +556,12 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	defer span.End()
 	// Log snapshot operation
 	slog.DebugContext(ctx, "getting head snapshot for tenant_id", slog.String("tenant_id", tenantID))
-	// Declare transaction ID variable
+	// Declare transaction ID and snapshot variables
 	var xid db.XID8
+	var snapshotValue string
 
-	// Build the query to find the highest transaction ID associated with the tenant.
-	builder := r.database.Builder.Select("id").From(TransactionsTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("id DESC").Limit(1)
+	// Build the query to find the highest transaction ID and snapshot associated with the tenant.
+	builder := r.database.Builder.Select("id", "snapshot").From(TransactionsTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("id DESC").Limit(1)
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
@@ -569,12 +570,12 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	// TODO: To optimize this query, create the following index concurrently to avoid table locks:
 	// CREATE INDEX CONCURRENTLY idx_transactions_tenant_id_id ON transactions(tenant_id, id DESC);
 
-	// Execute the query and retrieve the highest transaction ID.
-	err = r.database.ReadPool.QueryRow(ctx, query, args...).Scan(&xid)
+	// Execute the query and retrieve the highest transaction ID and snapshot.
+	err = r.database.ReadPool.QueryRow(ctx, query, args...).Scan(&xid, &snapshotValue)
 	if err != nil {
 		// If no rows are found, return a snapshot token with a value of 0.
 		if errors.Is(err, pgx.ErrNoRows) {
-			return snapshot.Token{Value: db.XID8{Uint: 0}}, nil
+			return snapshot.Token{Value: db.XID8{Uint: 0}, Snapshot: ""}, nil
 		}
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
@@ -582,5 +583,5 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	slog.DebugContext(ctx, "successfully retrieved latest snapshot token")
 	// Return snapshot token
 	// Return the latest snapshot token associated with the tenant.
-	return snapshot.Token{Value: xid}, nil
+	return snapshot.Token{Value: xid, Snapshot: snapshotValue}, nil
 }
