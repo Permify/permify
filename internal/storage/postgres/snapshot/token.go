@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -130,7 +131,7 @@ func (t EncodedToken) String() string {
 // This ensures each concurrent transaction gets a unique snapshot for proper MVCC visibility.
 func (t Token) createFinalSnapshot() string {
 	if t.Snapshot == "" {
-		return t.Snapshot
+		return ""
 	}
 
 	parts := strings.SplitN(strings.TrimSpace(t.Snapshot), ":", 3)
@@ -165,6 +166,10 @@ func (t Token) createFinalSnapshot() string {
 		}
 	}
 
+	// Sort XIPs to ensure deterministic snapshot encoding and maintain PostgreSQL invariants
+	// Per PostgreSQL semantics, xip[] must contain only XIDs with xmin ≤ xip < xmax
+	slices.Sort(xipList)
+
 	// Add current txid to make snapshot unique for this transaction
 	// Insert in sorted order to maintain consistency
 	inserted := false
@@ -198,7 +203,7 @@ func (t Token) createFinalSnapshot() string {
 		newXmin = txid
 	}
 
-	// Build the result snapshot string
+	// Build the result snapshot string efficiently using strings.Builder
 	var xipStrs []string
 	for _, xip := range xipList {
 		xipStrs = append(xipStrs, fmt.Sprintf("%d", xip))

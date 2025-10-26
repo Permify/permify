@@ -575,7 +575,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	if err != nil {
 		// If no rows are found, return a snapshot token with a value of 0.
 		if errors.Is(err, pgx.ErrNoRows) {
-			return snapshot.Token{Value: db.XID8{Uint: 0}, Snapshot: ""}, nil
+			return snapshot.NewToken(db.XID8{Uint: 0}, ""), nil
 		}
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
