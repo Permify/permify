@@ -583,5 +583,5 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 	slog.DebugContext(ctx, "successfully retrieved latest snapshot token")
 	// Return snapshot token
 	// Return the latest snapshot token associated with the tenant.
-	return snapshot.Token{Value: xid, Snapshot: snapshotValue}, nil
+	return snapshot.NewToken(xid, snapshotValue), nil
 }
