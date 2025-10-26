@@ -36,83 +36,10 @@ const (
 	earliestPostgresVersion = 130008 // The earliest supported version of PostgreSQL is 13.8
 )
 
-// createFinalSnapshot creates a final snapshot string for proper transaction visibility.
-// If xmax != xid, it adds xid to the xip_list to make the snapshot unique.
-func createFinalSnapshot(snapshotValue string, xid uint64) string {
-	// Parse snapshot: "xmin:xmax:xip_list"
-	parts := strings.SplitN(strings.TrimSpace(snapshotValue), ":", 3)
-	if len(parts) < 2 {
-		return snapshotValue
-	}
-
-	xminStr, xmaxStr := parts[0], parts[1]
-
-	// Parse xmin and xmax for range validation
-	xmin, err := strconv.ParseUint(xminStr, 10, 64)
-	if err != nil {
-		return snapshotValue
-	}
-	xmax, err := strconv.ParseUint(xmaxStr, 10, 64)
-	if err != nil {
-		return snapshotValue
-	}
-
-	// If xmax == xid, no need to modify snapshot
-	if xmax == xid {
-		return snapshotValue
-	}
-
-	// Validate xid is in valid range [xmin, xmax)
-	if xid < xmin || xid >= xmax {
-		return snapshotValue
-	}
-
-	// Parse existing xip_list
-	var xips []uint64
-	if len(parts) == 3 && parts[2] != "" {
-		for _, xipStr := range strings.Split(parts[2], ",") {
-			xipStr = strings.TrimSpace(xipStr)
-			if xipStr == "" {
-				continue
-			}
-			xip, err := strconv.ParseUint(xipStr, 10, 64)
-			if err != nil {
-				return snapshotValue
-			}
-			// Check if xid is already in xip_list
-			if xip == xid {
-				return snapshotValue
-			}
-			xips = append(xips, xip)
-		}
-	}
-
-	// Add xid to the list and sort it
-	xips = append(xips, xid)
-	sortXips(xips)
-
-	// Rebuild xip_list string
-	var xipStrs []string
-	for _, xip := range xips {
-		xipStrs = append(xipStrs, fmt.Sprintf("%d", xip))
-	}
-	return fmt.Sprintf("%s:%s:%s", xminStr, xmaxStr, strings.Join(xipStrs, ","))
-}
-
-// sortXips sorts a slice of xip values in ascending order
-func sortXips(xips []uint64) {
-	for i := 0; i < len(xips)-1; i++ {
-		for j := i + 1; j < len(xips); j++ {
-			if xips[i] > xips[j] {
-				xips[i], xips[j] = xips[j], xips[i]
-			}
-		}
-	}
-}
-
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
 // Optimized version with parameterized queries for security.
 func SnapshotQuery(sl squirrel.SelectBuilder, value uint64, snapshotValue string) squirrel.SelectBuilder {
+	slog.Info("SnapshotQuery called", slog.Uint64("xid", value), slog.String("snapshot", snapshotValue))
 	// Backward compatibility: if snapshot is empty, use old method
 	if snapshotValue == "" {
 		// Create a subquery for the snapshot associated with the provided value.
@@ -137,19 +64,16 @@ func SnapshotQuery(sl squirrel.SelectBuilder, value uint64, snapshotValue string
 		return sl.Where(createdWhere).Where(expiredWhere)
 	}
 
-	// Create final snapshot with proper visibility
-	finalSnapshot := createFinalSnapshot(snapshotValue, value)
-
 	// Records that were created and are visible in the snapshot
 	createdWhere := squirrel.Or{
-		squirrel.Expr("pg_visible_in_snapshot(created_tx_id, ?) = true", finalSnapshot),
+		squirrel.Expr("pg_visible_in_snapshot(created_tx_id, ?) = true", snapshotValue),
 		squirrel.Expr("created_tx_id = ?::xid8", value), // Include current transaction
 	}
 
 	// Records that are still active (not expired) at snapshot time
 	expiredWhere := squirrel.And{
 		squirrel.Or{
-			squirrel.Expr("pg_visible_in_snapshot(expired_tx_id, ?) = false", finalSnapshot),
+			squirrel.Expr("pg_visible_in_snapshot(expired_tx_id, ?) = false", snapshotValue),
 			squirrel.Expr("expired_tx_id = ?::xid8", ActiveRecordTxnID), // Never expired
 		},
 		squirrel.Expr("expired_tx_id <> ?::xid8", value), // Not expired by current transaction

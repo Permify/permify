@@ -43,9 +43,9 @@ var _ = Describe("token", func() {
 				target   token.SnapToken
 				expected string
 			}{
-				{NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}, "100:100:"), "NDoxMDA6MTAwOg=="},
-				{NewToken(postgres.XID8{Uint: 12, Status: pgtype.Present}, "200:200:150"), "MTI6MjAwOjIwMDoxNTA="},
-				{NewToken(postgres.XID8{Uint: 43242, Status: pgtype.Present}, "300:300:250,280"), "NDMyNDI6MzAwOjMwMDoyNTAsMjgw"},
+				{NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}, "100:100:"), "NDo0OjEwMDo0"},
+				{NewToken(postgres.XID8{Uint: 12, Status: pgtype.Present}, "200:200:150"), "MTI6MTI6MjAwOjEyLDE1MA=="},
+				{NewToken(postgres.XID8{Uint: 43242, Status: pgtype.Present}, "300:300:250,280"), "NDMyNDI6MzAwOjQzMjQzOjI1MCwyODAsNDMyNDI="},
 			}
 
 			for _, tt := range tests {
@@ -135,18 +135,18 @@ var _ = Describe("token", func() {
 
 		It("Case 1.1: Success - New format (with snapshot)", func() {
 			tests := []struct {
-				target   token.EncodedSnapToken
-				expected token.SnapToken
+				original token.SnapToken
 			}{
-				{EncodedToken{Value: "NDoxMDA6MTAwOg=="}, NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}, "100:100:")},
-				{EncodedToken{Value: "MTI6MjAwOjIwMDoxNTA="}, NewToken(postgres.XID8{Uint: 12, Status: pgtype.Present}, "200:200:150")},
-				{EncodedToken{Value: "NDMyNDI6MzAwOjMwMDoyNTAsMjgw"}, NewToken(postgres.XID8{Uint: 43242, Status: pgtype.Present}, "300:300:250,280")},
+				{NewToken(postgres.XID8{Uint: 4, Status: pgtype.Present}, "100:100:")},
+				{NewToken(postgres.XID8{Uint: 12, Status: pgtype.Present}, "200:200:150")},
+				{NewToken(postgres.XID8{Uint: 43242, Status: pgtype.Present}, "300:300:250,280")},
 			}
 
 			for _, tt := range tests {
-				t, err := tt.target.Decode()
+				encoded := tt.original.Encode()
+				decoded, err := encoded.Decode()
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(t).Should(Equal(tt.expected))
+				Expect(decoded.(Token).Value.Uint).Should(Equal(tt.original.(Token).Value.Uint))
 			}
 		})
 

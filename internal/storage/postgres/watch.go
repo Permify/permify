@@ -278,7 +278,7 @@ func (w *Watch) getChanges(ctx context.Context, value db.XID8, tenantID string) 
 	defer arows.Close()
 
 	// Set the snapshot token for the changes.
-	changes.SnapToken = snapshot.Token{Value: value}.Encode().String()
+	changes.SnapToken = snapshot.NewToken(value, "").Encode().String()
 
 	// Iterate through the result rows.
 	for trows.Next() {
