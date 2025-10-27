@@ -39,7 +39,6 @@ const (
 // SnapshotQuery adds conditions to a SELECT query for checking transaction visibility based on created and expired transaction IDs.
 // Optimized version with parameterized queries for security.
 func SnapshotQuery(sl squirrel.SelectBuilder, value uint64, snapshotValue string) squirrel.SelectBuilder {
-	slog.Info("SnapshotQuery called", slog.Uint64("xid", value), slog.String("snapshot", snapshotValue))
 	// Backward compatibility: if snapshot is empty, use old method
 	if snapshotValue == "" {
 		// Create a subquery for the snapshot associated with the provided value.

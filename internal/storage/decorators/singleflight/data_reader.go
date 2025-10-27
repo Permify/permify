@@ -54,7 +54,7 @@ func (r *DataReader) QueryUniqueSubjectReferences(ctx context.Context, tenantID 
 
 // HeadSnapshot - Reads the latest version of the snapshot from the repository.
 func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error) {
-	rev, _, err := r.group.Do(ctx, tenantID, func(ctx context.Context) (token.SnapToken, error) {
+	rev, _, err := r.group.Do(ctx, tenantID, func(ctx context.Context) (token.SnapToken, error) { // tenantID ensures proper tenant isolation in deduplication
 		return r.delegate.HeadSnapshot(ctx, tenantID)
 	})
 	return rev, err
