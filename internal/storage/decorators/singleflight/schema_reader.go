@@ -43,7 +43,7 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, ruleNam
 
 // HeadVersion - Finds the latest version of the schema.
 func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
-	rev, _, err := r.group.Do(ctx, "", func(ctx context.Context) (string, error) {
+	rev, _, err := r.group.Do(ctx, tenantID, func(ctx context.Context) (string, error) {
 		return r.delegate.HeadVersion(ctx, tenantID)
 	})
 	return rev, err
