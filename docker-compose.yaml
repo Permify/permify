@@ -1,4 +1,3 @@
-version: "3.9"
 services:
     permify:
         build:
@@ -13,7 +12,7 @@ services:
         depends_on:
             - "database"
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:3476/healthz"]
+            test: ["CMD", "grpc_health_probe", "-addr", "localhost:3478"]
             interval: 10s
             retries: 10
             start_period: 60s

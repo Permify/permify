@@ -1,7 +1,16 @@
 # Use the correct Go version
 FROM golang:1.25.3-alpine@sha256:aee43c3ccbf24fdffb7295693b6e33b21e01baec1b2a55acc351fde345e9ec34
 
-RUN apk --no-cache add curl
+RUN apk --no-cache add curl git
+
+# Build grpc-health-probe
+WORKDIR /tmp
+RUN git clone https://github.com/grpc-ecosystem/grpc-health-probe.git && \
+    cd grpc-health-probe && \
+    CGO_ENABLED=0 go install -a -tags netgo -ldflags=-w && \
+    cp /go/bin/grpc-health-probe /usr/local/bin/grpc_health_probe && \
+    cd / && rm -rf /tmp/grpc-health-probe
+
 # Install the air binary so we get live code-reloading when we save files
 RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
 
