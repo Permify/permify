@@ -21,10 +21,10 @@ import (
 	"github.com/Permify/permify/internal/engines/balancer"
 	"github.com/Permify/permify/internal/engines/cache"
 	"github.com/Permify/permify/internal/invoke"
-	cacheDecorator "github.com/Permify/permify/internal/storage/decorators/cache"
-	cbDecorator "github.com/Permify/permify/internal/storage/decorators/circuitbreaker"
-	sfDecorator "github.com/Permify/permify/internal/storage/decorators/singleflight"
 	"github.com/Permify/permify/internal/storage/postgres/gc"
+	cacheproxy "github.com/Permify/permify/internal/storage/proxies/cache"
+	cbproxy "github.com/Permify/permify/internal/storage/proxies/circuitbreaker"
+	sfproxy "github.com/Permify/permify/internal/storage/proxies/singleflight"
 	"github.com/Permify/permify/pkg/cmd/flags"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres" // PostgreSQL database
 
@@ -399,10 +399,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		tenantWriter := factories.TenantWriterFactory(db)
 
 		// Add caching to the schema reader using a decorator
-		schemaReader = cacheDecorator.NewSchemaReader(schemaReader, schemaCache)
+		schemaReader = cacheproxy.NewSchemaReader(schemaReader, schemaCache)
 
-		dataReader = sfDecorator.NewDataReader(dataReader)
-		schemaReader = sfDecorator.NewSchemaReader(schemaReader)
+		dataReader = sfproxy.NewDataReader(dataReader)
+		schemaReader = sfproxy.NewSchemaReader(schemaReader)
 
 		// Check if circuit breaker should be enabled for services
 		if cfg.Service.CircuitBreaker {
@@ -417,16 +417,16 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			cb = gobreaker.NewCircuitBreaker(st)
 
 			// Add circuit breaker to the relationship reader using decorator
-			dataReader = cbDecorator.NewDataReader(dataReader, cb)
+			dataReader = cbproxy.NewDataReader(dataReader, cb)
 
 			// Add circuit breaker to the bundle reader using decorators
-			bundleReader = cbDecorator.NewBundleReader(bundleReader, cb)
+			bundleReader = cbproxy.NewBundleReader(bundleReader, cb)
 
 			// Add circuit breaker to the schema reader using decorator
-			schemaReader = cbDecorator.NewSchemaReader(schemaReader, cb)
+			schemaReader = cbproxy.NewSchemaReader(schemaReader, cb)
 
 			// Add circuit breaker to the tenant reader using decorator
-			tenantReader = cbDecorator.NewTenantReader(tenantReader, cb)
+			tenantReader = cbproxy.NewTenantReader(tenantReader, cb)
 		}
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader
