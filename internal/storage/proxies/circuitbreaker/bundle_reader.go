@@ -1,4 +1,4 @@
-package circuitBreaker
+package circuitbreaker
 
 import (
 	"context"
