@@ -242,6 +242,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				entity, err := tuple.E(check.Entity)
 				if err != nil {
 					list.Add(err.Error())
+					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
 
@@ -249,6 +250,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				ear, err := tuple.EAR(check.Subject)
 				if err != nil {
 					list.Add(err.Error())
+					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
 
@@ -262,6 +264,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				cont, err := Context(check.Context)
 				if err != nil {
 					list.Add(err.Error())
+					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
 
@@ -273,9 +276,13 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						exp = base.CheckResult_CHECK_RESULT_DENIED
 					}
 
+					// Formulate the query string for log output (build early so we can use it in error messages)
+					query := tuple.SubjectToString(subject) + " " + permission + " " + tuple.EntityToString(entity)
+
 					depth, err := Depth(check.Depth)
 					if err != nil {
-						list.Add(err.Error())
+						list.Add(fmt.Sprintf("%s -> %s", query, err.Error()))
+						color.Danger.Printf("    fail: %s -> %s\n", query, validationError(err.Error()))
 						continue
 					}
 
@@ -293,12 +300,10 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						Subject:    subject,
 					})
 					if err != nil {
-						list.Add(err.Error())
+						list.Add(fmt.Sprintf("%s -> %s", query, err.Error()))
+						color.Danger.Printf("    fail: %s -> %s\n", query, validationError(err.Error()))
 						continue
 					}
-
-					// Formulate the query string for log output
-					query := tuple.SubjectToString(subject) + " " + permission + " " + tuple.EntityToString(entity)
 
 					// If the check result matches the expected result, log a success message
 					if res.Can == exp {
@@ -328,6 +333,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				if err != nil {
 					// If an error occurs, add it to the list and continue to the next filter.
 					list.Add(err.Error())
+					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
 
@@ -343,17 +349,22 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				if err != nil {
 					// If an error occurs, add it to the list and continue to the next filter.
 					list.Add(err.Error())
-					continue
-				}
-
-				depth, err := Depth(filter.Depth)
-				if err != nil {
-					list.Add(err.Error())
+					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
 
 				// Iterate over each assertion in the filter.
 				for permission, expected := range filter.Assertions {
+					// Format the subject, permission, and entity type as a string for logging (build early for error messages)
+					query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
+
+					depth, err := Depth(filter.Depth)
+					if err != nil {
+						list.Add(fmt.Sprintf("%s -> %s", query, err.Error()))
+						color.Danger.Printf("    fail: %s -> %s\n", query, validationError(err.Error()))
+						continue
+					}
+
 					// Perform a permission lookup for the entity.
 					res, err := dev.Container.Invoker.LookupEntity(ctx, &base.PermissionLookupEntityRequest{
 						TenantId: "t1",
@@ -369,18 +380,16 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					})
 					if err != nil {
 						// If an error occurs, add it to the list and continue to the next assertion.
-						list.Add(err.Error())
+						list.Add(fmt.Sprintf("%s -> %s", query, err.Error()))
+						color.Danger.Printf("    fail: %s -> %s\n", query, validationError(err.Error()))
 						continue
 					}
-
-					// Format the subject, permission, and entity type as a string for logging.
-					query := tuple.SubjectToString(subject) + " " + permission + " " + filter.EntityType
 
 					// Check if the actual result matches the expected result.
 					if isSameArray(res.GetEntityIds(), expected) {
 						// If the results match, log a success message.
 						color.Success.Print("    success:")
-						fmt.Printf(" %v\n", query)
+						fmt.Printf(" %s\n", query)
 					} else {
 						// If the results don't match, log a failure message with the expected and actual results.
 						color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetEntityIds())
@@ -403,6 +412,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				if err != nil {
 					// If an error occurs, add it to the list and continue to the next filter.
 					list.Add(err.Error())
+					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
 
@@ -411,17 +421,22 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				if err != nil {
 					// If an error occurs, add it to the list and continue to the next filter.
 					list.Add(err.Error())
-					continue
-				}
-
-				depth, err := Depth(filter.Depth)
-				if err != nil {
-					list.Add(err.Error())
+					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
 
 				// Iterate over each assertion in the filter.
 				for permission, expected := range filter.Assertions {
+					// Format the entity, permission, and subject reference as a string for logging (build early for error messages)
+					query := tuple.EntityToString(entity) + " " + permission + " " + filter.SubjectReference
+
+					depth, err := Depth(filter.Depth)
+					if err != nil {
+						list.Add(fmt.Sprintf("%s -> %s", query, err.Error()))
+						color.Danger.Printf("    fail: %s -> %s\n", query, validationError(err.Error()))
+						continue
+					}
+
 					// Perform a permission lookup for the subject.
 					res, err := dev.Container.Invoker.LookupSubject(ctx, &base.PermissionLookupSubjectRequest{
 						TenantId: "t1",
@@ -437,18 +452,16 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					})
 					if err != nil {
 						// If an error occurs, add it to the list and continue to the next assertion.
-						list.Add(err.Error())
+						list.Add(fmt.Sprintf("%s -> %s", query, err.Error()))
+						color.Danger.Printf("    fail: %s -> %s\n", query, validationError(err.Error()))
 						continue
 					}
-
-					// Format the entity, permission, and subject reference as a string for logging.
-					query := tuple.EntityToString(entity) + " " + permission + " " + filter.SubjectReference
 
 					// Check if the actual result matches the expected result.
 					if isSameArray(res.GetSubjectIds(), expected) {
 						// If the results match, log a success message.
 						color.Success.Print("    success:")
-						fmt.Printf(" %v\n", query)
+						fmt.Printf(" %s\n", query)
 					} else {
 						// If the results don't match, log a failure message with the expected and actual results.
 						color.Danger.Printf("    fail: %s -> expected: %+v actual: %+v\n", query, expected, res.GetSubjectIds())
