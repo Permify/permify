@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -272,6 +273,12 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						exp = base.CheckResult_CHECK_RESULT_DENIED
 					}
 
+					depth, err := Depth(check.Depth)
+					if err != nil {
+						list.Add(err.Error())
+						continue
+					}
+
 					// Perform a permission check based on the context, entity, permission, and subject
 					res, err := dev.Container.Invoker.Check(ctx, &base.PermissionCheckRequest{
 						TenantId: "t1",
@@ -279,7 +286,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SchemaVersion: version,
 							SnapToken:     token.NewNoopToken().Encode().String(),
-							Depth:         100,
+							Depth:         depth,
 						},
 						Entity:     entity,
 						Permission: permission,
@@ -339,6 +346,12 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					continue
 				}
 
+				depth, err := Depth(filter.Depth)
+				if err != nil {
+					list.Add(err.Error())
+					continue
+				}
+
 				// Iterate over each assertion in the filter.
 				for permission, expected := range filter.Assertions {
 					// Perform a permission lookup for the entity.
@@ -348,7 +361,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						Metadata: &base.PermissionLookupEntityRequestMetadata{
 							SchemaVersion: version,
 							SnapToken:     token.NewNoopToken().Encode().String(),
-							Depth:         100,
+							Depth:         depth,
 						},
 						EntityType: filter.EntityType,
 						Permission: permission,
@@ -401,6 +414,12 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					continue
 				}
 
+				depth, err := Depth(filter.Depth)
+				if err != nil {
+					list.Add(err.Error())
+					continue
+				}
+
 				// Iterate over each assertion in the filter.
 				for permission, expected := range filter.Assertions {
 					// Perform a permission lookup for the subject.
@@ -410,7 +429,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						Metadata: &base.PermissionLookupSubjectRequestMetadata{
 							SchemaVersion: version,
 							SnapToken:     token.NewNoopToken().Encode().String(),
-							Depth:         100,
+							Depth:         depth,
 						},
 						SubjectReference: subjectReference,
 						Permission:       permission,
@@ -485,6 +504,17 @@ func isSameArray(a, b []string) bool {
 	}
 
 	return true
+}
+
+// Depth - get depth
+func Depth(depth int32) (int32, error) {
+	if depth == 0 {
+		return 100, nil
+	}
+	if depth < 3 {
+		return 0, errors.New("depth must be greater than or equal to 3")
+	}
+	return depth, nil
 }
 
 // Context is a function that takes a file context and returns a base context and an error.

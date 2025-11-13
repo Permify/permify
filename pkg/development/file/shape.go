@@ -49,6 +49,9 @@ type Context struct {
 
 // Check is a struct that represents an individual authorization check.
 type Check struct {
+	// Depth is an integer that represents the depth of the authorization check.
+	Depth int32 `yaml:"depth"`
+
 	// Context is a struct that represents the context of the authorization check.
 	Context Context `yaml:"context"`
 
@@ -64,6 +67,9 @@ type Check struct {
 
 // EntityFilter is a struct that represents a filter to be applied during an authorization check.
 type EntityFilter struct {
+	// Depth is an integer that represents the depth of the authorization entity filter.
+	Depth int32 `yaml:"depth"`
+
 	// Context is a struct that represents the context of the authorization entity filter.
 	Context Context `yaml:"context"`
 
@@ -79,6 +85,9 @@ type EntityFilter struct {
 
 // SubjectFilter is a struct that represents a filter to be applied during an authorization check.
 type SubjectFilter struct {
+	// Depth is an integer that represents the depth of the authorization subject filter.
+	Depth int32 `yaml:"depth"`
+
 	// Context is a struct that represents the context of the authorization subject filter.
 	Context Context `yaml:"context"`
 
