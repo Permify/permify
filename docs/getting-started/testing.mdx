@@ -163,30 +163,57 @@ Let's deconstruct the `scenarios`,
 
 ### Scenarios
 
-```js
+```yaml
 scenarios:
-  - name: // name of the scenario
-    description: // description of the scenario
-    checks: // simple access check case/cases
-    entity_filters: // entity (data) filtering query/queries
-    subject_filters: // subject filtering query/queries
+  - name: # name of the scenario
+    description: # description of the scenario
+    checks: # simple access check case/cases
+    entity_filters: # entity (data) filtering query/queries
+    subject_filters: # subject filtering query/queries
 ```
 
 ### Access Check
 
 You can create `check` inside `scenarios` to test multiple access check cases,
 
-```js
+```yaml
 checks:
-   - entity: "repository:3" // resource/entity that you want to check access for
-     subject: "user:1" // subject that performs the access check
-     context: // additional data provided during an access check to be evaluated
+   - entity: "repository:3" # resource/entity that you want to check access for
+     subject: "user:1" # subject that performs the access check
+     depth: 100 # depth limit for permission check (optional, default: 100, minimum: 3)
+     context: # additional data provided during an access check to be evaluated
        - "repository:3#owner@user:1" 
-     assertions: // expected result/results for specific action/s or an permission/s.
+     assertions: # expected result/results for specific action/s or an permission/s.
        push : true
 ```
 
-Semantics for above check is: whether `user:1` can push to `repository:3`, additional to stored tuples take account that user:1 is owner of repository:3 (`repository:3#owner@user:1`). Expected result for that check it **true** - `push : true` 
+Semantics for above check is: whether `user:1` can push to `repository:3`, additional to stored tuples take account that user:1 is owner of repository:3 (`repository:3#owner@user:1`). Expected result for that check it **true** - `push : true`
+
+### Depth Configuration
+
+The `depth` parameter controls how deep the permission engine will traverse the relationship graph when evaluating permissions. This is important for preventing infinite loops and controlling performance in complex authorization models.
+
+**Depth Rules:**
+- **Default value**: If `depth` is set to `0` or not specified, it defaults to `100`
+- **Minimum value**: The minimum allowed depth is `3`
+- **Usage**: You can specify `depth` in `checks`, `entity_filters`, and `subject_filters`
+
+**Example with depth:**
+
+```yaml
+checks:
+  - entity: "repository:1"
+    subject: "user:1"
+    depth: 100  # Limit traversal depth (default: 100, minimum: 3)
+    assertions:
+      push: true
+      read: true
+```
+
+**When to use depth:**
+- Use a lower depth (e.g., 3-5) for shallow permission hierarchies to improve performance
+- Use a higher depth (e.g., 20-50) for deep nested relationships
+- If you encounter "depth not enough" errors, increase the depth value for that specific check
 
 <Note>
 We use `context` (Contextual Tuples) with simple relational tuples for simplicity in this example. However, it is primarily used for dynamic access checks, such as those involving time, date, or IP address, etc. 
@@ -198,13 +225,14 @@ To learn more about how `context` works, see the [Contextual Tuples](../operatio
 
 You can create `entity_filters` within `scenarios` to test your data filtering queries.
 
-```js
+```yaml
 entity_filters:
-      - entity_type: "repository" // entity that you want to filter 
-        subject: "user:1" // subject that you want to perform data filtering 
-        context: null // additional data provided during an access check to be evaluated
+      - entity_type: "repository" # entity that you want to filter 
+        subject: "user:1" # subject that you want to perform data filtering 
+        depth: 100 # depth limit for permission check (optional, default: 100, minimum: 3)
+        context: null # additional data provided during an access check to be evaluated
         assertions: 
-          push : ["1", "3", "4", "5"] // IDs of the resources that we expected to return
+          push : ["1", "3", "4", "5"] # IDs of the resources that we expected to return
           edit : []
 ```
 
@@ -214,12 +242,13 @@ The major difference between `check` lies in the assertions part. Since we're pe
 
 You can create `subject_filters` within `scenarios` to test your subject filtering queries, a.k.a which users can perform action Y or have permission X on entity:Z?
 
-```js
+```yaml
 - subject_reference: "user"
         entity: "repository:1"
-        context: null // additional data provided during an access check to be evaluated
+        depth: 100 # depth limit for permission check (optional, default: 100, minimum: 3)
+        context: null # additional data provided during an access check to be evaluated
         assertions:
-          push : ["1", "43"] // IDs of the users that we expected to return
+          push : ["1", "43"] # IDs of the users that we expected to return
           edit : ["58"]
 ```
 
