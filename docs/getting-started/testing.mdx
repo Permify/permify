@@ -165,11 +165,11 @@ Let's deconstruct the `scenarios`,
 
 ```yaml
 scenarios:
-  - name: // name of the scenario
-    description: // description of the scenario
-    checks: // simple access check case/cases
-    entity_filters: // entity (data) filtering query/queries
-    subject_filters: // subject filtering query/queries
+  - name: # name of the scenario
+    description: # description of the scenario
+    checks: # simple access check case/cases
+    entity_filters: # entity (data) filtering query/queries
+    subject_filters: # subject filtering query/queries
 ```
 
 ### Access Check
@@ -178,12 +178,12 @@ You can create `check` inside `scenarios` to test multiple access check cases,
 
 ```yaml
 checks:
-   - entity: "repository:3" // resource/entity that you want to check access for
-     subject: "user:1" // subject that performs the access check
-     depth: 100 // depth limit for permission check (optional, default: 100, minimum: 3)
-     context: // additional data provided during an access check to be evaluated
+   - entity: "repository:3" # resource/entity that you want to check access for
+     subject: "user:1" # subject that performs the access check
+     depth: 100 # depth limit for permission check (optional, default: 100, minimum: 3)
+     context: # additional data provided during an access check to be evaluated
        - "repository:3#owner@user:1" 
-     assertions: // expected result/results for specific action/s or an permission/s.
+     assertions: # expected result/results for specific action/s or an permission/s.
        push : true
 ```
 
@@ -227,12 +227,12 @@ You can create `entity_filters` within `scenarios` to test your data filtering q
 
 ```yaml
 entity_filters:
-      - entity_type: "repository" // entity that you want to filter 
-        subject: "user:1" // subject that you want to perform data filtering 
-        depth: 100 // depth limit for permission check (optional, default: 100, minimum: 3)
-        context: null // additional data provided during an access check to be evaluated
+      - entity_type: "repository" # entity that you want to filter 
+        subject: "user:1" # subject that you want to perform data filtering 
+        depth: 100 # depth limit for permission check (optional, default: 100, minimum: 3)
+        context: null # additional data provided during an access check to be evaluated
         assertions: 
-          push : ["1", "3", "4", "5"] // IDs of the resources that we expected to return
+          push : ["1", "3", "4", "5"] # IDs of the resources that we expected to return
           edit : []
 ```
 
@@ -245,10 +245,10 @@ You can create `subject_filters` within `scenarios` to test your subject filteri
 ```yaml
 - subject_reference: "user"
         entity: "repository:1"
-        depth: 100 // depth limit for permission check (optional, default: 100, minimum: 3)
-        context: null // additional data provided during an access check to be evaluated
+        depth: 100 # depth limit for permission check (optional, default: 100, minimum: 3)
+        context: null # additional data provided during an access check to be evaluated
         assertions:
-          push : ["1", "43"] // IDs of the users that we expected to return
+          push : ["1", "43"] # IDs of the users that we expected to return
           edit : ["58"]
 ```
 
