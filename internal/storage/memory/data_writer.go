@@ -144,27 +144,27 @@ func (w *DataWriter) RunBundle(
 ) (token.EncodedSnapToken, error) {
 	txn := w.database.DB.Txn(true)
 	defer txn.Abort()
-	// Process each operation in the bundle
-	for _, op := range b.GetOperations() { // Iterate operations
-		tb, ab, err := bundle.Operation(arguments, op) // Parse operation
-		if err != nil {                                // Check parse error
-			return nil, err // Return error
-		} // End of parse error check
-		// Run the operation
-		err = w.runOperation(ctx, txn, tenantID, tb, ab) // Execute operation
-		if err != nil {                                  // Check execution error
-			return nil, err // Return error
-		} // End of execution error check
-	} // End of operations loop
-	// Commit the final transaction
-	txn.Commit() // Commit all operations
-	// Return snapshot token
-	return snapshot.NewToken(time.Now()).Encode(), nil // Success
+
+	for _, op := range b.GetOperations() {
+		tb, ab, err := bundle.Operation(arguments, op)
+		if err != nil {
+			return nil, err
+		}
+
+		err = w.runOperation(ctx, txn, tenantID, tb, ab)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	txn.Commit()
+
+	return snapshot.NewToken(time.Now()).Encode(), nil
 }
 
 // runOperation processes and executes database operations defined in TupleBundle and AttributeBundle within a given transaction.
 func (w *DataWriter) runOperation(
-	ctx context.Context,
+	_ context.Context,
 	txn *memdb.Txn,
 	tenantID string,
 	tb database.TupleBundle,

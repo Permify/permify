@@ -1,20 +1,18 @@
-package memory // Memory storage package tests
-// Test suite for memory storage
-import ( // Import statements
-	"sort"    // Sorting operations
-	"testing" // Testing framework
+package memory
 
-	// Test framework imports
-	. "github.com/onsi/ginkgo/v2" // BDD test framework
-	. "github.com/onsi/gomega"    // Assertion framework
-) // End of imports
-// TestMemory runs the memory storage test suite
-func TestMemory(t *testing.T) { // Main test function
-	RegisterFailHandler(Fail)   // Register failure handler
-	RunSpecs(t, "memory-suite") // Run test specs
-} // End of TestMemory
+import (
+	"sort"
+	"testing"
 
-// isSameArray - check if two arrays are the same
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+func TestMemory(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "memory-suite")
+}
+
 func isSameArray(a, b []string) bool {
 	if len(a) != len(b) {
 		return false

@@ -21,33 +21,38 @@ func NewBundleWriter(database *db.Memory) *BundleWriter {
 	}
 }
 
+// Write - Write bundles to memory database
 func (b *BundleWriter) Write(ctx context.Context, bundles []storage.Bundle) (names []string, err error) {
 	txn := b.database.DB.Txn(true)
 	defer txn.Abort()
-	// Iterate over bundles to write
-	for _, bundle := range bundles { // Process each bundle
+
+	for _, bundle := range bundles {
 		if err = txn.Insert(constants.BundlesTable, bundle); err != nil {
 			return []string{}, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
-		} // End of error check
-		names = append(names, bundle.Name) // Collect bundle name
-	} // End of bundle iteration
-	txn.Commit() // Commit transaction
-	// Return bundle names
-	return names, nil // Success
+		}
+		names = append(names, bundle.Name)
+	}
+
+	txn.Commit()
+	return names, nil
 }
 
+// Delete - Delete bundle from memory database
 func (b *BundleWriter) Delete(ctx context.Context, tenantID, name string) (err error) {
-	txn := b.database.DB.Txn(true)                                    // Start write transaction
-	raw, _ := txn.First(constants.BundlesTable, "id", tenantID, name) // Find bundle
+	txn := b.database.DB.Txn(true)
+	raw, _ := txn.First(constants.BundlesTable, "id", tenantID, name)
+
 	// Check if bundle exists
-	if raw == nil { // Bundle not found
-		return errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String()) // Return error
-	} // End of existence check
-	err = txn.Delete(constants.BundlesTable, raw) // Delete bundle
+	if raw == nil {
+		return errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String())
+	}
+
+	err = txn.Delete(constants.BundlesTable, raw)
 	if err != nil {
 		return err
 	}
-	txn.Commit() // Commit transaction
-	// Successfully deleted
-	return nil // Success
+
+	txn.Commit()
+
+	return nil
 }

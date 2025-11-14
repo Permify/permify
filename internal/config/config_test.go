@@ -168,7 +168,7 @@ func Test_isYAML(t *testing.T) {
 			tt.wantErr(t, isYAML(tt.args.file), fmt.Sprintf("isYAML(%v)", tt.args.file))
 		})
 	}
-} // End of Test_isYAML
+}
 
 // TestNewConfigWithFile tests config loading from file
 func TestNewConfigWithFile(t *testing.T) { // Test config with file
@@ -199,7 +199,7 @@ logger:
 	assert.Equal(t, "8080", cfg.Server.HTTP.Port)  // HTTP port
 	assert.Equal(t, "9090", cfg.Server.GRPC.Port)  // gRPC port
 	assert.Equal(t, "debug", cfg.Log.Level)        // Log level
-} // End of TestNewConfigWithFile
+}
 
 // TestNewConfigWithFile_InvalidConfig tests invalid config handling
 func TestNewConfigWithFile_InvalidConfig(t *testing.T) { // Test invalid config
@@ -218,4 +218,4 @@ invalid config
 	cfg, err := NewConfigWithFile(tmpFile) // Load config
 	assert.Nil(t, cfg)                     // Config should be nil
 	assert.Error(t, err)                   // Error expected
-} // End of TestNewConfigWithFile_InvalidConfig
+}

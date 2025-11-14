@@ -29,11 +29,13 @@ func (b *BundleReader) Read(ctx context.Context, tenantID, name string) (bundle 
 	if err != nil {
 		return bundle, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
+
 	// Convert raw result to Bundle type
 	bun, ok := raw.(storage.Bundle)
 	if ok {
 		return bun.DataBundle, err
-	} // End of bundle conversion check
+	}
+
 	// Bundle not found
 	return nil, errors.New(base.ErrorCode_ERROR_CODE_BUNDLE_NOT_FOUND.String())
 }

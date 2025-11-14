@@ -50,7 +50,7 @@ func Migrate(conf config.Database) (err error) {
 		_, err = utils.EnsureDBVersion(db.ReadPool)
 		if err != nil { // Version check failed
 			return err // Return version error
-		} // End of version check
+		}
 		// Set table name for migrations
 		goose.SetTableName(migrationsTable)
 

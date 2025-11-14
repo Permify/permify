@@ -18,11 +18,11 @@ import (
 // NewGenerateASTCommand creates a new cobra.Command to generate the Abstract Syntax Tree (AST) from a given file.
 // The command expects exactly one argument, which is the URL or path to the file.
 // It also allows for flags registration for further validation (like coverage flags).
-func NewGenerateASTCommand() *cobra.Command {
+func NewGenerateAstCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "ast <file>",
 		Short: "Generates the AST from a specified file and prints it as JSON.",
-		RunE:  runGenerateAST(),
+		RunE:  runGenerateAst(),
 		Args:  cobra.ExactArgs(1),
 	}
 
@@ -38,7 +38,7 @@ func NewGenerateASTCommand() *cobra.Command {
 
 // runGenerateAST creates a closure that generates the AST and returns its JSON representation.
 // Depending on the "pretty" flag, the output can be either pretty-printed or raw.
-func runGenerateAST() func(cmd *cobra.Command, args []string) error {
+func runGenerateAst() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// Fetch the value of the "pretty" flag.
 		pretty := viper.GetBool("pretty")

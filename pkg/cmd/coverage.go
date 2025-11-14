@@ -1,21 +1,19 @@
-package cmd // Command package
+package cmd
 
-import ( // Package imports
-	"fmt"     // Formatting utilities
-	"net/url" // URL parsing
-	"os"      // OS utilities
+import (
+	"fmt"
+	"net/url"
+	"os"
 
-	// External dependencies
-	"github.com/gookit/color" // Terminal colors
-	"github.com/spf13/cobra"  // Cobra CLI framework
-	"github.com/spf13/viper"  // Configuration management
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
-	// Internal dependencies
-	"github.com/Permify/permify/pkg/cmd/flags"                // Command flags
-	cov "github.com/Permify/permify/pkg/development/coverage" // Coverage package
-	"github.com/Permify/permify/pkg/development/file"         // File handling
-	"github.com/Permify/permify/pkg/schema"                   // Schema package
-) // End of imports
+	"github.com/Permify/permify/pkg/cmd/flags"
+	cov "github.com/Permify/permify/pkg/development/coverage"
+	"github.com/Permify/permify/pkg/development/file"
+	"github.com/Permify/permify/pkg/schema"
+)
 
 // NewCoverageCommand - creates a new coverage command
 func NewCoverageCommand() *cobra.Command {
@@ -75,36 +73,35 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 
 		s.Schema = loaded
 		// Validate schema before coverage analysis
-		color.Notice.Println("initiating validation... 🚀") // Start validation
-		validator := validate()                            // Get validator function
-		err = validator(cmd, args)                         // Run validation
-		if err != nil {                                    // Check validation result
-			color.Danger.Println("failed to validate given file\n") // Validation failed
-			color.Danger.Println("FAILED")                          // Print failure
-			return err                                              // Return validation error
-		} // End validation check
+		color.Notice.Println("initiating validation... 🚀")
+		validator := validate()
+		err = validator(cmd, args)
+		if err != nil {
+			color.Danger.Println("failed to validate given file\n")
+			color.Danger.Println("FAILED")
+			return err
+		}
 		// Run coverage analysis
 		color.Notice.Println("initiating coverage analysis... 🚀")
 
 		schemaCoverageInfo := cov.Run(*s)
 		// Display coverage results
-		DisplayCoverageInfo(schemaCoverageInfo) // Show coverage information
+		DisplayCoverageInfo(schemaCoverageInfo)
 		// Check assertions coverage threshold
-		if schemaCoverageInfo.TotalAssertionsCoverage < coverageAssertions { // Assertions below threshold
-			color.Danger.Printf("assertions coverage < %d%%\n", coverageAssertions) // Print error
-			color.Danger.Println("FAILED")                                          // Print failure status
-			os.Exit(1)                                                              // Exit with error code
-		} // End assertions check
+		if schemaCoverageInfo.TotalAssertionsCoverage < coverageAssertions {
+			color.Danger.Printf("assertions coverage < %d%%\n", coverageAssertions)
+			color.Danger.Println("FAILED")
+			os.Exit(1)
+		}
 		// Check relationships coverage threshold
-		if schemaCoverageInfo.TotalRelationshipsCoverage < coverageRelationships { // Relationships below threshold
-			color.Danger.Printf("relationships coverage < %d%%\n", coverageRelationships) // Print error
-			color.Danger.Println("FAILED")                                                // Print failure status
-			os.Exit(1)                                                                    // Exit with error code
-		} // End relationships check
+		if schemaCoverageInfo.TotalRelationshipsCoverage < coverageRelationships {
+			color.Danger.Printf("relationships coverage < %d%%\n", coverageRelationships)
+			color.Danger.Println("FAILED")
+			os.Exit(1)
+		}
 
 		if schemaCoverageInfo.TotalAttributesCoverage < coverageAttributes {
 			color.Danger.Printf("attributes coverage < %d%%\n", coverageAttributes)
-			// print FAILED with color danger
 			color.Danger.Println("FAILED")
 			os.Exit(1)
 		}

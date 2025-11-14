@@ -12,37 +12,46 @@ import (
 	"github.com/Permify/permify/pkg/cmd"
 )
 
-func main() { // Application entry point
-	kuberesolver.RegisterInCluster()                               // Register Kubernetes resolver
-	balancer.Register(consistentbalancer.NewBuilder(xxhash.Sum64)) // Register consistent hash balancer
+func main() {
+	kuberesolver.RegisterInCluster()
+	balancer.Register(consistentbalancer.NewBuilder(xxhash.Sum64))
+
 	// Setup CLI commands
-	root := cmd.NewRootCommand() // Create root command
+	root := cmd.NewRootCommand()
+
 	// Add serve command
-	serve := cmd.NewServeCommand() // Server command
-	root.AddCommand(serve)         // Register serve command
+	serve := cmd.NewServeCommand()
+	root.AddCommand(serve)
+
 	// Add validate command
-	validate := cmd.NewValidateCommand() // Schema validation command
-	root.AddCommand(validate)            // Register validate command
+	validate := cmd.NewValidateCommand()
+	root.AddCommand(validate)
+
 	// Add coverage command
-	coverage := cmd.NewCoverageCommand() // Test coverage command
-	root.AddCommand(coverage)            // Register coverage command
+	coverage := cmd.NewCoverageCommand()
+	root.AddCommand(coverage)
+
 	// Add AST generation command
-	ast := cmd.NewGenerateASTCommand() // AST generation command
-	root.AddCommand(ast)               // Register AST command
+	ast := cmd.NewGenerateAstCommand()
+	root.AddCommand(ast)
 
-	migrate := cmd.NewMigrateCommand() // Database migration command
-	root.AddCommand(migrate)           // Register migrate command
-	// Version command registration
-	version := cmd.NewVersionCommand() // Version info command
-	root.AddCommand(version)           // Register version command
-	// Config command registration
-	config := cmd.NewConfigCommand() // Configuration command
-	root.AddCommand(config)          // Register config command
-	// Repair command registration
-	repair := cmd.NewRepairCommand() // Database repair command
-	root.AddCommand(repair)          // Register repair command
+	// Add migrate command
+	migrate := cmd.NewMigrateCommand()
+	root.AddCommand(migrate)
 
-	if err := root.Execute(); err != nil { // Run command
+	// Add version command
+	version := cmd.NewVersionCommand()
+	root.AddCommand(version)
+
+	// Add config command
+	config := cmd.NewConfigCommand()
+	root.AddCommand(config)
+
+	// Add repair command
+	repair := cmd.NewRepairCommand()
+	root.AddCommand(repair)
+
+	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

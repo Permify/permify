@@ -395,13 +395,14 @@ func InterceptorLogger(l *slog.Logger) logging.Logger {
 	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
 		l.Log(ctx, slog.Level(lvl), msg, fields...)
 	})
-} // End of InterceptorLogger
+}
 
-func httpNameFormatter(_ string, req *http.Request) string { // Format HTTP span name
-	pp, ok := runtime.HTTPPattern(req.Context()) // Get HTTP pattern
-	path := "<not found>"                        // Default path
-	if ok {                                      // Pattern found
-		path = pp.String() // Get path string
-	} // Path determined
-	return req.Method + " " + path // Return formatted name
-} // End of httpNameFormatter
+// httpNameFormatter formats the HTTP span name.
+func httpNameFormatter(_ string, req *http.Request) string {
+	pp, ok := runtime.HTTPPattern(req.Context())
+	path := "<not found>"
+	if ok {
+		path = pp.String()
+	}
+	return req.Method + " " + path
+}

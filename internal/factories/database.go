@@ -60,13 +60,15 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 				return nil, err
 			}
 		}
+
 		// Verify postgres version compatibility
 		// Check postgres version compatibility with the database
 		_, err = utils.EnsureDBVersion(db.(*PQDatabase.Postgres).ReadPool)
 		if err != nil { // Version check failed
 			return nil, err // Return version error
-		} // End of version check
+		}
 		// Return database instance
+
 		return db, err
 	case database.MEMORY.String():
 		db, err = IMDatabase.New(migrations.Schema)
